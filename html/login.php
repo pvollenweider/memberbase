@@ -5,7 +5,7 @@ $charset = "UTF-8";
 require_once __DIR__ . '/includes/auth.inc';
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_set_cookie_params(['lifetime'=>0,'path'=>'/','httponly'=>true,'samesite'=>'Lax','secure'=>isset($_SERVER['HTTPS'])]);
+    session_set_cookie_params(['lifetime'=>0,'path'=>'/','httponly'=>true,'samesite'=>'Lax','secure'=>true]);
     session_start();
 }
 

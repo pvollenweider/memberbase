@@ -6,16 +6,19 @@ $_auRows = $pdo->query(
      FROM app_users ORDER BY role DESC, username ASC"
 )->fetchAll(PDO::FETCH_OBJ);
 ?>
-<?php if (!empty($_GET['reset_pw']) && !empty($_GET['reset_uid'])):
+<?php
+$__flash = $_SESSION['reset_pw_flash'] ?? null;
+unset($_SESSION['reset_pw_flash']); // consume immediately
+if ($__flash):
   $__resetUser = $pdo->prepare("SELECT username FROM app_users WHERE id=?");
-  $__resetUser->execute([(int)$_GET['reset_uid']]);
+  $__resetUser->execute([(int)$__flash['uid']]);
   $__resetUsername = $__resetUser->fetchColumn() ?: '?';
 ?>
 <div class="alert alert-success d-flex gap-2 align-items-start py-2 mb-3" style="font-size:0.875rem">
   <i class="fas fa-key mt-1 flex-shrink-0" aria-hidden="true"></i>
   <span>
     Mot de passe temporaire pour <strong><?= htmlspecialchars($__resetUsername, ENT_QUOTES, $charset) ?></strong> :
-    <code class="ms-1 user-select-all"><?= htmlspecialchars($_GET['reset_pw'], ENT_QUOTES, $charset) ?></code>
+    <code class="ms-1 user-select-all"><?= htmlspecialchars($__flash['pw'], ENT_QUOTES, $charset) ?></code>
     <br><small class="text-muted">Communiquez-le à l'utilisateur. Il devra le changer à la prochaine connexion.</small>
   </span>
 </div>

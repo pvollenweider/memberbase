@@ -509,10 +509,12 @@ if (isset($_REQUEST['action'])) {
     } else if ($_REQUEST['action'] === 'resetUserPassword') {
         if (!isAdmin()) { http_response_code(403); exit; }
         $targetId  = (int)($_POST['target_id'] ?? 0);
-        $tempPw    = bin2hex(random_bytes(6)); // 12-char hex temp password
+        $tempPw    = bin2hex(random_bytes(6));
         $pdo->prepare("UPDATE app_users SET password_hash=?, force_password_change=1 WHERE id=?")
             ->execute([password_hash($tempPw, PASSWORD_DEFAULT), $targetId]);
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&reset_pw=' . urlencode($tempPw) . '&reset_uid=' . $targetId);
+        // Store temp password in session flash — never in URL
+        $_SESSION['reset_pw_flash'] = ['uid' => $targetId, 'pw' => $tempPw];
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
         exit;
     }
 }
