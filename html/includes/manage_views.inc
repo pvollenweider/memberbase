@@ -29,8 +29,8 @@ if (isset($_REQUEST['view'])) {
         $user->lookupUser($_REQUEST['id']);
         ?>
 <div class="alert alert-warning">
-        <h2><?=$GLOBAL['delete']?> <?=$user->firstName?> <?=$user->lastName?> ?</h2>
-        <a class="btn btn-danger btn-lg" href="<?=$_SERVER['PHP_SELF']?>?view=deleteUserConfirm&amp;id=<?=$user->id?>" >
+        <h2><?=$GLOBAL['delete']?> <?=htmlspecialchars($user->firstName, ENT_QUOTES, 'UTF-8')?> <?=htmlspecialchars($user->lastName, ENT_QUOTES, 'UTF-8')?> ?</h2>
+        <a class="btn btn-danger btn-lg" href="<?=$_SERVER['PHP_SELF']?>?view=deleteUserConfirm&amp;id=<?=(int)$user->id?>" >
           Supprimer 
         </a>
 <a href="<?=$_SERVER['PHP_SELF']?>" class="btn btn-secondary btn-lg">
@@ -45,9 +45,6 @@ if (isset($_REQUEST['view'])) {
         $user->remove();
         $logger->debug("Dispaching view_users.inc");
         include "view_users.inc";
-    } else if ($_REQUEST['view'] == 'manageTeam') {
-        $logger->debug("Dispaching manage_teams.inc");
-        include "manage_teams.inc";
     } else if ($_REQUEST['view'] == 'manageTeam') {
         $logger->debug("Dispaching manage_teams.inc");
         include "manage_teams.inc";
@@ -118,10 +115,10 @@ if (isset($_REQUEST['view'])) {
                 <div><span class="text-muted">Montant&nbsp;:</span> <strong><?=$compta->sum?> CHF</strong></div>
               </div>
               <div class="d-flex gap-2 justify-content-center">
-                <a href="<?=$_SERVER['PHP_SELF']?>?view=updateUser&amp;userid=<?=$_REQUEST['userid']?>" class="btn btn-outline-secondary">
+                <a href="<?=$_SERVER['PHP_SELF']?>?view=updateUser&amp;userid=<?=(int)$_REQUEST['userid']?>" class="btn btn-outline-secondary">
                   Annuler
                 </a>
-                <a href="<?=$_SERVER['PHP_SELF']?>?view=deleteComptaConfirm&amp;userid=<?=$_REQUEST['userid']?>&comptaid=<?=$compta->getId()?>" class="btn btn-danger">
+                <a href="<?=$_SERVER['PHP_SELF']?>?view=deleteComptaConfirm&amp;userid=<?=(int)$_REQUEST['userid']?>&comptaid=<?=$compta->getId()?>" class="btn btn-danger">
                   Supprimer
                 </a>
               </div>
@@ -151,10 +148,10 @@ if (isset($_REQUEST['view'])) {
         $userProperty ->lookupUserProperty($_REQUEST['suiviid']);
         ?><div class="alert alert-warning">
         <h2><?=$GLOBAL['delete']?> <?=timeStampToformatedDate($userProperty->date)?> / <?=htmlentities($userProperty->getValue(),ENT_COMPAT,$charset)?>?</h2>
-        <a href="<?=$_SERVER['PHP_SELF']?>?view=removeSuiviConfirm&amp;userid=<?=$_REQUEST['userid']?>&amp;suiviid=<?=$userProperty->getId()?>" class="btn btn-danger btn-lg">
+        <a href="<?=$_SERVER['PHP_SELF']?>?view=removeSuiviConfirm&amp;userid=<?=(int)$_REQUEST['userid']?>&amp;suiviid=<?=$userProperty->getId()?>" class="btn btn-danger btn-lg">
             Supprimer
         </a>
-        <a href="<?=$_SERVER['PHP_SELF']?>?view=suivi&amp;userid=<?=$_REQUEST['userid']?>&amp;suiviid=<?=$_REQUEST['suiviid']?>" class="btn btn-secondary btn-lg">
+        <a href="<?=$_SERVER['PHP_SELF']?>?view=suivi&amp;userid=<?=(int)$_REQUEST['userid']?>&amp;suiviid=<?=(int)$_REQUEST['suiviid']?>" class="btn btn-secondary btn-lg">
             Conserver
         </a>
 	</div>

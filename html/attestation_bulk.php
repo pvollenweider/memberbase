@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/includes/auth.inc';
+requireLogin();
+ob_start();
 set_time_limit(120);
 
 include "includes/declarations.inc";

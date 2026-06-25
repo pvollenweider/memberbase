@@ -1,4 +1,7 @@
-<?php 
+<?php
+require_once __DIR__ . '/includes/auth.inc';
+requireLogin();
+ob_start();
 $charset = "ISO-8859-1";
 //header("Content-Type: text/html; charset=$charset");
 

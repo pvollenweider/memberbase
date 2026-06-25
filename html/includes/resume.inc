@@ -44,12 +44,12 @@ if ($year != -2) {
     $_sAtt->execute([$_kFrom,$_kTo]); $_kAttestations = (int)$_sAtt->fetchColumn();
 
     $_kDonMoyen = $_kDonateurs > 0 ? $_kTotal / $_kDonateurs : 0;
-    $_kLapsed   = $_kDonateurs1 - $_kRecurrents;
 
     $_sRec = $pdo->prepare("SELECT COUNT(DISTINCT c.user_id) FROM compta c WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($_excl) AND c.user_id IN (SELECT DISTINCT user_id FROM compta WHERE date>? AND date<? AND type_id NOT IN ($_excl))");
     $_sRec->execute([$_kFrom, $_kTo, $_kFrom1, $_kTo1]);
     $_kRecurrents = (int)$_sRec->fetchColumn();
     $_kNouveaux   = $_kDonateurs - $_kRecurrents;
+    $_kLapsed     = $_kDonateurs1 - $_kRecurrents;
 
     $_sTypeBreak = $pdo->prepare("SELECT ct.label, ct.color, COALESCE(SUM(c.sum),0) AS total FROM compta c JOIN compta_type ct ON ct.id=c.type_id WHERE c.date>? AND c.date<? AND ct.is_excluded_from_donation=0 GROUP BY ct.id, ct.label, ct.color ORDER BY total DESC");
     $_sTypeBreak->execute([$_kFrom, $_kTo]);

@@ -1,4 +1,7 @@
-<?php 
+<?php
+require_once __DIR__ . '/includes/auth.inc';
+requireLogin();
+ob_start();
 include "includes/declarations.inc";
 include "classes/user_class.inc";
 include "classes/compta_class.inc";
