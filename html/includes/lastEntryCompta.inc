@@ -154,7 +154,7 @@ while ($row = $stmt->fetchObject()) {
 
         <td class="text-nowrap"><?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?></td>
         <td><?= htmlentities($libele, ENT_COMPAT, $charset) ?></td>
-        <td style="text-align:right;"><?= htmlentities(number_format($sum, 2, '.', ''), ENT_COMPAT, $charset) ?></td>
+        <td style="text-align:right;"><?= number_format($sum, 2, '.', '\'') ?></td>
         <td>
             <?= htmlentities($quittance, ENT_COMPAT, $charset) ?>
             <?php
