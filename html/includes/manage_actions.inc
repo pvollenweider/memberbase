@@ -26,6 +26,13 @@ if (isset($_REQUEST['action'])) {
                 $stmt->execute([$i, (int)$id]);
             }
         }
+    } else if ($_REQUEST['action'] == 'updateComptaTypeOrder') {
+        if (!empty($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
+            $stmt = $pdo->prepare("UPDATE compta_type SET sort_order=? WHERE id=?");
+            foreach ($_REQUEST['ids'] as $i => $id) {
+                $stmt->execute([$i, (int)$id]);
+            }
+        }
     } else if ($_REQUEST['action'] == 'updateTeamCategory') {
         $teamId = (int)$_REQUEST['id'];
         $categoryId = (int)($_REQUEST['categoryId'] ?? 0);

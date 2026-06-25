@@ -18,6 +18,7 @@ $stmtAll = $pdo->query("
         FROM metagroup j
         JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
         WHERE j.teamid IS NOT NULL
+        GROUP BY j.teamid
     ) cat ON cat.teamid = t.id
     WHERE 1=1 $whereHidden
     ORDER BY cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name

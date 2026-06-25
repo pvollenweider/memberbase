@@ -204,11 +204,9 @@ class User
     public function addMembership(int $teamId): void
     {
         global $pdo;
-        if (!$this->isMemberOfTeam($teamId)) {
-            $pdo->prepare("INSERT INTO user_properties (user_id,parameter,value) VALUES (?,?,?)")
-                ->execute([$this->id, "team_$teamId", 'true']);
-            $this->logger->info("Add team_$teamId for user $this->id");
-        }
+        $pdo->prepare("INSERT IGNORE INTO user_properties (user_id,parameter,value) VALUES (?,?,?)")
+            ->execute([$this->id, "team_$teamId", 'true']);
+        $this->logger->info("Add team_$teamId for user $this->id");
     }
 
     public function removeMembership(int $teamId): void

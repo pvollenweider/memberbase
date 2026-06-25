@@ -14,8 +14,14 @@ $stmtIn->execute([$mgId]);
 $memberTeamIds = $stmtIn->fetchAll(PDO::FETCH_COLUMN);
 $memberTeamIds = array_map('intval', $memberTeamIds);
 
-// All visible teams
+// All visible teams — members first, then non-members, each alphabetically
 $allTeams = $pdo->query("SELECT id, name FROM team WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+usort($allTeams, function($a, $b) use ($memberTeamIds) {
+    $aIn = in_array((int)$a->id, $memberTeamIds);
+    $bIn = in_array((int)$b->id, $memberTeamIds);
+    if ($aIn !== $bIn) return $bIn - $aIn;
+    return strcmp($a->name, $b->name);
+});
 ?>
 <div class="row justify-content-center mt-4">
   <div class="col-md-6 d-flex flex-column gap-4">

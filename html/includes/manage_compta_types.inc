@@ -15,7 +15,7 @@ $types = $pdo->query("
     FROM compta_type ct
     LEFT JOIN compta c ON c.type_id = ct.id
     GROUP BY ct.id, ct.label, ct.color, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation
-    ORDER BY ct.label ASC
+    ORDER BY ct.sort_order ASC, ct.label ASC
 ")->fetchAll(PDO::FETCH_OBJ);
 ?>
 
@@ -76,27 +76,27 @@ $types = $pdo->query("
     <table class="table table-sm table-hover align-middle">
       <thead>
         <tr>
-          <th style="width:40px">ID</th>
+          <th style="width:24px"></th>
           <th>Label</th>
           <th style="width:80px">Couleur</th>
           <th style="width:80px" class="text-end">Entrées</th>
-          <th style="width:70px" class="text-center">Ordre</th>
           <th style="width:60px" class="text-center" title="Compte comme cotisation">Coti</th>
           <th style="width:60px" class="text-center" title="Exclu des dons">Excl. don</th>
           <th style="width:130px"></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="ct-tbody">
         <?php foreach ($types as $ct): ?>
-        <tr id="row-<?= $ct->id ?>">
-          <td class="text-muted" style="font-size:0.8rem"><?= $ct->id ?></td>
+        <tr id="row-<?= $ct->id ?>" draggable="true" data-id="<?= $ct->id ?>">
+          <td class="text-center text-muted" style="cursor:grab;font-size:0.9rem">
+            <i class="fas fa-grip-vertical" aria-hidden="true"></i>
+          </td>
           <td><?= htmlentities($ct->label, ENT_COMPAT, $charset) ?></td>
           <td>
             <span class="d-inline-block rounded border <?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>"
                   style="width:28px;height:20px" title="<?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>"></span>
           </td>
           <td class="text-end text-muted" style="font-size:0.85rem"><?= $ct->cnt ?></td>
-          <td class="text-center text-muted" style="font-size:0.85rem"><?= $ct->sort_order ?></td>
           <td class="text-center">
             <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
               <input type="hidden" name="action" value="updateComptaType">
@@ -179,7 +179,56 @@ $types = $pdo->query("
   </div>
 </div>
 
+<style>
+#ct-tbody tr.drag-over { outline: 2px solid var(--ca-primary); outline-offset: -1px; }
+</style>
 <script>
+(function() {
+  var tbody = document.getElementById('ct-tbody');
+  if (!tbody) return;
+  var dragging = null;
+
+  tbody.addEventListener('dragstart', function(e) {
+    dragging = e.target.closest('tr');
+    dragging.style.opacity = '0.4';
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  tbody.addEventListener('dragend', function() {
+    if (dragging) dragging.style.opacity = '';
+    tbody.querySelectorAll('tr').forEach(function(r) { r.classList.remove('drag-over'); });
+    saveOrder();
+  });
+
+  tbody.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    var target = e.target.closest('tr[data-id]');
+    if (!target || target === dragging) return;
+    tbody.querySelectorAll('tr').forEach(function(r) { r.classList.remove('drag-over'); });
+    target.classList.add('drag-over');
+    var mid = target.getBoundingClientRect().top + target.getBoundingClientRect().height / 2;
+    if (e.clientY < mid) {
+      tbody.insertBefore(dragging, target);
+    } else {
+      tbody.insertBefore(dragging, target.nextSibling);
+    }
+  });
+
+  function saveOrder() {
+    var ids = Array.from(tbody.querySelectorAll('tr[data-id]')).map(function(r) { return r.dataset.id; });
+    var body = new URLSearchParams();
+    body.append('action', 'updateComptaTypeOrder');
+    body.append('view', 'manageComptaTypes');
+    ids.forEach(function(id) { body.append('ids[]', id); });
+    fetch(window.location.pathname, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+  }
+})();
+
 function toggleEdit(id) {
     var row  = document.getElementById('row-'  + id);
     var edit = document.getElementById('edit-' + id);
