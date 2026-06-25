@@ -28,8 +28,7 @@ if ($membreTeamId > 0) {
      href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;showAll=1&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>">Toutes entrées</a>
 
   <label class="ca-filter-btn d-flex align-items-center gap-1 ms-2" style="cursor:pointer;user-select:none">
-    <input type="checkbox" id="includeAttestation" <?= $includeAttestation ? 'checked' : '' ?>
-           onchange="var u=new URL(window.location);u.searchParams.set('includeAttestation',this.checked?1:0);window.location=u.toString();">
+    <input type="checkbox" id="includeAttestation" <?= $includeAttestation ? 'checked' : '' ?>>
     <i class="fas fa-file-pdf" aria-hidden="true"></i> Attestations demandées
   </label>
 
@@ -172,6 +171,12 @@ endforeach;
 <span style="font-size:9px">Found <?=$i?> rows. </span>
 <script>
 $(document).ready(function() {
+    document.getElementById('includeAttestation').addEventListener('change', function() {
+        var loc = window.location.href;
+        loc = loc.replace(/[?&]includeAttestation=[01]/, '');
+        var sep = loc.indexOf('?') === -1 ? '?' : '&';
+        window.location = loc + sep + 'includeAttestation=' + (this.checked ? 1 : 0);
+    });
     $.fn.dataTable.moment('DD/MM/YYYY');
     $('.export').DataTable({
         order: [[2, 'asc']],
