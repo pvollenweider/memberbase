@@ -155,20 +155,7 @@ while ($row = $stmt->fetchObject()) {
         <td class="text-nowrap"><?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?></td>
         <td><?= htmlentities($libele, ENT_COMPAT, $charset) ?></td>
         <td style="text-align:right;"><?= number_format($sum, 2, '.', '\'') ?></td>
-        <td>
-            <?= htmlentities($quittance, ENT_COMPAT, $charset) ?>
-            <?php
-            if ($quittance != "") {
-                ?>
-                <a href="../quittancedon.php?userid=<?= $userId ?>&amp;comptaid=<?= $comptaid ?>"
-                   title="<?= $GLOBAL['exportQuittance'] ?>"
-                   onclick="event.stopPropagation()">
-                    <img src="../images/doc.gif" width="16" height="16" alt="doc" border="0" align="absmiddle"/>
-                </a>
-                <?php
-            }
-            ?>
-        </td>
+        <td><?= htmlentities($quittance, ENT_COMPAT, $charset) ?></td>
         <td><?= timeStampToformatedDate($user->getCreationDate()) ?></td>
 
     </tr>

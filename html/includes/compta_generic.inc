@@ -118,17 +118,7 @@ while ($row = $stmt->fetchObject()) {
         <td><?=timeStampToformatedDate($date)?></td>
         <td><?=htmlentities($libele,ENT_COMPAT,$charset)?></td>
         <td style="text-align:right;"><?=number_format($sum,2,'.','\'')?></td>
-        <td >
-            <?=$quittance?>
-            <?php
-            if ($quittance != "") {
-                ?>
-                <a href="quittancedon.php?userid=<?=$user->getId()?>&amp;comptaid=<?=$id?>" title="<?=$GLOBAL['exportQuittance']?>">
-                <i class="fas fa-arrow-circle-o-down l"></i></a>
-                <?php
-            }
-            ?>
-        </td>
+        <td><?= htmlspecialchars($quittance, ENT_QUOTES, $charset) ?></td>
         <td class="text-center">
             <?php if ($row->wants_attestation): ?>
                 <i class="fas fa-check text-success" aria-label="Souhaite une attestation" title="Souhaite une attestation de don"></i>

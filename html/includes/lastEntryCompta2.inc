@@ -116,18 +116,7 @@ while ($row = $stmt->fetchObject()) {
 
         <td><?=htmlentities($libele,ENT_COMPAT,$charset)?></td>
         <td style="text-align:right;"><?=htmlentities($sum,ENT_COMPAT,$charset)?></td>
-        <td>
-            <?=htmlentities($quittance,ENT_COMPAT,$charset)?>
-            <?php
-            if ($quittance != "") {
-                ?>
-                <a href="../quittancedon.php?userid=<?=$userId?>&amp;comptaid=<?=$comptaid?>" title="<?=$GLOBAL['exportQuittance']?>">
-                    <img src="../images/doc.gif" width="16" height="16" alt="doc" border="0" align="absmiddle"/>
-                </a>
-                <?php
-            }
-            ?>
-        </td>
+        <td><?= htmlentities($quittance, ENT_COMPAT, $charset) ?></td>
     </tr>
     <?php
     }
