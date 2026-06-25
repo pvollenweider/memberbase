@@ -15,7 +15,7 @@
                 data-bs-toggle="tab" data-bs-target="#tab-orga"
                 type="button" role="tab"
                 aria-controls="tab-orga" aria-selected="false">
-          <i class="fas fa-layer-group me-1" aria-hidden="true"></i>Organisation
+          <i class="fas fa-layer-group me-1" aria-hidden="true"></i>Catégories
         </button>
       </li>
     </ul>
