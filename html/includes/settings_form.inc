@@ -3,10 +3,30 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
 $saved = isset($_GET['saved']);
 ?>
 <div class="row justify-content-center mt-4">
-  <div class="col-md-6 d-flex flex-column gap-4">
+  <div class="col-md-8">
 
-    <div>
-      <p class="form-section-title" style="margin-top:0">Réglages</p>
+    <ul class="nav nav-tabs mb-3" id="settings-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-settings-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-settings"
+                type="button" role="tab"
+                aria-controls="tab-settings" aria-selected="true">
+          <i class="fas fa-cog me-1" aria-hidden="true"></i>Réglages
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-compta-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-compta"
+                type="button" role="tab"
+                aria-controls="tab-compta" aria-selected="false">
+          <i class="fas fa-tags me-1" aria-hidden="true"></i>Types de compta
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+    <div class="tab-pane fade show active" id="tab-settings" role="tabpanel" aria-labelledby="tab-settings-btn">
 
       <?php if ($saved): ?>
       <div class="alert alert-success py-2 px-3 mb-3" style="font-size:0.85rem" role="status">Réglages sauvegardés.</div>
@@ -32,7 +52,7 @@ $saved = isset($_GET['saved']);
         <!-- Membre team -->
         <div class="mb-4">
           <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team">Groupe membres (année de référence)</label>
-          <p class="text-muted mb-2" style="font-size:0.78rem">Utilisé comme référence pour les filtres cotisations (cotis non payées, etc.). Met à jour chaque année avec le groupe membres de l'année écoulée.</p>
+          <p class="text-muted mb-2" style="font-size:0.78rem">Groupe membres de l'année en cours (ex: «Membre 2026»). Utilisé pour les filtres cotisations et affiché dans le tableau de bord Contributions avec comparaison à l'année précédente. À mettre à jour chaque année.</p>
           <select name="membre_team" id="s_membre_team" class="form-select form-select-sm" style="max-width:320px">
             <?php foreach ($allTeams as $t): ?>
             <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['membre_team'] === (int)$t->id ? 'selected' : '' ?>>
@@ -59,12 +79,29 @@ $saved = isset($_GET['saved']);
       </form>
     </div>
 
-    <div>
-      <p class="form-section-title">Types de compta</p>
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=manageComptaTypes" class="btn btn-outline-secondary btn-sm">
-        <i class="fas fa-tags me-1" aria-hidden="true"></i>Gérer les types
-      </a>
-    </div>
+    </div><!-- #tab-settings -->
+
+    <div class="tab-pane fade" id="tab-compta" role="tabpanel" aria-labelledby="tab-compta-btn">
+      <?php $ctEmbedded = true; $ctReturnView = 'settings'; include 'manage_compta_types.inc'; ?>
+    </div><!-- #tab-compta -->
+
+    </div><!-- .tab-content -->
+
+    <script>
+    (function() {
+      var STORAGE_KEY = 'settings_activeTab';
+      var tabs = document.getElementById('settings-tabs');
+      if (!tabs) return;
+      var saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        var btn = tabs.querySelector('[data-bs-target="' + saved + '"]');
+        if (btn) { bootstrap.Tab.getOrCreateInstance(btn).show(); }
+      }
+      tabs.addEventListener('shown.bs.tab', function(e) {
+        sessionStorage.setItem(STORAGE_KEY, e.target.getAttribute('data-bs-target'));
+      });
+    })();
+    </script>
 
   </div>
 </div>

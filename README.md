@@ -45,7 +45,11 @@ Application web PHP de gestion des membres, groupes, cotisations et dons pour Ca
 |-----|-------------|
 | **Compta** (`lastEntryCompta`) | Dernières entrées compta, filtrable par type et année, export DataTables |
 | **Suivi** (`lastEntrySuivi`) | Dernières notes de suivi, filtrable par année |
-| **Gros donateurs** (`resume`) | Donateurs classés par total annuel, filtre min CHF (1 / 100 / 200 / 500 / 1000), filtre année, mode "toutes entrées", filtre "attestation demandée" |
+| **Contributions** (`resume`) | Donateurs classés par total annuel, filtre min CHF (1 / 100 / 200 / 500 / 1000), filtre année, mode "toutes entrées", filtre "attestation demandée". KPIs: total CHF, delta même période N-1, progression vs total N-1, donateurs fidèles/nouveaux/perdus cliquables, répartition par type |
+| **Donateurs fidèles** (`loyalDonors`) | Donateurs ayant contribué en N et N-1, avec comparaison des deux montants |
+| **Nouveaux donateurs** (`newDonors`) | Primo-donateurs de l'année (pas de don en N-1) |
+| **Donateurs perdus** (`lapsedDonors`) | Donateurs de N-1 absents en N, avec création de groupe de relance |
+| **Membres perdus** (`lapsedMembers`) | Membres de l'équipe N-1 non reconduits en N, avec création de groupe de relance |
 
 ### Attestations de dons (PDF)
 
@@ -74,7 +78,7 @@ Application web PHP de gestion des membres, groupes, cotisations et dons pour Ca
 ## Stack technique
 
 - **Backend**: PHP 8, PDO/MySQL (MariaDB)
-- **Frontend**: Bootstrap 5.3, DataTables 1.13, jQuery 3, Font Awesome 6, Chart.js
+- **Frontend**: Bootstrap 5.3.8, DataTables 1.13, jQuery 3, Font Awesome 6, Chart.js, moment.js 2.30 — tous auto-hébergés (zéro CDN)
 - **PDF**: pdftk (fill AcroForm) sur le serveur
 - **Génération documents**: MHTML (quittances Word)
 
@@ -99,7 +103,11 @@ html/
 │   ├── update_compta_form.inc  # Formulaire édition entrée compta
 │   ├── lastEntryCompta.inc     # Vue activité compta
 │   ├── lastEntrySuivi.inc      # Vue activité suivi
-│   ├── resume.inc              # Vue gros donateurs
+│   ├── resume.inc              # Vue contributions (KPIs + liste donateurs)
+│   ├── loyal_donors.inc        # Vue donateurs fidèles
+│   ├── new_donors.inc          # Vue nouveaux donateurs
+│   ├── lapsed_donors.inc       # Vue donateurs perdus
+│   ├── lapsed_members.inc      # Vue membres perdus
 │   ├── manage_compta_types.inc # UI gestion types compta
 │   ├── settings_form.inc       # Réglages application
 │   └── ...
@@ -108,8 +116,13 @@ html/
 │   └── compta_class.inc        # Classe Compta
 ├── locales/
 │   └── resources_fr.inc        # Libellés français (UTF-8)
-└── css/
-    └── custom.css              # Design system Casa Alianza
+├── css/
+│   ├── custom.css              # Design system Casa Alianza
+│   └── vendor/                 # Bootstrap, DataTables, Inter (auto-hébergés)
+├── js/
+│   └── vendor/                 # Bootstrap, DataTables, moment, jszip, pdfmake, Chart.js
+└── fonts/
+    └── inter/                  # Inter woff2 (latin + latin-ext)
 ```
 
 ## Déploiement

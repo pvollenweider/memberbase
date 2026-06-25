@@ -66,6 +66,18 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] == 'resume') {
         $logger->debug("Dispaching resume.inc");
         include "resume.inc";
+    } else if ($_REQUEST['view'] == 'lapsedDonors') {
+        $logger->debug("Dispaching lapsed_donors.inc");
+        include "lapsed_donors.inc";
+    } else if ($_REQUEST['view'] == 'loyalDonors') {
+        $logger->debug("Dispaching loyal_donors.inc");
+        include "loyal_donors.inc";
+    } else if ($_REQUEST['view'] == 'newDonors') {
+        $logger->debug("Dispaching new_donors.inc");
+        include "new_donors.inc";
+    } else if ($_REQUEST['view'] == 'lapsedMembers') {
+        $logger->debug("Dispaching lapsed_members.inc");
+        include "lapsed_members.inc";
     } else if ($_REQUEST['view'] == 'resume2') {
         $logger->debug("Dispaching resume2.inc");
         include "resume2.inc";
@@ -87,17 +99,32 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] == 'removeCompta') {
         $compta = new Compta();
         $compta->lookupCompta($_REQUEST['comptaid']);
-        ?><div class="alert alert-warning">
-        <h2><?=$GLOBAL['delete']?> <?=timeStampToformatedDate($compta->date)?><br/><?=htmlentities($compta->getLibele(),ENT_COMPAT,$charset)?><br/><?=$compta->sum?> ?</h2>
-        <a href="<?=$_SERVER['PHP_SELF']?>?view=deleteComptaConfirm&amp;userid=<?=$_REQUEST['userid']?>&comptaid=<?=$compta->getId()?>" class="btn btn-danger btn-lg">
-            Supprimer
-        </a>
-        <a href="<?=$_SERVER['PHP_SELF']?>?view=updateUser&amp;userid=<?=$_REQUEST['userid']?>" class="btn btn-secondary btn-lg">
-            Conserver
-        </a>
+        ?>
+        <div class="d-flex justify-content-center align-items-center" style="min-height:50vh">
+          <div class="card shadow-sm border-0" style="max-width:420px;width:100%">
+            <div class="card-body p-4 text-center">
+              <div class="mb-3" style="font-size:2rem;color:var(--bs-danger)">
+                <i class="fas fa-trash-alt" aria-hidden="true"></i>
+              </div>
+              <h5 class="card-title mb-1">Supprimer cette écriture&nbsp;?</h5>
+              <p class="text-muted mb-3" style="font-size:0.85rem">Cette action est irréversible.</p>
+              <div class="border rounded p-3 mb-4 text-start bg-light" style="font-size:0.875rem">
+                <div class="mb-1"><span class="text-muted">Date&nbsp;:</span> <strong><?=timeStampToformatedDate($compta->date)?></strong></div>
+                <div class="mb-1"><span class="text-muted">Libellé&nbsp;:</span> <strong><?=htmlentities($compta->getLibele(),ENT_COMPAT,$charset)?></strong></div>
+                <div><span class="text-muted">Montant&nbsp;:</span> <strong><?=$compta->sum?> CHF</strong></div>
+              </div>
+              <div class="d-flex gap-2 justify-content-center">
+                <a href="<?=$_SERVER['PHP_SELF']?>?view=updateUser&amp;userid=<?=$_REQUEST['userid']?>" class="btn btn-outline-secondary">
+                  Annuler
+                </a>
+                <a href="<?=$_SERVER['PHP_SELF']?>?view=deleteComptaConfirm&amp;userid=<?=$_REQUEST['userid']?>&comptaid=<?=$compta->getId()?>" class="btn btn-danger">
+                  Supprimer
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
-        <br/><br/>
-        <?php 
+        <?php
     } else if ($_REQUEST['view'] == 'deleteComptaConfirm') {
         $compta = new Compta();
         $compta->lookupCompta($_REQUEST['comptaid']);

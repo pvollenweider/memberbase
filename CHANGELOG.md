@@ -1,5 +1,41 @@
 # Changelog
 
+## [2.1.0] — 2026-06-25
+
+### Added
+
+#### Tableau de bord Contributions (résumé)
+- **Comparaison même période** : delta CHF + % vs jan–mois N-1 (comparaison apples-to-apples, remplace la comparaison partiel/complet trompeuse)
+- **Progression vs année précédente complète** : "Il manque X CHF pour atteindre N-1 (total) — Y% atteint" ou "Total N-1 dépassé de +X CHF (+Y%)"
+- **Donateurs fidèles cliquables** : lien "X fidèles" → vue liste des donateurs récurrents (ont donné en N et N-1) avec comparaison des deux années
+- **Nouveaux donateurs cliquables** : lien "X nouveaux" → vue liste des primo-donateurs (ont donné en N, pas en N-1) avec date de premier don
+- Même période N-1 affiché aussi sur la card Donateurs (delta % + count)
+- Nouvelles vues `loyalDonors` et `newDonors` avec DataTable, export, sélecteur d'année et retour vers résumé
+
+#### Suppression d'écriture compta
+- Page de confirmation redessinée : card centrée, récap structuré (date / libellé / montant), bouton Annuler en premier, Supprimer en rouge
+
+#### Groupes dans la fiche membre (generalData)
+- Ordre des catégories de groupes aligné sur manageTeam (`cat_sort` au lieu de l'ordre alphabétique)
+
+#### Assets locaux (zéro CDN)
+- Bootstrap, DataTables, DT Buttons, moment.js, jszip, pdfmake, Chart.js et Inter téléchargés localement (`css/vendor/`, `js/vendor/`, `fonts/inter/`)
+- Polyfills IE8 (html5shiv, respond.js) supprimés de `confirm-membership.php`
+
+### Changed
+
+- Bootstrap 5.3.3 → **5.3.8**
+- moment.js 2.21.0 → **2.30.1**
+- jszip 3.1.3 → **3.10.1**
+- pdfmake 0.1.36 → **0.3.11**
+- Label "Sexe" → **"Genre"** partout (locales + UI)
+- Icônes PDF attestations dans la vue résumé : bordure supprimée (`btn btn-sm py-0 px-1 text-muted`)
+- Padding et font-size réduits dans le dropdown de filtre par groupe ; séparateur entre catégories
+- Dropdown groupes : label en `font-size: 0.75rem`, items indentés (`padding-left: 1.5rem`)
+- Description `membre_team` dans les réglages clarifiée
+
+---
+
 ## [2.0.0] — 2026-06
 
 Complete overhaul of the members management application. All changes listed here represent improvements over the v1 codebase (`membres.casa-alianza.ch.old`); they were developed outside of git history and are consolidated as a single release.

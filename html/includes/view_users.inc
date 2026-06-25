@@ -69,7 +69,7 @@ if (isset($_REQUEST['year'])) {
 
                     <?=$currentTeamTitle?>
     </button>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="min-width:220px;max-height:80vh;overflow-y:auto">
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="min-width:220px;max-height:80vh;overflow-y:auto;font-size:0.75rem">
 
                     <div class="px-2 pb-1">
                       <input type="text" id="team-filter-input" class="form-control form-control-sm" placeholder="Filtrer…" autocomplete="off"
@@ -97,15 +97,15 @@ if (isset($_REQUEST['year'])) {
                     <h6 class="dropdown-header">
                       <i class="fas fa-bolt me-1" aria-hidden="true"></i>Filtres rapides
                     </h6>
-                    <a class="dropdown-item"
+                    <a class="dropdown-item" style="padding-left:1.5rem"
                        href="<?= $_SERVER['PHP_SELF'] ?>?team=-3"><?= $GLOBAL['allExceptArchives'] ?></a>
-                    <a class="dropdown-item"
+                    <a class="dropdown-item" style="padding-left:1.5rem"
                        href="<?= $_SERVER['PHP_SELF'] ?>?team=-3333"><?= $GLOBAL['cotiUnpayedLast3Years'] ?></a>
-                    <a class="dropdown-item"
+                    <a class="dropdown-item" style="padding-left:1.5rem"
                        href="<?= $_SERVER['PHP_SELF'] ?>?team=-5555"><?= $GLOBAL['nothingLast10Years'] ?></a>
-                    <a class="dropdown-item"
+                    <a class="dropdown-item" style="padding-left:1.5rem"
                        href="<?= $_SERVER['PHP_SELF'] ?>?team=-4"><?= $GLOBAL['cotiUnpayed'] ?></a>
-                    <a class="dropdown-item"
+                    <a class="dropdown-item" style="padding-left:1.5rem"
                        href="<?= $_SERVER['PHP_SELF'] ?>?team=-6666"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
 
                         <?php
@@ -129,6 +129,7 @@ if (isset($_REQUEST['year'])) {
                         while ($row = $stmtTeams->fetchObject()) {
                             $catId = (int)$row->cat_id;
                             if ($catId !== $prevCatId) {
+                                if ($prevCatId !== -1) echo '<div class="dropdown-divider my-0"></div>';
                                 $prevCatId = $catId;
                                 $label = $row->cat_name ?: 'Sans catégorie';
                                 echo '<h6 class="dropdown-header team-cat-header" data-cat="' . $catId . '" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">' . htmlentities($label, ENT_COMPAT, $charset) . '</h6>';
@@ -137,7 +138,8 @@ if (isset($_REQUEST['year'])) {
                             <a class="dropdown-item team-filterable <?php if ($team == $row->id) { ?>active<?php } ?>"
                                href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= (int)$row->id ?>"
                                data-label="<?= htmlentities(mb_strtolower($row->name), ENT_COMPAT, $charset) ?>"
-                               data-cat="<?= $catId ?>"><?= htmlentities($row->name, ENT_COMPAT, $charset) ?></a>
+                               data-cat="<?= $catId ?>"
+                               style="padding-left:1.5rem"><?= htmlentities($row->name, ENT_COMPAT, $charset) ?></a>
                             <?php
                         }
                     ?>

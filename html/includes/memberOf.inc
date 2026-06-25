@@ -34,36 +34,34 @@ while ($row = $stmtAll->fetchObject()) {
     }
 }
 
+$_catSortFn = function($a, $b) {
+    if (!$a['cat_id'] && $b['cat_id']) return 1;
+    if ($a['cat_id'] && !$b['cat_id']) return -1;
+    $s = $a['cat_sort'] <=> $b['cat_sort'];
+    return $s !== 0 ? $s : strcmp($a['cat_name'], $b['cat_name']);
+};
+
 // Group member teams by category
 $memberBycat = [];
 foreach ($memberTeams as $t) {
     $key = $t->cat_id . '|' . ($t->cat_name ?: '');
     if (!isset($memberBycat[$key])) {
-        $memberBycat[$key] = ['cat_id' => $t->cat_id, 'cat_name' => $t->cat_name, 'teams' => []];
+        $memberBycat[$key] = ['cat_id' => $t->cat_id, 'cat_name' => $t->cat_name, 'cat_sort' => (int)$t->cat_sort, 'teams' => []];
     }
     $memberBycat[$key]['teams'][] = $t;
 }
-// Sort: categories first (by name), uncategorized last
-uasort($memberBycat, function($a, $b) {
-    if (!$a['cat_id'] && $b['cat_id']) return 1;
-    if ($a['cat_id'] && !$b['cat_id']) return -1;
-    return strcmp($a['cat_name'], $b['cat_name']);
-});
+uasort($memberBycat, $_catSortFn);
 
 // Group non-member teams by category
 $nonMemberBycat = [];
 foreach ($nonMemberTeams as $t) {
     $key = $t->cat_id . '|' . ($t->cat_name ?: '');
     if (!isset($nonMemberBycat[$key])) {
-        $nonMemberBycat[$key] = ['cat_id' => $t->cat_id, 'cat_name' => $t->cat_name, 'teams' => []];
+        $nonMemberBycat[$key] = ['cat_id' => $t->cat_id, 'cat_name' => $t->cat_name, 'cat_sort' => (int)$t->cat_sort, 'teams' => []];
     }
     $nonMemberBycat[$key]['teams'][] = $t;
 }
-uasort($nonMemberBycat, function($a, $b) {
-    if (!$a['cat_id'] && $b['cat_id']) return 1;
-    if ($a['cat_id'] && !$b['cat_id']) return -1;
-    return strcmp($a['cat_name'], $b['cat_name']);
-});
+uasort($nonMemberBycat, $_catSortFn);
 ?>
 
 <p class="form-section-title" style="margin-top:0">Groupes</p>

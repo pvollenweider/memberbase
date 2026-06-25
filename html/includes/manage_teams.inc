@@ -1,7 +1,28 @@
 <div class="row mt-4">
   <div class="col-md-7 col-lg-6">
 
-    <p class="form-section-title" style="margin-top:0"><?= $GLOBAL['manageTeam'] ?></p>
+    <ul class="nav nav-tabs mb-3" id="manage-team-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-groupes-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-groupes"
+                type="button" role="tab"
+                aria-controls="tab-groupes" aria-selected="true">
+          <i class="fas fa-users me-1" aria-hidden="true"></i>Groupes
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-orga-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-orga"
+                type="button" role="tab"
+                aria-controls="tab-orga" aria-selected="false">
+          <i class="fas fa-layer-group me-1" aria-hidden="true"></i>Organisation
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+    <div class="tab-pane fade show active" id="tab-groupes" role="tabpanel" aria-labelledby="tab-groupes-btn">
 
     <?php
     // Member counts per team
@@ -204,8 +225,6 @@
     })();
     </script>
 
-    <hr class="my-4">
-
     <p class="form-section-title"><?= $GLOBAL['addTeam'] ?></p>
 
     <?php
@@ -268,9 +287,11 @@
 
     </form>
 
-    <hr class="my-4">
+    </div><!-- #tab-groupes -->
 
-    <p class="form-section-title">Catégories</p>
+    <div class="tab-pane fade" id="tab-orga" role="tabpanel" aria-labelledby="tab-orga-btn">
+
+    <p class="form-section-title" style="margin-top:0">Catégories</p>
     <p class="small text-muted mb-3">Organisent les groupes en sections visuelles dans les listes. Un groupe appartient à une seule catégorie.</p>
 
     <?php
@@ -371,7 +392,7 @@
       </div>
     </form>
 
-    <hr class="my-4">
+    <hr class="my-3">
 
     <p class="form-section-title">Filtres de groupes</p>
     <p class="small text-muted mb-3">Regroupent plusieurs groupes en un filtre dynamique — accessible depuis la barre de navigation.</p>
@@ -412,6 +433,26 @@
         <button type="submit" class="btn btn-outline-primary btn-sm flex-shrink-0">Ajouter</button>
       </div>
     </form>
+
+    </div><!-- #tab-orga -->
+
+    </div><!-- .tab-content -->
+
+    <script>
+    (function() {
+      var STORAGE_KEY = 'manageTeam_activeTab';
+      var tabs = document.getElementById('manage-team-tabs');
+      if (!tabs) return;
+      var saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        var btn = tabs.querySelector('[data-bs-target="' + saved + '"]');
+        if (btn) { bootstrap.Tab.getOrCreateInstance(btn).show(); }
+      }
+      tabs.addEventListener('shown.bs.tab', function(e) {
+        sessionStorage.setItem(STORAGE_KEY, e.target.getAttribute('data-bs-target'));
+      });
+    })();
+    </script>
 
   </div>
 </div>

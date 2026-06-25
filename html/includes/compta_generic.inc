@@ -166,58 +166,75 @@ while ($row = $stmt->fetchObject()) {
 </tfoot>
 </table>
 </form>
-<canvas id="myChart" style="position: relative; height:40vh; width:80vw"></canvas>
-
-<script>
-
-    var data = {
-        datasets: [{
-            label: 'Somme',
-        steppedLine: true,
-
-            data: [
-
 <?php
-
-$stmt = $pdo->query($query2);
-$total=0;
-while ($row = $stmt->fetchObject()) {
-    $date = timeStampToformatedDate($row->date);
-    $sum = $row->sum;
-    $total = $sum + $total;
-   ?>                { x: moment('<?=$date?>','DD/MM/YYYY'), y: <?=$total?> },
-<?php
+$_ctBg = [
+    'bg-primary-subtle'   => 'rgba(13,110,253,0.7)',
+    'bg-secondary-subtle' => 'rgba(108,117,125,0.7)',
+    'bg-success-subtle'   => 'rgba(25,135,84,0.7)',
+    'bg-danger-subtle'    => 'rgba(220,53,69,0.7)',
+    'bg-warning-subtle'   => 'rgba(255,193,7,0.7)',
+    'bg-info-subtle'      => 'rgba(13,202,240,0.7)',
+    'bg-light'            => 'rgba(173,181,189,0.7)',
+    'bg-dark-subtle'      => 'rgba(52,58,64,0.7)',
+];
+$_ctBorder = [
+    'bg-primary-subtle'   => 'rgba(13,110,253,1)',
+    'bg-secondary-subtle' => 'rgba(108,117,125,1)',
+    'bg-success-subtle'   => 'rgba(25,135,84,1)',
+    'bg-danger-subtle'    => 'rgba(220,53,69,1)',
+    'bg-warning-subtle'   => 'rgba(255,193,7,1)',
+    'bg-info-subtle'      => 'rgba(13,202,240,1)',
+    'bg-light'            => 'rgba(173,181,189,1)',
+    'bg-dark-subtle'      => 'rgba(52,58,64,1)',
+];
+$_typeAgg = [];
+$_stmt2 = $pdo->query($query2);
+while ($_r = $_stmt2->fetchObject()) {
+    $_lbl = $_r->ct_label ?? 'Sans type';
+    $_col = $_r->ct_color ?? 'bg-secondary-subtle';
+    if (!isset($_typeAgg[$_lbl])) $_typeAgg[$_lbl] = ['sum' => 0.0, 'color' => $_col];
+    $_typeAgg[$_lbl]['sum'] += (float)$_r->sum;
 }
+uasort($_typeAgg, fn($a, $b) => $b['sum'] <=> $a['sum']);
+$_tLabels = array_keys($_typeAgg);
+$_tData   = array_values(array_map(fn($v) => round($v['sum'], 2), $_typeAgg));
+$_tBg     = array_values(array_map(fn($v) => $_ctBg[$v['color']] ?? 'rgba(108,117,125,0.7)', $_typeAgg));
+$_tBorder = array_values(array_map(fn($v) => $_ctBorder[$v['color']] ?? 'rgba(108,117,125,1)', $_typeAgg));
+$_chartH  = max(120, count($_typeAgg) * 40);
 ?>
-            ],
-        },
-
-        ]
-    };
-    moment.locale('fr');
-    var ctx = document.getElementById("myChart");
-    var myChart = new Chart(ctx, {
-        type: 'line',
-        data: data,
+<?php if (count($_typeAgg) > 0): ?>
+<div class="mt-4" style="position:relative;height:<?= $_chartH ?>px">
+  <canvas id="myChart"></canvas>
+</div>
+<script>
+new Chart(document.getElementById('myChart'), {
+    type: 'horizontalBar',
+    data: {
+        labels: <?= json_encode($_tLabels) ?>,
+        datasets: [{
+            label: 'CHF',
+            data: <?= json_encode($_tData) ?>,
+            backgroundColor: <?= json_encode($_tBg) ?>,
+            borderColor: <?= json_encode($_tBorder) ?>,
+            borderWidth: 1
+        }]
+    },
+    options: {
         responsive: true,
-        options: {
-            scales: {
-                xAxes: [{
-                    type: 'time',
-                    scaleLabel: {
-                        display: true,
-                        labelString: "Date"
+        maintainAspectRatio: false,
+        legend: { display: false },
+        scales: {
+            xAxes: [{
+                ticks: {
+                    callback: function(v) {
+                        return v.toLocaleString('fr-CH') + ' CHF';
                     }
-                }],
-                yAxes: [{
-                    display: true,
-                    scaleLabel: {
-                        display: true,
-                        labelString: "Somme"
-                    }
-                }]
-            }
+                }
+            }]
         }
-    });
+    }
+});
 </script>
+<?php endif ?>
+
 

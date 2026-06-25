@@ -35,14 +35,19 @@ $types = $pdo->query("
 }
 </style>
 
+<?php $ctEmbedded = $ctEmbedded ?? false; $ctReturnView = $ctReturnView ?? 'manageComptaTypes'; ?>
+<?php if (!$ctEmbedded): ?>
 <div class="row justify-content-center mt-4">
   <div class="col-lg-8">
+<?php endif ?>
 
     <div class="d-flex align-items-baseline justify-content-between mb-3">
       <p class="form-section-title mb-0" style="margin-top:0">Types de compta</p>
+      <?php if (!$ctEmbedded): ?>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings" class="text-muted small text-decoration-none">
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Réglages
       </a>
+      <?php endif ?>
     </div>
 
     <!-- Add form -->
@@ -51,6 +56,7 @@ $types = $pdo->query("
         <p class="fw-semibold mb-2" style="font-size:0.85rem">Nouveau type</p>
         <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
           <input type="hidden" name="action" value="addComptaType">
+          <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
           <div>
             <label class="form-label form-label-sm mb-1" style="font-size:0.8rem">Label</label>
             <input type="text" name="label" class="form-control form-control-sm" style="width:200px" required>
@@ -100,6 +106,7 @@ $types = $pdo->query("
           <td class="text-center">
             <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
               <input type="hidden" name="action" value="updateComptaType">
+              <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="id" value="<?= $ct->id ?>">
               <input type="hidden" name="label" value="<?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="color" value="<?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>">
@@ -115,6 +122,7 @@ $types = $pdo->query("
           <td class="text-center">
             <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
               <input type="hidden" name="action" value="updateComptaType">
+              <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="id" value="<?= $ct->id ?>">
               <input type="hidden" name="label" value="<?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="color" value="<?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>">
@@ -131,7 +139,7 @@ $types = $pdo->query("
             <button type="button" class="btn btn-outline-secondary btn-sm py-0"
                     onclick="toggleEdit(<?= $ct->id ?>)">Modifier</button>
             <?php if ($ct->cnt == 0): ?>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?action=deleteComptaType&id=<?= $ct->id ?>"
+            <a href="<?= $_SERVER['PHP_SELF'] ?>?action=deleteComptaType&id=<?= $ct->id ?>&returnView=<?= urlencode($ctReturnView) ?>"
                class="btn btn-outline-danger btn-sm py-0"
                onclick="return confirm('Supprimer ce type ?')">Suppr.</a>
             <?php endif ?>
@@ -141,6 +149,7 @@ $types = $pdo->query("
           <td colspan="6" class="py-2">
             <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
               <input type="hidden" name="action" value="updateComptaType">
+              <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="id" value="<?= $ct->id ?>">
               <div>
                 <label class="form-label form-label-sm mb-1" style="font-size:0.8rem">Label</label>
@@ -176,8 +185,10 @@ $types = $pdo->query("
       </tbody>
     </table>
 
+<?php if (!$ctEmbedded): ?>
   </div>
 </div>
+<?php endif ?>
 
 <style>
 #ct-tbody tr.drag-over { outline: 2px solid var(--ca-primary); outline-offset: -1px; }

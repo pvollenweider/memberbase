@@ -190,6 +190,50 @@ if (isset($_REQUEST['action'])) {
             echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateMetagroup&id=' . $mid) . ');</script>';
             exit;
         }
+    } else if ($_REQUEST['action'] == 'createLapsedGroup') {
+        $groupType = $_REQUEST['groupType'] ?? 'donors'; // 'donors' or 'members'
+        $yr        = (int)($_REQUEST['year'] ?? date("Y"));
+        $excl      = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
+        $kFrom1    = mktime(0,0,0,1,0,$yr-1);
+        $kTo1      = mktime(0,0,0,1,1,$yr);
+        $kFrom     = mktime(0,0,0,1,0,$yr);
+        $kTo       = mktime(0,0,0,1,1,$yr+1);
+
+        if ($groupType === 'donors') {
+            $groupName = "Donateurs à relancer " . $yr . " (" . date("d.m.Y") . ")";
+            $stmt = $pdo->prepare("SELECT DISTINCT c.user_id FROM compta c WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($excl) AND c.user_id NOT IN (SELECT DISTINCT user_id FROM compta WHERE date>? AND date<? AND type_id NOT IN ($excl))");
+            $stmt->execute([$kFrom1, $kTo1, $kFrom, $kTo]);
+        } else {
+            $groupName = "Membres à relancer " . $yr . " (" . date("d.m.Y") . ")";
+            $membreTeamId  = (int)($appSettings['default_team'] ?? 0);
+            $prevTeamStmt  = $pdo->prepare("SELECT id FROM team WHERE name = ?");
+            $prevTeamStmt->execute(["Membre " . ($yr - 1)]);
+            $prevTeamId    = (int)$prevTeamStmt->fetchColumn();
+            if ($prevTeamId <= 0 || $membreTeamId <= 0) {
+                echo '<script>alert("Impossible de trouver les équipes membres.");history.back();</script>';
+                exit;
+            }
+            $stmt = $pdo->prepare("SELECT user_id FROM user_properties WHERE parameter=? AND value='true' AND user_id NOT IN (SELECT user_id FROM user_properties WHERE parameter=? AND value='true')");
+            $stmt->execute(["team_$prevTeamId", "team_$membreTeamId"]);
+        }
+        $userIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        if (empty($userIds)) {
+            echo '<script>alert("Aucun utilisateur à ajouter.");history.back();</script>';
+            exit;
+        }
+        $team = new Team();
+        $team->name = $groupName;
+        $team->setHidden(0);
+        $team->save();
+        $newTeamId = (int)$pdo->query("SELECT value FROM maxval WHERE parameter='teamid'")->fetchColumn();
+        if ($newTeamId > 0) {
+            $ins = $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, 'true')");
+            foreach ($userIds as $uid) {
+                $ins->execute([(int)$uid, "team_$newTeamId"]);
+            }
+        }
+        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?team=' . $newTeamId) . ');</script>';
+        exit;
     } else if ($_REQUEST['action'] == 'addTeam') {
         $team = new Team();
         $team->name = $_REQUEST['name'];
@@ -277,7 +321,8 @@ if (isset($_REQUEST['action'])) {
             $maxOrder = (int)$pdo->query("SELECT COALESCE(MAX(sort_order),0) FROM compta_type")->fetchColumn();
             $pdo->prepare("INSERT INTO compta_type (label, color, sort_order) VALUES (?, ?, ?)")->execute([$label, $color, $maxOrder + 1]);
         }
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=manageComptaTypes') . ');</script>';
+        $rv = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnView'] ?? 'manageComptaTypes');
+        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=' . $rv) . ');</script>';
         exit;
     } else if ($_REQUEST['action'] == 'updateComptaType') {
         $id = (int)($_REQUEST['id'] ?? 0);
@@ -291,7 +336,8 @@ if (isset($_REQUEST['action'])) {
         if ($id > 0 && $label !== '') {
             $pdo->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $id]);
         }
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=manageComptaTypes') . ');</script>';
+        $rv = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnView'] ?? 'manageComptaTypes');
+        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=' . $rv) . ');</script>';
         exit;
     } else if ($_REQUEST['action'] == 'deleteComptaType') {
         $id = (int)($_REQUEST['id'] ?? 0);
@@ -302,7 +348,8 @@ if (isset($_REQUEST['action'])) {
                 $pdo->prepare("DELETE FROM compta_type WHERE id=?")->execute([$id]);
             }
         }
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=manageComptaTypes') . ');</script>';
+        $rv = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnView'] ?? 'manageComptaTypes');
+        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=' . $rv) . ');</script>';
         exit;
     } else if ($_REQUEST['action'] == 'addMembership') {
         $user = new User();

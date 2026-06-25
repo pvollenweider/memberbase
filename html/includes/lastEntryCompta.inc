@@ -84,14 +84,14 @@ if ($addMem != -1) {
     <th class="d-none d-xl-table-cell"><?=$GLOBAL['society']?></th>
     <th><?=$GLOBAL['lastName']?></th>
     <th><?=$GLOBAL['firstName']?></th>
-    <th class="d-none d-xl-table-cell"><?=$GLOBAL['address']?></th>
-    <th class="d-none d-xl-table-cell"><?=$GLOBAL['npa']?></th>
+    <th><?=$GLOBAL['address']?></th>
+    <th><?=$GLOBAL['npa']?></th>
     <th><?=$GLOBAL['email']?></th>
     <th><?=$GLOBAL['type']?></th>
     <th><?=$GLOBAL['libele']?></th>
     <th><?=$GLOBAL['sum']?></th>
-    <th class="d-none d-xl-table-cell"><?=$GLOBAL['quittance']?></th>
-    <th class="d-none d-xl-table-cell"><?=$GLOBAL['creationDate']?></th>
+    <th><?=$GLOBAL['comment']?></th>
+    <th><?=$GLOBAL['creationDate']?></th>
 
 </tr>
 </thead>
@@ -148,27 +148,28 @@ while ($row = $stmt->fetchObject()) {
         <td class="d-none d-xl-table-cell"><div class="text-truncate" style="max-width:125px"><?= htmlentities($society, ENT_COMPAT, $charset) ?></div></td>
         <td class="text-nowrap"><div class="text-truncate" style="max-width:150px"><?= htmlentities($lastName, ENT_COMPAT, $charset) ?></div></td>
         <td class="text-nowrap"><div class="text-truncate" style="max-width:150px"><?= htmlentities($firstName, ENT_COMPAT, $charset) ?></div></td>
-        <td class="d-none d-xl-table-cell "><div class="text-truncate" style="max-width:125px"><?= htmlentities($address, ENT_COMPAT, $charset) ?></div></td>
-        <td class="d-none d-xl-table-cell text-nowrap"><div class="text-truncate" style="max-width:100px"><?= htmlentities($npa, ENT_COMPAT, $charset) ?></div></td>
+        <td><div class="text-truncate" style="max-width:125px"><?= htmlentities($address, ENT_COMPAT, $charset) ?></div></td>
+        <td class="text-nowrap"><div class="text-truncate" style="max-width:100px"><?= htmlentities($npa, ENT_COMPAT, $charset) ?></div></td>
         <td class="text-nowrap"><div class="text-truncate" style="max-width:150px"><?= htmlentities($email, ENT_COMPAT, $charset) ?></div></td>
 
         <td class="text-nowrap"><?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?></td>
         <td><?= htmlentities($libele, ENT_COMPAT, $charset) ?></td>
         <td style="text-align:right;"><?= htmlentities(number_format($sum, 2, '.', ''), ENT_COMPAT, $charset) ?></td>
-        <td class="d-none d-xl-table-cell">
+        <td>
             <?= htmlentities($quittance, ENT_COMPAT, $charset) ?>
             <?php
             if ($quittance != "") {
                 ?>
                 <a href="../quittancedon.php?userid=<?= $userId ?>&amp;comptaid=<?= $comptaid ?>"
-                   title="<?= $GLOBAL['exportQuittance'] ?>">
+                   title="<?= $GLOBAL['exportQuittance'] ?>"
+                   onclick="event.stopPropagation()">
                     <img src="../images/doc.gif" width="16" height="16" alt="doc" border="0" align="absmiddle"/>
                 </a>
                 <?php
             }
             ?>
         </td>
-        <td class="d-none d-xl-table-cell"><?= timeStampToformatedDate($user->getCreationDate()) ?></td>
+        <td><?= timeStampToformatedDate($user->getCreationDate()) ?></td>
 
     </tr>
     <?php
@@ -191,6 +192,9 @@ while ($row = $stmt->fetchObject()) {
         $('.export').DataTable({
             order: [[0, 'desc']],
             paging: false,
+            columnDefs: [
+                { targets: [4, 5, 6, 11], visible: false }
+            ],
             dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
             buttons: [
                 {
@@ -220,61 +224,77 @@ while ($row = $stmt->fetchObject()) {
     });
 </script>
 
+<?php
+$_frM = ['','Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+$_monthly = [];
+$_stmt2 = $pdo->query($query2);
+while ($_r = $_stmt2->fetchObject()) {
+    $_ts  = (int)$_r->date;
+    $_mk  = date('Y-m', $_ts);
+    $_lbl = $_frM[(int)date('n', $_ts)] . ' ' . date('Y', $_ts);
+    if (!isset($_monthly[$_mk])) $_monthly[$_mk] = ['label' => $_lbl, 'sum' => 0.0];
+    $_monthly[$_mk]['sum'] += (float)$_r->sum;
+}
+ksort($_monthly);
+$_labels = array_values(array_column($_monthly, 'label'));
+$_monthly_data = array_values(array_map(fn($v) => round($v['sum'], 2), $_monthly));
+$_cumul = 0.0;
+$_cumul_data = array_values(array_map(function($v) use (&$_cumul) {
+    $_cumul += $v['sum'];
+    return round($_cumul, 2);
+}, $_monthly));
+?>
 <div class="mt-4" style="position:relative;height:35vh">
   <canvas id="myChart"></canvas>
 </div>
-
 <script>
-
-    var data = {
-        datasets: [{
-            label: 'Somme',
-        steppedLine: true,
-
-            data: [
-
-<?php
-
-$stmt = $pdo->query($query2);
-$total=0;
-while ($row = $stmt->fetchObject()) {
-    $date = timeStampToformatedDate($row->date);
-    $sum = (float) $row->sum;
-    $total = $sum + $total;
-   ?>                { x: moment('<?=$date?>','DD/MM/YYYY'), y: <?=$total?> },
-<?php
-}
-?>
-            ],
-        },
-
-        ]
-    };
-    moment.locale('fr');
-    var ctx = document.getElementById("myChart");
-    var myChart = new Chart(ctx, {
-        type: 'line',
-        data: data,
-        responsive: true,
-        options: {
-            scales: {
-                xAxes: [{
-                    type: 'time',
-                    scaleLabel: {
-                        display: true,
-                        labelString: "Date"
-                    }
-                }],
-                yAxes: [{
-                    display: true,
-                    scaleLabel: {
-                        display: true,
-                        labelString: "Somme"
-                    }
-                }]
+new Chart(document.getElementById('myChart'), {
+    type: 'bar',
+    data: {
+        labels: <?= json_encode($_labels) ?>,
+        datasets: [
+            {
+                type: 'bar',
+                label: 'Mensuel',
+                data: <?= json_encode($_monthly_data) ?>,
+                backgroundColor: 'rgba(13,110,253,0.55)',
+                borderColor: 'rgba(13,110,253,1)',
+                borderWidth: 1,
+                yAxisID: 'y1'
+            },
+            {
+                type: 'line',
+                label: 'Cumulé',
+                data: <?= json_encode($_cumul_data) ?>,
+                borderColor: 'rgba(220,53,69,1)',
+                backgroundColor: 'rgba(220,53,69,0.08)',
+                borderWidth: 2,
+                pointRadius: 3,
+                fill: true,
+                yAxisID: 'y2'
             }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            yAxes: [
+                {
+                    id: 'y1',
+                    position: 'left',
+                    ticks: { callback: function(v) { return v.toLocaleString('fr-CH'); } },
+                    gridLines: { drawOnChartArea: false }
+                },
+                {
+                    id: 'y2',
+                    position: 'right',
+                    ticks: { callback: function(v) { return v.toLocaleString('fr-CH'); } }
+                }
+            ]
         }
-    });
+    }
+});
 </script>
 
 
