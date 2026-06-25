@@ -30,7 +30,7 @@ if (isset ($_REQUEST["searchString"])) {
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <a class="dropdown-item<?= $view == 'lastEntryCompta' ? ' active' : '' ?>" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta"><?= $GLOBAL['lastEntryCompta'] ?></a>
                         <a class="dropdown-item<?= $view == 'lastEntrySuivi' ? ' active' : '' ?>" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi"><?= $GLOBAL['lastEntrySuivi'] ?></a>
-                        <a class="dropdown-item<?= $view == 'resume' ? ' active' : '' ?>" href="<?= $_SERVER['PHP_SELF'] ?>?view=resume">Gros donateurs</a>
+                        <a class="dropdown-item<?= $view == 'resume' ? ' active' : '' ?>" href="<?= $_SERVER['PHP_SELF'] ?>?view=resume">Contributions</a>
                     </div>
                 </li>
                 <li class="nav-item<?= in_array($view, ['manageTeam','manageMetagroups','updateMetagroup','updateTeam']) ? ' active' : '' ?>">

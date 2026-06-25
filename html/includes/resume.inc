@@ -25,7 +25,7 @@ if ($membreTeamId > 0) {
      href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>"><?= $_ms ?></a>
   <?php endforeach ?>
   <a class="ca-filter-btn<?= $showAll ? ' active' : '' ?>"
-     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;showAll=1&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>">Toutes entrées</a>
+     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;showAll=1&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>"><?= $showAll ? 'Toutes entrées (cotis. incluses)' : 'Toutes entrées' ?></a>
 
   <label class="ca-filter-btn d-flex align-items-center gap-1 ms-2" style="cursor:pointer;user-select:none">
     <input type="checkbox" id="includeAttestation" <?= $includeAttestation ? 'checked' : '' ?>>
@@ -61,6 +61,12 @@ if ($membreTeamId > 0) {
   <?php endif ?>
 
 </div>
+<?php if ($showAll): ?>
+<div class="alert alert-warning d-flex align-items-start gap-2 py-2 mb-3" role="alert" style="font-size:0.85rem">
+  <i class="fas fa-triangle-exclamation mt-1 flex-shrink-0" aria-hidden="true"></i>
+  <span><strong>Mode étendu</strong> — tous les types comptables sont inclus (cotisations, frais, etc.). Les totaux ne reflètent pas uniquement les dons.</span>
+</div>
+<?php endif ?>
 <table class="table table-striped table-hover export">
 <thead>
 <tr>
