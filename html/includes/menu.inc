@@ -33,13 +33,12 @@ if (isset ($_REQUEST["searchString"])) {
                         <a class="dropdown-item<?= $view == 'resume' ? ' active' : '' ?>" href="<?= $_SERVER['PHP_SELF'] ?>?view=resume">Gros donateurs</a>
                     </div>
                 </li>
-                <li class="nav-item<?= $view == 'manageTeam' ? ' active' : '' ?>">
+                <li class="nav-item<?= in_array($view, ['manageTeam','manageMetagroups','updateMetagroup','updateTeam']) ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=manageTeam"
-                       title="<?= $GLOBAL['manageTeam'] ?>"><i class="fas fa-users"></i> <?= $GLOBAL['manageTeam'] ?></a>
+                       title="Groupes"><i class="fas fa-users"></i> Groupes</a>
                 </li>
-                <li class="nav-item<?= $view == 'manageMetagroups' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=manageMetagroups"
-                       title="Groupes de groupes"><i class="fas fa-layer-group"></i> Métagroupes</a>
+                <li class="nav-item<?= $view == 'settings' ? ' active' : '' ?>">
+                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings" title="Réglages"><i class="fas fa-cog"></i></a>
                 </li>
             </ul>
             <form class="d-flex gap-2 my-2 my-lg-0" role="search" action="<?= $_SERVER['PHP_SELF'] ?>" method="get">

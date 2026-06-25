@@ -145,7 +145,7 @@ class User
         $from = mktime(0, 0, 0, 1, 0, $year);
         $to   = mktime(0, 0, 0, 1, 1, $year + 1);
         return $this->firstComptaDate(
-            "SELECT date FROM compta WHERE user_id=? AND date>? AND date<? AND type='coti'",
+            "SELECT date FROM compta WHERE user_id=? AND date>? AND date<? AND type_id IN (SELECT id FROM compta_type WHERE is_cotisation=1)",
             [$this->id, $from, $to]
         );
     }
@@ -156,7 +156,7 @@ class User
         $from = mktime(0, 0, 0, 1, 0, $year);
         $to   = mktime(0, 0, 0, 1, 1, $year + 1);
         return $this->firstComptaDate(
-            "SELECT date FROM compta WHERE user_id=? AND date>? AND date<? AND type<>'coti'",
+            "SELECT date FROM compta WHERE user_id=? AND date>? AND date<? AND type_id NOT IN (SELECT id FROM compta_type WHERE is_cotisation=1)",
             [$this->id, $from, $to]
         );
     }
@@ -167,7 +167,7 @@ class User
         $from = mktime(0, 0, 0, 1, 0, $year);
         $to   = mktime(0, 0, 0, 1, 1, $year + 1);
         return $this->firstComptaDate(
-            "SELECT date FROM compta WHERE user_id=? AND date>? AND date<? AND type NOT IN ('coti','reintegration','evenementiel')",
+            "SELECT date FROM compta WHERE user_id=? AND date>? AND date<? AND type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation=1)",
             [$this->id, $from, $to]
         );
     }

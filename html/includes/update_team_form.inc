@@ -19,6 +19,12 @@ $memberCount = count($members);
 $stmtTeams = $pdo->query("SELECT id, name FROM team WHERE id != $id AND hidden = 0 ORDER BY name");
 $otherTeams = $stmtTeams->fetchAll(PDO::FETCH_OBJ);
 
+// Fetch categories and current category for this team
+$allCats = $pdo->query("SELECT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter=0 ORDER BY sort_order ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
+$stmtCurrentCat = $pdo->prepare("SELECT c.id FROM metagroup junc JOIN metagroup c ON c.id=junc.id AND c.name IS NOT NULL AND c.is_filter=0 WHERE junc.teamid=? LIMIT 1");
+$stmtCurrentCat->execute([$id]);
+$currentCatId = (int)($stmtCurrentCat->fetchColumn() ?: 0);
+
 // Member counts per team (for badges)
 $cntRows = $pdo->query("SELECT SUBSTRING(parameter, 6) AS team_id, COUNT(*) AS cnt FROM user_properties WHERE parameter LIKE 'team_%' GROUP BY parameter")->fetchAll(PDO::FETCH_OBJ);
 $teamCounts = [];
@@ -53,6 +59,22 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             </div>
           </div>
         </div>
+
+        <?php if (count($allCats) > 0): ?>
+        <div class="row mb-3 align-items-center">
+          <label for="team_category" class="col-sm-3 col-form-label col-form-label-sm text-sm-end">Catégorie</label>
+          <div class="col-sm-9">
+            <select class="form-select form-select-sm" id="team_category" name="categoryId">
+              <option value="0"<?= $currentCatId === 0 ? ' selected' : '' ?>>— sans catégorie —</option>
+              <?php foreach ($allCats as $cat): ?>
+              <option value="<?= (int)$cat->id ?>"<?= $currentCatId === (int)$cat->id ? ' selected' : '' ?>>
+                <?= htmlentities($cat->name, ENT_COMPAT, $charset) ?>
+              </option>
+              <?php endforeach ?>
+            </select>
+          </div>
+        </div>
+        <?php endif ?>
 
         <div class="d-flex gap-2">
           <button type="submit" id="btn-update-team" class="btn btn-primary btn-sm"><?=$GLOBAL['update']?></button>
@@ -96,7 +118,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <i class="fas fa-copy mt-1 flex-shrink-0" aria-hidden="true"></i>
               <div>
                 <strong>Copie ponctuelle</strong> — l'import copie les membres tels qu'ils sont <em>maintenant</em>. Si le groupe source change plus tard, ce groupe n'est pas mis à jour.<br>
-                <span class="text-muted">Pour un filtre dynamique, utilise plutôt un <a href="<?= $_SERVER['PHP_SELF'] ?>?view=manageMetagroups">métagroupe</a>.</span>
+                <span class="text-muted">Pour un filtre dynamique, utilise plutôt un filtre de groupes dans <a href="<?= $_SERVER['PHP_SELF'] ?>?view=manageTeam">Groupes</a>.</span>
               </div>
             </div>
             <div class="d-flex flex-column gap-1 mb-3">

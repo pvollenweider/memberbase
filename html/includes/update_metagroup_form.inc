@@ -3,6 +3,11 @@ $mgId = (int)$_REQUEST['id'];
 $mg = new Metagroup();
 $mg->lookupMetagroup($mgId);
 
+// Read is_filter for this metagroup entity row
+$stmtIsFilter = $pdo->prepare("SELECT is_filter FROM metagroup WHERE id=? AND name IS NOT NULL");
+$stmtIsFilter->execute([$mgId]);
+$isFilter = (int)($stmtIsFilter->fetchColumn() ?? 1);
+
 // Teams currently in this metagroup
 $stmtIn = $pdo->prepare("SELECT teamid FROM metagroup WHERE id=? AND teamid IS NOT NULL");
 $stmtIn->execute([$mgId]);
@@ -15,12 +20,12 @@ $allTeams = $pdo->query("SELECT id, name FROM team WHERE hidden = 0 ORDER BY nam
 <div class="row justify-content-center mt-4">
   <div class="col-md-6 d-flex flex-column gap-4">
 
-    <!-- Rename form -->
+    <!-- Rename + type form -->
     <div>
-      <p class="form-section-title">Modifier le métagroupe</p>
+      <p class="form-section-title">Modifier</p>
       <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
         <input type="hidden" name="action" value="updateMetagroup"/>
-        <input type="hidden" name="view" value="manageMetagroups"/>
+        <input type="hidden" name="view" value="manageTeam"/>
         <input type="hidden" name="id" value="<?= $mgId ?>"/>
 
         <div class="row mb-3 align-items-center">
@@ -31,17 +36,44 @@ $allTeams = $pdo->query("SELECT id, name FROM team WHERE hidden = 0 ORDER BY nam
           </div>
         </div>
 
+        <div class="row mb-3">
+          <div class="col-sm-9 offset-sm-3">
+            <div class="d-flex flex-column gap-2">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="is_filter" id="type_filter" value="1" <?= $isFilter ? 'checked' : '' ?>>
+                <label class="form-check-label small" for="type_filter">
+                  <strong>Filtre de groupes</strong>
+                  <span class="text-muted d-block" style="font-size:0.78rem">Regroupe plusieurs groupes en un filtre dynamique. Apparaît dans le menu «Groupes de groupes» de la barre de navigation.</span>
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="is_filter" id="type_category" value="0" <?= !$isFilter ? 'checked' : '' ?>>
+                <label class="form-check-label small" for="type_category">
+                  <strong>Catégorie</strong>
+                  <span class="text-muted d-block" style="font-size:0.78rem">Sert à organiser les groupes en sections dans les listes. N'apparaît pas dans la navigation — c'est un regroupement visuel uniquement.</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=manageMetagroups" class="btn btn-outline-secondary btn-sm">Annuler</a>
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=manageTeam" class="btn btn-outline-secondary btn-sm">Annuler</a>
         </div>
       </form>
     </div>
 
     <!-- Team membership -->
     <div>
-      <p class="form-section-title">Groupes membres</p>
-      <p class="small text-muted mb-3">Les groupes qui font partie de «<?= htmlentities($mg->getName(), ENT_COMPAT, $charset) ?>». Sauvegarde automatique à chaque coche.</p>
+      <p class="form-section-title"><?= $isFilter ? 'Groupes membres' : 'Groupes dans cette catégorie' ?></p>
+      <p class="small text-muted mb-3">
+        <?php if ($isFilter): ?>
+          Les groupes qui font partie du filtre «<?= htmlentities($mg->getName(), ENT_COMPAT, $charset) ?>». Sauvegarde automatique à chaque coche.
+        <?php else: ?>
+          Les groupes classés dans la catégorie «<?= htmlentities($mg->getName(), ENT_COMPAT, $charset) ?>». Sauvegarde automatique à chaque coche.
+        <?php endif ?>
+      </p>
 
       <div id="mg-team-list" class="d-flex flex-column gap-1" style="font-size:0.85rem">
         <?php foreach ($allTeams as $t): ?>
@@ -88,7 +120,7 @@ $allTeams = $pdo->query("SELECT id, name FROM team WHERE hidden = 0 ORDER BY nam
                              .map(function(c) { return c.dataset.teamid; });
           var body = new URLSearchParams();
           body.append('action', 'updateMetagroupTeams');
-          body.append('view', 'manageMetagroups');
+          body.append('view', 'manageTeam');
           body.append('id', mgId);
           checked.forEach(function(id) { body.append('teams[]', id); });
 
@@ -117,7 +149,7 @@ $allTeams = $pdo->query("SELECT id, name FROM team WHERE hidden = 0 ORDER BY nam
       <p class="small text-muted mb-2">Supprime le métagroupe. Les groupes membres ne sont pas affectés.</p>
       <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
         <input type="hidden" name="action" value="deleteMetagroup"/>
-        <input type="hidden" name="view" value="manageMetagroups"/>
+        <input type="hidden" name="view" value="manageTeam"/>
         <input type="hidden" name="id" value="<?= $mgId ?>"/>
         <button type="submit" class="btn btn-sm btn-danger"
                 onclick="return confirm('Supprimer «<?= htmlentities($mg->getName(), ENT_QUOTES, $charset) ?>» ?')">

@@ -19,43 +19,38 @@ if (isset($_REQUEST['sort'])) {
     }
 }
 
+$type = "allTypes";
+if (isset($_REQUEST['type'])) {
+    $type = $_REQUEST['type'];
+}
+
 ?>
 
 
 
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
-    <a class="navbar-brand" href="#"><?=$GLOBAL['lastEntrySuivi']?></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
+<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em"><?= $GLOBAL['lastEntrySuivi'] ?></span>
+
+  <div class="dropdown ms-2">
+    <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? $GLOBAL['allYear'] : $year ?>
     </button>
-
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto">
-
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <?=$_REQUEST['year'] == -2 ? 'Ann&eacute;e' : $year?>
-                </a>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="dropdown-item<?php if ($_REQUEST['year'] == -2) { ?> active<?php } ?>"
-                       href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi&amp;type=<?= $type ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a>
-                    <div class="dropdown-divider"></div>
-                    <?php
-                    $currentYear = date("Y");
-                    for ($i = 0; $i < 10; $i++) {
-                        $y = $currentYear - $i;
-                        ?><a class="dropdown-item <?php if ($_REQUEST['year'] == $y) { ?> active<?php } ?>"
-                             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi&amp;type=<?= $type ?>&amp;year=<?= $y ?>"><?= $y ?></a><?php
-                    }
-                    ?>
-                </div>
-            </li>
-
-
-        </ul>
-    </div>
-</nav>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? ' active' : '' ?>"
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi&amp;type=<?= $type ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
+      <li><hr class="dropdown-divider"></li>
+      <?php
+      $currentYear = date("Y");
+      for ($i = 0; $i < 10; $i++) {
+          $y = $currentYear - $i;
+          ?><li><a class="dropdown-item<?= (isset($_REQUEST['year']) && $_REQUEST['year'] == $y) ? ' active' : '' ?>"
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi&amp;type=<?= $type ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
+      }
+      ?>
+    </ul>
+  </div>
+</div>
 
 <table class="table table-condensed table-striped table-hover p mt-2">
 <thead>

@@ -48,8 +48,9 @@ if (isset($_REQUEST['view'])) {
         $logger->debug("Dispaching manage_teams.inc");
         include "manage_teams.inc";
     } else if ($_REQUEST['view'] == 'manageMetagroups') {
-        $logger->debug("Dispaching manage_metagroups.inc");
-        include "manage_metagroups.inc";
+        $logger->debug("Redirect manageMetagroups -> manageTeam");
+        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=manageTeam') . ');</script>';
+        exit;
     } else if ($_REQUEST['view'] == 'updateMetagroup') {
         $logger->debug("Dispaching update_metagroup_form.inc");
         include "update_metagroup_form.inc";
@@ -104,6 +105,12 @@ if (isset($_REQUEST['view'])) {
         $view = "compta";
         $logger->debug("update_user_form lastEntrySuivi.inc");
         include "update_user_form.inc";
+    } else if ($_REQUEST['view'] == 'manageComptaTypes') {
+        $logger->debug("Dispaching manage_compta_types.inc");
+        include "manage_compta_types.inc";
+    } else if ($_REQUEST['view'] == 'settings') {
+        $logger->debug("Dispaching settings_form.inc");
+        include "settings_form.inc";
     } else if ($_REQUEST['view'] == 'updateSuivi') {
         $view = "suivi";
         $logger->debug("Dispaching update_suivi_form.inc");

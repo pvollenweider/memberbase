@@ -4,8 +4,8 @@ $searchString = "";
 if (isset ($_REQUEST["searchString"])) {
     $searchString = trim($_REQUEST["searchString"]);
 }
-$team = 249; //245; // 237;// 226;//205;
-$membre = 245; //237; # membres de l'annee passee
+$team = (int)($appSettings['default_team'] ?? 249);
+$membre = (int)($appSettings['membre_team'] ?? 245);
 if (isset ($_REQUEST["team"])) {
     $team = $_REQUEST["team"];
 }
@@ -40,21 +40,9 @@ if (isset($_REQUEST['year'])) {
 }
 
 ?>
-<nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
-
-
-    <a class="navbar-brand" href="#"></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-
-
-
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto">
-            <li class="nav-item dropdown">
-
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+  <div class="dropdown">
+    <button class="ca-filter-btn dropdown-toggle" id="navbarDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 
                     <?php
                     $currentTeamTitle = "";
@@ -80,8 +68,8 @@ if (isset($_REQUEST['year'])) {
                     ?>
 
                     <?=$currentTeamTitle?>
-                </a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="min-width:220px">
+    </button>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="min-width:220px;max-height:80vh;overflow-y:auto">
 
                     <div class="px-2 pb-1">
                       <input type="text" id="team-filter-input" class="form-control form-control-sm" placeholder="Filtrer…" autocomplete="off"
@@ -91,7 +79,7 @@ if (isset($_REQUEST['year'])) {
                     <div class="dropdown-divider mt-1 mb-0"></div>
 
                     <?php
-                    $stmtMg = $pdo->query("SELECT DISTINCT m.id, m.name FROM metagroup m WHERE m.name IS NOT NULL AND EXISTS (SELECT 1 FROM metagroup j WHERE j.id=m.id AND j.teamid IS NOT NULL) ORDER BY m.name");
+                    $stmtMg = $pdo->query("SELECT DISTINCT m.id, m.name FROM metagroup m WHERE m.name IS NOT NULL AND m.is_filter = 1 AND EXISTS (SELECT 1 FROM metagroup j WHERE j.id=m.id AND j.teamid IS NOT NULL) ORDER BY m.name");
                     $metagroups = $stmtMg->fetchAll(PDO::FETCH_OBJ);
                     if (count($metagroups) > 0):
                     ?>
@@ -118,34 +106,58 @@ if (isset($_REQUEST['year'])) {
                            href="<?= $_SERVER['PHP_SELF'] ?>?team=-6666">-&gt; <?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
 
                         <?php
-                        $stmt2 = $pdo->query("SELECT id,name FROM team WHERE hidden=0 ORDER BY name");
-                        while ($row = $stmt2->fetchObject()) {
-                            $id = $row->id;
-                            $name = $row->name;
+                        $stmtTeams = $pdo->query("
+                            SELECT t.id, t.name,
+                                   COALESCE(cat.name, '') AS cat_name,
+                                   COALESCE(cat.id, 0) AS cat_id,
+                                   COALESCE(cat.sort_order, 99999) AS cat_sort
+                            FROM team t
+                            LEFT JOIN (
+                                SELECT j.teamid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
+                                FROM metagroup j
+                                JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
+                                WHERE j.teamid IS NOT NULL
+                                GROUP BY j.teamid
+                            ) cat ON cat.teamid = t.id
+                            WHERE t.hidden = 0
+                            ORDER BY cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
+                        ");
+                        $prevCatId = -1;
+                        while ($row = $stmtTeams->fetchObject()) {
+                            $catId = (int)$row->cat_id;
+                            if ($catId !== $prevCatId) {
+                                $prevCatId = $catId;
+                                $label = $row->cat_name ?: 'Sans catégorie';
+                                echo '<h6 class="dropdown-header team-cat-header" data-cat="' . $catId . '" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">' . htmlentities($label, ENT_COMPAT, $charset) . '</h6>';
+                            }
                             ?>
-                            <a class="dropdown-item team-filterable <?php if ($team == $id) { ?>active<?php } ?>"
-                               href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= $id ?>"
-                               data-label="<?= htmlentities(mb_strtolower($name), ENT_COMPAT, $charset) ?>"><?= htmlentities($name, ENT_COMPAT, $charset) ?></a>
+                            <a class="dropdown-item team-filterable <?php if ($team == $row->id) { ?>active<?php } ?>"
+                               href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= (int)$row->id ?>"
+                               data-label="<?= htmlentities(mb_strtolower($row->name), ENT_COMPAT, $charset) ?>"
+                               data-cat="<?= $catId ?>"><?= htmlentities($row->name, ENT_COMPAT, $charset) ?></a>
                             <?php
                         }
                     ?>
                 </div>
-            </li>
-        </ul>
+  </div>
 
-
-        <span class="navbar-text">
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?>"
-                                    title="<?= $GLOBAL['addUser'] ?>"><i class="fas fa-user-plus"></i></a>
-        </span>
-    </div><!-- /.navbar-collapse -->
-</nav>
+  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?>"
+     class="ms-auto btn btn-sm btn-outline-secondary py-0"
+     title="<?= $GLOBAL['addUser'] ?>"><i class="fas fa-user-plus" aria-hidden="true"></i></a>
+</div>
 <script>
 function filterTeamDropdown(q) {
   var val = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   document.querySelectorAll('.team-filterable').forEach(function(el) {
     var label = (el.dataset.label || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
     el.style.display = label.includes(val) ? '' : 'none';
+  });
+  document.querySelectorAll('.team-cat-header').forEach(function(h) {
+    var cat = h.dataset.cat;
+    var hasVisible = Array.from(document.querySelectorAll('.team-filterable[data-cat="' + cat + '"]')).some(function(el) {
+      return el.style.display !== 'none';
+    });
+    h.style.display = hasVisible ? '' : 'none';
   });
   document.querySelectorAll('.team-filterable.kb-focus').forEach(function(el) { el.classList.remove('kb-focus'); });
 }
@@ -246,12 +258,12 @@ if ($metagroup > 0) {
         $query .= "    user_properties.parameter='team_13'";
         $query .= "    OR user_properties.parameter='team_10'";
         $query .= "    OR user_properties.parameter='team_20'";
-        $query .= "    OR user_properties.parameter='team_19'";
+        $query .= "    OR user_properties.parameter='team_" . ARCHIVE_ID . "'";
         $query .= " )";
     } else if ($team == -3 || $team == -5555  || $team == -6666) {
         $logger->debug("team is -3 -> Tout le monde sauf archive");
         $query .= " AND users.id=user_properties.user_id AND NOT (";
-        $query .= "    user_properties.parameter='team_19'";
+        $query .= "    user_properties.parameter='team_" . ARCHIVE_ID . "'";
         $query .= " )";
     } else if ($team == -4 || $team == -1234 || $team == -3333) {
         # search member
@@ -266,7 +278,7 @@ if ($metagroup > 0) {
         $query .= "    OR user_properties.parameter='team_5'";
         $query .= "    OR user_properties.parameter='team_9'";
         $query .= "    OR user_properties.parameter='team_7')";
-        $query .= "    AND NOT user_properties.parameter='team_19'";
+        $query .= "    AND NOT user_properties.parameter='team_" . ARCHIVE_ID . "'";
     } else if ($team == -444) {
         # search member
         $logger->debug("team is -golf 2010 2011 + soiree 2010 with compta -> ");
@@ -513,6 +525,9 @@ $(document).ready(function () {
                 text: '<i class="fas fa-columns me-1" aria-hidden="true"></i>Colonnes',
                 className: 'btn btn-dt'
             }
+        ],
+        columnDefs: [
+            { targets: 7, visible: false }
         ],
         language: {
             info: '_TOTAL_ membres',

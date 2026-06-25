@@ -12,7 +12,7 @@ $user->lookupUser($userid);
 $comptaid = $_REQUEST['comptaid'];
 $compta = new Compta();
 $compta->lookupCompta($comptaid);
-$type = $compta->getType();
+$typeId = $compta->getTypeId();
 ?>
 
 <div class="row justify-content-center mt-3">
@@ -37,18 +37,12 @@ $type = $compta->getType();
       <div class="row mb-2 align-items-center">
         <label for="type" class="col-sm-3 col-form-label col-form-label-sm text-sm-end"><?= $GLOBAL['type'] ?></label>
         <div class="col-sm-9">
-          <select name="type" class="form-select form-select-sm" id="type">
-            <option value="avocat"                    <?= $type == "avocat"                    ? 'selected' : '' ?>><?= $GLOBAL['avocat'] ?></option>
-            <option value="cd"                        <?= $type == "cd"                        ? 'selected' : '' ?>><?= $GLOBAL['cd'] ?></option>
-            <option value="coti"                      <?= $type == "coti"                      ? 'selected' : '' ?>><?= $GLOBAL['coti'] ?></option>
-            <option value="donEntreprise"             <?= $type == "donEntreprise"             ? 'selected' : '' ?>><?= $GLOBAL['donEntreprise'] ?></option>
-            <option value="donEtablissementdFinancier"<?= $type == "donEtablissementdFinancier"? 'selected' : '' ?>><?= $GLOBAL['donEtablissementdFinancier'] ?></option>
-            <option value="don"                       <?= $type == "don"                       ? 'selected' : '' ?>><?= $GLOBAL['don'] ?></option>
-            <option value="dna"                       <?= $type == "dna"                       ? 'selected' : '' ?>><?= $GLOBAL['dna'] ?></option>
-            <option value="donInst"                   <?= $type == "donInst"                   ? 'selected' : '' ?>><?= $GLOBAL['donInst'] ?></option>
-            <option value="evenementiel"              <?= $type == "evenementiel"              ? 'selected' : '' ?>><?= $GLOBAL['evenementiel'] ?></option>
-            <option value="reintegration"             <?= $type == "reintegration"             ? 'selected' : '' ?>><?= $GLOBAL['reintegration'] ?></option>
-            <option value="urgence"                   <?= $type == "urgence"                   ? 'selected' : '' ?>><?= $GLOBAL['urgence'] ?></option>
+          <select name="type_id" class="form-select form-select-sm" id="type_id">
+            <?php foreach ($comptaTypes as $ct): ?>
+            <option value="<?= (int)$ct->id ?>" <?= $typeId == $ct->id ? 'selected' : '' ?>>
+              <?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>
+            </option>
+            <?php endforeach ?>
           </select>
         </div>
       </div>

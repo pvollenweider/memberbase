@@ -1,63 +1,48 @@
 <?php
-$minSum = 1;
-if (isset($_REQUEST['minSum'])) {
-    $minSum = $_REQUEST['minSum'];
-}
+$minSum = max(0, (int)(isset($_REQUEST['minSum']) ? $_REQUEST['minSum'] : 1));
+if (!in_array($minSum, [1, 200, 500, 1000])) { $minSum = 1; }
 
-$year = -1; // date("Y");
+$year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
+if ($year === -1) { $year = (int)date("Y"); }
 $type = "allTypes";
-$sort = "compta.date";
-if (isset($_REQUEST['sort'])) {
-    $sort = $_REQUEST['sort'];
-    if ($sort == "name"){
-        $sort = "users.lastname,users.firstname,users.society";
-    } else if ($sort == "date"){
-        $sort = "compta.date";
-    }
-}
-if (isset($_REQUEST['type'])) {
-    $type = $_REQUEST['type'];
-}
-if (isset($_REQUEST['year'])) {
-    $year = $_REQUEST['year'];
-}
-if ($year == -1) {
-    $year = date("Y");
-}
-$from = mktime(0, 0, 0, 1, 0, $year);
-$to = mktime(0, 0, 0, 1, 1, $year + 1);
 ?>
-<div class="well">Dons &gt;= CHF <?= $minSum ?> (evenmentiel et cotisation exclus)
-    <div class="text-right"><i class="fas fa-filter" aria-hidden="true"></i>
-        <a class="badge badge-pill badge-light"
-           href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=1&amp;type=<?= $type ?>&amp;year=<?= $year ?>">1</a>
-        <a class="badge badge-pill badge-light"
-           href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=200&amp;type=<?= $type ?>&amp;year=<?= $year ?>">200</a>
-        <a class="badge badge-pill badge-light"
-           href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=500&amp;type=<?= $type ?>&amp;year=<?= $year ?>">500</a>
-        <a class="badge badge-pill badge-light"
-           href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=1000&amp;type=<?= $type ?>&amp;year=<?= $year ?>">1000</a>
-    </div>
-</div>
+<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
+    <i class="fas fa-filter me-1" aria-hidden="true"></i>Min CHF
+  </span>
+  <?php foreach ([1, 200, 500, 1000] as $_ms): ?>
+  <a class="ca-filter-btn<?= $minSum == $_ms ? ' active' : '' ?>"
+     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;type=<?= $type ?>&amp;year=<?= $year ?>"><?= $_ms ?></a>
+  <?php endforeach ?>
 
-
-<div class="dropdown">
-    <button class="ca-filter-btn dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? 'Année' : $year ?>
+  <div class="dropdown ms-2">
+    <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? $GLOBAL['allYear'] : $year ?>
     </button>
-    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        <a class="dropdown-item<?php if ($_REQUEST['year'] == -2) { ?> active<?php } ?>"
-           href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;type=<?= $type ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a>
-        <li class="divider"></li>
-        <?php
-        $currentYear = date("Y");
-        for ($i = 0; $i < 10; $i++) {
-            $y = $currentYear - $i;
-            ?><a class="dropdown-item<?php if ($_REQUEST['year'] == $y) { ?> active<?php } ?>"
-                 href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;type=<?= $type ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
-        }
-        ?>
-    </div>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? ' active' : '' ?>"
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
+      <li><hr class="dropdown-divider"></li>
+      <?php
+      $currentYear = date("Y");
+      for ($i = 0; $i < 10; $i++) {
+          $y = $currentYear - $i;
+          ?><li><a class="dropdown-item<?= (isset($_REQUEST['year']) && $_REQUEST['year'] == $y) ? ' active' : '' ?>"
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
+      }
+      ?>
+    </ul>
+  </div>
+
+  <?php if ($year != -2): ?>
+  <a href="/attestation_bulk.php?year=<?= (int)$year ?>&amp;minSum=<?= (int)$minSum ?>"
+     class="ca-filter-btn ms-auto"
+     target="_blank"
+     title="Générer toutes les attestations en un seul PDF">
+    <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Toutes les attestations <?= (int)$year ?>
+  </a>
+  <?php endif ?>
+
 </div>
 <table class="table table-striped table-hover export">
 <thead>
@@ -71,83 +56,110 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <th><?=$GLOBAL['address']?></th>
     <th><?=$GLOBAL['npa']?></th>
     <th><?=$GLOBAL['sum']?></th>
+    <th></th>
 </tr>
 </thead>
 <?php
-$query = "SELECT DISTINCT users.firstname,users.lastname,users.society,users.id,compta.type,compta.date,compta.libele,compta.id,compta.sum,compta.quittance,compta.user_id ".
-         "FROM users,compta ".
-         "WHERE users.id=compta.user_id  ";
+$params = [];
+$sql = "
+    SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
+           SUM(c.sum) AS total,
+           EXISTS(
+               SELECT 1 FROM user_properties up
+               WHERE up.user_id = u.id AND up.parameter = 'team_141' AND up.value = 'true'
+           ) AS is_actif
+    FROM users u
+    JOIN compta c ON u.id = c.user_id
+    WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
+";
 if ($year != -2) {
-    $query .= " AND compta.date > $from AND compta.date < $to AND compta.type <> 'evenementiel' AND compta.type <> 'coti'";
+    $from = mktime(0, 0, 0, 1, 0, $year);
+    $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+    $sql .= " AND c.date > ? AND c.date < ?";
+    $params[] = $from;
+    $params[] = $to;
 }
-$query .= " ORDER BY users.lastname,users.firstname,users.society DESC";
-$stmt = $pdo->query($query);
-$i = 0;
-$previousiUserId = 0;
-$userTotal = 0;
-while ($row = $stmt->fetchObject()) {
-    $date = timeStampToformatedDate($row->date);
-    $firstName = $row->firstname;
-    $lastName = $row->lastname;
-    $society = $row->society;
-    $libele = $row->libele;
-    $sum = $row->sum;
-    $quittance = $row->quittance;
-    $userId = $row->user_id;
-    $type = $row->type;
-    $comptaid = $row->id;
-    if ($previousiUserId == $userId) {
-        $userTotal += $sum;
-        $logger->debug("Uesr $userId is $sum -> total is $userTotal");
-    } else {
-        if ($userTotal >= $minSum) {
-            $i++;
-            $user = new User();
-            $user->lookupUser($previousiUserId);
-            $society = $user->getSociety();
-            $firstName = $user->getFirstName();
-            $lastName = $user->getLastName();
-	    $email = $user->getEmail();
-	    $isActif = $user->isMemberOfTeam(141) ? "<i class='fas fa-check'></i><span class='hidden'>1</span>" : "";
-	    $sexe = $user->getSexe();
-	    $sexe2 = $sexe;
-        if ($sexe == "f") { $sexe = "<i class='fas fa-female s'></i>"; }
-        else if ($sexe == "m") { $sexe = "<i class='fas fa-male s'></i>"; }
-        else if ($sexe == "hf") { $sexe = "<i class='fas fa-male s'></i><i class='fas fa-female s'></i>"; }
+$sql .= " GROUP BY u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email
+          HAVING SUM(c.sum) >= ?
+          ORDER BY u.lastname, u.firstname, u.society";
+$params[] = $minSum;
 
-        if ($sexe2 == "na") { $sexe2 = "-"; }
-        else if ($sexe2 == "f") { $sexe2 = "Madame"; }
-        else if ($sexe2 == "m") { $sexe2 = "Monsieur"; }
-        else if ($sexe2 == "hf") { $sexe2 = "Monsieur et Madame"; }
-            ?>
-            <tr data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&userid=<?=$previousiUserId?>&year=<?=$year?>">
-                <td><?=htmlentities($society,ENT_COMPAT,$charset)?>
-              </td><td><?=$sexe?><span class="hide"><?=$sexe2?></td><td><strong><?=htmlentities($lastName,ENT_COMPAT,$charset)?></strong></td><td><?=htmlentities($firstName,ENT_COMPAT,$charset)?></strong></td><td><?=$email?></td><td><?=$isActif?></td><td><?=$user->getAddress()?></td><td><?=$user->getNpa()?></td><td style="text-align:right"><?=number_format($userTotal,2,'.','\'')?></td>
-          </tr>
-          <?php
-        }
-        $userTotal = $sum;
-        $logger->debug("Uesr $userId is $sum -> total is $userTotal");
-    }
-    $previousiUserId = $userId;
-}
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$rows = $stmt->fetchAll(PDO::FETCH_OBJ);
+$i = count($rows);
 
+foreach ($rows as $row):
+    $society = htmlentities($row->society ?? '', ENT_COMPAT, $charset);
+    $lastName = htmlentities($row->lastname ?? '', ENT_COMPAT, $charset);
+    $firstName = htmlentities($row->firstname ?? '', ENT_COMPAT, $charset);
+    $email = htmlentities($row->email ?? '', ENT_COMPAT, $charset);
+    $address = htmlentities($row->address ?? '', ENT_COMPAT, $charset);
+    $npa = htmlentities($row->npa ?? '', ENT_COMPAT, $charset);
+    $isActif = $row->is_actif ? "<i class='fas fa-check'></i><span class='hidden'>1</span>" : "";
+    $sexeRaw = $row->sexe;
+    $sexe2 = match($sexeRaw) { 'f' => 'Madame', 'm' => 'Monsieur', 'hf' => 'Monsieur et Madame', default => '-' };
+    $sexe = match($sexeRaw) {
+        'f'  => "<i class='fas fa-female s'></i>",
+        'm'  => "<i class='fas fa-male s'></i>",
+        'hf' => "<i class='fas fa-male s'></i><i class='fas fa-female s'></i>",
+        default => ''
+    };
+    ?>
+    <tr data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&userid=<?=(int)$row->id?>&year=<?=$year?>">
+        <td><?=$society?></td>
+        <td><?=$sexe?><span class="hide"><?=$sexe2?></span></td>
+        <td><strong><?=$lastName?></strong></td>
+        <td><?=$firstName?></td>
+        <td><?=$email?></td>
+        <td><?=$isActif?></td>
+        <td><?=$address?></td>
+        <td><?=$npa?></td>
+        <td style="text-align:right"><?=number_format((float)$row->total, 2, '.', '\'')?></td>
+        <td class="text-end">
+            <?php if ($year != -2): ?>
+            <a href="/attestation_don.php?userid=<?=(int)$row->id?>&amp;year=<?=(int)$year?>"
+               class="btn btn-outline-secondary btn-sm py-0 px-1"
+               title="Attestation de dons <?=(int)$year?>"
+               target="_blank"
+               onclick="event.stopPropagation()">
+                <i class="fas fa-file-pdf" aria-hidden="true"></i>
+            </a>
+            <?php endif ?>
+        </td>
+    </tr>
+    <?php
+endforeach;
 ?>
 </table>
 <span style="font-size:9px">Found <?=$i?> rows. </span>
 <script>
 $(document).ready(function() {
-    $('.export').DataTable(
- {
-"order": [[ 2, "asc" ]],
-
-        "paging":   false,
-dom: 'Bfrtip',
+    $.fn.dataTable.moment('DD/MM/YYYY');
+    $('.export').DataTable({
+        order: [[2, 'asc']],
+        paging: false,
+        dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
         buttons: [
-            'copy', 'excel', 'print'
-        ]
-    }
-);
-} );
+            {
+                extend: 'collection',
+                text: 'Exporter <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
+                className: 'btn btn-dt',
+                buttons: [
+                    { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i>Copier' },
+                    { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i>Excel' },
+                    { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i>Imprimer' },
+                    { extend: 'pdf',   text: '<i class="fas fa-file-pdf me-2" aria-hidden="true"></i>PDF' }
+                ]
+            }
+        ],
+        language: {
+            info: '_TOTAL_ entrées',
+            infoFiltered: '(filtrées sur _MAX_)',
+            search: '',
+            searchPlaceholder: 'Filtrer…'
+        }
+    });
+});
 </script>
 

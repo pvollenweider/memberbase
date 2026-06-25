@@ -10,8 +10,6 @@ $logger = Logger::getLogger('declarations.php');
 Logger::configure('config.xml');
 $logger->info("Get request");
 
-define('ARCHIVE_ID', 19);
-
 // database settings
 $hostname = "localhost";
 $username = "members";
@@ -24,6 +22,22 @@ $pdo = new PDO($dsn, $username, $password, [
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
     PDO::ATTR_EMULATE_PREPARES   => false,
 ]);
+
+// Compta types
+$_ctRows = $pdo->query("SELECT id, label, color, sort_order, is_cotisation, is_excluded_from_donation FROM compta_type ORDER BY label ASC")->fetchAll(PDO::FETCH_OBJ);
+$comptaTypes = [];
+foreach ($_ctRows as $_ct) { $comptaTypes[(int)$_ct->id] = $_ct; }
+unset($_ctRows, $_ct);
+
+// App settings
+$_settingsRows = $pdo->query("SELECT `key`, `value` FROM app_settings")->fetchAll(PDO::FETCH_KEY_PAIR);
+$appSettings = array_merge([
+    'default_team' => '249',
+    'membre_team'  => '245',
+    'archive_id'   => '19',
+], $_settingsRows);
+unset($_settingsRows);
+define('ARCHIVE_ID', (int)$appSettings['archive_id']);
 
 // Sequence counter — wraps the maxval table that tracks auto-increment IDs.
 // TODO: replace with native AUTO_INCREMENT + lastInsertId() after a schema migration.
