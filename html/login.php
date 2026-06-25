@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="username" class="form-label" style="font-size:0.875rem">Identifiant</label>
             <input type="text" class="form-control" id="username" name="username"
                    value="<?= htmlspecialchars($_POST['username'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                   autocomplete="username" autofocus required>
+                   autocomplete="username" autocapitalize="none" autocorrect="off" autofocus required>
         </div>
         <div class="mb-4">
             <label for="password" class="form-label" style="font-size:0.875rem">Mot de passe</label>
