@@ -122,19 +122,19 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <?php
         // Helper to render one checkbox row
         function renderTeamCb($t, $memberTeamIds, $charset, $teamCounts) { ?>
-        <div class="form-check form-check-sm d-flex align-items-center gap-2">
+        <div class="form-check form-check-sm">
           <input class="form-check-input mg-team-cb" type="checkbox"
                  data-teamid="<?= (int)$t->id ?>"
                  id="mgteam_<?= (int)$t->id ?>"
                  <?= in_array((int)$t->id, $memberTeamIds) ? 'checked' : '' ?>>
-          <label class="form-check-label flex-grow-1" for="mgteam_<?= (int)$t->id ?>">
+          <label class="form-check-label" for="mgteam_<?= (int)$t->id ?>">
             <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
+            <?php if (isset($teamCounts[(int)$t->id])): ?>
+            <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500">
+              <?= $teamCounts[(int)$t->id] ?>
+            </span>
+            <?php endif ?>
           </label>
-          <?php if (isset($teamCounts[(int)$t->id])): ?>
-          <span class="badge text-bg-light border" style="font-size:0.7rem;font-weight:500">
-            <?= $teamCounts[(int)$t->id] ?>
-          </span>
-          <?php endif ?>
         </div>
         <?php }
 
