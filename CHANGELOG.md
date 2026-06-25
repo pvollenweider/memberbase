@@ -1,5 +1,32 @@
 # Changelog
 
+## [2.2.1] — 2026-06-25
+
+### Security
+- Protect unauthenticated endpoints: `attestation_don.php`, `attestation_bulk.php` now require login
+- Fix XSS: htmlspecialchars on member names in delete confirm view, int cast on ID params in hrefs
+- Fix open redirect: sanitize Content-Disposition filename in quittancedon.php (CRLF)
+- Input validation: `comptaid` int cast, `groupType` whitelist, `teamId` int cast in manage_actions.inc
+- Session cookie `secure` flag hardcoded to true (was dynamic, broke behind TLS proxy)
+- Password reset temp token stored in session flash instead of URL (was leaking into Apache logs)
+- `ob_start()` in index.php so header() redirects work after HTML output has started
+
+### Removed
+- `quittancedon.php` decommissioned (old Word export, no longer used)
+- `label.php`, `xls.php`, `test.php`, `confirm-membership.php` removed (dead/insecure files)
+- Dead views: `resume2`, `resume3`, `resume4`, `resume-non-coti`, `resume_dna`, `lastEntryCompta2`, `manage_metagroups`
+
+### Fixed
+- Metagroup name blank after creation (`lookupMetagroup` was missing `name IS NOT NULL` filter)
+- Thousands separator missing on individual amounts in lastEntryCompta
+- `wants_attestation` was editable toggle in compta list — now read-only indicator
+- `autocapitalize="none"` on login username field (was capitalizing on iOS)
+
+### Changed
+- manageTeam: Catégories and Filtres de groupes split into separate tabs (was one combined tab)
+- manageTeam: "Organisation" tab renamed to "Catégories"
+- Metagroup list view shows aggregated group names below the filter button
+
 ## [2.2.0] — 2026-06-25
 
 ### Changed
