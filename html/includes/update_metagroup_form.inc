@@ -47,6 +47,11 @@ foreach ($allTeams as $t) {
     }
 }
 ksort($catGroups);
+
+// Member counts per team
+$cntRows = $pdo->query("SELECT SUBSTRING(parameter, 6) AS team_id, COUNT(*) AS cnt FROM user_properties WHERE parameter LIKE 'team_%' GROUP BY parameter")->fetchAll(PDO::FETCH_OBJ);
+$teamCounts = [];
+foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 ?>
 <div class="row justify-content-center mt-4">
   <div class="col-md-6 d-flex flex-column gap-4">
@@ -116,15 +121,20 @@ ksort($catGroups);
       <div id="mg-team-list" class="d-flex flex-column gap-1" style="font-size:0.85rem">
         <?php
         // Helper to render one checkbox row
-        function renderTeamCb($t, $memberTeamIds, $charset) { ?>
-        <div class="form-check form-check-sm">
+        function renderTeamCb($t, $memberTeamIds, $charset, $teamCounts) { ?>
+        <div class="form-check form-check-sm d-flex align-items-center gap-2">
           <input class="form-check-input mg-team-cb" type="checkbox"
                  data-teamid="<?= (int)$t->id ?>"
                  id="mgteam_<?= (int)$t->id ?>"
                  <?= in_array((int)$t->id, $memberTeamIds) ? 'checked' : '' ?>>
-          <label class="form-check-label" for="mgteam_<?= (int)$t->id ?>">
+          <label class="form-check-label flex-grow-1" for="mgteam_<?= (int)$t->id ?>">
             <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
           </label>
+          <?php if (isset($teamCounts[(int)$t->id])): ?>
+          <span class="badge text-bg-light border" style="font-size:0.7rem;font-weight:500">
+            <?= $teamCounts[(int)$t->id] ?>
+          </span>
+          <?php endif ?>
         </div>
         <?php }
 
@@ -133,14 +143,14 @@ ksort($catGroups);
           <p class="text-muted mb-0 mt-2" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600">
             <?= htmlentities($catName, ENT_COMPAT, $charset) ?>
           </p>
-          <?php foreach ($teams as $t): renderTeamCb($t, $memberTeamIds, $charset); endforeach;
+          <?php foreach ($teams as $t): renderTeamCb($t, $memberTeamIds, $charset, $teamCounts); endforeach;
             endforeach;
             if (!empty($uncategorized)): ?>
           <p class="text-muted mb-0 mt-2" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Sans catégorie</p>
-          <?php foreach ($uncategorized as $t): renderTeamCb($t, $memberTeamIds, $charset); endforeach;
+          <?php foreach ($uncategorized as $t): renderTeamCb($t, $memberTeamIds, $charset, $teamCounts); endforeach;
             endif;
         else:
-            foreach ($allTeams as $t): renderTeamCb($t, $memberTeamIds, $charset); endforeach;
+            foreach ($allTeams as $t): renderTeamCb($t, $memberTeamIds, $charset, $teamCounts); endforeach;
         endif;
         ?>
       </div>
