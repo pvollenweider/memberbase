@@ -305,6 +305,20 @@ if ($metagroup > 0) {
 $query .= " ORDER BY $orderColumn $orderSort";
 
 ?>
+<?php if ($metagroup > 0):
+    $stmtMgNames = $pdo->prepare(
+        "SELECT t.name FROM team t
+         JOIN metagroup j ON j.teamid = t.id
+         WHERE j.id = ? ORDER BY t.name"
+    );
+    $stmtMgNames->execute([$metagroup]);
+    $mgTeamNames = $stmtMgNames->fetchAll(PDO::FETCH_COLUMN);
+    if ($mgTeamNames): ?>
+<p class="text-muted mb-2" style="font-size:0.8rem">
+    <i class="fas fa-layer-group me-1" aria-hidden="true"></i>
+    <?= implode(' · ', array_map(fn($n) => htmlspecialchars($n, ENT_QUOTES, $charset), $mgTeamNames)) ?>
+</p>
+    <?php endif; endif; ?>
 <div class="table-responsive">
 <table class="table table-hover table-sm export">
 <thead>

@@ -13,7 +13,7 @@ class Metagroup
     public function lookupMetagroup(int $id): void
     {
         global $pdo;
-        $stmt = $pdo->prepare("SELECT id,name FROM metagroup WHERE id=?");
+        $stmt = $pdo->prepare("SELECT id,name FROM metagroup WHERE id=? AND name IS NOT NULL LIMIT 1");
         $stmt->execute([$id]);
         $row = $stmt->fetchObject();
         if ($row) {
