@@ -25,6 +25,36 @@ $stmtCurrentCat = $pdo->prepare("SELECT c.id FROM metagroup junc JOIN metagroup 
 $stmtCurrentCat->execute([$id]);
 $currentCatId = (int)($stmtCurrentCat->fetchColumn() ?: 0);
 
+// Precompute import counts per year (donors + cotisants not yet in team)
+$importCountsPerYear = [];
+$currentYear = (int)date('Y');
+for ($yi = 0; $yi < 10; $yi++) {
+    $dy   = $currentYear - $yi;
+    $from = mktime(0, 0, 0, 1, 0, $dy);
+    $to   = mktime(0, 0, 0, 1, 1, $dy + 1);
+    $r = $pdo->prepare("
+        SELECT COUNT(DISTINCT u.id)
+        FROM users u
+        JOIN compta c ON c.user_id = u.id
+        WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
+          AND c.date > ? AND c.date < ?
+          AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
+    ");
+    $r->execute([$from, $to, "team_$id"]);
+    $donorCount = (int)$r->fetchColumn();
+    $r2 = $pdo->prepare("
+        SELECT COUNT(DISTINCT u.id)
+        FROM users u
+        JOIN compta c ON c.user_id = u.id
+        WHERE c.type_id IN (SELECT id FROM compta_type WHERE is_cotisation = 1)
+          AND c.date > ? AND c.date < ?
+          AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
+    ");
+    $r2->execute([$from, $to, "team_$id"]);
+    $cotisCount = (int)$r2->fetchColumn();
+    $importCountsPerYear[$dy] = ['donors' => $donorCount, 'cotis' => $cotisCount];
+}
+
 // Member counts per team (for badges)
 $cntRows = $pdo->query("SELECT SUBSTRING(parameter, 6) AS team_id, COUNT(*) AS cnt FROM user_properties WHERE parameter LIKE 'team_%' GROUP BY parameter")->fetchAll(PDO::FETCH_OBJ);
 $teamCounts = [];
@@ -179,8 +209,9 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <div class="col-auto">
                 <label for="cotis_year" class="form-label form-label-sm mb-1">Année</label>
                 <select class="form-select form-select-sm" id="cotis_year" name="cotis_year" style="width:auto">
-                  <?php for ($yi = 0; $yi < 10; $yi++): $dy = (int)date('Y') - $yi; ?>
-                  <option value="<?= $dy ?>"><?= $dy ?></option>
+                  <?php for ($yi = 0; $yi < 10; $yi++): $dy = $currentYear - $yi;
+                    $cnt = $importCountsPerYear[$dy]['cotis'] ?? 0; ?>
+                  <option value="<?= $dy ?>"><?= $dy ?><?= $cnt > 0 ? " (+$cnt)" : ' (0)' ?></option>
                   <?php endfor ?>
                 </select>
               </div>
@@ -220,8 +251,9 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <div class="col-auto">
                 <label for="donor_year" class="form-label form-label-sm mb-1">Année</label>
                 <select class="form-select form-select-sm" id="donor_year" name="donor_year" style="width:auto">
-                  <?php for ($yi = 0; $yi < 10; $yi++): $dy = (int)date('Y') - $yi; ?>
-                  <option value="<?= $dy ?>"><?= $dy ?></option>
+                  <?php for ($yi = 0; $yi < 10; $yi++): $dy = $currentYear - $yi;
+                    $cnt = $importCountsPerYear[$dy]['donors'] ?? 0; ?>
+                  <option value="<?= $dy ?>"><?= $dy ?><?= $cnt > 0 ? " (+$cnt)" : ' (0)' ?></option>
                   <?php endfor ?>
                 </select>
               </div>
