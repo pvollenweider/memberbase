@@ -132,3 +132,36 @@ L'application tourne sur Apache + PHP 8 avec MariaDB. `pdftk` doit être install
 ## Accès
 
 `https://membres.casa-alianza.ch/`
+
+## Sécurité
+
+### Authentification
+
+Gérée par PHP (table `app_users`, bcrypt). Pas de htaccess. Voir `migration_app_users.sql` pour créer la table et le compte admin initial (`admin` / `ChangeMe123!` — à changer au premier login).
+
+Rôles : `admin` (gestion des utilisateurs) et `user`. L'admin peut créer/supprimer des comptes et réinitialiser les mots de passe. Tout utilisateur peut changer son propre mot de passe.
+
+### Fail2Ban
+
+Jail configurée sur le serveur pour bannir les IPs après 5 tentatives de login échouées en 5 minutes (ban 24h).
+
+**Filtre** `/etc/fail2ban/filter.d/casa-login.conf` :
+```ini
+[Definition]
+failregex = ^<HOST> .* "POST /login\.php HTTP/1\.[01]" 200
+ignoreregex =
+```
+
+**Jail** dans `/etc/fail2ban/jail.local` :
+```ini
+[casa-login]
+enabled  = true
+port     = http,https
+filter   = casa-login
+logpath  = /var/log/apache2/membres.casa-alianza.ch-access_log
+maxretry = 5
+findtime = 300
+bantime  = 86400
+```
+
+Vérifier l'état : `fail2ban-client status casa-login`
