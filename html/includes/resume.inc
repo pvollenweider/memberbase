@@ -8,7 +8,7 @@ $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year === -1) { $year = (int)date("Y"); }
 $type = "allTypes";
 
-$membreTeamId = (int)($appSettings['membre_team'] ?? 0);
+$membreTeamId = (int)($appSettings['default_team'] ?? 0);
 $membreTeamLabel = 'Actif?';
 if ($membreTeamId > 0) {
     $r = $pdo->prepare("SELECT name FROM team WHERE id = ?");
