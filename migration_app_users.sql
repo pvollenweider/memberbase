@@ -19,8 +19,9 @@ CREATE TABLE IF NOT EXISTS app_users (
 -- Generate the hash on the server:
 --   php -r "echo password_hash('ChangeMe123!', PASSWORD_DEFAULT);"
 -- Then insert with the real hash:
+-- Initial admin: login=admin / password=admin123
+-- force_password_change=1 : must change password on first login
 INSERT IGNORE INTO app_users (username, display_name, role, password_hash, force_password_change)
 VALUES ('admin', 'Administrateur', 'admin',
-        /* REPLACE with: php -r "echo password_hash('ChangeMe123!', PASSWORD_DEFAULT);" */
-        '$2y$12$PLACEHOLDER_RUN_PHP_TO_GENERATE_REAL_HASH_XXXXXXXXX',
+        '$2y$12$aR.9WG5Rr7K8c1UJC3bypuFYoh80aBZgs0/6GREuZPaYfPf2GArTK',
         1);
