@@ -76,8 +76,17 @@ if ($showAll) {
   <!-- Attestations demandées -->
   <label class="ca-filter-btn d-flex align-items-center gap-1" style="cursor:pointer;user-select:none">
     <input type="checkbox" id="includeAttestation" <?= $includeAttestation ? 'checked' : '' ?>>
-    <i class="fas fa-file-pdf" aria-hidden="true"></i> Attestations demandées
+    <i class="fas fa-file-pdf" aria-hidden="true"></i> Inclure si attestation demandée
   </label>
+  <button type="button" class="btn btn-link p-0 text-muted" style="font-size:0.85rem;line-height:1"
+          tabindex="0"
+          data-bs-toggle="popover"
+          data-bs-trigger="hover focus"
+          data-bs-placement="top"
+          data-bs-content="Affiche les personnes ayant coché &laquo;souhaite une attestation de don&raquo; même si leur total est inférieur au montant minimum sélectionné."
+          aria-label="Explication du filtre attestations">
+    <i class="fas fa-circle-info" aria-hidden="true"></i>
+  </button>
 
   <!-- PDF bulk — poussé à droite -->
   <?php if ($year != -2): ?>
@@ -210,6 +219,9 @@ endforeach;
 </table>
 <script>
 $(document).ready(function() {
+    document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el) {
+        new bootstrap.Popover(el);
+    });
     document.getElementById('includeAttestation').addEventListener('change', function() {
         var loc = window.location.href;
         loc = loc.replace(/[?&]includeAttestation=[01]/, '');
