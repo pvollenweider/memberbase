@@ -129,10 +129,18 @@ while ($row = $stmt->fetchObject()) {
             }
             ?>
         </td>
-        <td class="text-center">
-            <?php if ($row->wants_attestation): ?>
-            <i class="fas fa-check text-success" aria-label="Souhaite attestation"></i>
-            <?php endif ?>
+        <td class="text-center" onclick="event.stopPropagation()">
+            <form method="post" action="<?=$_SERVER['PHP_SELF']?>" style="display:inline">
+                <input type="hidden" name="action"   value="toggleWantsAttestation">
+                <input type="hidden" name="comptaid" value="<?=$id?>">
+                <input type="hidden" name="userid"   value="<?=$user->getId()?>">
+                <input type="hidden" name="year"     value="<?=$year?>">
+                <input type="checkbox" name="wants_attestation" value="1"
+                       title="Souhaite une attestation de don"
+                       aria-label="Souhaite une attestation de don"
+                       <?= $row->wants_attestation ? 'checked' : '' ?>
+                       onchange="this.form.submit()">
+            </form>
         </td>
         <td class="text-end">
             <a href="<?=$_SERVER['PHP_SELF']?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>"

@@ -285,6 +285,15 @@ if (isset($_REQUEST['action'])) {
         $compta->setTypeId((int)$_REQUEST['type_id']);
         $compta->setWantsAttestation(isset($_REQUEST['wants_attestation']));
         $compta->save();
+    } else if ($_REQUEST['action'] == 'toggleWantsAttestation') {
+        $comptaid = (int)$_REQUEST['comptaid'];
+        $value    = isset($_REQUEST['wants_attestation']) ? 1 : 0;
+        $pdo->prepare("UPDATE compta SET wants_attestation=? WHERE id=?")->execute([$value, $comptaid]);
+        // redirect back to compta view, preserving year
+        $year   = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
+        $userid = (int)$_REQUEST['userid'];
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=compta&userid=' . $userid . '&year=' . $year);
+        exit;
     } else if ($_REQUEST['action'] == 'addSuivi') {
         $userProperty = new UserProperty();
         $userProperty->userId = $_REQUEST['userid'];
