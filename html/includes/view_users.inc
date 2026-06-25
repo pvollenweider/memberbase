@@ -94,16 +94,19 @@ if (isset($_REQUEST['year'])) {
                     <div class="dropdown-divider"></div>
                     <?php endif; ?>
 
+                    <h6 class="dropdown-header">
+                      <i class="fas fa-bolt me-1" aria-hidden="true"></i>Filtres rapides
+                    </h6>
                     <a class="dropdown-item"
-                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-3">-&gt; <?= $GLOBAL['allExceptArchives'] ?></a>
+                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-3"><?= $GLOBAL['allExceptArchives'] ?></a>
                     <a class="dropdown-item"
-                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-3333">-&gt; <?=$GLOBAL['cotiUnpayedLast3Years']?>
-                        <a class="dropdown-item"
-                           href="<?= $_SERVER['PHP_SELF'] ?>?team=-5555">-&gt; <?= $GLOBAL['nothingLast10Years'] ?></a>
-                        <a class="dropdown-item"
-                           href="<?= $_SERVER['PHP_SELF'] ?>?team=-4">-&gt; <?= $GLOBAL['cotiUnpayed'] ?></a>
-                        <a class="dropdown-item"
-                           href="<?= $_SERVER['PHP_SELF'] ?>?team=-6666">-&gt; <?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
+                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-3333"><?= $GLOBAL['cotiUnpayedLast3Years'] ?></a>
+                    <a class="dropdown-item"
+                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-5555"><?= $GLOBAL['nothingLast10Years'] ?></a>
+                    <a class="dropdown-item"
+                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-4"><?= $GLOBAL['cotiUnpayed'] ?></a>
+                    <a class="dropdown-item"
+                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-6666"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
 
                         <?php
                         $stmtTeams = $pdo->query("
