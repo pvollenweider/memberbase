@@ -7,6 +7,14 @@ if (!$showAll && !$wantsAttestation && !in_array($minSum, [1, 100, 200, 500, 100
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year === -1) { $year = (int)date("Y"); }
 $type = "allTypes";
+
+$membreTeamId = (int)($appSettings['membre_team'] ?? 0);
+$membreTeamLabel = 'Actif?';
+if ($membreTeamId > 0) {
+    $r = $pdo->prepare("SELECT name FROM team WHERE id = ?");
+    $r->execute([$membreTeamId]);
+    $membreTeamLabel = $r->fetchColumn() ?: 'Actif?';
+}
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
@@ -60,7 +68,7 @@ $type = "allTypes";
     <th><?=$GLOBAL['lastName']?></th>
     <th><?=$GLOBAL['firstName']?></th>
     <th><?=$GLOBAL['email']?></th>
-    <th>Actif?</th>
+    <th><?= htmlentities($membreTeamLabel, ENT_COMPAT, $charset) ?></th>
     <th><?=$GLOBAL['address']?></th>
     <th><?=$GLOBAL['npa']?></th>
     <th><?=$GLOBAL['sum']?></th>
@@ -69,14 +77,14 @@ $type = "allTypes";
 </tr>
 </thead>
 <?php
-$params = [];
+$params = ["team_$membreTeamId"];
 $baseSelect = "
     SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
            SUM(c.sum) AS total,
            MAX(c.wants_attestation) AS wants_attestation,
            EXISTS(
                SELECT 1 FROM user_properties up
-               WHERE up.user_id = u.id AND up.parameter = 'team_141' AND up.value = 'true'
+               WHERE up.user_id = u.id AND up.parameter = ? AND up.value = 'true'
            ) AS is_actif
     FROM users u
     JOIN compta c ON u.id = c.user_id
