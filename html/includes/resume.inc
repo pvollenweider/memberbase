@@ -16,25 +16,42 @@ if ($membreTeamId > 0) {
     $membreTeamLabel = $r->fetchColumn() ?: 'Actif?';
 }
 ?>
+<?php
+$_yearLabel = (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? $GLOBAL['allYear'] : $year;
+if ($showAll) {
+    $_amountLabel = '<i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Toutes entrées';
+} else {
+    $_amountLabel = 'Min. ' . number_format($minSum, 0, '.', '\'') . ' CHF';
+}
+?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    <i class="fas fa-filter me-1" aria-hidden="true"></i>Min CHF
-  </span>
-  <?php foreach ([1, 100, 200, 500, 1000] as $_ms): ?>
-  <a class="ca-filter-btn<?= (!$showAll && $minSum == $_ms) ? ' active' : '' ?>"
-     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>"><?= $_ms ?></a>
-  <?php endforeach ?>
-  <a class="ca-filter-btn<?= $showAll ? ' active' : '' ?>"
-     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;showAll=1&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>"><?= $showAll ? 'Toutes entrées (cotis. incluses)' : 'Toutes entrées' ?></a>
 
-  <label class="ca-filter-btn d-flex align-items-center gap-1 ms-2" style="cursor:pointer;user-select:none">
-    <input type="checkbox" id="includeAttestation" <?= $includeAttestation ? 'checked' : '' ?>>
-    <i class="fas fa-file-pdf" aria-hidden="true"></i> Attestations demandées
-  </label>
+  <!-- Montant minimum -->
+  <div class="dropdown">
+    <button class="ca-filter-btn dropdown-toggle<?= $showAll ? ' active' : '' ?>" type="button"
+            data-bs-toggle="dropdown" aria-expanded="false" aria-label="Montant minimum">
+      <?= $_amountLabel ?>
+    </button>
+    <ul class="dropdown-menu">
+      <?php foreach ([1, 100, 200, 500, 1000] as $_ms): ?>
+      <li><a class="dropdown-item<?= (!$showAll && $minSum == $_ms) ? ' active' : '' ?>"
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>">
+        Min. <?= number_format($_ms, 0, '.', '\'') ?> CHF
+      </a></li>
+      <?php endforeach ?>
+      <li><hr class="dropdown-divider"></li>
+      <li><a class="dropdown-item<?= $showAll ? ' active' : '' ?>"
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;showAll=1&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>">
+        <i class="fas fa-triangle-exclamation me-1 text-warning" aria-hidden="true"></i>Toutes entrées (cotis. incluses)
+      </a></li>
+    </ul>
+  </div>
 
-  <div class="dropdown ms-2">
-    <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? $GLOBAL['allYear'] : $year ?>
+  <!-- Année -->
+  <div class="dropdown">
+    <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+            aria-label="Année">
+      <i class="fas fa-calendar-alt me-1" aria-hidden="true"></i><?= $_yearLabel ?>
     </button>
     <ul class="dropdown-menu">
       <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? ' active' : '' ?>"
@@ -44,19 +61,29 @@ if ($membreTeamId > 0) {
       $currentYear = date("Y");
       for ($i = 0; $i < 10; $i++) {
           $y = $currentYear - $i;
-          ?><li><a class="dropdown-item<?= (isset($_REQUEST['year']) && $_REQUEST['year'] == $y) ? ' active' : '' ?>"
+          ?><li><a class="dropdown-item<?= (!isset($_REQUEST['year']) && $y == $year && !$showAll) || (isset($_REQUEST['year']) && $_REQUEST['year'] == $y) ? ' active' : '' ?>"
                href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
       }
       ?>
     </ul>
   </div>
 
+  <!-- Séparateur visuel -->
+  <span class="text-muted" aria-hidden="true" style="font-size:0.9rem;padding:0 0.15rem">|</span>
+
+  <!-- Attestations demandées -->
+  <label class="ca-filter-btn d-flex align-items-center gap-1" style="cursor:pointer;user-select:none">
+    <input type="checkbox" id="includeAttestation" <?= $includeAttestation ? 'checked' : '' ?>>
+    <i class="fas fa-file-pdf" aria-hidden="true"></i> Attestations demandées
+  </label>
+
+  <!-- PDF bulk — poussé à droite -->
   <?php if ($year != -2): ?>
   <a href="/attestation_bulk.php?year=<?= (int)$year ?>&amp;minSum=<?= (int)$minSum ?>"
      class="ca-filter-btn ms-auto"
      target="_blank"
      title="Générer toutes les attestations en un seul PDF">
-    <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Toutes les attestations <?= (int)$year ?>
+    <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Attestations <?= (int)$year ?>
   </a>
   <?php endif ?>
 
@@ -174,7 +201,6 @@ foreach ($rows as $row):
 endforeach;
 ?>
 </table>
-<span style="font-size:9px">Found <?=$i?> rows. </span>
 <script>
 $(document).ready(function() {
     document.getElementById('includeAttestation').addEventListener('change', function() {
