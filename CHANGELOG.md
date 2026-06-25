@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.2.0] — 2026-06-25
+
+### Changed
+- Replace htaccess with PHP-based user authentication (admin/user roles, bcrypt, force password change)
+- Simplify navbar user dropdown (less markup, more right spacing)
+
 ## [2.1.0] — 2026-06-25
 
 ### Added
