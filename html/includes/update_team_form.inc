@@ -30,10 +30,10 @@ $cntRows = $pdo->query("SELECT SUBSTRING(parameter, 6) AS team_id, COUNT(*) AS c
 $teamCounts = [];
 foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 ?>
-<?php if (isset($_REQUEST['imported']) && $_REQUEST['imported'] === 'donors'): ?>
+<?php if (isset($_REQUEST['imported'])): ?>
 <div class="alert alert-success d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.82rem" role="status">
   <i class="fas fa-check-circle mt-1 flex-shrink-0" aria-hidden="true"></i>
-  Donateurs importés dans le groupe.
+  <?= $_REQUEST['imported'] === 'cotisants' ? 'Cotisants importés dans le groupe.' : 'Donateurs importés dans le groupe.' ?>
 </div>
 <?php endif ?>
 <div class="row justify-content-center mt-4">
@@ -151,6 +151,47 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
       </form>
     </div>
     <?php endif ?>
+
+    <!-- Import cotisation payers by year -->
+    <div>
+      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $team->getId() ?>" method="post">
+        <input type="hidden" name="action" value="importCotisants"/>
+
+        <details style="font-size:0.8rem">
+          <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem">
+            <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
+            Importer les cotisants d'une année
+          </summary>
+          <script>
+            document.currentScript.closest('details').addEventListener('toggle', function() {
+              var icon = this.querySelector('.fa-chevron-right');
+              icon.style.transform = this.open ? 'rotate(90deg)' : '';
+            });
+          </script>
+          <div class="mt-2 p-3" style="background:var(--ca-ground);border-radius:6px">
+            <div class="alert alert-warning d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.78rem;border-radius:6px" role="note">
+              <i class="fas fa-copy mt-1 flex-shrink-0" aria-hidden="true"></i>
+              <div>
+                <strong>Copie ponctuelle</strong> — membres déjà dans ce groupe non touchés. Seuls les cotisants absents sont ajoutés. Seuls les types marqués <em>cotisation</em> sont pris en compte.
+              </div>
+            </div>
+            <div class="row g-2 align-items-end mb-3">
+              <div class="col-auto">
+                <label for="cotis_year" class="form-label form-label-sm mb-1">Année</label>
+                <select class="form-select form-select-sm" id="cotis_year" name="cotis_year" style="width:auto">
+                  <?php for ($yi = 0; $yi < 10; $yi++): $dy = (int)date('Y') - $yi; ?>
+                  <option value="<?= $dy ?>"><?= $dy ?></option>
+                  <?php endfor ?>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-file-import me-1" aria-hidden="true"></i>Importer les cotisants
+            </button>
+          </div>
+        </details>
+      </form>
+    </div>
 
     <!-- Import donors by year -->
     <div>
