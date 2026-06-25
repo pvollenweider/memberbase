@@ -133,7 +133,7 @@ foreach ($rows as $row):
     $email = htmlentities($row->email ?? '', ENT_COMPAT, $charset);
     $address = htmlentities($row->address ?? '', ENT_COMPAT, $charset);
     $npa = htmlentities($row->npa ?? '', ENT_COMPAT, $charset);
-    $isActif = $row->is_actif ? "<i class='fas fa-check'></i><span class='hidden'>1</span>" : "";
+    $isActif = $row->is_actif ? "<i class='fas fa-check'></i><span class='visually-hidden'>1</span>" : "";
     $sexeRaw = $row->sexe;
     $sexe2 = match($sexeRaw) { 'f' => 'Madame', 'm' => 'Monsieur', 'hf' => 'Monsieur et Madame', default => '-' };
     $sexe = match($sexeRaw) {
