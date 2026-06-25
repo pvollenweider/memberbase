@@ -409,6 +409,111 @@ if (isset($_REQUEST['action'])) {
         $userProperty->parameter = $_REQUEST['parameter'];
         $userProperty->value = unquote($_REQUEST['value']);
         $userProperty->save();
+
+    // ── Auth actions ─────────────────────────────────────────────────────────
+
+    } else if ($_REQUEST['action'] === 'logout') {
+        authLogout();
+        header('Location: login.php');
+        exit;
+
+    } else if ($_REQUEST['action'] === 'changePassword') {
+        $currentUser = authUser();
+        $pwNew       = $_POST['pw_new']     ?? '';
+        $pwConfirm   = $_POST['pw_confirm'] ?? '';
+        $pwCurrent   = $_POST['pw_current'] ?? '';
+        $forced      = $currentUser->force_password_change;
+        $errParam    = '';
+
+        if (strlen($pwNew) < 8) {
+            $errParam = urlencode('Le mot de passe doit contenir au moins 8 caractères.');
+        } elseif ($pwNew !== $pwConfirm) {
+            $errParam = urlencode('Les deux mots de passe ne correspondent pas.');
+        } elseif (!$forced) {
+            // Must verify current password
+            $row = $pdo->prepare("SELECT password_hash FROM app_users WHERE id = ?");
+            $row->execute([$currentUser->id]);
+            $hash = $row->fetchColumn();
+            if (!$hash || !password_verify($pwCurrent, $hash)) {
+                $errParam = urlencode('Mot de passe actuel incorrect.');
+            }
+        }
+
+        if ($errParam) {
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=changePassword&pw_error=' . $errParam);
+            exit;
+        }
+
+        $newHash = password_hash($pwNew, PASSWORD_DEFAULT);
+        $pdo->prepare("UPDATE app_users SET password_hash=?, force_password_change=0 WHERE id=?")
+            ->execute([$newHash, $currentUser->id]);
+        $_SESSION['force_password_change'] = false;
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+
+    } else if ($_REQUEST['action'] === 'createAppUser') {
+        if (!isAdmin()) { http_response_code(403); exit; }
+        $auUsername    = trim($_POST['au_username']    ?? '');
+        $auDisplayName = trim($_POST['au_display_name'] ?? '');
+        $auEmail       = trim($_POST['au_email']       ?? '');
+        $auRole        = in_array($_POST['au_role'] ?? '', ['admin','user']) ? $_POST['au_role'] : 'user';
+        $auPassword    = $_POST['au_password'] ?? '';
+        $errParam      = '';
+
+        if (!preg_match('/^[a-zA-Z0-9._\-]+$/', $auUsername)) {
+            $errParam = urlencode('Identifiant invalide (lettres, chiffres, ., -, _ uniquement).');
+        } elseif (strlen($auPassword) < 8) {
+            $errParam = urlencode('Le mot de passe temporaire doit contenir au moins 8 caractères.');
+        } else {
+            try {
+                $pdo->prepare(
+                    "INSERT INTO app_users (username, display_name, email, password_hash, role, force_password_change)
+                     VALUES (?, ?, ?, ?, ?, 1)"
+                )->execute([$auUsername, $auDisplayName ?: null, $auEmail ?: null,
+                            password_hash($auPassword, PASSWORD_DEFAULT), $auRole]);
+            } catch (PDOException $e) {
+                if ($e->getCode() == 23000) {
+                    $errParam = urlencode('Cet identifiant est déjà utilisé.');
+                } else {
+                    throw $e;
+                }
+            }
+        }
+        if ($errParam) {
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&au_error=' . $errParam);
+        } else {
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
+        }
+        exit;
+
+    } else if ($_REQUEST['action'] === 'deleteAppUser') {
+        if (!isAdmin()) { http_response_code(403); exit; }
+        $targetId = (int)($_POST['target_id'] ?? 0);
+        if ($targetId === (int)$_SESSION['app_user_id']) {
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
+            exit;
+        }
+        // Prevent deleting last admin
+        $adminCount = (int)$pdo->query("SELECT COUNT(*) FROM app_users WHERE role='admin' AND is_active=1")->fetchColumn();
+        $targetRole = $pdo->prepare("SELECT role FROM app_users WHERE id=?");
+        $targetRole->execute([$targetId]);
+        $role = $targetRole->fetchColumn();
+        if ($role === 'admin' && $adminCount <= 1) {
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&au_error=' . urlencode('Impossible de supprimer le dernier administrateur.'));
+            exit;
+        }
+        $pdo->prepare("DELETE FROM app_users WHERE id=?")->execute([$targetId]);
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
+        exit;
+
+    } else if ($_REQUEST['action'] === 'resetUserPassword') {
+        if (!isAdmin()) { http_response_code(403); exit; }
+        $targetId  = (int)($_POST['target_id'] ?? 0);
+        $tempPw    = bin2hex(random_bytes(6)); // 12-char hex temp password
+        $pdo->prepare("UPDATE app_users SET password_hash=?, force_password_change=1 WHERE id=?")
+            ->execute([password_hash($tempPw, PASSWORD_DEFAULT), $targetId]);
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&reset_pw=' . urlencode($tempPw) . '&reset_uid=' . $targetId);
+        exit;
     }
 }
 ?>

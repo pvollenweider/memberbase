@@ -1,5 +1,11 @@
 <?php
 $charset = "UTF-8";
+
+// Auth — must run before any output
+require_once __DIR__ . '/includes/auth.inc';
+requireLogin();
+requirePasswordChange();
+
 header("Content-Type: text/html; charset=$charset");
 ?>
 <!DOCTYPE html>
@@ -140,7 +146,7 @@ include "includes/menu.inc";
     <div class="container">
         <small>Process time: [<?= (int)(($end - $start) * 1000) ?>
             ms]. Date: [<?= date("d.m.Y H:i", time()) ?>]<br/>
-            Casa Members v2.0.0
+            Casa Members v2.1.0
         </small>
     </div>
 </footer>

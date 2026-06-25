@@ -2,7 +2,11 @@
 $logger = Logger::getLogger('manage_views.php');
 if (isset($_REQUEST['view'])) {
 
-    if ($_REQUEST['view'] == 'addUser') {
+    if ($_REQUEST['view'] === 'changePassword') {
+        include "change_password.inc";
+    } else if ($_REQUEST['view'] === 'manageAppUsers') {
+        include "manage_app_users.inc";
+    } else if ($_REQUEST['view'] == 'addUser') {
         $logger->debug("Dispaching add_user_form.inc");
         include "add_user_form.inc";
     } else if ($_REQUEST['view'] == 'updateUser') {

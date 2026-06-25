@@ -40,7 +40,42 @@ if (isset ($_REQUEST["searchString"])) {
                 <li class="nav-item<?= $view == 'settings' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings" title="Réglages"><i class="fas fa-cog"></i></a>
                 </li>
+                <?php if (isAdmin()): ?>
+                <li class="nav-item<?= $view === 'manageAppUsers' ? ' active' : '' ?>">
+                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=manageAppUsers" title="Utilisateurs">
+                        <i class="fas fa-user-shield"></i>
+                    </a>
+                </li>
+                <?php endif ?>
             </ul>
+
+            <?php $__authUser = authUser(); ?>
+            <div class="d-flex align-items-center gap-2 my-2 my-lg-0">
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-light dropdown-toggle d-flex align-items-center gap-1"
+                        type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size:0.8rem">
+                  <i class="fas fa-user-circle" aria-hidden="true"></i>
+                  <?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword">
+                      <i class="fas fa-key me-2" aria-hidden="true"></i>Changer le mot de passe
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+                      <input type="hidden" name="action" value="logout">
+                      <button type="submit" class="dropdown-item text-danger">
+                        <i class="fas fa-right-from-bracket me-2" aria-hidden="true"></i>Se déconnecter
+                      </button>
+                    </form>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
             <form class="d-flex gap-2 my-2 my-lg-0" role="search" action="<?= $_SERVER['PHP_SELF'] ?>" method="get">
                 <input type="hidden" name="action" value="search"/>
                 <input type="hidden" name="team" value="-3"/>
