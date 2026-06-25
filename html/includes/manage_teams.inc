@@ -274,7 +274,19 @@
     <p class="small text-muted mb-3">Organisent les groupes en sections visuelles dans les listes. Un groupe appartient à une seule catégorie.</p>
 
     <?php
-    $allCats = $pdo->query("SELECT m.id, m.name, COUNT(DISTINCT j.teamid) AS team_count FROM metagroup m LEFT JOIN metagroup j ON j.id=m.id AND j.teamid IS NOT NULL WHERE m.name IS NOT NULL AND m.is_filter=0 GROUP BY m.id, m.name ORDER BY MIN(m.sort_order) ASC, m.name ASC")->fetchAll(PDO::FETCH_OBJ);
+    $allCats = $pdo->query("
+        SELECT m.id, m.name,
+               COUNT(DISTINCT j.teamid) AS team_count
+        FROM metagroup m
+        LEFT JOIN metagroup j
+            ON j.id = m.id
+            AND j.teamid IS NOT NULL
+            AND j.name IS NULL
+            AND j.teamid IN (SELECT id FROM team)
+        WHERE m.name IS NOT NULL AND m.is_filter = 0
+        GROUP BY m.id, m.name
+        ORDER BY MIN(m.sort_order) ASC, m.name ASC
+    ")->fetchAll(PDO::FETCH_OBJ);
     ?>
     <?php if (count($allCats) > 0): ?>
     <table class="table table-sm table-hover align-middle mb-3" style="font-size:0.82rem">
