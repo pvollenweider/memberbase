@@ -1,0 +1,14 @@
+.bs-docs-nav {
+  background-color:#6088c1;
+}
+.bs-docs-nav .navbar-nav>li>a,
+.bs-docs-nav .navbar-brand {
+  color:#fff;
+}
+.bs-docs-nav .navbar-nav>li>a:hover,.bs-docs-nav .navbar-nav>li>a:focus
+.bs-docs-nav .navbar-brand:hover,.bs-docs-nav .navbar-brand:focus {
+  color:#f9b036 !important;
+}
+.bs-docs-nav .navbar-toggle .icon-bar {
+background-color: #fff;
+}

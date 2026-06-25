@@ -1,0 +1,80 @@
+<?php
+class Compta
+{
+    public $id;
+    public $userId;
+    public $type;
+    public $date;
+    public $libele;
+    public $sum;
+    public $quittance;
+    private $logger;
+
+    public function __construct()
+    {
+        $this->logger = Logger::getLogger('Compta');
+    }
+
+    public function lookupCompta(int $id): void
+    {
+        global $pdo;
+        $stmt = $pdo->prepare("SELECT id,user_id,type,date,libele,sum,quittance FROM compta WHERE id=?");
+        $stmt->execute([$id]);
+        $row = $stmt->fetchObject();
+        if ($row) {
+            $this->id        = $row->id;
+            $this->userId    = $row->user_id;
+            $this->type      = $row->type;
+            $this->date      = $row->date;
+            $this->libele    = $row->libele;
+            $this->sum       = $row->sum;
+            $this->quittance = $row->quittance;
+        }
+        $this->logger->debug("Lookup compta $id");
+    }
+
+    public function getId()        { return $this->id; }
+    public function getUserId()    { return $this->userId; }
+    public function getType()      { return $this->type; }
+    public function getDate()      { return $this->date; }
+    public function getLibele()    { return $this->libele; }
+    public function getSum()       { return $this->sum; }
+    public function getQuittance() { return $this->quittance; }
+
+    public function setUserId($v)    { $this->userId = $v; }
+    public function setType($v)      { $this->type = $v; }
+    public function setDate($v)      { $this->date = $v; }
+    public function setlibele($v)    { $this->libele = $v; }
+    public function setSum($v)       { $this->sum = $v; }
+    public function setQuittance($v) { $this->quittance = $v; }
+
+    public function save(): void
+    {
+        global $pdo;
+        if ($this->id) {
+            $pdo->prepare(
+                "UPDATE compta SET user_id=?,type=?,date=?,libele=?,sum=?,quittance=? WHERE id=?"
+            )->execute([
+                $this->userId, $this->type, $this->date, $this->libele,
+                $this->sum, $this->quittance, $this->id,
+            ]);
+            $this->logger->debug("Updated compta $this->id");
+        } else {
+            $comptaid = updateAndGetMaxVal("comptaid");
+            $pdo->prepare(
+                "INSERT INTO compta (id,user_id,type,date,libele,sum,quittance) VALUES (?,?,?,?,?,?,?)"
+            )->execute([
+                $comptaid, $this->userId, $this->type, $this->date,
+                $this->libele, $this->sum, $this->quittance,
+            ]);
+            $this->logger->debug("Inserted compta $comptaid");
+        }
+    }
+
+    public function remove(): void
+    {
+        global $pdo;
+        $pdo->prepare("DELETE FROM compta WHERE id=?")->execute([$this->id]);
+        $this->logger->debug("Removed compta $this->id");
+    }
+}

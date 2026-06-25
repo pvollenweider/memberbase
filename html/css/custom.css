@@ -1,0 +1,258 @@
+:root {
+    --ca-primary:       #4f7ac7;
+    --ca-primary-dark:  #3a5fa0;
+    --ca-primary-light: #e8eef8;
+    --ca-ink:           #1f2937;
+    --ca-ink-mid:       #374151;
+    --ca-ink-muted:     #6b7280;
+    --ca-surface:       #ffffff;
+    --ca-ground:        #f9fafb;
+    --ca-border:        #e5e7eb;
+    --ca-border-strong: #d1d5db;
+    --ca-male:          #3b82f6;
+    --ca-female:        #f472b6;
+    --ca-danger:        #b91c1c;
+    --ca-danger-light:  #fee2e2;
+}
+
+/* Base */
+body {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ca-ink);
+    background-color: var(--ca-ground);
+}
+
+/* Bootstrap primary override */
+.bg-primary,
+.btn-primary {
+    background-color: var(--ca-primary) !important;
+    border-color: var(--ca-primary) !important;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--ca-primary-dark) !important;
+    border-color: var(--ca-primary-dark) !important;
+}
+.text-primary {
+    color: var(--ca-primary) !important;
+}
+a {
+    color: var(--ca-primary);
+}
+a:hover {
+    color: var(--ca-primary-dark);
+}
+
+/* Navbar */
+.navbar.bg-primary {
+    background-color: var(--ca-primary) !important;
+}
+.navbar-dark .navbar-nav .nav-link {
+    color: #fff;
+    opacity: 1 !important;
+}
+.bg-primary .nav-link.active {
+    font-weight: 600;
+}
+
+/* Dropdown active state */
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--ca-primary) !important;
+}
+
+/* Tables */
+.table thead th {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    color: var(--ca-ink-muted);
+    background-color: var(--ca-ground);
+    border-bottom: 1px solid var(--ca-border-strong);
+}
+.table-hover tbody tr:hover > td {
+    background-color: var(--ca-primary-light);
+}
+
+/* Forms — horizontal layout label alignment */
+.row .col-form-label {
+    text-align: right;
+}
+
+/* Gender icons */
+i.fas.fa-male.s {
+    color: var(--ca-male);
+}
+i.fas.fa-female.s {
+    color: var(--ca-female);
+}
+
+/* Wide screens */
+@media (min-width: 1600px) {
+    .container {
+        max-width: 1570px;
+    }
+}
+
+/* Form section dividers */
+.form-section-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ca-ink-muted);
+    border-bottom: 1px solid var(--ca-border);
+    padding-bottom: 0.35rem;
+    margin-bottom: 1.1rem;
+    margin-top: 1.5rem;
+}
+.form-section-title:first-child {
+    margin-top: 0;
+}
+
+/* Member group pills */
+.member-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.55rem;
+    background: var(--ca-primary-light);
+    color: var(--ca-primary-dark);
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-decoration: none;
+    line-height: 1.4;
+    transition: background 0.15s, color 0.15s;
+}
+.member-pill:hover {
+    background: var(--ca-danger-light);
+    color: var(--ca-danger);
+    text-decoration: none;
+}
+.member-pill .pill-x {
+    font-size: 0.6rem;
+    opacity: 0.55;
+}
+
+/* Group add list */
+.group-add-list a {
+    display: block;
+    padding: 0.1rem 0;
+    color: var(--ca-ink-muted);
+    font-size: 0.78rem;
+    text-decoration: none;
+}
+.group-add-list a:hover {
+    color: var(--ca-primary);
+}
+
+/* Filter pill buttons */
+.ca-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.22rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ca-ink-mid);
+    background: var(--ca-surface);
+    border: 1px solid var(--ca-border-strong);
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.12s, background 0.12s, color 0.12s;
+    line-height: 1.4;
+}
+.ca-filter-btn:hover,
+.ca-filter-btn:focus-visible {
+    border-color: var(--ca-primary);
+    color: var(--ca-primary-dark);
+    background: var(--ca-primary-light);
+    outline: none;
+}
+.ca-filter-btn[aria-expanded="true"],
+.ca-filter-btn.active {
+    background: var(--ca-primary-light);
+    border-color: var(--ca-primary);
+    color: var(--ca-primary-dark);
+    font-weight: 600;
+}
+.ca-filter-btn.dropdown-toggle::after {
+    width: 0.28em;
+    height: 0.28em;
+    border-top: 0.28em solid currentColor;
+    border-right: 0.28em solid transparent;
+    border-left: 0.28em solid transparent;
+    border-bottom: 0;
+    margin-left: 0.1em;
+    vertical-align: 0.12em;
+    opacity: 0.6;
+}
+
+/* DataTables toolbar */
+.dt-buttons {
+    display: flex;
+    gap: 0.25rem;
+}
+.btn-dt {
+    background: none;
+    border: none;
+    color: var(--ca-ink-muted);
+    font-size: 0.78rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    transition: background 0.12s, color 0.12s;
+}
+.btn-dt:hover, .btn-dt:focus {
+    background: var(--ca-primary-light);
+    color: var(--ca-primary-dark);
+}
+.btn-dt.dropdown-toggle::after {
+    display: none;
+}
+.dt-button-collection {
+    padding: 0.25rem 0;
+    min-width: 10rem;
+    background: var(--ca-surface);
+    border: 1px solid var(--ca-border-strong);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    z-index: 1050;
+}
+.dt-button-collection .dt-button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.35rem 0.875rem;
+    font-size: 0.82rem;
+    color: var(--ca-ink);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+}
+.dt-button-collection .dt-button:hover {
+    background: var(--ca-primary-light);
+    color: var(--ca-primary-dark);
+}
+div.dataTables_filter input {
+    font-size: 0.82rem;
+}
+div.dataTables_info {
+    font-size: 0.75rem;
+    color: var(--ca-ink-muted);
+    padding-top: 0.5rem;
+}
+
+/* Datetimepicker BS5 compat */
+.bootstrap-datetimepicker-widget table td.active,
+.bootstrap-datetimepicker-widget table td.active:hover {
+    background-color: var(--ca-primary);
+}
+.bootstrap-datetimepicker-widget table td span.active {
+    background-color: var(--ca-primary);
+}

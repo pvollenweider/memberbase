@@ -1,0 +1,525 @@
+<?php
+$logger = Logger::getLogger('view_users.php');
+$searchString = "";
+if (isset ($_REQUEST["searchString"])) {
+    $searchString = trim($_REQUEST["searchString"]);
+}
+$team = 249; //245; // 237;// 226;//205;
+$membre = 245; //237; # membres de l'annee passee
+if (isset ($_REQUEST["team"])) {
+    $team = $_REQUEST["team"];
+}
+$metagroup = 0;
+if (isset($_REQUEST['metagroup']) && (int)$_REQUEST['metagroup'] > 0) {
+    $metagroup = (int)$_REQUEST['metagroup'];
+}
+$addMembership = -1;
+if (isset ($_REQUEST["addMembership"])) {
+    $addMembership = $_REQUEST["addMembership"];
+}
+$removeMembership = -1;
+if (isset ($_REQUEST["removeMembership"])) {
+    $removeMembership = $_REQUEST["removeMembership"];
+}
+
+$allowedColumns = ['lastname', 'firstname', 'society', 'npa', 'email', 'id'];
+$allowedSorts   = ['ASC', 'DESC'];
+$orderSort = "ASC";
+$orderSortInverse = "DESC";
+$orderColumn = "lastname";
+if (isset($_REQUEST['orderSort']) && in_array(strtoupper($_REQUEST['orderSort']), $allowedSorts)) {
+    $orderSort = strtoupper($_REQUEST['orderSort']);
+    $orderSortInverse = $orderSort === "ASC" ? "DESC" : "ASC";
+}
+if (isset($_REQUEST['orderColumn']) && in_array($_REQUEST['orderColumn'], $allowedColumns)) {
+    $orderColumn = $_REQUEST['orderColumn'];
+}
+$year=date("Y");
+if (isset($_REQUEST['year'])) {
+    $year = $_REQUEST['year'];
+}
+
+?>
+<nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
+
+
+    <a class="navbar-brand" href="#"></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto">
+            <li class="nav-item dropdown">
+
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+
+                    <?php
+                    $currentTeamTitle = "";
+                    if ($metagroup > 0) {
+                        $mg = new Metagroup();
+                        $mg->lookupMetagroup($metagroup);
+                        $currentTeamTitle = $mg->getName();
+                    } else if ($team == -3) {
+                        $currentTeamTitle = $GLOBAL['allExceptArchives'];
+                    } else if ($team == -3333) {
+                        $currentTeamTitle = $GLOBAL['cotiUnpayedLast3Years'];
+                    } else if ($team == -5555) {
+                        $currentTeamTitle = $GLOBAL['nothingLast10Years'];
+                    } else if ($team == -6666) {
+                        $currentTeamTitle = $GLOBAL['nonInstitPayedSomethingLastYear'];
+                    } else if ($team == -4) {
+                        $currentTeamTitle = $GLOBAL['cotiUnpayed'];
+                    } else {
+                        $currentteam = new Team();
+                        $currentteam->lookupTeam($team);
+                        $currentTeamTitle = $currentteam->getName();
+                    }
+                    ?>
+
+                    <?=$currentTeamTitle?>
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="min-width:220px">
+
+                    <div class="px-2 pb-1">
+                      <input type="text" id="team-filter-input" class="form-control form-control-sm" placeholder="Filtrer…" autocomplete="off"
+                             oninput="filterTeamDropdown(this.value)"
+                             onclick="event.stopPropagation()">
+                    </div>
+                    <div class="dropdown-divider mt-1 mb-0"></div>
+
+                    <?php
+                    $stmtMg = $pdo->query("SELECT DISTINCT m.id, m.name FROM metagroup m WHERE m.name IS NOT NULL AND EXISTS (SELECT 1 FROM metagroup j WHERE j.id=m.id AND j.teamid IS NOT NULL) ORDER BY m.name");
+                    $metagroups = $stmtMg->fetchAll(PDO::FETCH_OBJ);
+                    if (count($metagroups) > 0):
+                    ?>
+                    <h6 class="dropdown-header" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">Groupes de groupes</h6>
+                    <?php foreach ($metagroups as $mg): ?>
+                    <a class="dropdown-item team-filterable <?= ($metagroup === (int)$mg->id) ? 'active' : '' ?>"
+                       href="<?= $_SERVER['PHP_SELF'] ?>?metagroup=<?= (int)$mg->id ?>"
+                       data-label="<?= htmlentities(mb_strtolower($mg->name), ENT_COMPAT, $charset) ?>">
+                        <i class="fas fa-layer-group me-1 text-muted" aria-hidden="true" style="font-size:0.75rem"></i><?= htmlentities($mg->name, ENT_COMPAT, $charset) ?>
+                    </a>
+                    <?php endforeach; ?>
+                    <div class="dropdown-divider"></div>
+                    <?php endif; ?>
+
+                    <a class="dropdown-item"
+                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-3">-&gt; <?= $GLOBAL['allExceptArchives'] ?></a>
+                    <a class="dropdown-item"
+                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-3333">-&gt; <?=$GLOBAL['cotiUnpayedLast3Years']?>
+                        <a class="dropdown-item"
+                           href="<?= $_SERVER['PHP_SELF'] ?>?team=-5555">-&gt; <?= $GLOBAL['nothingLast10Years'] ?></a>
+                        <a class="dropdown-item"
+                           href="<?= $_SERVER['PHP_SELF'] ?>?team=-4">-&gt; <?= $GLOBAL['cotiUnpayed'] ?></a>
+                        <a class="dropdown-item"
+                           href="<?= $_SERVER['PHP_SELF'] ?>?team=-6666">-&gt; <?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
+
+                        <?php
+                        $stmt2 = $pdo->query("SELECT id,name FROM team WHERE hidden=0 ORDER BY name");
+                        while ($row = $stmt2->fetchObject()) {
+                            $id = $row->id;
+                            $name = $row->name;
+                            ?>
+                            <a class="dropdown-item team-filterable <?php if ($team == $id) { ?>active<?php } ?>"
+                               href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= $id ?>"
+                               data-label="<?= htmlentities(mb_strtolower($name), ENT_COMPAT, $charset) ?>"><?= htmlentities($name, ENT_COMPAT, $charset) ?></a>
+                            <?php
+                        }
+                    ?>
+                </div>
+            </li>
+        </ul>
+
+
+        <span class="navbar-text">
+            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?>"
+                                    title="<?= $GLOBAL['addUser'] ?>"><i class="fas fa-user-plus"></i></a>
+        </span>
+    </div><!-- /.navbar-collapse -->
+</nav>
+<script>
+function filterTeamDropdown(q) {
+  var val = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  document.querySelectorAll('.team-filterable').forEach(function(el) {
+    var label = (el.dataset.label || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+    el.style.display = label.includes(val) ? '' : 'none';
+  });
+  document.querySelectorAll('.team-filterable.kb-focus').forEach(function(el) { el.classList.remove('kb-focus'); });
+}
+
+function visibleItems() {
+  return Array.from(document.querySelectorAll('.team-filterable')).filter(function(el) {
+    return el.style.display !== 'none';
+  });
+}
+
+document.getElementById('team-filter-input').addEventListener('keydown', function(e) {
+  var items = visibleItems();
+  if (!items.length) return;
+  var focused = document.querySelector('.team-filterable.kb-focus');
+
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (focused) focused.classList.remove('kb-focus');
+    var idx = focused ? items.indexOf(focused) : -1;
+    idx = e.key === 'ArrowDown' ? Math.min(idx + 1, items.length - 1) : Math.max(idx - 1, 0);
+    items[idx].classList.add('kb-focus');
+    items[idx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    var target = focused || items[0];
+    if (target) window.location = target.href;
+  } else if (e.key === 'Escape') {
+    bootstrap.Dropdown.getInstance(document.getElementById('navbarDropdown')).hide();
+  }
+});
+
+document.getElementById('navbarDropdown').addEventListener('shown.bs.dropdown', function() {
+  var input = document.getElementById('team-filter-input');
+  input.value = '';
+  filterTeamDropdown('');
+  setTimeout(function() { input.focus(); }, 0);
+});
+</script>
+<style>
+.team-filterable.kb-focus { background: var(--ca-primary-light) !important; color: var(--ca-primary-dark) !important; }
+</style>
+<?php
+$query = "SELECT DISTINCT ".
+           "users.id," .
+           "users.firstname," .
+           "users.lastname," .
+           "users.society," .
+           "users.sexe," .
+           "users.address," .
+           "users.npa," .
+           "users.email";
+$query .= " FROM users";
+if ($metagroup > 0) {
+    $query .= ",user_properties ";
+} else {
+    if ($team == -4) {
+        $query .= ",compta ";
+    }
+    if ($team != -1) {
+        $query .= ",user_properties ";
+    }
+}
+$query .= " WHERE 1=1 ";
+$action = "";
+
+$queryParams = [];
+if (isset($_REQUEST['action'])) {
+    if ($_REQUEST['action'] == "search") {
+        $logger->debug("Searching for [$searchString]");
+        $action = "search";
+        $like = "%" . $searchString . "%";
+        $query .= " AND (users.firstname LIKE ?";
+        $query .= " OR users.lastname LIKE ?";
+        $query .= " OR users.society LIKE ?";
+        $query .= " OR users.npa LIKE ?";
+        $query .= " OR users.email LIKE ?";
+        $query .= " OR users.comment LIKE ?";
+        $query .= " OR users.address LIKE ?)";
+        $queryParams = array_fill(0, 7, $like);
+    }
+}
+if ($metagroup > 0) {
+    // Fetch all team IDs belonging to this metagroup
+    $stmtMgTeams = $pdo->prepare("SELECT teamid FROM metagroup WHERE id=? AND teamid IS NOT NULL");
+    $stmtMgTeams->execute([$metagroup]);
+    $mgTeamIds = $stmtMgTeams->fetchAll(PDO::FETCH_COLUMN);
+    if (count($mgTeamIds) > 0) {
+        $placeholders = implode(',', array_fill(0, count($mgTeamIds), '?'));
+        $query .= " AND users.id=user_properties.user_id AND user_properties.parameter IN ($placeholders)";
+        $queryParams = array_merge($queryParams, array_map(fn($id) => "team_$id", $mgTeamIds));
+    } else {
+        $query .= " AND 1=0"; // metagroup has no teams — return empty
+    }
+} else if ($team != -1) {
+    if ($team == -2) {
+        $logger->debug("team is -2 -> Envoi journal");
+        $query .= " AND users.id=user_properties.user_id AND NOT (";
+        $query .= "    user_properties.parameter='team_13'";
+        $query .= "    OR user_properties.parameter='team_10'";
+        $query .= "    OR user_properties.parameter='team_20'";
+        $query .= "    OR user_properties.parameter='team_19'";
+        $query .= " )";
+    } else if ($team == -3 || $team == -5555  || $team == -6666) {
+        $logger->debug("team is -3 -> Tout le monde sauf archive");
+        $query .= " AND users.id=user_properties.user_id AND NOT (";
+        $query .= "    user_properties.parameter='team_19'";
+        $query .= " )";
+    } else if ($team == -4 || $team == -1234 || $team == -3333) {
+        # search member
+        $logger->debug("team is -4 -1234 -3333 -> coti non payees");
+        $query .= " AND users.id=user_properties.user_id ";
+        $query .= "AND ( ";
+        $query .= "user_properties.parameter='team_$membre') ";
+    } else if ($team == -5) {
+        $logger->debug("team is -5 -> Mailing noel");
+        $query .= " AND users.id=user_properties.user_id AND (";
+        $query .= "    user_properties.parameter='team_6'";
+        $query .= "    OR user_properties.parameter='team_5'";
+        $query .= "    OR user_properties.parameter='team_9'";
+        $query .= "    OR user_properties.parameter='team_7')";
+        $query .= "    AND NOT user_properties.parameter='team_19'";
+    } else if ($team == -444) {
+        # search member
+        $logger->debug("team is -golf 2010 2011 + soiree 2010 with compta -> ");
+        $query .= " AND users.id=user_properties.user_id ";
+        $query .= "AND (user_properties.parameter='team_56' OR ";
+        $query .= "user_properties.parameter='team_62' OR ";
+        $query .= "user_properties.parameter='team_7' OR ";
+        $query .= "user_properties.parameter='team_58' ) ";
+    } else if ($team == -6) {
+        $logger->debug("team is -6 -> physiquePasMembreDonEn060708");
+        $query .= " AND users.id=user_properties.user_id ";
+        $query .= "AND user_properties.parameter='team_7' ";
+
+    } else {
+        $query .= " AND users.id=user_properties.user_id AND user_properties.parameter='team_$team'";
+    }
+}
+
+$query .= " ORDER BY $orderColumn $orderSort";
+
+?>
+<div class="table-responsive">
+<table class="table table-hover table-sm export">
+<thead>
+<tr>
+    <th class="d-none d-sm-table-cell d-md-table-cell"><?=$GLOBAL['sexe']?></th>
+    <th>
+            <?=$GLOBAL['society']?>
+    </th>
+    <th>
+            <?=$GLOBAL['lastName']?>
+    </th>
+    <th>
+            <?=$GLOBAL['firstName']?>
+    </th>
+    <th class="d-none d-sm-table-cell">
+            <?=$GLOBAL['address']?>
+    </th>
+    <th class="d-none d-sm-table-cell">
+            <?=$GLOBAL['npa']?>
+    </th>
+    <th class="d-none d-sm-table-cell d-md-table-cell">
+            <?=$GLOBAL['email']?>
+    </th>
+    <th class="d-none d-sm-table-cell d-md-table-cell">
+            <?=$GLOBAL['creationDate']?>
+    </th>
+</tr>
+</thead>
+<?php
+#print $query;
+$stmt = $pdo->prepare($query);
+$stmt->execute($queryParams);
+$rowCount = 0;
+while ($row = $stmt->fetchObject()) {
+    $id = $row->id;
+    $displayLine = true;
+    $user = new User();
+    $user->lookupUser($id);
+
+    $isArchive = $user->isMemberOfTeam(19);
+    if ($team == -1234) {
+        $displayLine = false;
+
+        if ($user->isCotisationPayed(2004) != -1 ||
+            $user->isCotisationPayed(2005) != -1 ||
+            $user->isCotisationPayed(2006) != -1 ||
+	    $user->isCotisationPayed(2007) != -1 ||
+            $user->isCotisationPayed(2008) != -1 ||
+            $user->isCotisationPayed(2009) != -1
+            ) {
+            $displayLine = true;
+        }
+        $displayLine = !$displayLine;
+        if ($user->isMemberOfTeam(19)) {
+            $displayLine = false;
+        }
+    } else if ($team == -3333) {
+        $displayLine = false;
+        if ($user->isCotisationPayed($year-1) == -1 &&
+            $user->isCotisationPayed($year)== -1 &&
+            $user->isCotisationPayed($year-2)== -1 &&
+            $user->isCotisationPayed($year-3)== -1) {
+                $displayLine = true;
+        } else {
+            $displayLine = false;
+        }
+        if ($user->isMemberOfTeam(19)) {
+            $displayLine = false;
+        }
+    } else if ($team == -5555) {
+        $displayLine = true;
+        if ($user->hasComptaEntries($year,10)) {
+                $displayLine = false;
+        } else {
+            $displayLine = true;
+        }
+        if ($user->isMemberOfTeam(19) || $user->isMemberOfTeam(6)|| $user->isMemberOfTeam(47)|| $user->isMemberOfTeam(2) || $user->isMemberOfTeam(31)  || $user->isMemberOfTeam(34) || $user->isMemberOfTeam(27)) {
+            $displayLine = false;
+        }
+    } else if ($team == -6666) {
+        $displayLine = false;
+        if ($user->hasAnyEntry($year-1)!= -1) {
+            $displayLine = true;
+        } else {
+            $displayLine = false;
+        }
+        if ($user->isMemberOfTeam(19) || $user->isMemberOfTeam(8)) {
+            $displayLine = false;
+        }
+    } else if ($team == -444) {
+        $displayLine = false;
+        if ($user->hasDonated($year) != -1||
+            $user->hasDonated($year-1)!= -1) {
+                $displayLine = true;
+        } else {
+            $displayLine = false;
+        }
+        if ($user->isMemberOfTeam(19) || $user->isMemberOfTeam(6)|| $user->isMemberOfTeam(47)|| $user->isMemberOfTeam(5)|| $user->isMemberOfTeam(2) || $user->isMemberOfTeam(22)) {
+            $displayLine = false;
+        }
+
+    } else if ($team == -6) {
+        $displayLine = false;
+
+        if ($user->hasPayed(2011) == -1
+            ) {
+            $displayLine = true;
+        }
+	if ($user->isMemberOfTeam(6) || $user->isMemberOfTeam(5)) {
+            $displayLine = true;
+	}
+        $displayLine = !$displayLine;
+        if ($user->isMemberOfTeam(19)) {
+            $displayLine = false;
+        }
+    } else if ($team == -4) {
+        if ($user->isCotisationPayed($year) > -1) {
+            $displayLine = false;
+        }
+        if ($user->isMemberOfTeam(19)) {
+            $displayLine = false;
+        }
+    } else if ($team == 19) {
+        $displayLine = true;
+    } else {
+        if ($user->isMemberOfTeam(19)) {
+            $displayLine = false;
+        }
+    }
+
+
+    if ($displayLine) {
+        $rowCount++;
+        $firstName = $row->firstname;
+        $lastName = $row->lastname;
+        $society = $row->society;
+        $sexe = $row->sexe;
+        if ($sexe == "na") { $sexe = ""; }
+        else if ($sexe == "f") { $sexe = "<i class='fas fa-female s'></i><span class='d-none'>Madame</span>"; }
+        else if ($sexe == "m") { $sexe = "<i class='fas fa-male s'></i><span class='d-none'>Monsieur</span>"; }
+        else if ($sexe == "hf") { $sexe = "<i class='fas fa-male s'></i><i class='fas fa-female s'></i><span class='d-none'>Madame et Monsieur</span>"; }
+        $address = $row->address;
+        $npa = $row->npa;
+        $email = $row->email;
+        $firstName = htmlentities($firstName,ENT_COMPAT,$charset);
+        $lastName = htmlentities($lastName,ENT_COMPAT,$charset);
+        $address = htmlentities($address,ENT_COMPAT,$charset);
+        $npa = htmlentities($npa,ENT_COMPAT,$charset);
+        $emailStr = htmlentities($email,ENT_COMPAT,$charset);
+        if ($addMembership != -1) {
+            $user->addMembership($addMembership);
+        }
+        if ($removeMembership != -1) {
+            $user->removeMembership($removeMembership);
+        }
+        #if ($searchString) {
+        #    $ss = htmlentities($searchString,ENT_COMPAT,$charset);
+        #    $firstName = preg_replace("/($ss)/i","<mark>\\1</mark>",$firstName);
+        #    $lastName = preg_replace("/($ss)/i","<mark>\\1</mark>",$lastName);
+        #    $society = preg_replace("/($ss)/i","<mark>\\1</mark>",$society);
+        #    $address = preg_replace("/($ss)/i","<mark>\\1</mark>",$address);
+        #    $npa = preg_replace("/($ss)/i","<mark>\\1</mark>",$npa);
+        #    $emailStr = preg_replace("/($ss)/i","<mark>\\1</mark>",$emailStr);
+        #}
+        $emailStr = str_replace(",","<br/>",$emailStr);
+        ?>
+        <tr data-href="<?=$_SERVER['PHP_SELF']?>?view=generalData&id=<?=$id?>">
+            <td class="d-none d-sm-table-cell d-md-table-cell"><?=$sexe?></td>
+            <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
+            <td class="text-nowrap"><?=$lastName?> <?php
+            if ($isArchive){
+                ?> *<?php
+            }
+            ?>
+            </td>
+            <td class="text-nowrap2"><?=$firstName?></td>
+            <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>
+            <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
+            <td class="d-none d-sm-table-cell d-md-table-cell"><a href="mailto:<?=$email?>"><?=$emailStr?></a></td>
+            <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate($user->getCreationDate())?></td>
+        </tr>
+        <?php
+    }
+}
+?>
+</table>
+</div>
+<?php
+if ($searchString) {
+    ?>
+    <script>
+    $("table").highlight("<?=$searchString?>", { element: 'mark' });
+    </script>
+    <?php
+
+}
+if ($team == -4) {
+    ?><span style="color:red">manque a gagner de CHF <?=$rowCount*50?> pour <?=$year?> avec les cotis non pay&eacute;es...</span><br/><?php
+}
+?>
+<script>
+$(document).ready(function () {
+    $.fn.dataTable.moment('DD/MM/YYYY');
+
+    $('.export').DataTable({
+        order: [[2, 'asc']],
+        paging: false,
+        dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
+        buttons: [
+            {
+                extend: 'collection',
+                text: 'Exporter <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
+                className: 'btn btn-dt',
+                buttons: [
+                    { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i>Copier' },
+                    { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i>Excel' },
+                    { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i>Imprimer' },
+                    { extend: 'pdf',   text: '<i class="fas fa-file-pdf me-2" aria-hidden="true"></i>PDF' }
+                ]
+            },
+            {
+                extend: 'colvis',
+                text: '<i class="fas fa-columns me-1" aria-hidden="true"></i>Colonnes',
+                className: 'btn btn-dt'
+            }
+        ],
+        language: {
+            info: '_TOTAL_ membres',
+            infoFiltered: '(filtrés sur _MAX_)',
+            search: '',
+            searchPlaceholder: 'Filtrer…'
+        }
+    });
+});
+</script>
