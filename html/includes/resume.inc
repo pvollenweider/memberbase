@@ -74,10 +74,14 @@ if ($showAll) {
   <span class="text-muted" aria-hidden="true" style="font-size:0.9rem;padding:0 0.15rem">|</span>
 
   <!-- Attestations demandées -->
-  <label class="ca-filter-btn d-flex align-items-center gap-1" style="cursor:pointer;user-select:none">
-    <input type="checkbox" id="includeAttestation" <?= $includeAttestation ? 'checked' : '' ?>>
+  <label class="ca-filter-btn ca-attest-label d-flex align-items-center gap-1" style="cursor:pointer;user-select:none">
+    <input type="checkbox" id="includeAttestation" <?= $includeAttestation ? 'checked' : '' ?> style="outline:none;box-shadow:none">
     <i class="fas fa-file-pdf" aria-hidden="true"></i> Inclure si attestation demandée
   </label>
+  <style>
+  .ca-attest-label:focus-visible { outline: none; }
+  .ca-attest-label:focus-within { border-color: var(--ca-primary); background: var(--ca-primary-light); color: var(--ca-primary-dark); }
+  </style>
   <button type="button" class="btn btn-link p-0 text-muted" style="font-size:0.85rem;line-height:1"
           tabindex="0"
           data-bs-toggle="popover"
