@@ -15,7 +15,15 @@
                 data-bs-toggle="tab" data-bs-target="#tab-orga"
                 type="button" role="tab"
                 aria-controls="tab-orga" aria-selected="false">
-          <i class="fas fa-layer-group me-1" aria-hidden="true"></i>Catégories
+          <i class="fas fa-tag me-1" aria-hidden="true"></i>Catégories
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-filters-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-filters"
+                type="button" role="tab"
+                aria-controls="tab-filters" aria-selected="false">
+          <i class="fas fa-layer-group me-1" aria-hidden="true"></i>Filtres
         </button>
       </li>
     </ul>
@@ -392,9 +400,11 @@
       </div>
     </form>
 
-    <hr class="my-3">
+    </div><!-- #tab-orga -->
 
-    <p class="form-section-title">Filtres de groupes</p>
+    <div class="tab-pane fade" id="tab-filters" role="tabpanel" aria-labelledby="tab-filters-btn">
+
+    <p class="form-section-title" style="margin-top:0">Filtres de groupes</p>
     <p class="small text-muted mb-3">Regroupent plusieurs groupes en un filtre dynamique — accessible depuis la barre de navigation.</p>
 
     <?php
@@ -434,7 +444,7 @@
       </div>
     </form>
 
-    </div><!-- #tab-orga -->
+    </div><!-- #tab-filters -->
 
     </div><!-- .tab-content -->
 
