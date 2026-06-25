@@ -283,6 +283,7 @@ if (isset($_REQUEST['action'])) {
         $compta->sum = str_replace(',','.',$_REQUEST['sum']);
         $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);
         $compta->setTypeId((int)$_REQUEST['type_id']);
+        $compta->setWantsAttestation(isset($_REQUEST['wants_attestation']));
         $compta->save();
     } else if ($_REQUEST['action'] == 'addSuivi') {
         $userProperty = new UserProperty();

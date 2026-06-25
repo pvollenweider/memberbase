@@ -62,6 +62,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <th><?=$GLOBAL['libele']?></th>
     <th><?=$GLOBAL['sum']?></th>
     <th><?=$GLOBAL['quittance']?></th>
+    <th title="Souhaite attestation"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
     <th>&nbsp;</td>
 </tr>
 </thead>
@@ -83,7 +84,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <td><button type="submit" class="btn btn-primary"><?=$GLOBAL['add']?></button></td>
 </tr>
 <?php
-$query = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, ct.label AS ct_label, ct.color AS ct_color FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE c.user_id=" . $user->getId() . " ";
+$query = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, ct.label AS ct_label, ct.color AS ct_color FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE c.user_id=" . $user->getId() . " ";
 if ($year != -2) {
     $query .= " AND c.date > $from AND c.date < $to ";
 }
@@ -128,6 +129,11 @@ while ($row = $stmt->fetchObject()) {
             }
             ?>
         </td>
+        <td class="text-center">
+            <?php if ($row->wants_attestation): ?>
+            <i class="fas fa-check text-success" aria-label="Souhaite attestation"></i>
+            <?php endif ?>
+        </td>
         <td class="text-end">
             <a href="<?=$_SERVER['PHP_SELF']?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>"
                class="btn btn-outline-secondary btn-sm py-0 px-1">
@@ -145,6 +151,7 @@ while ($row = $stmt->fetchObject()) {
     <td><strong><?=$GLOBAL['total']?></strong></td>
     <td></td>
     <td style="text-align:right;"><strong><?=number_format($total,2,'.','\'')?></strong></td>
+    <td></td>
     <td></td>
     <td></td>
 </tr>

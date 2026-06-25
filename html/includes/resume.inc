@@ -1,6 +1,7 @@
 <?php
-$minSum = max(0, (int)(isset($_REQUEST['minSum']) ? $_REQUEST['minSum'] : 1));
-if (!in_array($minSum, [1, 200, 500, 1000])) { $minSum = 1; }
+$showAll = isset($_REQUEST['showAll']) && $_REQUEST['showAll'] == '1';
+$minSum  = $showAll ? 0 : max(0, (int)(isset($_REQUEST['minSum']) ? $_REQUEST['minSum'] : 1));
+if (!$showAll && !in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 1; }
 
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year === -1) { $year = (int)date("Y"); }
@@ -10,10 +11,12 @@ $type = "allTypes";
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
     <i class="fas fa-filter me-1" aria-hidden="true"></i>Min CHF
   </span>
-  <?php foreach ([1, 200, 500, 1000] as $_ms): ?>
-  <a class="ca-filter-btn<?= $minSum == $_ms ? ' active' : '' ?>"
+  <?php foreach ([1, 100, 200, 500, 1000] as $_ms): ?>
+  <a class="ca-filter-btn<?= (!$showAll && $minSum == $_ms) ? ' active' : '' ?>"
      href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;type=<?= $type ?>&amp;year=<?= $year ?>"><?= $_ms ?></a>
   <?php endforeach ?>
+  <a class="ca-filter-btn<?= $showAll ? ' active' : '' ?>"
+     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;showAll=1&amp;type=<?= $type ?>&amp;year=<?= $year ?>">Toutes entrées</a>
 
   <div class="dropdown ms-2">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -56,22 +59,30 @@ $type = "allTypes";
     <th><?=$GLOBAL['address']?></th>
     <th><?=$GLOBAL['npa']?></th>
     <th><?=$GLOBAL['sum']?></th>
+    <th title="Souhaite attestation"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
     <th></th>
 </tr>
 </thead>
 <?php
 $params = [];
-$sql = "
+$baseSelect = "
     SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
            SUM(c.sum) AS total,
+           MAX(c.wants_attestation) AS wants_attestation,
            EXISTS(
                SELECT 1 FROM user_properties up
                WHERE up.user_id = u.id AND up.parameter = 'team_141' AND up.value = 'true'
            ) AS is_actif
     FROM users u
     JOIN compta c ON u.id = c.user_id
-    WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
 ";
+
+if ($showAll) {
+    $sql = $baseSelect . " WHERE 1=1";
+} else {
+    $sql = $baseSelect . " WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)";
+}
+
 if ($year != -2) {
     $from = mktime(0, 0, 0, 1, 0, $year);
     $to   = mktime(0, 0, 0, 1, 1, $year + 1);
@@ -79,10 +90,12 @@ if ($year != -2) {
     $params[] = $from;
     $params[] = $to;
 }
-$sql .= " GROUP BY u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email
-          HAVING SUM(c.sum) >= ?
-          ORDER BY u.lastname, u.firstname, u.society";
-$params[] = $minSum;
+$sql .= " GROUP BY u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email";
+if (!$showAll) {
+    $sql .= " HAVING SUM(c.sum) >= ?";
+    $params[] = $minSum;
+}
+$sql .= " ORDER BY u.lastname, u.firstname, u.society";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -116,6 +129,11 @@ foreach ($rows as $row):
         <td><?=$address?></td>
         <td><?=$npa?></td>
         <td style="text-align:right"><?=number_format((float)$row->total, 2, '.', '\'')?></td>
+        <td class="text-center">
+            <?php if ($row->wants_attestation): ?>
+            <i class="fas fa-check text-success" aria-label="Souhaite attestation"></i>
+            <?php endif ?>
+        </td>
         <td class="text-end">
             <?php if ($year != -2): ?>
             <a href="/attestation_don.php?userid=<?=(int)$row->id?>&amp;year=<?=(int)$year?>"

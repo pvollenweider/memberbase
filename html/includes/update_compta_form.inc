@@ -71,11 +71,23 @@ $typeId = $compta->getTypeId();
         </div>
       </div>
 
-      <div class="row mb-3 align-items-center">
+      <div class="row mb-2 align-items-center">
         <label for="quittance" class="col-sm-3 col-form-label col-form-label-sm text-sm-end"><?= $GLOBAL['quittance'] ?></label>
         <div class="col-sm-9">
           <input type="text" class="form-control form-control-sm" id="quittance" name="quittance"
                  value="<?= htmlentities($compta->getQuittance(), ENT_COMPAT, $charset) ?>">
+        </div>
+      </div>
+
+      <div class="row mb-3 align-items-center">
+        <div class="col-sm-9 offset-sm-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="wants_attestation" name="wants_attestation" value="1"
+                   <?= $compta->getWantsAttestation() ? 'checked' : '' ?>>
+            <label class="form-check-label" for="wants_attestation">
+              Souhaite une attestation de don
+            </label>
+          </div>
         </div>
       </div>
 
