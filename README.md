@@ -21,13 +21,19 @@ Application web PHP de gestion des membres, groupes, cotisations et dons pour Ca
 - Filtre de la liste membres par groupe ou méta-groupe
 - Recherche incrémentale dans le dropdown de sélection de groupe
 - Filtre rapide par statut: tout le monde sauf archives, cotisation non payée, rien ces 10 dernières années, non-instit ayant versé l'année passée
+- **Import automatique dans un groupe** depuis la page d'édition d'un groupe:
+  - Importer les membres d'un autre groupe (copie ponctuelle)
+  - Importer les **donateurs d'une année** (seuil min CHF configurable: 1 / 100 / 200 / 500 / 1000)
+  - Importer les **cotisants d'une année** (filtre par types marqués "cotisation")
+  - Chaque sélecteur d'année affiche le nombre de nouveaux membres qui seraient ajoutés
 
 ### Compta
 
 - Saisie et modification d'entrées comptables par membre (type, date, libellé, somme, quittance)
 - Vue historique par membre avec filtre par année
+- **Flag "souhaite une attestation de don"** par entrée: checkbox directement dans la liste, visible dans la vue résumé
 - Types de compta configurables (UI d'administration): label, couleur Bootstrap, ordre
-  - Flag **cotisation** (utilisé par les filtres de cotisation)
+  - Flag **cotisation** (utilisé par les filtres de cotisation et l'import de membres)
   - Flag **exclu des dons** (exclu des vues résumé et attestations)
   - Archivage d'un type (masqué à la saisie, visible sur les lignes existantes)
 - Coloration des lignes par type dans toutes les vues compta
@@ -39,7 +45,7 @@ Application web PHP de gestion des membres, groupes, cotisations et dons pour Ca
 |-----|-------------|
 | **Compta** (`lastEntryCompta`) | Dernières entrées compta, filtrable par type et année, export DataTables |
 | **Suivi** (`lastEntrySuivi`) | Dernières notes de suivi, filtrable par année |
-| **Gros donateurs** (`resume`) | Donateurs classés par total annuel, filtre min CHF (1 / 200 / 500 / 1000), filtre année |
+| **Gros donateurs** (`resume`) | Donateurs classés par total annuel, filtre min CHF (1 / 100 / 200 / 500 / 1000), filtre année, mode "toutes entrées", filtre "attestation demandée" |
 
 ### Attestations de dons (PDF)
 
