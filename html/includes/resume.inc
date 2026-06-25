@@ -88,10 +88,15 @@ if ($showAll) {
   <?php endif ?>
 
 </div>
-<?php if ($showAll): ?>
+<?php if ($showAll):
+    $excludedLabels = array_map(
+        fn($ct) => htmlentities($ct->label, ENT_COMPAT, $charset),
+        array_filter($comptaTypes, fn($ct) => (int)$ct->is_excluded_from_donation === 1)
+    );
+?>
 <div class="alert alert-warning d-flex align-items-start gap-2 py-2 mb-3" role="alert" style="font-size:0.85rem">
   <i class="fas fa-triangle-exclamation mt-1 flex-shrink-0" aria-hidden="true"></i>
-  <span><strong>Mode étendu</strong> — tous les types comptables sont inclus (cotisations, frais, etc.). Les totaux ne reflètent pas uniquement les dons.</span>
+  <span><strong>Mode étendu</strong> — tous les types comptables sont inclus<?php if ($excludedLabels): ?>, y compris ceux habituellement exclus des dons : <?= implode(', ', $excludedLabels) ?><?php endif ?>. Les totaux ne reflètent pas uniquement les dons.</span>
 </div>
 <?php endif ?>
 <table class="table table-striped table-hover export">
