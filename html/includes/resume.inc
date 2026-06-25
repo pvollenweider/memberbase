@@ -1,7 +1,8 @@
 <?php
-$showAll = isset($_REQUEST['showAll']) && $_REQUEST['showAll'] == '1';
-$minSum  = $showAll ? 0 : max(0, (int)(isset($_REQUEST['minSum']) ? $_REQUEST['minSum'] : 1));
-if (!$showAll && !in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 1; }
+$showAll          = isset($_REQUEST['showAll']) && $_REQUEST['showAll'] == '1';
+$wantsAttestation = isset($_REQUEST['wantsAttestation']) && $_REQUEST['wantsAttestation'] == '1';
+$minSum           = ($showAll || $wantsAttestation) ? 0 : max(0, (int)(isset($_REQUEST['minSum']) ? $_REQUEST['minSum'] : 100));
+if (!$showAll && !$wantsAttestation && !in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 100; }
 
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year === -1) { $year = (int)date("Y"); }
@@ -12,9 +13,13 @@ $type = "allTypes";
     <i class="fas fa-filter me-1" aria-hidden="true"></i>Min CHF
   </span>
   <?php foreach ([1, 100, 200, 500, 1000] as $_ms): ?>
-  <a class="ca-filter-btn<?= (!$showAll && $minSum == $_ms) ? ' active' : '' ?>"
+  <a class="ca-filter-btn<?= (!$showAll && !$wantsAttestation && $minSum == $_ms) ? ' active' : '' ?>"
      href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;type=<?= $type ?>&amp;year=<?= $year ?>"><?= $_ms ?></a>
   <?php endforeach ?>
+  <a class="ca-filter-btn<?= $wantsAttestation ? ' active' : '' ?>"
+     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;wantsAttestation=1&amp;type=<?= $type ?>&amp;year=<?= $year ?>">
+    <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Attestation demandée
+  </a>
   <a class="ca-filter-btn<?= $showAll ? ' active' : '' ?>"
      href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;showAll=1&amp;type=<?= $type ?>&amp;year=<?= $year ?>">Toutes entrées</a>
 
@@ -77,7 +82,7 @@ $baseSelect = "
     JOIN compta c ON u.id = c.user_id
 ";
 
-if ($showAll) {
+if ($showAll || $wantsAttestation) {
     $sql = $baseSelect . " WHERE 1=1";
 } else {
     $sql = $baseSelect . " WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)";
@@ -91,7 +96,9 @@ if ($year != -2) {
     $params[] = $to;
 }
 $sql .= " GROUP BY u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email";
-if (!$showAll) {
+if ($wantsAttestation) {
+    $sql .= " HAVING MAX(c.wants_attestation) = 1";
+} elseif (!$showAll) {
     $sql .= " HAVING SUM(c.sum) >= ?";
     $params[] = $minSum;
 }
