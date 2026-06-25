@@ -48,10 +48,6 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] == 'manageTeam') {
         $logger->debug("Dispaching manage_teams.inc");
         include "manage_teams.inc";
-    } else if ($_REQUEST['view'] == 'manageMetagroups') {
-        $logger->debug("Redirect manageMetagroups -> manageTeam");
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=manageTeam') . ');</script>';
-        exit;
     } else if ($_REQUEST['view'] == 'updateMetagroup') {
         $logger->debug("Dispaching update_metagroup_form.inc");
         include "update_metagroup_form.inc";
@@ -61,9 +57,6 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] == 'lastEntryCompta') {
         $logger->debug("Dispaching lastEntryCompta.inc");
         include "lastEntryCompta.inc";
-    } else if ($_REQUEST['view'] == 'lastEntryCompta2') {
-        $logger->debug("Dispaching lastEntryCompta2.inc");
-        include "lastEntryCompta2.inc";
     } else if ($_REQUEST['view'] == 'resume') {
         $logger->debug("Dispaching resume.inc");
         include "resume.inc";
@@ -79,21 +72,6 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] == 'lapsedMembers') {
         $logger->debug("Dispaching lapsed_members.inc");
         include "lapsed_members.inc";
-    } else if ($_REQUEST['view'] == 'resume2') {
-        $logger->debug("Dispaching resume2.inc");
-        include "resume2.inc";
-    } else if ($_REQUEST['view'] == 'resume3') {
-        $logger->debug("Dispaching resume3.inc");
-        include "resume3.inc";
-    }  else if ($_REQUEST['view'] == 'resume4') {
-        $logger->debug("Dispaching resume4.inc");
-        include "resume4.inc";
-    }  else if ($_REQUEST['view'] == 'resume-non-coti') {
-        $logger->debug("Dispaching resume-non-coti.inc");
-        include "resume-non-coti.inc";
-    } else if ($_REQUEST['view'] == 'resume_dna') {
-        $logger->debug("Dispaching resume_dna.inc");
-        include "resume_dna.inc";
     } else if ($_REQUEST['view'] == 'lastEntrySuivi') {
         $logger->debug("Dispaching lastEntrySuivi.inc");
         include "lastEntrySuivi.inc";
