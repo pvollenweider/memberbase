@@ -117,19 +117,23 @@ if (isset($_REQUEST['action'])) {
     } else if ($_REQUEST['action'] == 'importCotisants') {
         $teamId = (int)$_REQUEST['id'];
         $year   = isset($_REQUEST['cotis_year']) ? (int)$_REQUEST['cotis_year'] : (int)date('Y');
-        if ($teamId > 0 && $year >= 2000 && $year <= 2100) {
-            $from = mktime(0, 0, 0, 1, 0, $year);
-            $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+        // Build cotisation type IDs from already-loaded $comptaTypes
+        $cotisTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
+        if ($teamId > 0 && $year >= 2000 && $year <= 2100 && !empty($cotisTypeIds)) {
+            $from        = mktime(0, 0, 0, 1, 0, $year);
+            $to          = mktime(0, 0, 0, 1, 1, $year + 1);
+            $placeholders = implode(',', array_fill(0, count($cotisTypeIds), '?'));
+            $params       = array_merge(["team_$teamId"], $cotisTypeIds, [$from, $to, "team_$teamId"]);
             $pdo->prepare("
                 INSERT INTO user_properties (user_id, parameter, value)
                 SELECT u.id, ?, 'true'
                 FROM users u
                 JOIN compta c ON c.user_id = u.id
-                WHERE c.type_id IN (SELECT id FROM compta_type WHERE is_cotisation = 1)
+                WHERE c.type_id IN ($placeholders)
                   AND c.date > ? AND c.date < ?
                   AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
                 GROUP BY u.id
-            ")->execute(["team_$teamId", $from, $to, "team_$teamId"]);
+            ")->execute($params);
         }
         echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $teamId . '&imported=cotisants') . ');</script>';
         exit;

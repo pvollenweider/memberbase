@@ -28,30 +28,52 @@ $currentCatId = (int)($stmtCurrentCat->fetchColumn() ?: 0);
 // Precompute import counts per year (donors + cotisants not yet in team)
 $importCountsPerYear = [];
 $currentYear = (int)date('Y');
+
+$cotisTypeIds   = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
+$excludedTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_excluded_from_donation === 1));
+
 for ($yi = 0; $yi < 10; $yi++) {
     $dy   = $currentYear - $yi;
     $from = mktime(0, 0, 0, 1, 0, $dy);
     $to   = mktime(0, 0, 0, 1, 1, $dy + 1);
-    $r = $pdo->prepare("
-        SELECT COUNT(DISTINCT u.id)
-        FROM users u
-        JOIN compta c ON c.user_id = u.id
-        WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
-          AND c.date > ? AND c.date < ?
-          AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
-    ");
-    $r->execute([$from, $to, "team_$id"]);
+
+    // Donors count
+    if (!empty($excludedTypeIds)) {
+        $excPlaceholders = implode(',', array_fill(0, count($excludedTypeIds), '?'));
+        $r = $pdo->prepare("
+            SELECT COUNT(DISTINCT u.id)
+            FROM users u JOIN compta c ON c.user_id = u.id
+            WHERE c.type_id NOT IN ($excPlaceholders)
+              AND c.date > ? AND c.date < ?
+              AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
+        ");
+        $r->execute(array_merge($excludedTypeIds, [$from, $to, "team_$id"]));
+    } else {
+        $r = $pdo->prepare("
+            SELECT COUNT(DISTINCT u.id)
+            FROM users u JOIN compta c ON c.user_id = u.id
+            WHERE c.date > ? AND c.date < ?
+              AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
+        ");
+        $r->execute([$from, $to, "team_$id"]);
+    }
     $donorCount = (int)$r->fetchColumn();
-    $r2 = $pdo->prepare("
-        SELECT COUNT(DISTINCT u.id)
-        FROM users u
-        JOIN compta c ON c.user_id = u.id
-        WHERE c.type_id IN (SELECT id FROM compta_type WHERE is_cotisation = 1)
-          AND c.date > ? AND c.date < ?
-          AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
-    ");
-    $r2->execute([$from, $to, "team_$id"]);
-    $cotisCount = (int)$r2->fetchColumn();
+
+    // Cotisants count
+    $cotisCount = 0;
+    if (!empty($cotisTypeIds)) {
+        $cotisPlaceholders = implode(',', array_fill(0, count($cotisTypeIds), '?'));
+        $r2 = $pdo->prepare("
+            SELECT COUNT(DISTINCT u.id)
+            FROM users u JOIN compta c ON c.user_id = u.id
+            WHERE c.type_id IN ($cotisPlaceholders)
+              AND c.date > ? AND c.date < ?
+              AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
+        ");
+        $r2->execute(array_merge($cotisTypeIds, [$from, $to, "team_$id"]));
+        $cotisCount = (int)$r2->fetchColumn();
+    }
+
     $importCountsPerYear[$dy] = ['donors' => $donorCount, 'cotis' => $cotisCount];
 }
 
@@ -202,7 +224,12 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <div class="alert alert-warning d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.78rem;border-radius:6px" role="note">
               <i class="fas fa-copy mt-1 flex-shrink-0" aria-hidden="true"></i>
               <div>
-                <strong>Copie ponctuelle</strong> — membres déjà dans ce groupe non touchés. Seuls les cotisants absents sont ajoutés. Seuls les types marqués <em>cotisation</em> sont pris en compte.
+                <strong>Copie ponctuelle</strong> — membres déjà dans ce groupe non touchés. Seuls les cotisants absents sont ajoutés.
+                <?php if (!empty($cotisTypeIds)): ?>
+                Types pris en compte: <?= implode(', ', array_map(fn($tid) => '<strong>' . htmlentities($comptaTypes[$tid]->label, ENT_COMPAT, $charset) . '</strong>', $cotisTypeIds)) ?>.
+                <?php else: ?>
+                <span class="text-danger"><strong>Aucun type marqué «cotisation» — configure-les dans <a href="<?= $_SERVER['PHP_SELF'] ?>?view=manageComptaTypes">Types compta</a>.</strong></span>
+                <?php endif ?>
               </div>
             </div>
             <div class="row g-2 align-items-end mb-3">
