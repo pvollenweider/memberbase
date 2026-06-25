@@ -1,7 +1,12 @@
-<?php 
-include "declarations.inc";
-include "user_class.inc";
+<?php
+require_once __DIR__ . '/includes/auth.inc';
+requireLogin();
+ob_start();
 $charset = "ISO-8859-1";
+
+include "includes/declarations.inc";
+include "classes/user_class.inc";
+
 $filename="casa_" . date("Ymd",time()) . ".doc";
 header("Content-disposition: filename=$filename");
 header("Content-type: application/msword");
@@ -48,7 +53,7 @@ div.Section1
 </head>
 <body lang=FR style='tab-interval:35.4pt'>
 
-<?php 
+<?php
 $orderSort = "ASC";
 $orderSortInverse = "DESC";
 $orderColumn = "lastname";
@@ -61,15 +66,17 @@ if (isset($_REQUEST['orderColumn'])) {
     $orderColumn = $_REQUEST['orderColumn'];
 }
 
-
 $searchString = "";
-if (isset ($_REQUEST["searchString"])) {
+if (isset($_REQUEST["searchString"])) {
     $searchString = $_REQUEST["searchString"];
 }
 $team = -1;
-if (isset ($_REQUEST["team"])) {
-    $team = $_REQUEST["team"];
+if (isset($_REQUEST["team"])) {
+    $team = (int)$_REQUEST["team"];
 }
+
+$params = [];
+
 $query = "SELECT DISTINCT users.id,users.firstname,users.sexe,users.lastname,users.society,users.address,users.npa FROM users";
 if ($team == -4 || $team == -1234 || $team == -3333) {
     $query .= ",compta ";
@@ -79,35 +86,36 @@ if ($team != -1) {
 }
 $query .= " WHERE 1=1";
 
-if (isset($searchString) && $searchString != "") {
-    $query .= " AND (users.firstname LIKE '%" . $searchString . "%'";
-    $query .= " OR users.lastname LIKE '%" . $searchString . "%'";
-    $query .= " OR users.society LIKE '%" . $searchString . "%'";
-    $query .= " OR users.npa LIKE '%" . $searchString . "%'";
-    $query .= " OR users.email LIKE '%" . $searchString . "%'";
-    $query .= " OR users.comment LIKE '%" . $searchString . "%'";
-    $query .= " OR users.address LIKE '%" . $searchString . "%')";
+if ($searchString != "") {
+    $like = "%" . $searchString . "%";
+    $query .= " AND (users.firstname LIKE ?";
+    $query .= " OR users.lastname LIKE ?";
+    $query .= " OR users.society LIKE ?";
+    $query .= " OR users.npa LIKE ?";
+    $query .= " OR users.email LIKE ?";
+    $query .= " OR users.comment LIKE ?";
+    $query .= " OR users.address LIKE ?)";
+    $params = array_merge($params, [$like, $like, $like, $like, $like, $like, $like]);
 }
-if ($team != -1) {
 
+if ($team != -1) {
     if ($team == -2) {
-        $query .= "AND users.id=user_properties.user_id AND NOT (";
+        $query .= " AND users.id=user_properties.user_id AND NOT (";
         $query .= "    user_properties.parameter='team_13'";
         $query .= "    OR user_properties.parameter='team_10'";
         $query .= "    OR user_properties.parameter='team_20'";
         $query .= " )";
     } else if ($team == -3) {
-        $query .= "AND users.id=user_properties.user_id AND NOT (";
+        $query .= " AND users.id=user_properties.user_id AND NOT (";
         $query .= "    user_properties.parameter='team_19'";
         $query .= " )";
     } else if ($team == -4 || $team == -1234 || $team == -3333) {
-        # search member
         $query .= " AND users.id=user_properties.user_id ";
         $query .= "AND (user_properties.parameter='team_5' OR ";
         $query .= "user_properties.parameter='team_6') ";
     } else if ($team == -5) {
         $logger->debug("team is -5 -> Mailing noel");
-        $query .= "AND users.id=user_properties.user_id AND (";
+        $query .= " AND users.id=user_properties.user_id AND (";
         $query .= "    user_properties.parameter='team_6'";
         $query .= "    OR user_properties.parameter='team_5'";
         $query .= "    OR user_properties.parameter='team_9'";
@@ -115,18 +123,21 @@ if ($team != -1) {
         $query .= "    AND NOT user_properties.parameter='team_19'";
     } else if ($team == -6) {
         $logger->debug("team is -6 -> physiquePasMembreDonEn060708");
-        $query .= "AND users.id=user_properties.user_id ";
+        $query .= " AND users.id=user_properties.user_id ";
         $query .= "    AND user_properties.parameter='team_7'";
     } else {
-        $query .= " AND users.id=user_properties.user_id AND user_properties.parameter='team_$team'";
+        $query .= " AND users.id=user_properties.user_id AND user_properties.parameter='team_" . (int)$team . "'";
     }
 }
 $query .= " ORDER BY lastname,firstname";
-$result = mysql_query($query) or die ("Query failed: " . mysql_error());
+
+$stmt = $pdo->prepare($query);
+$stmt->execute($params);
+
 $col=0;
 $row=0;
 $cell=0;
-while ($row = mysql_fetch_object($result)) {
+while ($row = $stmt->fetchObject()) {
     $id = $row->id;
     $displayLine = true;
     $user = new User();
@@ -197,16 +208,16 @@ while ($row = mysql_fetch_object($result)) {
         $npa = mb_convert_encoding($row->npa, "ISO-8859-1", "UTF-8");
         $sexe = $row->sexe;
     	if ($cell%24==0){
-    		?><div class=Section1><table border=0 cellspacing=0 cellpadding=0 style='border-collapse:collapse;mso-padding-top-alt:0cm;mso-padding-bottom-alt:0cm'><?php 
+    		?><div class=Section1><table border=0 cellspacing=0 cellpadding=0 style='border-collapse:collapse;mso-padding-top-alt:0cm;mso-padding-bottom-alt:0cm'><?php
     	}
     	if ($cell%3==0){
-    		?><tr style='height:104.9pt'><?php 
+    		?><tr style='height:104.9pt'><?php
      	}
      	?>
     	<td width=265 style='width:198.4pt;padding:0cm .75pt 0cm .75pt;height:104.9pt'>
-    	<p><?php 
+    	<p><?php
     	if ($society) {
-    	    ?><b><?=$society?></b><br/><?php 
+    	    ?><b><?=$society?></b><br/><?php
     	}
     	if ($sexe != "na") {
             if ($sexe == "f") {
@@ -216,24 +227,23 @@ while ($row = mysql_fetch_object($result)) {
             } else if ($sexe == "hf") {
                 $sexe = "Monsieur et Madame";
             }
-            ?><?=$sexe?><br/><?php 
+            ?><?=$sexe?><br/><?php
         }
     	?><?=$firstName?> <?=$lastName?></p>
     	<p><?=$address?></p>
     	<p><?=$npa?></p>
     	<p><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>
     	<p><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></p>	</td>
-    	<?php 
+    	<?php
     	$cell++;
     	if ($cell%3==0){
-    		?></tr><?php 
+    		?></tr><?php
     	}
     	if ($cell%24==0){
-    		?></table></div><span style='font-size:12.0pt;font-family:"Times New Roman";mso-fareast-font-family:"Times New Roman";display:none;mso-hide:all;mso-ansi-language:FR;mso-fareast-language:FR;mso-bidi-language:AR-SA'><br clear=all style='page-break-before:always;mso-break-type:section-break'></span><?php 
+    		?></table></div><span style='font-size:12.0pt;font-family:"Times New Roman";mso-fareast-font-family:"Times New Roman";display:none;mso-hide:all;mso-ansi-language:FR;mso-fareast-language:FR;mso-bidi-language:AR-SA'><br clear=all style='page-break-before:always;mso-break-type:section-break'></span><?php
     	}
     }
 }
-mysql_free_result($result);
 ?>
 <div class=Section1>
 <p><span style='display:none;mso-hide:all'><![if !supportEmptyParas]>&nbsp;<![endif]><o:p></o:p></span></p>

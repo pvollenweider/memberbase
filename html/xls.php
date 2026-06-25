@@ -34,30 +34,28 @@ print html_entity_decode($GLOBAL['coti']) . " " . date("Y") . "\t";
 print "id\n";
 
 # get all groups
-$query = "SELECT id,name FROM team ORDER BY name";
-$result = mysql_query($query) or die ("Query failed: " . mysql_error());
 $teamsId = array();
 $teamsName = array();
-while ($row = mysql_fetch_object($result)) {
-    $id = $row->id;
-    $name = $row->name;
-    array_push($teamsId,$id);
-    array_push($teamsName,$name);
+$stmt = $pdo->query("SELECT id,name FROM team ORDER BY name");
+foreach ($stmt->fetchAll(PDO::FETCH_OBJ) as $row) {
+    array_push($teamsId, $row->id);
+    array_push($teamsName, $row->name);
 }
-mysql_free_result($result);
 
 $searchString = "";
-if (isset ($_REQUEST["searchString"])) {
+if (isset($_REQUEST["searchString"])) {
     $searchString = $_REQUEST["searchString"];
 }
 $team = -1;
-if (isset ($_REQUEST["team"])) {
-    $team = $_REQUEST["team"];
+if (isset($_REQUEST["team"])) {
+    $team = (int)$_REQUEST["team"];
 }
-$year=date("Y");
+$year = date("Y");
 if (isset($_REQUEST['year'])) {
     $year = $_REQUEST['year'];
 }
+
+$params = [];
 
 $query = "SELECT DISTINCT ".
              "users.id,".
@@ -84,14 +82,10 @@ if ($team != -1) {
     $query .= ",user_properties ";
 }
 $query .= " WHERE 1=1";
-if (isset($searchString)) {
-    $query .= " AND (users.firstname LIKE '%" . $searchString . "%'";
-    $query .= " OR users.lastname LIKE '%" . $searchString . "%'";
-    $query .= " OR users.society LIKE '%" . $searchString . "%'";
-    $query .= " OR users.npa LIKE '%" . $searchString . "%'";
-    $query .= " OR users.email LIKE '%" . $searchString . "%'";
-    $query .= " OR users.comment LIKE '%" . $searchString . "%'";
-    $query .= " OR users.address LIKE '%" . $searchString . "%')";
+if ($searchString !== '') {
+    $like = '%' . $searchString . '%';
+    $query .= " AND (users.firstname LIKE ? OR users.lastname LIKE ? OR users.society LIKE ? OR users.npa LIKE ? OR users.email LIKE ? OR users.comment LIKE ? OR users.address LIKE ?)";
+    $params = array_merge($params, array_fill(0, 7, $like));
 }
 if ($team != -1) {
 
@@ -123,14 +117,16 @@ if ($team != -1) {
         $query .= "AND users.id=user_properties.user_id ";
         $query .= "    AND user_properties.parameter='team_7'";
     } else {
-        $query .= " AND users.id=user_properties.user_id AND user_properties.parameter='team_$team'";
+        $query .= " AND users.id=user_properties.user_id AND user_properties.parameter=?";
+        $params[] = "team_" . $team;
     }
 }
 $query .= " ORDER BY lastname,firstname";
 
-$result = mysql_query($query) or die ("Query failed: " . mysql_error());
+$stmt = $pdo->prepare($query);
+$stmt->execute($params);
 
-while ($row = mysql_fetch_object($result)) {
+while ($row = $stmt->fetch(PDO::FETCH_OBJ)) {
     $id = $row->id;
     $displayLine = true;
     $user = new User();
@@ -241,5 +237,4 @@ while ($row = mysql_fetch_object($result)) {
         print "$sexe\t$society\t$lastName\t$firstName\t$address\t$npa\t$tel\t$telprof\t$portable\t$fax\t$email\t$web\t$birthday\t$creationDate\t$modificationDate\t$groups\t$coti\t$id\n";
     }
 }
-mysql_free_result($result);
 ?>
