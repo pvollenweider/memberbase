@@ -14,8 +14,10 @@ $user = new User();
 $user->lookupUser($userid);
 
 $charset = "UTF-8";
-$filename="quit_" . $user->lastName . "_" . $user->firstName . "_" . date("Ymd",time()) . ".mhtml";
-header("Content-disposition: filename=$filename");
+$_safeLast  = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $user->lastName);
+$_safeFirst = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $user->firstName);
+$filename   = "quit_{$_safeLast}_{$_safeFirst}_" . date("Ymd") . ".mhtml";
+header("Content-Disposition: attachment; filename=\"$filename\"");
 #header("Content-type: application/msword; charset=utf-8");
 header("Content-type: message/rfc822; charset=utf-8");
 header("Pragma: no-cache");
