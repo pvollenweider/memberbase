@@ -1,4 +1,5 @@
 <?php
+ob_start();
 $charset = "UTF-8";
 
 // Auth — must run before any output
@@ -178,4 +179,5 @@ include "includes/menu.inc";
 </html>
 <?php
 Logger::shutdown();
+ob_end_flush();
 ?>
