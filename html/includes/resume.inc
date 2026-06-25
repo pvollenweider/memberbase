@@ -1,8 +1,8 @@
 <?php
-$showAll          = isset($_REQUEST['showAll']) && $_REQUEST['showAll'] == '1';
-$wantsAttestation = isset($_REQUEST['wantsAttestation']) && $_REQUEST['wantsAttestation'] == '1';
-$minSum           = ($showAll || $wantsAttestation) ? 0 : max(0, (int)(isset($_REQUEST['minSum']) ? $_REQUEST['minSum'] : 100));
-if (!$showAll && !$wantsAttestation && !in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 100; }
+$showAll             = isset($_REQUEST['showAll']) && $_REQUEST['showAll'] == '1';
+$includeAttestation  = !isset($_REQUEST['includeAttestation']) || $_REQUEST['includeAttestation'] == '1';
+$minSum              = $showAll ? 0 : max(0, (int)(isset($_REQUEST['minSum']) ? $_REQUEST['minSum'] : 100));
+if (!$showAll && !in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 100; }
 
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year === -1) { $year = (int)date("Y"); }
@@ -21,15 +21,22 @@ if ($membreTeamId > 0) {
     <i class="fas fa-filter me-1" aria-hidden="true"></i>Min CHF
   </span>
   <?php foreach ([1, 100, 200, 500, 1000] as $_ms): ?>
-  <a class="ca-filter-btn<?= (!$showAll && !$wantsAttestation && $minSum == $_ms) ? ' active' : '' ?>"
-     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;type=<?= $type ?>&amp;year=<?= $year ?>"><?= $_ms ?></a>
+  <a class="ca-filter-btn<?= (!$showAll && $minSum == $_ms) ? ' active' : '' ?>"
+     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>"><?= $_ms ?></a>
   <?php endforeach ?>
-  <a class="ca-filter-btn<?= $wantsAttestation ? ' active' : '' ?>"
-     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;wantsAttestation=1&amp;type=<?= $type ?>&amp;year=<?= $year ?>">
-    <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Attestation demandée
-  </a>
   <a class="ca-filter-btn<?= $showAll ? ' active' : '' ?>"
-     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;showAll=1&amp;type=<?= $type ?>&amp;year=<?= $year ?>">Toutes entrées</a>
+     href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;showAll=1&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>">Toutes entrées</a>
+
+  <label class="ca-filter-btn d-flex align-items-center gap-1 ms-2" style="cursor:pointer;user-select:none">
+    <input type="checkbox" id="includeAttestation"
+           <?= $includeAttestation ? 'checked' : '' ?>
+           onchange="
+             var u = new URL(window.location);
+             u.searchParams.set('includeAttestation', this.checked ? 1 : 0);
+             window.location = u.toString();
+           ">
+    <i class="fas fa-file-pdf" aria-hidden="true"></i> Attestations demandées
+  </label>
 
   <div class="dropdown ms-2">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -104,10 +111,12 @@ if ($year != -2) {
     $params[] = $to;
 }
 $sql .= " GROUP BY u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email";
-if ($wantsAttestation) {
-    $sql .= " HAVING MAX(c.wants_attestation) = 1";
-} elseif (!$showAll) {
-    $sql .= " HAVING SUM(c.sum) >= ?";
+if (!$showAll) {
+    if ($includeAttestation) {
+        $sql .= " HAVING SUM(c.sum) >= ? OR MAX(c.wants_attestation) = 1";
+    } else {
+        $sql .= " HAVING SUM(c.sum) >= ?";
+    }
     $params[] = $minSum;
 }
 $sql .= " ORDER BY u.lastname, u.firstname, u.society";
