@@ -282,7 +282,7 @@
             ON j.id = m.id
             AND j.teamid IS NOT NULL
             AND j.name IS NULL
-            AND j.teamid IN (SELECT id FROM team)
+            AND j.teamid IN (SELECT id FROM team WHERE hidden = 0)
         WHERE m.name IS NOT NULL AND m.is_filter = 0
         GROUP BY m.id, m.name
         ORDER BY MIN(m.sort_order) ASC, m.name ASC
