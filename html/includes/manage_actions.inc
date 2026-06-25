@@ -191,7 +191,7 @@ if (isset($_REQUEST['action'])) {
             exit;
         }
     } else if ($_REQUEST['action'] == 'createLapsedGroup') {
-        $groupType = $_REQUEST['groupType'] ?? 'donors'; // 'donors' or 'members'
+        $groupType = in_array($_REQUEST['groupType'] ?? '', ['donors', 'members']) ? $_REQUEST['groupType'] : 'donors';
         $yr        = (int)($_REQUEST['year'] ?? date("Y"));
         $excl      = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
         $kFrom1    = mktime(0,0,0,1,0,$yr-1);
@@ -354,12 +354,12 @@ if (isset($_REQUEST['action'])) {
     } else if ($_REQUEST['action'] == 'addMembership') {
         $user = new User();
         $user->lookupUser($_REQUEST['id']);
-        $user->addMembership($_REQUEST['teamId']);
+        $user->addMembership((int)$_REQUEST['teamId']);
         //$user->save();
     } else if ($_REQUEST['action'] == 'removeMembership') {
         $user = new User();
         $user->lookupUser($_REQUEST['id']);
-        $user->removeMembership($_REQUEST['teamId']);
+        $user->removeMembership((int)$_REQUEST['teamId']);
         //$user->save();
     } else if ($_REQUEST['action'] == 'addCompta') {
         $compta = new Compta();

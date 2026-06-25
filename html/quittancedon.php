@@ -23,7 +23,7 @@ header("Content-type: message/rfc822; charset=utf-8");
 header("Pragma: no-cache");
 header("Expires: 0");
 
-$comptaid =  $_REQUEST['comptaid'];
+$comptaid = (int)($_REQUEST['comptaid'] ?? 0);
 $compta = new Compta();
 $compta->lookupCompta($comptaid);
 $sum = $compta->sum;
