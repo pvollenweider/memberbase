@@ -22,6 +22,31 @@ usort($allTeams, function($a, $b) use ($memberTeamIds) {
     if ($aIn !== $bIn) return $bIn - $aIn;
     return strcmp($a->name, $b->name);
 });
+
+// Category map: teamid → [category_id, category_name]
+$stmtCats = $pdo->query(
+    "SELECT j.teamid, m.id AS cat_id, m.name AS cat_name
+     FROM metagroup j
+     JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
+     WHERE j.teamid IS NOT NULL"
+);
+$teamCategory = [];
+foreach ($stmtCats->fetchAll(PDO::FETCH_OBJ) as $row) {
+    $teamCategory[(int)$row->teamid] = ['id' => (int)$row->cat_id, 'name' => $row->cat_name];
+}
+
+// Build ordered groups: members-in-category, then unassigned members, then non-members
+$catGroups = []; // cat_name => [teams]
+$uncategorized = [];
+foreach ($allTeams as $t) {
+    if (isset($teamCategory[(int)$t->id])) {
+        $cn = $teamCategory[(int)$t->id]['name'];
+        $catGroups[$cn][] = $t;
+    } else {
+        $uncategorized[] = $t;
+    }
+}
+ksort($catGroups);
 ?>
 <div class="row justify-content-center mt-4">
   <div class="col-md-6 d-flex flex-column gap-4">
@@ -72,7 +97,14 @@ usort($allTeams, function($a, $b) use ($memberTeamIds) {
 
     <!-- Team membership -->
     <div>
-      <p class="form-section-title"><?= $isFilter ? 'Groupes membres' : 'Groupes dans cette catégorie' ?></p>
+      <div class="d-flex align-items-baseline justify-content-between mb-1">
+        <p class="form-section-title mb-0"><?= $isFilter ? 'Groupes membres' : 'Groupes dans cette catégorie' ?></p>
+        <?php if ($isFilter): ?>
+        <a href="<?= $_SERVER['PHP_SELF'] ?>?metagroup=<?= $mgId ?>" class="small">
+          Voir la liste filtrée <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
+        </a>
+        <?php endif ?>
+      </div>
       <p class="small text-muted mb-3">
         <?php if ($isFilter): ?>
           Les groupes qui font partie du filtre «<?= htmlentities($mg->getName(), ENT_COMPAT, $charset) ?>». Sauvegarde automatique à chaque coche.
@@ -82,7 +114,9 @@ usort($allTeams, function($a, $b) use ($memberTeamIds) {
       </p>
 
       <div id="mg-team-list" class="d-flex flex-column gap-1" style="font-size:0.85rem">
-        <?php foreach ($allTeams as $t): ?>
+        <?php
+        // Helper to render one checkbox row
+        function renderTeamCb($t, $memberTeamIds, $charset) { ?>
         <div class="form-check form-check-sm">
           <input class="form-check-input mg-team-cb" type="checkbox"
                  data-teamid="<?= (int)$t->id ?>"
@@ -92,7 +126,23 @@ usort($allTeams, function($a, $b) use ($memberTeamIds) {
             <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
           </label>
         </div>
-        <?php endforeach ?>
+        <?php }
+
+        if (!empty($catGroups)):
+            foreach ($catGroups as $catName => $teams): ?>
+          <p class="text-muted mb-0 mt-2" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600">
+            <?= htmlentities($catName, ENT_COMPAT, $charset) ?>
+          </p>
+          <?php foreach ($teams as $t): renderTeamCb($t, $memberTeamIds, $charset); endforeach;
+            endforeach;
+            if (!empty($uncategorized)): ?>
+          <p class="text-muted mb-0 mt-2" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Sans catégorie</p>
+          <?php foreach ($uncategorized as $t): renderTeamCb($t, $memberTeamIds, $charset); endforeach;
+            endif;
+        else:
+            foreach ($allTeams as $t): renderTeamCb($t, $memberTeamIds, $charset); endforeach;
+        endif;
+        ?>
       </div>
     </div>
 
