@@ -26,6 +26,8 @@ if ($showAll) {
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
 
+  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Contributions</span>
+
   <!-- Montant minimum -->
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle<?= $showAll ? ' active' : '' ?>" type="button"
