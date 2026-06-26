@@ -307,7 +307,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         memberIds.forEach(function(id) { body.append('teams[]', id); });
         fetch(window.location.pathname, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true' },
           body: body.toString()
         }).then(function(r) {
           if (r.ok) { onSuccess(); }

@@ -250,7 +250,7 @@ $types = $pdo->query("
     ids.forEach(function(id) { body.append('ids[]', id); });
     fetch(window.location.pathname, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true' },
       body: body.toString()
     });
   }
