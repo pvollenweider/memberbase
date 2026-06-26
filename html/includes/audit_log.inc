@@ -51,9 +51,36 @@ $rows = $pdo->query(
     "SELECT created_at, username, action, detail FROM audit_log ORDER BY created_at DESC LIMIT 2000"
 )->fetchAll(PDO::FETCH_OBJ);
 $total = (int)$pdo->query("SELECT COUNT(*) FROM audit_log")->fetchColumn();
+$auditUsers   = $pdo->query("SELECT DISTINCT username FROM audit_log WHERE username IS NOT NULL ORDER BY username")->fetchAll(PDO::FETCH_COLUMN);
+$auditActions = $pdo->query("SELECT DISTINCT action FROM audit_log ORDER BY action")->fetchAll(PDO::FETCH_COLUMN);
 ?>
 
-<p class="text-muted small"><?= $total ?> entrée<?= $total > 1 ? 's' : '' ?> au total<?= $total > 2000 ? ' (2000 affichées)' : '' ?>.</p>
+<div class="d-flex gap-2 align-items-end flex-wrap mb-3" style="font-size:0.82rem">
+  <div>
+    <label for="audit-filter-user" class="form-label mb-1 small">Utilisateur</label>
+    <select id="audit-filter-user" class="form-select form-select-sm" style="min-width:140px">
+      <option value="">— tous —</option>
+      <?php foreach ($auditUsers as $u): ?>
+      <option value="<?= htmlspecialchars($u) ?>"><?= htmlspecialchars($u) ?></option>
+      <?php endforeach ?>
+    </select>
+  </div>
+  <div>
+    <label for="audit-filter-action" class="form-label mb-1 small">Action</label>
+    <select id="audit-filter-action" class="form-select form-select-sm" style="min-width:180px">
+      <option value="">— toutes —</option>
+      <?php foreach ($auditActions as $a): ?>
+      <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
+      <?php endforeach ?>
+    </select>
+  </div>
+  <button type="button" id="audit-filter-reset" class="btn btn-outline-secondary btn-sm mb-0" style="align-self:flex-end">
+    <i class="fas fa-times me-1" aria-hidden="true"></i>Réinitialiser
+  </button>
+  <span class="text-muted ms-auto" style="align-self:flex-end">
+    <?= $total ?> entrée<?= $total > 1 ? 's' : '' ?> au total<?= $total > 2000 ? ' (2000 affichées)' : '' ?>
+  </span>
+</div>
 
 <table id="auditLogTable" class="table table-sm table-striped table-hover">
     <thead>
@@ -81,12 +108,42 @@ $(function () {
     window.auditLogDT = $('#auditLogTable').DataTable({
         order: [[0, 'desc']],
         pageLength: 50,
+        dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
+        buttons: [
+            {
+                extend: 'collection',
+                text: 'Exporter <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
+                className: 'btn btn-dt',
+                buttons: [
+                    { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i>Copier' },
+                    { extend: 'csv',   text: '<i class="fas fa-file-csv me-2" aria-hidden="true"></i>CSV', bom: true },
+                    { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i>Excel' },
+                    { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i>Imprimer' }
+                ]
+            }
+        ],
         language: {
             search: 'Rechercher :',
             lengthMenu: 'Afficher _MENU_ entrées',
             info: 'Entrées _START_ à _END_ sur _TOTAL_',
+            infoFiltered: '(filtrées sur _MAX_)',
             paginate: { previous: 'Précédent', next: 'Suivant' }
         }
+    });
+
+    $('#audit-filter-user').on('change', function () {
+        var val = $.fn.dataTable.util.escapeRegex($(this).val());
+        window.auditLogDT.column(1).search(val ? '^' + val + '$' : '', true, false).draw();
+    });
+
+    $('#audit-filter-action').on('change', function () {
+        var val = $.fn.dataTable.util.escapeRegex($(this).val());
+        window.auditLogDT.column(2).search(val ? '^' + val + '$' : '', true, false).draw();
+    });
+
+    $('#audit-filter-reset').on('click', function () {
+        $('#audit-filter-user, #audit-filter-action').val('');
+        window.auditLogDT.columns([1, 2]).search('').draw();
     });
 });
 </script>
