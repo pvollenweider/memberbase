@@ -79,7 +79,7 @@ $total = (int)$pdo->query("SELECT COUNT(*) FROM audit_log")->fetchColumn();
 <script>
 $(function () {
     $('#auditLogTable').DataTable({
-        order: [[0, 'desc']],
+        order: [[0, 'asc']],
         pageLength: 50,
         language: {
             search: 'Rechercher :',
