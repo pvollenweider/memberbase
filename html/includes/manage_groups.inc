@@ -159,23 +159,46 @@ while ($row = $stmt->fetchObject()) {
         <?php
     }
     ?>
-        <tr class="<?= $isHidden ? 'text-muted' : '' ?>">
+        <tr class="<?= $isHidden ? 'text-muted' : '' ?>" data-team-id="<?= $id ?>">
           <td style="width:1.5rem">
             <input type="checkbox" class="form-check-input bulk-cb" name="ids[]" value="<?= $id ?>">
           </td>
           <td>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= $id ?>"
-               class="text-decoration-none <?= $isHidden ? 'text-muted' : '' ?>">
-              <?= $name ?>
-            </a>
-            <?php $cnt = $teamCounts[$id] ?? 0; if ($cnt > 0): ?>
-            <span class="badge rounded-pill ms-1" style="font-size:0.65rem;font-weight:500;background:var(--ca-primary-light);color:var(--ca-primary-dark)"><?= $cnt ?></span>
-            <?php endif ?>
+            <!-- Static view -->
+            <span class="team-name-view">
+              <a href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= $id ?>"
+                 class="text-decoration-none <?= $isHidden ? 'text-muted' : '' ?>">
+                <?= $name ?>
+              </a>
+              <?php $cnt = $teamCounts[$id] ?? 0; if ($cnt > 0): ?>
+              <span class="badge rounded-pill ms-1" style="font-size:0.65rem;font-weight:500;background:var(--ca-primary-light);color:var(--ca-primary-dark)"><?= $cnt ?></span>
+              <?php endif ?>
+            </span>
+            <!-- Inline rename input (hidden by default) -->
+            <span class="team-name-edit" style="display:none">
+              <input type="text" class="form-control form-control-sm d-inline-block team-rename-input"
+                     value="<?= $name ?>" maxlength="255"
+                     style="width:auto;max-width:220px;font-size:0.82rem;padding:0.15rem 0.4rem;height:auto"
+                     aria-label="Renommer le groupe"/>
+              <button type="button" class="btn btn-sm btn-success team-rename-save ms-1 px-2 py-0"
+                      title="Enregistrer (Entrée)" style="font-size:0.75rem;line-height:1.6">
+                <i class="fas fa-check" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary team-rename-cancel px-2 py-0"
+                      title="Annuler (Échap)" style="font-size:0.75rem;line-height:1.6">
+                <i class="fas fa-times" aria-hidden="true"></i>
+              </button>
+            </span>
           </td>
-          <td class="text-end" style="width:2rem">
+          <td class="text-end" style="width:4rem;white-space:nowrap">
+            <button type="button"
+                    class="btn btn-link btn-sm team-rename-btn p-0 me-2 text-muted"
+                    title="Renommer" style="font-size:0.78rem;line-height:1">
+              <i class="fas fa-i-cursor" aria-hidden="true"></i>
+            </button>
             <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $id ?>"
-               class="text-decoration-none text-muted" title="<?= $GLOBAL['update'] ?>">
-              <i class="fas fa-pen" style="font-size:0.75rem"></i>
+               class="text-decoration-none text-muted" title="Réglages du groupe" style="font-size:0.78rem">
+              <i class="fas fa-cog"></i>
             </a>
           </td>
         </tr>
@@ -270,6 +293,73 @@ function toggleHiddenSection(btn) {
 
   document.getElementById('mg-name-input').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { e.preventDefault(); submitMetagroup(); }
+  });
+
+  // Inline rename
+  document.querySelectorAll('.team-rename-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var row   = btn.closest('tr');
+      var view  = row.querySelector('.team-name-view');
+      var edit  = row.querySelector('.team-name-edit');
+      var input = row.querySelector('.team-rename-input');
+      view.style.display = 'none';
+      edit.style.display = '';
+      input.focus();
+      input.select();
+    });
+  });
+
+  function doRename(row) {
+    var teamId = row.dataset.teamId;
+    var input  = row.querySelector('.team-rename-input');
+    var name   = input.value.trim();
+    if (!name) { input.focus(); return; }
+
+    var body = new URLSearchParams();
+    body.append('action', 'renameTeam');
+    body.append('id',     teamId);
+    body.append('name',   name);
+
+    fetch(window.location.pathname, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body:    body.toString()
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data.ok) {
+        var view  = row.querySelector('.team-name-view');
+        var link  = view.querySelector('a');
+        link.textContent = data.name;
+        cancelRename(row);
+      } else {
+        alert(data.error || 'Erreur lors du renommage');
+      }
+    }).catch(function() { alert('Erreur réseau'); });
+  }
+
+  function cancelRename(row) {
+    var view  = row.querySelector('.team-name-view');
+    var edit  = row.querySelector('.team-name-edit');
+    var input = row.querySelector('.team-rename-input');
+    // Restore input to current displayed name in case user typed something
+    var link = view.querySelector('a');
+    input.value = link.textContent.trim();
+    edit.style.display  = 'none';
+    view.style.display  = '';
+  }
+
+  document.querySelectorAll('.team-rename-save').forEach(function(btn) {
+    btn.addEventListener('click', function() { doRename(btn.closest('tr')); });
+  });
+
+  document.querySelectorAll('.team-rename-cancel').forEach(function(btn) {
+    btn.addEventListener('click', function() { cancelRename(btn.closest('tr')); });
+  });
+
+  document.querySelectorAll('.team-rename-input').forEach(function(input) {
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter')  { e.preventDefault(); doRename(input.closest('tr')); }
+      if (e.key === 'Escape') { cancelRename(input.closest('tr')); }
+    });
   });
 })();
 </script>

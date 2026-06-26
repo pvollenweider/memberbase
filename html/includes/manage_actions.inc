@@ -426,6 +426,26 @@ if (isset($_REQUEST['action'])) {
         $_auMgDel->execute([$mgId]);
         auditLog($pdo, 'deleteMetagroup', "id=$mgId | " . ($_auMgDel->fetchColumn() ?: ''));
         $pdo->prepare("DELETE FROM metagroup WHERE id=?")->execute([$mgId]);
+    } else if ($_REQUEST['action'] == 'renameTeam') {
+        // AJAX-only: rename a group without touching category/hidden/members
+        header('Content-Type: application/json; charset=utf-8');
+        $teamId  = (int)($_REQUEST['id'] ?? 0);
+        $newName = trim($_REQUEST['name'] ?? '');
+        if ($teamId <= 0 || $newName === '') {
+            echo json_encode(['ok' => false, 'error' => 'Données invalides']);
+            exit;
+        }
+        $row = $pdo->prepare("SELECT name FROM team WHERE id=?");
+        $row->execute([$teamId]);
+        $oldName = $row->fetchColumn();
+        if ($oldName === false) {
+            echo json_encode(['ok' => false, 'error' => 'Groupe introuvable']);
+            exit;
+        }
+        $pdo->prepare("UPDATE team SET name=? WHERE id=?")->execute([$newName, $teamId]);
+        auditLog($pdo, 'renameTeam', "id=$teamId | «$oldName» → «$newName»");
+        echo json_encode(['ok' => true, 'name' => $newName]);
+        exit;
     } else if ($_REQUEST['action'] == 'updateTeam') {
         $team = new Team();
         $team->lookupTeam($_REQUEST['id']);
