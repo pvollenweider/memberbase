@@ -149,7 +149,7 @@ while ($row = $stmt->fetchObject()) {
         $user->addMembership($addMem);
     }
     ?>
-    <tr style="<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
+    <tr class="position-relative" style="<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
         <td><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
         <td class="d-none d-xl-table-cell"><div class="text-truncate" style="max-width:125px"><?= htmlentities($society, ENT_COMPAT, $charset) ?></div></td>
         <td class="text-nowrap"><div class="text-truncate" style="max-width:150px"><?= htmlentities($lastName, ENT_COMPAT, $charset) ?></div></td>
@@ -163,12 +163,10 @@ while ($row = $stmt->fetchObject()) {
         <td style="text-align:right;"><?= number_format($sum, 2, '.', '\'') ?></td>
         <td><?= htmlentities($quittance, ENT_COMPAT, $charset) ?></td>
         <td><?= timeStampToformatedDate($user->getCreationDate()) ?></td>
-        <td class="text-end">
+        <td>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=(int)$userId?>"
-               class="btn btn-outline-secondary btn-sm py-0 px-1"
-               aria-label="Voir compta de <?= htmlspecialchars($firstName . ' ' . $lastName, ENT_QUOTES, $charset) ?>">
-                <i class="fas fa-pencil-alt" aria-hidden="true"></i>
-            </a>
+               class="stretched-link"
+               aria-label="Voir compta de <?= htmlspecialchars($firstName . ' ' . $lastName, ENT_QUOTES, $charset) ?>"></a>
         </td>
     </tr>
     <?php

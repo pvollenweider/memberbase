@@ -487,7 +487,7 @@ while ($row = $stmt->fetchObject()) {
         #}
         $emailStr = str_replace(",","<br/>",$emailStr);
         ?>
-        <tr>
+        <tr class="position-relative">
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=$sexe?></td>
             <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
             <td class="text-nowrap"><?=$lastName?> <?php
@@ -499,13 +499,12 @@ while ($row = $stmt->fetchObject()) {
             <td class="text-nowrap2"><?=$firstName?></td>
             <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>
             <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
-            <td class="d-none d-sm-table-cell d-md-table-cell"><a href="mailto:<?=$email?>"><?=$emailStr?></a></td>
+            <td class="d-none d-sm-table-cell d-md-table-cell position-relative"><a href="mailto:<?=$email?>" class="position-relative"><?=$emailStr?></a></td>
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate($user->getCreationDate())?></td>
-            <td class="text-end">
+            <td>
                 <a href="<?=$_SERVER['PHP_SELF']?>?view=generalData&amp;id=<?=(int)$id?>"
-                   class="btn btn-outline-secondary btn-sm py-0 px-1"
-                   aria-label="Ouvrir la fiche de <?= htmlspecialchars($firstName . ' ' . $lastName, ENT_QUOTES, $charset) ?>">
-                    <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+                   class="stretched-link"
+                   aria-label="Ouvrir la fiche de <?= htmlspecialchars($firstName . ' ' . $lastName, ENT_QUOTES, $charset) ?>"></a>
                 </a>
             </td>
         </tr>

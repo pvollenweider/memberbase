@@ -30,16 +30,14 @@ $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
                       htmlentities($row->lastname, ENT_COMPAT, $charset) . ' ' .
                       htmlentities($row->firstname, ENT_COMPAT, $charset));
 ?>
-    <tr>
+    <tr class="position-relative">
         <td><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
         <td class="text-nowrap"><?= $name ?></td>
         <td><?= html_entity_decode($row->value, ENT_COMPAT, $charset) ?></td>
-        <td class="text-end">
+        <td>
             <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= (int)$row->id ?>"
-               class="btn btn-outline-secondary btn-sm py-0 px-1"
-               aria-label="Voir suivi de <?= htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset) ?>">
-                <i class="fas fa-pencil-alt" aria-hidden="true"></i>
-            </a>
+               class="stretched-link"
+               aria-label="Voir suivi de <?= htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset) ?>"></a>
         </td>
     </tr>
 <?php endforeach ?>

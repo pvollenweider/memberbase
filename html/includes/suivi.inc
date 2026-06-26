@@ -32,22 +32,19 @@ while ($row = $stmt->fetchObject()) {
     $parameter = $row->parameter;
     $value = $row->value;
     ?>
-     <tr>
+     <tr class="position-relative">
         <td><?=timeStampToformatedDate($date)?></td>
         <td><?=html_entity_decode($value,ENT_COMPAT,$charset)?></td>
-        <td class="text-end" style="white-space:nowrap">
-            <a href="<?=$_SERVER['PHP_SELF']?>?view=updateSuivi&amp;suiviid=<?=(int)$id?>&amp;userid=<?=(int)$userid?>"
-               class="btn btn-outline-secondary btn-sm py-0 px-1 me-1"
-               title="Modifier"
-               aria-label="Modifier cette entrée">
-                <i class="fas fa-pencil-alt" style="font-size:0.75rem" aria-hidden="true"></i>
-            </a>
+        <td class="text-end position-relative" style="white-space:nowrap">
             <a href="<?=$_SERVER['PHP_SELF']?>?view=removeSuivi&amp;suiviid=<?=(int)$id?>&amp;userid=<?=(int)$userid?>"
-               class="btn btn-sm py-0 px-1 text-muted"
+               class="btn btn-sm py-0 px-1 text-muted position-relative"
                title="Supprimer cette entrée"
                aria-label="Supprimer">
                 <i class="fas fa-trash-alt" style="font-size:0.75rem" aria-hidden="true"></i>
             </a>
+            <a href="<?=$_SERVER['PHP_SELF']?>?view=updateSuivi&amp;suiviid=<?=(int)$id?>&amp;userid=<?=(int)$userid?>"
+               class="stretched-link"
+               aria-label="Modifier cette entrée de suivi"></a>
         </td>
     </tr>
     <?php

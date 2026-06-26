@@ -116,7 +116,7 @@ while ($row = $stmt->fetchObject()) {
     ];
     $rowStyle = isset($bgVarMap[$ctColor]) ? '--bs-table-bg:' . $bgVarMap[$ctColor] : '';
     ?>
-     <tr style="<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
+     <tr class="position-relative" style="<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
         <td><?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?></td>
         <td><?=timeStampToformatedDate($date)?></td>
         <td><?=htmlentities($libele,ENT_COMPAT,$charset)?></td>
@@ -127,11 +127,10 @@ while ($row = $stmt->fetchObject()) {
                 <i class="fas fa-check text-success" aria-label="Souhaite une attestation" title="Souhaite une attestation de don"></i>
             <?php endif ?>
         </td>
-        <td class="text-end">
+        <td>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>"
-               class="btn btn-outline-secondary btn-sm py-0 px-1">
-                <i class="fas fa-pencil-alt" aria-hidden="true"></i>
-            </a>
+               class="stretched-link"
+               aria-label="Modifier l'écriture compta du <?= timeStampToformatedDate($date) ?>"></a>
         </td>
     </tr>
     <?php
