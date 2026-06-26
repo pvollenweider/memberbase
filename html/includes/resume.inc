@@ -482,6 +482,7 @@ $(document).ready(function() {
         new bootstrap.Popover(el);
     });
     document.getElementById('includeAttestation').addEventListener('change', function() {
+        window.__dirtyOverride = true; // intentional navigation — skip beforeunload
         var loc = window.location.href;
         loc = loc.replace(/[?&]includeAttestation=[01]/, '');
         var sep = loc.indexOf('?') === -1 ? '?' : '&';

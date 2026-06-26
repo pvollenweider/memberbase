@@ -153,6 +153,47 @@ include "includes/menu.inc";
 </footer>
 
 <script>
+(function () {
+    var dirty = false;
+
+    // Mark dirty on any user interaction with a form field
+    document.addEventListener('change', function (e) {
+        var el = e.target;
+        if (!el || !el.closest) return;
+        // Ignore: mg-team-cb (auto-saves via AJAX), includeAttestation (triggers navigation), logout/search forms
+        if (el.classList.contains('mg-team-cb')) return;
+        if (el.id === 'includeAttestation') return;
+        if (el.closest('form[data-no-dirty]')) return;
+        if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+            dirty = true;
+        }
+    });
+
+    // Also catch typed-but-not-submitted input
+    document.addEventListener('input', function (e) {
+        var el = e.target;
+        if (!el || !el.closest) return;
+        if (el.classList.contains('mg-team-cb')) return;
+        if (el.closest('form[data-no-dirty]')) return;
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            dirty = true;
+        }
+    });
+
+    // Clear dirty when any form is submitted (save = intentional navigation)
+    document.addEventListener('submit', function () {
+        dirty = false;
+    });
+
+    // Warn on navigation away
+    window.addEventListener('beforeunload', function (e) {
+        if (!dirty || window.__dirtyOverride) return;
+        e.preventDefault();
+        e.returnValue = 'Des modifications non sauvegardées seront perdues. Continuer ?';
+        return e.returnValue;
+    });
+})();
+
     $('table').datahref();
     $(function () {
         $('.datepicker').datetimepicker({

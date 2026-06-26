@@ -58,7 +58,7 @@ if (isset ($_REQUEST["searchString"])) {
                 <li><a class="dropdown-item" href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword">Mot de passe</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                  <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+                  <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty>
                     <input type="hidden" name="action" value="logout">
                     <button type="submit" class="dropdown-item text-danger">Déconnexion</button>
                   </form>
@@ -66,7 +66,7 @@ if (isset ($_REQUEST["searchString"])) {
               </ul>
             </div>
 
-            <form class="d-flex gap-2 my-2 my-lg-0" role="search" action="<?= $_SERVER['PHP_SELF'] ?>" method="get">
+            <form class="d-flex gap-2 my-2 my-lg-0" role="search" action="<?= $_SERVER['PHP_SELF'] ?>" method="get" data-no-dirty>
                 <input type="hidden" name="action" value="search"/>
                 <input type="hidden" name="team" value="-3"/>
                 <input class="form-control me-sm-2" id="search" type="search" aria-label="Search" placeholder="Chercher"
