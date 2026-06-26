@@ -63,7 +63,7 @@ if (isset ($_REQUEST["searchString"])) {
                 <li><a class="dropdown-item" href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword">Mot de passe</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                  <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty>
+                  <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty hx-boost="false">
                     <input type="hidden" name="action" value="logout">
                     <button type="submit" class="dropdown-item text-danger">Déconnexion</button>
                   </form>

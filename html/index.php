@@ -8,6 +8,23 @@ requireLogin();
 requirePasswordChange();
 
 header("Content-Type: text/html; charset=$charset");
+
+// htmx partial response — skip layout, return only content fragment
+$isHtmx = !empty($_SERVER['HTTP_HX_REQUEST']);
+if ($isHtmx) {
+    include "locales/resources_fr.inc";
+    include "includes/declarations.inc";
+    include "classes/user_class.inc";
+    include "classes/team_class.inc";
+    include "classes/compta_class.inc";
+    include "classes/property_class.inc";
+    include "classes/metagroup_class.inc";
+    $userid = -1;
+    include "includes/manage_actions.inc";
+    include "includes/manage_views.inc";
+    ob_end_flush();
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -92,6 +109,10 @@ header("Content-Type: text/html; charset=$charset");
     <!-- Chart.js -->
     <script src="js/vendor/Chart.bundle.min.js"></script>
 
+    <!-- htmx + Alpine.js -->
+    <script src="js/vendor/htmx.min.js"></script>
+    <script defer src="js/vendor/alpine.min.js"></script>
+
     <script type="text/javascript">
         $(function () {
             var config = {
@@ -125,14 +146,14 @@ header("Content-Type: text/html; charset=$charset");
     </script>
 </head>
 
-<body>
+<body hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">
 
 <?php
 include "includes/menu.inc";
 ?>
 <div class="container mt-2">
     <div class="row">
-        <div class="col-12">
+        <div class="col-12" id="main-content">
             <?php
             $userid = -1;
             include "includes/manage_actions.inc";
@@ -156,36 +177,38 @@ include "includes/menu.inc";
 (function () {
     var dirty = false;
 
-    // Mark dirty on any user interaction with a form field
-    document.addEventListener('change', function (e) {
+    function markDirty(e) {
         var el = e.target;
         if (!el || !el.closest) return;
-        // Ignore: mg-team-cb (auto-saves via AJAX), includeAttestation (triggers navigation), logout/search forms
         if (el.classList.contains('mg-team-cb')) return;
         if (el.id === 'includeAttestation') return;
         if (el.closest('form[data-no-dirty]')) return;
         if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
             dirty = true;
         }
-    });
+    }
 
-    // Also catch typed-but-not-submitted input
-    document.addEventListener('input', function (e) {
-        var el = e.target;
-        if (!el || !el.closest) return;
-        if (el.classList.contains('mg-team-cb')) return;
-        if (el.closest('form[data-no-dirty]')) return;
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-            dirty = true;
+    document.addEventListener('change', markDirty);
+    document.addEventListener('input', markDirty);
+    document.addEventListener('submit', function () { dirty = false; });
+
+    // htmx navigation — warn before swap if dirty
+    document.addEventListener('htmx:beforeRequest', function (e) {
+        if (!dirty || window.__dirtyOverride) return;
+        if (!confirm('Des modifications non sauvegardées seront perdues. Continuer ?')) {
+            e.preventDefault();
+        } else {
+            dirty = false;
         }
     });
 
-    // Clear dirty when any form is submitted (save = intentional navigation)
-    document.addEventListener('submit', function () {
+    // Reset dirty after htmx swap (new content loaded)
+    document.addEventListener('htmx:afterSwap', function () {
         dirty = false;
+        window.__dirtyOverride = false;
     });
 
-    // Warn on navigation away
+    // Fallback for non-htmx navigation (browser back, manual URL)
     window.addEventListener('beforeunload', function (e) {
         if (!dirty || window.__dirtyOverride) return;
         e.preventDefault();
@@ -213,6 +236,45 @@ include "includes/menu.inc";
                 close: 'far fa-times-circle'
             }
         });
+    });
+
+    // Re-initialize jQuery plugins after every htmx content swap
+    function casaInit(root) {
+        root = root || document;
+
+        // datepicker
+        $(root).find('.datepicker').each(function () {
+            if (!$(this).data('DateTimePicker')) {
+                $(this).datetimepicker({ format: 'L', locale: 'fr' });
+            }
+        });
+
+        // datahref click-to-row
+        $(root).find('table[data-href], table').datahref && $(root).find('table').datahref();
+
+        // DataTables — destroy + re-init any table with class 'dataTable' or [id$="Table"]
+        $(root).find('table.display, table[id$="Table"]').each(function () {
+            if (!$.fn.DataTable.isDataTable(this)) {
+                $(this).DataTable();
+            }
+        });
+
+        // CKEditor — destroy stale instances, re-attach to .ck textareas
+        if (typeof CKEDITOR !== 'undefined') {
+            $(root).find('textarea.ck').each(function () {
+                var name = this.name || this.id;
+                if (name && CKEDITOR.instances[name]) {
+                    CKEDITOR.instances[name].destroy(true);
+                }
+                $(this).ckeditor({
+                    toolbar: [['Bold','Italic','-','NumberedList','BulletedList','-','Link','Unlink'],['UIColor']]
+                });
+            });
+        }
+    }
+
+    document.addEventListener('htmx:afterSwap', function (e) {
+        casaInit(e.target);
     });
 </script>
 
