@@ -74,7 +74,7 @@ $allCats = $pdo->query("
     var ids = Array.from(tbody.querySelectorAll('tr[data-id]')).map(function(r) { return r.dataset.id; });
     var body = new URLSearchParams();
     body.append('action', 'updateCategoryOrder');
-    body.append('view', 'manageTeam');
+    body.append('view', 'settings');
     ids.forEach(function(id) { body.append('ids[]', id); });
     fetch(window.location.pathname, {
       method: 'POST',
@@ -90,7 +90,8 @@ $allCats = $pdo->query("
 
 <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
   <input type="hidden" name="action" value="addMetagroup"/>
-  <input type="hidden" name="view" value="manageTeam"/>
+  <input type="hidden" name="view" value="settings"/>
+  <input type="hidden" name="tab" value="categories"/>
   <input type="hidden" name="is_filter" value="0"/>
   <div class="d-flex align-items-center gap-2">
     <input type="text" class="form-control form-control-sm" name="name" placeholder="Nom de la catégorie" maxlength="255" required style="max-width:240px"/>

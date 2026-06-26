@@ -41,7 +41,9 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] === 'auditLog') {
         include "audit_log.inc";
     } else if ($_REQUEST['view'] == 'manageTeam') {
-        include "manage_teams.inc";
+        // Legacy view — redirect to settings groups tab
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=groups');
+        exit;
     } else if ($_REQUEST['view'] == 'updateMetagroup') {
         include "update_metagroup_form.inc";
     } else if ($_REQUEST['view'] == 'updateCompta') {

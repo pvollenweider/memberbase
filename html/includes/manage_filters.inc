@@ -29,7 +29,8 @@ $allFilters = $pdo->query("SELECT m.id, m.name, COUNT(j.teamid) AS team_count FR
 
 <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
   <input type="hidden" name="action" value="addMetagroup"/>
-  <input type="hidden" name="view" value="manageTeam"/>
+  <input type="hidden" name="view" value="settings"/>
+  <input type="hidden" name="tab" value="filters"/>
   <input type="hidden" name="is_filter" value="1"/>
   <div class="d-flex align-items-center gap-2">
     <input type="text" class="form-control form-control-sm" name="name" placeholder="Nom du filtre" maxlength="255" required style="max-width:240px"/>

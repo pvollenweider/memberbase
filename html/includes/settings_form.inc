@@ -1,7 +1,7 @@
 <?php
 $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
 $saved = isset($_GET['saved']);
-$_activeTab = $_GET['tab'] ?? null;
+$_activeTab = $_REQUEST['tab'] ?? null;
 ?>
 <div class="row justify-content-center mt-4">
   <div class="col-12 col-xl-10">

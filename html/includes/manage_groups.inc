@@ -23,7 +23,8 @@ if (!empty($_SESSION['group_toast'])) {
 
 <form role="form" action="<?= $_SERVER['PHP_SELF'] ?>" method="post" name="addTeam" class="mb-4">
   <input type="hidden" name="action" value="addTeamWithImport"/>
-  <input type="hidden" name="view"   value="manageTeam"/>
+  <input type="hidden" name="view"   value="settings"/>
+  <input type="hidden" name="tab"    value="groups"/>
 
   <div class="d-flex align-items-center gap-2 mb-2">
     <input type="text" class="form-control form-control-sm" id="name" name="name"
@@ -77,7 +78,8 @@ if (!empty($_SESSION['group_toast'])) {
 
 <form id="bulk-form" action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
   <input type="hidden" name="action" id="bulk-action" value=""/>
-  <input type="hidden" name="view" value="manageTeam"/>
+  <input type="hidden" name="view" value="settings"/>
+  <input type="hidden" name="tab"  value="groups"/>
 
   <!-- Bulk action bar (hidden until selection) -->
   <div id="bulk-bar" class="d-none mb-2 d-flex align-items-center gap-2 flex-wrap" style="font-size:0.8rem">

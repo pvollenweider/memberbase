@@ -61,7 +61,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
   <div>
     <strong>Groupe filtre «<?= htmlspecialchars($mg->name, ENT_QUOTES, 'UTF-8') ?>» créé.</strong>
     Vous pouvez maintenant assigner des groupes ci-dessous, ou
-    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=manageTeam" class="alert-link">retourner à la liste</a>.
+    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=filters" class="alert-link">retourner à la liste</a>.
   </div>
   <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Fermer"></button>
 </div>
@@ -82,7 +82,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
       <p class="form-section-title">Modifier</p>
       <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
         <input type="hidden" name="action" value="updateMetagroup"/>
-        <input type="hidden" name="view" value="manageTeam"/>
+        <input type="hidden" name="view" value="settings"/>
+        <input type="hidden" name="tab"  value="<?= $_mgBackTab ?>"/>
         <input type="hidden" name="id" value="<?= $mgId ?>"/>
 
         <div class="row mb-3 align-items-center">
@@ -97,7 +98,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=manageTeam" class="btn btn-outline-secondary btn-sm">Annuler</a>
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=<?= $_mgBackTab ?>" class="btn btn-outline-secondary btn-sm">Annuler</a>
         </div>
       </form>
     </div>
@@ -301,7 +302,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
       function saveMembers(memberIds, onSuccess) {
         var body = new URLSearchParams();
         body.append('action', 'updateMetagroupTeams');
-        body.append('view', 'manageTeam');
+        body.append('view', 'settings');
         body.append('id', mgId);
         memberIds.forEach(function(id) { body.append('teams[]', id); });
         fetch(window.location.pathname, {
@@ -390,7 +391,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
       <p class="small text-muted mb-2">Supprime le métagroupe. Les groupes membres ne sont pas affectés.</p>
       <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
         <input type="hidden" name="action" value="deleteMetagroup"/>
-        <input type="hidden" name="view" value="manageTeam"/>
+        <input type="hidden" name="view" value="settings"/>
+        <input type="hidden" name="tab"  value="<?= $_mgBackTab ?>"/>
         <input type="hidden" name="id" value="<?= $mgId ?>"/>
         <button type="submit" class="btn btn-sm btn-danger"
                 onclick="return confirm('Supprimer «<?= htmlentities($mg->getName(), ENT_QUOTES, $charset) ?>» ?')">

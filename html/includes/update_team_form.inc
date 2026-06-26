@@ -102,7 +102,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
       <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
         <input type="hidden" name="id" value="<?=$team->getId()?>"/>
         <input type="hidden" name="action" value="updateTeam"/>
-        <input type="hidden" name="view" value="manageTeam"/>
+        <input type="hidden" name="view" value="settings"/>
+        <input type="hidden" name="tab"  value="groups"/>
 
         <div class="row mb-2 align-items-center">
           <label for="name" class="col-sm-3 col-form-label col-form-label-sm text-sm-end">Nom</label>
@@ -141,7 +142,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
         <div class="d-flex gap-2">
           <button type="submit" id="btn-update-team" class="btn btn-primary btn-sm"><?=$GLOBAL['update']?></button>
-          <a href="<?=$_SERVER['PHP_SELF']?>?view=manageTeam" class="btn btn-outline-secondary btn-sm">Annuler</a>
+          <a href="<?=$_SERVER['PHP_SELF']?>?view=settings&amp;tab=groups" class="btn btn-outline-secondary btn-sm">Annuler</a>
         </div>
       </form>
     </div>
@@ -168,7 +169,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <i class="fas fa-copy mt-1 flex-shrink-0" aria-hidden="true"></i>
               <div>
                 <strong>Copie ponctuelle</strong> — l'import copie les membres tels qu'ils sont <em>maintenant</em>. Si le groupe source change plus tard, ce groupe n'est pas mis à jour.<br>
-                <span class="text-muted">Pour un filtre dynamique, utilise plutôt un filtre de groupes dans <a href="<?= $_SERVER['PHP_SELF'] ?>?view=manageTeam">Groupes</a>.</span>
+                <span class="text-muted">Pour un filtre dynamique, utilise plutôt un filtre de groupes dans <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=groups">Groupes</a>.</span>
               </div>
             </div>
             <div class="d-flex flex-column gap-1 mb-3">
@@ -339,7 +340,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <p class="small fw-semibold mb-2">Transférer les membres vers un autre groupe</p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post" class="d-flex align-items-center gap-2 flex-wrap">
               <input type="hidden" name="action" value="reassignTeam"/>
-              <input type="hidden" name="view" value="manageTeam"/>
+              <input type="hidden" name="view" value="settings"/>
+        <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$team->getId()?>"/>
               <select name="targetTeamId" class="form-select form-select-sm" style="width:auto" required>
                 <option value="">— choisir le groupe —</option>
@@ -362,7 +364,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <p class="small text-muted mb-2">Les <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> seront retirés du groupe mais leurs comptes resteront intacts.</p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
               <input type="hidden" name="action" value="deleteTeamForce"/>
-              <input type="hidden" name="view" value="manageTeam"/>
+              <input type="hidden" name="view" value="settings"/>
+        <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$team->getId()?>"/>
               <button type="submit" class="btn btn-sm btn-danger"
                       onclick="return confirm('Supprimer le groupe «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>» et retirer ses <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> ?')">
@@ -377,7 +380,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <p class="small text-muted mb-2">Ce groupe n'a aucun membre.</p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
               <input type="hidden" name="action" value="deleteTeamForce"/>
-              <input type="hidden" name="view" value="manageTeam"/>
+              <input type="hidden" name="view" value="settings"/>
+        <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$team->getId()?>"/>
               <button type="submit" class="btn btn-sm btn-danger"
                       onclick="return confirm('Supprimer le groupe «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>» ?')">
