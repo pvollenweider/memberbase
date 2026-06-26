@@ -1,10 +1,7 @@
 <?php
-$year = -1; // date("Y");
+$year = -2; // default: all years
 if (isset($_REQUEST['year'])) {
     $year = $_REQUEST['year'];
-}
-if ($year == -1) {
-    $year = date("Y");
 }
 $from = mktime(0, 0, 0, 1, 0, $year);
 $to = mktime(0, 0, 0, 1, 1, $year + 1);
