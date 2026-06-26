@@ -7,6 +7,30 @@ foreach ($countRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 $allTeams   = $pdo->query("SELECT id, name FROM team WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 $categories = $pdo->query("SELECT DISTINCT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 
+// Category map for import grouping: teamid → category name
+$_importCatRows = $pdo->query("
+    SELECT j.teamid, m.name AS cat_name, MIN(m.sort_order) AS sort_order
+    FROM metagroup j
+    JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
+    WHERE j.teamid IS NOT NULL
+    GROUP BY j.teamid, m.name
+")->fetchAll(PDO::FETCH_OBJ);
+$_importTeamCat = [];
+foreach ($_importCatRows as $_icr) {
+    $_importTeamCat[(int)$_icr->teamid] = $_icr->cat_name;
+}
+// Group visible teams by category for import section
+$_importByCat  = []; // cat_name => [team objects]
+$_importNoCat  = [];
+foreach ($allTeams as $_it) {
+    if (isset($_importTeamCat[(int)$_it->id])) {
+        $_importByCat[$_importTeamCat[(int)$_it->id]][] = $_it;
+    } else {
+        $_importNoCat[] = $_it;
+    }
+}
+ksort($_importByCat);
+
 // Emit undo toast sentinel if set by previous bulk action
 if (!isset($_SESSION)) session_start();
 if (!empty($_SESSION['group_toast'])) {
@@ -57,7 +81,8 @@ if (!empty($_SESSION['group_toast'])) {
     <div class="mt-2 p-3" style="background:var(--ca-ground);border-radius:6px">
       <p class="text-muted mb-2" style="font-size:0.75rem">Copie ponctuelle — les membres sont copiés tels qu'ils sont maintenant. Pour un filtre dynamique, crée plutôt un filtre de groupes.</p>
       <div class="d-flex flex-column gap-1">
-        <?php foreach ($allTeams as $t): ?>
+        <?php
+        function _renderImportCb($t, $teamCounts, $charset) { ?>
         <div class="form-check form-check-sm">
           <input class="form-check-input" type="checkbox"
                  name="importFrom[]" value="<?= (int)$t->id ?>"
@@ -69,7 +94,21 @@ if (!empty($_SESSION['group_toast'])) {
             <?php endif ?>
           </label>
         </div>
-        <?php endforeach ?>
+        <?php }
+
+        foreach ($_importByCat as $_catName => $_catTeams): ?>
+        <p class="text-muted mb-0 mt-2" style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em">
+          <?= htmlentities($_catName, ENT_COMPAT, $charset) ?>
+        </p>
+        <?php foreach ($_catTeams as $t): _renderImportCb($t, $teamCounts, $charset); endforeach;
+        endforeach;
+
+        if (!empty($_importNoCat)):
+          if (!empty($_importByCat)): ?>
+        <p class="text-muted mb-0 mt-2" style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Sans catégorie</p>
+          <?php endif;
+          foreach ($_importNoCat as $t): _renderImportCb($t, $teamCounts, $charset); endforeach;
+        endif; ?>
       </div>
     </div>
   </details>
