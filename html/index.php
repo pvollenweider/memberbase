@@ -256,13 +256,6 @@ include "includes/menu.inc";
         // datahref click-to-row
         $(root).find('table[data-href], table').datahref && $(root).find('table').datahref();
 
-        // DataTables — destroy + re-init any table with class 'dataTable' or [id$="Table"]
-        $(root).find('table.display, table[id$="Table"]').each(function () {
-            if (!$.fn.DataTable.isDataTable(this)) {
-                $(this).DataTable();
-            }
-        });
-
         // CKEditor — destroy stale instances, re-attach to .ck textareas
         if (typeof CKEDITOR !== 'undefined') {
             $(root).find('textarea.ck').each(function () {
