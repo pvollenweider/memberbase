@@ -114,7 +114,8 @@ if ($year != -2) {
     <?php
       $_kYtdChf  = $_kTotal - $_kTotalYtd1;
       $_kGap     = $_kTotal1 - $_kTotal;  // positive = still below full 2025, negative = already above
-      $_mois = mb_strtolower(strftime('%b', mktime(0,0,0,(int)date('m'),1,$year)));
+      $_moisNoms = ['','jan','fév','mar','avr','mai','juin','juil','aoû','sep','oct','nov','déc'];
+      $_mois = $_moisNoms[(int)date('m')];
     ?>
     <div style="font-size:0.78rem;margin-top:0.3rem;opacity:0.85">
       <?php if ($_kYtdChf >= 0): ?>
@@ -173,9 +174,9 @@ if ($year != -2) {
     ?>
     <div style="font-size:0.78rem;margin-top:0.3rem;color:var(--ca-ink-muted)">
       <?php if ($_kDonYtdDelta !== null && $_kDonYtdDelta >= 0): ?>
-        <i class="fas fa-arrow-up me-1" aria-hidden="true" style="color:var(--bs-success)"></i>+<?= number_format($_kDonYtdDelta, 1) ?>% vs jan–<?= mb_strtolower(strftime('%b', mktime(0,0,0,(int)date('m'),1,$year))) ?> <?= $year-1 ?> (<?= $_kDonateursYtd1 ?>)
+        <i class="fas fa-arrow-up me-1" aria-hidden="true" style="color:var(--bs-success)"></i>+<?= number_format($_kDonYtdDelta, 1) ?>% vs jan–<?= $_mois ?> <?= $year-1 ?> (<?= $_kDonateursYtd1 ?>)
       <?php elseif ($_kDonYtdDelta !== null): ?>
-        <i class="fas fa-arrow-down me-1" aria-hidden="true" style="color:var(--bs-danger)"></i><?= number_format($_kDonYtdDelta, 1) ?>% vs jan–<?= mb_strtolower(strftime('%b', mktime(0,0,0,(int)date('m'),1,$year))) ?> <?= $year-1 ?> (<?= $_kDonateursYtd1 ?>)
+        <i class="fas fa-arrow-down me-1" aria-hidden="true" style="color:var(--bs-danger)"></i><?= number_format($_kDonYtdDelta, 1) ?>% vs jan–<?= $_mois ?> <?= $year-1 ?> (<?= $_kDonateursYtd1 ?>)
       <?php else: ?>
         <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i>Même période <?= $year-1 ?>&nbsp;: <?= $_kDonateursYtd1 ?>
       <?php endif ?>
