@@ -485,7 +485,7 @@ foreach ($rows as $row):
         default => ''
     };
     ?>
-    <tr data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&userid=<?=(int)$row->id?>&year=<?=$year?>">
+    <tr data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&userid=<?=(int)$row->id?>&year=-2">
         <td><?=$society?></td>
         <td><?=$sexe?><span class="hide"><?=$sexe2?></span></td>
         <td><strong><?=$lastName?></strong></td>
