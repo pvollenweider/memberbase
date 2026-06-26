@@ -116,7 +116,7 @@ while ($row = $stmt->fetchObject()) {
     ];
     $rowStyle = isset($bgVarMap[$ctColor]) ? '--bs-table-bg:' . $bgVarMap[$ctColor] : '';
     ?>
-     <tr data-href="<?=$_SERVER['PHP_SELF']?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>" style="<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
+     <tr style="<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
         <td><?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?></td>
         <td><?=timeStampToformatedDate($date)?></td>
         <td><?=htmlentities($libele,ENT_COMPAT,$charset)?></td>

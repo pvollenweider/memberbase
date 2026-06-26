@@ -345,6 +345,7 @@ $query .= " ORDER BY $orderColumn $orderSort";
     <th class="d-none d-sm-table-cell d-md-table-cell">
             <?=$GLOBAL['creationDate']?>
     </th>
+    <th></th>
 </tr>
 </thead>
 <tbody>
@@ -486,7 +487,7 @@ while ($row = $stmt->fetchObject()) {
         #}
         $emailStr = str_replace(",","<br/>",$emailStr);
         ?>
-        <tr data-href="<?=$_SERVER['PHP_SELF']?>?view=generalData&id=<?=$id?>">
+        <tr>
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=$sexe?></td>
             <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
             <td class="text-nowrap"><?=$lastName?> <?php
@@ -500,6 +501,13 @@ while ($row = $stmt->fetchObject()) {
             <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
             <td class="d-none d-sm-table-cell d-md-table-cell"><a href="mailto:<?=$email?>"><?=$emailStr?></a></td>
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate($user->getCreationDate())?></td>
+            <td class="text-end">
+                <a href="<?=$_SERVER['PHP_SELF']?>?view=generalData&amp;id=<?=(int)$id?>"
+                   class="btn btn-outline-secondary btn-sm py-0 px-1"
+                   aria-label="Ouvrir la fiche de <?= htmlspecialchars($firstName . ' ' . $lastName, ENT_QUOTES, $charset) ?>">
+                    <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+                </a>
+            </td>
         </tr>
         <?php
     }

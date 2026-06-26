@@ -78,6 +78,7 @@ $count = count($rows);
   <th><?= $GLOBAL['email'] ?></th>
   <th><?= $GLOBAL['address'] ?></th>
   <th><?= $GLOBAL['npa'] ?></th>
+  <th></th>
 </tr>
 </thead>
 <tbody>
@@ -89,13 +90,20 @@ $count = count($rows);
   $address   = htmlentities($row->address   ?? '', ENT_COMPAT, $charset);
   $npa       = htmlentities($row->npa       ?? '', ENT_COMPAT, $charset);
 ?>
-<tr data-href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&userid=<?= (int)$row->id ?>">
+<tr>
   <td><?= $society ?></td>
   <td><strong><?= $lastName ?></strong></td>
   <td><?= $firstName ?></td>
   <td><?= $email ?></td>
   <td><?= $address ?></td>
   <td><?= $npa ?></td>
+  <td class="text-end">
+    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$row->id ?>"
+       class="btn btn-outline-secondary btn-sm py-0 px-1"
+       aria-label="Voir compta de <?= htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset) ?>">
+      <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+    </a>
+  </td>
 </tr>
 <?php endforeach ?>
 </tbody>

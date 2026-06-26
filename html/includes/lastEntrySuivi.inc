@@ -20,6 +20,7 @@ $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
     <th><?= $GLOBAL['date'] ?></th>
     <th><?= $GLOBAL['lastName'] ?></th>
     <th><?= $GLOBAL['suivi'] ?></th>
+    <th></th>
 </tr>
 </thead>
 <tbody>
@@ -29,10 +30,17 @@ $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
                       htmlentities($row->lastname, ENT_COMPAT, $charset) . ' ' .
                       htmlentities($row->firstname, ENT_COMPAT, $charset));
 ?>
-    <tr data-href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&userid=<?= (int)$row->id ?>">
+    <tr>
         <td><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
         <td class="text-nowrap"><?= $name ?></td>
         <td><?= html_entity_decode($row->value, ENT_COMPAT, $charset) ?></td>
+        <td class="text-end">
+            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= (int)$row->id ?>"
+               class="btn btn-outline-secondary btn-sm py-0 px-1"
+               aria-label="Voir suivi de <?= htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset) ?>">
+                <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+            </a>
+        </td>
     </tr>
 <?php endforeach ?>
 </tbody>

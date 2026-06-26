@@ -485,7 +485,7 @@ foreach ($rows as $row):
         default => ''
     };
     ?>
-    <tr data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&userid=<?=(int)$row->id?>&year=-2">
+    <tr>
         <td><?=$society?></td>
         <td><?=$sexe?><span class="hide"><?=$sexe2?></span></td>
         <td><strong><?=$lastName?></strong></td>
@@ -500,16 +500,21 @@ foreach ($rows as $row):
             <i class="fas fa-check text-success" aria-label="Souhaite attestation"></i>
             <?php endif ?>
         </td>
-        <td class="text-end">
+        <td class="text-end" style="white-space:nowrap">
             <?php if ($year != -2): ?>
             <a href="/attestation_don.php?userid=<?=(int)$row->id?>&amp;year=<?=(int)$year?>"
-               class="btn btn-sm py-0 px-1 text-muted"
+               class="btn btn-sm py-0 px-1 text-muted me-1"
                title="Attestation de dons <?=(int)$year?>"
-               target="_blank"
-               onclick="event.stopPropagation()">
+               aria-label="Attestation de dons <?=(int)$year?> pour <?= htmlspecialchars($lastName . ' ' . $firstName, ENT_QUOTES, $charset) ?>"
+               target="_blank">
                 <i class="fas fa-file-pdf" aria-hidden="true"></i>
             </a>
             <?php endif ?>
+            <a href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=(int)$row->id?>"
+               class="btn btn-outline-secondary btn-sm py-0 px-1"
+               aria-label="Voir compta de <?= htmlspecialchars($lastName . ' ' . $firstName, ENT_QUOTES, $charset) ?>">
+                <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+            </a>
         </td>
     </tr>
     <?php
