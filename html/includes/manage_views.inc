@@ -92,6 +92,9 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] == 'deleteComptaConfirm') {
         $compta = new Compta();
         $compta->lookupCompta($_REQUEST['comptaid']);
+        $_auDcUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+        $_auDcUser->execute([(int)$compta->userId]);
+        auditLog($pdo, 'deleteCompta', "compta#={$_REQUEST['comptaid']} | membre: " . ($_auDcUser->fetchColumn() ?: "id={$compta->userId}") . " | {$compta->sum} CHF");
         $compta->remove();
         $view = "compta";
         include "update_user_form.inc";
@@ -118,7 +121,10 @@ if (isset($_REQUEST['view'])) {
         <?php 
     } else if ($_REQUEST['view'] == 'removeSuiviConfirm') {
         $userProperty = new UserProperty();
-        $userProperty ->lookupUserProperty($_REQUEST['suiviid']);
+        $userProperty->lookupUserProperty($_REQUEST['suiviid']);
+        $_auRsUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+        $_auRsUser->execute([(int)$_REQUEST['userid']]);
+        auditLog($pdo, 'deleteSuivi', "suivi#={$_REQUEST['suiviid']} | membre: " . ($_auRsUser->fetchColumn() ?: "id={$_REQUEST['userid']}") . " | {$userProperty->parameter}: {$userProperty->getValue()}");
         $userProperty->remove();
         $view = "suivi";
         include "update_user_form.inc";

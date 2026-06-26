@@ -90,7 +90,9 @@ if (isset($_REQUEST['action'])) {
         $teamId       = (int) $_REQUEST['id'];
         $targetTeamId = (int) $_REQUEST['targetTeamId'];
         if ($targetTeamId > 0 && $targetTeamId !== $teamId) {
-            // Move memberships not already in target team
+            $_auSrc = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auSrc->execute([$teamId]);
+            $_auDst = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auDst->execute([$targetTeamId]);
+            auditLog($pdo, 'reassignTeam', "groupe source: " . ($_auSrc->fetchColumn() ?: "id=$teamId") . " → groupe cible: " . ($_auDst->fetchColumn() ?: "id=$targetTeamId"));
             $pdo->prepare(
                 "UPDATE user_properties
                  SET parameter = ?
@@ -101,7 +103,6 @@ if (isset($_REQUEST['action'])) {
                      ) AS already
                  )"
             )->execute(["team_$targetTeamId", "team_$teamId", "team_$targetTeamId"]);
-            // Remove any remaining (duplicates)
             $pdo->prepare("DELETE FROM user_properties WHERE parameter = ?")->execute(["team_$teamId"]);
             $pdo->prepare("DELETE FROM team WHERE id = ?")->execute([$teamId]);
         }
@@ -124,6 +125,8 @@ if (isset($_REQUEST['action'])) {
                 }
             }
         }
+        $_auTeamN = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auTeamN->execute([$teamId]);
+        auditLog($pdo, 'importTeamMembers', "vers groupe: " . ($_auTeamN->fetchColumn() ?: "id=$teamId") . " | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
         echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $teamId) . ');</script>';
         exit;
     } else if ($_REQUEST['action'] == 'importCotisants') {
@@ -147,6 +150,8 @@ if (isset($_REQUEST['action'])) {
                 GROUP BY u.id
             ")->execute($params);
         }
+        $_auTeamC = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auTeamC->execute([$teamId]);
+        auditLog($pdo, 'importCotisants', "vers groupe: " . ($_auTeamC->fetchColumn() ?: "id=$teamId") . " | année: $year");
         echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $teamId . '&imported=cotisants') . ');</script>';
         exit;
     } else if ($_REQUEST['action'] == 'importDonors') {
@@ -170,17 +175,21 @@ if (isset($_REQUEST['action'])) {
                 HAVING SUM(c.sum) >= ?
             ")->execute(["team_$teamId", $from, $to, "team_$teamId", $minSum]);
         }
+        $_auTeamD = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auTeamD->execute([$teamId]);
+        auditLog($pdo, 'importDonors', "vers groupe: " . ($_auTeamD->fetchColumn() ?: "id=$teamId") . " | année: $year | min: {$minSum} CHF");
         echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $teamId . '&imported=donors') . ');</script>';
         exit;
     } else if ($_REQUEST['action'] == 'bulkHide') {
         if (!empty($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
             $stmt = $pdo->prepare("UPDATE team SET hidden=1 WHERE id=?");
             foreach ($_REQUEST['ids'] as $tid) { $stmt->execute([(int)$tid]); }
+            auditLog($pdo, 'bulkHide', count($_REQUEST['ids']) . " groupes masqués");
         }
     } else if ($_REQUEST['action'] == 'bulkShow') {
         if (!empty($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
             $stmt = $pdo->prepare("UPDATE team SET hidden=0 WHERE id=?");
             foreach ($_REQUEST['ids'] as $tid) { $stmt->execute([(int)$tid]); }
+            auditLog($pdo, 'bulkShow', count($_REQUEST['ids']) . " groupes affichés");
         }
     } else if ($_REQUEST['action'] == 'bulkCreateMetagroup') {
         $name = trim($_REQUEST['metagroupName'] ?? '');
@@ -192,6 +201,7 @@ if (isset($_REQUEST['action'])) {
                 $tid = (int)$tid;
                 if ($tid > 0) $stmt->execute([$mid, $tid]);
             }
+            auditLog($pdo, 'bulkCreateMetagroup', "nouveau groupe filtre: $name (id=$mid) | " . count($_REQUEST['ids']) . " groupes");
             echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateMetagroup&id=' . $mid) . ');</script>';
             exit;
         }
@@ -237,6 +247,7 @@ if (isset($_REQUEST['action'])) {
                 $ins->execute([(int)$uid, "team_$newTeamId"]);
             }
         }
+        auditLog($pdo, 'createLapsedGroup', "type: $groupType | année: $yr | groupe créé: $groupName (id=$newTeamId) | " . count($userIds) . " membres");
         echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?team=' . $newTeamId) . ');</script>';
         exit;
     } else if ($_REQUEST['action'] == 'addTeam') {
@@ -244,6 +255,8 @@ if (isset($_REQUEST['action'])) {
         $team->name = $_REQUEST['name'];
         $team->setHidden(isset($_REQUEST['hidden']) ? 1 : 0);
         $team->save();
+        $_auNewTeam = (int)$pdo->query("SELECT value FROM maxval WHERE parameter='teamid'")->fetchColumn();
+        auditLog($pdo, 'addTeam', "id=$_auNewTeam | {$_REQUEST['name']}");
     } else if ($_REQUEST['action'] == 'addTeamWithImport') {
         $team = new Team();
         $team->name = $_REQUEST['name'];
@@ -271,6 +284,7 @@ if (isset($_REQUEST['action'])) {
                 )->execute(["team_$newTeamId", "team_$srcId", "team_$newTeamId"]);
             }
         }
+        auditLog($pdo, 'addTeamWithImport', "id=$newTeamId | {$_REQUEST['name']} | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
     } else if ($_REQUEST['action'] == 'addMetagroup') {
         $mg = new Metagroup();
         $mg->name = $_REQUEST['name'];
@@ -280,6 +294,7 @@ if (isset($_REQUEST['action'])) {
         if ($newMgId) {
             $pdo->prepare("UPDATE metagroup SET is_filter=? WHERE id=? AND name IS NOT NULL")->execute([$isFilter, $newMgId]);
         }
+        auditLog($pdo, 'addMetagroup', "id=$newMgId | {$_REQUEST['name']} | filtre: " . ($isFilter ? 'oui' : 'non'));
         echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateMetagroup&id=' . $newMgId) . ');</script>';
         exit;
     } else if ($_REQUEST['action'] == 'updateMetagroup') {
@@ -289,19 +304,24 @@ if (isset($_REQUEST['action'])) {
         $mg->save();
         $isFilter = isset($_REQUEST['is_filter']) ? ((int)$_REQUEST['is_filter'] === 1 ? 1 : 0) : 1;
         $pdo->prepare("UPDATE metagroup SET is_filter=? WHERE id=? AND name IS NOT NULL")->execute([$isFilter, (int)$_REQUEST['id']]);
+        auditLog($pdo, 'updateMetagroup', "id={$_REQUEST['id']} | {$mg->name} | filtre: " . ($isFilter ? 'oui' : 'non'));
     } else if ($_REQUEST['action'] == 'updateMetagroupTeams') {
         $mgId = (int)$_REQUEST['id'];
         $selected = !empty($_REQUEST['teams']) && is_array($_REQUEST['teams'])
             ? array_map('intval', $_REQUEST['teams']) : [];
-        // Remove all existing junction rows for this metagroup
         $pdo->prepare("DELETE FROM metagroup WHERE id=? AND teamid IS NOT NULL")->execute([$mgId]);
-        // Re-insert selected
         $stmt = $pdo->prepare("INSERT INTO metagroup (id, teamid) VALUES (?, ?)");
         foreach ($selected as $teamId) {
             if ($teamId > 0) $stmt->execute([$mgId, $teamId]);
         }
+        $_auMgName = $pdo->prepare("SELECT name FROM metagroup WHERE id=? AND name IS NOT NULL LIMIT 1");
+        $_auMgName->execute([$mgId]);
+        auditLog($pdo, 'updateMetagroupTeams', "groupe filtre: " . ($_auMgName->fetchColumn() ?: "id=$mgId") . " | " . count($selected) . " groupes assignés");
     } else if ($_REQUEST['action'] == 'deleteMetagroup') {
         $mgId = (int)$_REQUEST['id'];
+        $_auMgDel = $pdo->prepare("SELECT name FROM metagroup WHERE id=? AND name IS NOT NULL LIMIT 1");
+        $_auMgDel->execute([$mgId]);
+        auditLog($pdo, 'deleteMetagroup', "id=$mgId | " . ($_auMgDel->fetchColumn() ?: ''));
         $pdo->prepare("DELETE FROM metagroup WHERE id=?")->execute([$mgId]);
     } else if ($_REQUEST['action'] == 'updateTeam') {
         $team = new Team();
@@ -317,6 +337,7 @@ if (isset($_REQUEST['action'])) {
         if ($categoryId > 0) {
             $pdo->prepare("INSERT INTO metagroup (id, teamid) VALUES (?, ?)")->execute([$categoryId, $teamId]);
         }
+        auditLog($pdo, 'updateTeam', "id=$teamId | {$team->name}");
     } else if ($_REQUEST['action'] == 'addComptaType') {
         $label = trim($_REQUEST['label'] ?? '');
         $color = $_REQUEST['color'] ?? 'bg-light';
@@ -325,6 +346,7 @@ if (isset($_REQUEST['action'])) {
         if ($label !== '') {
             $maxOrder = (int)$pdo->query("SELECT COALESCE(MAX(sort_order),0) FROM compta_type")->fetchColumn();
             $pdo->prepare("INSERT INTO compta_type (label, color, sort_order) VALUES (?, ?, ?)")->execute([$label, $color, $maxOrder + 1]);
+            auditLog($pdo, 'addComptaType', "label: $label | couleur: $color");
         }
         $rv = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnView'] ?? 'manageComptaTypes');
         echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=' . $rv) . ');</script>';
@@ -340,6 +362,7 @@ if (isset($_REQUEST['action'])) {
         if (!in_array($color, $allowed)) $color = 'bg-light';
         if ($id > 0 && $label !== '') {
             $pdo->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $id]);
+            auditLog($pdo, 'updateComptaType', "id=$id | label: $label");
         }
         $rv = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnView'] ?? 'manageComptaTypes');
         echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=' . $rv) . ');</script>';
@@ -350,6 +373,8 @@ if (isset($_REQUEST['action'])) {
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE type_id=?");
             $stmt->execute([$id]);
             if ((int)$stmt->fetchColumn() === 0) {
+                $_auCtLabel = $pdo->prepare("SELECT label FROM compta_type WHERE id=?"); $_auCtLabel->execute([$id]);
+                auditLog($pdo, 'deleteComptaType', "id=$id | label: " . ($_auCtLabel->fetchColumn() ?: ''));
                 $pdo->prepare("DELETE FROM compta_type WHERE id=?")->execute([$id]);
             }
         }
@@ -404,7 +429,9 @@ if (isset($_REQUEST['action'])) {
         $comptaid = (int)$_REQUEST['comptaid'];
         $value    = isset($_REQUEST['wants_attestation']) ? 1 : 0;
         $pdo->prepare("UPDATE compta SET wants_attestation=? WHERE id=?")->execute([$value, $comptaid]);
-        // redirect back to compta view, preserving year
+        $_auTwa = $pdo->prepare("SELECT CONCAT(u.firstName,' ',u.lastName) FROM compta c JOIN users u ON u.id=c.user_id WHERE c.id=?");
+        $_auTwa->execute([$comptaid]);
+        auditLog($pdo, 'toggleWantsAttestation', "compta#=$comptaid | " . ($_auTwa->fetchColumn() ?: '') . " | attestation: " . ($value ? 'oui' : 'non'));
         $year   = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
         $userid = (int)$_REQUEST['userid'];
         header('Location: ' . $_SERVER['PHP_SELF'] . '?view=compta&userid=' . $userid . '&year=' . $year);
@@ -416,6 +443,9 @@ if (isset($_REQUEST['action'])) {
         $userProperty->date = formatedDateToTimeStamp($_REQUEST['date']);
         $userProperty->value = unquote(str_replace(',','.',$_REQUEST['value']));
         $userProperty->save();
+        $_auSuiviU = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+        $_auSuiviU->execute([(int)$_REQUEST['userid']]);
+        auditLog($pdo, 'addSuivi', "membre: " . ($_auSuiviU->fetchColumn() ?: "id={$_REQUEST['userid']}") . " | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})");
     } else if ($_REQUEST['action'] == 'updateSuivi') {
         $userProperty = new UserProperty();
         $userProperty->lookupUserProperty($_REQUEST['suiviid']);
@@ -424,6 +454,9 @@ if (isset($_REQUEST['action'])) {
         $userProperty->parameter = $_REQUEST['parameter'];
         $userProperty->value = unquote($_REQUEST['value']);
         $userProperty->save();
+        $_auSuiviU2 = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+        $_auSuiviU2->execute([(int)$_REQUEST['userid']]);
+        auditLog($pdo, 'updateSuivi', "membre: " . ($_auSuiviU2->fetchColumn() ?: "id={$_REQUEST['userid']}") . " | suivi#={$_REQUEST['suiviid']} | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})");
 
     // ── Auth actions ─────────────────────────────────────────────────────────
 
