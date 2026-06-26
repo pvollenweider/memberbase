@@ -112,7 +112,8 @@ if (isset($_REQUEST['year'])) {
                             SELECT t.id, t.name,
                                    COALESCE(cat.name, '') AS cat_name,
                                    COALESCE(cat.id, 0) AS cat_id,
-                                   COALESCE(cat.sort_order, 99999) AS cat_sort
+                                   COALESCE(cat.sort_order, 99999) AS cat_sort,
+                                   (SELECT COUNT(*) FROM user_properties up WHERE up.parameter = CONCAT('team_', t.id)) AS member_count
                             FROM team t
                             LEFT JOIN (
                                 SELECT j.teamid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
@@ -134,11 +135,16 @@ if (isset($_REQUEST['year'])) {
                                 echo '<h6 class="dropdown-header team-cat-header" data-cat="' . $catId . '" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">' . htmlentities($label, ENT_COMPAT, $charset) . '</h6>';
                             }
                             ?>
-                            <a class="dropdown-item team-filterable <?php if ($team == $row->id) { ?>active<?php } ?>"
+                            <a class="dropdown-item team-filterable d-flex align-items-center justify-content-between <?php if ($team == $row->id) { ?>active<?php } ?>"
                                href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= (int)$row->id ?>"
                                data-label="<?= htmlentities(mb_strtolower($row->name), ENT_COMPAT, $charset) ?>"
                                data-cat="<?= $catId ?>"
-                               style="padding-left:1.5rem"><?= htmlentities($row->name, ENT_COMPAT, $charset) ?></a>
+                               style="padding-left:1.5rem">
+                              <span><?= htmlentities($row->name, ENT_COMPAT, $charset) ?></span>
+                              <?php if ((int)$row->member_count > 0): ?>
+                              <span class="badge rounded-pill ms-2 flex-shrink-0" style="font-size:0.65rem;font-weight:500;background:var(--bs-secondary-bg);color:var(--bs-secondary-color)"><?= (int)$row->member_count ?></span>
+                              <?php endif ?>
+                            </a>
                             <?php
                         }
                     ?>
