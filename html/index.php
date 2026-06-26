@@ -336,6 +336,7 @@ include "includes/menu.inc";
 
         // destroy any orphaned DataTable instances from previous swap
         if ($.fn.DataTable) {
+            $.fn.DataTable.tables({ visible: true,  api: true }).destroy();
             $.fn.DataTable.tables({ visible: false, api: true }).destroy();
         }
     }

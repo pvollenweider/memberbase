@@ -511,7 +511,7 @@ foreach ($rows as $row):
             </a>
             <?php endif ?>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=(int)$row->id?>"
-               class="stretched-link"
+               class="stretched-link" hx-boost="false"
                aria-label="Voir compta de <?= htmlspecialchars($lastName . ' ' . $firstName, ENT_QUOTES, $charset) ?>"></a>
         </td>
     </tr>

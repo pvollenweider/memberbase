@@ -43,7 +43,7 @@ while ($row = $stmt->fetchObject()) {
                 <i class="fas fa-trash-alt" style="font-size:0.75rem" aria-hidden="true"></i>
             </a>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=updateSuivi&amp;suiviid=<?=(int)$id?>&amp;userid=<?=(int)$userid?>"
-               class="stretched-link"
+               class="stretched-link" hx-boost="false"
                aria-label="Modifier cette entrée de suivi"></a>
         </td>
     </tr>

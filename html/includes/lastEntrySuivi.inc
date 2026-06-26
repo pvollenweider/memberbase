@@ -36,7 +36,7 @@ $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
         <td><?= html_entity_decode($row->value, ENT_COMPAT, $charset) ?></td>
         <td>
             <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= (int)$row->id ?>"
-               class="stretched-link"
+               class="stretched-link" hx-boost="false"
                aria-label="Voir suivi de <?= htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset) ?>"></a>
         </td>
     </tr>

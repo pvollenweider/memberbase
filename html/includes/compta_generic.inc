@@ -129,7 +129,7 @@ while ($row = $stmt->fetchObject()) {
         </td>
         <td>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>"
-               class="stretched-link"
+               class="stretched-link" hx-boost="false"
                aria-label="Modifier l'écriture compta du <?= timeStampToformatedDate($date) ?>"></a>
         </td>
     </tr>

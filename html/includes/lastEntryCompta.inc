@@ -165,7 +165,7 @@ while ($row = $stmt->fetchObject()) {
         <td><?= timeStampToformatedDate($user->getCreationDate()) ?></td>
         <td>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=(int)$userId?>"
-               class="stretched-link"
+               class="stretched-link" hx-boost="false"
                aria-label="Voir compta de <?= htmlspecialchars($firstName . ' ' . $lastName, ENT_QUOTES, $charset) ?>"></a>
         </td>
     </tr>

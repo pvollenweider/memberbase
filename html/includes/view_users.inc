@@ -503,7 +503,7 @@ while ($row = $stmt->fetchObject()) {
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate($user->getCreationDate())?></td>
             <td>
                 <a href="<?=$_SERVER['PHP_SELF']?>?view=generalData&amp;id=<?=(int)$id?>"
-                   class="stretched-link"
+                   class="stretched-link" hx-boost="false"
                    aria-label="Ouvrir la fiche de <?= htmlspecialchars($firstName . ' ' . $lastName, ENT_QUOTES, $charset) ?>"></a>
                 </a>
             </td>
