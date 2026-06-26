@@ -20,7 +20,7 @@ $stmtTeams = $pdo->query("SELECT id, name FROM team WHERE id != $id AND hidden =
 $otherTeams = $stmtTeams->fetchAll(PDO::FETCH_OBJ);
 
 // Fetch categories and current category for this team
-$allCats = $pdo->query("SELECT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter=0 ORDER BY sort_order ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
+$allCats = $pdo->query("SELECT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter=0 GROUP BY id ORDER BY name ASC")->fetchAll(PDO::FETCH_OBJ);
 $stmtCurrentCat = $pdo->prepare("SELECT c.id FROM metagroup junc JOIN metagroup c ON c.id=junc.id AND c.name IS NOT NULL AND c.is_filter=0 WHERE junc.teamid=? LIMIT 1");
 $stmtCurrentCat->execute([$id]);
 $currentCatId = (int)($stmtCurrentCat->fetchColumn() ?: 0);
