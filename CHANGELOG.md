@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.2.2] — 2026-06-26
+
+### Added
+- Avertissement "modifications non sauvegardées" si on quitte la page sans sauver (beforeunload)
+
+### Fixed
+- Doublons dans le sélecteur de catégorie de groupe (GROUP BY id sur la requête metagroup)
+
+### Changed
+- Page d'édition d'un groupe: lien "Voir la liste →" pré-filtré sur ce groupe
+- Page d'édition d'un métagroupe: lien "Voir la liste filtrée →" (filtres uniquement), groupes affichés par catégorie, badge count membres inline après le nom
+- Documentation: guides utilisateur et administrateur ajoutés dans `doc/`
+
 ## [2.2.1] — 2026-06-25
 
 ### Security
