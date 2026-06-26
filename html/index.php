@@ -194,9 +194,11 @@ include "includes/menu.inc";
     document.addEventListener('input', markDirty);
     document.addEventListener('submit', function () { dirty = false; });
 
-    // htmx navigation — warn before swap if dirty
+    // htmx navigation — warn before swap if dirty, but not on form submissions (save = intentional)
     document.addEventListener('htmx:beforeRequest', function (e) {
         if (!dirty || window.__dirtyOverride) return;
+        var verb = (e.detail && e.detail.requestConfig && e.detail.requestConfig.verb) || 'get';
+        if (verb === 'post') { dirty = false; return; } // form submit — let it through
         if (!confirm('Des modifications non sauvegardées seront perdues. Continuer ?')) {
             e.preventDefault();
         } else {
