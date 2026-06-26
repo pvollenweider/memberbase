@@ -112,6 +112,7 @@ if ($isHtmx) {
     <!-- htmx + Alpine.js -->
     <script src="js/vendor/htmx.min.js"></script>
     <script defer src="js/vendor/alpine.min.js"></script>
+    <meta name="htmx-config" content='{"scrollIntoViewOnBoost": false, "defaultSwapStyle": "innerHTML"}'>
 
     <script type="text/javascript">
         $(function () {
