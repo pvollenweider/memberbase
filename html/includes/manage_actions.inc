@@ -457,18 +457,31 @@ if (isset($_REQUEST['action'])) {
         $auDisplayName = trim($_POST['au_display_name'] ?? '');
         $auEmail       = trim($_POST['au_email']       ?? '');
         $auRole        = in_array($_POST['au_role'] ?? '', ['admin','user']) ? $_POST['au_role'] : 'user';
-        $auPassword    = trim($_POST['au_password'] ?? '') ?: 'changeme';
+        $auPasswordRaw = trim($_POST['au_password'] ?? '');
         $errParam      = '';
 
         if (!preg_match('/^[a-zA-Z0-9._\-]+$/', $auUsername)) {
             $errParam = urlencode('Identifiant invalide (lettres, chiffres, ., -, _ uniquement).');
         } else {
             try {
-                $pdo->prepare(
-                    "INSERT INTO app_users (username, display_name, email, password_hash, role, force_password_change)
-                     VALUES (?, ?, ?, ?, ?, 1)"
-                )->execute([$auUsername, $auDisplayName ?: null, $auEmail ?: null,
-                            password_hash($auPassword, PASSWORD_DEFAULT), $auRole]);
+                if ($auPasswordRaw === '') {
+                    // Token-based invitation: no password set yet
+                    $token     = bin2hex(random_bytes(32));
+                    $expires   = date('Y-m-d H:i:s', strtotime('+7 days'));
+                    $pdo->prepare(
+                        "INSERT INTO app_users (username, display_name, email, password_hash, role, force_password_change, reset_token, token_expires_at)
+                         VALUES (?, ?, ?, '', ?, 1, ?, ?)"
+                    )->execute([$auUsername, $auDisplayName ?: null, $auEmail ?: null, $auRole, $token, $expires]);
+                    $newId = (int)$pdo->lastInsertId();
+                    $_SESSION['invite_token_flash'] = ['uid' => $newId, 'token' => $token];
+                } else {
+                    // Classic: password provided by admin
+                    $pdo->prepare(
+                        "INSERT INTO app_users (username, display_name, email, password_hash, role, force_password_change)
+                         VALUES (?, ?, ?, ?, ?, 1)"
+                    )->execute([$auUsername, $auDisplayName ?: null, $auEmail ?: null,
+                                password_hash($auPasswordRaw, PASSWORD_DEFAULT), $auRole]);
+                }
             } catch (PDOException $e) {
                 if ($e->getCode() == 23000) {
                     $errParam = urlencode('Cet identifiant est déjà utilisé.');

@@ -2,13 +2,33 @@
 if (!isAdmin()) { echo '<div class="alert alert-danger">Accès refusé.</div>'; return; }
 
 $_auRows = $pdo->query(
-    "SELECT id, username, display_name, email, role, is_active, force_password_change, created_at, last_login
+    "SELECT id, username, display_name, email, role, is_active, force_password_change, created_at, last_login, reset_token, token_expires_at
      FROM app_users ORDER BY role DESC, username ASC"
 )->fetchAll(PDO::FETCH_OBJ);
 ?>
 <?php
+// Flash: invitation token just generated
+$__invFlash = $_SESSION['invite_token_flash'] ?? null;
+unset($_SESSION['invite_token_flash']);
+if ($__invFlash):
+  $__invUser = $pdo->prepare("SELECT username FROM app_users WHERE id=?");
+  $__invUser->execute([(int)$__invFlash['uid']]);
+  $__invUsername = $__invUser->fetchColumn() ?: '?';
+  $__invLink = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/set-password.php?token=' . urlencode($__invFlash['token']);
+?>
+<div class="alert alert-success d-flex gap-2 align-items-start py-2 mb-3" style="font-size:0.875rem">
+  <i class="fas fa-link mt-1 flex-shrink-0" aria-hidden="true"></i>
+  <span>
+    Lien d'invitation pour <strong><?= htmlspecialchars($__invUsername, ENT_QUOTES, $charset) ?></strong> (valable 7 jours) :<br>
+    <code class="user-select-all" style="word-break:break-all"><?= htmlspecialchars($__invLink, ENT_QUOTES, $charset) ?></code>
+    <br><small class="text-muted">Envoyez ce lien à l'utilisateur. Il définira lui-même son mot de passe.</small>
+  </span>
+</div>
+<?php endif ?>
+<?php
+// Flash: reset password (classic)
 $__flash = $_SESSION['reset_pw_flash'] ?? null;
-unset($_SESSION['reset_pw_flash']); // consume immediately
+unset($_SESSION['reset_pw_flash']);
 if ($__flash):
   $__resetUser = $pdo->prepare("SELECT username FROM app_users WHERE id=?");
   $__resetUser->execute([(int)$__flash['uid']]);
@@ -52,7 +72,11 @@ if ($__flash):
   <td>
     <strong><?= htmlspecialchars($_au->username, ENT_QUOTES, $charset) ?></strong>
     <?php if ($isSelf): ?><span class="badge bg-secondary ms-1" style="font-size:0.65rem">vous</span><?php endif ?>
-    <?php if ($_au->force_password_change): ?><span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem" title="Doit changer son mot de passe">clé</span><?php endif ?>
+    <?php if (!empty($_au->reset_token) && strtotime($_au->token_expires_at) > time()): ?>
+      <span class="badge bg-info text-dark ms-1" style="font-size:0.65rem" title="Invitation en attente — lien non encore utilisé"><i class="fas fa-envelope me-1" aria-hidden="true"></i>invitation</span>
+    <?php elseif ($_au->force_password_change): ?>
+      <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem" title="Doit changer son mot de passe">clé</span>
+    <?php endif ?>
   </td>
   <td><?= htmlspecialchars($_au->display_name ?? '', ENT_QUOTES, $charset) ?></td>
   <td><?= htmlspecialchars($_au->email ?? '', ENT_QUOTES, $charset) ?></td>
