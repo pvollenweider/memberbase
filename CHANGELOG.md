@@ -23,22 +23,44 @@
 
 ### Migration base de données
 
-La contrainte unique `(user_id, parameter)` sur la table `user_properties` empêchait d'ajouter plusieurs entrées de suivi par membre. À exécuter **une seule fois** sur la base de prod :
-
 ```sql
+-- Contrainte unique (user_id, parameter) remplacée par index simple
+-- (nécessaire pour plusieurs entrées de suivi par membre)
 ALTER TABLE user_properties DROP INDEX uniq_user_param;
 ALTER TABLE user_properties ADD INDEX idx_user_param (user_id, parameter);
+
+-- Journal d'activité
+CREATE TABLE IF NOT EXISTS audit_log (
+  id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  created_at DATETIME     NOT NULL DEFAULT NOW(),
+  username   VARCHAR(100) NOT NULL,
+  action     VARCHAR(100) NOT NULL,
+  detail     TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
 ### Added
+- **htmx 1.9 + Alpine.js** intégrés comme couche d'interactivité (zéro CDN, auto-hébergés)
+- **Journal d'activité** (`audit_log`) : toutes les actions add/update/delete loguées avec utilisateur, action et détail (noms au lieu d'IDs)
 - **Onglet Intégrité** (`?view=settings&tab=integrity`) : détecte les groupes masqués encore assignés à une catégorie ou un métagroupe, avec lien direct vers l'édition
-- **Gestion des groupes** refactorisée en onglets dédiés dans les réglages : Groupes, Catégories, Métagroupes (extraction de `manage_teams.inc` en `manage_groups.inc`, `manage_categories.inc`, `manage_filters.inc`)
-
-### Fixed
-- Doublons dans l'onglet Intégrité : `SELECT DISTINCT` sur les deux requêtes (même cause que le bug count=30 — `metagroup.name` renseigné sur toutes les lignes, pas seulement la ligne-nom)
+- **Gestion des groupes** refactorisée en onglets dédiés dans les réglages : Groupes, Catégories, Métagroupes (`manage_groups.inc`, `manage_categories.inc`, `manage_filters.inc`)
+- **Lien d'invitation** à durée limitée (`?view=invite&token=…`) pour créer un compte sans passer par un admin
+- **Générateur de mot de passe** aléatoire sur le formulaire de création d'utilisateur
+- **Environnement Docker** de développement : PHP 8.2 + MariaDB 11 + Adminer (`make up`)
 
 ### Changed
+- **DataTables** mis à jour 1.13.7 → 2.2.2 + Buttons 3.1.2
+- Point d'entrée unique `index.php` : branche htmx (`HX-Request: true`) retourne uniquement le fragment HTML, sans layout — performance et cohérence
+- Avertissement "modifications non sauvegardées" (`beforeunload`) désactivé sur submit de formulaire (la sauvegarde est intentionnelle)
+- `log4php` entièrement supprimé
 - Bouton retour sur la page d'édition métagroupe : libellé "Retour aux métagroupes" / "Retour aux catégories" selon le type
+
+### Fixed
+- Doublons dans l'onglet Intégrité : `SELECT DISTINCT` sur les deux requêtes
+- `$view` non défini dans le chemin htmx (sautait `menu.inc`)
+- htmx : défilement automatique sur boost désactivé (`scrollIntoViewOnBoost: false`)
+- `strftime()` déprécié en PHP 8.2 remplacé par tableau de noms de mois
+- DataTable : destruction avant re-init pour éviter les fuites mémoire (événements `datahref` namespacés)
 
 ---
 
