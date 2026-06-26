@@ -18,7 +18,7 @@ if (isset($_REQUEST['action'])) {
             'email'     => (string)$user->email,
             'web'       => (string)$user->web,
             'birthDay'  => timeStampToformatedDate((int)$user->birthDay),
-            'comment'   => (string)$user->comment,
+            'comment'   => preg_replace(['/(<(?!\/)[^>]+>)\s+/', '/\s+(<\/[^>]+>)/'], ['$1', '$1'], trim((string)$user->comment)),
         ];
         $user->firstName = unquote($_REQUEST['firstName']);
         $user->lastName = unquote($_REQUEST['lastName']);
@@ -34,7 +34,11 @@ if (isset($_REQUEST['action'])) {
         $user->email = unquote($_REQUEST['email']);
         $user->web = unquote($_REQUEST['web']);
         $user->birthDay = unquote(formatedDateToTimeStamp($_REQUEST['birthDay']));
-        $user->comment = unquote($_REQUEST['comment']);
+        $_rawComment = trim(unquote($_REQUEST['comment']));
+        // Normalize whitespace inside HTML tags to match TipTap output
+        $_rawComment = preg_replace('/(<(?!\/)[^>]+>)\s+/', '$1', $_rawComment);
+        $_rawComment = preg_replace('/\s+(<\/[^>]+>)/', '$1', $_rawComment);
+        $user->comment = $_rawComment;
         $_auAfter = [
             'firstName' => (string)$user->firstName,
             'lastName'  => (string)$user->lastName,
@@ -50,7 +54,7 @@ if (isset($_REQUEST['action'])) {
             'email'     => (string)$user->email,
             'web'       => (string)$user->web,
             'birthDay'  => timeStampToformatedDate((int)$user->birthDay),
-            'comment'   => (string)$user->comment,
+            'comment'   => trim((string)$user->comment),
         ];
         $_auDiffs = [];
         foreach ($_auBefore as $_f => $_v) {
