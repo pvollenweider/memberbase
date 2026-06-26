@@ -94,7 +94,7 @@ $_activeTab = $_GET['tab'] ?? null;
           <input type="hidden" name="view" value="settings"/>
           <div class="mb-4">
             <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_default_team">Groupe affiché par défaut</label>
-            <p class="text-muted mb-2" style="font-size:0.78rem">Groupe sélectionné à l'ouverture de la liste des membres.</p>
+            <p class="text-muted mb-2" style="font-size:0.78rem">Groupe sélectionné à l'ouverture de la liste des membres. Choisir le groupe correspondant aux membres de l'année en cours (ex: «Membre 2026»). À mettre à jour chaque année.</p>
             <select name="default_team" id="s_default_team" class="form-select form-select-sm" style="max-width:320px">
               <?php foreach ($allTeams as $t): ?>
               <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['default_team'] === (int)$t->id ? 'selected' : '' ?>>
