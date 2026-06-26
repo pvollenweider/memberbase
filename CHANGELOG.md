@@ -1,5 +1,30 @@
 # Changelog
 
+## [3.0.0] — 2026-06-26
+
+> **Migration base de données requise** — voir section Migration ci-dessous avant de déployer.
+
+### Migration base de données
+
+La contrainte unique `(user_id, parameter)` sur la table `user_properties` empêchait d'ajouter plusieurs entrées de suivi par membre. À exécuter **une seule fois** sur la base de prod :
+
+```sql
+ALTER TABLE user_properties DROP INDEX uniq_user_param;
+ALTER TABLE user_properties ADD INDEX idx_user_param (user_id, parameter);
+```
+
+### Added
+- **Onglet Intégrité** (`?view=settings&tab=integrity`) : détecte les groupes masqués encore assignés à une catégorie ou un métagroupe, avec lien direct vers l'édition
+- **Gestion des groupes** refactorisée en onglets dédiés dans les réglages : Groupes, Catégories, Métagroupes (extraction de `manage_teams.inc` en `manage_groups.inc`, `manage_categories.inc`, `manage_filters.inc`)
+
+### Fixed
+- Doublons dans l'onglet Intégrité : `SELECT DISTINCT` sur les deux requêtes (même cause que le bug count=30 — `metagroup.name` renseigné sur toutes les lignes, pas seulement la ligne-nom)
+
+### Changed
+- Bouton retour sur la page d'édition métagroupe : libellé "Retour aux métagroupes" / "Retour aux catégories" selon le type
+
+---
+
 ## [2.2.2] — 2026-06-26
 
 ### Added

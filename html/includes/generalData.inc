@@ -1,3 +1,4 @@
+<?php if (!empty($_savedOk)): ?><div id="casa-save-ok" hidden></div><?php endif ?>
 <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" name="updateUser" role="form">
     <input type="hidden" name="id" value="<?= $user->getId() ?>"/>
     <input type="hidden" name="action" value="updateUser"/>
@@ -132,10 +133,22 @@
         </div>
     </div>
     <div class="row mb-2">
-        <label for="comment" class="col-md-3 col-form-label"><?= $GLOBAL['compet'] ?></label>
+        <label for="tiptap-comment" class="col-md-3 col-form-label"><?= $GLOBAL['compet'] ?></label>
         <div class="col-md-9">
-            <textarea class="form-control form-control-sm ck" rows="3" name="comment"
-                      id="comment"><?= htmlentities($user->getComment(), ENT_COMPAT, $charset) ?></textarea>
+            <div class="tiptap-wrap border rounded" id="tiptap-wrap-comment">
+                <div class="tiptap-toolbar d-flex gap-1 px-2 py-1 border-bottom bg-light rounded-top flex-wrap" role="toolbar" aria-label="Formatage">
+                    <button type="button" class="tt-btn" data-tt="bold" title="Gras (Ctrl+B)" aria-label="Gras"><i class="fas fa-bold"></i></button>
+                    <button type="button" class="tt-btn" data-tt="italic" title="Italique (Ctrl+I)" aria-label="Italique"><i class="fas fa-italic"></i></button>
+                    <span class="tt-sep"></span>
+                    <button type="button" class="tt-btn" data-tt="bulletList" title="Liste à puces" aria-label="Liste à puces"><i class="fas fa-list-ul"></i></button>
+                    <button type="button" class="tt-btn" data-tt="orderedList" title="Liste numérotée" aria-label="Liste numérotée"><i class="fas fa-list-ol"></i></button>
+                    <span class="tt-sep"></span>
+                    <button type="button" class="tt-btn" data-tt="undo" title="Annuler (Ctrl+Z)" aria-label="Annuler"><i class="fas fa-undo"></i></button>
+                    <button type="button" class="tt-btn" data-tt="redo" title="Rétablir (Ctrl+Shift+Z)" aria-label="Rétablir"><i class="fas fa-redo"></i></button>
+                </div>
+                <div id="tiptap-comment" class="tiptap-body px-3 py-2" style="min-height:80px;cursor:text" aria-label="<?= htmlspecialchars($GLOBAL['compet'], ENT_QUOTES, 'UTF-8') ?>" aria-multiline="true"></div>
+            </div>
+            <textarea name="comment" id="comment" style="display:none"><?= htmlentities($user->getComment(), ENT_COMPAT, $charset) ?></textarea>
         </div>
     </div>
 

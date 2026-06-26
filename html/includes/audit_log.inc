@@ -58,7 +58,7 @@ $total = (int)$pdo->query("SELECT COUNT(*) FROM audit_log")->fetchColumn();
 <table id="auditLogTable" class="table table-sm table-striped table-hover">
     <thead>
         <tr>
-            <th>Date</th>
+            <th style="white-space:nowrap">Date</th>
             <th>Utilisateur</th>
             <th>Action</th>
             <th>Détail</th>
@@ -67,7 +67,7 @@ $total = (int)$pdo->query("SELECT COUNT(*) FROM audit_log")->fetchColumn();
     <tbody>
         <?php foreach ($rows as $r): ?>
         <tr>
-            <td data-order="<?= htmlspecialchars($r->created_at) ?>"><?= htmlspecialchars($r->created_at) ?></td>
+            <td data-order="<?= htmlspecialchars($r->created_at) ?>" style="white-space:nowrap"><?= htmlspecialchars($r->created_at) ?></td>
             <td><?= htmlspecialchars($r->username ?? '') ?></td>
             <td><code><?= htmlspecialchars($r->action) ?></code></td>
             <td class="text-muted small"><?= htmlspecialchars($r->detail ?? '') ?></td>
@@ -78,8 +78,8 @@ $total = (int)$pdo->query("SELECT COUNT(*) FROM audit_log")->fetchColumn();
 
 <script>
 $(function () {
-    $('#auditLogTable').DataTable({
-        order: [[0, 'asc']],
+    window.auditLogDT = $('#auditLogTable').DataTable({
+        order: [[0, 'desc']],
         pageLength: 50,
         language: {
             search: 'Rechercher :',

@@ -110,6 +110,12 @@ while ($row = $stmt->fetchObject()) {
         'bg-info-subtle'      => 'var(--bs-info-bg-subtle)',
         'bg-light'            => 'var(--bs-light)',
         'bg-dark-subtle'      => 'var(--bs-dark-bg-subtle)',
+        'ca-orange-subtle'    => 'rgba(253,126,20,0.18)',
+        'ca-teal-subtle'      => 'rgba(32,201,151,0.18)',
+        'ca-pink-subtle'      => 'rgba(214,51,132,0.18)',
+        'ca-purple-subtle'    => 'rgba(111,66,193,0.18)',
+        'ca-indigo-subtle'    => 'rgba(102,16,242,0.18)',
+        'ca-lime-subtle'      => 'rgba(128,189,64,0.18)',
     ];
     $rowStyle = isset($bgVarMap[$ctColor]) ? '--bs-table-bg:' . $bgVarMap[$ctColor] : '';
     ?>
@@ -158,6 +164,12 @@ $_ctBg = [
     'bg-info-subtle'      => 'rgba(13,202,240,0.7)',
     'bg-light'            => 'rgba(173,181,189,0.7)',
     'bg-dark-subtle'      => 'rgba(52,58,64,0.7)',
+    'ca-orange-subtle'    => 'rgba(253,126,20,0.7)',
+    'ca-teal-subtle'      => 'rgba(32,201,151,0.7)',
+    'ca-pink-subtle'      => 'rgba(214,51,132,0.7)',
+    'ca-purple-subtle'    => 'rgba(111,66,193,0.7)',
+    'ca-indigo-subtle'    => 'rgba(102,16,242,0.7)',
+    'ca-lime-subtle'      => 'rgba(128,189,64,0.7)',
 ];
 $_ctBorder = [
     'bg-primary-subtle'   => 'rgba(13,110,253,1)',
@@ -168,54 +180,181 @@ $_ctBorder = [
     'bg-info-subtle'      => 'rgba(13,202,240,1)',
     'bg-light'            => 'rgba(173,181,189,1)',
     'bg-dark-subtle'      => 'rgba(52,58,64,1)',
+    'ca-orange-subtle'    => 'rgba(253,126,20,1)',
+    'ca-teal-subtle'      => 'rgba(32,201,151,1)',
+    'ca-pink-subtle'      => 'rgba(214,51,132,1)',
+    'ca-purple-subtle'    => 'rgba(111,66,193,1)',
+    'ca-indigo-subtle'    => 'rgba(102,16,242,1)',
+    'ca-lime-subtle'      => 'rgba(128,189,64,1)',
 ];
-$_typeAgg = [];
+$_frMonths = ['','jan','fév','mar','avr','mai','juin','juil','aoû','sep','oct','nov','déc'];
+$_typeAgg  = [];
+$_periodAgg = []; // period key => amount
 $_stmt2 = $pdo->query($query2);
 while ($_r = $_stmt2->fetchObject()) {
+    // Donut: aggregate by type
     $_lbl = $_r->ct_label ?? 'Sans type';
     $_col = $_r->ct_color ?? 'bg-secondary-subtle';
     if (!isset($_typeAgg[$_lbl])) $_typeAgg[$_lbl] = ['sum' => 0.0, 'color' => $_col];
     $_typeAgg[$_lbl]['sum'] += (float)$_r->sum;
+    // Timeline: aggregate by month (specific year) or by year (all years)
+    $_ts = (int)$_r->date;
+    $_pk = ($year == -2) ? date('Y', $_ts) : date('Y-m', $_ts);
+    if (!isset($_periodAgg[$_pk])) $_periodAgg[$_pk] = 0.0;
+    $_periodAgg[$_pk] += (float)$_r->sum;
 }
 uasort($_typeAgg, fn($a, $b) => $b['sum'] <=> $a['sum']);
 $_tLabels = array_keys($_typeAgg);
 $_tData   = array_values(array_map(fn($v) => round($v['sum'], 2), $_typeAgg));
 $_tBg     = array_values(array_map(fn($v) => $_ctBg[$v['color']] ?? 'rgba(108,117,125,0.7)', $_typeAgg));
 $_tBorder = array_values(array_map(fn($v) => $_ctBorder[$v['color']] ?? 'rgba(108,117,125,1)', $_typeAgg));
-$_chartH  = max(120, count($_typeAgg) * 40);
+
+// Build timeline labels + monthly + cumulative arrays
+$_timeLabels  = [];
+$_timeMonthly = [];
+$_timeCumul   = [];
+$_cumul = 0;
+ksort($_periodAgg);
+foreach ($_periodAgg as $_pk => $_amt) {
+    if ($year == -2) {
+        $_timeLabels[] = $_pk; // year string
+    } else {
+        $m = (int)substr($_pk, 5);
+        $_timeLabels[] = $_frMonths[$m];
+    }
+    $_cumul += $_amt;
+    $_timeMonthly[] = round($_amt, 2);
+    $_timeCumul[]   = round($_cumul, 2);
+}
+$_showTimeline = count($_periodAgg) >= 2;
 ?>
 <?php if (count($_typeAgg) > 0): ?>
-<div class="mt-4" style="position:relative;height:<?= $_chartH ?>px">
-  <canvas id="myChart"></canvas>
+<div class="row mt-4 g-4 align-items-start">
+
+  <!-- Donut: répartition par type -->
+  <div class="col-md-5">
+    <p class="text-muted small fw-semibold mb-2 text-center">Répartition par type</p>
+    <div style="position:relative;height:300px">
+      <canvas id="myChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <?php if ($_showTimeline): ?>
+  <div class="col-md-7">
+    <p class="text-muted small fw-semibold mb-2 text-center">
+      <?= $year == -2 ? 'Historique par année' : 'Mensuel vs cumulé' ?>
+    </p>
+    <div style="position:relative;height:260px">
+      <canvas id="timelineChart"></canvas>
+    </div>
+  </div>
+  <?php endif ?>
+
 </div>
 <script>
-new Chart(document.getElementById('myChart'), {
-    type: 'horizontalBar',
-    data: {
-        labels: <?= json_encode($_tLabels) ?>,
-        datasets: [{
-            label: 'CHF',
-            data: <?= json_encode($_tData) ?>,
-            backgroundColor: <?= json_encode($_tBg) ?>,
-            borderColor: <?= json_encode($_tBorder) ?>,
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        legend: { display: false },
-        scales: {
-            xAxes: [{
-                ticks: {
-                    callback: function(v) {
-                        return v.toLocaleString('fr-CH') + ' CHF';
-                    }
-                }
-            }]
+(function() {
+    function destroyChart(id) {
+        if (window.Chart && Chart.instances) {
+            Object.keys(Chart.instances).forEach(function(k) {
+                var c = Chart.instances[k];
+                if (c && c.canvas && c.canvas.id === id) { c.destroy(); }
+            });
         }
     }
-});
+    var fmtChf = function(v) { return v.toLocaleString('fr-CH') + ' CHF'; };
+    requestAnimationFrame(function() { requestAnimationFrame(function() {
+
+    destroyChart('myChart');
+    new Chart(document.getElementById('myChart'), {
+        type: 'doughnut',
+        data: {
+            labels: <?= json_encode($_tLabels) ?>,
+            datasets: [{
+                data: <?= json_encode($_tData) ?>,
+                backgroundColor: <?= json_encode($_tBg) ?>,
+                borderColor: <?= json_encode($_tBorder) ?>,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: { position: 'right', labels: { fontSize: 11, boxWidth: 12 } },
+            tooltips: {
+                callbacks: {
+                    label: function(item, data) {
+                        return data.labels[item.index] + ': ' + fmtChf(data.datasets[0].data[item.index]);
+                    }
+                }
+            }
+        }
+    });
+
+    <?php if ($_showTimeline): ?>
+    destroyChart('timelineChart');
+    new Chart(document.getElementById('timelineChart'), {
+        type: 'bar',
+        data: {
+            labels: <?= json_encode($_timeLabels) ?>,
+            datasets: [
+                {
+                    label: 'Montant <?= $year == -2 ? 'annuel' : 'mensuel' ?>',
+                    type: 'bar',
+                    data: <?= json_encode($_timeMonthly) ?>,
+                    backgroundColor: 'rgba(13,110,253,0.45)',
+                    borderColor: 'rgba(13,110,253,0.9)',
+                    borderWidth: 1,
+                    yAxisID: 'y-bar'
+                },
+                {
+                    label: 'Cumulé',
+                    type: 'line',
+                    data: <?= json_encode($_timeCumul) ?>,
+                    borderColor: 'rgba(25,135,84,0.9)',
+                    backgroundColor: 'rgba(25,135,84,0.08)',
+                    fill: true,
+                    pointRadius: 3,
+                    borderWidth: 2,
+                    yAxisID: 'y-line'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: { position: 'bottom', labels: { fontSize: 11, boxWidth: 12 } },
+            tooltips: {
+                mode: 'index',
+                callbacks: {
+                    label: function(item, data) {
+                        return data.datasets[item.datasetIndex].label + ': ' + fmtChf(item.yLabel);
+                    }
+                }
+            },
+            scales: {
+                yAxes: [
+                    {
+                        id: 'y-bar',
+                        position: 'left',
+                        ticks: { callback: fmtChf, fontSize: 10 },
+                        gridLines: { drawOnChartArea: true }
+                    },
+                    {
+                        id: 'y-line',
+                        position: 'right',
+                        ticks: { callback: fmtChf, fontSize: 10 },
+                        gridLines: { drawOnChartArea: false }
+                    }
+                ],
+                xAxes: [{ ticks: { fontSize: 11 } }]
+            }
+        }
+    });
+    <?php endif ?>
+
+    }); }); // end double-rAF
+})();
 </script>
 <?php endif ?>
 

@@ -107,18 +107,32 @@ if (isset($_REQUEST['view'])) {
         include "update_suivi_form.inc";
     } else if ($_REQUEST['view'] == 'removeSuivi') {
         $userProperty = new UserProperty();
-        $userProperty ->lookupUserProperty($_REQUEST['suiviid']);
-        ?><div class="alert alert-warning">
-        <h2><?=$GLOBAL['delete']?> <?=timeStampToformatedDate($userProperty->date)?> / <?=htmlentities($userProperty->getValue(),ENT_COMPAT,$charset)?>?</h2>
-        <a href="<?=$_SERVER['PHP_SELF']?>?view=removeSuiviConfirm&amp;userid=<?=(int)$_REQUEST['userid']?>&amp;suiviid=<?=$userProperty->getId()?>" class="btn btn-danger btn-lg">
-            Supprimer
-        </a>
-        <a href="<?=$_SERVER['PHP_SELF']?>?view=suivi&amp;userid=<?=(int)$_REQUEST['userid']?>&amp;suiviid=<?=(int)$_REQUEST['suiviid']?>" class="btn btn-secondary btn-lg">
-            Conserver
-        </a>
-	</div>
-        <br/><br/>
-        <?php 
+        $userProperty->lookupUserProperty($_REQUEST['suiviid']);
+        ?>
+        <div class="d-flex justify-content-center align-items-center" style="min-height:50vh">
+          <div class="card shadow-sm border-0" style="max-width:420px;width:100%">
+            <div class="card-body p-4 text-center">
+              <div class="mb-3" style="font-size:2rem;color:var(--bs-danger)">
+                <i class="fas fa-trash-alt" aria-hidden="true"></i>
+              </div>
+              <h5 class="card-title mb-1">Supprimer cette entrée de suivi&nbsp;?</h5>
+              <p class="text-muted mb-3" style="font-size:0.85rem">Cette action est irréversible.</p>
+              <div class="border rounded p-3 mb-4 text-start bg-light" style="font-size:0.875rem">
+                <div class="mb-1"><span class="text-muted">Date&nbsp;:</span> <strong><?= timeStampToformatedDate($userProperty->date) ?></strong></div>
+                <div><span class="text-muted">Contenu&nbsp;:</span> <strong><?= htmlentities($userProperty->getValue(), ENT_COMPAT, $charset) ?></strong></div>
+              </div>
+              <div class="d-flex gap-2 justify-content-center">
+                <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= (int)$_REQUEST['userid'] ?>" class="btn btn-outline-secondary">
+                  Annuler
+                </a>
+                <a href="<?= $_SERVER['PHP_SELF'] ?>?view=removeSuiviConfirm&amp;userid=<?= (int)$_REQUEST['userid'] ?>&amp;suiviid=<?= $userProperty->getId() ?>" class="btn btn-danger">
+                  Supprimer
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <?php
     } else if ($_REQUEST['view'] == 'removeSuiviConfirm') {
         $userProperty = new UserProperty();
         $userProperty->lookupUserProperty($_REQUEST['suiviid']);

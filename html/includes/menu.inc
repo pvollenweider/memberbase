@@ -23,38 +23,25 @@ if (isset ($_REQUEST["searchString"])) {
                     <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>"
                        title="<?= $GLOBAL['manageTeam'] ?>"><i class="fas fa-list"></i> <?= $GLOBAL['list'] ?></a>
                 </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle<?= $view == 'lastEntryCompta' ? ' active' : '' ?><?= $view == 'lastEntrySuivi' ? ' active' : '' ?><?= $view == 'resume' ? ' active' : '' ?>" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-chart-line"></i> <?= $GLOBAL['lastEntry'] ?>
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item<?= $view == 'lastEntryCompta' ? ' active' : '' ?>" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta"><?= $GLOBAL['lastEntryCompta'] ?></a>
-                        <a class="dropdown-item<?= $view == 'lastEntrySuivi' ? ' active' : '' ?>" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi"><?= $GLOBAL['lastEntrySuivi'] ?></a>
-                        <a class="dropdown-item<?= $view == 'resume' ? ' active' : '' ?>" href="<?= $_SERVER['PHP_SELF'] ?>?view=resume">Contributions</a>
-                    </div>
+                <li class="nav-item<?= $view == 'lastEntryCompta' ? ' active' : '' ?>">
+                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta"><i class="fas fa-coins me-1" aria-hidden="true"></i>Compta</a>
                 </li>
-                <li class="nav-item<?= in_array($view, ['manageTeam','manageMetagroups','updateMetagroup','updateTeam']) ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=manageTeam"
-                       title="Groupes"><i class="fas fa-users"></i> Groupes</a>
+                <li class="nav-item<?= $view == 'lastEntrySuivi' ? ' active' : '' ?>">
+                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi"><i class="fas fa-book-open me-1" aria-hidden="true"></i>Suivi</a>
                 </li>
-                <li class="nav-item<?= $view == 'settings' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings" title="Réglages"><i class="fas fa-cog"></i></a>
+                <li class="nav-item<?= $view == 'resume' ? ' active' : '' ?>">
+                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=resume"><i class="fas fa-chart-pie me-1" aria-hidden="true"></i>Aperçu des dons</a>
                 </li>
-                <?php if (isAdmin()): ?>
-                <li class="nav-item<?= $view === 'manageAppUsers' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=manageAppUsers" title="Utilisateurs">
-                        <i class="fas fa-user-shield"></i>
-                    </a>
-                </li>
-                <li class="nav-item<?= $view === 'auditLog' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=auditLog" title="Journal d'activité">
-                        <i class="fas fa-history"></i>
-                    </a>
-                </li>
-                <?php endif ?>
             </ul>
 
             <?php $__authUser = authUser(); ?>
+
+            <!-- Settings cog (right side) -->
+            <a class="nav-link text-white my-2 my-lg-0 me-2<?= $view === 'settings' ? ' active' : '' ?>"
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="Administration">
+                <i class="fas fa-cog"></i>
+            </a>
+
             <div class="dropdown my-2 my-lg-0 me-2">
               <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?>
@@ -71,12 +58,36 @@ if (isset ($_REQUEST["searchString"])) {
               </ul>
             </div>
 
-            <form class="d-flex gap-2 my-2 my-lg-0" role="search" action="<?= $_SERVER['PHP_SELF'] ?>" method="get" data-no-dirty>
+            <form class="d-flex gap-2 my-2 my-lg-0" role="search" action="<?= $_SERVER['PHP_SELF'] ?>" method="get" data-no-dirty id="main-search-form">
                 <input type="hidden" name="action" value="search"/>
                 <input type="hidden" name="team" value="-3"/>
                 <input class="form-control me-sm-2" id="search" type="search" aria-label="Search" placeholder="Chercher"
-                       name="searchString" value="<?= htmlentities($searchString, ENT_COMPAT, $charset) ?>">
+                       name="searchString" value="<?= htmlentities($searchString, ENT_COMPAT, $charset) ?>"
+                       autocomplete="off">
             </form>
+            <script>
+            (function () {
+              var inp = document.getElementById('search');
+              var frm = document.getElementById('main-search-form');
+              if (!inp || !frm) return;
+              var timer = null;
+              inp.addEventListener('input', function () {
+                clearTimeout(timer);
+                var val = inp.value;
+                if (val.length === 0 || val.length >= 3) {
+                  timer = setTimeout(function () { frm.requestSubmit(); }, 400);
+                }
+              });
+              document.addEventListener('keydown', function (e) {
+                if (e.key === '/' && document.activeElement !== inp &&
+                    !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+                  e.preventDefault();
+                  inp.focus();
+                  inp.select();
+                }
+              });
+            })();
+            </script>
         </div>
     </div>
 </nav>

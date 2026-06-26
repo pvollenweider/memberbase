@@ -1,4 +1,22 @@
 <?php
+// Membership toast sentinel
+$_msAction  = $_REQUEST['action'] ?? '';
+$_msTeamId  = (int)($_REQUEST['teamId'] ?? 0);
+$_msUserId  = (int)($_REQUEST['id']     ?? 0);
+if (($_msAction === 'addMembership' || $_msAction === 'removeMembership') && $_msTeamId > 0 && $_msUserId > 0) {
+    $_msTeamNameStmt = $pdo->prepare("SELECT name FROM team WHERE id=?");
+    $_msTeamNameStmt->execute([$_msTeamId]);
+    $_msTeamName = $_msTeamNameStmt->fetchColumn() ?: "groupe #$_msTeamId";
+    if ($_msAction === 'addMembership') {
+        $_msMsg     = 'Ajouté : ' . htmlspecialchars($_msTeamName, ENT_QUOTES, $charset);
+        $_msUndoUrl = $_SERVER['PHP_SELF'] . '?view=generalData&action=removeMembership&id=' . $_msUserId . '&teamId=' . $_msTeamId;
+    } else {
+        $_msMsg     = 'Retiré : ' . htmlspecialchars($_msTeamName, ENT_QUOTES, $charset);
+        $_msUndoUrl = $_SERVER['PHP_SELF'] . '?view=generalData&action=addMembership&id=' . $_msUserId . '&teamId=' . $_msTeamId;
+    }
+    echo '<div id="casa-membership-toast" hidden data-msg="' . htmlspecialchars($_msMsg, ENT_QUOTES, $charset) . '" data-undo-url="' . htmlspecialchars($_msUndoUrl, ENT_QUOTES, $charset) . '"></div>';
+}
+
 $viewall = false;
 if (isset($_GET['viewall']) && ($_GET['viewall'] === 'true' || $_GET['viewall'] === 'false')) {
     $viewall = $_GET['viewall'] === 'true';
@@ -76,8 +94,12 @@ uasort($nonMemberBycat, $_catSortFn);
         </p>
         <?php endif ?>
         <div class="d-flex flex-wrap gap-1 mb-3">
-            <?php foreach ($group['teams'] as $t): ?>
-                <a class="member-pill"
+            <?php
+            $_justAdded = (($_REQUEST['action'] ?? '') === 'addMembership') ? (int)($_REQUEST['teamId'] ?? 0) : 0;
+            foreach ($group['teams'] as $t):
+                $isNew = $_justAdded === (int)$t->id;
+            ?>
+                <a class="member-pill<?= $isNew ? ' pill-just-added' : '' ?>"
                    href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=removeMembership&amp;id=<?= $user->id ?>&amp;teamId=<?= $t->id ?>"
                    title="Retirer de <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>">
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>

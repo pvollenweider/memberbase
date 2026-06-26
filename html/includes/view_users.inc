@@ -234,12 +234,14 @@ if (isset($_REQUEST['action'])) {
         $like = "%" . $searchString . "%";
         $query .= " AND (users.firstname LIKE ?";
         $query .= " OR users.lastname LIKE ?";
+        $query .= " OR CONCAT(users.firstname, ' ', users.lastname) LIKE ?";
+        $query .= " OR CONCAT(users.lastname, ' ', users.firstname) LIKE ?";
         $query .= " OR users.society LIKE ?";
         $query .= " OR users.npa LIKE ?";
         $query .= " OR users.email LIKE ?";
         $query .= " OR users.comment LIKE ?";
         $query .= " OR users.address LIKE ?)";
-        $queryParams = array_fill(0, 7, $like);
+        $queryParams = array_fill(0, 9, $like);
     }
 }
 if ($metagroup > 0) {
@@ -502,7 +504,10 @@ while ($row = $stmt->fetchObject()) {
 if ($searchString) {
     ?>
     <script>
-    $("table").highlight("<?=$searchString?>", { element: 'mark' });
+    (function() {
+      var terms = <?= json_encode(array_values(array_filter(explode(' ', $searchString)))) ?>;
+      terms.forEach(function(t) { $("table").highlight(t, { element: 'mark' }); });
+    })();
     </script>
     <?php
 

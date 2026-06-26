@@ -103,9 +103,9 @@ if ($year != -2) {
 }
 ?>
 <?php if ($year != -2): ?>
-<div class="d-flex gap-3 mb-4 flex-wrap">
+<div class="d-flex gap-2 mb-4" style="overflow-x:auto">
   <!-- Total contributions -->
-  <div class="flex-fill" style="min-width:180px;background:var(--ca-primary);color:#fff;border-radius:10px;padding:1rem 1.25rem">
+  <div style="flex:2 0 0;min-width:160px;background:var(--ca-primary);color:#fff;border-radius:10px;padding:0.85rem 1rem">
     <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.8">Contributions <?= $year ?></div>
     <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem">
       <?= number_format($_kTotal, 0, '.', '\'') ?> <span style="font-size:1rem;font-weight:400">CHF</span>
@@ -157,7 +157,7 @@ if ($year != -2) {
     <?php endif ?>
   </div>
   <!-- Donateurs -->
-  <div class="flex-fill" style="min-width:140px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:1rem 1.25rem">
+  <div style="flex:1 0 0;min-width:120px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem">
     <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)">Donateurs</div>
     <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem;color:var(--ca-ink,#212529)"><?= $_kDonateurs ?></div>
     <?php if ($_kDonDelta !== null): ?>
@@ -213,17 +213,9 @@ if ($year != -2) {
       <?php endif ?>
     </div>
   </div>
-  <!-- Don moyen -->
-  <div class="flex-fill" style="min-width:140px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:1rem 1.25rem">
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)">Don moyen</div>
-    <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem;color:var(--ca-ink,#212529)">
-      <?= number_format($_kDonMoyen, 0, '.', '\'') ?> <span style="font-size:0.9rem;font-weight:400">CHF</span>
-    </div>
-    <div style="font-size:0.78rem;color:var(--ca-ink-muted);margin-top:0.3rem">par donateur</div>
-  </div>
   <!-- Membres actifs -->
   <?php if ($membreTeamId > 0): ?>
-  <div class="flex-fill" style="min-width:140px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:1rem 1.25rem">
+  <div style="flex:1 0 0;min-width:120px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem">
     <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)">Membres actifs</div>
     <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem;color:var(--ca-ink,#212529)"><?= $_kMembres ?></div>
     <?php if ($_kMembresDelta !== null): ?>
@@ -249,35 +241,84 @@ if ($year != -2) {
     <?php endif ?>
   </div>
   <?php endif ?>
+<?php
+// Pie — computed before closing the flex row so canvas lands inside it
+$_solidColorMap = [
+    'bg-primary-subtle'   => '#0d6efd',
+    'bg-secondary-subtle' => '#6c757d',
+    'bg-success-subtle'   => '#198754',
+    'bg-danger-subtle'    => '#dc3545',
+    'bg-warning-subtle'   => '#ffc107',
+    'bg-info-subtle'      => '#0dcaf0',
+    'bg-light'            => '#adb5bd',
+    'bg-dark-subtle'      => '#343a40',
+    'ca-orange-subtle'    => '#fd7e14',
+    'ca-teal-subtle'      => '#20c997',
+    'ca-pink-subtle'      => '#d63384',
+    'ca-purple-subtle'    => '#6f42c1',
+    'ca-indigo-subtle'    => '#6610f2',
+    'ca-lime-subtle'      => '#80bd40',
+];
+$_showPie = ($year != -2 && !empty($_typeBreakdown) && $_typeTotal > 0);
+$_pieLabels = []; $_pieData = []; $_pieColors = []; $_pieFormatted = [];
+if ($_showPie) {
+    foreach ($_typeBreakdown as $_tr) {
+        $_pieLabels[]    = htmlentities($_tr->label, ENT_COMPAT, $charset);
+        $_pieData[]      = round((float)$_tr->total);
+        $_pieColors[]    = $_solidColorMap[$_tr->color] ?? '#6c757d';
+        $_pct            = $_typeTotal > 0 ? round((float)$_tr->total / $_typeTotal * 100) : 0;
+        $_pieFormatted[] = number_format((float)$_tr->total, 0, '.', '\'') . ' CHF (' . $_pct . '%)';
+    }
+}
+?>
+<?php if ($_showPie): ?>
+  <div style="flex:1 0 0;min-width:130px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem">
+    <canvas id="resumePie" width="80" height="80" aria-label="Répartition par type de don" role="img"></canvas>
+    <div id="resumePieLegend" style="font-size:0.7rem;line-height:1.6;width:100%"></div>
+  </div>
+<?php endif ?>
 </div>
 <?php endif ?>
-
-<?php if ($year != -2 && !empty($_typeBreakdown) && $_typeTotal > 0): ?>
-<?php
-static $_bgVarMapR = [
-    'bg-primary-subtle'   => ['bg'=>'rgba(13,110,253,0.15)','border'=>'rgba(13,110,253,0.5)','text'=>'#084298'],
-    'bg-secondary-subtle' => ['bg'=>'rgba(108,117,125,0.15)','border'=>'rgba(108,117,125,0.5)','text'=>'#41464b'],
-    'bg-success-subtle'   => ['bg'=>'rgba(25,135,84,0.15)','border'=>'rgba(25,135,84,0.5)','text'=>'#0a3622'],
-    'bg-danger-subtle'    => ['bg'=>'rgba(220,53,69,0.15)','border'=>'rgba(220,53,69,0.5)','text'=>'#58151c'],
-    'bg-warning-subtle'   => ['bg'=>'rgba(255,193,7,0.15)','border'=>'rgba(255,193,7,0.5)','text'=>'#664d03'],
-    'bg-info-subtle'      => ['bg'=>'rgba(13,202,240,0.15)','border'=>'rgba(13,202,240,0.5)','text'=>'#055160'],
-    'bg-light'            => ['bg'=>'rgba(173,181,189,0.15)','border'=>'rgba(173,181,189,0.5)','text'=>'#495057'],
-    'bg-dark-subtle'      => ['bg'=>'rgba(52,58,64,0.15)','border'=>'rgba(52,58,64,0.5)','text'=>'#1a1d20'],
-];
-?>
-<div class="d-flex gap-2 mb-3 flex-wrap align-items-start" style="font-size:0.78rem">
-  <span style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted);padding-top:0.35rem;white-space:nowrap">Répartition</span>
-  <?php foreach ($_typeBreakdown as $_tr):
-    $_pct = $_typeTotal > 0 ? round((float)$_tr->total / $_typeTotal * 100) : 0;
-    $_colors = $_bgVarMapR[$_tr->color] ?? $_bgVarMapR['bg-secondary-subtle'];
-  ?>
-  <div style="display:flex;align-items:center;gap:0.35rem;background:<?= $_colors['bg'] ?>;border:1px solid <?= $_colors['border'] ?>;border-radius:6px;padding:0.25rem 0.55rem;white-space:nowrap">
-    <span style="color:<?= $_colors['text'] ?>;font-weight:600"><?= htmlentities($_tr->label, ENT_COMPAT, $charset) ?></span>
-    <span style="color:var(--ca-ink-muted)"><?= number_format((float)$_tr->total, 0, '.', '\'') ?> CHF</span>
-    <span style="color:var(--ca-ink-muted);font-size:0.72rem">(<?= $_pct ?>%)</span>
-  </div>
-  <?php endforeach ?>
-</div>
+<?php if (!empty($_showPie)): ?>
+<script>
+(function() {
+  var labels    = <?= json_encode($_pieLabels) ?>;
+  var data      = <?= json_encode($_pieData) ?>;
+  var colors    = <?= json_encode($_pieColors) ?>;
+  var formatted = <?= json_encode($_pieFormatted) ?>;
+  function destroyResumePie() {
+    if (window.Chart && Chart.instances) {
+      Object.keys(Chart.instances).forEach(function(k) {
+        var c = Chart.instances[k];
+        if (c && c.canvas && c.canvas.id === 'resumePie') c.destroy();
+      });
+    }
+  }
+  destroyResumePie();
+  var ctx = document.getElementById('resumePie').getContext('2d');
+  new Chart(ctx, {
+    type: 'pie',
+    data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+    options: {
+      responsive: false,
+      animation: { duration: 400 },
+      legend: { display: false },
+      tooltips: { callbacks: { label: function(i, d) { return ' ' + d.labels[i.index] + ': ' + formatted[i.index]; } } }
+    }
+  });
+  var leg = document.getElementById('resumePieLegend');
+  labels.forEach(function(label, i) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:0.3rem';
+    var dot = document.createElement('span');
+    dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0;background:' + colors[i];
+    var txt = document.createElement('span');
+    txt.style.color = 'var(--ca-ink-muted)';
+    txt.textContent = label + ' — ' + formatted[i];
+    row.appendChild(dot); row.appendChild(txt); leg.appendChild(row);
+  });
+})();
+</script>
 <?php endif ?>
 
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
@@ -388,9 +429,10 @@ static $_bgVarMapR = [
 </thead>
 <?php
 $params = ["team_$membreTeamId"];
+$_exclSub = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
 $baseSelect = "
     SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
-           SUM(c.sum) AS total,
+           SUM(CASE WHEN c.type_id NOT IN ($_exclSub) THEN c.sum ELSE 0 END) AS total,
            MAX(c.wants_attestation) AS wants_attestation,
            EXISTS(
                SELECT 1 FROM user_properties up
@@ -400,11 +442,8 @@ $baseSelect = "
     JOIN compta c ON u.id = c.user_id
 ";
 
-if ($showAll || $wantsAttestation) {
-    $sql = $baseSelect . " WHERE 1=1";
-} else {
-    $sql = $baseSelect . " WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)";
-}
+// Always include all rows so attestation filter can work, exclusion handled in SUM above
+$sql = $baseSelect . " WHERE 1=1";
 
 if ($year != -2) {
     $from = mktime(0, 0, 0, 1, 0, $year);
