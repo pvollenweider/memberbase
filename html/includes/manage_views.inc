@@ -35,6 +35,7 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] == 'deleteUserConfirm') {
         $user = new User();
         $user->lookupUser($_REQUEST['id']);
+        auditLog($pdo, 'deleteUser', "id={$_REQUEST['id']} {$user->firstName} {$user->lastName}");
         $user->remove();
         include "view_users.inc";
     } else if ($_REQUEST['view'] === 'auditLog') {

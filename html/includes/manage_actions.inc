@@ -19,7 +19,7 @@ if (isset($_REQUEST['action'])) {
         $user->birthDay = unquote(formatedDateToTimeStamp($_REQUEST['birthDay']));
         $user->comment = unquote($_REQUEST['comment']);
         $user->save();
-        auditLog($pdo, 'updateUser', "id={$_REQUEST['id']} {$user->firstName} {$user->lastName}");
+        auditLog($pdo, 'updateUser', "id={$_REQUEST['id']} | {$user->firstName} {$user->lastName} | email: {$user->email}");
     } else if ($_REQUEST['action'] == 'updateCategoryOrder') {
         if (!empty($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
             $stmt = $pdo->prepare("UPDATE metagroup SET sort_order=? WHERE id=? AND name IS NOT NULL AND is_filter=0");
@@ -73,7 +73,7 @@ if (isset($_REQUEST['action'])) {
         $user->birthDay = unquote(formatedDateToTimeStamp($_REQUEST['birthDay']));
         $user->comment = unquote($_REQUEST['comment']);
         $userid = $user->save();
-        auditLog($pdo, 'addUser', "id=$userid {$user->firstName} {$user->lastName}");
+        auditLog($pdo, 'addUser', "id=$userid | {$user->firstName} {$user->lastName} | email: {$user->email}");
     } else if ($_REQUEST['action'] == 'deleteTeam') {
         $team = new Team();
         $team->lookupTeam($_REQUEST['id']);
@@ -360,12 +360,16 @@ if (isset($_REQUEST['action'])) {
         $user = new User();
         $user->lookupUser($_REQUEST['id']);
         $user->addMembership((int)$_REQUEST['teamId']);
-        auditLog($pdo, 'addMembership', "user={$_REQUEST['id']} team={$_REQUEST['teamId']}");
+        $_auTeam = $pdo->prepare("SELECT name FROM team WHERE id=?");
+        $_auTeam->execute([(int)$_REQUEST['teamId']]);
+        auditLog($pdo, 'addMembership', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) → groupe: " . ($_auTeam->fetchColumn() ?: "id={$_REQUEST['teamId']}"));
     } else if ($_REQUEST['action'] == 'removeMembership') {
         $user = new User();
         $user->lookupUser($_REQUEST['id']);
         $user->removeMembership((int)$_REQUEST['teamId']);
-        auditLog($pdo, 'removeMembership', "user={$_REQUEST['id']} team={$_REQUEST['teamId']}");
+        $_auTeam = $pdo->prepare("SELECT name FROM team WHERE id=?");
+        $_auTeam->execute([(int)$_REQUEST['teamId']]);
+        auditLog($pdo, 'removeMembership', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) ← groupe: " . ($_auTeam->fetchColumn() ?: "id={$_REQUEST['teamId']}"));
     } else if ($_REQUEST['action'] == 'addCompta') {
         $compta = new Compta();
         $compta->userId = $_REQUEST['userid'];
@@ -376,6 +380,10 @@ if (isset($_REQUEST['action'])) {
         $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);
         $userid = $compta->userId;
         $compta->save();
+        $_auUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+        $_auUser->execute([(int)$compta->userId]);
+        $_auType = $comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}";
+        auditLog($pdo, 'addCompta', "membre: " . ($_auUser->fetchColumn() ?: "id={$compta->userId}") . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}");
     } else if ($_REQUEST['action'] == 'updateCompta') {
         $compta = new Compta();
         $compta->lookupCompta($_REQUEST['comptaid']);
@@ -388,6 +396,10 @@ if (isset($_REQUEST['action'])) {
         $compta->setTypeId((int)$_REQUEST['type_id']);
         $compta->setWantsAttestation(isset($_REQUEST['wants_attestation']));
         $compta->save();
+        $_auUser2 = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+        $_auUser2->execute([(int)$compta->userId]);
+        $_auType2 = $comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}";
+        auditLog($pdo, 'updateCompta', "membre: " . ($_auUser2->fetchColumn() ?: "id={$compta->userId}") . " | compta#={$_REQUEST['comptaid']} | {$_auType2} | {$compta->sum} CHF | {$_REQUEST['date']}");
     } else if ($_REQUEST['action'] == 'toggleWantsAttestation') {
         $comptaid = (int)$_REQUEST['comptaid'];
         $value    = isset($_REQUEST['wants_attestation']) ? 1 : 0;
