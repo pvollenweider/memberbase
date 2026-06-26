@@ -271,9 +271,13 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
     <!-- Toast -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100">
       <div id="mg-toast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
+        <div class="d-flex align-items-center">
           <div class="toast-body" id="mg-toast-body"></div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
+          <button type="button" id="mg-toast-undo"
+                  class="btn btn-sm btn-link text-white text-decoration-underline me-1 flex-shrink-0"
+                  style="display:none;font-size:0.78rem;padding:0.1rem 0.4rem"
+                  aria-label="Annuler la dernière action">Annuler</button>
+          <button type="button" class="btn-close btn-close-white me-2 ms-1 flex-shrink-0" data-bs-dismiss="toast" aria-label="Fermer"></button>
         </div>
       </div>
     </div>
@@ -282,14 +286,25 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
     (function() {
       var mgId = <?= $mgId ?>;
       var isFilter = <?= $isFilter ? 'true' : 'false' ?>;
-      var toast = new bootstrap.Toast(document.getElementById('mg-toast'), { delay: 2500 });
+      var toast = new bootstrap.Toast(document.getElementById('mg-toast'), { delay: 4000 });
       var toastEl = document.getElementById('mg-toast');
       var toastBody = document.getElementById('mg-toast-body');
+      var undoBtn = document.getElementById('mg-toast-undo');
 
-      function showToast(msg, ok) {
+      function showToast(msg, ok, undoFn) {
         toastEl.classList.remove('bg-success', 'bg-danger');
         toastEl.classList.add(ok ? 'bg-success' : 'bg-danger');
         toastBody.textContent = msg;
+        if (undoFn && ok) {
+          undoBtn.style.display = '';
+          undoBtn._handler && undoBtn.removeEventListener('click', undoBtn._handler);
+          undoBtn.addEventListener('click', undoBtn._handler = function() {
+            toast.hide();
+            undoFn();
+          });
+        } else {
+          undoBtn.style.display = 'none';
+        }
         toast.show();
       }
 
@@ -299,7 +314,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           .map(function(h) { return h.dataset.teamid; });
       }
 
-      function saveMembers(memberIds, onSuccess) {
+      function saveMembers(memberIds, onSuccess, onError) {
         var body = new URLSearchParams();
         body.append('action', 'updateMetagroupTeams');
         body.append('view', 'settings');
@@ -311,7 +326,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           body: body.toString()
         }).then(function(r) {
           if (r.ok) { onSuccess(); }
-          else { showToast('Erreur lors de la sauvegarde', false); }
+          else { (onError || function() { showToast('Erreur lors de la sauvegarde', false); })(); }
         }).catch(function() { showToast('Erreur réseau', false); });
       }
 
@@ -319,59 +334,72 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         // Métagroupe: checkbox mode
         document.querySelectorAll('.mg-team-cb').forEach(function(cb) {
           cb.addEventListener('change', function() {
+            var prevChecked = !cb.checked;
+            var prevIds = Array.from(document.querySelectorAll('.mg-team-cb'))
+              .filter(function(c) { return c !== cb ? c.checked : prevChecked; })
+              .map(function(c) { return c.dataset.teamid; });
             var checked = Array.from(document.querySelectorAll('.mg-team-cb:checked'))
                                .map(function(c) { return c.dataset.teamid; });
             saveMembers(checked, function() {
               var label = document.querySelector('label[for="mgteam_' + cb.dataset.teamid + '"]').textContent.trim();
-              showToast((cb.checked ? '✓ ' : '✗ ') + label, true);
+              showToast((cb.checked ? '✓ ' : '✗ ') + label, true, function() {
+                cb.checked = prevChecked;
+                saveMembers(prevIds, function() { showToast('Action annulée', true, null); });
+              });
             });
           });
         });
       } else {
         // Catégorie: add/remove button mode
-        function moveRow(btn, addMode) {
+        function applyDomMove(btn, addMode) {
           var teamid = btn.dataset.teamid;
           var row = document.getElementById('mg-row-' + teamid);
           var hidden = row.querySelector('.mg-cat-member');
           hidden.value = addMode ? '1' : '0';
+          var memberList = document.getElementById('mg-member-list');
+          var addList = document.querySelector('#mg-add-details ul');
+          var span = row.querySelector('span');
+          if (addMode) {
+            span.classList.remove('text-muted');
+            btn.classList.remove('mg-add-btn');
+            btn.classList.add('mg-remove-btn');
+            btn.dataset.checked = '1';
+            btn.title = 'Retirer de la catégorie';
+            btn.setAttribute('aria-label', 'Retirer ' + span.textContent.trim());
+            btn.querySelector('i').className = 'fas fa-times';
+            btn.removeEventListener('click', btn._addHandler);
+            btn.addEventListener('click', btn._removeHandler = function() { moveRow(btn, false); });
+            memberList.appendChild(row);
+          } else {
+            span.classList.add('text-muted');
+            btn.classList.remove('mg-remove-btn');
+            btn.classList.add('mg-add-btn');
+            btn.dataset.checked = '0';
+            btn.title = 'Ajouter à la catégorie';
+            btn.setAttribute('aria-label', 'Ajouter ' + span.textContent.trim());
+            btn.querySelector('i').className = 'fas fa-plus';
+            btn.removeEventListener('click', btn._removeHandler);
+            btn.addEventListener('click', btn._addHandler = function() { moveRow(btn, true); });
+            if (addList) addList.appendChild(row);
+          }
+          var emptyMsg = document.getElementById('mg-empty-msg');
+          if (emptyMsg) emptyMsg.style.display = memberList.children.length === 0 ? '' : 'none';
+        }
 
-          var memberIds = getCurrentMemberIds();
+        function moveRow(btn, addMode) {
+          var prevIds = getCurrentMemberIds();
+          var teamid = btn.dataset.teamid;
+          var row = document.getElementById('mg-row-' + teamid);
           var teamName = row.querySelector('span').textContent.trim();
-
           var destName = btn.dataset.dest || '';
+
+          applyDomMove(btn, addMode);
+          var memberIds = getCurrentMemberIds();
           saveMembers(memberIds, function() {
-            showToast(addMode ? ('→ ' + destName + ' : ' + teamName) : ('✗ ' + teamName), true);
-            // Move row between sections
-            var memberList = document.getElementById('mg-member-list');
-            var addList = document.querySelector('#mg-add-details ul');
-            if (addMode) {
-              // Remove from add list, insert into member list
-              var span = row.querySelector('span');
-              span.classList.remove('text-muted');
-              btn.classList.remove('mg-add-btn');
-              btn.classList.add('mg-remove-btn');
-              btn.dataset.checked = '1';
-              btn.title = 'Retirer de la catégorie';
-              btn.querySelector('i').className = 'fas fa-times';
-              btn.removeEventListener('click', btn._addHandler);
-              btn.addEventListener('click', btn._removeHandler = function() { moveRow(btn, false); });
-              memberList.appendChild(row);
-            } else {
-              // Remove from member list, insert into add list
-              var span = row.querySelector('span');
-              span.classList.add('text-muted');
-              btn.classList.remove('mg-remove-btn');
-              btn.classList.add('mg-add-btn');
-              btn.dataset.checked = '0';
-              btn.title = 'Ajouter à la catégorie';
-              btn.querySelector('i').className = 'fas fa-plus';
-              btn.removeEventListener('click', btn._removeHandler);
-              btn.addEventListener('click', btn._addHandler = function() { moveRow(btn, true); });
-              if (addList) addList.appendChild(row);
-            }
-            // Toggle empty message
-            var emptyMsg = document.getElementById('mg-empty-msg');
-            if (emptyMsg) emptyMsg.style.display = memberList.children.length === 0 ? '' : 'none';
+            showToast(addMode ? ('→ ' + destName + ' : ' + teamName) : ('✗ ' + teamName), true, function() {
+              applyDomMove(btn, !addMode);
+              saveMembers(prevIds, function() { showToast('Action annulée', true, null); });
+            });
           });
         }
 
