@@ -93,7 +93,12 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
     <!-- Edit form -->
     <div>
-      <p class="form-section-title">Modifier le groupe</p>
+      <div class="d-flex align-items-baseline justify-content-between mb-1">
+        <p class="form-section-title mb-0">Modifier le groupe</p>
+        <a href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= (int)$id ?>" class="small">
+          Voir la liste <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
+        </a>
+      </div>
       <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
         <input type="hidden" name="id" value="<?=$team->getId()?>"/>
         <input type="hidden" name="action" value="updateTeam"/>
