@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.0.1] — 2026-06-26
+
+### Added
+- **Renommage rapide** des groupes depuis l'onglet Groupes : crayon inline, sauvegarde sans rechargement de page
+- **Bouton Annuler** dans le toast de modification d'appartenance métagroupe/catégorie (fenêtre de 4 s)
+- **Import groupé par catégorie** dans le formulaire d'ajout de groupe (section "Importer les membres d'autres groupes")
+
+### Changed
+- Page Réglages (`?view=settings`) : navigation horizontale remplacée par une barre latérale verticale (desktop) / sélecteur (mobile), avec séparateur Administration
+- Onglet Groupes : chaque ligne a maintenant deux boutons d'action — crayon (renommer) et engrenage (page de réglages complète)
+
+### Fixed
+- Renommage de groupe : avertissement PHP `Undefined variable $oldName»` polluait la réponse JSON (le caractère `»` était interprété comme faisant partie du nom de variable)
+- `?view=manageTeam` décommissionné : redirige désormais vers `?view=settings&tab=groups`
+
+---
+
 ## [3.0.0] — 2026-06-26
 
 > **Migration base de données requise** — voir section Migration ci-dessous avant de déployer.

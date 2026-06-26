@@ -68,10 +68,13 @@ Application web PHP de gestion des membres, groupes, cotisations et dons pour Ca
 
 ### Réglages
 
-- Groupe affiché par défaut à l'ouverture
-- Groupe membres de référence (pour filtres cotisations)
-- Groupe archives (exclu des vues par défaut)
-- Gestion des types de compta (UI complète: ajout, édition inline, toggle flags, suppression si non utilisé)
+Navigation par barre latérale (desktop) / sélecteur (mobile) avec sections :
+- **Général** — groupe par défaut, groupe membres de référence, groupe archives
+- **Groupes** — liste avec renommage rapide inline et accès aux réglages complets
+- **Catégories** — réordonnement par glisser-déposer
+- **Filtres** — métagroupes de filtrage, avec undo sur les modifications d'appartenance
+- **Types de compta** — UI complète : ajout, édition inline, toggle flags, réordonnement
+- **Intégrité** — détection des groupes masqués avec assignations actives
 
 ---
 

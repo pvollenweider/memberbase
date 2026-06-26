@@ -40,6 +40,10 @@ Dans la liste des utilisateurs, cliquer **Supprimer** → confirmer. L'opératio
 
 Accès : icône engrenage dans la barre de navigation → **Réglages** (ou `?view=settings`).
 
+La page de réglages est organisée en sections accessibles via une barre latérale (desktop) ou un sélecteur déroulant (mobile).
+
+### Général
+
 | Réglage | Description |
 |---------|-------------|
 | **Groupe par défaut** | Groupe affiché à l'ouverture de la liste membres |
@@ -48,11 +52,20 @@ Accès : icône engrenage dans la barre de navigation → **Réglages** (ou `?vi
 
 Modifier les valeurs et cliquer **Enregistrer**.
 
+### Groupes
+
+Liste de tous les groupes actifs avec deux actions par ligne :
+
+- **Crayon** — renommage rapide inline, sans rechargement de page
+- **Engrenage** — ouvre la page de réglages complète du groupe (catégorie, visibilité, membres)
+
+Pour créer un groupe, utiliser le formulaire en haut de l'onglet. La section "Importer les membres d'autres groupes" propose les groupes source triés par catégorie.
+
 ---
 
 ## Types de compta
 
-Accès : icône engrenage → **Types de compta** (ou `?view=manageComptaTypes`).
+Accès : icône engrenage → **Réglages** → section **Types de compta** (barre latérale).
 
 Les types de compta définissent les catégories d'entrées (cotisation, don ponctuel, don récurrent, etc.).
 
@@ -99,7 +112,7 @@ Glisser-déposer les catégories dans la liste.
 
 ### Assigner un groupe à une catégorie
 
-1. Aller sur **Groupes** → cliquer le nom du groupe
+1. Aller sur **Groupes** → cliquer l'icône engrenage du groupe
 2. Sélectionner la catégorie dans le champ **Catégorie**
 3. Cliquer **Mettre à jour**
 
@@ -117,6 +130,8 @@ Un filtre regroupe plusieurs groupes : sélectionner ce filtre dans la liste mem
 2. Cliquer **Créer un filtre**
 3. Cliquer le nom du filtre créé pour ouvrir sa page d'édition
 4. Cocher les groupes à inclure — sauvegarde automatique à chaque coche
+
+> Un bouton **Annuler** apparaît dans la notification après chaque modification (fenêtre de 4 secondes).
 
 ### Créer un filtre depuis une sélection de groupes
 
