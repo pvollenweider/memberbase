@@ -141,10 +141,10 @@ if ($__flash):
             </select>
           </div>
           <div class="mb-3">
-            <label for="au_password" class="form-label">Mot de passe temporaire <span class="text-danger">*</span></label>
+            <label for="au_password" class="form-label">Mot de passe temporaire</label>
             <input type="text" class="form-control form-control-sm" id="au_password" name="au_password"
-                   required minlength="8" autocomplete="off">
-            <div class="form-text">L'utilisateur devra le changer à la première connexion.</div>
+                   autocomplete="off" placeholder="changeme">
+            <div class="form-text">Laisser vide pour utiliser <strong>changeme</strong> par défaut. L'utilisateur devra le changer à la première connexion.</div>
           </div>
         </div>
         <div class="modal-footer py-2">

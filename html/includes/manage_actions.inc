@@ -457,13 +457,11 @@ if (isset($_REQUEST['action'])) {
         $auDisplayName = trim($_POST['au_display_name'] ?? '');
         $auEmail       = trim($_POST['au_email']       ?? '');
         $auRole        = in_array($_POST['au_role'] ?? '', ['admin','user']) ? $_POST['au_role'] : 'user';
-        $auPassword    = $_POST['au_password'] ?? '';
+        $auPassword    = trim($_POST['au_password'] ?? '') ?: 'changeme';
         $errParam      = '';
 
         if (!preg_match('/^[a-zA-Z0-9._\-]+$/', $auUsername)) {
             $errParam = urlencode('Identifiant invalide (lettres, chiffres, ., -, _ uniquement).');
-        } elseif (strlen($auPassword) < 8) {
-            $errParam = urlencode('Le mot de passe temporaire doit contenir au moins 8 caractères.');
         } else {
             try {
                 $pdo->prepare(
