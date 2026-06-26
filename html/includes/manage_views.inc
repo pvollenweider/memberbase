@@ -17,6 +17,8 @@ if (isset($_REQUEST['view'])) {
         include "update_user_form.inc";
     } else if ($_REQUEST['view'] == 'suivi') {
         include "update_user_form.inc";
+    } else if ($_REQUEST['view'] == 'userHistory') {
+        include "update_user_form.inc";
     } else if ($_REQUEST['view'] == 'deleteUser') {
         $user = new User();
         $user->lookupUser($_REQUEST['id']);

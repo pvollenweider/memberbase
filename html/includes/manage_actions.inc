@@ -62,7 +62,7 @@ if (isset($_REQUEST['action'])) {
         $auDetail = "id={$_REQUEST['id']} | {$user->firstName} {$user->lastName}";
         if ($_auDiffs) { $auDetail .= ' | ' . implode(' ; ', $_auDiffs); }
         else           { $auDetail .= ' | (aucune modification)'; }
-        auditLog($pdo, 'updateUser', $auDetail);
+        auditLog($pdo, 'updateUser', $auDetail, (int)$_REQUEST['id']);
         $_savedOk = true;
     } else if ($_REQUEST['action'] == 'updateCategoryOrder') {
         if (!empty($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
@@ -117,7 +117,7 @@ if (isset($_REQUEST['action'])) {
         $user->birthDay = unquote(formatedDateToTimeStamp($_REQUEST['birthDay']));
         $user->comment = unquote($_REQUEST['comment']);
         $userid = $user->save();
-        auditLog($pdo, 'addUser', "id=$userid | {$user->firstName} {$user->lastName} | email: {$user->email}");
+        auditLog($pdo, 'addUser', "id=$userid | {$user->firstName} {$user->lastName} | email: {$user->email}", (int)$userid);
     } else if ($_REQUEST['action'] == 'deleteTeam') {
         $team = new Team();
         $team->lookupTeam($_REQUEST['id']);
@@ -551,14 +551,14 @@ if (isset($_REQUEST['action'])) {
         $user->addMembership((int)$_REQUEST['teamId']);
         $_auTeam = $pdo->prepare("SELECT name FROM team WHERE id=?");
         $_auTeam->execute([(int)$_REQUEST['teamId']]);
-        auditLog($pdo, 'addMembership', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) → groupe: " . ($_auTeam->fetchColumn() ?: "id={$_REQUEST['teamId']}"));
+        auditLog($pdo, 'addMembership', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) → groupe: " . ($_auTeam->fetchColumn() ?: "id={$_REQUEST['teamId']}"), (int)$_REQUEST['id']);
     } else if ($_REQUEST['action'] == 'removeMembership') {
         $user = new User();
         $user->lookupUser($_REQUEST['id']);
         $user->removeMembership((int)$_REQUEST['teamId']);
         $_auTeam = $pdo->prepare("SELECT name FROM team WHERE id=?");
         $_auTeam->execute([(int)$_REQUEST['teamId']]);
-        auditLog($pdo, 'removeMembership', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) ← groupe: " . ($_auTeam->fetchColumn() ?: "id={$_REQUEST['teamId']}"));
+        auditLog($pdo, 'removeMembership', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) ← groupe: " . ($_auTeam->fetchColumn() ?: "id={$_REQUEST['teamId']}"), (int)$_REQUEST['id']);
     } else if ($_REQUEST['action'] == 'addCompta') {
         $compta = new Compta();
         $compta->userId = $_REQUEST['userid'];
@@ -572,7 +572,7 @@ if (isset($_REQUEST['action'])) {
         $_auUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
         $_auUser->execute([(int)$compta->userId]);
         $_auType = $comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}";
-        auditLog($pdo, 'addCompta', "membre: " . ($_auUser->fetchColumn() ?: "id={$compta->userId}") . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}");
+        auditLog($pdo, 'addCompta', "membre: " . ($_auUser->fetchColumn() ?: "id={$compta->userId}") . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}", (int)$compta->userId);
     } else if ($_REQUEST['action'] == 'updateCompta') {
         $compta = new Compta();
         $compta->lookupCompta($_REQUEST['comptaid']);
@@ -612,14 +612,14 @@ if (isset($_REQUEST['action'])) {
         $auDetail2 = "compta#={$_REQUEST['comptaid']} | membre: " . ($_auUser2->fetchColumn() ?: "id={$compta->userId}");
         if ($_auDiffs2) { $auDetail2 .= ' | ' . implode(' ; ', $_auDiffs2); }
         else            { $auDetail2 .= ' | (aucune modification)'; }
-        auditLog($pdo, 'updateCompta', $auDetail2);
+        auditLog($pdo, 'updateCompta', $auDetail2, (int)$compta->userId);
     } else if ($_REQUEST['action'] == 'toggleWantsAttestation') {
         $comptaid = (int)$_REQUEST['comptaid'];
         $value    = isset($_REQUEST['wants_attestation']) ? 1 : 0;
         $pdo->prepare("UPDATE compta SET wants_attestation=? WHERE id=?")->execute([$value, $comptaid]);
         $_auTwa = $pdo->prepare("SELECT CONCAT(u.firstName,' ',u.lastName) FROM compta c JOIN users u ON u.id=c.user_id WHERE c.id=?");
         $_auTwa->execute([$comptaid]);
-        auditLog($pdo, 'toggleWantsAttestation', "compta#=$comptaid | " . ($_auTwa->fetchColumn() ?: '') . " | attestation: " . ($value ? 'oui' : 'non'));
+        auditLog($pdo, 'toggleWantsAttestation', "compta#=$comptaid | " . ($_auTwa->fetchColumn() ?: '') . " | attestation: " . ($value ? 'oui' : 'non'), (int)$_REQUEST['userid']);
         $year   = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
         $userid = (int)$_REQUEST['userid'];
         header('Location: ' . $_SERVER['PHP_SELF'] . '?view=compta&userid=' . $userid . '&year=' . $year);
@@ -633,7 +633,7 @@ if (isset($_REQUEST['action'])) {
         $userProperty->save();
         $_auSuiviU = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
         $_auSuiviU->execute([(int)$_REQUEST['userid']]);
-        auditLog($pdo, 'addSuivi', "membre: " . ($_auSuiviU->fetchColumn() ?: "id={$_REQUEST['userid']}") . " | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})");
+        auditLog($pdo, 'addSuivi', "membre: " . ($_auSuiviU->fetchColumn() ?: "id={$_REQUEST['userid']}") . " | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})", (int)$_REQUEST['userid']);
     } else if ($_REQUEST['action'] == 'updateSuivi') {
         $userProperty = new UserProperty();
         $userProperty->lookupUserProperty($_REQUEST['suiviid']);
@@ -644,7 +644,7 @@ if (isset($_REQUEST['action'])) {
         $userProperty->save();
         $_auSuiviU2 = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
         $_auSuiviU2->execute([(int)$_REQUEST['userid']]);
-        auditLog($pdo, 'updateSuivi', "membre: " . ($_auSuiviU2->fetchColumn() ?: "id={$_REQUEST['userid']}") . " | suivi#={$_REQUEST['suiviid']} | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})");
+        auditLog($pdo, 'updateSuivi', "membre: " . ($_auSuiviU2->fetchColumn() ?: "id={$_REQUEST['userid']}") . " | suivi#={$_REQUEST['suiviid']} | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})", (int)$_REQUEST['userid']);
 
     // ── Auth actions ─────────────────────────────────────────────────────────
 

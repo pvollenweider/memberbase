@@ -27,6 +27,11 @@ $user->lookupUser($userid);
             <li class="nav-item<?php if ($view == "suivi") { ?> active<?php } ?>">
                 <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= $user->getId() ?>"><i class="far fa-list-alt"></i> <?= $GLOBAL['suivi'] ?></a>
             </li>
+            <?php if (isAdmin()): ?>
+            <li class="nav-item<?php if ($view == "userHistory") { ?> active<?php } ?>">
+                <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=userHistory&amp;userid=<?= $user->getId() ?>"><i class="fas fa-history"></i> Historique</a>
+            </li>
+            <?php endif ?>
         </ul>
     </div>
 </nav>
@@ -42,6 +47,8 @@ if ($view == "compta") {
     include "compta_generic.inc";
 } else if ($view == "suivi") {
     ?><?php include "suivi.inc"; ?><?php
+} else if ($view == "userHistory") {
+    ?><?php include "user_history.inc"; ?><?php
 } else {
     ?>
     <div class="row">

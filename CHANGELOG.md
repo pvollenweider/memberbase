@@ -1,5 +1,34 @@
 # Changelog
 
+## [3.1.0] — en cours
+
+### Migration base de données
+
+```sql
+ALTER TABLE audit_log
+    ADD COLUMN subject_user_id INT UNSIGNED NULL DEFAULT NULL,
+    ADD INDEX idx_subject_user (subject_user_id);
+
+ALTER TABLE audit_log
+    MODIFY COLUMN username VARCHAR(100) NULL;
+```
+
+> Note: `username` passe à `NULL`-able pour les actions système sans session ouverte.
+
+### Added
+- **Historique par membre** (`?view=userHistory&userid=X`) : journal de toutes les actions enregistrées pour un membre donné (modifications fiche, compta, suivi, groupes)
+- **Doublons potentiels** dans l'onglet Intégrité : détection par nom et par email avec liens directs vers les fiches concernées
+
+### Changed
+- `auditLog()` : nouveau paramètre optionnel `$subjectUserId` — toutes les actions membre (updateUser, addUser, addMembership, removeMembership, addCompta, updateCompta, toggleWantsAttestation, addSuivi, updateSuivi) transmettent désormais l'ID du membre concerné
+- Onglet Intégrité : titre renommé "Intégrité" ; message de succès conditionnel aux doublons
+
+### Fixed
+- Filtres du journal d'activité : dropdowns utilisateur + action avec export CSV/Excel/Impression
+- Sections Intégrité collapsées par défaut (issue #13)
+
+---
+
 ## [3.0.1] — 2026-06-26
 
 ### Added
