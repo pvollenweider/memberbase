@@ -28,7 +28,7 @@ $count = count($rows);
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
-    <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Retour Contributions
+    <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Retour à l'aperçu des dons
   </a>
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
     Membres perdus <?= $year-1 ?> → <?= $year ?>
