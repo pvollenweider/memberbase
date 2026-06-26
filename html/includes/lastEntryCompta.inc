@@ -330,7 +330,10 @@ $_showTimeline = count($_monthly) >= 2;
             responsive: true, maintainAspectRatio: false,
             legend: { position: 'right', labels: { fontSize: 11, boxWidth: 12 } },
             tooltips: { callbacks: { label: function(item, data) {
-                return data.labels[item.index] + ': ' + fmtChf(data.datasets[0].data[item.index]);
+                var total = data.datasets[0].data.reduce(function(a, b) { return a + b; }, 0);
+                var val = data.datasets[0].data[item.index];
+                var pct = total > 0 ? Math.round(val / total * 100) : 0;
+                return data.labels[item.index] + ': ' + fmtChf(val) + ' (' + pct + '%)';
             }}}
         }
     });
