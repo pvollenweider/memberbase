@@ -182,6 +182,7 @@ while ($row = $stmt->fetchObject()) {
     $.fn.dataTable.moment('DD/MM/YYYY');
 
     $(document).ready(function () {
+        if ($.fn.DataTable.isDataTable('.export')) { $('.export').DataTable().destroy(); }
         $('.export').DataTable({
             order: [[0, 'desc']],
             paging: false,

@@ -529,6 +529,7 @@ $(document).ready(function() {
         window.location = loc + sep + 'includeAttestation=' + (this.checked ? 1 : 0);
     });
     $.fn.dataTable.moment('DD/MM/YYYY');
+    if ($.fn.DataTable.isDataTable('.export')) { $('.export').DataTable().destroy(); }
     $('.export').DataTable({
         order: [[2, 'asc']],
         paging: false,

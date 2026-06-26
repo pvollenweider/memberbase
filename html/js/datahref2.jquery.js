@@ -32,7 +32,7 @@
                 $(this).css('cursor', $(this).data('href-settings-cursor'));
             }
 
-            $(this).on('click', function(e) {
+            $(this).off('click.datahref').on('click.datahref', function(e) {
                     if(e.metaKey)
                         target = '_blank';
 

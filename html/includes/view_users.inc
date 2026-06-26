@@ -527,7 +527,7 @@ if ($team == -4) {
 <script>
 $(document).ready(function () {
     $.fn.dataTable.moment('DD/MM/YYYY');
-
+    if ($.fn.DataTable.isDataTable('.export')) { $('.export').DataTable().destroy(); }
     $('.export').DataTable({
         order: [[2, 'asc']],
         paging: false,

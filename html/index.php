@@ -331,9 +331,13 @@ include "includes/menu.inc";
             }
         });
 
-        // datahref click-to-row
-        $(root).find('table[data-href], table').datahref && $(root).find('table').datahref();
+        // datahref click-to-row (plugin uses namespaced event — safe to call multiple times)
+        if ($(root).find('table').datahref) { $(root).find('table').datahref(); }
 
+        // destroy any orphaned DataTable instances from previous swap
+        if ($.fn.DataTable) {
+            $.fn.DataTable.tables({ visible: false, api: true }).destroy();
+        }
     }
 
     document.addEventListener('htmx:afterSwap', function (e) {
