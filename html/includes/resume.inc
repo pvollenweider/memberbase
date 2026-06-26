@@ -500,10 +500,11 @@ foreach ($rows as $row):
             <i class="fas fa-check text-success" aria-label="Souhaite attestation"></i>
             <?php endif ?>
         </td>
-        <td class="text-end position-relative" style="white-space:nowrap">
+        <td class="text-end" style="white-space:nowrap">
             <?php if ($year != -2): ?>
             <a href="/attestation_don.php?userid=<?=(int)$row->id?>&amp;year=<?=(int)$year?>"
-               class="btn btn-sm py-0 px-1 text-muted position-relative"
+               class="btn btn-sm py-0 px-1 text-muted"
+               style="position:relative;z-index:2"
                title="Attestation de dons <?=(int)$year?>"
                aria-label="Attestation de dons <?=(int)$year?> pour <?= htmlspecialchars($lastName . ' ' . $firstName, ENT_QUOTES, $charset) ?>"
                target="_blank">
