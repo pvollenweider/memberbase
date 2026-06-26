@@ -3,11 +3,9 @@ class Metagroup
 {
     public $id;
     public $name;
-    private $logger;
 
     public function __construct()
     {
-        $this->logger = Logger::getLogger('Metagroup');
     }
 
     public function lookupMetagroup(int $id): void
@@ -22,7 +20,6 @@ class Metagroup
         } else {
             print "Could not find metagroup with id [$id]";
         }
-        $this->logger->debug("Lookup metagroup $id");
     }
 
     public function getId()     { return $this->id; }
@@ -34,11 +31,9 @@ class Metagroup
         global $pdo;
         if ($this->id) {
             $pdo->prepare("UPDATE metagroup SET name=? WHERE id=?")->execute([$this->name, $this->id]);
-            $this->logger->debug("Updated metagroup $this->id");
         } else {
             $mid = updateAndGetMaxVal("metagroup_id");
             $pdo->prepare("INSERT INTO metagroup (id,name) VALUES (?,?)")->execute([$mid, $this->name]);
-            $this->logger->debug("Inserted metagroup $mid");
         }
     }
 
@@ -48,7 +43,6 @@ class Metagroup
         $stmt = $pdo->prepare("SELECT 1 FROM metagroup WHERE id=? LIMIT 1");
         $stmt->execute([$this->id]);
         $result = $stmt->fetchObject() !== false;
-        $this->logger->debug("Metagroup $this->id is used: " . ($result ? 'true' : 'false'));
         return $result;
     }
 
@@ -57,9 +51,7 @@ class Metagroup
         global $pdo;
         if (!$this->isUsed()) {
             $pdo->prepare("DELETE FROM metagroup WHERE id=?")->execute([$this->id]);
-            $this->logger->debug("Removed metagroup $this->id");
         } else {
-            $this->logger->error("Could not remove metagroup $this->name: not empty.");
             print "Could not remove $this->name because there is a team inside.<br/>";
             print "Click <a href='" . $_SERVER['PHP_SELF'] . "?action=viewgroups&amp;metagroup=" . $this->id . "'>here</a> to see the team list";
         }

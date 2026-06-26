@@ -1,5 +1,4 @@
 <?php 
-$logger = Logger::getLogger('manage_views.php');
 if (isset($_REQUEST['view'])) {
 
     if ($_REQUEST['view'] === 'changePassword') {
@@ -7,22 +6,16 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] === 'manageAppUsers') {
         include "manage_app_users.inc";
     } else if ($_REQUEST['view'] == 'addUser') {
-        $logger->debug("Dispaching add_user_form.inc");
         include "add_user_form.inc";
     } else if ($_REQUEST['view'] == 'updateUser') {
-        $logger->debug("Dispaching update_user_form.inc");
         include "update_user_form.inc";
     } else if ($_REQUEST['view'] == 'updateTeam') {
-        $logger->debug("Dispaching update_team_form.inc");
         include "update_team_form.inc";
     } else if ($_REQUEST['view'] == 'generalData') {
-        $logger->debug("Dispaching update_user_form.inc");
         include "update_user_form.inc";
     } else if ($_REQUEST['view'] == 'compta') {
-        $logger->debug("Dispaching update_user_form.inc");
         include "update_user_form.inc";
     } else if ($_REQUEST['view'] == 'suivi') {
-        $logger->debug("Dispaching update_user_form.inc");
         include "update_user_form.inc";
     } else if ($_REQUEST['view'] == 'deleteUser') {
         $user = new User();
@@ -43,37 +36,26 @@ if (isset($_REQUEST['view'])) {
         $user = new User();
         $user->lookupUser($_REQUEST['id']);
         $user->remove();
-        $logger->debug("Dispaching view_users.inc");
         include "view_users.inc";
     } else if ($_REQUEST['view'] == 'manageTeam') {
-        $logger->debug("Dispaching manage_teams.inc");
         include "manage_teams.inc";
     } else if ($_REQUEST['view'] == 'updateMetagroup') {
-        $logger->debug("Dispaching update_metagroup_form.inc");
         include "update_metagroup_form.inc";
     } else if ($_REQUEST['view'] == 'updateCompta') {
-        $logger->debug("Dispaching update_compta_form.inc");
         include "update_compta_form.inc";
     } else if ($_REQUEST['view'] == 'lastEntryCompta') {
-        $logger->debug("Dispaching lastEntryCompta.inc");
         include "lastEntryCompta.inc";
     } else if ($_REQUEST['view'] == 'resume') {
-        $logger->debug("Dispaching resume.inc");
         include "resume.inc";
     } else if ($_REQUEST['view'] == 'lapsedDonors') {
-        $logger->debug("Dispaching lapsed_donors.inc");
         include "lapsed_donors.inc";
     } else if ($_REQUEST['view'] == 'loyalDonors') {
-        $logger->debug("Dispaching loyal_donors.inc");
         include "loyal_donors.inc";
     } else if ($_REQUEST['view'] == 'newDonors') {
-        $logger->debug("Dispaching new_donors.inc");
         include "new_donors.inc";
     } else if ($_REQUEST['view'] == 'lapsedMembers') {
-        $logger->debug("Dispaching lapsed_members.inc");
         include "lapsed_members.inc";
     } else if ($_REQUEST['view'] == 'lastEntrySuivi') {
-        $logger->debug("Dispaching lastEntrySuivi.inc");
         include "lastEntrySuivi.inc";
     } else if ($_REQUEST['view'] == 'removeCompta') {
         $compta = new Compta();
@@ -109,17 +91,13 @@ if (isset($_REQUEST['view'])) {
         $compta->lookupCompta($_REQUEST['comptaid']);
         $compta->remove();
         $view = "compta";
-        $logger->debug("update_user_form lastEntrySuivi.inc");
         include "update_user_form.inc";
     } else if ($_REQUEST['view'] == 'manageComptaTypes') {
-        $logger->debug("Dispaching manage_compta_types.inc");
         include "manage_compta_types.inc";
     } else if ($_REQUEST['view'] == 'settings') {
-        $logger->debug("Dispaching settings_form.inc");
         include "settings_form.inc";
     } else if ($_REQUEST['view'] == 'updateSuivi') {
         $view = "suivi";
-        $logger->debug("Dispaching update_suivi_form.inc");
         include "update_suivi_form.inc";
     } else if ($_REQUEST['view'] == 'removeSuivi') {
         $userProperty = new UserProperty();
@@ -140,7 +118,6 @@ if (isset($_REQUEST['view'])) {
         $userProperty ->lookupUserProperty($_REQUEST['suiviid']);
         $userProperty->remove();
         $view = "suivi";
-        $logger->debug("Dispaching update_user_form.inc");
         include "update_user_form.inc";
     }
 } else {

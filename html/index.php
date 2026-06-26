@@ -219,6 +219,5 @@ include "includes/menu.inc";
 </body>
 </html>
 <?php
-Logger::shutdown();
 ob_end_flush();
 ?>

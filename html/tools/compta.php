@@ -107,7 +107,6 @@ if ($team != -1) {
         $query .= "AND (user_properties.parameter='team_5' OR ";
         $query .= "user_properties.parameter='team_6') ";
     } else if ($team == -5) {
-        $logger->debug("team is -5 -> Mailing noel");
         $query .= "AND users.id=user_properties.user_id AND (";
         $query .= "    user_properties.parameter='team_6'";
         $query .= "    OR user_properties.parameter='team_5'";

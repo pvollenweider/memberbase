@@ -6,7 +6,6 @@ services:
     volumes:
       - ./html:/var/www/html
       - ./logs:/var/www/logs
-      - ./apache-log4php-2.3.0/src/main/php:/var/www/html/log4php
     environment:
       DB_HOST: mariadb
       DB_NAME: members

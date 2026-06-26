@@ -1,5 +1,4 @@
 <?php
-$logger = Logger::getLogger('view_users.php');
 $searchString = "";
 if (isset ($_REQUEST["searchString"])) {
     $searchString = trim($_REQUEST["searchString"]);
@@ -231,7 +230,6 @@ $action = "";
 $queryParams = [];
 if (isset($_REQUEST['action'])) {
     if ($_REQUEST['action'] == "search") {
-        $logger->debug("Searching for [$searchString]");
         $action = "search";
         $like = "%" . $searchString . "%";
         $query .= " AND (users.firstname LIKE ?";
@@ -258,7 +256,6 @@ if ($metagroup > 0) {
     }
 } else if ($team != -1) {
     if ($team == -2) {
-        $logger->debug("team is -2 -> Envoi journal");
         $query .= " AND users.id=user_properties.user_id AND NOT (";
         $query .= "    user_properties.parameter='team_13'";
         $query .= "    OR user_properties.parameter='team_10'";
@@ -266,18 +263,15 @@ if ($metagroup > 0) {
         $query .= "    OR user_properties.parameter='team_" . ARCHIVE_ID . "'";
         $query .= " )";
     } else if ($team == -3 || $team == -5555  || $team == -6666) {
-        $logger->debug("team is -3 -> Tout le monde sauf archive");
         $query .= " AND users.id=user_properties.user_id AND NOT (";
         $query .= "    user_properties.parameter='team_" . ARCHIVE_ID . "'";
         $query .= " )";
     } else if ($team == -4 || $team == -1234 || $team == -3333) {
         # search member
-        $logger->debug("team is -4 -1234 -3333 -> coti non payees");
         $query .= " AND users.id=user_properties.user_id ";
         $query .= "AND ( ";
         $query .= "user_properties.parameter='team_$membre') ";
     } else if ($team == -5) {
-        $logger->debug("team is -5 -> Mailing noel");
         $query .= " AND users.id=user_properties.user_id AND (";
         $query .= "    user_properties.parameter='team_6'";
         $query .= "    OR user_properties.parameter='team_5'";
@@ -286,14 +280,12 @@ if ($metagroup > 0) {
         $query .= "    AND NOT user_properties.parameter='team_" . ARCHIVE_ID . "'";
     } else if ($team == -444) {
         # search member
-        $logger->debug("team is -golf 2010 2011 + soiree 2010 with compta -> ");
         $query .= " AND users.id=user_properties.user_id ";
         $query .= "AND (user_properties.parameter='team_56' OR ";
         $query .= "user_properties.parameter='team_62' OR ";
         $query .= "user_properties.parameter='team_7' OR ";
         $query .= "user_properties.parameter='team_58' ) ";
     } else if ($team == -6) {
-        $logger->debug("team is -6 -> physiquePasMembreDonEn060708");
         $query .= " AND users.id=user_properties.user_id ";
         $query .= "AND user_properties.parameter='team_7' ";
 

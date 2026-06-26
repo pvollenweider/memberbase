@@ -377,8 +377,6 @@ if (isset($_REQUEST['action'])) {
         $mydate = $_REQUEST['date'];
         $date = formatedDateToTimeStamp($mydate);
         $compta->date = $date;
-        $logger = Logger::getLogger('Action.updateCompta');
-        $logger->debug("date is $date / $mydate");
         $compta->libele = unquote($_REQUEST['libele']);
         $compta->sum = str_replace(',','.',$_REQUEST['sum']);
         $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);

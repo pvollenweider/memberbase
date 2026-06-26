@@ -4,11 +4,9 @@ class Team
     public $id;
     public $name;
     public $hidden = 0;
-    private $logger;
 
     public function __construct()
     {
-        $this->logger = Logger::getLogger('Team');
     }
 
     public function lookupTeam(int $id): void
@@ -24,7 +22,6 @@ class Team
         } else {
             print "Could not find team with id [$id]";
         }
-        $this->logger->debug("Lookup team $id");
     }
 
     public function getId()        { return $this->id; }
@@ -38,11 +35,9 @@ class Team
         global $pdo;
         if ($this->id) {
             $pdo->prepare("UPDATE team SET name=?,hidden=? WHERE id=?")->execute([$this->name, $this->hidden, $this->id]);
-            $this->logger->debug("Updated team $this->id");
         } else {
             $teamid = updateAndGetMaxVal("teamid");
             $pdo->prepare("INSERT INTO team (id,name,hidden) VALUES (?,?,?)")->execute([$teamid, $this->name, $this->hidden]);
-            $this->logger->debug("Inserted team $teamid");
         }
     }
 
@@ -52,7 +47,6 @@ class Team
         $stmt = $pdo->prepare("SELECT 1 FROM metagroup WHERE id=? AND teamid=? LIMIT 1");
         $stmt->execute([$metagroupId, $this->id]);
         $result = $stmt->fetchObject() !== false;
-        $this->logger->debug("Team $this->id in metagroup $metagroupId: " . ($result ? 'true' : 'false'));
         return $result;
     }
 
@@ -61,7 +55,6 @@ class Team
         global $pdo;
         if (!$this->isMemberOfMetagroup($metagroupId)) {
             $pdo->prepare("INSERT INTO metagroup (id,teamid) VALUES (?,?)")->execute([$metagroupId, $this->id]);
-            $this->logger->info("Added team $this->id to metagroup $metagroupId");
         }
     }
 
@@ -69,7 +62,6 @@ class Team
     {
         global $pdo;
         $pdo->prepare("DELETE FROM metagroup WHERE teamid=? AND id=?")->execute([$this->id, $metagroupId]);
-        $this->logger->info("Removed team $this->id from metagroup $metagroupId");
     }
 
     public function isUsed(): bool
@@ -78,7 +70,6 @@ class Team
         $stmt = $pdo->prepare("SELECT 1 FROM user_properties WHERE parameter=? LIMIT 1");
         $stmt->execute(["team_$this->id"]);
         $result = $stmt->fetchObject() !== false;
-        $this->logger->debug("Team $this->id is used: " . ($result ? 'true' : 'false'));
         return $result;
     }
 
@@ -87,9 +78,7 @@ class Team
         global $pdo;
         if (!$this->isUsed()) {
             $pdo->prepare("DELETE FROM team WHERE id=?")->execute([$this->id]);
-            $this->logger->debug("Removed team $this->id");
         } else {
-            $this->logger->error("Could not remove $this->name: team has members.");
             print "Could not remove $this->name because some users are members.<br/>";
             print "Click <a href='" . $_SERVER['PHP_SELF'] . "?action=search&amp;team=" . $this->id . "'>here</a> to see the user list";
         }

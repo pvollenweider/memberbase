@@ -12,8 +12,7 @@ RUN apt-get update && apt-get install -y pdftk-java && rm -rf /var/lib/apt/lists
 # Apache config
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 
-# PHP config: suppress deprecation noise from log4php on PHP 8.2
-RUN echo "error_reporting = E_ALL & ~E_DEPRECATED & ~E_NOTICE" > /usr/local/etc/php/conf.d/casa.ini
+RUN echo "error_reporting = E_ALL & ~E_NOTICE" > /usr/local/etc/php/conf.d/casa.ini
 
 # Permissions
 RUN mkdir -p /var/www/logs && chown -R www-data:www-data /var/www/logs

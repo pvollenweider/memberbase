@@ -4,11 +4,6 @@ function startswith($haystack, $needle) {
 }
 
 date_default_timezone_set("Europe/Zurich");
-define('LOG4PHP_DIR', 'log4php');
-require_once('log4php/Logger.php');
-$logger = Logger::getLogger('declarations.php');
-Logger::configure('config.xml');
-$logger->info("Get request");
 
 // database settings — env vars override defaults (Docker dev)
 $hostname = getenv('DB_HOST') ?: "localhost";
