@@ -443,7 +443,7 @@ if (isset($_REQUEST['action'])) {
             exit;
         }
         $pdo->prepare("UPDATE team SET name=? WHERE id=?")->execute([$newName, $teamId]);
-        auditLog($pdo, 'renameTeam', "id=$teamId | «$oldName» → «$newName»");
+        auditLog($pdo, 'renameTeam', 'id=' . $teamId . ' | ' . $oldName . ' -> ' . $newName);
         echo json_encode(['ok' => true, 'name' => $newName]);
         exit;
     } else if ($_REQUEST['action'] == 'updateTeam') {

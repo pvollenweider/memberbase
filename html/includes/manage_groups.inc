@@ -332,12 +332,16 @@ function toggleHiddenSection(btn) {
       method:  'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true' },
       body:    body.toString()
-    }).then(function(r) { return r.json(); }).then(function(data) {
+    }).then(function(r) {
+      return r.text().then(function(txt) {
+        try { return JSON.parse(txt); }
+        catch(e) { throw new Error('HTTP ' + r.status + ': ' + txt.substring(0, 200)); }
+      });
+    }).then(function(data) {
       if (data.ok) {
         var view = row.querySelector('.team-name-view');
         var link = view.querySelector('a');
         link.textContent = data.name;
-        // Update input + aria-label with new name
         input.value = data.name;
         input.setAttribute('aria-label', 'Renommer le groupe «' + data.name + '»');
         row.querySelector('.team-rename-btn').setAttribute('aria-label', 'Renommer «' + data.name + '»');
@@ -346,7 +350,7 @@ function toggleHiddenSection(btn) {
       } else {
         alert(data.error || 'Erreur lors du renommage');
       }
-    }).catch(function() { alert('Erreur réseau'); });
+    }).catch(function(err) { alert(err && err.message ? err.message : 'Erreur réseau'); });
   }
 
   function cancelRename(row) {
