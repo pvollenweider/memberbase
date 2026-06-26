@@ -107,10 +107,11 @@ $_activeTab = $_REQUEST['tab'] ?? null;
             <div class="alert alert-danger" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i>Accès réservé aux administrateurs.</div>
             <?php else: ?>
             <div class="col-md-8">
-            <?php if ($saved): ?>
-            <div class="alert alert-success py-2 px-3 mb-3" style="font-size:0.85rem" role="status">Réglages sauvegardés.</div>
-            <?php endif ?>
-            <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
+            <div id="settings-save-msg"></div>
+            <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post"
+                  hx-post="<?= $_SERVER['PHP_SELF'] ?>"
+                  hx-target="#settings-save-msg"
+                  hx-swap="innerHTML">
               <input type="hidden" name="action" value="saveSettings"/>
               <input type="hidden" name="view" value="settings"/>
               <div class="mb-4">

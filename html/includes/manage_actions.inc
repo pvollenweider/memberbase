@@ -101,7 +101,11 @@ if (isset($_REQUEST['action'])) {
                 $stmt->execute([$key, (int)$_REQUEST[$key]]);
             }
         }
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&saved=1') . ');</script>';
+        if ($isHtmx) {
+            echo '<div id="casa-save-ok" hidden></div>';
+        } else {
+            echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&saved=1') . ');</script>';
+        }
         exit;
     } else if ($_REQUEST['action'] == 'addUser') {
         $user = new User();
@@ -241,7 +245,11 @@ if (isset($_REQUEST['action'])) {
                 'undo_act' => 'bulkShow',
             ];
         }
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=groups') . ');</script>';
+        if ($isHtmx) {
+            header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=groups');
+        } else {
+            echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=groups') . ');</script>';
+        }
         exit;
     } else if ($_REQUEST['action'] == 'bulkShow') {
         $ids = array_map('intval', array_filter($_REQUEST['ids'] ?? [], 'is_numeric'));
@@ -257,7 +265,11 @@ if (isset($_REQUEST['action'])) {
                 'undo_act' => 'bulkHide',
             ];
         }
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=groups') . ');</script>';
+        if ($isHtmx) {
+            header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=groups');
+        } else {
+            echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=groups') . ');</script>';
+        }
         exit;
     } else if ($_REQUEST['action'] == 'undoGroupVisibility') {
         $hidden = (int)($_REQUEST['hidden'] ?? 0);
@@ -267,7 +279,11 @@ if (isset($_REQUEST['action'])) {
             foreach ($ids as $tid) { $stmt->execute([$hidden, $tid]); }
             auditLog($pdo, $hidden ? 'bulkHide' : 'bulkShow', count($ids) . " groupes (undo) " . ($hidden ? "masqués" : "affichés"));
         }
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=groups') . ');</script>';
+        if ($isHtmx) {
+            header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=groups');
+        } else {
+            echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=groups') . ');</script>';
+        }
         exit;
     } else if ($_REQUEST['action'] == 'bulkCreateMetagroup') {
         $name = trim($_REQUEST['metagroupName'] ?? '');
@@ -513,7 +529,12 @@ if (isset($_REQUEST['action'])) {
         $_rvAllowed = ['settings','manageComptaTypes'];
         $rv  = in_array($_REQUEST['returnView'] ?? '', $_rvAllowed) ? $_REQUEST['returnView'] : 'settings';
         $rtb = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnTab'] ?? 'compta');
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=' . $rv . '&tab=' . $rtb) . ');</script>';
+        $_ctUrl = $_SERVER['PHP_SELF'] . '?view=' . $rv . '&tab=' . $rtb;
+        if ($isHtmx) {
+            header('HX-Location: ' . $_ctUrl);
+        } else {
+            echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>';
+        }
         exit;
     } else if ($_REQUEST['action'] == 'updateComptaType') {
         $id = (int)($_REQUEST['id'] ?? 0);
@@ -531,7 +552,12 @@ if (isset($_REQUEST['action'])) {
         $_rvAllowed = ['settings','manageComptaTypes'];
         $rv  = in_array($_REQUEST['returnView'] ?? '', $_rvAllowed) ? $_REQUEST['returnView'] : 'settings';
         $rtb = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnTab'] ?? 'compta');
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=' . $rv . '&tab=' . $rtb) . ');</script>';
+        $_ctUrl = $_SERVER['PHP_SELF'] . '?view=' . $rv . '&tab=' . $rtb;
+        if ($isHtmx) {
+            header('HX-Location: ' . $_ctUrl);
+        } else {
+            echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>';
+        }
         exit;
     } else if ($_REQUEST['action'] == 'deleteComptaType') {
         $id = (int)($_REQUEST['id'] ?? 0);
@@ -547,7 +573,12 @@ if (isset($_REQUEST['action'])) {
         $_rvAllowed = ['settings','manageComptaTypes'];
         $rv  = in_array($_REQUEST['returnView'] ?? '', $_rvAllowed) ? $_REQUEST['returnView'] : 'settings';
         $rtb = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnTab'] ?? 'compta');
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=' . $rv . '&tab=' . $rtb) . ');</script>';
+        $_ctUrl = $_SERVER['PHP_SELF'] . '?view=' . $rv . '&tab=' . $rtb;
+        if ($isHtmx) {
+            header('HX-Location: ' . $_ctUrl);
+        } else {
+            echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>';
+        }
         exit;
     } else if ($_REQUEST['action'] == 'addMembership') {
         $user = new User();

@@ -302,7 +302,7 @@ function toggleHiddenSection(btn) {
   window.bulkAction = function(action) {
     document.getElementById('bulk-action').value = action;
     window.__dirtyOverride = true;
-    document.getElementById('bulk-form').submit();
+    document.getElementById('bulk-form').requestSubmit();
   };
 
   window.clearSelection = function() {
@@ -327,7 +327,7 @@ function toggleHiddenSection(btn) {
     document.getElementById('bulk-form').appendChild(input);
     mgModal.hide();
     window.__dirtyOverride = true;
-    document.getElementById('bulk-form').submit();
+    document.getElementById('bulk-form').requestSubmit();
   };
 
   document.getElementById('mg-name-input').addEventListener('keydown', function(e) {
