@@ -499,7 +499,7 @@ while ($row = $stmt->fetchObject()) {
             <td class="text-nowrap2"><?=$firstName?></td>
             <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>
             <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
-            <td class="d-none d-sm-table-cell d-md-table-cell position-relative"><a href="mailto:<?=$email?>" class="position-relative"><?=$emailStr?></a></td>
+            <td class="d-none d-sm-table-cell d-md-table-cell"><a href="mailto:<?=$email?>" style="position:relative;z-index:2"><?=$emailStr?></a></td>
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate($user->getCreationDate())?></td>
             <td>
                 <a href="<?=$_SERVER['PHP_SELF']?>?view=generalData&amp;id=<?=(int)$id?>"
