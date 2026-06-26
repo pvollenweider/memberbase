@@ -179,7 +179,8 @@ if (isset($_REQUEST['action'])) {
         }
         $_auTeamN = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auTeamN->execute([$teamId]);
         auditLog($pdo, 'importTeamMembers', "vers groupe: " . ($_auTeamN->fetchColumn() ?: "id=$teamId") . " | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $teamId) . ');</script>';
+        $_itUrl = $_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $teamId;
+        if ($isHtmx) { header('HX-Location: ' . $_itUrl); } else { echo '<script>window.location.replace(' . json_encode($_itUrl) . ');</script>'; }
         exit;
     } else if ($_REQUEST['action'] == 'importCotisants') {
         $teamId = (int)$_REQUEST['id'];
@@ -204,7 +205,8 @@ if (isset($_REQUEST['action'])) {
         }
         $_auTeamC = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auTeamC->execute([$teamId]);
         auditLog($pdo, 'importCotisants', "vers groupe: " . ($_auTeamC->fetchColumn() ?: "id=$teamId") . " | année: $year");
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $teamId . '&imported=cotisants') . ');</script>';
+        $_icUrl = $_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $teamId . '&imported=cotisants';
+        if ($isHtmx) { header('HX-Location: ' . $_icUrl); } else { echo '<script>window.location.replace(' . json_encode($_icUrl) . ');</script>'; }
         exit;
     } else if ($_REQUEST['action'] == 'importDonors') {
         $teamId  = (int)$_REQUEST['id'];
@@ -229,7 +231,8 @@ if (isset($_REQUEST['action'])) {
         }
         $_auTeamD = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auTeamD->execute([$teamId]);
         auditLog($pdo, 'importDonors', "vers groupe: " . ($_auTeamD->fetchColumn() ?: "id=$teamId") . " | année: $year | min: {$minSum} CHF");
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $teamId . '&imported=donors') . ');</script>';
+        $_idUrl = $_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $teamId . '&imported=donors';
+        if ($isHtmx) { header('HX-Location: ' . $_idUrl); } else { echo '<script>window.location.replace(' . json_encode($_idUrl) . ');</script>'; }
         exit;
     } else if ($_REQUEST['action'] == 'bulkHide') {
         $ids = array_map('intval', array_filter($_REQUEST['ids'] ?? [], 'is_numeric'));
@@ -296,7 +299,8 @@ if (isset($_REQUEST['action'])) {
                 if ($tid > 0) $stmt->execute([$mid, $tid]);
             }
             auditLog($pdo, 'bulkCreateMetagroup', "nouveau groupe filtre: $name (id=$mid) | " . count($_REQUEST['ids']) . " groupes");
-            echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateMetagroup&id=' . $mid) . ');</script>';
+            $_bmUrl = $_SERVER['PHP_SELF'] . '?view=updateMetagroup&id=' . $mid;
+            if ($isHtmx) { header('HX-Location: ' . $_bmUrl); } else { echo '<script>window.location.replace(' . json_encode($_bmUrl) . ');</script>'; }
             exit;
         }
     } else if ($_REQUEST['action'] == 'createLapsedGroup') {
@@ -342,7 +346,8 @@ if (isset($_REQUEST['action'])) {
             }
         }
         auditLog($pdo, 'createLapsedGroup', "type: $groupType | année: $yr | groupe créé: $groupName (id=$newTeamId) | " . count($userIds) . " membres");
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?team=' . $newTeamId) . ');</script>';
+        $_clUrl = $_SERVER['PHP_SELF'] . '?team=' . $newTeamId;
+        if ($isHtmx) { header('HX-Location: ' . $_clUrl); } else { echo '<script>window.location.replace(' . json_encode($_clUrl) . ');</script>'; }
         exit;
     } else if ($_REQUEST['action'] == 'addTeam') {
         $team = new Team();
@@ -379,7 +384,8 @@ if (isset($_REQUEST['action'])) {
             }
         }
         auditLog($pdo, 'addTeamWithImport', "id=$newTeamId | {$_REQUEST['name']} | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=groups') . ');</script>';
+        $_atwUrl = $_SERVER['PHP_SELF'] . '?view=settings&tab=groups';
+        if ($isHtmx) { header('HX-Location: ' . $_atwUrl); } else { echo '<script>window.location.replace(' . json_encode($_atwUrl) . ');</script>'; }
         exit;
     } else if ($_REQUEST['action'] == 'addMetagroup') {
         $mg = new Metagroup();
@@ -391,7 +397,8 @@ if (isset($_REQUEST['action'])) {
             $pdo->prepare("UPDATE metagroup SET is_filter=? WHERE id=? AND name IS NOT NULL")->execute([$isFilter, $newMgId]);
         }
         auditLog($pdo, 'addMetagroup', "id=$newMgId | {$_REQUEST['name']} | filtre: " . ($isFilter ? 'oui' : 'non'));
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=updateMetagroup&id=' . $newMgId . '&created=1') . ');</script>';
+        $_amUrl = $_SERVER['PHP_SELF'] . '?view=updateMetagroup&id=' . $newMgId . '&created=1';
+        if ($isHtmx) { header('HX-Location: ' . $_amUrl); } else { echo '<script>window.location.replace(' . json_encode($_amUrl) . ');</script>'; }
         exit;
     } else if ($_REQUEST['action'] == 'updateMetagroup') {
         $mg = new Metagroup();
@@ -411,7 +418,8 @@ if (isset($_REQUEST['action'])) {
         $auMgDetail = "id={$_REQUEST['id']} | {$mg->name}" . (count($_auMgChanges) ? ' | ' . implode(', ', $_auMgChanges) : ' | aucun changement');
         auditLog($pdo, 'updateMetagroup', $auMgDetail);
         $_mgRedirectTab = $isFilter ? 'filters' : 'categories';
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=' . $_mgRedirectTab);
+        $_umUrl = $_SERVER['PHP_SELF'] . '?view=settings&tab=' . $_mgRedirectTab;
+        if ($isHtmx) { header('HX-Location: ' . $_umUrl); } else { header('Location: ' . $_umUrl); }
         exit;
     } else if ($_REQUEST['action'] == 'updateMetagroupTeams') {
         $mgId = (int)$_REQUEST['id'];
