@@ -347,6 +347,7 @@ $query .= " ORDER BY $orderColumn $orderSort";
     </th>
 </tr>
 </thead>
+<tbody>
 <?php
 #print $query;
 $stmt = $pdo->prepare($query);
@@ -504,6 +505,7 @@ while ($row = $stmt->fetchObject()) {
     }
 }
 ?>
+</tbody>
 </table>
 </div>
 <?php
