@@ -1,3 +1,5 @@
 .DS_Store
 logs/
 apache-log4php-2.3.0/
+docker/initdb/*.sql
+*.sql.gz

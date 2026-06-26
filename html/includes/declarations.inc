@@ -10,11 +10,11 @@ $logger = Logger::getLogger('declarations.php');
 Logger::configure('config.xml');
 $logger->info("Get request");
 
-// database settings
-$hostname = "localhost";
-$username = "members";
-$password = "members";
-$database = "members";
+// database settings — env vars override defaults (Docker dev)
+$hostname = getenv('DB_HOST') ?: "localhost";
+$username = getenv('DB_USER') ?: "members";
+$password = getenv('DB_PASS') ?: "members";
+$database = getenv('DB_NAME') ?: "members";
 
 $dsn = "mysql:host={$hostname};dbname={$database};charset=utf8mb4";
 $pdo = new PDO($dsn, $username, $password, [
