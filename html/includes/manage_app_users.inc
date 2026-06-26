@@ -142,10 +142,43 @@ if ($__flash):
           </div>
           <div class="mb-3">
             <label for="au_password" class="form-label">Mot de passe temporaire</label>
-            <input type="text" class="form-control form-control-sm" id="au_password" name="au_password"
-                   autocomplete="off" placeholder="changeme">
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control form-control-sm" id="au_password" name="au_password"
+                     autocomplete="off" placeholder="changeme">
+              <button type="button" class="btn btn-outline-secondary" id="btn-gen-pw" title="Générer un mot de passe aléatoire">
+                <i class="fas fa-dice" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="btn btn-outline-secondary" id="btn-copy-pw" title="Copier" style="display:none">
+                <i class="fas fa-copy" aria-hidden="true"></i>
+              </button>
+            </div>
             <div class="form-text">Laisser vide pour utiliser <strong>changeme</strong> par défaut. L'utilisateur devra le changer à la première connexion.</div>
           </div>
+          <script>
+          (function() {
+            var chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#$';
+            function genPw(len) {
+              var arr = new Uint32Array(len);
+              crypto.getRandomValues(arr);
+              return Array.from(arr).map(function(v) { return chars[v % chars.length]; }).join('');
+            }
+            var inp = document.getElementById('au_password');
+            var btnGen = document.getElementById('btn-gen-pw');
+            var btnCopy = document.getElementById('btn-copy-pw');
+            btnGen.addEventListener('click', function() {
+              inp.value = genPw(12);
+              inp.type = 'text';
+              btnCopy.style.display = '';
+            });
+            btnCopy.addEventListener('click', function() {
+              navigator.clipboard.writeText(inp.value).then(function() {
+                var icon = btnCopy.querySelector('i');
+                icon.className = 'fas fa-check';
+                setTimeout(function() { icon.className = 'fas fa-copy'; }, 1500);
+              });
+            });
+          })();
+          </script>
         </div>
         <div class="modal-footer py-2">
           <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
