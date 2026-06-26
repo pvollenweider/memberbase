@@ -46,6 +46,11 @@ if (isset ($_REQUEST["searchString"])) {
                         <i class="fas fa-user-shield"></i>
                     </a>
                 </li>
+                <li class="nav-item<?= $view === 'auditLog' ? ' active' : '' ?>">
+                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=auditLog" title="Journal d'activité">
+                        <i class="fas fa-history"></i>
+                    </a>
+                </li>
                 <?php endif ?>
             </ul>
 

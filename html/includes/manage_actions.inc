@@ -19,6 +19,7 @@ if (isset($_REQUEST['action'])) {
         $user->birthDay = unquote(formatedDateToTimeStamp($_REQUEST['birthDay']));
         $user->comment = unquote($_REQUEST['comment']);
         $user->save();
+        auditLog($pdo, 'updateUser', "id={$_REQUEST['id']} {$user->firstName} {$user->lastName}");
     } else if ($_REQUEST['action'] == 'updateCategoryOrder') {
         if (!empty($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
             $stmt = $pdo->prepare("UPDATE metagroup SET sort_order=? WHERE id=? AND name IS NOT NULL AND is_filter=0");
@@ -72,13 +73,17 @@ if (isset($_REQUEST['action'])) {
         $user->birthDay = unquote(formatedDateToTimeStamp($_REQUEST['birthDay']));
         $user->comment = unquote($_REQUEST['comment']);
         $userid = $user->save();
+        auditLog($pdo, 'addUser', "id=$userid {$user->firstName} {$user->lastName}");
     } else if ($_REQUEST['action'] == 'deleteTeam') {
         $team = new Team();
         $team->lookupTeam($_REQUEST['id']);
+        auditLog($pdo, 'deleteTeam', "id={$team->id} {$team->name}");
         $team->remove();
     } else if ($_REQUEST['action'] == 'deleteTeamForce') {
         $teamId = (int) $_REQUEST['id'];
-        // Remove all memberships then delete the team
+        $teamName = $pdo->prepare("SELECT name FROM team WHERE id=?");
+        $teamName->execute([$teamId]);
+        auditLog($pdo, 'deleteTeamForce', "id=$teamId " . ($teamName->fetchColumn() ?: ''));
         $pdo->prepare("DELETE FROM user_properties WHERE parameter = ?")->execute(["team_$teamId"]);
         $pdo->prepare("DELETE FROM team WHERE id = ?")->execute([$teamId]);
     } else if ($_REQUEST['action'] == 'reassignTeam') {
@@ -355,12 +360,12 @@ if (isset($_REQUEST['action'])) {
         $user = new User();
         $user->lookupUser($_REQUEST['id']);
         $user->addMembership((int)$_REQUEST['teamId']);
-        //$user->save();
+        auditLog($pdo, 'addMembership', "user={$_REQUEST['id']} team={$_REQUEST['teamId']}");
     } else if ($_REQUEST['action'] == 'removeMembership') {
         $user = new User();
         $user->lookupUser($_REQUEST['id']);
         $user->removeMembership((int)$_REQUEST['teamId']);
-        //$user->save();
+        auditLog($pdo, 'removeMembership', "user={$_REQUEST['id']} team={$_REQUEST['teamId']}");
     } else if ($_REQUEST['action'] == 'addCompta') {
         $compta = new Compta();
         $compta->userId = $_REQUEST['userid'];
@@ -446,6 +451,7 @@ if (isset($_REQUEST['action'])) {
         $pdo->prepare("UPDATE app_users SET password_hash=?, force_password_change=0 WHERE id=?")
             ->execute([$newHash, $currentUser->id]);
         $_SESSION['force_password_change'] = false;
+        auditLog($pdo, 'changePassword', "user={$currentUser->username}");
         header('Location: ' . $_SERVER['PHP_SELF']);
         exit;
 
@@ -472,6 +478,7 @@ if (isset($_REQUEST['action'])) {
                     )->execute([$auUsername, $auDisplayName ?: null, $auEmail ?: null, $auRole, $token, $expires]);
                     $newId = (int)$pdo->lastInsertId();
                     $_SESSION['invite_token_flash'] = ['uid' => $newId, 'token' => $token];
+                    auditLog($pdo, 'createAppUser', "id=$newId username=$auUsername role=$auRole mode=invitation");
                 } else {
                     // Classic: password provided by admin
                     $pdo->prepare(
@@ -479,6 +486,8 @@ if (isset($_REQUEST['action'])) {
                          VALUES (?, ?, ?, ?, ?, 1)"
                     )->execute([$auUsername, $auDisplayName ?: null, $auEmail ?: null,
                                 password_hash($auPasswordRaw, PASSWORD_DEFAULT), $auRole]);
+                    $newId = (int)$pdo->lastInsertId();
+                    auditLog($pdo, 'createAppUser', "id=$newId username=$auUsername role=$auRole mode=password");
                 }
             } catch (PDOException $e) {
                 if ($e->getCode() == 23000) {
@@ -511,6 +520,9 @@ if (isset($_REQUEST['action'])) {
             header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&au_error=' . urlencode('Impossible de supprimer le dernier administrateur.'));
             exit;
         }
+        $deletedUsername = $pdo->prepare("SELECT username FROM app_users WHERE id=?");
+        $deletedUsername->execute([$targetId]);
+        auditLog($pdo, 'deleteAppUser', "id=$targetId username=" . ($deletedUsername->fetchColumn() ?: ''));
         $pdo->prepare("DELETE FROM app_users WHERE id=?")->execute([$targetId]);
         header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
         exit;
@@ -521,9 +533,24 @@ if (isset($_REQUEST['action'])) {
         $tempPw    = bin2hex(random_bytes(6));
         $pdo->prepare("UPDATE app_users SET password_hash=?, force_password_change=1 WHERE id=?")
             ->execute([password_hash($tempPw, PASSWORD_DEFAULT), $targetId]);
-        // Store temp password in session flash — never in URL
         $_SESSION['reset_pw_flash'] = ['uid' => $targetId, 'pw' => $tempPw];
+        $resetUsername = $pdo->prepare("SELECT username FROM app_users WHERE id=?");
+        $resetUsername->execute([$targetId]);
+        auditLog($pdo, 'resetUserPassword', "id=$targetId username=" . ($resetUsername->fetchColumn() ?: ''));
         header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
+        exit;
+
+    } else if ($_REQUEST['action'] === 'flushAuditLog') {
+        if (!isAdmin()) { http_response_code(403); exit; }
+        $days = isset($_POST['keep_days']) ? (int)$_POST['keep_days'] : 0;
+        if ($days > 0) {
+            $pdo->prepare("DELETE FROM audit_log WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)")->execute([$days]);
+            auditLog($pdo, 'flushAuditLog', "kept_last={$days}_days");
+        } else {
+            auditLog($pdo, 'flushAuditLog', 'all');
+            $pdo->exec("DELETE FROM audit_log");
+        }
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=auditLog&flushed=1');
         exit;
     }
 }

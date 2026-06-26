@@ -37,6 +37,8 @@ if (isset($_REQUEST['view'])) {
         $user->lookupUser($_REQUEST['id']);
         $user->remove();
         include "view_users.inc";
+    } else if ($_REQUEST['view'] === 'auditLog') {
+        include "audit_log.inc";
     } else if ($_REQUEST['view'] == 'manageTeam') {
         include "manage_teams.inc";
     } else if ($_REQUEST['view'] == 'updateMetagroup') {

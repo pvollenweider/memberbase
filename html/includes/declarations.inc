@@ -74,3 +74,12 @@ function unquote(string $s): string
 {
     return str_replace("'", "'", $s);
 }
+
+function auditLog(PDO $pdo, string $action, string $detail = ''): void
+{
+    $uid      = isset($_SESSION['app_user_id']) ? (int)$_SESSION['app_user_id'] : null;
+    $username = $_SESSION['app_username'] ?? null;
+    $pdo->prepare(
+        "INSERT INTO audit_log (app_user_id, username, action, detail) VALUES (?, ?, ?, ?)"
+    )->execute([$uid, $username, $action, $detail ?: null]);
+}
