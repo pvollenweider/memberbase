@@ -35,7 +35,7 @@ services:
   adminer:
     image: adminer
     ports:
-      - "8081:8080"
+      - "8082:8080"
     depends_on:
       - mariadb
 

@@ -1,4 +1,8 @@
-.PHONY: up down logs shell db import
+.PHONY: up down logs shell db import open
+
+open:
+	open http://localhost:8080
+	open http://localhost:8082
 
 up:
 	docker compose up -d --build
