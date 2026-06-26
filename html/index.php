@@ -20,6 +20,7 @@ if ($isHtmx) {
     include "classes/property_class.inc";
     include "classes/metagroup_class.inc";
     $userid = -1;
+    $view = $_REQUEST['view'] ?? 'list';
     include "includes/manage_actions.inc";
     include "includes/manage_views.inc";
     ob_end_flush();
