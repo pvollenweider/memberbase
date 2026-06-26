@@ -8,6 +8,12 @@ $colorOptions = [
     'bg-info-subtle'      => 'Cyan',
     'bg-light'            => 'Blanc',
     'bg-dark-subtle'      => 'Sombre',
+    'ca-orange-subtle'    => 'Orange',
+    'ca-teal-subtle'      => 'Sarcelle',
+    'ca-pink-subtle'      => 'Rose',
+    'ca-purple-subtle'    => 'Violet',
+    'ca-indigo-subtle'    => 'Indigo',
+    'ca-lime-subtle'      => 'Lime',
 ];
 
 $types = $pdo->query("
@@ -33,9 +39,15 @@ $types = $pdo->query("
 .color-swatch-radio:checked + .color-swatch-label {
     outline-color: #495057;
 }
+.ca-orange-subtle { background-color: rgba(253,126,20,0.18) !important; }
+.ca-teal-subtle   { background-color: rgba(32,201,151,0.18) !important; }
+.ca-pink-subtle   { background-color: rgba(214,51,132,0.18) !important; }
+.ca-purple-subtle { background-color: rgba(111,66,193,0.18) !important; }
+.ca-indigo-subtle { background-color: rgba(102,16,242,0.18) !important; }
+.ca-lime-subtle   { background-color: rgba(128,189,64,0.18)  !important; }
 </style>
 
-<?php $ctEmbedded = $ctEmbedded ?? false; $ctReturnView = $ctReturnView ?? 'manageComptaTypes'; ?>
+<?php $ctEmbedded = $ctEmbedded ?? false; $ctReturnView = $ctReturnView ?? 'settings'; $ctReturnTab = $ctReturnTab ?? 'compta'; ?>
 <?php if (!$ctEmbedded): ?>
 <div class="row justify-content-center mt-4">
   <div class="col-lg-8">
@@ -57,6 +69,7 @@ $types = $pdo->query("
         <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
           <input type="hidden" name="action" value="addComptaType">
           <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
+          <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
           <div>
             <label class="form-label form-label-sm mb-1" style="font-size:0.8rem">Label</label>
             <input type="text" name="label" class="form-control form-control-sm" style="width:200px" required>
@@ -107,6 +120,7 @@ $types = $pdo->query("
             <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
               <input type="hidden" name="action" value="updateComptaType">
               <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
+          <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="id" value="<?= $ct->id ?>">
               <input type="hidden" name="label" value="<?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="color" value="<?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>">
@@ -123,6 +137,7 @@ $types = $pdo->query("
             <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
               <input type="hidden" name="action" value="updateComptaType">
               <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
+          <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="id" value="<?= $ct->id ?>">
               <input type="hidden" name="label" value="<?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="color" value="<?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>">
@@ -139,7 +154,7 @@ $types = $pdo->query("
             <button type="button" class="btn btn-outline-secondary btn-sm py-0"
                     onclick="toggleEdit(<?= $ct->id ?>)">Modifier</button>
             <?php if ($ct->cnt == 0): ?>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?action=deleteComptaType&id=<?= $ct->id ?>&returnView=<?= urlencode($ctReturnView) ?>"
+            <a href="<?= $_SERVER['PHP_SELF'] ?>?action=deleteComptaType&id=<?= $ct->id ?>&returnView=<?= urlencode($ctReturnView) ?>&returnTab=<?= urlencode($ctReturnTab) ?>"
                class="btn btn-outline-danger btn-sm py-0"
                onclick="return confirm('Supprimer ce type ?')">Suppr.</a>
             <?php endif ?>
@@ -150,6 +165,7 @@ $types = $pdo->query("
             <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
               <input type="hidden" name="action" value="updateComptaType">
               <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
+          <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="id" value="<?= $ct->id ?>">
               <div>
                 <label class="form-label form-label-sm mb-1" style="font-size:0.8rem">Label</label>

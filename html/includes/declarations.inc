@@ -4,17 +4,12 @@ function startswith($haystack, $needle) {
 }
 
 date_default_timezone_set("Europe/Zurich");
-define('LOG4PHP_DIR', 'log4php');
-require_once('log4php/Logger.php');
-$logger = Logger::getLogger('declarations.php');
-Logger::configure('config.xml');
-$logger->info("Get request");
 
-// database settings
-$hostname = "localhost";
-$username = "members";
-$password = "members";
-$database = "members";
+// database settings — env vars override defaults (Docker dev)
+$hostname = getenv('DB_HOST') ?: "localhost";
+$username = getenv('DB_USER') ?: "members";
+$password = getenv('DB_PASS') ?: "members";
+$database = getenv('DB_NAME') ?: "members";
 
 $dsn = "mysql:host={$hostname};dbname={$database};charset=utf8mb4";
 $pdo = new PDO($dsn, $username, $password, [
@@ -78,4 +73,13 @@ function timeStampToformatedDate(?int $timestamp): string
 function unquote(string $s): string
 {
     return str_replace("'", "'", $s);
+}
+
+function auditLog(PDO $pdo, string $action, string $detail = ''): void
+{
+    $uid      = isset($_SESSION['app_user_id']) ? (int)$_SESSION['app_user_id'] : null;
+    $username = $_SESSION['app_user_username'] ?? null;
+    $pdo->prepare(
+        "INSERT INTO audit_log (app_user_id, username, action, detail) VALUES (?, ?, ?, ?)"
+    )->execute([$uid, $username, $action, $detail ?: null]);
 }

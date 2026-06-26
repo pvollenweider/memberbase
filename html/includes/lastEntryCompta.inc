@@ -136,6 +136,12 @@ while ($row = $stmt->fetchObject()) {
         'bg-info-subtle'      => 'var(--bs-info-bg-subtle)',
         'bg-light'            => 'var(--bs-light)',
         'bg-dark-subtle'      => 'var(--bs-dark-bg-subtle)',
+        'ca-orange-subtle'    => 'rgba(253,126,20,0.18)',
+        'ca-teal-subtle'      => 'rgba(32,201,151,0.18)',
+        'ca-pink-subtle'      => 'rgba(214,51,132,0.18)',
+        'ca-purple-subtle'    => 'rgba(111,66,193,0.18)',
+        'ca-indigo-subtle'    => 'rgba(102,16,242,0.18)',
+        'ca-lime-subtle'      => 'rgba(128,189,64,0.18)',
     ];
     $rowStyle = isset($bgVarMap[$ctColor]) ? '--bs-table-bg:' . $bgVarMap[$ctColor] : '';
 
@@ -213,75 +219,153 @@ while ($row = $stmt->fetchObject()) {
 
 <?php
 $_frM = ['','Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-$_monthly = [];
+$_monthly  = [];
+$_typeAggL = [];
+$_ctBgL = [
+    'bg-primary-subtle'   => 'rgba(13,110,253,0.7)',
+    'bg-secondary-subtle' => 'rgba(108,117,125,0.7)',
+    'bg-success-subtle'   => 'rgba(25,135,84,0.7)',
+    'bg-danger-subtle'    => 'rgba(220,53,69,0.7)',
+    'bg-warning-subtle'   => 'rgba(255,193,7,0.7)',
+    'bg-info-subtle'      => 'rgba(13,202,240,0.7)',
+    'bg-light'            => 'rgba(173,181,189,0.7)',
+    'bg-dark-subtle'      => 'rgba(52,58,64,0.7)',
+    'ca-orange-subtle'    => 'rgba(253,126,20,0.7)',
+    'ca-teal-subtle'      => 'rgba(32,201,151,0.7)',
+    'ca-pink-subtle'      => 'rgba(214,51,132,0.7)',
+    'ca-purple-subtle'    => 'rgba(111,66,193,0.7)',
+    'ca-indigo-subtle'    => 'rgba(102,16,242,0.7)',
+    'ca-lime-subtle'      => 'rgba(128,189,64,0.7)',
+];
+$_ctBorderL = [
+    'bg-primary-subtle'   => 'rgba(13,110,253,1)',
+    'bg-secondary-subtle' => 'rgba(108,117,125,1)',
+    'bg-success-subtle'   => 'rgba(25,135,84,1)',
+    'bg-danger-subtle'    => 'rgba(220,53,69,1)',
+    'bg-warning-subtle'   => 'rgba(255,193,7,1)',
+    'bg-info-subtle'      => 'rgba(13,202,240,1)',
+    'bg-light'            => 'rgba(173,181,189,1)',
+    'bg-dark-subtle'      => 'rgba(52,58,64,1)',
+    'ca-orange-subtle'    => 'rgba(253,126,20,1)',
+    'ca-teal-subtle'      => 'rgba(32,201,151,1)',
+    'ca-pink-subtle'      => 'rgba(214,51,132,1)',
+    'ca-purple-subtle'    => 'rgba(111,66,193,1)',
+    'ca-indigo-subtle'    => 'rgba(102,16,242,1)',
+    'ca-lime-subtle'      => 'rgba(128,189,64,1)',
+];
 $_stmt2 = $pdo->query($query2);
 while ($_r = $_stmt2->fetchObject()) {
+    // Timeline
     $_ts  = (int)$_r->date;
-    $_mk  = date('Y-m', $_ts);
-    $_lbl = $_frM[(int)date('n', $_ts)] . ' ' . date('Y', $_ts);
+    $_mk  = ($year == -2) ? date('Y', $_ts) : date('Y-m', $_ts);
+    $_lbl = ($year == -2) ? date('Y', $_ts) :
+            $_frM[(int)date('n', $_ts)] . ' ' . date('Y', $_ts);
     if (!isset($_monthly[$_mk])) $_monthly[$_mk] = ['label' => $_lbl, 'sum' => 0.0];
     $_monthly[$_mk]['sum'] += (float)$_r->sum;
+    // Donut
+    $_tl  = $_r->ct_label ?? 'Sans type';
+    $_tc  = $_r->ct_color ?? 'bg-secondary-subtle';
+    if (!isset($_typeAggL[$_tl])) $_typeAggL[$_tl] = ['sum' => 0.0, 'color' => $_tc];
+    $_typeAggL[$_tl]['sum'] += (float)$_r->sum;
 }
 ksort($_monthly);
-$_labels = array_values(array_column($_monthly, 'label'));
+$_labels       = array_values(array_column($_monthly, 'label'));
 $_monthly_data = array_values(array_map(fn($v) => round($v['sum'], 2), $_monthly));
 $_cumul = 0.0;
-$_cumul_data = array_values(array_map(function($v) use (&$_cumul) {
-    $_cumul += $v['sum'];
-    return round($_cumul, 2);
+$_cumul_data   = array_values(array_map(function($v) use (&$_cumul) {
+    $_cumul += $v['sum']; return round($_cumul, 2);
 }, $_monthly));
+uasort($_typeAggL, fn($a, $b) => $b['sum'] <=> $a['sum']);
+$_tLabelsL  = array_keys($_typeAggL);
+$_tDataL    = array_values(array_map(fn($v) => round($v['sum'], 2), $_typeAggL));
+$_tBgL      = array_values(array_map(fn($v) => $_ctBgL[$v['color']] ?? 'rgba(108,117,125,0.7)', $_typeAggL));
+$_tBorderL  = array_values(array_map(fn($v) => $_ctBorderL[$v['color']] ?? 'rgba(108,117,125,1)', $_typeAggL));
+$_showTimeline = count($_monthly) >= 2;
 ?>
-<div class="mt-4" style="position:relative;height:35vh">
-  <canvas id="myChart"></canvas>
+<div class="row mt-4 g-4 align-items-start">
+
+  <?php if (count($_typeAggL) > 0): ?>
+  <div class="col-md-4">
+    <p class="text-muted small fw-semibold mb-2 text-center">Répartition par type</p>
+    <div style="position:relative;height:300px">
+      <canvas id="lecDonut"></canvas>
+    </div>
+  </div>
+  <?php endif ?>
+
+  <?php if ($_showTimeline): ?>
+  <div class="col-md-<?= count($_typeAggL) > 0 ? '8' : '12' ?>">
+    <p class="text-muted small fw-semibold mb-2 text-center">
+      <?= $year == -2 ? 'Historique par année' : 'Mensuel vs cumulé' ?>
+    </p>
+    <div style="position:relative;height:300px">
+      <canvas id="lecTimeline"></canvas>
+    </div>
+  </div>
+  <?php endif ?>
+
 </div>
 <script>
-new Chart(document.getElementById('myChart'), {
-    type: 'bar',
-    data: {
-        labels: <?= json_encode($_labels) ?>,
-        datasets: [
-            {
-                type: 'bar',
-                label: 'Mensuel',
-                data: <?= json_encode($_monthly_data) ?>,
-                backgroundColor: 'rgba(13,110,253,0.55)',
-                borderColor: 'rgba(13,110,253,1)',
-                borderWidth: 1,
-                yAxisID: 'y1'
-            },
-            {
-                type: 'line',
-                label: 'Cumulé',
-                data: <?= json_encode($_cumul_data) ?>,
-                borderColor: 'rgba(220,53,69,1)',
-                backgroundColor: 'rgba(220,53,69,0.08)',
-                borderWidth: 2,
-                pointRadius: 3,
-                fill: true,
-                yAxisID: 'y2'
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            yAxes: [
-                {
-                    id: 'y1',
-                    position: 'left',
-                    ticks: { callback: function(v) { return v.toLocaleString('fr-CH'); } },
-                    gridLines: { drawOnChartArea: false }
-                },
-                {
-                    id: 'y2',
-                    position: 'right',
-                    ticks: { callback: function(v) { return v.toLocaleString('fr-CH'); } }
-                }
-            ]
+(function() {
+    function destroyChart(id) {
+        if (window.Chart && Chart.instances) {
+            Object.keys(Chart.instances).forEach(function(k) {
+                var c = Chart.instances[k];
+                if (c && c.canvas && c.canvas.id === id) { c.destroy(); }
+            });
         }
     }
-});
+    var fmtChf = function(v) { return v.toLocaleString('fr-CH') + ' CHF'; };
+    requestAnimationFrame(function() { requestAnimationFrame(function() {
+
+    <?php if (count($_typeAggL) > 0): ?>
+    destroyChart('lecDonut');
+    new Chart(document.getElementById('lecDonut'), {
+        type: 'doughnut',
+        data: {
+            labels: <?= json_encode($_tLabelsL) ?>,
+            datasets: [{ data: <?= json_encode($_tDataL) ?>, backgroundColor: <?= json_encode($_tBgL) ?>, borderColor: <?= json_encode($_tBorderL) ?>, borderWidth: 1 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            legend: { position: 'right', labels: { fontSize: 11, boxWidth: 12 } },
+            tooltips: { callbacks: { label: function(item, data) {
+                return data.labels[item.index] + ': ' + fmtChf(data.datasets[0].data[item.index]);
+            }}}
+        }
+    });
+    <?php endif ?>
+
+    <?php if ($_showTimeline): ?>
+    destroyChart('lecTimeline');
+    new Chart(document.getElementById('lecTimeline'), {
+        type: 'bar',
+        data: {
+            labels: <?= json_encode($_labels) ?>,
+            datasets: [
+                { type: 'bar',  label: '<?= $year == -2 ? 'Annuel' : 'Mensuel' ?>', data: <?= json_encode($_monthly_data) ?>, backgroundColor: 'rgba(13,110,253,0.55)', borderColor: 'rgba(13,110,253,1)', borderWidth: 1, yAxisID: 'y1' },
+                { type: 'line', label: 'Cumulé', data: <?= json_encode($_cumul_data) ?>, borderColor: 'rgba(25,135,84,0.9)', backgroundColor: 'rgba(25,135,84,0.08)', borderWidth: 2, pointRadius: 3, fill: true, yAxisID: 'y2' }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            legend: { position: 'bottom', labels: { fontSize: 11, boxWidth: 12 } },
+            tooltips: { mode: 'index', callbacks: { label: function(item, data) {
+                return data.datasets[item.datasetIndex].label + ': ' + fmtChf(item.yLabel);
+            }}},
+            scales: {
+                yAxes: [
+                    { id: 'y1', position: 'left',  ticks: { callback: fmtChf, fontSize: 10 }, gridLines: { drawOnChartArea: true } },
+                    { id: 'y2', position: 'right', ticks: { callback: fmtChf, fontSize: 10 }, gridLines: { drawOnChartArea: false } }
+                ],
+                xAxes: [{ ticks: { fontSize: 11 } }]
+            }
+        }
+    });
+    <?php endif ?>
+
+    }); }); // end double-rAF
+})();
 </script>
 
 

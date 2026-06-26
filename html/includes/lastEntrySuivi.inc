@@ -1,100 +1,75 @@
 <?php
-$year = -1; // date("Y");
-if (isset($_REQUEST['year'])) {
-    $year = $_REQUEST['year'];
-}
-if ($year == -1) {
-    $year = date("Y");
-}
-$from = mktime(0, 0, 0, 1, 0, $year);
-$to = mktime(0, 0, 0, 1, 1, $year + 1);
-
-$sort = "user_properties.date";
-if (isset($_REQUEST['sort'])) {
-    $sort = $_REQUEST['sort'];
-    if ($sort == "name"){
-        $sort = "users.lastname,users.firstname,users.society";
-    } else if ($sort == "date"){
-        $sort = "user_properties.date";
-    }
-}
-
-$type = "allTypes";
-if (isset($_REQUEST['type'])) {
-    $type = $_REQUEST['type'];
-}
-
+$stmt = $pdo->query(
+    "SELECT users.id, users.firstname, users.lastname, users.society,
+            user_properties.date, user_properties.value
+     FROM users
+     JOIN user_properties ON users.id = user_properties.user_id
+     WHERE user_properties.parameter = 'suivi'
+     ORDER BY user_properties.date DESC"
+);
+$rows = $stmt->fetchAll(PDO::FETCH_OBJ);
 ?>
 
-
-
-
-<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+<div class="d-flex align-items-center gap-2 mb-3">
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em"><?= $GLOBAL['lastEntrySuivi'] ?></span>
-
-  <div class="dropdown ms-2">
-    <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? $GLOBAL['allYear'] : $year ?>
-    </button>
-    <ul class="dropdown-menu">
-      <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi&amp;type=<?= $type ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
-      <li><hr class="dropdown-divider"></li>
-      <?php
-      $currentYear = date("Y");
-      for ($i = 0; $i < 10; $i++) {
-          $y = $currentYear - $i;
-          ?><li><a class="dropdown-item<?= (isset($_REQUEST['year']) && $_REQUEST['year'] == $y) ? ' active' : '' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi&amp;type=<?= $type ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
-      }
-      ?>
-    </ul>
-  </div>
 </div>
 
-<table class="table table-condensed table-striped table-hover p mt-2">
+<table id="suivi-table" class="table table-sm table-striped table-hover mt-2">
 <thead>
 <tr>
-    <th><a href="<?=$_SERVER['PHP_SELF']?>?view=lastEntrySuivi&amp;sort=date"><?=$GLOBAL['date']?></a></th>
-    <th><a href="<?=$_SERVER['PHP_SELF']?>?view=lastEntrySuivi&amp;sort=name"><?=$GLOBAL['lastName']?></a></th>
-    <th><?=$GLOBAL['suivi']?></th>
+    <th><?= $GLOBAL['date'] ?></th>
+    <th><?= $GLOBAL['lastName'] ?></th>
+    <th><?= $GLOBAL['suivi'] ?></th>
 </tr>
 </thead>
-<?php
-$query = "SELECT DISTINCT users.id,users.firstname,users.lastname,users.society,users.id,user_properties.date,user_properties.value ".
-         "FROM users,user_properties ".
-         "WHERE users.id=user_properties.user_id ".
-         "AND user_properties.parameter='suivi' ";
-
-if ($year != -2) {
-    $query .= " AND user_properties.date > $from AND user_properties.date < $to ";
-}
-$query .= "ORDER by $sort DESC";
-$stmt = $pdo->query($query);
-$i = 0;
-while ($row = $stmt->fetchObject()) {
-    $i++;
-    $date = timeStampToformatedDate($row->date);
-    $firstName = $row->firstname;
-    $lastName = $row->lastname;
-    $society = $row->society;
-    $userId = $row->id;
-    $suivi = $row->value;
-    ?>
-    <tr data-href="<?=$_SERVER['PHP_SELF']?>?view=suivi&userid=<?=$userId?>" class="<?=$type?>">
-        <td><?=htmlentities($date,ENT_COMPAT,$charset)?></td>
-        <td class="text-nowrap">
-            <?php
-            if ($society) {
-                ?><?=htmlentities($society,ENT_COMPAT,$charset)?><?php
-            }
-            ?>
-            <?=htmlentities($lastName,ENT_COMPAT,$charset)?> <?=htmlentities($firstName,ENT_COMPAT,$charset)?>
-        </td>
-        <td><?=html_entity_decode($suivi,ENT_COMPAT,$charset)?></td>
-    </tr>
-    <?php
-}
+<tbody>
+<?php foreach ($rows as $row):
+    $date      = timeStampToformatedDate($row->date);
+    $name      = trim(($row->society ? htmlentities($row->society, ENT_COMPAT, $charset) . ' ' : '') .
+                      htmlentities($row->lastname, ENT_COMPAT, $charset) . ' ' .
+                      htmlentities($row->firstname, ENT_COMPAT, $charset));
 ?>
+    <tr data-href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&userid=<?= (int)$row->id ?>">
+        <td><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
+        <td class="text-nowrap"><?= $name ?></td>
+        <td><?= html_entity_decode($row->value, ENT_COMPAT, $charset) ?></td>
+    </tr>
+<?php endforeach ?>
+</tbody>
 </table>
-<span style="font-size:9px">Found <?=$i?> rows. </span>
+
+<script>
+$(document).ready(function() {
+    $.fn.dataTable.moment('DD/MM/YYYY');
+    $('#suivi-table').DataTable({
+        order: [[0, 'desc']],
+        pageLength: 50,
+        paging: true,
+        dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
+        buttons: [
+            {
+                extend: 'collection',
+                text: 'Exporter <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
+                className: 'btn btn-dt',
+                buttons: [
+                    { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i>Copier' },
+                    { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i>Excel' },
+                    { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i>Imprimer' }
+                ]
+            }
+        ],
+        language: {
+            info:           '_START_–_END_ sur _TOTAL_ entrées',
+            infoFiltered:   '(filtrées sur _MAX_)',
+            search:         '',
+            searchPlaceholder: 'Filtrer…',
+            paginate: {
+                first:    '«',
+                last:     '»',
+                next:     '›',
+                previous: '‹'
+            }
+        }
+    });
+});
+</script>

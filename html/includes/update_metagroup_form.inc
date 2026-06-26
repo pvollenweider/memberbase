@@ -14,8 +14,10 @@ $stmtIn->execute([$mgId]);
 $memberTeamIds = $stmtIn->fetchAll(PDO::FETCH_COLUMN);
 $memberTeamIds = array_map('intval', $memberTeamIds);
 
-// All visible teams — members first, then non-members, each alphabetically
-$allTeams = $pdo->query("SELECT id, name FROM team WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+// All teams (including hidden) — members first, then non-members, each alphabetically
+$allTeamsRaw = $pdo->query("SELECT id, name, hidden FROM team ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+// Only keep visible teams + hidden teams that are already members
+$allTeams = array_filter($allTeamsRaw, fn($t) => !(int)$t->hidden || in_array((int)$t->id, $memberTeamIds));
 usort($allTeams, function($a, $b) use ($memberTeamIds) {
     $aIn = in_array((int)$a->id, $memberTeamIds);
     $bIn = in_array((int)$b->id, $memberTeamIds);
@@ -53,8 +55,27 @@ $cntRows = $pdo->query("SELECT SUBSTRING(parameter, 6) AS team_id, COUNT(*) AS c
 $teamCounts = [];
 foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 ?>
+<?php if (!empty($_GET['created'])): ?>
+<div class="alert alert-success alert-dismissible fade show d-flex align-items-start gap-2" role="alert">
+  <i class="fas fa-check-circle mt-1 flex-shrink-0" aria-hidden="true"></i>
+  <div>
+    <strong>Groupe filtre «<?= htmlspecialchars($mg->name, ENT_QUOTES, 'UTF-8') ?>» créé.</strong>
+    Vous pouvez maintenant assigner des groupes ci-dessous, ou
+    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=manageTeam" class="alert-link">retourner à la liste</a>.
+  </div>
+  <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Fermer"></button>
+</div>
+<?php endif ?>
 <div class="row justify-content-center mt-4">
   <div class="col-md-6 d-flex flex-column gap-4">
+
+    <?php $_mgBackTab = $isFilter ? 'filters' : 'categories'; $_mgBackLabel = $isFilter ? 'métagroupes' : 'catégories'; ?>
+    <div>
+      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=<?= $_mgBackTab ?>"
+         class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Retour aux <?= $_mgBackLabel ?>
+      </a>
+    </div>
 
     <!-- Rename + type form -->
     <div>
@@ -72,26 +93,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           </div>
         </div>
 
-        <div class="row mb-3">
-          <div class="col-sm-9 offset-sm-3">
-            <div class="d-flex flex-column gap-2">
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="is_filter" id="type_filter" value="1" <?= $isFilter ? 'checked' : '' ?>>
-                <label class="form-check-label small" for="type_filter">
-                  <strong>Filtre de groupes</strong>
-                  <span class="text-muted d-block" style="font-size:0.78rem">Regroupe plusieurs groupes en un filtre dynamique. Apparaît dans le menu «Groupes de groupes» de la barre de navigation.</span>
-                </label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="is_filter" id="type_category" value="0" <?= !$isFilter ? 'checked' : '' ?>>
-                <label class="form-check-label small" for="type_category">
-                  <strong>Catégorie</strong>
-                  <span class="text-muted d-block" style="font-size:0.78rem">Sert à organiser les groupes en sections dans les listes. N'apparaît pas dans la navigation — c'est un regroupement visuel uniquement.</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
+        <input type="hidden" name="is_filter" value="<?= $isFilter ? '1' : '0' ?>"/>
 
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
@@ -102,37 +104,33 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
     <!-- Team membership -->
     <div>
+      <?php if ($isFilter): ?>
+
+      <!-- MÉTAGROUPE: all teams grouped by category, checkboxes -->
       <div class="d-flex align-items-baseline justify-content-between mb-1">
-        <p class="form-section-title mb-0"><?= $isFilter ? 'Groupes membres' : 'Groupes dans cette catégorie' ?></p>
-        <?php if ($isFilter): ?>
+        <p class="form-section-title mb-0">Groupes membres</p>
         <a href="<?= $_SERVER['PHP_SELF'] ?>?metagroup=<?= $mgId ?>" class="small">
           Voir la liste filtrée <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
         </a>
-        <?php endif ?>
       </div>
-      <p class="small text-muted mb-3">
-        <?php if ($isFilter): ?>
-          Les groupes qui font partie du filtre «<?= htmlentities($mg->getName(), ENT_COMPAT, $charset) ?>». Sauvegarde automatique à chaque coche.
-        <?php else: ?>
-          Les groupes classés dans la catégorie «<?= htmlentities($mg->getName(), ENT_COMPAT, $charset) ?>». Sauvegarde automatique à chaque coche.
-        <?php endif ?>
-      </p>
+      <p class="small text-muted mb-3">Sauvegarde automatique à chaque coche.</p>
 
       <div id="mg-team-list" class="d-flex flex-column gap-1" style="font-size:0.85rem">
         <?php
-        // Helper to render one checkbox row
-        function renderTeamCb($t, $memberTeamIds, $charset, $teamCounts) { ?>
-        <div class="form-check form-check-sm">
+        function renderTeamCb($t, $memberTeamIds, $charset, $teamCounts) {
+          $isHidden = (int)$t->hidden; ?>
+        <div class="form-check form-check-sm <?= $isHidden ? 'text-muted' : '' ?>">
           <input class="form-check-input mg-team-cb" type="checkbox"
                  data-teamid="<?= (int)$t->id ?>"
                  id="mgteam_<?= (int)$t->id ?>"
                  <?= in_array((int)$t->id, $memberTeamIds) ? 'checked' : '' ?>>
           <label class="form-check-label" for="mgteam_<?= (int)$t->id ?>">
             <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
+            <?php if ($isHidden): ?>
+            <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="groupe masqué" title="Groupe masqué"></i>
+            <?php endif ?>
             <?php if (isset($teamCounts[(int)$t->id])): ?>
-            <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500">
-              <?= $teamCounts[(int)$t->id] ?>
-            </span>
+            <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
             <?php endif ?>
           </label>
         </div>
@@ -154,6 +152,119 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         endif;
         ?>
       </div>
+
+      <?php else: ?>
+
+      <!-- CATÉGORIE: members listed, then collapsible list to add others -->
+      <?php
+      $memberTeams    = array_filter($allTeams, fn($t) => in_array((int)$t->id, $memberTeamIds));
+      $nonMemberTeams = array_filter($allTeams, fn($t) => !in_array((int)$t->id, $memberTeamIds) && !(int)$t->hidden);
+      ?>
+
+      <p class="form-section-title mb-1">Groupes dans cette catégorie</p>
+
+      <div id="mg-team-list">
+        <?php if (empty($memberTeams)): ?>
+        <p class="text-muted small mb-2" id="mg-empty-msg">Aucun groupe dans cette catégorie.</p>
+        <?php else: ?>
+        <p class="text-muted small mb-2" id="mg-empty-msg" style="display:none">Aucun groupe dans cette catégorie.</p>
+        <?php endif ?>
+
+        <ul class="list-unstyled mb-0 d-flex flex-column gap-1" id="mg-member-list" style="font-size:0.85rem">
+        <?php foreach ($memberTeams as $t): ?>
+          <?php $_mHidden = (int)$t->hidden; ?>
+          <li class="d-flex align-items-center justify-content-between gap-2 <?= $_mHidden ? 'text-muted' : '' ?>" id="mg-row-<?= (int)$t->id ?>">
+            <span>
+              <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
+              <?php if ($_mHidden): ?>
+              <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="groupe masqué" title="Groupe masqué"></i>
+              <?php endif ?>
+              <?php if (isset($teamCounts[(int)$t->id])): ?>
+              <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
+              <?php endif ?>
+            </span>
+            <button type="button" class="btn btn-sm py-0 px-1 text-muted mg-team-cb mg-remove-btn"
+                    data-teamid="<?= (int)$t->id ?>" data-checked="1"
+                    title="Retirer de la catégorie" aria-label="Retirer <?= htmlentities($t->name, ENT_QUOTES, $charset) ?>">
+              <i class="fas fa-times" style="font-size:0.75rem" aria-hidden="true"></i>
+            </button>
+            <input type="hidden" class="mg-cat-member" data-teamid="<?= (int)$t->id ?>" value="1"/>
+          </li>
+        <?php endforeach ?>
+        </ul>
+
+        <?php if (!empty($nonMemberTeams)):
+          // Group non-members by current category
+          $_nmByCat = []; // catName => [teams]
+          $_nmNoCat = [];
+          $_currentCatName = htmlentities($mg->getName(), ENT_COMPAT, $charset);
+          foreach ($nonMemberTeams as $t) {
+              $_tCat = $teamCategory[(int)$t->id] ?? null;
+              if ($_tCat) { $_nmByCat[$_tCat['name']][] = $t; }
+              else        { $_nmNoCat[] = $t; }
+          }
+          ksort($_nmByCat);
+        ?>
+        <details class="mt-3" style="font-size:0.82rem" id="mg-add-details">
+          <summary class="text-muted" style="cursor:pointer;list-style:none;user-select:none;display:flex;align-items:center;gap:0.35rem">
+            <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
+            Ajouter des groupes
+          </summary>
+          <script>
+            document.getElementById('mg-add-details').addEventListener('toggle', function() {
+              this.querySelector('.fa-chevron-right').style.transform = this.open ? 'rotate(90deg)' : '';
+            });
+          </script>
+          <div class="mt-2 d-flex flex-column gap-3 ps-1">
+          <?php
+          // Helper to render one add-row
+          function renderAddRow($t, $charset, $teamCounts, $currentCatName) {
+              $_nmHidden = (int)$t->hidden; ?>
+            <li class="d-flex align-items-center justify-content-between gap-2" id="mg-row-<?= (int)$t->id ?>">
+              <span class="text-muted">
+                <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
+                <?php if ($_nmHidden): ?>
+                <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="groupe masqué" title="Groupe masqué"></i>
+                <?php endif ?>
+                <?php if (isset($teamCounts[(int)$t->id])): ?>
+                <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
+                <?php endif ?>
+              </span>
+              <button type="button" class="btn btn-sm py-0 px-1 text-muted mg-team-cb mg-add-btn"
+                      data-teamid="<?= (int)$t->id ?>" data-checked="0"
+                      data-dest="<?= $currentCatName ?>"
+                      title="Déplacer dans «<?= $currentCatName ?>»"
+                      aria-label="Déplacer <?= htmlentities($t->name, ENT_QUOTES, $charset) ?> dans <?= $currentCatName ?>">
+                <i class="fas fa-arrow-right" style="font-size:0.75rem" aria-hidden="true"></i>
+              </button>
+              <input type="hidden" class="mg-cat-member" data-teamid="<?= (int)$t->id ?>" value="0"/>
+            </li>
+          <?php }
+
+          foreach ($_nmByCat as $_catLabel => $_catTeams): ?>
+          <div>
+            <p class="text-muted mb-1" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600">
+              <?= htmlentities($_catLabel, ENT_COMPAT, $charset) ?>
+            </p>
+            <ul class="list-unstyled mb-0 d-flex flex-column gap-1">
+            <?php foreach ($_catTeams as $t): renderAddRow($t, $charset, $teamCounts, $_currentCatName); endforeach ?>
+            </ul>
+          </div>
+          <?php endforeach ?>
+          <?php if (!empty($_nmNoCat)): ?>
+          <div>
+            <p class="text-muted mb-1" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Sans catégorie</p>
+            <ul class="list-unstyled mb-0 d-flex flex-column gap-1">
+            <?php foreach ($_nmNoCat as $t): renderAddRow($t, $charset, $teamCounts, $_currentCatName); endforeach ?>
+            </ul>
+          </div>
+          <?php endif ?>
+          </div>
+        </details>
+        <?php endif ?>
+      </div>
+
+      <?php endif ?>
     </div>
 
     <!-- Toast -->
@@ -169,6 +280,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
     <script>
     (function() {
       var mgId = <?= $mgId ?>;
+      var isFilter = <?= $isFilter ? 'true' : 'false' ?>;
       var toast = new bootstrap.Toast(document.getElementById('mg-toast'), { delay: 2500 });
       var toastEl = document.getElementById('mg-toast');
       var toastBody = document.getElementById('mg-toast-body');
@@ -180,32 +292,95 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         toast.show();
       }
 
-      document.querySelectorAll('.mg-team-cb').forEach(function(cb) {
-        cb.addEventListener('change', function() {
-          var checked = Array.from(document.querySelectorAll('.mg-team-cb:checked'))
-                             .map(function(c) { return c.dataset.teamid; });
-          var body = new URLSearchParams();
-          body.append('action', 'updateMetagroupTeams');
-          body.append('view', 'manageTeam');
-          body.append('id', mgId);
-          checked.forEach(function(id) { body.append('teams[]', id); });
+      function getCurrentMemberIds() {
+        return Array.from(document.querySelectorAll('.mg-cat-member'))
+          .filter(function(h) { return h.value === '1'; })
+          .map(function(h) { return h.dataset.teamid; });
+      }
 
-          fetch(window.location.pathname, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: body.toString()
-          }).then(function(r) {
-            if (r.ok) {
+      function saveMembers(memberIds, onSuccess) {
+        var body = new URLSearchParams();
+        body.append('action', 'updateMetagroupTeams');
+        body.append('view', 'manageTeam');
+        body.append('id', mgId);
+        memberIds.forEach(function(id) { body.append('teams[]', id); });
+        fetch(window.location.pathname, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString()
+        }).then(function(r) {
+          if (r.ok) { onSuccess(); }
+          else { showToast('Erreur lors de la sauvegarde', false); }
+        }).catch(function() { showToast('Erreur réseau', false); });
+      }
+
+      if (isFilter) {
+        // Métagroupe: checkbox mode
+        document.querySelectorAll('.mg-team-cb').forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            var checked = Array.from(document.querySelectorAll('.mg-team-cb:checked'))
+                               .map(function(c) { return c.dataset.teamid; });
+            saveMembers(checked, function() {
               var label = document.querySelector('label[for="mgteam_' + cb.dataset.teamid + '"]').textContent.trim();
               showToast((cb.checked ? '✓ ' : '✗ ') + label, true);
-            } else {
-              showToast('Erreur lors de la sauvegarde', false);
-            }
-          }).catch(function() {
-            showToast('Erreur réseau', false);
+            });
           });
         });
-      });
+      } else {
+        // Catégorie: add/remove button mode
+        function moveRow(btn, addMode) {
+          var teamid = btn.dataset.teamid;
+          var row = document.getElementById('mg-row-' + teamid);
+          var hidden = row.querySelector('.mg-cat-member');
+          hidden.value = addMode ? '1' : '0';
+
+          var memberIds = getCurrentMemberIds();
+          var teamName = row.querySelector('span').textContent.trim();
+
+          var destName = btn.dataset.dest || '';
+          saveMembers(memberIds, function() {
+            showToast(addMode ? ('→ ' + destName + ' : ' + teamName) : ('✗ ' + teamName), true);
+            // Move row between sections
+            var memberList = document.getElementById('mg-member-list');
+            var addList = document.querySelector('#mg-add-details ul');
+            if (addMode) {
+              // Remove from add list, insert into member list
+              var span = row.querySelector('span');
+              span.classList.remove('text-muted');
+              btn.classList.remove('mg-add-btn');
+              btn.classList.add('mg-remove-btn');
+              btn.dataset.checked = '1';
+              btn.title = 'Retirer de la catégorie';
+              btn.querySelector('i').className = 'fas fa-times';
+              btn.removeEventListener('click', btn._addHandler);
+              btn.addEventListener('click', btn._removeHandler = function() { moveRow(btn, false); });
+              memberList.appendChild(row);
+            } else {
+              // Remove from member list, insert into add list
+              var span = row.querySelector('span');
+              span.classList.add('text-muted');
+              btn.classList.remove('mg-remove-btn');
+              btn.classList.add('mg-add-btn');
+              btn.dataset.checked = '0';
+              btn.title = 'Ajouter à la catégorie';
+              btn.querySelector('i').className = 'fas fa-plus';
+              btn.removeEventListener('click', btn._removeHandler);
+              btn.addEventListener('click', btn._addHandler = function() { moveRow(btn, true); });
+              if (addList) addList.appendChild(row);
+            }
+            // Toggle empty message
+            var emptyMsg = document.getElementById('mg-empty-msg');
+            if (emptyMsg) emptyMsg.style.display = memberList.children.length === 0 ? '' : 'none';
+          });
+        }
+
+        document.querySelectorAll('.mg-remove-btn').forEach(function(btn) {
+          btn.addEventListener('click', btn._removeHandler = function() { moveRow(btn, false); });
+        });
+        document.querySelectorAll('.mg-add-btn').forEach(function(btn) {
+          btn.addEventListener('click', btn._addHandler = function() { moveRow(btn, true); });
+        });
+      }
     })();
     </script>
 

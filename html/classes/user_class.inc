@@ -21,11 +21,9 @@ class User
     public $creationDate;
     public $modificationDate;
 
-    private $logger;
 
     public function __construct()
     {
-        $this->logger = Logger::getLogger('User');
     }
 
     private function hydrateFromRow(object $row): void
@@ -71,7 +69,6 @@ class User
         if ($row) {
             $this->hydrateFromRow($row);
         } else {
-            $this->logger->debug("Could not find user with id [$id]");
         }
     }
 
@@ -206,7 +203,6 @@ class User
         global $pdo;
         $pdo->prepare("INSERT IGNORE INTO user_properties (user_id,parameter,value) VALUES (?,?,?)")
             ->execute([$this->id, "team_$teamId", 'true']);
-        $this->logger->info("Add team_$teamId for user $this->id");
     }
 
     public function removeMembership(int $teamId): void
@@ -214,7 +210,6 @@ class User
         global $pdo;
         $pdo->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter=?")
             ->execute([$this->id, "team_$teamId"]);
-        $this->logger->info("Remove team_$teamId for user $this->id");
     }
 
     public function save(): int
@@ -231,7 +226,6 @@ class User
                 $this->fax, $this->email, $this->web, $this->birthDay, $this->comment,
                 time(), $this->id,
             ]);
-            $this->logger->info("Updated user $this->id");
             return (int) $this->id;
         } else {
             $userId = updateAndGetMaxVal("userid");
@@ -245,7 +239,6 @@ class User
                 $this->portable, $this->fax, $this->email, $this->web, $this->birthDay,
                 $this->comment, time(), time(),
             ]);
-            $this->logger->info("Inserted user $userId");
             return $userId;
         }
     }
@@ -256,6 +249,5 @@ class User
         $pdo->prepare("DELETE FROM users WHERE id=?")->execute([$this->id]);
         $pdo->prepare("DELETE FROM user_properties WHERE user_id=?")->execute([$this->id]);
         $pdo->prepare("DELETE FROM compta WHERE user_id=?")->execute([$this->id]);
-        $this->logger->info("Removed user $this->id and related records");
     }
 }

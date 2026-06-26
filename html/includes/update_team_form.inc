@@ -144,19 +144,6 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <a href="<?=$_SERVER['PHP_SELF']?>?view=manageTeam" class="btn btn-outline-secondary btn-sm">Annuler</a>
         </div>
       </form>
-      <script>
-        document.getElementById('btn-update-team').closest('form').addEventListener('submit', function(e) {
-          var checked = document.querySelectorAll('input[name="importFrom[]"]:checked');
-          if (checked.length > 0) {
-            var names = Array.from(checked).map(function(cb) {
-              return document.querySelector('label[for="' + cb.id + '"]').textContent.trim();
-            });
-            if (!confirm('Tu as sélectionné ' + checked.length + ' groupe(s) à importer :\n– ' + names.join('\n– ') + '\n\nCe bouton ne fait que sauver le nom du groupe. Les membres ne seront PAS importés.\n\nContinuer quand même ?')) {
-              e.preventDefault();
-            }
-          }
-        });
-      </script>
     </div>
 
     <!-- Import members -->

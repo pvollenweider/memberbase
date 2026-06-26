@@ -137,6 +137,17 @@ i.fas.fa-female.s {
     font-size: 0.6rem;
     opacity: 0.55;
 }
+@keyframes pill-flash {
+    0%   { background: var(--ca-success, #198754); color: #fff; transform: scale(1.12); }
+    60%  { background: var(--ca-success, #198754); color: #fff; transform: scale(1.05); }
+    100% { background: var(--ca-primary-light); color: var(--ca-primary-dark); transform: scale(1); }
+}
+.pill-just-added {
+    animation: pill-flash 1.6s ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+    .pill-just-added { animation: none; outline: 2px solid var(--ca-success, #198754); }
+}
 
 /* Group add list */
 .group-add-list a {
@@ -239,8 +250,9 @@ i.fas.fa-female.s {
     background: var(--ca-primary-light);
     color: var(--ca-primary-dark);
 }
-div.dataTables_filter input {
-    font-size: 0.82rem;
+div.dataTables_filter,
+div.dt-search {
+    display: none !important;
 }
 div.dataTables_info {
     font-size: 0.75rem;
@@ -273,3 +285,11 @@ div.dataTables_info {
 
 /* DataTables sort helpers — visually hidden but readable by screen readers */
 .hide, .hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+/* Extended compta-type color swatches */
+.ca-orange-subtle { background-color: rgba(253,126,20,0.18) !important; }
+.ca-teal-subtle   { background-color: rgba(32,201,151,0.18) !important; }
+.ca-pink-subtle   { background-color: rgba(214,51,132,0.18) !important; }
+.ca-purple-subtle { background-color: rgba(111,66,193,0.18) !important; }
+.ca-indigo-subtle { background-color: rgba(102,16,242,0.18) !important; }
+.ca-lime-subtle   { background-color: rgba(128,189,64,0.18)  !important; }

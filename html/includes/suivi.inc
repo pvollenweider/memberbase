@@ -35,10 +35,13 @@ while ($row = $stmt->fetchObject()) {
      <tr data-href="<?=$_SERVER['PHP_SELF']?>?view=updateSuivi&suiviid=<?=$id?>&userid<?=$user->getId()?>">
         <td><?=timeStampToformatedDate($date)?></td>
         <td><?=html_entity_decode($value,ENT_COMPAT,$charset)?></td>
-
-
-        <td>
-            &nbsp;
+        <td class="text-end" style="white-space:nowrap">
+            <a href="<?=$_SERVER['PHP_SELF']?>?view=removeSuivi&amp;suiviid=<?=(int)$id?>&amp;userid=<?=(int)$userid?>"
+               class="btn btn-sm py-0 px-1 text-muted"
+               title="Supprimer cette entrée"
+               aria-label="Supprimer">
+                <i class="fas fa-trash-alt" style="font-size:0.75rem" aria-hidden="true"></i>
+            </a>
         </td>
     </tr>
     <?php

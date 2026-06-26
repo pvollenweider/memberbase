@@ -8,6 +8,24 @@ requireLogin();
 requirePasswordChange();
 
 header("Content-Type: text/html; charset=$charset");
+
+// htmx partial response — skip layout, return only content fragment
+$isHtmx = !empty($_SERVER['HTTP_HX_REQUEST']);
+if ($isHtmx) {
+    include "locales/resources_fr.inc";
+    include "includes/declarations.inc";
+    include "classes/user_class.inc";
+    include "classes/team_class.inc";
+    include "classes/compta_class.inc";
+    include "classes/property_class.inc";
+    include "classes/metagroup_class.inc";
+    $userid = -1;
+    $view = $_REQUEST['view'] ?? 'list';
+    include "includes/manage_actions.inc";
+    include "includes/manage_views.inc";
+    ob_end_flush();
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -64,10 +82,6 @@ header("Content-Type: text/html; charset=$charset");
     <!-- Datetimepicker -->
     <script src="js/bootstrap-datetimepicker.min.js"></script>
 
-    <!-- CKEditor -->
-    <script src="plugins/ckeditor/ckeditor.js"></script>
-    <script src="plugins/ckeditor/adapters/jquery.js"></script>
-
     <!-- Highlight + datahref -->
     <script src="js/jquery.highlight.js"></script>
     <script src="js/datahref2.jquery.js"></script>
@@ -92,16 +106,88 @@ header("Content-Type: text/html; charset=$charset");
     <!-- Chart.js -->
     <script src="js/vendor/Chart.bundle.min.js"></script>
 
-    <script type="text/javascript">
-        $(function () {
-            var config = {
-                toolbar: [
-                    ['Bold', 'Italic', '-', 'NumberedList', 'BulletedList', '-', 'Link', 'Unlink'],
-                    ['UIColor']
-                ]
-            };
-            $('.ck').ckeditor(config);
-        });
+    <!-- htmx + Alpine.js -->
+    <script src="js/vendor/htmx.min.js"></script>
+    <script defer src="js/vendor/alpine.min.js"></script>
+    <meta name="htmx-config" content='{"scrollIntoViewOnBoost": false, "defaultSwapStyle": "innerHTML"}'>
+
+    <style>
+        .tiptap-wrap { background: #fff; }
+        .tt-btn {
+            border: none; background: transparent; border-radius: 4px;
+            padding: 2px 6px; color: #495057; cursor: pointer; font-size: 0.8rem;
+            line-height: 1.4;
+        }
+        .tt-btn:hover { background: #e9ecef; }
+        .tt-btn.is-active { background: #d3d8de; color: #212529; }
+        .tt-sep { width: 1px; background: #dee2e6; margin: 2px 2px; }
+        .tiptap-body .ProseMirror { outline: none; min-height: 70px; }
+        .tiptap-body .ProseMirror p { margin-bottom: 0.25rem; }
+        .tiptap-body .ProseMirror ul,
+        .tiptap-body .ProseMirror ol { padding-left: 1.4rem; margin-bottom: 0.25rem; }
+    </style>
+
+    <!-- TipTap rich text editor -->
+    <script type="module">
+        import { Editor } from 'https://esm.sh/@tiptap/core@2';
+        import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2';
+
+        function initTiptap(root) {
+            var el = (root && root.querySelector) ? root.querySelector('#tiptap-comment') : document.getElementById('tiptap-comment');
+            if (!el || el._tt) return;
+            var hidden = document.getElementById('comment');
+            var editor = new Editor({
+                element: el,
+                extensions: [StarterKit],
+                content: hidden ? hidden.value : '',
+                onUpdate: function(_ref) {
+                    if (hidden) hidden.value = _ref.editor.getHTML();
+                },
+                onSelectionUpdate: function(_ref) { updateToolbar(_ref.editor); },
+                onTransaction: function(_ref) { updateToolbar(_ref.editor); },
+            });
+            el._tt = editor;
+
+            // Toolbar button wiring
+            var wrap = el.closest('.tiptap-wrap');
+            if (wrap) {
+                wrap.querySelectorAll('.tt-btn').forEach(function(btn) {
+                    btn.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        var cmd = btn.dataset.tt;
+                        if      (cmd === 'bold')        editor.chain().focus().toggleBold().run();
+                        else if (cmd === 'italic')      editor.chain().focus().toggleItalic().run();
+                        else if (cmd === 'bulletList')  editor.chain().focus().toggleBulletList().run();
+                        else if (cmd === 'orderedList') editor.chain().focus().toggleOrderedList().run();
+                        else if (cmd === 'undo')        editor.chain().focus().undo().run();
+                        else if (cmd === 'redo')        editor.chain().focus().redo().run();
+                    });
+                });
+            }
+        }
+
+        function updateToolbar(editor) {
+            var wrap = document.querySelector('.tiptap-wrap');
+            if (!wrap) return;
+            wrap.querySelectorAll('.tt-btn[data-tt]').forEach(function(btn) {
+                var cmd = btn.dataset.tt;
+                var active = false;
+                if (cmd === 'bold')        active = editor.isActive('bold');
+                else if (cmd === 'italic') active = editor.isActive('italic');
+                else if (cmd === 'bulletList')  active = editor.isActive('bulletList');
+                else if (cmd === 'orderedList') active = editor.isActive('orderedList');
+                btn.classList.toggle('is-active', active);
+            });
+        }
+
+        function destroyTiptap(root) {
+            var el = (root && root.querySelector) ? root.querySelector('#tiptap-comment') : document.getElementById('tiptap-comment');
+            if (el && el._tt) { el._tt.destroy(); el._tt = null; }
+        }
+
+        initTiptap(document);
+        document.addEventListener('htmx:beforeSwap', function(e) { destroyTiptap(e.detail.target); });
+        document.addEventListener('htmx:afterSwap',  function(e) { initTiptap(e.detail.target); });
     </script>
 
     <script>
@@ -125,14 +211,14 @@ header("Content-Type: text/html; charset=$charset");
     </script>
 </head>
 
-<body>
+<body hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">
 
 <?php
 include "includes/menu.inc";
 ?>
 <div class="container mt-2">
     <div class="row">
-        <div class="col-12">
+        <div class="col-12" id="main-content">
             <?php
             $userid = -1;
             include "includes/manage_actions.inc";
@@ -142,6 +228,18 @@ include "includes/menu.inc";
         </div>
     </div>
 </div>
+<!-- Toast container -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100" aria-live="polite" aria-atomic="true">
+    <div id="casaToast" class="toast text-bg-success border-0" role="status" aria-live="polite" aria-atomic="true">
+        <div class="d-flex align-items-center px-3 py-2 gap-2">
+            <i class="fas fa-check-circle flex-shrink-0" aria-hidden="true"></i>
+            <span id="casaToastMsg" class="flex-grow-1">Enregistré.</span>
+            <a id="casaToastUndo" href="#" class="btn btn-sm btn-outline-light py-0 px-2 flex-shrink-0" style="display:none;font-size:0.78rem">Annuler</a>
+            <button type="button" class="btn-close btn-close-white flex-shrink-0" data-bs-dismiss="toast" aria-label="Fermer"></button>
+        </div>
+    </div>
+</div>
+
 <hr/>
 <footer class="bs-footer" role="contentinfo">
     <div class="container">
@@ -156,36 +254,43 @@ include "includes/menu.inc";
 (function () {
     var dirty = false;
 
-    // Mark dirty on any user interaction with a form field
-    document.addEventListener('change', function (e) {
+    function markDirty(e) {
         var el = e.target;
         if (!el || !el.closest) return;
-        // Ignore: mg-team-cb (auto-saves via AJAX), includeAttestation (triggers navigation), logout/search forms
         if (el.classList.contains('mg-team-cb')) return;
         if (el.id === 'includeAttestation') return;
         if (el.closest('form[data-no-dirty]')) return;
+        if (el.closest('.dt-search, .dataTables_filter')) return;
+        if (el.closest('.modal')) return;
+        if (el.closest('#bulk-form')) return;
         if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
             dirty = true;
         }
-    });
+    }
 
-    // Also catch typed-but-not-submitted input
-    document.addEventListener('input', function (e) {
-        var el = e.target;
-        if (!el || !el.closest) return;
-        if (el.classList.contains('mg-team-cb')) return;
-        if (el.closest('form[data-no-dirty]')) return;
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-            dirty = true;
+    document.addEventListener('change', markDirty);
+    document.addEventListener('input', markDirty);
+    document.addEventListener('submit', function () { dirty = false; });
+
+    // htmx navigation — warn before swap if dirty, but not on form submissions (save = intentional)
+    document.addEventListener('htmx:beforeRequest', function (e) {
+        if (!dirty || window.__dirtyOverride) return;
+        var verb = (e.detail && e.detail.requestConfig && e.detail.requestConfig.verb) || 'get';
+        if (verb === 'post') { dirty = false; return; } // form submit — let it through
+        if (!confirm('Des modifications non sauvegardées seront perdues. Continuer ?')) {
+            e.preventDefault();
+        } else {
+            dirty = false;
         }
     });
 
-    // Clear dirty when any form is submitted (save = intentional navigation)
-    document.addEventListener('submit', function () {
+    // Reset dirty after htmx swap (new content loaded)
+    document.addEventListener('htmx:afterSwap', function () {
         dirty = false;
+        window.__dirtyOverride = false;
     });
 
-    // Warn on navigation away
+    // Fallback for non-htmx navigation (browser back, manual URL)
     window.addEventListener('beforeunload', function (e) {
         if (!dirty || window.__dirtyOverride) return;
         e.preventDefault();
@@ -214,11 +319,59 @@ include "includes/menu.inc";
             }
         });
     });
+
+    // Re-initialize jQuery plugins after every htmx content swap
+    function casaInit(root) {
+        root = root || document;
+
+        // datepicker
+        $(root).find('.datepicker').each(function () {
+            if (!$(this).data('DateTimePicker')) {
+                $(this).datetimepicker({ format: 'L', locale: 'fr' });
+            }
+        });
+
+        // datahref click-to-row
+        $(root).find('table[data-href], table').datahref && $(root).find('table').datahref();
+
+    }
+
+    document.addEventListener('htmx:afterSwap', function (e) {
+        casaInit(e.target);
+        var toastEl = document.getElementById('casaToast');
+        if (!toastEl || !e.target.querySelector) return;
+        var undoEl = document.getElementById('casaToastUndo');
+        var msgEl  = document.getElementById('casaToastMsg');
+
+        if (e.target.querySelector('#casa-save-ok')) {
+            msgEl.textContent = 'Enregistré.';
+            if (undoEl) undoEl.style.display = 'none';
+            bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3000 }).show();
+        }
+
+        var membership = e.target.querySelector('#casa-membership-toast');
+        if (membership) {
+            var msg     = membership.dataset.msg     || 'Groupe modifié.';
+            var undoUrl = membership.dataset.undoUrl || '';
+            msgEl.textContent = msg;
+            if (undoEl) {
+                if (undoUrl) {
+                    undoEl.href = undoUrl;
+                    undoEl.style.display = '';
+                    undoEl.onclick = function () {
+                        bootstrap.Toast.getInstance(toastEl).hide();
+                    };
+                } else {
+                    undoEl.style.display = 'none';
+                }
+            }
+            bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 5000 }).show();
+        }
+    });
 </script>
 
 </body>
 </html>
 <?php
-Logger::shutdown();
 ob_end_flush();
 ?>

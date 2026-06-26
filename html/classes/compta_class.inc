@@ -9,11 +9,9 @@ class Compta
     public $sum;
     public $quittance;
     public $wants_attestation = 0;
-    private $logger;
 
     public function __construct()
     {
-        $this->logger = Logger::getLogger('Compta');
     }
 
     public function lookupCompta(int $id): void
@@ -32,7 +30,6 @@ class Compta
             $this->quittance         = $row->quittance;
             $this->wants_attestation = (int)$row->wants_attestation;
         }
-        $this->logger->debug("Lookup compta $id");
     }
 
     public function getId()        { return $this->id; }
@@ -62,7 +59,6 @@ class Compta
                 $this->userId, $this->type_id, $this->date, $this->libele,
                 $this->sum, $this->quittance, $this->wants_attestation, $this->id,
             ]);
-            $this->logger->debug("Updated compta $this->id");
         } else {
             $comptaid = updateAndGetMaxVal("comptaid");
             $pdo->prepare(
@@ -71,7 +67,6 @@ class Compta
                 $comptaid, $this->userId, $this->type_id, $this->date,
                 $this->libele, $this->sum, $this->quittance, $this->wants_attestation,
             ]);
-            $this->logger->debug("Inserted compta $comptaid");
         }
     }
 
@@ -79,6 +74,5 @@ class Compta
     {
         global $pdo;
         $pdo->prepare("DELETE FROM compta WHERE id=?")->execute([$this->id]);
-        $this->logger->debug("Removed compta $this->id");
     }
 }
