@@ -307,6 +307,7 @@ if ($_showPie) {
     }
   });
   var leg = document.getElementById('resumePieLegend');
+  leg.innerHTML = '';
   labels.forEach(function(label, i) {
     var row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:0.3rem';
