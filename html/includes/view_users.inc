@@ -526,8 +526,10 @@ foreach ($_allRows as $row) {
             <td class="text-nowrap"><?=$lastName?></td>
             <td class="text-nowrap2"><?=$firstName?></td>
             <td style="white-space:nowrap">
-              <?php foreach ($_userComptaTypes[$id] ?? [] as $_ct): ?>
-              <span class="badge bg-<?= htmlspecialchars($_ct->color ?: 'secondary', ENT_QUOTES, $charset) ?>"
+              <?php foreach ($_userComptaTypes[$id] ?? [] as $_ct):
+                  $_badgeColor = str_replace('-subtle', '', $_ct->color ?: 'bg-secondary');
+              ?>
+              <span class="badge <?= htmlspecialchars($_badgeColor, ENT_QUOTES, $charset) ?>"
                     title="<?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?>"
                     style="font-size:0.6rem;padding:2px 4px"><?= htmlspecialchars(mb_strtoupper(mb_substr($_ct->label, 0, 3)), ENT_QUOTES, $charset) ?></span>
               <?php endforeach ?>
