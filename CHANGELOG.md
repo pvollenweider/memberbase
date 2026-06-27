@@ -7,12 +7,27 @@
 ## [3.1.1] — 2026-06-27
 
 ### Added
+- **Navigation mobile** : barre d'icônes en lieu et place du hamburger (menu principal)
+- **Onglets profil** : toujours visibles sur mobile sans menu à déplier (update_user_form)
+- **Resume** : icône don institutionnel dans la colonne Statut (`fa-building`)
+- **Resume** : filtres "12 derniers mois" et "24 derniers mois" dans la dropdown années
+- **Resume** : bouton ColVis (afficher/masquer colonnes) dans la barre DataTable
 - **lastEntryCompta** : colonne Type affichée en badge coloré (avant Libellé)
 - **lastEntryCompta** : dropdown filtre type avec badges colorés
 - **lastEntryCompta** : filtres "12 derniers mois" et "24 derniers mois" dans la dropdown années
 
 ### Changed
-- **lastEntryCompta** : lignes sans colorisation de fond (couleur portée uniquement par le badge de type)
+- **lastEntryCompta** : lignes sans colorisation de fond — couleur portée uniquement par le badge de type
+- **Resume** : colonnes Sexe, Adresse, NPA masquées par défaut
+
+### Fixed
+- **Mobile** : formulaire `updateCompta` — colonnes label/champ empilées correctement sur xs (`col-4`/`col-8`)
+- **Mobile** : clic sur lignes de tableau (compta, suivi, historique) corrigé sur iOS — `data-href` + délégation JS
+- **Mobile** : cards statistiques du résumé passent en flex-wrap sur xs (don principal pleine largeur)
+- **Mobile** : légende du pie chart visible sur mobile
+- **Mobile** : contrôles attestations masqués sur xs
+- **Resume** : légende du pie chart triplait à chaque navigation htmx — `innerHTML = ''` avant re-render
+- **Resume** : séparateur entre "Toutes les années" et "12 derniers mois"
 
 ---
 
