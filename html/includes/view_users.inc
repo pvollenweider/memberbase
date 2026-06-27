@@ -223,6 +223,12 @@ document.getElementById('navbarDropdown').addEventListener('shown.bs.dropdown', 
 </script>
 <style>
 .team-filterable.kb-focus { background: var(--ca-primary-light) !important; color: var(--ca-primary-dark) !important; }
+.text-bg-ca-orange  { background-color: rgba(253,126,20,0.85)  !important; color:#fff !important; }
+.text-bg-ca-teal    { background-color: rgba(32,201,151,0.85)  !important; color:#fff !important; }
+.text-bg-ca-pink    { background-color: rgba(214,51,132,0.85)  !important; color:#fff !important; }
+.text-bg-ca-purple  { background-color: rgba(111,66,193,0.85)  !important; color:#fff !important; }
+.text-bg-ca-indigo  { background-color: rgba(102,16,242,0.85)  !important; color:#fff !important; }
+.text-bg-ca-lime    { background-color: rgba(128,189,64,0.85)   !important; color:#fff !important; }
 </style>
 <?php
 $query = "SELECT DISTINCT ".
@@ -324,7 +330,6 @@ $query .= " ORDER BY $orderColumn $orderSort";
     <th>
             <?=$GLOBAL['firstName']?>
     </th>
-    <th>Types</th>
     <th class="d-none d-sm-table-cell">
             <?=$GLOBAL['address']?>
     </th>
@@ -337,6 +342,7 @@ $query .= " ORDER BY $orderColumn $orderSort";
     <th class="d-none d-sm-table-cell d-md-table-cell">
             <?=$GLOBAL['creationDate']?>
     </th>
+    <th>Types</th>
     <?php if ($team == -5555): ?>
     <th class="d-none d-sm-table-cell" style="font-size:0.75rem;white-space:nowrap">Historique compta</th>
     <?php endif ?>
@@ -525,25 +531,29 @@ foreach ($_allRows as $row) {
             <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
             <td class="text-nowrap"><?=$lastName?></td>
             <td class="text-nowrap2"><?=$firstName?></td>
+            <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>
+            <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
+            <td class="d-none d-sm-table-cell d-md-table-cell"><a href="mailto:<?=$email?>" style="position:relative;z-index:2"><?=$emailStr?></a></td>
+            <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate($user->getCreationDate())?></td>
             <td style="white-space:nowrap;position:relative;z-index:2">
               <?php if (!empty($_userComptaTypes[$id])): ?>
               <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&userid=<?= (int)$id ?>" class="text-decoration-none">
               <?php foreach ($_userComptaTypes[$id] as $_ct):
                   $_bgClass = str_replace('-subtle', '', $_ct->color ?: 'bg-secondary');
-                  $_badgeColor = preg_replace('/^bg-/', 'text-bg-', $_bgClass);
+                  if (str_starts_with($_bgClass, 'ca-')) {
+                      $_badgeColor = 'text-bg-' . $_bgClass; // ca-orange → text-bg-ca-orange
+                  } else {
+                      $_badgeColor = preg_replace('/^bg-/', 'text-bg-', $_bgClass); // bg-primary → text-bg-primary
+                  }
               ?>
                 <span class="badge <?= htmlspecialchars($_badgeColor, ENT_QUOTES, $charset) ?>"
                       title="<?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?>"
                       style="font-size:0.6rem;padding:2px 4px"
-                      ><?= htmlspecialchars(mb_strtoupper(mb_substr($_ct->label, 0, 3)), ENT_QUOTES, $charset) ?></span>
+                      ><?= htmlspecialchars(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', mb_strtoupper(mb_substr($_ct->label, 0, 3))), ENT_QUOTES, $charset) ?></span>
               <?php endforeach ?>
               </a>
               <?php endif ?>
             </td>
-            <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>
-            <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
-            <td class="d-none d-sm-table-cell d-md-table-cell"><a href="mailto:<?=$email?>" style="position:relative;z-index:2"><?=$emailStr?></a></td>
-            <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate($user->getCreationDate())?></td>
             <?php if ($team == -5555):
                 $_c5 = $_compta5555[$user->getId()] ?? null; ?>
             <td class="d-none d-sm-table-cell text-muted" style="font-size:0.72rem;line-height:1.3">
@@ -614,7 +624,7 @@ $(document).ready(function () {
             }
         ],
         columnDefs: [
-            { targets: [0, 5, 6, 8], visible: false }
+            { targets: [0, 4, 5, 7], visible: false }
         ],
         language: {
             info: '_TOTAL_ profils',

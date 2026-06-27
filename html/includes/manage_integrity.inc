@@ -1,7 +1,4 @@
 <?php
-// Inactive (masked) members
-$inactiveCount = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE status=0")->fetchColumn();
-
 // Duplicate members — same firstName+lastName
 $stmtDupName = $pdo->query("
     SELECT firstName, lastName, COUNT(*) AS cnt,
@@ -70,16 +67,6 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
   <i class="fas fa-stethoscope me-1" aria-hidden="true"></i>Intégrité
 </p>
 <p class="small text-muted mb-3">Doublons potentiels dans les membres et groupes masqués encore assignés.</p>
-
-<?php if ($inactiveCount > 0): ?>
-<div class="d-flex align-items-center gap-3 mb-4 p-3" style="background:var(--ca-ground);border:1px solid var(--ca-border);border-radius:6px;font-size:0.83rem">
-  <i class="fas fa-archive text-muted" aria-hidden="true"></i>
-  <span><strong><?= $inactiveCount ?></strong> membre<?= $inactiveCount > 1 ? 's archivés' : ' archivé' ?>.</span>
-  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-auto" style="font-size:0.78rem">
-    Gérer
-  </a>
-</div>
-<?php endif ?>
 
 <?php if ($allOk): ?>
 <div class="alert alert-success py-2 px-3" role="alert" style="font-size:0.85rem">

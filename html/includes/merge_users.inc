@@ -48,10 +48,19 @@ $_muFields = [
 ];
 
 $_muDivergent = [];
+$_muDefaults = [];
 foreach ($_muFields as $k => [,$vA, $vB]) {
-    if (trim($vA) !== trim($vB)) $_muDivergent[] = $k;
+    if (trim($vA) !== trim($vB)) {
+        $_muDivergent[] = $k;
+        $emptyA = trim($vA) === '';
+        $emptyB = trim($vB) === '';
+        if ($emptyA && !$emptyB) $_muDefaults[$k] = 'b';
+        elseif ($emptyB && !$emptyA) $_muDefaults[$k] = 'a';
+        else $_muDefaults[$k] = 'a';
+    }
 }
 $_muDivergentJson = json_encode($_muDivergent);
+$_muDefaultsJson  = json_encode($_muDefaults);
 $_muNameA = htmlspecialchars(trim($_muUserA->firstName . ' ' . $_muUserA->lastName), ENT_QUOTES, $charset);
 $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastName), ENT_QUOTES, $charset);
 ?>
@@ -145,9 +154,11 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
             </td>
 
             <?php else: ?>
-            <td class="ca-merge-cell ca-merge-cell--same" colspan="2">
-              <i class="fas fa-equals ca-merge-same-icon" aria-hidden="true"></i>
+            <td class="ca-merge-cell ca-merge-cell--same">
               <span><?= $vAHtml ?: '<span class="text-muted fst-italic">vide</span>' ?></span>
+            </td>
+            <td class="ca-merge-cell ca-merge-cell--same">
+              <span><?= $vBHtml ?: '<span class="text-muted fst-italic">vide</span>' ?></span>
             </td>
             <?php endif ?>
           </tr>
@@ -274,8 +285,9 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
 <script>
 function mergeApp() {
     const divergent = <?= $_muDivergentJson ?>;
+    const defaults = <?= $_muDefaultsJson ?>;
     const sel = {};
-    divergent.forEach(function(k) { sel[k] = 'a'; });
+    divergent.forEach(function(k) { sel[k] = defaults[k] || 'a'; });
     return {
         selections: sel,
         survivor: 'a',

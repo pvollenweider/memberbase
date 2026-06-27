@@ -3,7 +3,7 @@ $inactiveUsers = $pdo->query(
     "SELECT id, firstName, lastName, society, email
      FROM users
      WHERE status=0
-     ORDER BY lastName, firstName, society"
+     ORDER BY society, lastName, firstName"
 )->fetchAll(PDO::FETCH_OBJ);
 $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
 ?>
@@ -101,7 +101,7 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
           <?php foreach ($inactiveUsers as $u): ?>
             <tr>
               <td>
-                <?php $_uLabel = htmlspecialchars(trim(trim($u->firstName . ' ' . $u->lastName) ?: $u->society), ENT_QUOTES, $charset) ?>
+                <?php $_uLabel = htmlspecialchars(trim(trim($u->lastName . ' ' . $u->firstName) ?: $u->society), ENT_QUOTES, $charset) ?>
                 <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$u->id ?>" class="text-decoration-none">
                   <?= $_uLabel ?: '<span class="text-muted fst-italic">Sans nom</span>' ?>
                 </a>
