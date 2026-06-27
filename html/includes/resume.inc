@@ -392,10 +392,10 @@ if ($_showPie) {
   </div>
 
   <!-- Séparateur visuel -->
-  <span class="text-muted" aria-hidden="true" style="font-size:0.9rem;padding:0 0.15rem">|</span>
+  <span class="text-muted d-none d-sm-inline" aria-hidden="true" style="font-size:0.9rem;padding:0 0.15rem">|</span>
 
   <!-- Attestations demandées -->
-  <label class="ca-filter-btn ca-attest-label d-flex align-items-center gap-1" style="cursor:pointer;user-select:none">
+  <label class="ca-filter-btn ca-attest-label d-none d-sm-flex align-items-center gap-1" style="cursor:pointer;user-select:none">
     <input type="checkbox" id="includeAttestation" <?= $includeAttestation ? 'checked' : '' ?> style="outline:none;box-shadow:none">
     <i class="fas fa-file-pdf" aria-hidden="true"></i> Inclure si attestation demandée
   </label>
@@ -403,7 +403,7 @@ if ($_showPie) {
   .ca-attest-label:focus-visible { outline: none; }
   .ca-attest-label:focus-within { border-color: var(--ca-primary); background: var(--ca-primary-light); color: var(--ca-primary-dark); }
   </style>
-  <button type="button" class="btn btn-link p-0 text-muted" style="font-size:0.85rem;line-height:1"
+  <button type="button" class="btn btn-link p-0 text-muted d-none d-sm-inline" style="font-size:0.85rem;line-height:1"
           tabindex="0"
           data-bs-toggle="popover"
           data-bs-trigger="hover focus"
@@ -416,7 +416,7 @@ if ($_showPie) {
   <!-- PDF bulk — poussé à droite -->
   <?php if ($year != -2): ?>
   <button type="button" id="btn-bulk-attest"
-          class="ca-filter-btn ms-auto"
+          class="ca-filter-btn ms-auto d-none d-sm-block"
           data-url="/attestation_bulk.php?year=<?= (int)$year ?>&amp;minSum=<?= (int)$minSum ?>"
           title="Générer toutes les attestations en un seul PDF">
     <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Attestations <?= (int)$year ?>

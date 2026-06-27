@@ -640,10 +640,6 @@ tr.position-relative { cursor: pointer; }
     min-width: 90px !important;
     padding: 0.6rem 0.7rem !important;
   }
-  /* pie legend hidden on xs — too cramped */
-  .ca-resume-cards #resumePieLegend {
-    display: none;
-  }
   /* tighten secondary card numbers */
   .ca-resume-cards > div:not(:first-child) > div[style*="font-size:1.75rem"] {
     font-size: 1.3rem !important;
