@@ -8,7 +8,7 @@ $stmtMembers = $pdo->prepare(
     "SELECT u.id, u.lastname, u.firstname, u.society
      FROM users u
      INNER JOIN user_properties up ON up.user_id = u.id
-     WHERE up.parameter = ?
+     WHERE up.parameter = ? AND u.status=1
      ORDER BY u.lastname, u.firstname"
 );
 $stmtMembers->execute(["team_$id"]);

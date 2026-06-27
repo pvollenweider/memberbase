@@ -21,25 +21,53 @@ if (isset($_REQUEST['view'])) {
         include "update_user_form.inc";
     } else if ($_REQUEST['view'] == 'deleteUser') {
         $user = new User();
-        $user->lookupUser($_REQUEST['id']);
+        $user->lookupUser((int)$_REQUEST['id']);
+        $userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
         ?>
-<div class="alert alert-warning">
-        <h2><?=$GLOBAL['delete']?> <?=htmlspecialchars($user->firstName, ENT_QUOTES, 'UTF-8')?> <?=htmlspecialchars($user->lastName, ENT_QUOTES, 'UTF-8')?> ?</h2>
-        <a class="btn btn-danger btn-lg" href="<?=$_SERVER['PHP_SELF']?>?view=deleteUserConfirm&amp;id=<?=(int)$user->id?>" >
-          Supprimer 
-        </a>
-<a href="<?=$_SERVER['PHP_SELF']?>" class="btn btn-secondary btn-lg">
-            Conserver
-        </a>
-</div>
-        <br/><br/>
-        <?php 
+        <div class="d-flex justify-content-center align-items-center" style="min-height:50vh">
+          <div class="card shadow-sm border-0" style="max-width:440px;width:100%">
+            <div class="card-body p-4">
+              <div class="mb-3 text-center" style="font-size:2rem;color:var(--ca-danger)">
+                <i class="fas fa-user-slash" aria-hidden="true"></i>
+              </div>
+              <h5 class="card-title mb-1 text-center">Supprimer ou désactiver ce membre&nbsp;?</h5>
+              <p class="text-muted text-center mb-4" style="font-size:0.85rem">
+                <?= htmlspecialchars($userName, ENT_QUOTES, $charset) ?>
+                <span class="text-muted ms-1" style="font-size:0.78rem">#<?= (int)$user->getId() ?></span>
+              </p>
+              <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+                <input type="hidden" name="action" value="deleteOrDeactivateUser">
+                <input type="hidden" name="id"     value="<?= (int)$user->getId() ?>">
+                <div class="d-flex flex-column gap-2 mb-4">
+                  <label class="ca-merge-radio" style="cursor:pointer">
+                    <input type="radio" name="dispose" value="deactivate" checked>
+                    <span><i class="fas fa-eye-slash me-1 text-muted" aria-hidden="true"></i><strong>Désactiver</strong></span>
+                    <span class="text-muted ms-1" style="font-size:0.78rem">— conserve l'historique, masqué dans toutes les vues</span>
+                  </label>
+                  <label class="ca-merge-radio ca-merge-radio--danger" style="cursor:pointer">
+                    <input type="radio" name="dispose" value="delete">
+                    <span><i class="fas fa-trash-alt me-1" aria-hidden="true"></i><strong>Supprimer définitivement</strong></span>
+                    <span class="text-muted ms-1" style="font-size:0.78rem">— irréversible</span>
+                  </label>
+                </div>
+                <div class="d-flex gap-2 justify-content-end">
+                  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$user->getId() ?>"
+                     class="btn btn-outline-secondary">Annuler</a>
+                  <button type="submit" class="btn btn-danger">Confirmer</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <?php
     } else if ($_REQUEST['view'] == 'deleteUserConfirm') {
+        // Legacy direct-link confirm — treat as deactivate for safety
         $user = new User();
-        $user->lookupUser($_REQUEST['id']);
-        auditLog($pdo, 'deleteUser', "id={$_REQUEST['id']} {$user->firstName} {$user->lastName}");
-        $user->remove();
-        include "view_users.inc";
+        $user->lookupUser((int)$_REQUEST['id']);
+        $pdo->prepare("UPDATE users SET status=0 WHERE id=?")->execute([(int)$_REQUEST['id']]);
+        auditLog($pdo, 'deactivateUser', "id={$_REQUEST['id']} {$user->firstName} {$user->lastName}");
+        if ($isHtmx) { header('HX-Location: ' . $_SERVER['PHP_SELF']); exit; }
+        header('Location: ' . $_SERVER['PHP_SELF']); exit;
     } else if ($_REQUEST['view'] === 'auditLog') {
         include "audit_log.inc";
     } else if ($_REQUEST['view'] == 'manageTeam') {
@@ -137,6 +165,12 @@ if (isset($_REQUEST['view'])) {
           </div>
         </div>
         <?php
+    } else if ($_REQUEST['view'] == 'anonymizeUser') {
+        include "anonymize_user.inc";
+    } else if ($_REQUEST['view'] == 'mergeUsers') {
+        include "merge_users.inc";
+    } else if ($_REQUEST['view'] == 'inactiveUsers') {
+        include "inactive_users.inc";
     } else if ($_REQUEST['view'] == 'removeSuiviConfirm') {
         $userProperty = new UserProperty();
         $userProperty->lookupUserProperty($_REQUEST['suiviid']);

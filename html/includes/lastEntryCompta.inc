@@ -96,7 +96,7 @@ if ($addMem != -1) {
 </tr>
 </thead>
 <?php
-$query = "SELECT DISTINCT u.firstname, u.lastname, u.society, u.id, c.type_id, c.date, c.libele, c.id AS comptaid, c.sum, c.quittance, c.user_id, u.address, u.npa, u.email, u.tel, u.portable, ct.label AS ct_label, ct.color AS ct_color FROM users u JOIN compta c ON u.id = c.user_id LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE 1=1";
+$query = "SELECT DISTINCT u.firstname, u.lastname, u.society, u.id, c.type_id, c.date, c.libele, c.id AS comptaid, c.sum, c.quittance, c.user_id, u.address, u.npa, u.email, u.tel, u.portable, ct.label AS ct_label, ct.color AS ct_color FROM users u JOIN compta c ON u.id = c.user_id LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE u.status=1";
 if ($filterTypeId > 0) {
     $query .= " AND c.type_id = " . (int)$filterTypeId;
 }

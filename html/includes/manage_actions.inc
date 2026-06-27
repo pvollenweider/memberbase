@@ -3,6 +3,11 @@ if (isset($_REQUEST['action'])) {
     static $ACTION_MAP = [
         'updateUser'           => 'members',
         'addUser'              => 'members',
+        'mergeUsers'             => 'members',
+        'reactivateUser'         => 'members',
+        'deactivateUser'         => 'members',
+        'anonymizeUser'          => 'members',
+        'deleteOrDeactivateUser' => 'members',
         'deleteTeam'           => 'groups',
         'deleteTeamForce'      => 'groups',
         'reassignTeam'         => 'groups',

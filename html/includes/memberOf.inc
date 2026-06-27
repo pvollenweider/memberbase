@@ -110,34 +110,39 @@ uasort($nonMemberBycat, $_catSortFn);
     <?php endforeach ?>
 <?php endif ?>
 
-<p class="form-section-title">Ajouter</p>
-
-<?php foreach ($nonMemberBycat as $group): ?>
-    <?php if ($group['cat_name']): ?>
-    <p class="mb-1 mt-2" style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)">
-        <?= htmlentities($group['cat_name'], ENT_COMPAT, $charset) ?>
-    </p>
-    <?php endif ?>
-    <div class="group-add-list mb-1">
-        <?php foreach ($group['teams'] as $t): ?>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=addMembership&amp;id=<?= $user->id ?>&amp;teamId=<?= $t->id ?>">
-                <i class="far fa-plus-square" aria-hidden="true"></i>
-                <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
+<details class="ca-integrity-section mt-3" <?= ((($_REQUEST['action'] ?? '') === 'addMembership') || !empty($_REQUEST['viewall'])) ? 'open' : '' ?>>
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-plus me-1 text-muted" style="font-size:0.7rem" aria-hidden="true"></i>
+    Ajouter un groupe
+  </summary>
+  <div>
+    <?php foreach ($nonMemberBycat as $group): ?>
+        <?php if ($group['cat_name']): ?>
+        <p class="mb-1 mt-2" style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)">
+            <?= htmlentities($group['cat_name'], ENT_COMPAT, $charset) ?>
+        </p>
+        <?php endif ?>
+        <div class="group-add-list mb-1">
+            <?php foreach ($group['teams'] as $t): ?>
+                <a href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=addMembership&amp;id=<?= $user->id ?>&amp;teamId=<?= $t->id ?>">
+                    <i class="far fa-plus-square" aria-hidden="true"></i>
+                    <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
+                </a>
+            <?php endforeach ?>
+        </div>
+    <?php endforeach ?>
+    <div class="mt-2 pt-2" style="border-top:1px solid var(--ca-border)">
+        <?php if (!$viewall): ?>
+            <a class="btn btn-outline-secondary btn-sm"
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&id=<?= $user->id ?>&viewall=true">
+                <i class="fas fa-eye-slash me-1" aria-hidden="true"></i>Groupes masqués
             </a>
-        <?php endforeach ?>
+        <?php else: ?>
+            <a class="btn btn-outline-secondary btn-sm"
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&id=<?= $user->id ?>">
+                <i class="fas fa-eye me-1" aria-hidden="true"></i>Masquer les groupes cachés
+            </a>
+        <?php endif ?>
     </div>
-<?php endforeach ?>
-
-<div class="mt-3">
-    <?php if (!$viewall): ?>
-        <a class="btn btn-outline-secondary btn-sm"
-           href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&id=<?= $user->id ?>&viewall=true">
-            <i class="fas fa-eye-slash me-1" aria-hidden="true"></i>Groupes masqués
-        </a>
-    <?php else: ?>
-        <a class="btn btn-outline-secondary btn-sm"
-           href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&id=<?= $user->id ?>">
-            <i class="fas fa-eye me-1" aria-hidden="true"></i>Masquer les groupes cachés
-        </a>
-    <?php endif ?>
-</div>
+  </div>
+</details>

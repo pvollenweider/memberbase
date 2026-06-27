@@ -15,7 +15,7 @@ if ($prevTeamId > 0 && $membreTeamId > 0) {
         SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email
         FROM users u
         JOIN user_properties up ON up.user_id = u.id AND up.parameter = ? AND up.value = 'true'
-        WHERE u.id NOT IN (
+        WHERE u.status=1 AND u.id NOT IN (
             SELECT user_id FROM user_properties WHERE parameter = ? AND value = 'true'
         )
         ORDER BY u.lastname, u.firstname, u.society

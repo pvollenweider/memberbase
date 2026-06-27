@@ -4,7 +4,7 @@ $stmt = $pdo->query(
             user_properties.date, user_properties.value
      FROM users
      JOIN user_properties ON users.id = user_properties.user_id
-     WHERE user_properties.parameter = 'suivi'
+     WHERE users.status=1 AND user_properties.parameter = 'suivi'
      ORDER BY user_properties.date DESC"
 );
 $rows = $stmt->fetchAll(PDO::FETCH_OBJ);

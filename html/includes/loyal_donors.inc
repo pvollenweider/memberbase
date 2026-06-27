@@ -18,7 +18,7 @@ $sql = "
               AND c2.type_id NOT IN ($excl)) AS total_prev
     FROM users u
     JOIN compta c ON u.id = c.user_id
-    WHERE c.date > ? AND c.date < ?
+    WHERE u.status=1 AND c.date > ? AND c.date < ?
       AND c.type_id NOT IN ($excl)
       AND u.id IN (
           SELECT DISTINCT user_id FROM compta

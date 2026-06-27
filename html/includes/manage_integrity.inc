@@ -1,10 +1,13 @@
 <?php
+// Inactive (masked) members
+$inactiveCount = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE status=0")->fetchColumn();
+
 // Duplicate members — same firstName+lastName
 $stmtDupName = $pdo->query("
     SELECT firstName, lastName, COUNT(*) AS cnt,
            GROUP_CONCAT(id ORDER BY id SEPARATOR ',') AS ids
     FROM users
-    WHERE TRIM(firstName) != '' OR TRIM(lastName) != ''
+    WHERE status=1 AND (TRIM(firstName) != '' OR TRIM(lastName) != '')
     GROUP BY TRIM(LOWER(firstName)), TRIM(LOWER(lastName))
     HAVING COUNT(*) > 1
     ORDER BY lastName, firstName
@@ -16,7 +19,7 @@ $stmtDupEmail = $pdo->query("
     SELECT email, COUNT(*) AS cnt,
            GROUP_CONCAT(id ORDER BY id SEPARATOR ',') AS ids
     FROM users
-    WHERE TRIM(email) != ''
+    WHERE status=1 AND TRIM(email) != ''
     GROUP BY TRIM(LOWER(email))
     HAVING COUNT(*) > 1
     ORDER BY email
@@ -26,24 +29,24 @@ $dupEmails = $stmtDupEmail->fetchAll(PDO::FETCH_OBJ);
 // Groups hidden but still assigned to a category (is_filter=0)
 $stmtCat = $pdo->query("
     SELECT DISTINCT t.id AS team_id, t.name AS team_name,
-           m.id AS mg_id, m.name AS mg_name
+           m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
     FROM team t
     JOIN metagroup j ON j.teamid = t.id
     JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
     WHERE t.hidden = 1
-    ORDER BY m.name, t.name
+    ORDER BY m.sort_order, m.name, t.name
 ");
 $hiddenInCats = $stmtCat->fetchAll(PDO::FETCH_OBJ);
 
 // Groups hidden but still assigned to a metagroup (is_filter=1)
 $stmtMg = $pdo->query("
     SELECT DISTINCT t.id AS team_id, t.name AS team_name,
-           m.id AS mg_id, m.name AS mg_name
+           m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
     FROM team t
     JOIN metagroup j ON j.teamid = t.id
     JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 1
     WHERE t.hidden = 1
-    ORDER BY m.name, t.name
+    ORDER BY m.sort_order, m.name, t.name
 ");
 $hiddenInMeta = $stmtMg->fetchAll(PDO::FETCH_OBJ);
 
@@ -53,6 +56,7 @@ $stmtMembers = $pdo->query("
            COUNT(up.user_id) AS member_count
     FROM team t
     JOIN user_properties up ON up.parameter = CONCAT('team_', t.id)
+    JOIN users u ON u.id = up.user_id AND u.status = 1
     WHERE t.hidden = 1
     GROUP BY t.id, t.name
     ORDER BY t.name
@@ -65,7 +69,17 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <p class="form-section-title mb-1">
   <i class="fas fa-stethoscope me-1" aria-hidden="true"></i>Intégrité
 </p>
-<p class="small text-muted mb-4">Doublons potentiels dans les membres et groupes masqués encore assignés.</p>
+<p class="small text-muted mb-3">Doublons potentiels dans les membres et groupes masqués encore assignés.</p>
+
+<?php if ($inactiveCount > 0): ?>
+<div class="d-flex align-items-center gap-3 mb-4 p-3" style="background:var(--ca-ground);border:1px solid var(--ca-border);border-radius:6px;font-size:0.83rem">
+  <i class="fas fa-eye-slash text-muted" aria-hidden="true"></i>
+  <span><strong><?= $inactiveCount ?></strong> membre<?= $inactiveCount > 1 ? 's masqués' : ' masqué' ?> suite à des fusions.</span>
+  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-auto" style="font-size:0.78rem">
+    Gérer
+  </a>
+</div>
+<?php endif ?>
 
 <?php if ($allOk): ?>
 <div class="alert alert-success py-2 px-3" role="alert" style="font-size:0.85rem">
@@ -96,13 +110,30 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php foreach ($dupNames as $dup):
       $ids = explode(',', $dup->ids); ?>
       <tr>
-        <td><?= htmlentities($dup->firstName . ' ' . $dup->lastName, ENT_COMPAT, $charset) ?></td>
+        <td><?= htmlentities(strtoupper($dup->lastName) . ' ' . $dup->firstName, ENT_COMPAT, $charset) ?></td>
         <td class="text-center text-muted"><?= (int)$dup->cnt ?></td>
         <td class="text-end">
           <?php foreach ($ids as $uid): ?>
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$uid ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" style="font-size:0.75rem">#<?= (int)$uid ?></a>
           <?php endforeach ?>
+          <?php if (count($ids) === 2): ?>
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&amp;a=<?= (int)$ids[0] ?>&amp;b=<?= (int)$ids[1] ?>"
+             class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem">
+            <i class="fas fa-code-merge me-1" aria-hidden="true"></i>Fusionner
+          </a>
+          <?php elseif (count($ids) > 2): ?>
+          <select class="form-select form-select-sm d-inline-block w-auto py-0 border-danger text-danger"
+                  style="font-size:0.75rem;cursor:pointer"
+                  data-no-dirty onchange="if(this.value){window.__dirtyOverride=true;window.location=this.value;}this.value=''">
+            <option value=""><i class="fas fa-code-merge"></i> Fusionner…</option>
+            <?php for ($pi=0;$pi<count($ids);$pi++) for ($pj=$pi+1;$pj<count($ids);$pj++): ?>
+            <option value="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&a=<?= (int)$ids[$pi] ?>&b=<?= (int)$ids[$pj] ?>">
+              #<?= (int)$ids[$pi] ?> + #<?= (int)$ids[$pj] ?>
+            </option>
+            <?php endfor ?>
+          </select>
+          <?php endif ?>
         </td>
       </tr>
     <?php endforeach ?>
@@ -143,6 +174,23 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$uid ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" style="font-size:0.75rem">#<?= (int)$uid ?></a>
           <?php endforeach ?>
+          <?php if (count($ids) === 2): ?>
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&amp;a=<?= (int)$ids[0] ?>&amp;b=<?= (int)$ids[1] ?>"
+             class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem">
+            <i class="fas fa-code-merge me-1" aria-hidden="true"></i>Fusionner
+          </a>
+          <?php elseif (count($ids) > 2): ?>
+          <select class="form-select form-select-sm d-inline-block w-auto py-0 border-danger text-danger"
+                  style="font-size:0.75rem;cursor:pointer"
+                  data-no-dirty onchange="if(this.value){window.__dirtyOverride=true;window.location=this.value;}this.value=''">
+            <option value="">Fusionner…</option>
+            <?php for ($pi=0;$pi<count($ids);$pi++) for ($pj=$pi+1;$pj<count($ids);$pj++): ?>
+            <option value="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&a=<?= (int)$ids[$pi] ?>&b=<?= (int)$ids[$pj] ?>">
+              #<?= (int)$ids[$pi] ?> + #<?= (int)$ids[$pj] ?>
+            </option>
+            <?php endfor ?>
+          </select>
+          <?php endif ?>
         </td>
       </tr>
     <?php endforeach ?>

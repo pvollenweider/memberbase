@@ -93,6 +93,12 @@ $_activeTab = $_REQUEST['tab'] ?? null;
               <i class="fas fa-stethoscope fa-fw" aria-hidden="true"></i>Intégrité
             </button>
           </li>
+          <li role="presentation">
+            <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers"
+               style="text-decoration:none">
+              <i class="fas fa-eye-slash fa-fw" aria-hidden="true"></i>Masqués
+            </a>
+          </li>
           <?php endif ?>
         </ul>
       </nav>

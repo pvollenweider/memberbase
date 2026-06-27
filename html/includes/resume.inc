@@ -443,7 +443,7 @@ $baseSelect = "
 ";
 
 // Always include all rows so attestation filter can work, exclusion handled in SUM above
-$sql = $baseSelect . " WHERE 1=1";
+$sql = $baseSelect . " WHERE u.status=1";
 
 if ($year != -2) {
     $from = mktime(0, 0, 0, 1, 0, $year);

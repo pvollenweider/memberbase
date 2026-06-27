@@ -16,7 +16,7 @@ $sql = "
            MIN(c.date) AS first_date
     FROM users u
     JOIN compta c ON u.id = c.user_id
-    WHERE c.date > ? AND c.date < ?
+    WHERE u.status=1 AND c.date > ? AND c.date < ?
       AND c.type_id NOT IN ($excl)
       AND u.id NOT IN (
           SELECT DISTINCT user_id FROM compta

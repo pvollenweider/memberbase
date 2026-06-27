@@ -20,6 +20,7 @@ class User
     public $comment;
     public $creationDate;
     public $modificationDate;
+    public int $status = 1;
 
 
     public function __construct()
@@ -46,9 +47,10 @@ class User
         $this->comment          = $row->comment;
         $this->creationDate     = $row->creationDate;
         $this->modificationDate = $row->modificationDate;
+        $this->status           = (int)$row->status;
     }
 
-    private const SELECT_COLS = "id,firstname,lastname,society,sexe,title,address,npa,tel,telprof,portable,fax,email,web,birthday,comment,creationDate,modificationDate";
+    private const SELECT_COLS = "id,firstname,lastname,society,sexe,title,address,npa,tel,telprof,portable,fax,email,web,birthday,comment,creationDate,modificationDate,status";
 
     public function lookupUserByEmail(string $email): void
     {

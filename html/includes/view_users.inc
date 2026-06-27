@@ -230,7 +230,7 @@ if ($metagroup > 0) {
         $query .= ",user_properties ";
     }
 }
-$query .= " WHERE 1=1 ";
+$query .= " WHERE 1=1 AND users.status=1 ";
 $action = "";
 
 $queryParams = [];
