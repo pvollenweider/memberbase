@@ -222,7 +222,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
             <label class="ca-merge-radio" x-bind:class="{'active': disposal === 'hide'}">
               <input type="radio" name="disposal" value="hide" x-model="disposal" class="visually-hidden">
               <i class="fas fa-eye-slash me-1 text-muted" aria-hidden="true"></i>
-              <span>Masquer</span>
+              <span>Archiver</span>
             </label>
             <label class="ca-merge-radio ca-merge-radio--danger" x-bind:class="{'active': disposal === 'delete'}">
               <input type="radio" name="disposal" value="delete" x-model="disposal" class="visually-hidden">
