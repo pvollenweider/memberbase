@@ -245,7 +245,7 @@ include "includes/menu.inc";
     <div class="container">
         <small>Process time: [<?= (int)(($end - $start) * 1000) ?>
             ms]. Date: [<?= date("d.m.Y H:i", time()) ?>]<br/>
-            Casa Members v3.1.0
+            Casa Members v3.1.1
         </small>
     </div>
 </footer>

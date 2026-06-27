@@ -24,8 +24,20 @@ if (isset($_REQUEST['viewDetail'])) {
 if ($year == -1) {
     $year = date("Y");
 }
-$from = mktime(0, 0, 0, 1, 0, $year);
-$to = mktime(0, 0, 0, 1, 1, $year + 1);
+$year = (int)$year;
+if ($year === -3) {
+    $from = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 1);
+    $to   = time();
+} elseif ($year === -4) {
+    $from = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2);
+    $to   = time();
+} elseif ($year === -2) {
+    $from = 0;
+    $to   = PHP_INT_MAX;
+} else {
+    $from = mktime(0, 0, 0, 1, 0, $year);
+    $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+}
 $addMem = -1;
 if (isset($_REQUEST['addMem'])) {
     $addMem = $_REQUEST['addMem'];
@@ -39,9 +51,18 @@ if ($addMem != -1) {
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em"><?= $GLOBAL['lastEntryCompta'] ?></span>
 
+  <?php
+  function _lec_badge_class(string $color): string {
+      $bg = str_replace('-subtle', '', $color ?: 'bg-secondary');
+      return str_starts_with($bg, 'ca-') ? 'text-bg-' . $bg : preg_replace('/^bg-/', 'text-bg-', $bg);
+  }
+  $activeTypeCt = $filterTypeId > 0 ? ($comptaTypes[$filterTypeId] ?? null) : null;
+  ?>
   <div class="dropdown ms-2">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <?= $filterTypeId === 0 ? 'Tous les types' : htmlentities($comptaTypes[$filterTypeId]->label ?? '', ENT_COMPAT, $charset) ?>
+      <?php if ($activeTypeCt): ?>
+        <span class="badge <?= htmlentities(_lec_badge_class($activeTypeCt->color ?? ''), ENT_COMPAT, $charset) ?>"><?= htmlentities($activeTypeCt->label, ENT_COMPAT, $charset) ?></span>
+      <?php else: ?>Tous les types<?php endif ?>
     </button>
     <ul class="dropdown-menu">
       <li><a class="dropdown-item<?= $filterTypeId === 0 ? ' active' : '' ?>"
@@ -50,25 +71,38 @@ if ($addMem != -1) {
       <?php foreach ($comptaTypes as $ct): ?>
       <li><a class="dropdown-item<?= $filterTypeId === (int)$ct->id ? ' active' : '' ?>"
              href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= (int)$ct->id ?>&amp;year=<?= $year ?>">
-             <?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>
+             <span class="badge <?= htmlentities(_lec_badge_class($ct->color ?? ''), ENT_COMPAT, $charset) ?>"><?= htmlentities($ct->label, ENT_COMPAT, $charset) ?></span>
       </a></li>
       <?php endforeach ?>
     </ul>
   </div>
 
+  <?php
+  $_yearLabel = match(true) {
+      $year === -2 => $GLOBAL['allYear'],
+      $year === -3 => '12 derniers mois',
+      $year === -4 => '24 derniers mois',
+      default      => $year,
+  };
+  ?>
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? 'Toutes les années' : $year ?>
+      <?= $_yearLabel ?>
     </button>
     <ul class="dropdown-menu">
-      <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? ' active' : '' ?>"
+      <li><a class="dropdown-item<?= $year === -2 ? ' active' : '' ?>"
              href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
+      <li><hr class="dropdown-divider"></li>
+      <li><a class="dropdown-item<?= $year === -3 ? ' active' : '' ?>"
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-3">12 derniers mois</a></li>
+      <li><a class="dropdown-item<?= $year === -4 ? ' active' : '' ?>"
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-4">24 derniers mois</a></li>
       <li><hr class="dropdown-divider"></li>
       <?php
       $currentYear = date("Y");
       for ($i = 0; $i < 10; $i++) {
           $y = $currentYear - $i;
-          ?><li><a class="dropdown-item<?= (isset($_REQUEST['year']) && $_REQUEST['year'] == $y) ? ' active' : '' ?>"
+          ?><li><a class="dropdown-item<?= $year === $y ? ' active' : '' ?>"
                href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
       }
       ?>
@@ -76,6 +110,14 @@ if ($addMem != -1) {
   </div>
 </div>
 
+<style>
+.text-bg-ca-orange { background-color: rgb(253,126,20) !important; color: #fff !important; }
+.text-bg-ca-teal   { background-color: rgb(32,201,151) !important; color: #fff !important; }
+.text-bg-ca-pink   { background-color: rgb(214,51,132) !important; color: #fff !important; }
+.text-bg-ca-purple { background-color: rgb(111,66,193) !important; color: #fff !important; }
+.text-bg-ca-indigo { background-color: rgb(102,16,242) !important; color: #fff !important; }
+.text-bg-ca-lime   { background-color: rgb(128,189,64) !important; color: #000 !important; }
+</style>
 <div class="table-responsive">
 <table class="table  table-hover table-sm export">
 <thead>
@@ -149,7 +191,13 @@ while ($row = $stmt->fetchObject()) {
         $user->addMembership($addMem);
     }
     ?>
-    <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&userid=<?=(int)$userId?>" style="cursor:pointer;<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
+    <?php
+    $_ctBgClass   = str_replace('-subtle', '', $row->ct_color ?: 'bg-secondary');
+    $_ctBadgeCls  = str_starts_with($_ctBgClass, 'ca-')
+        ? 'text-bg-' . $_ctBgClass
+        : preg_replace('/^bg-/', 'text-bg-', $_ctBgClass);
+    ?>
+    <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&userid=<?=(int)$userId?>" style="cursor:pointer;">
         <td><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
         <td class="d-none d-xl-table-cell"><div class="text-truncate" style="max-width:125px"><?= htmlentities($society, ENT_COMPAT, $charset) ?></div></td>
         <td class="text-nowrap"><div class="text-truncate" style="max-width:150px"><?= htmlentities($lastName, ENT_COMPAT, $charset) ?></div></td>
@@ -157,8 +205,7 @@ while ($row = $stmt->fetchObject()) {
         <td><div class="text-truncate" style="max-width:125px"><?= htmlentities($address, ENT_COMPAT, $charset) ?></div></td>
         <td class="text-nowrap"><div class="text-truncate" style="max-width:100px"><?= htmlentities($npa, ENT_COMPAT, $charset) ?></div></td>
         <td class="text-nowrap"><div class="text-truncate" style="max-width:150px"><?= htmlentities($email, ENT_COMPAT, $charset) ?></div></td>
-
-        <td class="text-nowrap"><?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?></td>
+        <td class="text-nowrap"><span class="badge <?= htmlentities($_ctBadgeCls, ENT_COMPAT, $charset) ?>"><?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?></span></td>
         <td><?= htmlentities($libele, ENT_COMPAT, $charset) ?></td>
         <td style="text-align:right;"><?= number_format($sum, 2, '.', '\'') ?></td>
         <td><?= htmlentities($quittance, ENT_COMPAT, $charset) ?></td>

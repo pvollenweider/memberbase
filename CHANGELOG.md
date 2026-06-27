@@ -4,6 +4,18 @@
 
 ---
 
+## [3.1.1] — 2026-06-27
+
+### Added
+- **lastEntryCompta** : colonne Type affichée en badge coloré (avant Libellé)
+- **lastEntryCompta** : dropdown filtre type avec badges colorés
+- **lastEntryCompta** : filtres "12 derniers mois" et "24 derniers mois" dans la dropdown années
+
+### Changed
+- **lastEntryCompta** : lignes sans colorisation de fond (couleur portée uniquement par le badge de type)
+
+---
+
 ## [3.1.0] — 2026-06-27
 
 ### Migration base de données
