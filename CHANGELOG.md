@@ -1,31 +1,66 @@
 # Changelog
 
-## [3.1.0] — en cours
+## [3.2.0] — en cours
+
+---
+
+## [3.1.0] — 2026-06-27
 
 ### Migration base de données
 
+Voir `MIGRATION_PROD.md` pour le détail complet. Résumé :
+
 ```sql
+-- AUTO_INCREMENT sur team, users, compta
+ALTER TABLE team   MODIFY id INT        NOT NULL AUTO_INCREMENT;
+ALTER TABLE users  MODIFY id INT(8)     NOT NULL AUTO_INCREMENT;
+ALTER TABLE compta MODIFY id INT(8)     NOT NULL AUTO_INCREMENT;
+DELETE FROM maxval WHERE parameter IN ('teamid','userid','comptaid');
+
+-- Colonne is_institutional sur compta_type
+ALTER TABLE compta_type ADD COLUMN is_institutional TINYINT(1) NOT NULL DEFAULT 0 AFTER is_excluded_from_donation;
+
+-- Colonne status sur users
+ALTER TABLE users ADD COLUMN status TINYINT(1) NOT NULL DEFAULT 1 AFTER modificationDate;
+
+-- audit_log : sujet membre + username nullable
 ALTER TABLE audit_log
     ADD COLUMN subject_user_id INT UNSIGNED NULL DEFAULT NULL,
     ADD INDEX idx_subject_user (subject_user_id);
+ALTER TABLE audit_log MODIFY COLUMN username VARCHAR(100) NULL;
 
-ALTER TABLE audit_log
-    MODIFY COLUMN username VARCHAR(100) NULL;
+-- Réglage member_no_coti_team (via l'interface Réglages)
+INSERT INTO app_settings (`key`, `value`) VALUES ('member_no_coti_team', '0') ON DUPLICATE KEY UPDATE `value`=`value`;
 ```
 
-> Note: `username` passe à `NULL`-able pour les actions système sans session ouverte.
-
 ### Added
-- **Historique par membre** (`?view=userHistory&userid=X`) : journal de toutes les actions enregistrées pour un membre donné (modifications fiche, compta, suivi, groupes)
-- **Doublons potentiels** dans l'onglet Intégrité : détection par nom et par email avec liens directs vers les fiches concernées
+- **Archivage / membres inactifs** : colonne `users.status` (1=actif, 0=inactif) ; vue "Membres masqués" ; boutons Réactiver / Anonymiser / Supprimer selon contexte
+- **Fusion de profils** (`?view=mergeUsers`) : sélection champ par champ entre deux profils, transfert compta + suivi + groupes, suppression du doublon (Alpine.js)
+- **Filtre rapide -6666** : donateurs non institutionnels actifs en année N-1 (type `is_institutional=0`) avec description explicative
+- **Filtre rapide -5555** : "Aucun versement ces 10 dernières années" — colonne "Historique compta" (cotisations + total) dans le listing ; pre-fetch agrégat (N+1 → 1 requête)
+- **Filtre rapide -3333** refactorisé : "membre sans cotisation active ces 3 ans" — tout profil ayant payé une cotisation mais pas depuis 3 ans, sans restriction de groupe
+- **Paramètre `member_no_coti_team`** : groupe exclu du filtre -3333 (bénévoles, comité) configurable dans les réglages
+- **Mini-dashboard profil** (sidebar) : dons cette année / année précédente / total depuis YYYY ; bloc "Autres versements (Cotisation, …)" séparé avec même structure ; ligne "Ensemble des versements depuis YYYY"
+- **Toggle "Dons uniquement"** dans la vue compta d'un profil ; indicateur "non-don" par ligne
+- **Pastilles discrètes** sur les onglets Compta et Suivi (count d'entrées)
+- **Historique par membre** (`?view=userHistory&userid=X`) : journal de toutes les actions pour un membre donné
+- **Doublons potentiels** dans l'onglet Intégrité : détection par nom et par email
 
 ### Changed
-- `auditLog()` : nouveau paramètre optionnel `$subjectUserId` — toutes les actions membre (updateUser, addUser, addMembership, removeMembership, addCompta, updateCompta, toggleWantsAttestation, addSuivi, updateSuivi) transmettent désormais l'ID du membre concerné
-- Onglet Intégrité : titre renommé "Intégrité" ; message de succès conditionnel aux doublons
+- **Migration AUTO_INCREMENT** : `team`, `users`, `compta` utilisent désormais `lastInsertId()` — `maxval` conservé uniquement pour `metagroup_id` et `userpropertiesid`
+- `auditLog()` : paramètre optionnel `$subjectUserId` — toutes les actions membre transmettent l'ID du profil concerné
+- Label -5555 : "Aucun versement ces 10 dernières années" (était "Aucun don")
+- Label -6666 : "Donateur non institutionnel actif en YYYY" (dynamique)
+- Descriptions explicatives sous la barre de filtres rapides pour tous les filtres spéciaux
+- DataTable listing : "_TOTAL_ profils" (était "_TOTAL_ membres")
+- Exceptions hardcodées supprimées des filtres -5555 et -3333
+- `startswith()` supprimée de `declarations.inc` (inutilisée)
 
 ### Fixed
+- Alerte "modifications non sauvegardées" déclenchée par le toggle "Dons uniquement" (ajout `data-no-dirty`)
 - Filtres du journal d'activité : dropdowns utilisateur + action avec export CSV/Excel/Impression
 - Sections Intégrité collapsées par défaut (issue #13)
+- Box "Dons" affichait les entrées "Excl. don" dans le comptage
 
 ---
 
