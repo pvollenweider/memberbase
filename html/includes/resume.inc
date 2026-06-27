@@ -558,6 +558,12 @@ $(document).ready(function() {
             searchPlaceholder: 'Filtrer…'
         }
     });
+    // iOS Safari doesn't fire clicks on tr::after (stretched-link) inside DataTables wrappers
+    $(document).on('click touchend', '.export tbody tr.position-relative', function(e) {
+        if ($(e.target).closest('a, button').length) return;
+        var href = $(this).find('.stretched-link').attr('href');
+        if (href) window.location.href = href;
+    });
 });
 </script>
 
