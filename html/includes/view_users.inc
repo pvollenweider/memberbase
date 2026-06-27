@@ -533,7 +533,9 @@ foreach ($_allRows as $row) {
               ?>
               <span class="badge <?= htmlspecialchars($_badgeColor, ENT_QUOTES, $charset) ?>"
                     title="<?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?>"
-                    style="font-size:0.6rem;padding:2px 4px"><?= htmlspecialchars(mb_strtoupper(mb_substr($_ct->label, 0, 3)), ENT_QUOTES, $charset) ?></span>
+                    style="font-size:0.6rem;padding:2px 4px;cursor:pointer;position:relative;z-index:2"
+                    onclick="event.stopPropagation();window.location='<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$id ?>&amp;type_id=<?= (int)$_ct->type_id ?>'"
+                    ><?= htmlspecialchars(mb_strtoupper(mb_substr($_ct->label, 0, 3)), ENT_QUOTES, $charset) ?></span>
               <?php endforeach ?>
             </td>
             <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>

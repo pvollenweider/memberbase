@@ -4,6 +4,7 @@ if (isset($_REQUEST['year'])) {
     $year = $_REQUEST['year'];
 }
 $donsOnly = !empty($_REQUEST['dons_only']);
+$filterTypeId = isset($_REQUEST['type_id']) ? (int)$_REQUEST['type_id'] : 0;
 $from = mktime(0, 0, 0, 1, 0, $year);
 $to = mktime(0, 0, 0, 1, 1, $year + 1);
 ?>
@@ -52,6 +53,13 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     </ul>
   </div>
   <?php endif ?>
+  <?php if ($filterTypeId > 0 && isset($comptaTypes[$filterTypeId])): ?>
+  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>&amp;year=<?= $year ?>"
+     class="ca-filter-btn text-decoration-none" data-no-dirty
+     title="Supprimer le filtre type">
+    <?= htmlentities($comptaTypes[$filterTypeId]->label, ENT_COMPAT, $charset) ?> <span aria-hidden="true">×</span>
+  </a>
+  <?php endif ?>
 
 </div>
 
@@ -96,6 +104,9 @@ if ($year != -2) {
 }
 if ($donsOnly) {
     $query .= " AND COALESCE(ct.is_excluded_from_donation,0) = 0 ";
+}
+if ($filterTypeId > 0) {
+    $query .= " AND c.type_id = " . $filterTypeId . " ";
 }
 $query2 = $query;
 $query  .= " ORDER BY c.date DESC";
