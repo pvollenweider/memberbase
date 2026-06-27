@@ -420,7 +420,7 @@ if ($_showPie) {
     <th><?=$GLOBAL['lastName']?></th>
     <th><?=$GLOBAL['firstName']?></th>
     <th><?=$GLOBAL['email']?></th>
-    <th><?= htmlentities($membreTeamLabel, ENT_COMPAT, $charset) ?></th>
+    <th title="<?= htmlentities($membreTeamLabel, ENT_COMPAT, $charset) ?> / Don institutionnel">Statut</th>
     <th><?=$GLOBAL['address']?></th>
     <th><?=$GLOBAL['npa']?></th>
     <th><?=$GLOBAL['sum']?></th>
@@ -435,12 +435,14 @@ $baseSelect = "
     SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
            SUM(CASE WHEN c.type_id NOT IN ($_exclSub) THEN c.sum ELSE 0 END) AS total,
            MAX(c.wants_attestation) AS wants_attestation,
+           MAX(COALESCE(ct.is_institutional, 0)) AS has_institutional,
            EXISTS(
                SELECT 1 FROM user_properties up
                WHERE up.user_id = u.id AND up.parameter = ? AND up.value = 'true'
            ) AS is_actif
     FROM users u
     JOIN compta c ON u.id = c.user_id
+    LEFT JOIN compta_type ct ON ct.id = c.type_id
 ";
 
 // Always include all rows so attestation filter can work, exclusion handled in SUM above
@@ -476,7 +478,8 @@ foreach ($rows as $row):
     $email = htmlentities($row->email ?? '', ENT_COMPAT, $charset);
     $address = htmlentities($row->address ?? '', ENT_COMPAT, $charset);
     $npa = htmlentities($row->npa ?? '', ENT_COMPAT, $charset);
-    $isActif = $row->is_actif ? "<i class='fas fa-check'></i><span class='visually-hidden'>1</span>" : "";
+    $isActif  = $row->is_actif        ? "<i class='fas fa-check text-success' title='" . htmlspecialchars($membreTeamLabel, ENT_QUOTES, $charset) . "'></i><span class='visually-hidden'>1</span>" : "";
+    $isInstit = $row->has_institutional ? "<i class='fas fa-building ms-1 text-info' title='Don institutionnel' aria-label='Don institutionnel'></i>" : "";
     $sexeRaw = $row->sexe;
     $sexe2 = match($sexeRaw) { 'f' => 'Madame', 'm' => 'Monsieur', 'hf' => 'Monsieur et Madame', default => '-' };
     $sexe = match($sexeRaw) {
@@ -492,7 +495,7 @@ foreach ($rows as $row):
         <td><strong><?=$lastName?></strong></td>
         <td><?=$firstName?></td>
         <td><?=$email?></td>
-        <td><?=$isActif?></td>
+        <td class="text-nowrap"><?=$isActif?><?=$isInstit?></td>
         <td><?=$address?></td>
         <td><?=$npa?></td>
         <td style="text-align:right"><?=number_format((float)$row->total, 2, '.', '\'')?></td>
