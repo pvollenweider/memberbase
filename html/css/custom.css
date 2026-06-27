@@ -393,3 +393,39 @@ div.dataTables_info {
 
 /* iOS Safari: stretched-link requires cursor:pointer on the containing block */
 tr.position-relative { cursor: pointer; }
+
+/* Integrity details/summary */
+.ca-integrity-section {
+    border: 1px solid var(--ca-border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.ca-integrity-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--ca-ground);
+    list-style: none;
+    user-select: none;
+}
+.ca-integrity-summary::-webkit-details-marker { display: none; }
+.ca-integrity-summary::before {
+    content: '\f054';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 0.65rem;
+    color: var(--ca-ink-muted);
+    margin-right: 0.25rem;
+    transition: transform 0.15s;
+    flex-shrink: 0;
+}
+.ca-integrity-section[open] > .ca-integrity-summary::before {
+    transform: rotate(90deg);
+}
+.ca-integrity-section > :not(summary) {
+    padding: 0.75rem;
+}
