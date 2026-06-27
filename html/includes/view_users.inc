@@ -324,6 +324,7 @@ $query .= " ORDER BY $orderColumn $orderSort";
     <th>
             <?=$GLOBAL['firstName']?>
     </th>
+    <th></th>
     <th class="d-none d-sm-table-cell">
             <?=$GLOBAL['address']?>
     </th>
@@ -411,6 +412,21 @@ if ($team == -5555) {
     while ($_r5 = $_st5555->fetchObject()) {
         $_compta5555[(int)$_r5->user_id] = $_r5;
     }
+}
+
+// Pre-fetch compta types per user for badges in listing
+$_userComptaTypes = [];
+$_stComptaTypes = $pdo->query("
+    SELECT c.user_id, ct.id AS type_id, ct.label, ct.color
+    FROM compta c
+    JOIN compta_type ct ON ct.id = c.type_id
+    GROUP BY c.user_id, ct.id, ct.label, ct.color
+    ORDER BY ct.sort_order ASC, ct.label ASC
+");
+while ($_rct = $_stComptaTypes->fetchObject()) {
+    $_uid = (int)$_rct->user_id;
+    if (!isset($_userComptaTypes[$_uid])) $_userComptaTypes[$_uid] = [];
+    $_userComptaTypes[$_uid][] = $_rct;
 }
 
 #print $query;
@@ -501,6 +517,13 @@ while ($row = $stmt->fetchObject()) {
             <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
             <td class="text-nowrap"><?=$lastName?></td>
             <td class="text-nowrap2"><?=$firstName?></td>
+            <td style="white-space:nowrap">
+              <?php foreach ($_userComptaTypes[$id] ?? [] as $_ct): ?>
+              <span class="badge bg-<?= htmlspecialchars($_ct->color ?: 'secondary', ENT_QUOTES, $charset) ?>"
+                    title="<?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?>"
+                    style="font-size:0.6rem;padding:2px 4px"><?= htmlspecialchars(mb_strtoupper(mb_substr($_ct->label, 0, 3)), ENT_QUOTES, $charset) ?></span>
+              <?php endforeach ?>
+            </td>
             <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>
             <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
             <td class="d-none d-sm-table-cell d-md-table-cell"><a href="mailto:<?=$email?>" style="position:relative;z-index:2"><?=$emailStr?></a></td>
@@ -573,7 +596,7 @@ $(document).ready(function () {
             }
         ],
         columnDefs: [
-            { targets: 7, visible: false }
+            { targets: [5, 6, 8], visible: false }
         ],
         language: {
             info: '_TOTAL_ profils',
