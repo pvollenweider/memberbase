@@ -45,6 +45,7 @@ if (isset($_REQUEST['year'])) {
 
                     <?php
                     $currentTeamTitle = "";
+                    $currentFilterDesc = "";
                     if ($metagroup > 0) {
                         $mg = new Metagroup();
                         $mg->lookupMetagroup($metagroup);
@@ -53,12 +54,26 @@ if (isset($_REQUEST['year'])) {
                         $currentTeamTitle = $GLOBAL['allExceptArchives'];
                     } else if ($team == -3333) {
                         $currentTeamTitle = $GLOBAL['cotiUnpayedLast3Years'];
+                        $_noCotiTeamId3 = (int)($appSettings['member_no_coti_team'] ?? 0);
+                        $_noCotiExclusion = '';
+                        if ($_noCotiTeamId3 > 0) {
+                            $_noCotiTeamName3 = $pdo->prepare("SELECT name FROM team WHERE id=?");
+                            $_noCotiTeamName3->execute([$_noCotiTeamId3]);
+                            $_noCotiTeamNameStr = $_noCotiTeamName3->fetchColumn();
+                            if ($_noCotiTeamNameStr) {
+                                $_noCotiExclusion = ' Les membres du groupe <a href="' . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) . '?team=' . $_noCotiTeamId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiTeamNameStr, ENT_QUOTES, $charset) . '</a> sont exclus.';
+                            }
+                        }
+                        $currentFilterDesc = "Profils ayant payé au moins une cotisation dans leur historique, mais aucune lors des 3 dernières années (" . ($year-2) . "–$year)." . $_noCotiExclusion;
                     } else if ($team == -5555) {
                         $currentTeamTitle = $GLOBAL['nothingLast10Years'];
+                        $currentFilterDesc = "Profils actifs sans aucune entrée comptable (cotisation, don ou autre) depuis " . ($year-10) . ".";
                     } else if ($team == -6666) {
                         $currentTeamTitle = $GLOBAL['nonInstitPayedSomethingLastYear'];
+                        $currentFilterDesc = "Profils ayant effectué au moins un versement non institutionnel en " . ($year-1) . " — inclut cotisations, dons et tout autre type non marqué «&nbsp;Institutionnel&nbsp;» dans les types compta.";
                     } else if ($team == -4) {
                         $currentTeamTitle = $GLOBAL['cotiUnpayed'];
+                        $currentFilterDesc = "Membres dont la cotisation $year n'a pas encore été enregistrée.";
                     } else {
                         $currentteam = new Team();
                         $currentteam->lookupTeam($team);
@@ -316,6 +331,9 @@ $query .= " ORDER BY $orderColumn $orderSort";
     <?= implode(' · ', array_map(fn($n) => htmlspecialchars($n, ENT_QUOTES, $charset), $mgTeamNames)) ?>
 </p>
     <?php endif; endif; ?>
+<?php if (!empty($currentFilterDesc)): ?>
+<p class="text-muted mb-2" style="font-size:0.78rem"><i class="fas fa-info-circle me-1" aria-hidden="true"></i><?= $currentFilterDesc ?></p>
+<?php endif ?>
 <div class="table-responsive">
 <table class="table table-hover table-sm export">
 <thead>
@@ -373,6 +391,16 @@ if ($team == -6666) {
 // Also pre-fetch member_no_coti_team members to exclude them
 $_coti3333 = [];
 $_noCotiMembers = [];
+if ($team == -3333 || $team == -4) {
+    $_noCotiTeam = (int)($appSettings['member_no_coti_team'] ?? 0);
+    if ($_noCotiTeam > 0) {
+        $_stNoCoti = $pdo->prepare("SELECT user_id FROM user_properties WHERE parameter=?");
+        $_stNoCoti->execute(["team_$_noCotiTeam"]);
+        while ($_rn = $_stNoCoti->fetchObject()) {
+            $_noCotiMembers[(int)$_rn->user_id] = true;
+        }
+    }
+}
 if ($team == -3333) {
     $_cutoff3333 = mktime(0, 0, 0, 1, 0, $year - 2);
     $_st3333 = $pdo->query("
@@ -386,14 +414,6 @@ if ($team == -3333) {
     ");
     while ($_r3 = $_st3333->fetchObject()) {
         $_coti3333[(int)$_r3->user_id] = $_r3;
-    }
-    $_noCotiTeam = (int)($appSettings['member_no_coti_team'] ?? 0);
-    if ($_noCotiTeam > 0) {
-        $_stNoCoti = $pdo->prepare("SELECT user_id FROM user_properties WHERE parameter=?");
-        $_stNoCoti->execute(["team_$_noCotiTeam"]);
-        while ($_rn = $_stNoCoti->fetchObject()) {
-            $_noCotiMembers[(int)$_rn->user_id] = true;
-        }
     }
 }
 
@@ -476,7 +496,7 @@ while ($row = $stmt->fetchObject()) {
         }
         $displayLine = !$displayLine;
     } else if ($team == -4) {
-        if ($user->isCotisationPayed($year) > -1) {
+        if (!empty($_noCotiMembers[$user->getId()]) || $user->isCotisationPayed($year) > -1) {
             $displayLine = false;
         }
     }
@@ -597,7 +617,7 @@ $(document).ready(function () {
             { targets: 7, visible: false }
         ],
         language: {
-            info: '_TOTAL_ membres',
+            info: '_TOTAL_ profils',
             infoFiltered: '(filtrés sur _MAX_)',
             search: '',
             searchPlaceholder: 'Filtrer…'
