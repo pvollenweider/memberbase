@@ -8,7 +8,22 @@
 
 ## 1. Migrations SQL (obligatoires)
 
-### 1a. Ajouter la colonne `is_institutional` sur la table `compta_type`
+### 1a. AUTO_INCREMENT sur `team`, `users`, `compta`
+
+```sql
+ALTER TABLE team   MODIFY id INT        NOT NULL AUTO_INCREMENT;
+ALTER TABLE users  MODIFY id INT(8)     NOT NULL AUTO_INCREMENT;
+ALTER TABLE compta MODIFY id INT(8)     NOT NULL AUTO_INCREMENT;
+
+-- Supprimer les entrées maxval devenues inutiles
+DELETE FROM maxval WHERE parameter IN ('teamid','userid','comptaid');
+```
+
+> `metagroup` et `user_properties` restent avec maxval (voir issue #7 pour la suite).
+
+---
+
+### 1b. Ajouter la colonne `is_institutional` sur la table `compta_type`
 
 ```sql
 ALTER TABLE compta_type

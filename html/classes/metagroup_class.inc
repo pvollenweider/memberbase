@@ -34,6 +34,7 @@ class Metagroup
         } else {
             $mid = updateAndGetMaxVal("metagroup_id");
             $pdo->prepare("INSERT INTO metagroup (id,name) VALUES (?,?)")->execute([$mid, $this->name]);
+            $this->id = $mid;
         }
     }
 

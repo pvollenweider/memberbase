@@ -227,7 +227,7 @@ if ($action == 'deleteTeam') {
     $team->name = $groupName;
     $team->setHidden(0);
     $team->save();
-    $newTeamId = (int)$pdo->query("SELECT value FROM maxval WHERE parameter='teamid'")->fetchColumn();
+    $newTeamId = $team->id;
     if ($newTeamId > 0) {
         $ins = $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, 'true')");
         foreach ($userIds as $uid) {
@@ -244,7 +244,7 @@ if ($action == 'deleteTeam') {
     $team->name = $_REQUEST['name'];
     $team->setHidden(isset($_REQUEST['hidden']) ? 1 : 0);
     $team->save();
-    $_auNewTeam = (int)$pdo->query("SELECT value FROM maxval WHERE parameter='teamid'")->fetchColumn();
+    $_auNewTeam = $team->id;
     auditLog($pdo, 'addTeam', "id=$_auNewTeam | {$_REQUEST['name']}");
 
 } elseif ($action == 'addTeamWithImport') {
@@ -252,7 +252,7 @@ if ($action == 'deleteTeam') {
     $team->name = $_REQUEST['name'];
     $team->setHidden(0);
     $team->save();
-    $newTeamId = (int) $pdo->query("SELECT value FROM maxval WHERE parameter='teamid'")->fetchColumn();
+    $newTeamId = $team->id;
     $categoryId = (int)($_REQUEST['categoryId'] ?? 0);
     if ($newTeamId && $categoryId > 0) {
         $pdo->prepare("INSERT INTO metagroup (id, teamid) VALUES (?, ?)")->execute([$categoryId, $newTeamId]);

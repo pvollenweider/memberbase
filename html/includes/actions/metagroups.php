@@ -59,7 +59,7 @@ if ($action == 'updateCategoryOrder') {
     $mg = new Metagroup();
     $mg->name = $_REQUEST['name'];
     $mg->save();
-    $newMgId = (int)$pdo->query("SELECT value FROM maxval WHERE parameter='metagroup_id'")->fetchColumn();
+    $newMgId = $mg->id;
     $isFilter = isset($_REQUEST['is_filter']) ? ((int)$_REQUEST['is_filter'] === 0 ? 0 : 1) : 1;
     if ($newMgId) {
         $pdo->prepare("UPDATE metagroup SET is_filter=? WHERE id=? AND name IS NOT NULL")->execute([$isFilter, $newMgId]);

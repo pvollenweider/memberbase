@@ -194,7 +194,7 @@ class User
 
     public function hasComptaEntry(): bool
     {
-        global $pdo;
+        global $pdo;            
         $stmt = $pdo->prepare("SELECT 1 FROM compta WHERE user_id=? LIMIT 1");
         $stmt->execute([$this->id]);
         return $stmt->fetchObject() !== false;
@@ -230,18 +230,17 @@ class User
             ]);
             return (int) $this->id;
         } else {
-            $userId = updateAndGetMaxVal("userid");
             $pdo->prepare(
-                "INSERT INTO users (id,firstname,lastname,society,sexe,title,address,npa,
+                "INSERT INTO users (firstname,lastname,society,sexe,title,address,npa,
                  tel,telprof,portable,fax,email,web,birthday,comment,creationDate,modificationDate)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
             )->execute([
-                $userId, $this->firstName, $this->lastName, $this->society, $this->sexe,
+                $this->firstName, $this->lastName, $this->society, $this->sexe,
                 $this->title, $this->address, $this->npa, $this->tel, $this->telProf,
                 $this->portable, $this->fax, $this->email, $this->web, $this->birthDay,
                 $this->comment, time(), time(),
             ]);
-            return $userId;
+            return (int)$pdo->lastInsertId();
         }
     }
 

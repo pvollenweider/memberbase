@@ -32,10 +32,10 @@ $appSettings = array_merge([
     'archive_id'   => '19',
 ], $_settingsRows);
 unset($_settingsRows);
-define('ARCHIVE_ID', (int)$appSettings['archive_id']);
-
-// Sequence counter — wraps the maxval table that tracks auto-increment IDs.
-// TODO: replace with native AUTO_INCREMENT + lastInsertId() after a schema migration.
+// Sequence counter — still used for metagroup_id and userpropertiesid only.
+// team/users/compta are now native AUTO_INCREMENT.
+// metagroup cannot use AUTO_INCREMENT (id shared across header + member rows).
+// user_properties.id is broken (83k rows with id=0), left for later refactor.
 function getMaxVal(PDO $pdo, string $parameter): int
 {
     $stmt = $pdo->prepare("SELECT value FROM maxval WHERE parameter=?");

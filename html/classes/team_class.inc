@@ -36,8 +36,8 @@ class Team
         if ($this->id) {
             $pdo->prepare("UPDATE team SET name=?,hidden=? WHERE id=?")->execute([$this->name, $this->hidden, $this->id]);
         } else {
-            $teamid = updateAndGetMaxVal("teamid");
-            $pdo->prepare("INSERT INTO team (id,name,hidden) VALUES (?,?,?)")->execute([$teamid, $this->name, $this->hidden]);
+            $pdo->prepare("INSERT INTO team (name,hidden) VALUES (?,?)")->execute([$this->name, $this->hidden]);
+            $this->id = (int)$pdo->lastInsertId();
         }
     }
 

@@ -60,11 +60,10 @@ class Compta
                 $this->sum, $this->quittance, $this->wants_attestation, $this->id,
             ]);
         } else {
-            $comptaid = updateAndGetMaxVal("comptaid");
             $pdo->prepare(
-                "INSERT INTO compta (id,user_id,type_id,date,libele,sum,quittance,wants_attestation) VALUES (?,?,?,?,?,?,?,?)"
+                "INSERT INTO compta (user_id,type_id,date,libele,sum,quittance,wants_attestation) VALUES (?,?,?,?,?,?,?)"
             )->execute([
-                $comptaid, $this->userId, $this->type_id, $this->date,
+                $this->userId, $this->type_id, $this->date,
                 $this->libele, $this->sum, $this->quittance, $this->wants_attestation,
             ]);
         }
