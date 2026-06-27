@@ -425,7 +425,7 @@ if (!empty($_allRows)) {
     $_resultIds = array_unique(array_map(fn($r) => (int)$r->id, $_allRows));
     $_inPlaceholders = implode(',', array_fill(0, count($_resultIds), '?'));
     $_stComptaTypes = $pdo->prepare("
-        SELECT c.user_id, ct.label, ct.color
+        SELECT c.user_id, ct.id AS type_id, ct.label, ct.color
         FROM compta c
         JOIN compta_type ct ON ct.id = c.type_id
         WHERE c.user_id IN ($_inPlaceholders)
