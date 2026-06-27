@@ -336,13 +336,13 @@ $query .= " ORDER BY $orderColumn $orderSort";
     <th class="d-none d-sm-table-cell">
             <?=$GLOBAL['npa']?>
     </th>
-    <th class="d-none d-sm-table-cell d-md-table-cell">
+    <th class="d-md-table-cell">
             <?=$GLOBAL['email']?>
     </th>
     <th class="d-none d-sm-table-cell d-md-table-cell">
             <?=$GLOBAL['creationDate']?>
     </th>
-    <th>Types</th>
+    <th class="d-none d-sm-table-cell">Types</th>
     <?php if ($team == -5555): ?>
     <th class="d-none d-sm-table-cell" style="font-size:0.75rem;white-space:nowrap">Historique compta</th>
     <?php endif ?>
@@ -533,9 +533,9 @@ foreach ($_allRows as $row) {
             <td class="text-nowrap2"><?=$firstName?></td>
             <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>
             <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
-            <td class="d-none d-sm-table-cell d-md-table-cell"><a href="mailto:<?=$email?>" style="position:relative;z-index:2"><?=$emailStr?></a></td>
+            <td class="d-md-table-cell"><a href="mailto:<?=$email?>" style="position:relative;z-index:2"><?=$emailStr?></a></td>
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate($user->getCreationDate())?></td>
-            <td style="white-space:nowrap;position:relative;z-index:2">
+            <td class="d-none d-sm-table-cell" style="white-space:nowrap;position:relative;z-index:2">
               <?php if (!empty($_userComptaTypes[$id])): ?>
               <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&userid=<?= (int)$id ?>" class="text-decoration-none">
               <?php foreach ($_userComptaTypes[$id] as $_ct):

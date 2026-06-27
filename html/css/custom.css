@@ -470,6 +470,62 @@ tr.position-relative { cursor: pointer; }
 .ca-toggle-input:focus-visible + .ca-toggle-slider { outline: 2px solid var(--ca-primary); outline-offset: 2px; }
 
 /* Inactive profile overlay */
+/* Mobile read/edit toggle — always show form on md+ regardless of Alpine state */
+@media (min-width: 768px) {
+  .ca-mobile-expandable { display: block !important; }
+}
+
+/* Groupes : lecture seule sur mobile — désactive les liens remove et masque le ✕ */
+@media (max-width: 767.98px) {
+  a.member-pill { pointer-events: none; cursor: default; }
+  a.member-pill .pill-x { display: none; }
+  /* Compacte les groupes sur mobile */
+  .col-md-4 .d-flex.flex-wrap.gap-1.mb-3 { margin-bottom: 0.35rem !important; gap: 2px !important; }
+  .col-md-4 .member-pill { font-size: 0.65rem; padding: 0.1rem 0.4rem; }
+  .col-md-4 .form-section-title { margin-top: 0.5rem; margin-bottom: 0.25rem; }
+  /* Masque "Ajouter un groupe" sur mobile */
+  .col-md-4 .ca-integrity-section { display: none; }
+  /* Masque "Voir tous les groupes" sur mobile */
+  .col-md-4 .mt-2.text-end { display: none; }
+}
+
+/* Formulaire édition mobile — label+input côte à côte, compact */
+@media (max-width: 767.98px) {
+  .ca-mobile-expandable .row.mb-2 {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    margin-bottom: 0.4rem !important;
+  }
+  .ca-mobile-expandable .col-md-3.col-form-label {
+    width: 32%;
+    flex: 0 0 32%;
+    max-width: 32%;
+    font-size: 0.78rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    padding-right: 0.5rem;
+    color: var(--ca-ink-muted);
+  }
+  .ca-mobile-expandable .col-md-9 {
+    width: 68%;
+    flex: 0 0 68%;
+    max-width: 68%;
+    padding-left: 0;
+  }
+  /* Masque les liens localch/map dans le label adresse sur mobile */
+  .ca-mobile-expandable label[for="address"] a { display: none; }
+  .ca-mobile-expandable label[for="address"]::before { content: "Adresse"; }
+  /* Masque fax sur mobile */
+  .ca-mobile-expandable .row.mb-2:has(#fax) { display: none; }
+  /* TipTap toolbar : autorise le wrap */
+  .ca-mobile-expandable .tiptap-toolbar { gap: 2px !important; }
+  /* Section titles plus compacts */
+  .ca-mobile-expandable .form-section-title { margin-top: 0.75rem; margin-bottom: 0.25rem; }
+  /* Bouton Enregistrer full-width */
+  .ca-mobile-expandable .btn-primary { width: 100%; }
+}
+
 .ca-inactive-wrap { pointer-events: none; }
 .ca-inactive-overlay {
     position: absolute; inset: 0;

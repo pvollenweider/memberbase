@@ -87,11 +87,11 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
     <a class="navbar-brand" href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;userid=<?= $user->getId() ?>"><?= htmlentities($user->getSociety(), ENT_COMPAT, $charset) ?> <?= htmlentities($user->getFirstName(), ENT_COMPAT, $charset) ?> <?= htmlentities($user->getLastName(), ENT_COMPAT, $charset) ?></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#userNavContent" aria-controls="userNavContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div class="collapse navbar-collapse" id="userNavContent">
         <ul class="navbar-nav me-auto">
             <li class="nav-item<?php if ($view == "generalData") { ?> active<?php } ?>">
                 <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;userid=<?= $user->getId() ?>"><i class="far fa-id-card"></i> <?= $GLOBAL['generalData'] ?></a>
@@ -180,12 +180,43 @@ if ($view == "compta") {
       <span>Ce profil est <strong>archivé</strong> — il n'apparaît dans aucune liste.</span>
     </div>
     <?php endif ?>
-    <div class="position-relative <?= !$user->status ? 'ca-inactive-wrap' : '' ?>">
+    <div class="position-relative <?= !$user->status ? 'ca-inactive-wrap' : '' ?>" x-data="{ showAll: false }">
       <?php if (!$user->status): ?>
       <div class="ca-inactive-overlay" aria-hidden="true"></div>
       <?php endif ?>
+
+      <!-- Carte lecture mobile (masquée sur md+) -->
+      <div class="d-md-none mb-3 p-3 rounded border" style="background:var(--ca-ground)">
+        <?php $_muSociety = trim((string)$user->getSociety()); $_muName = trim($user->getFirstName().' '.$user->getLastName()); ?>
+        <?php if ($_muSociety): ?>
+        <div class="fw-semibold" style="font-size:1rem"><?= htmlspecialchars($_muSociety, ENT_QUOTES, $charset) ?></div>
+        <?php endif ?>
+        <?php if ($_muName): ?>
+        <div class="<?= $_muSociety ? 'text-muted' : 'fw-semibold' ?>" style="font-size:<?= $_muSociety ? '0.9rem' : '1rem' ?>"><?= htmlspecialchars($_muName, ENT_QUOTES, $charset) ?></div>
+        <?php endif ?>
+        <?php if ($user->getEmail()): ?>
+        <div class="mt-2"><a href="mailto:<?= htmlspecialchars($user->getEmail(), ENT_QUOTES, $charset) ?>" class="text-decoration-none">
+          <i class="fas fa-envelope fa-fw me-1 text-muted" aria-hidden="true"></i><?= htmlspecialchars($user->getEmail(), ENT_QUOTES, $charset) ?>
+        </a></div>
+        <?php endif ?>
+        <?php if ($user->getPortable()): ?>
+        <div><a href="tel:<?= htmlspecialchars(preg_replace('/\s+/','',$user->getPortable()), ENT_QUOTES, $charset) ?>" class="text-decoration-none">
+          <i class="fas fa-mobile-alt fa-fw me-1 text-muted" aria-hidden="true"></i><?= htmlspecialchars($user->getPortable(), ENT_QUOTES, $charset) ?>
+        </a></div>
+        <?php endif ?>
+        <?php if ($user->getTel()): ?>
+        <div><a href="tel:<?= htmlspecialchars(preg_replace('/\s+/','',$user->getTel()), ENT_QUOTES, $charset) ?>" class="text-decoration-none">
+          <i class="fas fa-phone fa-fw me-1 text-muted" aria-hidden="true"></i><?= htmlspecialchars($user->getTel(), ENT_QUOTES, $charset) ?>
+        </a></div>
+        <?php endif ?>
+        <button type="button" class="btn btn-sm btn-outline-secondary mt-3 w-100"
+                @click="showAll = !showAll"
+                x-text="showAll ? 'Masquer les champs' : 'Voir tous les champs'">
+        </button>
+      </div>
+
       <div class="row">
-          <div class="col-md-8">
+          <div class="col-md-8 ca-mobile-expandable" x-show="showAll">
               <?php include "generalData.inc"; ?>
           </div>
           <div class="col-md-4 small">
