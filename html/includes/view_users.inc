@@ -525,7 +525,7 @@ foreach ($_allRows as $row) {
             <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
             <td class="text-nowrap"><?=$lastName?></td>
             <td class="text-nowrap2"><?=$firstName?></td>
-            <td style="white-space:nowrap">
+            <td style="white-space:nowrap;position:relative;z-index:2">
               <?php foreach ($_userComptaTypes[$id] ?? [] as $_ct):
                   // text-bg-* (BS 5.2+) handles background + text contrast automatically
                   $_bgClass = str_replace('-subtle', '', $_ct->color ?: 'bg-secondary');
@@ -534,7 +534,7 @@ foreach ($_allRows as $row) {
               <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&userid=<?= (int)$id ?>&type_id=<?= (int)$_ct->type_id ?>"
                  class="badge <?= htmlspecialchars($_badgeColor, ENT_QUOTES, $charset) ?> text-decoration-none"
                  title="<?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?>"
-                 style="font-size:0.6rem;padding:2px 4px;position:relative;z-index:2"
+                 style="font-size:0.6rem;padding:2px 4px"
                  ><?= htmlspecialchars(mb_strtoupper(mb_substr($_ct->label, 0, 3)), ENT_QUOTES, $charset) ?></a>
               <?php endforeach ?>
             </td>
