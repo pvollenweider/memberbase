@@ -537,6 +537,7 @@ $(document).ready(function() {
     $('.export').DataTable({
         order: [[2, 'asc']],
         paging: false,
+        columnDefs: [{ targets: [1, 6, 7], visible: false }],
         dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
         buttons: [
             {
