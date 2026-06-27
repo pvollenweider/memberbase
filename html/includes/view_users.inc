@@ -279,36 +279,12 @@ if ($metagroup > 0) {
         $query .= " AND 1=0"; // metagroup has no teams — return empty
     }
 } else if ($team != -1) {
-    if ($team == -2) {
-        $query .= " AND users.id=user_properties.user_id AND NOT (";
-        $query .= "    user_properties.parameter='team_13'";
-        $query .= "    OR user_properties.parameter='team_10'";
-        $query .= "    OR user_properties.parameter='team_20'";
-        $query .= " )";
-    } else if ($team == -3 || $team == -3333 || $team == -5555 || $team == -6666) {
+    if ($team == -3 || $team == -3333 || $team == -5555 || $team == -6666) {
         // status=1 already excludes archived members — no user_properties condition needed
     } else if ($team == -4 || $team == -1234) {
-        # search member
         $query .= " AND users.id=user_properties.user_id ";
         $query .= "AND ( ";
         $query .= "user_properties.parameter='team_$membre') ";
-    } else if ($team == -5) {
-        $query .= " AND users.id=user_properties.user_id AND (";
-        $query .= "    user_properties.parameter='team_6'";
-        $query .= "    OR user_properties.parameter='team_5'";
-        $query .= "    OR user_properties.parameter='team_9'";
-        $query .= "    OR user_properties.parameter='team_7')";
-    } else if ($team == -444) {
-        # search member
-        $query .= " AND users.id=user_properties.user_id ";
-        $query .= "AND (user_properties.parameter='team_56' OR ";
-        $query .= "user_properties.parameter='team_62' OR ";
-        $query .= "user_properties.parameter='team_7' OR ";
-        $query .= "user_properties.parameter='team_58' ) ";
-    } else if ($team == -6) {
-        $query .= " AND users.id=user_properties.user_id ";
-        $query .= "AND user_properties.parameter='team_7' ";
-
     } else {
         $query .= " AND users.id=user_properties.user_id AND user_properties.parameter='team_$team'";
     }
@@ -478,23 +454,6 @@ while ($row = $stmt->fetchObject()) {
         if (!empty($_nonInstit6666[$user->getId()])) {
             $displayLine = true;
         }
-    } else if ($team == -444) {
-        $displayLine = false;
-        if ($user->hasDonated($year) != -1 || $user->hasDonated($year-1) != -1) {
-            $displayLine = true;
-        }
-        if ($user->isMemberOfTeam(6) || $user->isMemberOfTeam(47) || $user->isMemberOfTeam(5) || $user->isMemberOfTeam(2) || $user->isMemberOfTeam(22)) {
-            $displayLine = false;
-        }
-    } else if ($team == -6) {
-        $displayLine = false;
-        if ($user->hasPayed(2011) == -1) {
-            $displayLine = true;
-        }
-        if ($user->isMemberOfTeam(6) || $user->isMemberOfTeam(5)) {
-            $displayLine = true;
-        }
-        $displayLine = !$displayLine;
     } else if ($team == -4) {
         if (!empty($_noCotiMembers[$user->getId()]) || $user->isCotisationPayed($year) > -1) {
             $displayLine = false;
