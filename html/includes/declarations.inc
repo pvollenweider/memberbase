@@ -1,8 +1,4 @@
 <?php
-function startswith($haystack, $needle) {
-    return substr($haystack, 0, strlen($needle)) === $needle;
-}
-
 date_default_timezone_set("Europe/Zurich");
 
 // database settings — env vars override defaults (Docker dev)

@@ -17,11 +17,26 @@ $_tsLastYear = mktime(0,0,0,1,1,$_year-1);
 $_stStats = $pdo->prepare("
     SELECT
         COUNT(*) AS compta_count,
+        -- dons (is_excluded_from_donation = 0)
+        SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 THEN 1 ELSE 0 END) AS don_count,
         COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS total_amount,
         COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS this_year_amount,
         COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS last_year_amount,
         SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS this_year_count,
-        SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS last_year_count
+        SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS last_year_count,
+        -- autres versements (is_excluded_from_donation = 1)
+        SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 THEN 1 ELSE 0 END) AS other_count,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS other_amount,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS other_this_year_amount,
+        SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS other_this_year_count,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS other_last_year_amount,
+        SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS other_last_year_count,
+        -- années du premier versement par catégorie
+        MIN(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 THEN c.date ELSE NULL END) AS don_first_ts,
+        MIN(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 THEN c.date ELSE NULL END) AS other_first_ts,
+        MIN(c.date) AS all_first_ts,
+        -- total tous versements
+        COALESCE(SUM(CAST(c.`sum` AS DECIMAL(10,2))), 0) AS all_time_amount
     FROM compta c
     LEFT JOIN compta_type ct ON ct.id = c.type_id
     WHERE c.user_id=?
@@ -31,9 +46,36 @@ $_stStats->execute([
     $_tsLastYear, $_tsThisYear,
     $_tsThisYear, $_tsNextYear,
     $_tsLastYear, $_tsThisYear,
+    $_tsThisYear, $_tsNextYear,
+    $_tsLastYear, $_tsThisYear,
+    $_tsLastYear, $_tsThisYear,
+    $_tsThisYear, $_tsNextYear,
     $user->getId()
 ]);
 $_stats = $_stStats->fetchObject();
+// Per-type breakdown of "autres versements" — this year / last year / total
+$_stOtherTypes = $pdo->prepare("
+    SELECT ct.label,
+        COUNT(*) AS cnt,
+        COALESCE(SUM(CAST(c.`sum` AS DECIMAL(10,2))),0) AS amount,
+        COALESCE(SUM(CASE WHEN c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END),0) AS this_year_amount,
+        SUM(CASE WHEN c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS this_year_count,
+        COALESCE(SUM(CASE WHEN c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END),0) AS last_year_amount,
+        SUM(CASE WHEN c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS last_year_count
+    FROM compta c
+    LEFT JOIN compta_type ct ON ct.id = c.type_id
+    WHERE c.user_id=? AND COALESCE(ct.is_excluded_from_donation,0)=1
+    GROUP BY ct.id, ct.label
+    ORDER BY ct.sort_order ASC, ct.label ASC
+");
+$_stOtherTypes->execute([
+    $_tsThisYear, $_tsNextYear,
+    $_tsThisYear, $_tsNextYear,
+    $_tsLastYear, $_tsThisYear,
+    $_tsLastYear, $_tsThisYear,
+    $user->getId()
+]);
+$_otherTypes = $_stOtherTypes->fetchAll(PDO::FETCH_OBJ);
 $_suiviStmt = $pdo->prepare("SELECT COUNT(*) FROM user_properties WHERE user_id=? AND parameter='suivi'");
 $_suiviStmt->execute([$user->getId()]);
 $_suiviCount = (int)$_suiviStmt->fetchColumn();
@@ -144,10 +186,10 @@ if ($view == "compta") {
           </div>
           <div class="col-md-4 small">
               <?php include "memberOf.inc"; ?>
-              <?php if ((int)$_stats->compta_count > 0): ?>
+              <?php if ((int)$_stats->don_count > 0): ?>
               <div class="ca-stats-mini mt-3 p-3 rounded border" style="background:var(--bs-light)">
                 <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">
-                  <i class="fas fa-chart-bar me-1" aria-hidden="true"></i>Dons
+                  <i class="fas fa-hand-holding-heart me-1" aria-hidden="true"></i>Dons
                 </div>
                 <div class="d-flex flex-column gap-1">
                   <div class="d-flex justify-content-between align-items-baseline">
@@ -155,7 +197,6 @@ if ($view == "compta") {
                     <span class="fw-bold" style="font-size:0.95rem">
                       <?php if ((int)$_stats->this_year_count > 0): ?>
                         <?= number_format((float)$_stats->this_year_amount, 2, '.', "'") ?> <small class="text-muted fw-normal" style="font-size:0.7rem">CHF</small>
-                        <small class="text-muted fw-normal ms-1" style="font-size:0.7rem">(<?= (int)$_stats->this_year_count ?>)</small>
                       <?php else: ?><span class="text-muted" style="font-size:0.8rem">—</span><?php endif ?>
                     </span>
                   </div>
@@ -164,17 +205,56 @@ if ($view == "compta") {
                     <span style="font-size:0.85rem">
                       <?php if ((int)$_stats->last_year_count > 0): ?>
                         <?= number_format((float)$_stats->last_year_amount, 2, '.', "'") ?> <small style="font-size:0.7rem">CHF</small>
-                        <small class="ms-1" style="font-size:0.7rem">(<?= (int)$_stats->last_year_count ?>)</small>
                       <?php else: ?>—<?php endif ?>
                     </span>
                   </div>
                   <div class="d-flex justify-content-between align-items-baseline border-top pt-1 mt-1">
-                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)">Total</span>
+                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)">Total depuis <?= $_stats->don_first_ts ? date('Y', (int)$_stats->don_first_ts) : '—' ?></span>
                     <span class="fw-semibold" style="font-size:0.85rem">
-                      <?= number_format((float)$_stats->total_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF · <?= (int)$_stats->compta_count ?> entrées</small>
+                      <?= number_format((float)$_stats->total_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
                     </span>
                   </div>
                 </div>
+              </div>
+              <?php endif ?>
+              <?php if ((int)$_stats->other_count > 0): ?>
+              <?php $_otherTypeLabels = implode(', ', array_map(fn($t) => htmlentities((string)$t->label, ENT_COMPAT, $charset), array_filter($_otherTypes, fn($t) => (int)$t->this_year_count > 0 || (int)$t->last_year_count > 0))); ?>
+              <div class="ca-stats-mini mt-2 p-3 rounded border" style="background:var(--bs-light)">
+                <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">
+                  <i class="fas fa-receipt me-1" aria-hidden="true"></i>Autres versements<?php if ($_otherTypeLabels): ?> <span class="fw-normal text-lowercase" style="letter-spacing:0">(<?= $_otherTypeLabels ?>)</span><?php endif ?>
+                </div>
+                <div class="d-flex flex-column gap-1">
+                  <div class="d-flex justify-content-between align-items-baseline">
+                    <span style="font-size:0.8rem"><?= $_year ?></span>
+                    <span class="fw-bold" style="font-size:0.95rem">
+                      <?php if ((int)$_stats->other_this_year_count > 0): ?>
+                        <?= number_format((float)$_stats->other_this_year_amount, 2, '.', "'") ?> <small class="text-muted fw-normal" style="font-size:0.7rem">CHF</small>
+                      <?php else: ?><span class="text-muted" style="font-size:0.8rem">—</span><?php endif ?>
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-baseline text-muted">
+                    <span style="font-size:0.8rem"><?= $_year - 1 ?></span>
+                    <span style="font-size:0.85rem">
+                      <?php if ((int)$_stats->other_last_year_count > 0): ?>
+                        <?= number_format((float)$_stats->other_last_year_amount, 2, '.', "'") ?> <small style="font-size:0.7rem">CHF</small>
+                      <?php else: ?>—<?php endif ?>
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-baseline border-top pt-1 mt-1">
+                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)">Total depuis <?= $_stats->other_first_ts ? date('Y', (int)$_stats->other_first_ts) : '—' ?></span>
+                    <span class="fw-semibold" style="font-size:0.85rem">
+                      <?= number_format((float)$_stats->other_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <?php endif ?>
+              <?php if ((int)$_stats->compta_count > 0): ?>
+              <div class="mt-2 px-3 py-2 rounded border d-flex justify-content-between align-items-baseline" style="background:var(--bs-light)">
+                <span class="text-muted" style="font-size:0.75rem">Total depuis <?= $_stats->all_first_ts ? date('Y', (int)$_stats->all_first_ts) : '—' ?></span>
+                <span class="fw-semibold" style="font-size:0.85rem">
+                  <?= number_format((float)$_stats->all_time_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
+                </span>
               </div>
               <?php endif ?>
           </div>
