@@ -414,26 +414,34 @@ if ($team == -5555) {
     }
 }
 
-// Pre-fetch compta types per user for badges in listing
-$_userComptaTypes = [];
-$_stComptaTypes = $pdo->query("
-    SELECT c.user_id, ct.id AS type_id, ct.label, ct.color
-    FROM compta c
-    JOIN compta_type ct ON ct.id = c.type_id
-    GROUP BY c.user_id, ct.id, ct.label, ct.color
-    ORDER BY ct.sort_order ASC, ct.label ASC
-");
-while ($_rct = $_stComptaTypes->fetchObject()) {
-    $_uid = (int)$_rct->user_id;
-    if (!isset($_userComptaTypes[$_uid])) $_userComptaTypes[$_uid] = [];
-    $_userComptaTypes[$_uid][] = $_rct;
-}
-
 #print $query;
 $stmt = $pdo->prepare($query);
 $stmt->execute($queryParams);
+$_allRows = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+// Pre-fetch compta types — only for users in this result set
+$_userComptaTypes = [];
+if (!empty($_allRows)) {
+    $_resultIds = array_unique(array_map(fn($r) => (int)$r->id, $_allRows));
+    $_inPlaceholders = implode(',', array_fill(0, count($_resultIds), '?'));
+    $_stComptaTypes = $pdo->prepare("
+        SELECT c.user_id, ct.label, ct.color
+        FROM compta c
+        JOIN compta_type ct ON ct.id = c.type_id
+        WHERE c.user_id IN ($_inPlaceholders)
+        GROUP BY c.user_id, ct.id, ct.label, ct.color
+        ORDER BY ct.sort_order ASC, ct.label ASC
+    ");
+    $_stComptaTypes->execute($_resultIds);
+    while ($_rct = $_stComptaTypes->fetchObject()) {
+        $_uid = (int)$_rct->user_id;
+        if (!isset($_userComptaTypes[$_uid])) $_userComptaTypes[$_uid] = [];
+        $_userComptaTypes[$_uid][] = $_rct;
+    }
+}
+
 $rowCount = 0;
-while ($row = $stmt->fetchObject()) {
+foreach ($_allRows as $row) {
     $id = $row->id;
     $displayLine = true;
     $user = new User();
@@ -548,7 +556,7 @@ while ($row = $stmt->fetchObject()) {
         </tr>
         <?php
     }
-}
+} // end foreach
 ?>
 </tbody>
 </table>
@@ -596,7 +604,7 @@ $(document).ready(function () {
             }
         ],
         columnDefs: [
-            { targets: [5, 6, 8], visible: false }
+            { targets: [0, 5, 6, 8], visible: false }
         ],
         language: {
             info: '_TOTAL_ profils',
