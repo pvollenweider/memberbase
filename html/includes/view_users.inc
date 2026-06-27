@@ -324,7 +324,7 @@ $query .= " ORDER BY $orderColumn $orderSort";
     <th>
             <?=$GLOBAL['firstName']?>
     </th>
-    <th></th>
+    <th>Types</th>
     <th class="d-none d-sm-table-cell">
             <?=$GLOBAL['address']?>
     </th>
