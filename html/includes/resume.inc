@@ -478,7 +478,7 @@ foreach ($rows as $row):
     $email = htmlentities($row->email ?? '', ENT_COMPAT, $charset);
     $address = htmlentities($row->address ?? '', ENT_COMPAT, $charset);
     $npa = htmlentities($row->npa ?? '', ENT_COMPAT, $charset);
-    $isActif  = $row->is_actif        ? "<i class='fas fa-check text-success' title='" . htmlspecialchars($membreTeamLabel, ENT_QUOTES, $charset) . "'></i><span class='visually-hidden'>1</span>" : "";
+    $isActif  = $row->is_actif        ? "<i class='fas fa-id-card text-success' title='" . htmlspecialchars($membreTeamLabel, ENT_QUOTES, $charset) . "' aria-label='" . htmlspecialchars($membreTeamLabel, ENT_QUOTES, $charset) . "'></i><span class='visually-hidden'>1</span>" : "";
     $isInstit = $row->has_institutional ? "<i class='fas fa-building ms-1 text-info' title='Don institutionnel' aria-label='Don institutionnel'></i>" : "";
     $sexeRaw = $row->sexe;
     $sexe2 = match($sexeRaw) { 'f' => 'Madame', 'm' => 'Monsieur', 'hf' => 'Monsieur et Madame', default => '-' };
