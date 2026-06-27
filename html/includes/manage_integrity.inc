@@ -73,8 +73,8 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 
 <?php if ($inactiveCount > 0): ?>
 <div class="d-flex align-items-center gap-3 mb-4 p-3" style="background:var(--ca-ground);border:1px solid var(--ca-border);border-radius:6px;font-size:0.83rem">
-  <i class="fas fa-eye-slash text-muted" aria-hidden="true"></i>
-  <span><strong><?= $inactiveCount ?></strong> membre<?= $inactiveCount > 1 ? 's masqués' : ' masqué' ?> suite à des fusions.</span>
+  <i class="fas fa-archive text-muted" aria-hidden="true"></i>
+  <span><strong><?= $inactiveCount ?></strong> membre<?= $inactiveCount > 1 ? 's archivés' : ' archivé' ?>.</span>
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-auto" style="font-size:0.78rem">
     Gérer
   </a>

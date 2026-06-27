@@ -68,7 +68,7 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
           <li role="presentation">
             <a class="ca-settings-nav-btn ca-settings-nav-btn--active" href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers"
                style="text-decoration:none" aria-current="page">
-              <i class="fas fa-eye-slash fa-fw" aria-hidden="true"></i>Masqués
+              <i class="fas fa-archive fa-fw" aria-hidden="true"></i>Archivés
             </a>
           </li>
           <?php endif ?>
@@ -79,13 +79,13 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
       <div class="ca-settings-content">
 
         <p class="form-section-title mb-1">
-          <i class="fas fa-eye-slash me-1" aria-hidden="true"></i>Membres masqués
+          <i class="fas fa-archive me-1" aria-hidden="true"></i>Membres archivés
         </p>
-        <p class="small text-muted mb-4">Profils désactivés. Ils ne sont plus visibles dans les listes.</p>
+        <p class="small text-muted mb-4">Profils archivés. Ils ne sont plus visibles dans les listes.</p>
 
         <?php if (empty($inactiveUsers)): ?>
         <div class="alert alert-success py-2 px-3" role="alert" style="font-size:0.85rem">
-          <i class="fas fa-check-circle me-1" aria-hidden="true"></i>Aucun membre masqué.
+          <i class="fas fa-check-circle me-1" aria-hidden="true"></i>Aucun membre archivé.
         </div>
         <?php else: ?>
         <table class="table table-sm align-middle" style="font-size:0.82rem;max-width:720px">
@@ -101,22 +101,21 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
           <?php foreach ($inactiveUsers as $u): ?>
             <tr>
               <td>
+                <?php $_uLabel = htmlspecialchars(trim(trim($u->firstName . ' ' . $u->lastName) ?: $u->society), ENT_QUOTES, $charset) ?>
                 <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$u->id ?>" class="text-decoration-none">
-                  <?= htmlspecialchars(trim($u->firstName . ' ' . $u->lastName ?: $u->society), ENT_QUOTES, $charset) ?>
+                  <?= $_uLabel ?: '<span class="text-muted fst-italic">Sans nom</span>' ?>
                 </a>
               </td>
               <td class="text-muted"><?= htmlspecialchars((string)$u->email, ENT_QUOTES, $charset) ?: '—' ?></td>
               <td class="text-center text-muted"><?= (int)$u->id ?></td>
               <td class="text-end">
-                <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" style="display:inline">
-                  <input type="hidden" name="action"   value="reactivateUser">
-                  <input type="hidden" name="id"       value="<?= (int)$u->id ?>">
-                  <input type="hidden" name="redirect" value="inactiveUsers">
-                  <button type="submit" class="btn btn-sm btn-outline-success py-0 px-2" style="font-size:0.75rem"
-                          onclick="return confirm('Réactiver ce profil ?')">
-                    <i class="fas fa-eye me-1" aria-hidden="true"></i>Réactiver
-                  </button>
-                </form>
+                <button type="button" class="btn btn-sm btn-outline-success py-0 px-2"
+                        style="font-size:0.75rem;white-space:nowrap"
+                        data-unarchive-id="<?= (int)$u->id ?>"
+                        data-unarchive-name="<?= $_uLabel ?: 'Sans nom #' . (int)$u->id ?>"
+                        onclick="unarchiveConfirm(this)">
+                  <i class="fas fa-box-open me-1" aria-hidden="true"></i>Désarchiver
+                </button>
               </td>
             </tr>
           <?php endforeach ?>
@@ -125,6 +124,48 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
         <?php endif ?>
 
       </div><!-- /.ca-settings-content -->
+
+      <!-- Modal désarchivage (réutilisé pour toutes les lignes) -->
+      <div class="modal fade" id="unarchive-modal" tabindex="-1" aria-labelledby="unarchive-modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:360px">
+          <div class="modal-content">
+            <div class="modal-body p-4 text-center">
+              <div class="mb-3" style="font-size:2rem;color:var(--ca-ink-muted)">
+                <i class="fas fa-box-open" aria-hidden="true"></i>
+              </div>
+              <h6 class="mb-1" id="unarchive-modal-label">Désarchiver ce membre&nbsp;?</h6>
+              <p class="text-muted mb-1" style="font-size:0.83rem" id="unarchive-modal-name"></p>
+              <p class="text-muted mb-4" style="font-size:0.83rem">Le profil réapparaîtra dans toutes les listes.</p>
+              <div class="d-flex gap-2 justify-content-center">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-success" id="unarchive-confirm-btn">
+                  <i class="fas fa-box-open me-1" aria-hidden="true"></i>Désarchiver
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" id="unarchive-form" data-no-dirty>
+        <input type="hidden" name="action"   value="reactivateUser">
+        <input type="hidden" name="id"       id="unarchive-id" value="">
+        <input type="hidden" name="redirect" value="inactiveUsers">
+      </form>
+
+      <script>
+      function unarchiveConfirm(btn) {
+        var id   = btn.dataset.unarchiveId;
+        var name = btn.dataset.unarchiveName;
+        document.getElementById('unarchive-id').value = id;
+        document.getElementById('unarchive-modal-name').textContent = name;
+        new bootstrap.Modal(document.getElementById('unarchive-modal')).show();
+      }
+      document.getElementById('unarchive-confirm-btn').addEventListener('click', function () {
+        bootstrap.Modal.getInstance(document.getElementById('unarchive-modal')).hide();
+        document.getElementById('unarchive-form').submit();
+      });
+      </script>
     </div><!-- /.ca-settings-layout -->
   </div>
 </div>

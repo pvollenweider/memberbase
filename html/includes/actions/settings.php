@@ -5,7 +5,7 @@
 $action = $_REQUEST['action'];
 
 if ($action == 'saveSettings') {
-    $keys = ['default_team', 'membre_team', 'archive_id'];
+    $keys = ['default_team', 'membre_team'];
     $stmt = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
     foreach ($keys as $key) {
         if (isset($_REQUEST[$key])) {
@@ -49,12 +49,13 @@ if ($action == 'saveSettings') {
     $label = trim($_REQUEST['label'] ?? '');
     $color = $_REQUEST['color'] ?? 'bg-light';
     $sortOrder = (int)($_REQUEST['sort_order'] ?? 0);
-    $isCotisation = isset($_REQUEST['is_cotisation']) ? (int)$_REQUEST['is_cotisation'] : 0;
-    $isExcluded = isset($_REQUEST['is_excluded_from_donation']) ? (int)$_REQUEST['is_excluded_from_donation'] : 0;
+    $isCotisation    = isset($_REQUEST['is_cotisation']) ? (int)$_REQUEST['is_cotisation'] : 0;
+    $isExcluded      = isset($_REQUEST['is_excluded_from_donation']) ? (int)$_REQUEST['is_excluded_from_donation'] : 0;
+    $isInstitutional = isset($_REQUEST['is_institutional']) ? (int)$_REQUEST['is_institutional'] : 0;
     $allowed = ['bg-primary-subtle','bg-secondary-subtle','bg-success-subtle','bg-danger-subtle','bg-warning-subtle','bg-info-subtle','bg-light','bg-dark-subtle','ca-orange-subtle','ca-teal-subtle','ca-pink-subtle','ca-purple-subtle','ca-indigo-subtle','ca-lime-subtle'];
     if (!in_array($color, $allowed)) $color = 'bg-light';
     if ($id > 0 && $label !== '') {
-        $pdo->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $id]);
+        $pdo->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=?, is_institutional=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $isInstitutional, $id]);
         auditLog($pdo, 'updateComptaType', "id=$id | label: $label");
     }
     $_rvAllowed = ['settings','manageComptaTypes'];

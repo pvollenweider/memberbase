@@ -149,6 +149,11 @@ i.fas.fa-female.s {
     .pill-just-added { animation: none; outline: 2px solid var(--ca-success, #198754); }
 }
 
+.pill-hidden {
+    opacity: 0.65;
+    border-style: dashed;
+}
+
 /* Group add list */
 .group-add-list a {
     display: block;

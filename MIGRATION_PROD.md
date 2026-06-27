@@ -8,7 +8,27 @@
 
 ## 1. Migrations SQL (obligatoires)
 
-### 1a. Ajouter la colonne `status` sur la table `users`
+### 1a. Ajouter la colonne `is_institutional` sur la table `compta_type`
+
+```sql
+ALTER TABLE compta_type
+  ADD COLUMN is_institutional TINYINT(1) NOT NULL DEFAULT 0
+  AFTER is_excluded_from_donation;
+```
+
+Puis marquer les types institutionnels (adapter les IDs selon prod) :
+
+```sql
+-- Vérifier d'abord les IDs :
+SELECT id, label FROM compta_type ORDER BY sort_order;
+
+-- Marquer "Public / Institutionnel" (id=5 en dev) :
+UPDATE compta_type SET is_institutional = 1 WHERE label = 'Public / Institutionnel';
+```
+
+---
+
+### 1b. Ajouter la colonne `status` sur la table `users`
 
 ```sql
 ALTER TABLE users

@@ -3,6 +3,7 @@ $year = -2; // default: all years
 if (isset($_REQUEST['year'])) {
     $year = $_REQUEST['year'];
 }
+$donsOnly = !empty($_REQUEST['dons_only']);
 $from = mktime(0, 0, 0, 1, 0, $year);
 $to = mktime(0, 0, 0, 1, 1, $year + 1);
 ?>
@@ -25,6 +26,14 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
       }
       ?>
     </ul>
+  </div>
+
+  <div class="form-check form-switch mb-0 ms-2" title="Masquer les entrées non-don (ventes, remboursements…)">
+    <input class="form-check-input" type="checkbox" role="switch" id="dons-only-toggle"
+           <?= $donsOnly ? 'checked' : '' ?>
+           data-no-dirty
+           onchange="window.__dirtyOverride=true;window.location='<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>&amp;year=<?= $year ?>'+(this.checked?'&amp;dons_only=1':'')">
+    <label class="form-check-label small" for="dons-only-toggle">Dons uniquement</label>
   </div>
 
   <?php if ($year != -2): ?>
@@ -81,13 +90,16 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <td><button type="submit" class="btn btn-primary"><?=$GLOBAL['add']?></button></td>
 </tr>
 <?php
-$query = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, ct.label AS ct_label, ct.color AS ct_color FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE c.user_id=" . $user->getId() . " ";
+$query = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE c.user_id=" . $user->getId() . " ";
 if ($year != -2) {
     $query .= " AND c.date > $from AND c.date < $to ";
 }
+if ($donsOnly) {
+    $query .= " AND COALESCE(ct.is_excluded_from_donation,0) = 0 ";
+}
 $query2 = $query;
-$query .= "ORDER BY c.date DESC";
-$query2 .= "ORDER BY c.date ASC";
+$query  .= " ORDER BY c.date DESC";
+$query2 .= " ORDER BY c.date ASC";
 $stmt = $pdo->query($query);
 $total = 0;
 while ($row = $stmt->fetchObject()) {
@@ -117,7 +129,12 @@ while ($row = $stmt->fetchObject()) {
     $rowStyle = isset($bgVarMap[$ctColor]) ? '--bs-table-bg:' . $bgVarMap[$ctColor] : '';
     ?>
      <tr class="position-relative" style="<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
-        <td><?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?></td>
+        <td>
+            <?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>
+            <?php if ($row->ct_excl): ?>
+            <span class="ms-1 text-muted" style="font-size:0.65rem;opacity:0.55" title="Non compté comme don">non-don</span>
+            <?php endif ?>
+        </td>
         <td><?=timeStampToformatedDate($date)?></td>
         <td><?=htmlentities($libele,ENT_COMPAT,$charset)?></td>
         <td style="text-align:right;"><?=number_format($sum,2,'.','\'')?></td>

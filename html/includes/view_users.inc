@@ -226,7 +226,8 @@ if ($metagroup > 0) {
     if ($team == -4) {
         $query .= ",compta ";
     }
-    if ($team != -1) {
+    // -3/-5555/-6666 no longer need user_properties — status=1 replaces archive group filter
+    if ($team != -1 && $team != -3 && $team != -5555 && $team != -6666) {
         $query .= ",user_properties ";
     }
 }
@@ -268,12 +269,9 @@ if ($metagroup > 0) {
         $query .= "    user_properties.parameter='team_13'";
         $query .= "    OR user_properties.parameter='team_10'";
         $query .= "    OR user_properties.parameter='team_20'";
-        $query .= "    OR user_properties.parameter='team_" . ARCHIVE_ID . "'";
         $query .= " )";
-    } else if ($team == -3 || $team == -5555  || $team == -6666) {
-        $query .= " AND users.id=user_properties.user_id AND NOT (";
-        $query .= "    user_properties.parameter='team_" . ARCHIVE_ID . "'";
-        $query .= " )";
+    } else if ($team == -3 || $team == -5555 || $team == -6666) {
+        // status=1 already excludes archived members — no user_properties condition needed
     } else if ($team == -4 || $team == -1234 || $team == -3333) {
         # search member
         $query .= " AND users.id=user_properties.user_id ";
@@ -285,7 +283,6 @@ if ($metagroup > 0) {
         $query .= "    OR user_properties.parameter='team_5'";
         $query .= "    OR user_properties.parameter='team_9'";
         $query .= "    OR user_properties.parameter='team_7')";
-        $query .= "    AND NOT user_properties.parameter='team_" . ARCHIVE_ID . "'";
     } else if ($team == -444) {
         # search member
         $query .= " AND users.id=user_properties.user_id ";
@@ -360,23 +357,18 @@ while ($row = $stmt->fetchObject()) {
     $user = new User();
     $user->lookupUser($id);
 
-    $isArchive = $user->isMemberOfTeam(19);
     if ($team == -1234) {
         $displayLine = false;
-
         if ($user->isCotisationPayed(2004) != -1 ||
             $user->isCotisationPayed(2005) != -1 ||
             $user->isCotisationPayed(2006) != -1 ||
-	    $user->isCotisationPayed(2007) != -1 ||
+            $user->isCotisationPayed(2007) != -1 ||
             $user->isCotisationPayed(2008) != -1 ||
             $user->isCotisationPayed(2009) != -1
             ) {
             $displayLine = true;
         }
         $displayLine = !$displayLine;
-        if ($user->isMemberOfTeam(19)) {
-            $displayLine = false;
-        }
     } else if ($team == -3333) {
         $displayLine = false;
         if ($user->isCotisationPayed($year-1) == -1 &&
@@ -384,69 +376,44 @@ while ($row = $stmt->fetchObject()) {
             $user->isCotisationPayed($year-2)== -1 &&
             $user->isCotisationPayed($year-3)== -1) {
                 $displayLine = true;
-        } else {
-            $displayLine = false;
-        }
-        if ($user->isMemberOfTeam(19)) {
-            $displayLine = false;
         }
     } else if ($team == -5555) {
         $displayLine = true;
         if ($user->hasComptaEntries($year,10)) {
-                $displayLine = false;
-        } else {
-            $displayLine = true;
+            $displayLine = false;
         }
-        if ($user->isMemberOfTeam(19) || $user->isMemberOfTeam(6)|| $user->isMemberOfTeam(47)|| $user->isMemberOfTeam(2) || $user->isMemberOfTeam(31)  || $user->isMemberOfTeam(34) || $user->isMemberOfTeam(27)) {
+        if ($user->isMemberOfTeam(6) || $user->isMemberOfTeam(47) || $user->isMemberOfTeam(2) || $user->isMemberOfTeam(31) || $user->isMemberOfTeam(34) || $user->isMemberOfTeam(27)) {
             $displayLine = false;
         }
     } else if ($team == -6666) {
         $displayLine = false;
-        if ($user->hasAnyEntry($year-1)!= -1) {
+        $_instit6666Ids = $_instit6666Ids ?? array_column($pdo->query("SELECT id FROM compta_type WHERE is_institutional=1")->fetchAll(PDO::FETCH_OBJ), 'id');
+        $_stHasNonInstit = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE user_id=? AND date>? AND date<? AND (type_id IS NULL OR type_id NOT IN (" . (count($_instit6666Ids) ? implode(',', array_map('intval', $_instit6666Ids)) : '0') . "))");
+        $_from6666 = mktime(0,0,0,1,0,$year-1);
+        $_to6666   = mktime(0,0,0,1,1,$year);
+        $_stHasNonInstit->execute([$user->getId(), $_from6666, $_to6666]);
+        if ((int)$_stHasNonInstit->fetchColumn() > 0) {
             $displayLine = true;
-        } else {
-            $displayLine = false;
-        }
-        if ($user->isMemberOfTeam(19) || $user->isMemberOfTeam(8)) {
-            $displayLine = false;
         }
     } else if ($team == -444) {
         $displayLine = false;
-        if ($user->hasDonated($year) != -1||
-            $user->hasDonated($year-1)!= -1) {
-                $displayLine = true;
-        } else {
+        if ($user->hasDonated($year) != -1 || $user->hasDonated($year-1) != -1) {
+            $displayLine = true;
+        }
+        if ($user->isMemberOfTeam(6) || $user->isMemberOfTeam(47) || $user->isMemberOfTeam(5) || $user->isMemberOfTeam(2) || $user->isMemberOfTeam(22)) {
             $displayLine = false;
         }
-        if ($user->isMemberOfTeam(19) || $user->isMemberOfTeam(6)|| $user->isMemberOfTeam(47)|| $user->isMemberOfTeam(5)|| $user->isMemberOfTeam(2) || $user->isMemberOfTeam(22)) {
-            $displayLine = false;
-        }
-
     } else if ($team == -6) {
         $displayLine = false;
-
-        if ($user->hasPayed(2011) == -1
-            ) {
+        if ($user->hasPayed(2011) == -1) {
             $displayLine = true;
         }
-	if ($user->isMemberOfTeam(6) || $user->isMemberOfTeam(5)) {
+        if ($user->isMemberOfTeam(6) || $user->isMemberOfTeam(5)) {
             $displayLine = true;
-	}
+        }
         $displayLine = !$displayLine;
-        if ($user->isMemberOfTeam(19)) {
-            $displayLine = false;
-        }
     } else if ($team == -4) {
         if ($user->isCotisationPayed($year) > -1) {
-            $displayLine = false;
-        }
-        if ($user->isMemberOfTeam(19)) {
-            $displayLine = false;
-        }
-    } else if ($team == 19) {
-        $displayLine = true;
-    } else {
-        if ($user->isMemberOfTeam(19)) {
             $displayLine = false;
         }
     }
@@ -490,12 +457,7 @@ while ($row = $stmt->fetchObject()) {
         <tr class="position-relative">
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=$sexe?></td>
             <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
-            <td class="text-nowrap"><?=$lastName?> <?php
-            if ($isArchive){
-                ?> *<?php
-            }
-            ?>
-            </td>
+            <td class="text-nowrap"><?=$lastName?></td>
             <td class="text-nowrap2"><?=$firstName?></td>
             <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>
             <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>

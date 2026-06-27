@@ -47,7 +47,7 @@ $nonMemberTeams = [];
 while ($row = $stmtAll->fetchObject()) {
     if ($user->isMemberOfTeam($row->id)) {
         $memberTeams[] = $row;
-    } else {
+    } elseif (!$row->hidden) {
         $nonMemberTeams[] = $row;
     }
 }
@@ -99,9 +99,10 @@ uasort($nonMemberBycat, $_catSortFn);
             foreach ($group['teams'] as $t):
                 $isNew = $_justAdded === (int)$t->id;
             ?>
-                <a class="member-pill<?= $isNew ? ' pill-just-added' : '' ?>"
+                <a class="member-pill<?= $isNew ? ' pill-just-added' : '' ?><?= $t->hidden ? ' pill-hidden' : '' ?>"
                    href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=removeMembership&amp;id=<?= $user->id ?>&amp;teamId=<?= $t->id ?>"
-                   title="Retirer de <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>">
+                   title="<?= $t->hidden ? '[Groupe masqué] ' : '' ?>Retirer de <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>">
+                    <?php if ($t->hidden): ?><i class="fas fa-eye-slash me-1" aria-label="Groupe masqué" style="font-size:0.65rem;opacity:0.6"></i><?php endif ?>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
                     <span class="pill-x" aria-hidden="true">✕</span>
                 </a>

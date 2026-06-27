@@ -30,7 +30,7 @@ if (isset($_REQUEST['view'])) {
               <div class="mb-3 text-center" style="font-size:2rem;color:var(--ca-danger)">
                 <i class="fas fa-user-slash" aria-hidden="true"></i>
               </div>
-              <h5 class="card-title mb-1 text-center">Supprimer ou désactiver ce membre&nbsp;?</h5>
+              <h5 class="card-title mb-1 text-center">Supprimer ou archiver ce membre&nbsp;?</h5>
               <p class="text-muted text-center mb-4" style="font-size:0.85rem">
                 <?= htmlspecialchars($userName, ENT_QUOTES, $charset) ?>
                 <span class="text-muted ms-1" style="font-size:0.78rem">#<?= (int)$user->getId() ?></span>
@@ -41,8 +41,8 @@ if (isset($_REQUEST['view'])) {
                 <div class="d-flex flex-column gap-2 mb-4">
                   <label class="ca-merge-radio" style="cursor:pointer">
                     <input type="radio" name="dispose" value="deactivate" checked>
-                    <span><i class="fas fa-eye-slash me-1 text-muted" aria-hidden="true"></i><strong>Désactiver</strong></span>
-                    <span class="text-muted ms-1" style="font-size:0.78rem">— conserve l'historique, masqué dans toutes les vues</span>
+                    <span><i class="fas fa-archive me-1 text-muted" aria-hidden="true"></i><strong>Archiver</strong></span>
+                    <span class="text-muted ms-1" style="font-size:0.78rem">— conserve l'historique, retiré de toutes les vues</span>
                   </label>
                   <label class="ca-merge-radio ca-merge-radio--danger" style="cursor:pointer">
                     <input type="radio" name="dispose" value="delete">

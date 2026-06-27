@@ -17,10 +17,10 @@ $colorOptions = [
 ];
 
 $types = $pdo->query("
-    SELECT ct.id, ct.label, ct.color, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, COUNT(c.id) AS cnt
+    SELECT ct.id, ct.label, ct.color, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, COUNT(c.id) AS cnt
     FROM compta_type ct
     LEFT JOIN compta c ON c.type_id = ct.id
-    GROUP BY ct.id, ct.label, ct.color, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation
+    GROUP BY ct.id, ct.label, ct.color, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional
     ORDER BY ct.sort_order ASC, ct.label ASC
 ")->fetchAll(PDO::FETCH_OBJ);
 ?>
@@ -101,6 +101,7 @@ $types = $pdo->query("
           <th style="width:80px" class="text-end">Entrées</th>
           <th style="width:60px" class="text-center" title="Compte comme cotisation">Coti</th>
           <th style="width:60px" class="text-center" title="Exclu des dons">Excl. don</th>
+          <th style="width:60px" class="text-center" title="Versement institutionnel">Instit.</th>
           <th style="width:130px"></th>
         </tr>
       </thead>
@@ -126,6 +127,7 @@ $types = $pdo->query("
               <input type="hidden" name="color" value="<?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="sort_order" value="<?= $ct->sort_order ?>">
               <input type="hidden" name="is_excluded_from_donation" value="<?= $ct->is_excluded_from_donation ?>">
+              <input type="hidden" name="is_institutional" value="<?= $ct->is_institutional ?>">
               <input type="hidden" name="is_cotisation" value="<?= $ct->is_cotisation ? 0 : 1 ?>">
               <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent"
                       title="<?= $ct->is_cotisation ? 'Oui — cliquer pour désactiver' : 'Non — cliquer pour activer' ?>">
@@ -137,16 +139,35 @@ $types = $pdo->query("
             <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
               <input type="hidden" name="action" value="updateComptaType">
               <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
-          <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
+              <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="id" value="<?= $ct->id ?>">
               <input type="hidden" name="label" value="<?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="color" value="<?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="sort_order" value="<?= $ct->sort_order ?>">
               <input type="hidden" name="is_cotisation" value="<?= $ct->is_cotisation ?>">
               <input type="hidden" name="is_excluded_from_donation" value="<?= $ct->is_excluded_from_donation ? 0 : 1 ?>">
+              <input type="hidden" name="is_institutional" value="<?= $ct->is_institutional ?>">
               <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent"
                       title="<?= $ct->is_excluded_from_donation ? 'Oui — cliquer pour désactiver' : 'Non — cliquer pour activer' ?>">
                 <i class="fas <?= $ct->is_excluded_from_donation ? 'fa-check-circle text-warning' : 'fa-circle text-muted' ?>"></i>
+              </button>
+            </form>
+          </td>
+          <td class="text-center">
+            <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+              <input type="hidden" name="action" value="updateComptaType">
+              <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
+              <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
+              <input type="hidden" name="id" value="<?= $ct->id ?>">
+              <input type="hidden" name="label" value="<?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>">
+              <input type="hidden" name="color" value="<?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>">
+              <input type="hidden" name="sort_order" value="<?= $ct->sort_order ?>">
+              <input type="hidden" name="is_cotisation" value="<?= $ct->is_cotisation ?>">
+              <input type="hidden" name="is_excluded_from_donation" value="<?= $ct->is_excluded_from_donation ?>">
+              <input type="hidden" name="is_institutional" value="<?= $ct->is_institutional ? 0 : 1 ?>">
+              <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent"
+                      title="<?= $ct->is_institutional ? 'Oui — cliquer pour désactiver' : 'Non — cliquer pour activer' ?>">
+                <i class="fas <?= $ct->is_institutional ? 'fa-check-circle text-info' : 'fa-circle text-muted' ?>"></i>
               </button>
             </form>
           </td>

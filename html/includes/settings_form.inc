@@ -96,7 +96,7 @@ $_activeTab = $_REQUEST['tab'] ?? null;
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers"
                style="text-decoration:none">
-              <i class="fas fa-eye-slash fa-fw" aria-hidden="true"></i>Masqués
+              <i class="fas fa-archive fa-fw" aria-hidden="true"></i>Archivés
             </a>
           </li>
           <?php endif ?>
@@ -137,17 +137,6 @@ $_activeTab = $_REQUEST['tab'] ?? null;
                 <select name="membre_team" id="s_membre_team" class="form-select form-select-sm" style="max-width:320px">
                   <?php foreach ($allTeams as $t): ?>
                   <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['membre_team'] === (int)$t->id ? 'selected' : '' ?>>
-                    <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' (masqué)' : '' ?>
-                  </option>
-                  <?php endforeach ?>
-                </select>
-              </div>
-              <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_archive_id">Groupe archive</label>
-                <p class="text-muted mb-2" style="font-size:0.78rem">Ce groupe est exclu du filtre «Tout le monde sauf archives» et des mailings. Ses membres n'apparaissent pas dans les vues par défaut.</p>
-                <select name="archive_id" id="s_archive_id" class="form-select form-select-sm" style="max-width:320px">
-                  <?php foreach ($allTeams as $t): ?>
-                  <option value="<?= (int)$t->id ?>" <?= ARCHIVE_ID === (int)$t->id ? 'selected' : '' ?>>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' (masqué)' : '' ?>
                   </option>
                   <?php endforeach ?>

@@ -8,6 +8,35 @@ if ($userid == -1) {
 }
 $user = new User();
 $user->lookupUser($userid);
+
+// Stats for badges + mini-dashboard
+$_year = (int)date('Y');
+$_tsThisYear = mktime(0,0,0,1,1,$_year);
+$_tsNextYear = mktime(0,0,0,1,1,$_year+1);
+$_tsLastYear = mktime(0,0,0,1,1,$_year-1);
+$_stStats = $pdo->prepare("
+    SELECT
+        COUNT(*) AS compta_count,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS total_amount,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS this_year_amount,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS last_year_amount,
+        SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS this_year_count,
+        SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS last_year_count
+    FROM compta c
+    LEFT JOIN compta_type ct ON ct.id = c.type_id
+    WHERE c.user_id=?
+");
+$_stStats->execute([
+    $_tsThisYear, $_tsNextYear,
+    $_tsLastYear, $_tsThisYear,
+    $_tsThisYear, $_tsNextYear,
+    $_tsLastYear, $_tsThisYear,
+    $user->getId()
+]);
+$_stats = $_stStats->fetchObject();
+$_suiviStmt = $pdo->prepare("SELECT COUNT(*) FROM user_properties WHERE user_id=? AND parameter='suivi'");
+$_suiviStmt->execute([$user->getId()]);
+$_suiviCount = (int)$_suiviStmt->fetchColumn();
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
@@ -22,10 +51,20 @@ $user->lookupUser($userid);
                 <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;userid=<?= $user->getId() ?>"><i class="far fa-id-card"></i> <?= $GLOBAL['generalData'] ?></a>
             </li>
             <li class="nav-item<?php if ($view == "compta") { ?> active<?php } ?>">
-                <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>"><i class="fas fa-file-contract"></i> <?= $GLOBAL['compta'] ?></a>
+                <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>">
+                    <i class="fas fa-file-contract"></i> <?= $GLOBAL['compta'] ?>
+                    <?php if ((int)$_stats->compta_count > 0): ?>
+                    <span class="ms-1 text-muted" style="font-size:0.7rem;opacity:0.6"><?= (int)$_stats->compta_count ?></span>
+                    <?php endif ?>
+                </a>
             </li>
             <li class="nav-item<?php if ($view == "suivi") { ?> active<?php } ?>">
-                <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= $user->getId() ?>"><i class="far fa-list-alt"></i> <?= $GLOBAL['suivi'] ?></a>
+                <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= $user->getId() ?>">
+                    <i class="far fa-list-alt"></i> <?= $GLOBAL['suivi'] ?>
+                    <?php if ($_suiviCount > 0): ?>
+                    <span class="ms-1 text-muted" style="font-size:0.7rem;opacity:0.6"><?= $_suiviCount ?></span>
+                    <?php endif ?>
+                </a>
             </li>
             <?php if (isAdmin()): ?>
             <li class="nav-item<?php if ($view == "userHistory") { ?> active<?php } ?>">
@@ -35,17 +74,44 @@ $user->lookupUser($userid);
         </ul>
         <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex align-items-center ms-auto" data-no-dirty id="status-toggle-form">
           <input type="hidden" name="action"   value="<?= $user->status ? 'deactivateUser' : 'reactivateUser' ?>">
-          <input type="hidden" name="id"      value="<?= (int)$user->getId() ?>">
+          <input type="hidden" name="id"       value="<?= (int)$user->getId() ?>">
           <input type="hidden" name="redirect" value="updateUser">
           <div class="form-check form-switch mb-0">
             <input class="form-check-input" type="checkbox" role="switch" id="status-toggle"
                    <?= $user->status ? 'checked' : '' ?>
-                   onchange="if(!this.checked && !confirm('Désactiver ce membre ?')){this.checked=true;return;}document.getElementById('status-toggle-form').submit()">
-            <label class="form-check-label" for="status-toggle"><?= $user->status ? 'Actif' : 'Inactif' ?></label>
+                   onchange="<?= $user->status
+                     ? 'this.checked=true;var m=new bootstrap.Modal(document.getElementById(\'deactivate-modal\'));m.show()'
+                     : 'document.getElementById(\'status-toggle-form\').submit()' ?>">
+            <label class="form-check-label" for="status-toggle"><?= $user->status ? 'Actif' : 'Archivé' ?></label>
           </div>
         </form>
     </div>
 </nav>
+
+<?php if ($user->status): ?>
+<div class="modal fade" id="deactivate-modal" tabindex="-1" aria-labelledby="deactivate-modal-label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:380px">
+    <div class="modal-content">
+      <div class="modal-body p-4 text-center">
+        <div class="mb-3" style="font-size:2rem;color:var(--ca-ink-muted)">
+          <i class="fas fa-eye-slash" aria-hidden="true"></i>
+        </div>
+        <h6 class="mb-1" id="deactivate-modal-label">Archiver ce membre&nbsp;?</h6>
+        <p class="text-muted mb-4" style="font-size:0.83rem">
+          Le profil sera retiré de toutes les listes.<br>Désarchivable à tout moment.
+        </p>
+        <div class="d-flex gap-2 justify-content-center">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-danger"
+                  onclick="bootstrap.Modal.getInstance(document.getElementById('deactivate-modal')).hide();document.getElementById('status-toggle-form').submit()">
+            <i class="fas fa-archive me-1" aria-hidden="true"></i>Archiver
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif ?>
 
 <?php
 if ($view == "compta") {
@@ -65,7 +131,7 @@ if ($view == "compta") {
     <?php if (!$user->status): ?>
     <div class="ca-inactive-banner alert alert-warning d-flex align-items-center gap-2 mb-3 py-2" role="alert">
       <i class="fas fa-eye-slash" aria-hidden="true"></i>
-      <span>Ce profil est <strong>désactivé</strong> — il n'apparaît dans aucune liste.</span>
+      <span>Ce profil est <strong>archivé</strong> — il n'apparaît dans aucune liste.</span>
     </div>
     <?php endif ?>
     <div class="position-relative <?= !$user->status ? 'ca-inactive-wrap' : '' ?>">
@@ -78,14 +144,43 @@ if ($view == "compta") {
           </div>
           <div class="col-md-4 small">
               <?php include "memberOf.inc"; ?>
+              <?php if ((int)$_stats->compta_count > 0): ?>
+              <div class="ca-stats-mini mt-3 p-3 rounded border" style="background:var(--bs-light)">
+                <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">
+                  <i class="fas fa-chart-bar me-1" aria-hidden="true"></i>Dons
+                </div>
+                <div class="d-flex flex-column gap-1">
+                  <div class="d-flex justify-content-between align-items-baseline">
+                    <span style="font-size:0.8rem"><?= $_year ?></span>
+                    <span class="fw-bold" style="font-size:0.95rem">
+                      <?php if ((int)$_stats->this_year_count > 0): ?>
+                        <?= number_format((float)$_stats->this_year_amount, 2, '.', "'") ?> <small class="text-muted fw-normal" style="font-size:0.7rem">CHF</small>
+                        <small class="text-muted fw-normal ms-1" style="font-size:0.7rem">(<?= (int)$_stats->this_year_count ?>)</small>
+                      <?php else: ?><span class="text-muted" style="font-size:0.8rem">—</span><?php endif ?>
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-baseline text-muted">
+                    <span style="font-size:0.8rem"><?= $_year - 1 ?></span>
+                    <span style="font-size:0.85rem">
+                      <?php if ((int)$_stats->last_year_count > 0): ?>
+                        <?= number_format((float)$_stats->last_year_amount, 2, '.', "'") ?> <small style="font-size:0.7rem">CHF</small>
+                        <small class="ms-1" style="font-size:0.7rem">(<?= (int)$_stats->last_year_count ?>)</small>
+                      <?php else: ?>—<?php endif ?>
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-baseline border-top pt-1 mt-1">
+                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)">Total</span>
+                    <span class="fw-semibold" style="font-size:0.85rem">
+                      <?= number_format((float)$_stats->total_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF · <?= (int)$_stats->compta_count ?> entrées</small>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <?php endif ?>
           </div>
       </div>
     </div>
-    <?php
-    $_stCompta = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
-    $_stCompta->execute([$user->getId()]);
-    $_hasCompta = (int)$_stCompta->fetchColumn() > 0;
-    ?>
+    <?php $_hasCompta = (int)$_stats->compta_count > 0; ?>
     <div class="row mt-3">
       <div class="col-md-12 d-flex align-items-center justify-content-end gap-3">
 

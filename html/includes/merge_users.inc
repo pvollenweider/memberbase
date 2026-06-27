@@ -255,7 +255,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
       <p style="font-size:0.9rem">Cette opération est irréversible. Vérifiez le résumé avant de confirmer.</p>
       <ul class="ca-merge-dialog-summary" style="font-size:0.85rem">
         <li>Profil survivant : <strong x-text="survivor === 'a' ? '<?= addslashes($_muNameA) ?> #<?= $_muIdA ?>' : '<?= addslashes($_muNameB) ?> #<?= $_muIdB ?>'"></strong></li>
-        <li>Profil source supprimé : <span x-text="disposal === 'delete' ? 'oui (irréversible)' : 'non — masqué uniquement'"></span></li>
+        <li>Profil source supprimé : <span x-text="disposal === 'delete' ? 'oui (irréversible)' : 'non — archivé uniquement'"></span></li>
         <li x-show="<?= count($_muDivergent) ?> > 0"><?= count($_muDivergent) ?> champ(s) modifié(s) selon votre sélection.</li>
         <li>Toutes les entrées compta et suivi du profil source seront rattachées au profil survivant.</li>
         <li>Les appartenances aux groupes seront fusionnées (dédoublonnage automatique).</li>
