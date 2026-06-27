@@ -154,7 +154,13 @@
 
     <div class="mt-3 d-flex align-items-center gap-3 flex-wrap">
         <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
-        <?php if ($user->isCotisationPayed(date("Y")) == -1 && ($user->isMemberOfTeam(5) || $user->isMemberOfTeam(6))): ?>
+        <?php
+        $_noCotiTeamGd = (int)($appSettings['member_no_coti_team'] ?? 0);
+        $_showCotiWarn = (int)$_stats->ever_coti > 0
+            && (int)$_stats->coti_this_year === 0
+            && ($_noCotiTeamGd === 0 || !$user->isMemberOfTeam($_noCotiTeamGd));
+        ?>
+        <?php if ($_showCotiWarn): ?>
             <span class="badge bg-danger">Cotisation <?= date("Y") ?> non payée</span>
         <?php endif; ?>
         <span class="text-muted small ms-auto">

@@ -31,6 +31,9 @@ $_stStats = $pdo->prepare("
         SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS other_this_year_count,
         COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS other_last_year_amount,
         SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS other_last_year_count,
+        -- cotisation
+        SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 THEN 1 ELSE 0 END) AS ever_coti,
+        SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS coti_this_year,
         -- années du premier versement par catégorie
         MIN(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 THEN c.date ELSE NULL END) AS don_first_ts,
         MIN(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 THEN c.date ELSE NULL END) AS other_first_ts,
@@ -42,14 +45,15 @@ $_stStats = $pdo->prepare("
     WHERE c.user_id=?
 ");
 $_stStats->execute([
-    $_tsThisYear, $_tsNextYear,
-    $_tsLastYear, $_tsThisYear,
-    $_tsThisYear, $_tsNextYear,
-    $_tsLastYear, $_tsThisYear,
-    $_tsThisYear, $_tsNextYear,
-    $_tsLastYear, $_tsThisYear,
-    $_tsLastYear, $_tsThisYear,
-    $_tsThisYear, $_tsNextYear,
+    $_tsThisYear, $_tsNextYear,  // this_year_amount (don)
+    $_tsLastYear, $_tsThisYear,  // last_year_amount (don)
+    $_tsThisYear, $_tsNextYear,  // this_year_count (don)
+    $_tsLastYear, $_tsThisYear,  // last_year_count (don)
+    $_tsThisYear, $_tsNextYear,  // other_this_year_amount
+    $_tsThisYear, $_tsNextYear,  // other_this_year_count
+    $_tsLastYear, $_tsThisYear,  // other_last_year_amount
+    $_tsLastYear, $_tsThisYear,  // other_last_year_count
+    $_tsThisYear, $_tsNextYear,  // coti_this_year
     $user->getId()
 ]);
 $_stats = $_stStats->fetchObject();
