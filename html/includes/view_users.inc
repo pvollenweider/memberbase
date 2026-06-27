@@ -584,6 +584,8 @@ if ($team == -4) {
 }
 ?>
 <script>
+// bfcache: DataTables DOM state survives navigation — reload to avoid column mismatch
+window.addEventListener('pageshow', function(e) { if (e.persisted) window.location.reload(); });
 $(document).ready(function () {
     $.fn.dataTable.moment('DD/MM/YYYY');
     if ($.fn.DataTable.isDataTable('.export')) { $('.export').DataTable().destroy(); }
