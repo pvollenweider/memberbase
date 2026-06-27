@@ -85,54 +85,50 @@ $_suiviStmt->execute([$user->getId()]);
 $_suiviCount = (int)$_suiviStmt->fetchColumn();
 ?>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
-    <a class="navbar-brand" href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;userid=<?= $user->getId() ?>"><?= htmlentities($user->getSociety(), ENT_COMPAT, $charset) ?> <?= htmlentities($user->getFirstName(), ENT_COMPAT, $charset) ?> <?= htmlentities($user->getLastName(), ENT_COMPAT, $charset) ?></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#userNavContent" aria-controls="userNavContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="userNavContent">
-        <ul class="navbar-nav me-auto">
-            <li class="nav-item<?php if ($view == "generalData") { ?> active<?php } ?>">
-                <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;userid=<?= $user->getId() ?>"><i class="far fa-id-card"></i> <?= $GLOBAL['generalData'] ?></a>
-            </li>
-            <li class="nav-item<?php if ($view == "compta") { ?> active<?php } ?>">
-                <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>">
-                    <i class="fas fa-file-contract"></i> <?= $GLOBAL['compta'] ?>
-                    <?php if ((int)$_stats->compta_count > 0): ?>
-                    <span class="ms-1 text-muted" style="font-size:0.7rem;opacity:0.6"><?= (int)$_stats->compta_count ?></span>
-                    <?php endif ?>
-                </a>
-            </li>
-            <li class="nav-item<?php if ($view == "suivi") { ?> active<?php } ?>">
-                <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= $user->getId() ?>">
-                    <i class="far fa-list-alt"></i> <?= $GLOBAL['suivi'] ?>
-                    <?php if ($_suiviCount > 0): ?>
-                    <span class="ms-1 text-muted" style="font-size:0.7rem;opacity:0.6"><?= $_suiviCount ?></span>
-                    <?php endif ?>
-                </a>
-            </li>
-            <?php if (isAdmin()): ?>
-            <li class="nav-item<?php if ($view == "userHistory") { ?> active<?php } ?>">
-                <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=userHistory&amp;userid=<?= $user->getId() ?>"><i class="fas fa-history"></i> Historique</a>
-            </li>
+<div class="d-flex align-items-center justify-content-between mb-3 gap-2 flex-wrap" style="border-bottom:1px solid var(--ca-border,#dee2e6);padding-bottom:0.5rem">
+    <div class="d-flex align-items-center gap-1 flex-wrap">
+        <span class="text-muted small fw-semibold me-2 d-none d-sm-inline" style="white-space:nowrap">
+            <?= htmlentities(trim($user->getSociety() . ' ' . $user->getFirstName() . ' ' . $user->getLastName()), ENT_COMPAT, $charset) ?>
+        </span>
+        <a class="btn btn-sm <?= $view === 'generalData' ? 'btn-primary' : 'btn-outline-secondary' ?>"
+           href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;userid=<?= $user->getId() ?>">
+            <i class="far fa-id-card me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['generalData'] ?></span><span class="d-sm-none">Fiche</span>
+        </a>
+        <a class="btn btn-sm <?= $view === 'compta' ? 'btn-primary' : 'btn-outline-secondary' ?>"
+           href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>">
+            <i class="fas fa-file-contract me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?>
+            <?php if ((int)$_stats->compta_count > 0): ?>
+            <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= (int)$_stats->compta_count ?></span>
             <?php endif ?>
-        </ul>
-        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex align-items-center ms-auto" data-no-dirty id="status-toggle-form">
-          <input type="hidden" name="action"   value="<?= $user->status ? 'deactivateUser' : 'reactivateUser' ?>">
-          <input type="hidden" name="id"       value="<?= (int)$user->getId() ?>">
-          <input type="hidden" name="redirect" value="updateUser">
-          <div class="form-check form-switch mb-0">
+        </a>
+        <a class="btn btn-sm <?= $view === 'suivi' ? 'btn-primary' : 'btn-outline-secondary' ?>"
+           href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= $user->getId() ?>">
+            <i class="far fa-list-alt me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?>
+            <?php if ($_suiviCount > 0): ?>
+            <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= $_suiviCount ?></span>
+            <?php endif ?>
+        </a>
+        <?php if (isAdmin()): ?>
+        <a class="btn btn-sm <?= $view === 'userHistory' ? 'btn-primary' : 'btn-outline-secondary' ?>"
+           href="<?= $_SERVER['PHP_SELF'] ?>?view=userHistory&amp;userid=<?= $user->getId() ?>">
+            <i class="fas fa-history me-1" aria-hidden="true"></i><span class="d-none d-sm-inline">Historique</span><span class="d-sm-none">Hist.</span>
+        </a>
+        <?php endif ?>
+    </div>
+    <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex align-items-center" data-no-dirty id="status-toggle-form">
+        <input type="hidden" name="action"   value="<?= $user->status ? 'deactivateUser' : 'reactivateUser' ?>">
+        <input type="hidden" name="id"       value="<?= (int)$user->getId() ?>">
+        <input type="hidden" name="redirect" value="updateUser">
+        <div class="form-check form-switch mb-0">
             <input class="form-check-input" type="checkbox" role="switch" id="status-toggle"
                    <?= $user->status ? 'checked' : '' ?>
                    onchange="<?= $user->status
                      ? 'this.checked=true;var m=new bootstrap.Modal(document.getElementById(\'deactivate-modal\'));m.show()'
                      : 'document.getElementById(\'status-toggle-form\').submit()' ?>">
-            <label class="form-check-label" for="status-toggle"><?= $user->status ? 'Actif' : 'Archivé' ?></label>
-          </div>
-        </form>
-    </div>
-</nav>
+            <label class="form-check-label small" for="status-toggle"><?= $user->status ? 'Actif' : 'Archivé' ?></label>
+        </div>
+    </form>
+</div>
 
 <?php if ($user->status): ?>
 <div class="modal fade" id="deactivate-modal" tabindex="-1" aria-labelledby="deactivate-modal-label" aria-hidden="true">

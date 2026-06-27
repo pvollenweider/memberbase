@@ -12,10 +12,49 @@ if (isset ($_REQUEST["searchString"])) {
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-2">
     <div class="container">
         <a class="navbar-brand" href="<?= $_SERVER['PHP_SELF'] ?>"><i class="fas fa-home"></i> </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+
+        <!-- Mobile icon bar — replaces hamburger -->
+        <div class="d-flex d-lg-none align-items-center gap-1 ms-auto">
+            <a class="nav-link text-white px-2<?= in_array($view, ['list','']) ? ' opacity-100' : ' opacity-75' ?>"
+               href="<?= $_SERVER['PHP_SELF'] ?>" title="<?= $GLOBAL['list'] ?>" aria-label="<?= $GLOBAL['list'] ?>">
+                <i class="fas fa-list"></i>
+            </a>
+            <a class="nav-link text-white px-2<?= $view === 'lastEntryCompta' ? ' opacity-100' : ' opacity-75' ?>"
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta" title="Compta" aria-label="Compta">
+                <i class="fas fa-coins"></i>
+            </a>
+            <a class="nav-link text-white px-2<?= $view === 'lastEntrySuivi' ? ' opacity-100' : ' opacity-75' ?>"
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi" title="Suivi" aria-label="Suivi">
+                <i class="fas fa-book-open"></i>
+            </a>
+            <a class="nav-link text-white px-2<?= $view === 'resume' ? ' opacity-100' : ' opacity-75' ?>"
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=resume" title="Aperçu des dons" aria-label="Aperçu des dons">
+                <i class="fas fa-chart-pie"></i>
+            </a>
+            <a class="nav-link text-white px-2<?= $view === 'settings' ? ' opacity-100' : ' opacity-75' ?>"
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="Administration" aria-label="Administration">
+                <i class="fas fa-cog"></i>
+            </a>
+            <?php $__authUser = authUser(); ?>
+            <div class="dropdown">
+                <button class="btn btn-sm text-white border-0 px-2 opacity-75" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu utilisateur">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><span class="dropdown-item-text small text-muted"><?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?></span></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword">Mot de passe</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty hx-boost="false">
+                        <input type="hidden" name="action" value="logout">
+                        <button type="submit" class="dropdown-item text-danger">Déconnexion</button>
+                      </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto">
