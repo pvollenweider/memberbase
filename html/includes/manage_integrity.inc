@@ -73,7 +73,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 </div>
 <?php else: ?>
 
-<details <?= !empty($dupNames) ? 'open' : '' ?> class="ca-integrity-section mb-3">
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-user-friends me-1 <?= !empty($dupNames) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
     Membres avec même nom
@@ -113,7 +113,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
   <?php endif ?>
 </details>
 
-<details <?= !empty($dupEmails) ? 'open' : '' ?> class="ca-integrity-section mb-3">
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-envelope me-1 <?= !empty($dupEmails) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
     Membres avec même email
@@ -153,7 +153,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
   <?php endif ?>
 </details>
 
-<details <?= !empty($hiddenInCats) ? 'open' : '' ?> class="ca-integrity-section mb-3">
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-tag me-1 <?= !empty($hiddenInCats) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
     Groupes masqués dans une catégorie
@@ -195,7 +195,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
   <?php endif ?>
 </details>
 
-<details <?= !empty($hiddenInMeta) ? 'open' : '' ?> class="ca-integrity-section mb-3">
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-layer-group me-1 <?= !empty($hiddenInMeta) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
     Groupes masqués dans un métagroupe
@@ -237,7 +237,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
   <?php endif ?>
 </details>
 
-<details <?= !empty($hiddenWithMembers) ? 'open' : '' ?> class="ca-integrity-section mb-3">
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-users me-1 <?= !empty($hiddenWithMembers) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
     Groupes masqués avec des membres
