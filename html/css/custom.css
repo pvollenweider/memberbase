@@ -390,3 +390,6 @@ div.dataTables_info {
 .ca-purple-subtle { background-color: rgba(111,66,193,0.18) !important; }
 .ca-indigo-subtle { background-color: rgba(102,16,242,0.18) !important; }
 .ca-lime-subtle   { background-color: rgba(128,189,64,0.18)  !important; }
+
+/* iOS Safari: stretched-link requires cursor:pointer on the containing block */
+tr.position-relative { cursor: pointer; }
