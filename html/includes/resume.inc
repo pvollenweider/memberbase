@@ -551,6 +551,11 @@ $(document).ready(function() {
                     { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i>Imprimer' },
                     { extend: 'pdf',   text: '<i class="fas fa-file-pdf me-2" aria-hidden="true"></i>PDF' }
                 ]
+            },
+            {
+                extend: 'colvis',
+                text: '<i class="fas fa-columns me-1" aria-hidden="true"></i>Colonnes',
+                className: 'btn btn-dt'
             }
         ],
         language: {
