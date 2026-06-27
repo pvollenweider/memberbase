@@ -68,6 +68,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
 <input type="hidden" name="action" value="addCompta"/>
 <input type="hidden" name="view" value="compta"/>
 <input type="hidden" name="userid" value="<?=$user->getId()?>"/>
+<div class="table-responsive">
 <table class="table table-condensed table-striped table-hover p mt-2">
 <thead>
 <tr>
@@ -75,8 +76,8 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <th><?=$GLOBAL['date']?></th>
     <th><?=$GLOBAL['libele']?></th>
     <th><?=$GLOBAL['sum']?></th>
-    <th><?=$GLOBAL['quittance']?></th>
-    <th title="Souhaite attestation"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
+    <th class="d-none d-sm-table-cell"><?=$GLOBAL['quittance']?></th>
+    <th class="d-none d-sm-table-cell" title="Souhaite attestation"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
     <th>&nbsp;</td>
 </tr>
 </thead>
@@ -94,7 +95,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     </td>
     <td><input type="text" name="libele" class="form-control" maxlength="255"/></td>
     <td><input type="text" name="sum" size="10" class="form-control "maxlength="64"/></td>
-    <td><input type="text" name="quittance" size="10" class="form-control" maxlength="64"/></td>
+    <td class="d-none d-sm-table-cell"><input type="text" name="quittance" size="10" class="form-control" maxlength="64"/></td>
     <td><button type="submit" class="btn btn-primary"><?=$GLOBAL['add']?></button></td>
 </tr>
 <?php
@@ -139,7 +140,7 @@ while ($row = $stmt->fetchObject()) {
     ];
     $rowStyle = isset($bgVarMap[$ctColor]) ? '--bs-table-bg:' . $bgVarMap[$ctColor] : '';
     ?>
-     <tr class="position-relative" style="<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
+     <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=updateCompta&comptaid=<?=(int)$id?>&userid=<?=(int)$user->getId()?>" style="cursor:pointer;<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
         <td>
             <?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>
             <?php if ($row->ct_excl): ?>
@@ -149,16 +150,15 @@ while ($row = $stmt->fetchObject()) {
         <td><?=timeStampToformatedDate($date)?></td>
         <td><?=htmlentities($libele,ENT_COMPAT,$charset)?></td>
         <td style="text-align:right;"><?=number_format($sum,2,'.','\'')?></td>
-        <td><?= htmlspecialchars($quittance, ENT_QUOTES, $charset) ?></td>
-        <td class="text-center">
+        <td class="d-none d-sm-table-cell"><?= htmlspecialchars($quittance, ENT_QUOTES, $charset) ?></td>
+        <td class="d-none d-sm-table-cell text-center">
             <?php if ($row->wants_attestation): ?>
                 <i class="fas fa-check text-success" aria-label="Souhaite une attestation" title="Souhaite une attestation de don"></i>
             <?php endif ?>
         </td>
         <td>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>"
-               class="stretched-link" hx-boost="false"
-               aria-label="Modifier l'écriture compta du <?= timeStampToformatedDate($date) ?>"></a>
+               class="ca-row-link-anchor" hx-boost="false" tabindex="-1" aria-hidden="true"></a>
         </td>
     </tr>
     <?php
@@ -171,13 +171,25 @@ while ($row = $stmt->fetchObject()) {
     <td><strong><?=$GLOBAL['total']?></strong></td>
     <td></td>
     <td style="text-align:right;"><strong><?=number_format($total,2,'.','\'')?></strong></td>
-    <td></td>
-    <td></td>
+    <td class="d-none d-sm-table-cell"></td>
+    <td class="d-none d-sm-table-cell"></td>
     <td></td>
 </tr>
 </tfoot>
 </table>
+</div>
 </form>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tbody = document.querySelector('form[name="addCompta"] tbody');
+    if (tbody) tbody.addEventListener('click', function(e) {
+        var tr = e.target.closest('tr.ca-row-link');
+        if (!tr) return;
+        if (e.target.closest('a, button')) return;
+        window.location.href = tr.dataset.href;
+    });
+});
+</script>
 <?php
 $_ctBg = [
     'bg-primary-subtle'   => 'rgba(13,110,253,0.7)',

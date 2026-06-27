@@ -26,7 +26,7 @@ $history = $histRows->fetchAll(PDO::FETCH_OBJ);
   <thead>
     <tr>
       <th style="white-space:nowrap">Date</th>
-      <th>Utilisateur</th>
+      <th class="d-none d-sm-table-cell">Utilisateur</th>
       <th>Action</th>
       <th>Détail</th>
     </tr>
@@ -35,7 +35,7 @@ $history = $histRows->fetchAll(PDO::FETCH_OBJ);
     <?php foreach ($history as $r): ?>
     <tr>
       <td data-order="<?= htmlspecialchars($r->created_at) ?>" style="white-space:nowrap"><?= htmlspecialchars($r->created_at) ?></td>
-      <td><?= htmlspecialchars($r->username ?? '') ?></td>
+      <td class="d-none d-sm-table-cell"><?= htmlspecialchars($r->username ?? '') ?></td>
       <td><code><?= htmlspecialchars($r->action) ?></code></td>
       <td class="text-muted small"><?= htmlspecialchars($r->detail ?? '') ?></td>
     </tr>
@@ -48,6 +48,7 @@ $(function () {
     $('#userHistoryTable').DataTable({
         order: [[0, 'desc']],
         pageLength: 25,
+        columnDefs: [{ targets: [1], visible: window.innerWidth >= 576 }],
         language: {
             search: 'Rechercher :',
             lengthMenu: 'Afficher _MENU_ entrées',

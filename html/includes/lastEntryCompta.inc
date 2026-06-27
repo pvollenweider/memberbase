@@ -149,7 +149,7 @@ while ($row = $stmt->fetchObject()) {
         $user->addMembership($addMem);
     }
     ?>
-    <tr class="position-relative" style="<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
+    <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&userid=<?=(int)$userId?>" style="cursor:pointer;<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
         <td><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
         <td class="d-none d-xl-table-cell"><div class="text-truncate" style="max-width:125px"><?= htmlentities($society, ENT_COMPAT, $charset) ?></div></td>
         <td class="text-nowrap"><div class="text-truncate" style="max-width:150px"><?= htmlentities($lastName, ENT_COMPAT, $charset) ?></div></td>
@@ -165,8 +165,7 @@ while ($row = $stmt->fetchObject()) {
         <td><?= timeStampToformatedDate($user->getCreationDate()) ?></td>
         <td>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=(int)$userId?>"
-               class="stretched-link" hx-boost="false"
-               aria-label="Voir compta de <?= htmlspecialchars($firstName . ' ' . $lastName, ENT_QUOTES, $charset) ?>"></a>
+               class="ca-row-link-anchor" hx-boost="false" tabindex="-1" aria-hidden="true"></a>
         </td>
     </tr>
     <?php
@@ -191,7 +190,7 @@ while ($row = $stmt->fetchObject()) {
             order: [[0, 'desc']],
             paging: false,
             columnDefs: [
-                { targets: [4, 5, 6, 11], visible: false }
+                { targets: [4, 5, 6, 10, 11], visible: false }
             ],
             dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
             buttons: [
@@ -218,6 +217,12 @@ while ($row = $stmt->fetchObject()) {
                 search: '',
                 searchPlaceholder: 'Filtrer…'
             }
+        });
+        document.querySelector('.export tbody') && document.querySelector('.export tbody').addEventListener('click', function(e) {
+            var tr = e.target.closest('tr.ca-row-link');
+            if (!tr) return;
+            if (e.target.closest('a, button')) return;
+            window.location.href = tr.dataset.href;
         });
     });
 </script>

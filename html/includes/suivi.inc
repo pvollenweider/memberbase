@@ -32,7 +32,7 @@ while ($row = $stmt->fetchObject()) {
     $parameter = $row->parameter;
     $value = $row->value;
     ?>
-     <tr class="position-relative">
+     <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=updateSuivi&suiviid=<?=(int)$id?>&userid=<?=(int)$userid?>" style="cursor:pointer">
         <td><?=timeStampToformatedDate($date)?></td>
         <td><?=html_entity_decode($value,ENT_COMPAT,$charset)?></td>
         <td class="text-end" style="white-space:nowrap">
@@ -44,8 +44,7 @@ while ($row = $stmt->fetchObject()) {
                 <i class="fas fa-trash-alt" style="font-size:0.75rem" aria-hidden="true"></i>
             </a>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=updateSuivi&amp;suiviid=<?=(int)$id?>&amp;userid=<?=(int)$userid?>"
-               class="stretched-link" hx-boost="false"
-               aria-label="Modifier cette entrée de suivi"></a>
+               class="ca-row-link-anchor" hx-boost="false" tabindex="-1" aria-hidden="true"></a>
         </td>
     </tr>
     <?php
@@ -55,3 +54,14 @@ while ($row = $stmt->fetchObject()) {
 </table>
 </div>
 </form>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tbody = document.querySelector('form[name="addSuivi"] tbody');
+    if (tbody) tbody.addEventListener('click', function(e) {
+        var tr = e.target.closest('tr.ca-row-link');
+        if (!tr) return;
+        if (e.target.closest('a, button')) return;
+        window.location.href = tr.dataset.href;
+    });
+});
+</script>

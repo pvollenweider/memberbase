@@ -485,7 +485,7 @@ foreach ($rows as $row):
         default => ''
     };
     ?>
-    <tr class="position-relative">
+    <tr class="position-relative" style="cursor:pointer">
         <td><?=$society?></td>
         <td><?=$sexe?><span class="hide"><?=$sexe2?></span></td>
         <td><strong><?=$lastName?></strong></td>
