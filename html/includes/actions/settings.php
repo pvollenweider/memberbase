@@ -5,7 +5,7 @@
 $action = $_REQUEST['action'];
 
 if ($action == 'saveSettings') {
-    $keys = ['default_team', 'membre_team'];
+    $keys = ['default_team', 'membre_team', 'member_no_coti_team'];
     $stmt = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
     foreach ($keys as $key) {
         if (isset($_REQUEST[$key])) {

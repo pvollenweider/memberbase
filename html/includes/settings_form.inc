@@ -142,6 +142,18 @@ $_activeTab = $_REQUEST['tab'] ?? null;
                   <?php endforeach ?>
                 </select>
               </div>
+              <div class="mb-4">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_member_no_coti_team">Groupe membres sans cotisation</label>
+                <p class="text-muted mb-2" style="font-size:0.78rem">Membres considérés comme actifs sans payer de cotisation (bénévoles, comité…). Exclus du filtre «Aucune cotisation ces 3 dernières années». Laisser vide si non applicable.</p>
+                <select name="member_no_coti_team" id="s_member_no_coti_team" class="form-select form-select-sm" style="max-width:320px">
+                  <option value="0" <?= empty($appSettings['member_no_coti_team']) ? 'selected' : '' ?>>— Aucun —</option>
+                  <?php foreach ($allTeams as $t): ?>
+                  <option value="<?= (int)$t->id ?>" <?= (int)($appSettings['member_no_coti_team'] ?? 0) === (int)$t->id ? 'selected' : '' ?>>
+                    <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' (masqué)' : '' ?>
+                  </option>
+                  <?php endforeach ?>
+                </select>
+              </div>
               <button type="submit" class="btn btn-primary btn-sm">Sauvegarder</button>
             </form>
             </div>

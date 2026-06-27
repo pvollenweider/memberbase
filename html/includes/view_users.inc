@@ -226,8 +226,8 @@ if ($metagroup > 0) {
     if ($team == -4) {
         $query .= ",compta ";
     }
-    // -3/-5555/-6666 no longer need user_properties — status=1 replaces archive group filter
-    if ($team != -1 && $team != -3 && $team != -5555 && $team != -6666) {
+    // -3/-3333/-5555/-6666 no longer need user_properties join
+    if ($team != -1 && $team != -3 && $team != -3333 && $team != -5555 && $team != -6666) {
         $query .= ",user_properties ";
     }
 }
@@ -270,9 +270,9 @@ if ($metagroup > 0) {
         $query .= "    OR user_properties.parameter='team_10'";
         $query .= "    OR user_properties.parameter='team_20'";
         $query .= " )";
-    } else if ($team == -3 || $team == -5555 || $team == -6666) {
+    } else if ($team == -3 || $team == -3333 || $team == -5555 || $team == -6666) {
         // status=1 already excludes archived members — no user_properties condition needed
-    } else if ($team == -4 || $team == -1234 || $team == -3333) {
+    } else if ($team == -4 || $team == -1234) {
         # search member
         $query .= " AND users.id=user_properties.user_id ";
         $query .= "AND ( ";
@@ -369,20 +369,31 @@ if ($team == -6666) {
     }
 }
 
-// Pre-fetch cotisation years per user for -3333 (replaces 4x isCotisationPayed SQL/user)
+// Pre-fetch cotisation history for -3333: ever paid + paid in last 3 years
+// Also pre-fetch member_no_coti_team members to exclude them
 $_coti3333 = [];
+$_noCotiMembers = [];
 if ($team == -3333) {
-    $_from3333 = mktime(0, 0, 0, 1, 0, $year - 3);
-    $_to3333   = mktime(0, 0, 0, 1, 1, $year + 1);
+    $_cutoff3333 = mktime(0, 0, 0, 1, 0, $year - 2);
     $_st3333 = $pdo->query("
-        SELECT c.user_id, YEAR(FROM_UNIXTIME(c.date)) AS yr
+        SELECT
+            c.user_id,
+            COUNT(*) AS ever_coti,
+            SUM(CASE WHEN c.date > $_cutoff3333 THEN 1 ELSE 0 END) AS recent_coti
         FROM compta c
         JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1
-        WHERE c.date > $_from3333 AND c.date < $_to3333
-        GROUP BY c.user_id, YEAR(FROM_UNIXTIME(c.date))
+        GROUP BY c.user_id
     ");
     while ($_r3 = $_st3333->fetchObject()) {
-        $_coti3333[(int)$_r3->user_id][(int)$_r3->yr] = true;
+        $_coti3333[(int)$_r3->user_id] = $_r3;
+    }
+    $_noCotiTeam = (int)($appSettings['member_no_coti_team'] ?? 0);
+    if ($_noCotiTeam > 0) {
+        $_stNoCoti = $pdo->prepare("SELECT user_id FROM user_properties WHERE parameter=?");
+        $_stNoCoti->execute(["team_$_noCotiTeam"]);
+        while ($_rn = $_stNoCoti->fetchObject()) {
+            $_noCotiMembers[(int)$_rn->user_id] = true;
+        }
     }
 }
 
@@ -430,9 +441,11 @@ while ($row = $stmt->fetchObject()) {
         $displayLine = !$displayLine;
     } else if ($team == -3333) {
         $displayLine = false;
-        $_u3 = $_coti3333[$user->getId()] ?? [];
-        if (empty($_u3[$year]) && empty($_u3[$year-1]) && empty($_u3[$year-2]) && empty($_u3[$year-3])) {
-            $displayLine = true;
+        if (empty($_noCotiMembers[$user->getId()])) {
+            $_u3 = $_coti3333[$user->getId()] ?? null;
+            if ($_u3 && (int)$_u3->ever_coti > 0 && (int)$_u3->recent_coti === 0) {
+                $displayLine = true;
+            }
         }
     } else if ($team == -5555) {
         $displayLine = true;
