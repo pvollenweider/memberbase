@@ -342,11 +342,70 @@ $query .= " ORDER BY $orderColumn $orderSort";
     <th class="d-none d-sm-table-cell d-md-table-cell">
             <?=$GLOBAL['creationDate']?>
     </th>
+    <?php if ($team == -5555): ?>
+    <th class="d-none d-sm-table-cell" style="font-size:0.75rem;white-space:nowrap">Historique compta</th>
+    <?php endif ?>
     <th></th>
 </tr>
 </thead>
 <tbody>
 <?php
+// Pre-fetch non-institutional compta for -6666 (replaces 1 SQL/user)
+$_nonInstit6666 = [];
+if ($team == -6666) {
+    $_instit6666Ids = array_column($pdo->query("SELECT id FROM compta_type WHERE is_institutional=1")->fetchAll(PDO::FETCH_OBJ), 'id');
+    $_from6666pre = mktime(0,0,0,1,0,$year-1);
+    $_to6666pre   = mktime(0,0,0,1,1,$year);
+    $_notIn = count($_instit6666Ids) ? implode(',', array_map('intval', $_instit6666Ids)) : '0';
+    $_st6666 = $pdo->query("
+        SELECT user_id
+        FROM compta
+        WHERE date > $_from6666pre AND date < $_to6666pre
+          AND (type_id IS NULL OR type_id NOT IN ($_notIn))
+        GROUP BY user_id
+    ");
+    while ($_r6 = $_st6666->fetchObject()) {
+        $_nonInstit6666[(int)$_r6->user_id] = true;
+    }
+}
+
+// Pre-fetch cotisation years per user for -3333 (replaces 4x isCotisationPayed SQL/user)
+$_coti3333 = [];
+if ($team == -3333) {
+    $_from3333 = mktime(0, 0, 0, 1, 0, $year - 3);
+    $_to3333   = mktime(0, 0, 0, 1, 1, $year + 1);
+    $_st3333 = $pdo->query("
+        SELECT c.user_id, YEAR(FROM_UNIXTIME(c.date)) AS yr
+        FROM compta c
+        JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1
+        WHERE c.date > $_from3333 AND c.date < $_to3333
+        GROUP BY c.user_id, YEAR(FROM_UNIXTIME(c.date))
+    ");
+    while ($_r3 = $_st3333->fetchObject()) {
+        $_coti3333[(int)$_r3->user_id][(int)$_r3->yr] = true;
+    }
+}
+
+// Pre-fetch compta summary for -5555 to avoid N+1 queries (hasComptaEntries per user)
+$_compta5555 = [];
+if ($team == -5555) {
+    $_from5555 = mktime(0, 0, 0, 1, 0, $year - 10);
+    $_to5555   = mktime(0, 0, 0, 1, 1, $year + 1);
+    $_st5555 = $pdo->query("
+        SELECT c.user_id,
+               COUNT(*) AS total,
+               MAX(c.date) AS last_date,
+               SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 THEN 1 ELSE 0 END) AS coti_count,
+               SUM(CASE WHEN c.date > $_from5555 AND c.date < $_to5555 THEN 1 ELSE 0 END) AS recent_count
+        FROM compta c
+        LEFT JOIN compta_type ct ON ct.id = c.type_id
+        GROUP BY c.user_id
+    ");
+    while ($_r5 = $_st5555->fetchObject()) {
+        $_compta5555[(int)$_r5->user_id] = $_r5;
+    }
+}
+
 #print $query;
 $stmt = $pdo->prepare($query);
 $stmt->execute($queryParams);
@@ -371,28 +430,19 @@ while ($row = $stmt->fetchObject()) {
         $displayLine = !$displayLine;
     } else if ($team == -3333) {
         $displayLine = false;
-        if ($user->isCotisationPayed($year-1) == -1 &&
-            $user->isCotisationPayed($year)== -1 &&
-            $user->isCotisationPayed($year-2)== -1 &&
-            $user->isCotisationPayed($year-3)== -1) {
-                $displayLine = true;
+        $_u3 = $_coti3333[$user->getId()] ?? [];
+        if (empty($_u3[$year]) && empty($_u3[$year-1]) && empty($_u3[$year-2]) && empty($_u3[$year-3])) {
+            $displayLine = true;
         }
     } else if ($team == -5555) {
         $displayLine = true;
-        if ($user->hasComptaEntries($year,10)) {
-            $displayLine = false;
-        }
-        if ($user->isMemberOfTeam(6) || $user->isMemberOfTeam(47) || $user->isMemberOfTeam(2) || $user->isMemberOfTeam(31) || $user->isMemberOfTeam(34) || $user->isMemberOfTeam(27)) {
+        $_c5 = $_compta5555[$user->getId()] ?? null;
+        if ($_c5 && (int)$_c5->recent_count > 0) {
             $displayLine = false;
         }
     } else if ($team == -6666) {
         $displayLine = false;
-        $_instit6666Ids = $_instit6666Ids ?? array_column($pdo->query("SELECT id FROM compta_type WHERE is_institutional=1")->fetchAll(PDO::FETCH_OBJ), 'id');
-        $_stHasNonInstit = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE user_id=? AND date>? AND date<? AND (type_id IS NULL OR type_id NOT IN (" . (count($_instit6666Ids) ? implode(',', array_map('intval', $_instit6666Ids)) : '0') . "))");
-        $_from6666 = mktime(0,0,0,1,0,$year-1);
-        $_to6666   = mktime(0,0,0,1,1,$year);
-        $_stHasNonInstit->execute([$user->getId(), $_from6666, $_to6666]);
-        if ((int)$_stHasNonInstit->fetchColumn() > 0) {
+        if (!empty($_nonInstit6666[$user->getId()])) {
             $displayLine = true;
         }
     } else if ($team == -444) {
@@ -463,6 +513,17 @@ while ($row = $stmt->fetchObject()) {
             <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
             <td class="d-none d-sm-table-cell d-md-table-cell"><a href="mailto:<?=$email?>" style="position:relative;z-index:2"><?=$emailStr?></a></td>
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate($user->getCreationDate())?></td>
+            <?php if ($team == -5555):
+                $_c5 = $_compta5555[$user->getId()] ?? null; ?>
+            <td class="d-none d-sm-table-cell text-muted" style="font-size:0.72rem;line-height:1.3">
+                <?php if ($_c5 && (int)$_c5->total > 0):
+                    $parts = [(int)$_c5->total . ' entr.'];
+                    if ((int)$_c5->coti_count > 0) $parts[] = (int)$_c5->coti_count . ' coti';
+                    echo htmlspecialchars(implode(' · ', $parts));
+                    echo '<br><span style="opacity:0.55">dernier: ' . date('Y', (int)$_c5->last_date) . '</span>';
+                else: ?><span style="opacity:0.4">—</span><?php endif ?>
+            </td>
+            <?php endif ?>
             <td>
                 <a href="<?=$_SERVER['PHP_SELF']?>?view=generalData&amp;id=<?=(int)$id?>"
                    class="stretched-link" hx-boost="false"

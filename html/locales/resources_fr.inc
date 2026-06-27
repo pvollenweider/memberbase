@@ -1,6 +1,6 @@
 <?php
 $GLOBAL['nonInstitPayedSomethingLastYear'] = "Donateur non institutionnel actif en " . (date('Y') - 1);
-$GLOBAL['nothingLast10Years']         = "Aucun don ces 10 dernières années";
+$GLOBAL['nothingLast10Years']         = "Aucun versement ces 10 dernières années";
 $GLOBAL['urgence']           = "<i class='fas fa-ambulance fa-fw s'></i> Urgence";
 $GLOBAL['journal']         = "Envoi Journal";
 $GLOBAL['total']         = "Total";
