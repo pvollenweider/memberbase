@@ -527,7 +527,9 @@ foreach ($_allRows as $row) {
             <td class="text-nowrap2"><?=$firstName?></td>
             <td style="white-space:nowrap">
               <?php foreach ($_userComptaTypes[$id] ?? [] as $_ct):
-                  $_badgeColor = str_replace('-subtle', '', $_ct->color ?: 'bg-secondary');
+                  // text-bg-* (BS 5.2+) handles background + text contrast automatically
+                  $_bgClass = str_replace('-subtle', '', $_ct->color ?: 'bg-secondary');
+                  $_badgeColor = preg_replace('/^bg-/', 'text-bg-', $_bgClass);
               ?>
               <span class="badge <?= htmlspecialchars($_badgeColor, ENT_QUOTES, $charset) ?>"
                     title="<?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?>"
