@@ -103,7 +103,7 @@ if ($year != -2) {
 }
 ?>
 <?php if ($year != -2): ?>
-<div class="d-flex gap-2 mb-4" style="overflow-x:auto">
+<div class="ca-resume-cards d-flex gap-2 mb-4">
   <!-- Total contributions -->
   <div style="flex:2 0 0;min-width:160px;background:var(--ca-primary);color:#fff;border-radius:10px;padding:0.85rem 1rem">
     <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.8">Contributions <?= $year ?></div>

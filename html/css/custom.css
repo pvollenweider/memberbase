@@ -622,3 +622,30 @@ tr.position-relative { cursor: pointer; }
     .ca-merge-label    { font-size: 0.72rem; padding: 0.35rem 0.4rem; }
     .ca-merge-cell     { padding: 0.35rem 0.4rem; font-size: 0.78rem; }
 }
+
+/* resume.inc — responsive stats cards */
+@media (max-width: 575.98px) {
+  .ca-resume-cards {
+    flex-wrap: wrap;
+    gap: 0.5rem !important;
+  }
+  /* contributions card: full width */
+  .ca-resume-cards > div:first-child {
+    flex: 0 0 100% !important;
+    min-width: 0 !important;
+  }
+  /* secondary cards: split into row of 3 (or fewer) */
+  .ca-resume-cards > div:not(:first-child) {
+    flex: 1 1 0 !important;
+    min-width: 90px !important;
+    padding: 0.6rem 0.7rem !important;
+  }
+  /* pie legend hidden on xs — too cramped */
+  .ca-resume-cards #resumePieLegend {
+    display: none;
+  }
+  /* tighten secondary card numbers */
+  .ca-resume-cards > div:not(:first-child) > div[style*="font-size:1.75rem"] {
+    font-size: 1.3rem !important;
+  }
+}
