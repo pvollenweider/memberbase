@@ -373,6 +373,7 @@ if ($_showPie) {
     <ul class="dropdown-menu">
       <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -2) ? ' active' : '' ?>"
              href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
+      <li><hr class="dropdown-divider"></li>
       <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -3) ? ' active' : '' ?>"
              href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-3">
           <i class="fas fa-rotate me-1 text-muted" aria-hidden="true"></i>12 derniers mois</a></li>
