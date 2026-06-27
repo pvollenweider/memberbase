@@ -17,17 +17,34 @@ if ($membreTeamId > 0) {
 }
 ?>
 <?php
-$_yearLabel = (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? $GLOBAL['allYear'] : $year;
+$_yearLabel = match(true) {
+    isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -2 => $GLOBAL['allYear'],
+    isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -3 => '12 derniers mois',
+    isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -4 => '24 derniers mois',
+    default => $year,
+};
 if ($showAll) {
     $_amountLabel = '<i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Toutes entrées';
 } else {
     $_amountLabel = 'Min. ' . number_format($minSum, 0, '.', '\'') . ' CHF';
 }
 if ($year != -2) {
-    $_kFrom  = mktime(0,0,0,1,0,$year);
-    $_kTo    = mktime(0,0,0,1,1,$year+1);
-    $_kFrom1 = mktime(0,0,0,1,0,$year-1);
-    $_kTo1   = mktime(0,0,0,1,1,$year);
+    if ($year === -3) {
+        $_kFrom  = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 1);
+        $_kTo    = time();
+        $_kFrom1 = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2);
+        $_kTo1   = $_kFrom;
+    } elseif ($year === -4) {
+        $_kFrom  = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2);
+        $_kTo    = time();
+        $_kFrom1 = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 4);
+        $_kTo1   = $_kFrom;
+    } else {
+        $_kFrom  = mktime(0,0,0,1,0,$year);
+        $_kTo    = mktime(0,0,0,1,1,$year+1);
+        $_kFrom1 = mktime(0,0,0,1,0,$year-1);
+        $_kTo1   = mktime(0,0,0,1,1,$year);
+    }
 
     $_excl = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
 
@@ -351,11 +368,17 @@ if ($_showPie) {
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
             aria-label="Année">
-      <i class="fas fa-calendar-alt me-1" aria-hidden="true"></i><?= $_yearLabel ?>
+      <i class="fas fa-calendar-alt me-1" aria-hidden="true"></i><?= htmlspecialchars($_yearLabel, ENT_QUOTES, $charset) ?>
     </button>
     <ul class="dropdown-menu">
-      <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && $_REQUEST['year'] == -2) ? ' active' : '' ?>"
+      <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -2) ? ' active' : '' ?>"
              href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
+      <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -3) ? ' active' : '' ?>"
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-3">
+          <i class="fas fa-rotate me-1 text-muted" aria-hidden="true"></i>12 derniers mois</a></li>
+      <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -4) ? ' active' : '' ?>"
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-4">
+          <i class="fas fa-rotate me-1 text-muted" aria-hidden="true"></i>24 derniers mois</a></li>
       <li><hr class="dropdown-divider"></li>
       <?php
       $currentYear = date("Y");
@@ -449,8 +472,16 @@ $baseSelect = "
 $sql = $baseSelect . " WHERE u.status=1";
 
 if ($year != -2) {
-    $from = mktime(0, 0, 0, 1, 0, $year);
-    $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+    if ($year === -3) {
+        $from = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 1);
+        $to   = time();
+    } elseif ($year === -4) {
+        $from = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2);
+        $to   = time();
+    } else {
+        $from = mktime(0, 0, 0, 1, 0, $year);
+        $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+    }
     $sql .= " AND c.date > ? AND c.date < ?";
     $params[] = $from;
     $params[] = $to;
