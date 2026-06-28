@@ -1,4 +1,5 @@
 <?php
+define('APP_ENTRY', true);
 /**
  * Generates a bulk donation attestation PDF (all qualifying donors for a year) via pdftk.
  *
@@ -8,12 +9,12 @@
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/lib/auth.php';
 requireLogin();
 ob_start();
 set_time_limit(120);
 
-include "includes/declarations.php";
+include __DIR__ . "/includes/lib/bootstrap.php";
 include "classes/user_class.php";
 
 $year   = isset($_GET['year'])   ? (int)$_GET['year']   : (int)date('Y');

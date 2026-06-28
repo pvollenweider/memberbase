@@ -1,4 +1,5 @@
 <?php
+defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * Team entity — loads and holds a single group record.
  *

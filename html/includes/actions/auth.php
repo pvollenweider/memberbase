@@ -1,4 +1,5 @@
 <?php
+defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * Action handler for authentication: logout, password change, and app user management.
  *

@@ -1,4 +1,5 @@
 <?php
+defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * Action handler for member records: add and update.
  *

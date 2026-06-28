@@ -1,4 +1,5 @@
 <?php
+defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * Action handler for metagroup management: create, update, delete, and category assignment.
  *

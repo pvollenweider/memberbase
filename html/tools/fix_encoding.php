@@ -16,7 +16,7 @@ foreach ($argv ?? [] as $a) {
 }
 
 chdir(__DIR__ . '/..');
-require_once 'includes/declarations.php';
+require_once 'includes/lib/bootstrap.php';
 
 $allowedCols = ['npa', 'address', 'society', 'firstname', 'lastname', 'libele'];
 if (!in_array($col, $allowedCols)) {

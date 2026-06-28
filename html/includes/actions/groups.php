@@ -1,4 +1,5 @@
 <?php
+defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * Action handler for group management: create, rename, delete, import, and bulk operations.
  *

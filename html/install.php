@@ -1,4 +1,5 @@
 <?php
+define('APP_ENTRY', true);
 /**
  * Web installer — first-run setup wizard.
  *
