@@ -1,6 +1,6 @@
-# Casa Alianza Suisse — Fichier des membres
+# MemberBase
 
-Application web PHP de gestion des membres, groupes, cotisations et dons pour Casa Alianza Suisse.
+Application web PHP de gestion des membres, groupes, cotisations et dons.
 
 ---
 
@@ -116,7 +116,7 @@ html/
 ├── locales/
 │   └── resources_fr.php        # Libellés français (UTF-8)
 ├── css/
-│   ├── custom.css              # Styles Casa Alianza
+│   ├── custom.css              # Styles MemberBase
 │   ├── webfonts/               # Font Awesome 6 woff2/ttf
 │   └── vendor/                 # Bootstrap, DataTables, Font Awesome CSS
 ├── js/
