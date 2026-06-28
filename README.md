@@ -6,6 +6,16 @@
 
 Application web PHP de gestion des membres, groupes, cotisations et dons.
 
+## Documentation
+
+| | |
+|---|---|
+| [Guide utilisateur](doc/user.md) | Prise en main, navigation, saisie des données |
+| [Guide administrateur](doc/admin.md) | Configuration, déploiement, gestion des comptes |
+| [Installation](#installation-fresh-install) | Wizard web, Docker, mise à jour |
+| [CHANGELOG](CHANGELOG.md) | Historique des versions |
+| [CONTRIBUTING](CONTRIBUTING.md) | Comment contribuer |
+
 ---
 
 ## Histoire
