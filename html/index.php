@@ -71,7 +71,7 @@ if ($isHtmx) {
     <!-- Custom -->
     <link rel="stylesheet" href="css/custom.css">
 
-    <!-- jQuery (required by DataTables, CKEditor, datetimepicker) -->
+    <!-- jQuery (required by DataTables, datetimepicker) -->
     <script src="js/jquery-3.7.1.min.js"></script>
 
     <!-- Bootstrap 5 bundle (includes Popper) -->
