@@ -111,7 +111,7 @@ if ($__flash):
           onsubmit="return confirm('Supprimer l\'utilisateur «<?= htmlspecialchars(addslashes($_au->username), ENT_QUOTES, $charset) ?>»?')">
       <input type="hidden" name="action"    value="deleteAppUser">
       <input type="hidden" name="target_id" value="<?= (int)$_au->id ?>">
-      <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Supprimer">
+      <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="<?= $GLOBAL['delete'] ?>">
         <i class="fas fa-trash" aria-hidden="true"></i>
       </button>
     </form>

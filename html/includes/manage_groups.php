@@ -53,7 +53,7 @@ if (!empty($_SESSION['group_toast'])) {
   <div class="d-flex align-items-center gap-2 mb-2">
     <input type="text" class="form-control form-control-sm" id="name" name="name"
            placeholder="<?= htmlentities($GLOBAL['teamName'], ENT_COMPAT, $charset) ?>" required/>
-    <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">Ajouter</button>
+    <button type="submit" class="btn btn-primary btn-sm flex-shrink-0"><?= $GLOBAL['addBtn'] ?></button>
   </div>
   <?php if (count($categories) > 0): ?>
   <div class="mb-2">

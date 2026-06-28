@@ -222,12 +222,12 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
             <label class="ca-merge-radio" x-bind:class="{'active': disposal === 'hide'}">
               <input type="radio" name="disposal" value="hide" x-model="disposal" class="visually-hidden">
               <i class="fas fa-eye-slash me-1 text-muted" aria-hidden="true"></i>
-              <span>Archiver</span>
+              <span><?= $GLOBAL['archive'] ?></span>
             </label>
             <label class="ca-merge-radio ca-merge-radio--danger" x-bind:class="{'active': disposal === 'delete'}">
               <input type="radio" name="disposal" value="delete" x-model="disposal" class="visually-hidden">
               <i class="fas fa-trash-alt me-1" aria-hidden="true"></i>
-              <span>Supprimer</span>
+              <span><?= $GLOBAL['delete'] ?></span>
             </label>
           </div>
           <p class="text-muted mt-1 mb-0" style="font-size:0.78rem" x-show="disposal === 'delete'">
@@ -261,7 +261,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
     <div class="ca-merge-dialog-body">
       <h2 class="ca-merge-dialog-title" id="merge-dialog-title">
         <i class="fas fa-exclamation-triangle text-danger me-2" aria-hidden="true"></i>
-        Confirmer la fusion
+        <?= $GLOBAL['confirmMerge'] ?>
       </h2>
       <p style="font-size:0.9rem">Cette opération est irréversible. Vérifiez le résumé avant de confirmer.</p>
       <ul class="ca-merge-dialog-summary" style="font-size:0.85rem">
@@ -274,7 +274,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
       <div class="d-flex gap-2 justify-content-end mt-4">
         <button type="button" class="btn btn-outline-secondary" @click="closeConfirm()"><?= $GLOBAL['cancel'] ?></button>
         <button type="submit" form="merge-form" class="btn btn-danger">
-          <i class="fas fa-code-merge me-1" aria-hidden="true"></i>Confirmer la fusion
+          <i class="fas fa-code-merge me-1" aria-hidden="true"></i><?= $GLOBAL['confirmMerge'] ?>
         </button>
       </div>
     </div>

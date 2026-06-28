@@ -14,7 +14,7 @@ $_userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
       <div class="mb-3 text-center" style="font-size:2rem;color:var(--ca-ink-muted)">
         <i class="fas fa-user-secret" aria-hidden="true"></i>
       </div>
-      <h5 class="card-title mb-1 text-center">Anonymiser ce profil</h5>
+      <h5 class="card-title mb-1 text-center"><?= $GLOBAL['anonymizeProfile'] ?></h5>
       <p class="text-muted text-center mb-4" style="font-size:0.85rem">
         <?= htmlspecialchars($_userName, ENT_QUOTES, $charset) ?>
         <span class="ms-1" style="font-size:0.78rem">#<?= (int)$user->getId() ?></span>
@@ -39,7 +39,7 @@ $_userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
           <input type="hidden" name="action" value="anonymizeUser">
           <input type="hidden" name="id"     value="<?= (int)$user->getId() ?>">
           <button type="submit" class="btn btn-danger">
-            <i class="fas fa-user-secret me-1" aria-hidden="true"></i>Confirmer l'anonymisation
+            <i class="fas fa-user-secret me-1" aria-hidden="true"></i><?= $GLOBAL['confirmAnonymize'] ?>
           </button>
         </form>
       </div>

@@ -138,7 +138,7 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
         <div class="mb-3" style="font-size:2rem;color:var(--ca-ink-muted)">
           <i class="fas fa-eye-slash" aria-hidden="true"></i>
         </div>
-        <h6 class="mb-1" id="deactivate-modal-label">Archiver ce membre&nbsp;?</h6>
+        <h6 class="mb-1" id="deactivate-modal-label"><?= $GLOBAL['archiveMember'] ?>&nbsp;?</h6>
         <p class="text-muted mb-4" style="font-size:0.83rem">
           Le profil sera retiré de toutes les listes.<br>Désarchivable à tout moment.
         </p>
@@ -146,7 +146,7 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
           <button type="button" class="btn btn-danger"
                   onclick="bootstrap.Modal.getInstance(document.getElementById('deactivate-modal')).hide();document.getElementById('status-toggle-form').submit()">
-            <i class="fas fa-archive me-1" aria-hidden="true"></i>Archiver
+            <i class="fas fa-archive me-1" aria-hidden="true"></i><?= $GLOBAL['archive'] ?>
           </button>
         </div>
       </div>
@@ -301,13 +301,13 @@ if ($view == "compta") {
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=anonymizeUser&amp;id=<?= (int)$user->getId() ?>"
              class="btn btn-outline-danger btn-sm"
              title="Ce profil a des données comptables — la suppression est impossible. L'anonymisation efface les données personnelles tout en conservant l'historique comptable.">
-            <i class="fas fa-user-secret me-1" aria-hidden="true"></i>Anonymiser
+            <i class="fas fa-user-secret me-1" aria-hidden="true"></i><?= $GLOBAL['anonymize'] ?>
           </a>
           <?php else: ?>
           <!-- No compta → allow delete -->
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=deleteUser&amp;id=<?= (int)$user->getId() ?>"
              class="btn btn-danger btn-sm">
-            <i class="fas fa-user-times me-1" aria-hidden="true"></i>Supprimer
+            <i class="fas fa-user-times me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
           </a>
           <?php endif ?>
         <?php endif ?>

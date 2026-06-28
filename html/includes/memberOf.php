@@ -114,7 +114,7 @@ uasort($nonMemberBycat, $_catSortFn);
 <details class="ca-integrity-section mt-3" <?= ((($_REQUEST['action'] ?? '') === 'addMembership') || !empty($_REQUEST['viewall'])) ? 'open' : '' ?>>
   <summary class="ca-integrity-summary">
     <i class="fas fa-plus me-1 text-muted" style="font-size:0.7rem" aria-hidden="true"></i>
-    Ajouter un groupe
+    <?= $GLOBAL['addTeam'] ?>
   </summary>
   <div>
     <?php foreach ($nonMemberBycat as $group): ?>

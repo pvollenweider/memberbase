@@ -23,7 +23,7 @@
                     <input type="hidden" name="keep_days" value="0">
                     <button type="submit" class="btn btn-danger btn-sm"
                             onclick="return confirm('Supprimer tout le journal ?')">
-                        <i class="fas fa-trash me-1"></i>Tout supprimer
+                        <i class="fas fa-trash me-1"></i><?= $GLOBAL['deleteAll'] ?>
                     </button>
                 </form>
             </div>

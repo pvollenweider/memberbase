@@ -20,7 +20,7 @@ $typeId = $compta->getTypeId();
 
     <div class="d-flex align-items-baseline justify-content-between mb-3">
       <h6 class="text-muted mb-0" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em">
-        Modifier entrée compta
+        <?= $GLOBAL['editCompta'] ?>
       </h6>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>"
          class="text-muted small text-decoration-none">
@@ -85,7 +85,7 @@ $typeId = $compta->getTypeId();
             <input class="form-check-input" type="checkbox" id="wants_attestation" name="wants_attestation" value="1"
                    <?= $compta->getWantsAttestation() ? 'checked' : '' ?>>
             <label class="form-check-label" for="wants_attestation">
-              Souhaite une attestation de don
+              <?= $GLOBAL['wantsAttestationLabel'] ?>
             </label>
           </div>
         </div>
@@ -96,7 +96,7 @@ $typeId = $compta->getTypeId();
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
           <a href="<?= $_SERVER['PHP_SELF'] ?>?userid=<?= $user->getId() ?>&amp;view=removeCompta&amp;comptaid=<?= $comptaid ?>"
              class="btn btn-outline-danger btn-sm">
-            <i class="fas fa-times me-1" aria-hidden="true"></i>Supprimer
+            <i class="fas fa-times me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
           </a>
         </div>
       </div>

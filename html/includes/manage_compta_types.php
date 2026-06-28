@@ -86,7 +86,7 @@ $types = $pdo->query("
               <?php endforeach ?>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary btn-sm">Ajouter</button>
+          <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['addBtn'] ?></button>
         </form>
       </div>
     </div>
@@ -173,7 +173,7 @@ $types = $pdo->query("
           </td>
           <td class="text-end">
             <button type="button" class="btn btn-outline-secondary btn-sm py-0"
-                    onclick="toggleEdit(<?= $ct->id ?>)">Modifier</button>
+                    onclick="toggleEdit(<?= $ct->id ?>)"><?= $GLOBAL['edit'] ?></button>
             <?php if ($ct->cnt == 0): ?>
             <a href="<?= $_SERVER['PHP_SELF'] ?>?action=deleteComptaType&id=<?= $ct->id ?>&returnView=<?= urlencode($ctReturnView) ?>&returnTab=<?= urlencode($ctReturnTab) ?>"
                class="btn btn-outline-danger btn-sm py-0"

@@ -94,7 +94,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
     <!-- Edit form -->
     <div>
       <div class="d-flex align-items-baseline justify-content-between mb-1">
-        <p class="form-section-title mb-0">Modifier le groupe</p>
+        <p class="form-section-title mb-0"><?= $GLOBAL['editGroup'] ?></p>
         <a href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= (int)$id ?>" class="small">
           Voir la liste <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
         </a>
@@ -385,7 +385,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <input type="hidden" name="id" value="<?=$team->getId()?>"/>
               <button type="submit" class="btn btn-sm btn-danger"
                       onclick="return confirm('Supprimer le groupe «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>» ?')">
-                <i class="fas fa-trash me-1" aria-hidden="true"></i>Supprimer
+                <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
               </button>
             </form>
           </div>

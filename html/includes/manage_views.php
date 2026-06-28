@@ -30,7 +30,7 @@ if (isset($_REQUEST['view'])) {
               <div class="mb-3 text-center" style="font-size:2rem;color:var(--ca-danger)">
                 <i class="fas fa-user-slash" aria-hidden="true"></i>
               </div>
-              <h5 class="card-title mb-1 text-center">Supprimer ou archiver ce membre&nbsp;?</h5>
+              <h5 class="card-title mb-1 text-center"><?= $GLOBAL['deleteOrArchive'] ?>&nbsp;?</h5>
               <p class="text-muted text-center mb-4" style="font-size:0.85rem">
                 <?= htmlspecialchars($userName, ENT_QUOTES, $charset) ?>
                 <span class="text-muted ms-1" style="font-size:0.78rem">#<?= (int)$user->getId() ?></span>
@@ -41,19 +41,19 @@ if (isset($_REQUEST['view'])) {
                 <div class="d-flex flex-column gap-2 mb-4">
                   <label class="ca-merge-radio" style="cursor:pointer">
                     <input type="radio" name="dispose" value="deactivate" checked>
-                    <span><i class="fas fa-archive me-1 text-muted" aria-hidden="true"></i><strong>Archiver</strong></span>
+                    <span><i class="fas fa-archive me-1 text-muted" aria-hidden="true"></i><strong><?= $GLOBAL['archive'] ?></strong></span>
                     <span class="text-muted ms-1" style="font-size:0.78rem">— conserve l'historique, retiré de toutes les vues</span>
                   </label>
                   <label class="ca-merge-radio ca-merge-radio--danger" style="cursor:pointer">
                     <input type="radio" name="dispose" value="delete">
-                    <span><i class="fas fa-trash-alt me-1" aria-hidden="true"></i><strong>Supprimer définitivement</strong></span>
+                    <span><i class="fas fa-trash-alt me-1" aria-hidden="true"></i><strong><?= $GLOBAL['deletePermanently'] ?></strong></span>
                     <span class="text-muted ms-1" style="font-size:0.78rem">— irréversible</span>
                   </label>
                 </div>
                 <div class="d-flex gap-2 justify-content-end">
                   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$user->getId() ?>"
                      class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
-                  <button type="submit" class="btn btn-danger">Confirmer</button>
+                  <button type="submit" class="btn btn-danger"><?= $GLOBAL['confirm'] ?></button>
                 </div>
               </form>
             </div>
@@ -102,7 +102,7 @@ if (isset($_REQUEST['view'])) {
               <div class="mb-3" style="font-size:2rem;color:var(--bs-danger)">
                 <i class="fas fa-trash-alt" aria-hidden="true"></i>
               </div>
-              <h5 class="card-title mb-1">Supprimer cette écriture&nbsp;?</h5>
+              <h5 class="card-title mb-1"><?= $GLOBAL['deleteEntry'] ?>&nbsp;?</h5>
               <p class="text-muted mb-3" style="font-size:0.85rem">Cette action est irréversible.</p>
               <div class="border rounded p-3 mb-4 text-start bg-light" style="font-size:0.875rem">
                 <div class="mb-1"><span class="text-muted">Date&nbsp;:</span> <strong><?=timeStampToformatedDate($compta->date)?></strong></div>
@@ -111,10 +111,10 @@ if (isset($_REQUEST['view'])) {
               </div>
               <div class="d-flex gap-2 justify-content-center">
                 <a href="<?=$_SERVER['PHP_SELF']?>?view=updateUser&amp;userid=<?=(int)$_REQUEST['userid']?>" class="btn btn-outline-secondary">
-                  Annuler
+                  <?= $GLOBAL['cancel'] ?>
                 </a>
                 <a href="<?=$_SERVER['PHP_SELF']?>?view=deleteComptaConfirm&amp;userid=<?=(int)$_REQUEST['userid']?>&comptaid=<?=$compta->getId()?>" class="btn btn-danger">
-                  Supprimer
+                  <?= $GLOBAL['delete'] ?>
                 </a>
               </div>
             </div>
@@ -147,7 +147,7 @@ if (isset($_REQUEST['view'])) {
               <div class="mb-3" style="font-size:2rem;color:var(--bs-danger)">
                 <i class="fas fa-trash-alt" aria-hidden="true"></i>
               </div>
-              <h5 class="card-title mb-1">Supprimer cette entrée de suivi&nbsp;?</h5>
+              <h5 class="card-title mb-1"><?= $GLOBAL['deleteSuiviEntry'] ?>&nbsp;?</h5>
               <p class="text-muted mb-3" style="font-size:0.85rem">Cette action est irréversible.</p>
               <div class="border rounded p-3 mb-4 text-start bg-light" style="font-size:0.875rem">
                 <div class="mb-1"><span class="text-muted">Date&nbsp;:</span> <strong><?= timeStampToformatedDate($userProperty->date) ?></strong></div>
@@ -155,10 +155,10 @@ if (isset($_REQUEST['view'])) {
               </div>
               <div class="d-flex gap-2 justify-content-center">
                 <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= (int)$_REQUEST['userid'] ?>" class="btn btn-outline-secondary">
-                  Annuler
+                  <?= $GLOBAL['cancel'] ?>
                 </a>
                 <a href="<?= $_SERVER['PHP_SELF'] ?>?view=removeSuiviConfirm&amp;userid=<?= (int)$_REQUEST['userid'] ?>&amp;suiviid=<?= $userProperty->getId() ?>" class="btn btn-danger">
-                  Supprimer
+                  <?= $GLOBAL['delete'] ?>
                 </a>
               </div>
             </div>

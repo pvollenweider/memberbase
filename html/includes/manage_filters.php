@@ -15,7 +15,7 @@ $allFilters = $pdo->query("SELECT m.id, m.name, COUNT(j.teamid) AS team_count FR
       </td>
       <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= (int)$mg->team_count ?> groupe<?= $mg->team_count != 1 ? 's' : '' ?></td>
       <td class="text-end" style="width:2rem">
-        <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateMetagroup&amp;id=<?= (int)$mg->id ?>" class="text-decoration-none text-muted" title="Modifier">
+        <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateMetagroup&amp;id=<?= (int)$mg->id ?>" class="text-decoration-none text-muted" title="<?= $GLOBAL['edit'] ?>">
           <i class="fas fa-pen" style="font-size:0.75rem"></i>
         </a>
       </td>
@@ -34,6 +34,6 @@ $allFilters = $pdo->query("SELECT m.id, m.name, COUNT(j.teamid) AS team_count FR
   <input type="hidden" name="is_filter" value="1"/>
   <div class="d-flex align-items-center gap-2">
     <input type="text" class="form-control form-control-sm" name="name" placeholder="Nom du filtre" maxlength="255" required style="max-width:240px"/>
-    <button type="submit" class="btn btn-outline-primary btn-sm flex-shrink-0">Ajouter</button>
+    <button type="submit" class="btn btn-outline-primary btn-sm flex-shrink-0"><?= $GLOBAL['addBtn'] ?></button>
   </div>
 </form>

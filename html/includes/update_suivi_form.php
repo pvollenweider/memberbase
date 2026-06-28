@@ -47,7 +47,7 @@ $suivi_user->lookupUser($userProperty->getUserId());
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
           <a href="<?= $_SERVER['PHP_SELF'] ?>?userid=<?= $userProperty->getUserId() ?>&amp;view=removeSuivi&amp;suiviid=<?= $suiviid ?>"
              class="btn btn-outline-danger btn-sm">
-            <i class="fas fa-times me-1" aria-hidden="true"></i>Supprimer
+            <i class="fas fa-times me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
           </a>
         </div>
       </div>

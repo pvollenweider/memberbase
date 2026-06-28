@@ -79,7 +79,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
     <!-- Rename + type form -->
     <div>
-      <p class="form-section-title">Modifier</p>
+      <p class="form-section-title"><?= $GLOBAL['editMetagroup'] ?></p>
       <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
         <input type="hidden" name="action" value="updateMetagroup"/>
         <input type="hidden" name="view" value="settings"/>
@@ -209,7 +209,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <details class="mt-3" style="font-size:0.82rem" id="mg-add-details">
           <summary class="text-muted" style="cursor:pointer;list-style:none;user-select:none;display:flex;align-items:center;gap:0.35rem">
             <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
-            Ajouter des groupes
+            <?= $GLOBAL['addGroups'] ?>
           </summary>
           <script>
             document.getElementById('mg-add-details').addEventListener('toggle', function() {
@@ -415,7 +415,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
     <!-- Delete -->
     <div>
-      <p class="form-section-title" style="color:var(--ca-danger)">Supprimer</p>
+      <p class="form-section-title" style="color:var(--ca-danger)"><?= $GLOBAL['delete'] ?></p>
       <p class="small text-muted mb-2">Supprime le métagroupe. Les groupes membres ne sont pas affectés.</p>
       <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
         <input type="hidden" name="action" value="deleteMetagroup"/>
@@ -424,7 +424,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <input type="hidden" name="id" value="<?= $mgId ?>"/>
         <button type="submit" class="btn btn-sm btn-danger"
                 onclick="return confirm('Supprimer «<?= htmlentities($mg->getName(), ENT_QUOTES, $charset) ?>» ?')">
-          <i class="fas fa-trash me-1" aria-hidden="true"></i>Supprimer
+          <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
         </button>
       </form>
     </div>

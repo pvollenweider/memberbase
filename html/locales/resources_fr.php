@@ -21,8 +21,22 @@ $GLOBAL['save']            = "Sauvegarder";
 $GLOBAL['cancel']          = "Annuler";
 $GLOBAL['close']           = "Fermer";
 $GLOBAL['confirm']         = "Confirmer";
-$GLOBAL['archive']         = "Archiver";
-$GLOBAL['anonymize']       = "Anonymiser";
+$GLOBAL['archive']              = "Archiver";
+$GLOBAL['anonymize']            = "Anonymiser";
+$GLOBAL['edit']                 = "Modifier";
+$GLOBAL['confirmMerge']         = "Confirmer la fusion";
+$GLOBAL['confirmAnonymize']     = "Confirmer l'anonymisation";
+$GLOBAL['wantsAttestationLabel']= "Souhaite une attestation de don";
+$GLOBAL['deleteAll']            = "Tout supprimer";
+$GLOBAL['deletePermanently']    = "Supprimer définitivement";
+$GLOBAL['deleteOrArchive']      = "Supprimer ou archiver ce membre";
+$GLOBAL['deleteEntry']          = "Supprimer cette écriture";
+$GLOBAL['deleteSuiviEntry']     = "Supprimer cette entrée de suivi";
+$GLOBAL['archiveMember']        = "Archiver ce membre";
+$GLOBAL['anonymizeProfile']     = "Anonymiser ce profil";
+$GLOBAL['editGroup']            = "Modifier le groupe";
+$GLOBAL['editCompta']           = "Modifier entrée compta";
+$GLOBAL['editMetagroup']        = "Modifier";
 
 // --- Dashboard / resume ---
 $GLOBAL['donors']          = "Donateurs";
@@ -53,6 +67,8 @@ $GLOBAL['adminOnly']       = "Accès réservé aux administrateurs.";
 
 // --- UI labels ---
 $GLOBAL['add']             = "<i class=\"fas fa-plus\"></i> Ajouter";
+$GLOBAL['addBtn']          = "Ajouter";
+$GLOBAL['addGroups']       = "Ajouter des groupes";
 $GLOBAL['addMetagroup']    = "Ajouter meta-groupe";
 $GLOBAL['addTeam']         = "Ajouter un groupe";
 $GLOBAL['addUser']         = "Ajouter";

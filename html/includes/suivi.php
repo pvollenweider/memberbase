@@ -40,7 +40,7 @@ while ($row = $stmt->fetchObject()) {
                class="btn btn-sm py-0 px-1 text-muted"
                style="position:relative;z-index:2"
                title="Supprimer cette entrée"
-               aria-label="Supprimer">
+               aria-label="<?= $GLOBAL['delete'] ?>">
                 <i class="fas fa-trash-alt" style="font-size:0.75rem" aria-hidden="true"></i>
             </a>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=updateSuivi&amp;suiviid=<?=(int)$id?>&amp;userid=<?=(int)$userid?>"
