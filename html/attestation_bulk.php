@@ -1,11 +1,20 @@
 <?php
-require_once __DIR__ . '/includes/auth.inc';
+/**
+ * Generates a bulk donation attestation PDF (all qualifying donors for a year) via pdftk.
+ *
+ * Individual PDFs are merged into a single download using pdftk's cat command.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+
+require_once __DIR__ . '/includes/auth.php';
 requireLogin();
 ob_start();
 set_time_limit(120);
 
-include "includes/declarations.inc";
-include "classes/user_class.inc";
+include "includes/declarations.php";
+include "classes/user_class.php";
 
 $year   = isset($_GET['year'])   ? (int)$_GET['year']   : (int)date('Y');
 $minSum = isset($_GET['minSum']) ? (int)$_GET['minSum'] : 1;
@@ -65,10 +74,10 @@ foreach ($donors as $row) {
     $total    = number_format((float)$row->total, 2, '.', "'");
 
     $fields = [
-        'Nom de institution' => 'Casa Alianza Suisse',
-        'Adresse'            => 'Rue Cécile-Biéler-Butticaz 5',
-        'NPA'                => '1207',
-        'Localite'           => 'Genève',
+        'Nom de institution' => $appSettings['org_name']    ?? '',
+        'Adresse'            => $appSettings['org_address']  ?? '',
+        'NPA'                => $appSettings['org_npa']      ?? '',
+        'Localite'           => $appSettings['org_city']     ?? '',
         'Nom'                => $row->lastname  ?? '',
         'Prenom'             => $row->firstname ?? '',
         'Adresse 2'          => $row->address   ?? '',
@@ -78,7 +87,7 @@ foreach ($donors as $row) {
         'annee2'             => (string)$year,
         'Case à cocher2'     => 'Oui',
         'Somme'              => $total,
-        'Lieu'               => 'Genève',
+        'Lieu'               => $appSettings['org_city']     ?? '',
         'mois'               => date('m'),
         'date'               => date('Y'),
     ];

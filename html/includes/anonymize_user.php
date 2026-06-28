@@ -1,0 +1,48 @@
+<?php
+$user = new User();
+$user->lookupUser((int)($_REQUEST['id'] ?? 0));
+if (!$user->getId()) { echo '<div class="alert alert-danger">Membre introuvable.</div>'; return; }
+
+$_stC = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
+$_stC->execute([$user->getId()]);
+$_comptaCount = (int)$_stC->fetchColumn();
+$_userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
+?>
+<div class="d-flex justify-content-center align-items-center" style="min-height:50vh">
+  <div class="card shadow-sm border-0" style="max-width:480px;width:100%">
+    <div class="card-body p-4">
+      <div class="mb-3 text-center" style="font-size:2rem;color:var(--ca-ink-muted)">
+        <i class="fas fa-user-secret" aria-hidden="true"></i>
+      </div>
+      <h5 class="card-title mb-1 text-center"><?= $GLOBAL['anonymizeProfile'] ?></h5>
+      <p class="text-muted text-center mb-4" style="font-size:0.85rem">
+        <?= htmlspecialchars($_userName, ENT_QUOTES, $charset) ?>
+        <span class="ms-1" style="font-size:0.78rem">#<?= (int)$user->getId() ?></span>
+      </p>
+
+      <div class="alert alert-info py-2 px-3 mb-4" style="font-size:0.82rem">
+        <i class="fas fa-info-circle me-1" aria-hidden="true"></i>
+        Ce profil possède <strong><?= $_comptaCount ?> écriture<?= $_comptaCount > 1 ? 's' : '' ?> comptable<?= $_comptaCount > 1 ? 's' : '' ?></strong>.
+        La suppression définitive est impossible pour des raisons de traçabilité comptable.<br><br>
+        L'anonymisation efface toutes les données personnelles (nom, prénom, adresse, email, téléphone…) tout en conservant l'historique comptable associé à cet identifiant interne.
+      </div>
+
+      <p class="text-muted mb-4" style="font-size:0.82rem">
+        <strong>Cette opération est irréversible.</strong> Les données suivantes seront effacées&nbsp;:
+        nom, prénom, société, adresse, NPA, email, téléphones, web, date de naissance, note.
+      </p>
+
+      <div class="d-flex gap-2 justify-content-end">
+        <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$user->getId() ?>"
+           class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
+        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline">
+          <input type="hidden" name="action" value="anonymizeUser">
+          <input type="hidden" name="id"     value="<?= (int)$user->getId() ?>">
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-user-secret me-1" aria-hidden="true"></i><?= $GLOBAL['confirmAnonymize'] ?>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

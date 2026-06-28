@@ -5,11 +5,19 @@
 $action = $_REQUEST['action'];
 
 if ($action == 'saveSettings') {
-    $keys = ['default_team', 'membre_team', 'member_no_coti_team'];
+    // Integer settings — stored as numeric values
+    $intKeys = ['default_team', 'membre_team', 'member_no_coti_team'];
+    // String settings — stored as trimmed text
+    $strKeys = ['org_name', 'org_address', 'org_npa', 'org_city', 'org_country', 'membre_team_prefix'];
     $stmt = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
-    foreach ($keys as $key) {
+    foreach ($intKeys as $key) {
         if (isset($_REQUEST[$key])) {
             $stmt->execute([$key, (int)$_REQUEST[$key]]);
+        }
+    }
+    foreach ($strKeys as $key) {
+        if (isset($_REQUEST[$key])) {
+            $stmt->execute([$key, trim((string)$_REQUEST[$key])]);
         }
     }
     if ($isHtmx) {

@@ -1,28 +1,37 @@
 <?php
+/**
+ * Application entry point — renders the full page or an htmx partial fragment.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+
 ob_start();
 $charset = "UTF-8";
 
 // Auth — must run before any output
-require_once __DIR__ . '/includes/auth.inc';
+require_once __DIR__ . '/includes/auth.php';
 requireLogin();
 requirePasswordChange();
 
 header("Content-Type: text/html; charset=$charset");
 
+// Load core dependencies before any output (needed for appSettings in page title)
+include "locales/resources_fr.php";
+include "includes/declarations.php";
+include "classes/user_class.php";
+include "classes/team_class.php";
+include "classes/compta_class.php";
+include "classes/property_class.php";
+include "classes/metagroup_class.php";
+
 // htmx partial response — skip layout, return only content fragment
 $isHtmx = !empty($_SERVER['HTTP_HX_REQUEST']);
 if ($isHtmx) {
-    include "locales/resources_fr.inc";
-    include "includes/declarations.inc";
-    include "classes/user_class.inc";
-    include "classes/team_class.inc";
-    include "classes/compta_class.inc";
-    include "classes/property_class.inc";
-    include "classes/metagroup_class.inc";
     $userid = -1;
     $view = $_REQUEST['view'] ?? 'list';
-    include "includes/manage_actions.inc";
-    include "includes/manage_views.inc";
+    include "includes/manage_actions.php";
+    include "includes/manage_views.php";
     ob_end_flush();
     exit;
 }
@@ -32,15 +41,8 @@ if ($isHtmx) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Casa Alianza - fichier des membres</title>
+    <title><?= htmlspecialchars($appSettings['org_name'] ?: 'Gestion des membres', ENT_QUOTES, $charset) ?></title>
     <?php
-    include "locales/resources_fr.inc";
-    include "includes/declarations.inc";
-    include "classes/user_class.inc";
-    include "classes/team_class.inc";
-    include "classes/compta_class.inc";
-    include "classes/property_class.inc";
-    include "classes/metagroup_class.inc";
     function getMicroTime()
     {
         list($usec, $sec) = explode(" ", microtime());
@@ -102,6 +104,9 @@ if ($isHtmx) {
 
     <!-- DataTables moment sorting plugin -->
     <script src="js/vendor/datetime-moment.js"></script>
+
+    <!-- Shared DataTables defaults -->
+    <script src="js/dt_defaults.js"></script>
 
     <!-- Chart.js -->
     <script src="js/vendor/Chart.bundle.min.js"></script>
@@ -214,15 +219,15 @@ if ($isHtmx) {
 <body hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">
 
 <?php
-include "includes/menu.inc";
+include "includes/menu.php";
 ?>
 <div class="container mt-2">
     <div class="row">
         <div class="col-12" id="main-content">
             <?php
             $userid = -1;
-            include "includes/manage_actions.inc";
-            include "includes/manage_views.inc";
+            include "includes/manage_actions.php";
+            include "includes/manage_views.php";
             $end = getMicroTime();
             ?>
         </div>
@@ -233,9 +238,9 @@ include "includes/menu.inc";
     <div id="casaToast" class="toast text-bg-success border-0" role="status" aria-live="polite" aria-atomic="true">
         <div class="d-flex align-items-center px-3 py-2 gap-2">
             <i class="fas fa-check-circle flex-shrink-0" aria-hidden="true"></i>
-            <span id="casaToastMsg" class="flex-grow-1">Enregistré.</span>
-            <a id="casaToastUndo" href="#" class="btn btn-sm btn-outline-light py-0 px-2 flex-shrink-0" style="display:none;font-size:0.78rem">Annuler</a>
-            <button type="button" class="btn-close btn-close-white flex-shrink-0" data-bs-dismiss="toast" aria-label="Fermer"></button>
+            <span id="casaToastMsg" class="flex-grow-1"><?= $GLOBAL['saved'] ?></span>
+            <a id="casaToastUndo" href="#" class="btn btn-sm btn-outline-light py-0 px-2 flex-shrink-0" style="display:none;font-size:0.78rem"><?= $GLOBAL['cancel'] ?></a>
+            <button type="button" class="btn-close btn-close-white flex-shrink-0" data-bs-dismiss="toast" aria-label="<?= $GLOBAL['close'] ?>"></button>
         </div>
     </div>
 </div>
@@ -350,6 +355,13 @@ include "includes/menu.inc";
         }
     }
 
+    document.addEventListener('htmx:beforeHistorySave', function () {
+        if ($.fn.DataTable) {
+            $.fn.DataTable.tables({ visible: true,  api: true }).destroy();
+            $.fn.DataTable.tables({ visible: false, api: true }).destroy();
+        }
+    });
+
     document.addEventListener('htmx:afterSwap', function (e) {
         casaInit(e.target);
         var toastEl = document.getElementById('casaToast');
@@ -358,14 +370,14 @@ include "includes/menu.inc";
         var msgEl  = document.getElementById('casaToastMsg');
 
         if (e.target.querySelector('#casa-save-ok')) {
-            msgEl.textContent = 'Enregistré.';
+            msgEl.textContent = '<?= addslashes($GLOBAL['saved']) ?>';
             if (undoEl) undoEl.style.display = 'none';
             bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3000 }).show();
         }
 
         var membership = e.target.querySelector('#casa-membership-toast');
         if (membership) {
-            var msg     = membership.dataset.msg     || 'Groupe modifié.';
+            var msg     = membership.dataset.msg     || '<?= addslashes($GLOBAL['groupModified']) ?>';
             var undoUrl = membership.dataset.undoUrl || '';
             msgEl.textContent = msg;
             if (undoEl) {

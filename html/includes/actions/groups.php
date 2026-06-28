@@ -209,7 +209,7 @@ if ($action == 'deleteTeam') {
         $groupName = "Membres à relancer " . $yr . " (" . date("d.m.Y") . ")";
         $membreTeamId  = (int)($appSettings['default_team'] ?? 0);
         $prevTeamStmt  = $pdo->prepare("SELECT id FROM team WHERE name = ?");
-        $prevTeamStmt->execute(["Membre " . ($yr - 1)]);
+        $prevTeamStmt->execute([($appSettings['membre_team_prefix'] ?? 'Membre') . ' ' . ($yr - 1)]);
         $prevTeamId    = (int)$prevTeamStmt->fetchColumn();
         if ($prevTeamId <= 0 || $membreTeamId <= 0) {
             echo '<script>alert("Impossible de trouver les équipes membres.");history.back();</script>';
