@@ -88,49 +88,92 @@ Navigation par barre latérale (desktop) / sélecteur (mobile) avec sections :
 ## Structure
 
 ```
+conf/
+└── db.php                      # Config DB (gitignorée, écrite par l'installeur)
 html/
 ├── index.php                   # Point d'entrée unique
+├── install.php                 # Installeur web (wizard 5 étapes)
 ├── attestation_don.php         # Génération PDF attestation individuelle
 ├── attestation_bulk.php        # Génération PDF attestation en masse
 ├── quittancedon.php            # Génération quittance Word
 ├── assets/
 │   └── attestation.pdf         # Template AcroForm officiel
 ├── includes/
-│   ├── declarations.inc        # Bootstrap PHP, PDO, types compta, app_settings
-│   ├── manage_views.inc        # Routeur de vues
-│   ├── manage_actions.inc      # Actions POST (CRUD)
-│   ├── view_users.inc          # Liste membres
-│   ├── add_user_form.inc       # Formulaire ajout membre
-│   ├── update_user_form.inc    # Formulaire édition membre
-│   ├── compta_generic.inc      # Vue compta membre
-│   ├── update_compta_form.inc  # Formulaire édition entrée compta
-│   ├── lastEntryCompta.inc     # Vue activité compta
-│   ├── lastEntrySuivi.inc      # Vue activité suivi
-│   ├── resume.inc              # Vue contributions (KPIs + liste donateurs)
-│   ├── loyal_donors.inc        # Vue donateurs fidèles
-│   ├── new_donors.inc          # Vue nouveaux donateurs
-│   ├── lapsed_donors.inc       # Vue donateurs perdus
-│   ├── lapsed_members.inc      # Vue membres perdus
-│   ├── manage_compta_types.inc # UI gestion types compta
-│   ├── settings_form.inc       # Réglages application
+│   ├── declarations.php        # Bootstrap PHP, PDO, types compta, app_settings
+│   ├── manage_views.php        # Routeur de vues
+│   ├── manage_actions.php      # Dispatcher actions POST
+│   ├── view_users.php          # Liste membres
+│   ├── add_user_form.php       # Formulaire ajout membre
+│   ├── update_user_form.php    # Formulaire édition membre
+│   ├── resume.php              # Vue contributions (KPIs + liste donateurs)
+│   ├── lapsed_donors.php       # Vue donateurs perdus
+│   ├── lapsed_members.php      # Vue membres perdus
+│   ├── actions/                # Handlers CRUD (members, groups, compta…)
 │   └── ...
 ├── classes/
-│   ├── user_class.inc          # Classe User (CRUD, cotisation, dons)
-│   └── compta_class.inc        # Classe Compta
+│   ├── user_class.php          # Classe User (CRUD, cotisation, dons)
+│   └── team_class.php          # Classe Team
 ├── locales/
-│   └── resources_fr.inc        # Libellés français (UTF-8)
+│   └── resources_fr.php        # Libellés français (UTF-8)
 ├── css/
-│   ├── custom.css              # Design system Casa Alianza
-│   └── vendor/                 # Bootstrap, DataTables, Inter (auto-hébergés)
+│   ├── custom.css              # Styles Casa Alianza
+│   ├── webfonts/               # Font Awesome 6 woff2/ttf
+│   └── vendor/                 # Bootstrap, DataTables, Font Awesome CSS
 ├── js/
-│   └── vendor/                 # Bootstrap, DataTables, moment, jszip, pdfmake, Chart.js
+│   └── vendor/                 # Bootstrap, DataTables, moment, Chart.js, htmx, Alpine.js
 └── fonts/
     └── inter/                  # Inter woff2 (latin + latin-ext)
 ```
 
+## Installation (fresh install)
+
+### Prérequis
+
+- PHP ≥ 8.1 avec extensions `pdo_mysql` et `mbstring`
+- MariaDB / MySQL ≥ 10.5
+- Apache avec `mod_rewrite`
+- `pdftk-java` pour la génération d'attestations PDF (`apt install pdftk-java`)
+
+### Via l'installeur web (recommandé)
+
+1. Cloner le repo et pointer le `DocumentRoot` Apache sur `html/`
+2. S'assurer que le dossier `conf/` (à la racine du repo, hors webroot) est accessible en écriture par le process Apache (`chmod 775 conf/ && chown www-data:www-data conf/`)
+3. Naviguer sur `https://votre-domaine/install.php`
+4. Suivre le wizard en 5 étapes :
+   - **Étape 1** — vérification des prérequis PHP
+   - **Étape 2** — connexion à la base de données (écrit `conf/db.php`)
+   - **Étape 3** — création du schéma (tables idempotentes)
+   - **Étape 4** — paramètres de l'organisation et groupes initiaux (crée automatiquement les groupes "Membre {année-1}" et "Membre {année}" dans une catégorie "Membres")
+   - **Étape 5** — création du compte administrateur (bcrypt)
+5. Supprimer ou protéger `install.php` après installation (l'accès est bloqué automatiquement si un admin actif existe déjà)
+
+### Via Docker (développement)
+
+```bash
+cp docker-compose.yml docker-compose.override.yml  # optionnel
+chmod 777 conf/   # le process PHP doit pouvoir écrire conf/db.php
+docker compose up -d
+```
+
+Puis aller sur `http://localhost:8080/install.php` et utiliser `mariadb` comme host de DB (pas `localhost`).
+
+### Mise à jour (instance existante)
+
+```bash
+git pull
+# redémarrer Apache si nécessaire
+systemctl reload apache2
+```
+
+Aucune migration manuelle requise pour les mises à jour mineures — le schéma utilise `CREATE TABLE IF NOT EXISTS`.
+
+---
+
 ## Déploiement
 
 L'application tourne sur Apache + PHP 8 avec MariaDB. `pdftk` doit être installé sur le serveur (`apt install pdftk-java`).
+
+La configuration de la base de données est stockée dans `conf/db.php` (hors webroot, gitignorée). En environnement Docker/12-factor, les variables d'environnement `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME` sont utilisées en fallback si `conf/db.php` est absent.
 
 ## Accès
 
@@ -140,7 +183,7 @@ L'application tourne sur Apache + PHP 8 avec MariaDB. `pdftk` doit être install
 
 ### Authentification
 
-Gérée par PHP (table `app_users`, bcrypt). Pas de htaccess. Voir `migration_app_users.sql` pour créer la table et le compte admin initial (`admin` / `ChangeMe123!` — à changer au premier login).
+Gérée par PHP (table `app_users`, bcrypt). Pas de htaccess. Le compte admin est créé via l'installeur web (`install.php`).
 
 Rôles : `admin` (gestion des utilisateurs) et `user`. L'admin peut créer/supprimer des comptes et réinitialiser les mots de passe. Tout utilisateur peut changer son propre mot de passe.
 
