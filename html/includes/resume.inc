@@ -82,7 +82,7 @@ if ($year != -2) {
         $_kMembres = (int)$_sM->fetchColumn();
 
         $_rPrev = $pdo->prepare("SELECT id FROM team WHERE name = ?");
-        $_rPrev->execute(["Membre " . ($year - 1)]);
+        $_rPrev->execute([($appSettings['membre_team_prefix'] ?? 'Membre') . ' ' . ($year - 1)]);
         $_prevTeamId = (int)$_rPrev->fetchColumn();
         if ($_prevTeamId > 0) {
             $_sM->execute(["team_$_prevTeamId"]);

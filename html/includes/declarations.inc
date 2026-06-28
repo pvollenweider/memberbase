@@ -1,4 +1,13 @@
 <?php
+/**
+ * Bootstrap file — database connection, app settings, shared utility functions.
+ *
+ * Included by every page before any business logic or output.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+
 date_default_timezone_set("Europe/Zurich");
 
 // database settings — env vars override defaults (Docker dev)
@@ -23,11 +32,25 @@ unset($_ctRows, $_ct);
 // App settings
 $_settingsRows = $pdo->query("SELECT `key`, `value` FROM app_settings")->fetchAll(PDO::FETCH_KEY_PAIR);
 $appSettings = array_merge([
-    'default_team' => '249',
-    'membre_team'  => '245',
-    'archive_id'   => '19',
+    'default_team'       => '0',
+    'membre_team'        => '0',
+    'archive_id'         => '0',
+    'org_name'           => '',
+    'org_address'        => '',
+    'org_npa'            => '',
+    'org_city'           => '',
+    'org_country'        => '',
+    'membre_team_prefix' => 'Membre',
 ], $_settingsRows);
 unset($_settingsRows);
+
+// Named constants for virtual filter IDs used in view_users.inc
+// Negative integers — never collide with real team IDs (always > 0)
+const FILTER_ALL_EXCEPT_ARCHIVES  = -3;
+const FILTER_UNPAID_COTI_CURRENT  = -4;
+const FILTER_UNPAID_COTI_3Y       = -3333;
+const FILTER_NO_ACTIVITY_10Y      = -5555;
+const FILTER_NON_INSTIT_LAST_YEAR = -6666;
 // Sequence counter — still used for metagroup_id and userpropertiesid only.
 // team/users/compta are now native AUTO_INCREMENT.
 // metagroup cannot use AUTO_INCREMENT (id shared across header + member rows).
@@ -52,6 +75,7 @@ function updateAndGetMaxVal(string $parameter): int
     return $value;
 }
 
+/** Parses a d/m/Y date string (as used in form inputs) to a Unix timestamp. */
 function formatedDateToTimeStamp(?string $formatedDate): int
 {
     if ($formatedDate) {
@@ -61,14 +85,16 @@ function formatedDateToTimeStamp(?string $formatedDate): int
     return 0;
 }
 
+/** Formats a Unix timestamp to a d/m/Y display string for form inputs and tables. */
 function timeStampToformatedDate(?int $timestamp): string
 {
     return $timestamp ? date("d/m/Y", $timestamp) : "";
 }
 
+/** Replaces typographic apostrophes (') with straight apostrophes (') from user input. */
 function unquote(string $s): string
 {
-    return str_replace("'", "'", $s);
+    return str_replace("\u{2019}", "'", $s);
 }
 
 function auditLog(PDO $pdo, string $action, string $detail = '', ?int $subjectUserId = null): void

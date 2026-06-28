@@ -1,4 +1,11 @@
 <?php
+/**
+ * Application entry point — renders the full page or an htmx partial fragment.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+
 ob_start();
 $charset = "UTF-8";
 
@@ -9,16 +16,18 @@ requirePasswordChange();
 
 header("Content-Type: text/html; charset=$charset");
 
+// Load core dependencies before any output (needed for appSettings in page title)
+include "locales/resources_fr.inc";
+include "includes/declarations.inc";
+include "classes/user_class.inc";
+include "classes/team_class.inc";
+include "classes/compta_class.inc";
+include "classes/property_class.inc";
+include "classes/metagroup_class.inc";
+
 // htmx partial response — skip layout, return only content fragment
 $isHtmx = !empty($_SERVER['HTTP_HX_REQUEST']);
 if ($isHtmx) {
-    include "locales/resources_fr.inc";
-    include "includes/declarations.inc";
-    include "classes/user_class.inc";
-    include "classes/team_class.inc";
-    include "classes/compta_class.inc";
-    include "classes/property_class.inc";
-    include "classes/metagroup_class.inc";
     $userid = -1;
     $view = $_REQUEST['view'] ?? 'list';
     include "includes/manage_actions.inc";
@@ -32,15 +41,8 @@ if ($isHtmx) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Casa Alianza - fichier des membres</title>
+    <title><?= htmlspecialchars($appSettings['org_name'] ?: 'Gestion des membres', ENT_QUOTES, $charset) ?></title>
     <?php
-    include "locales/resources_fr.inc";
-    include "includes/declarations.inc";
-    include "classes/user_class.inc";
-    include "classes/team_class.inc";
-    include "classes/compta_class.inc";
-    include "classes/property_class.inc";
-    include "classes/metagroup_class.inc";
     function getMicroTime()
     {
         list($usec, $sec) = explode(" ", microtime());

@@ -5,7 +5,7 @@ if ($year <= 0) { $year = (int)date("Y"); }
 $membreTeamId = (int)($appSettings['default_team'] ?? 0);
 
 $prevTeamStmt = $pdo->prepare("SELECT id, name FROM team WHERE name = ?");
-$prevTeamStmt->execute(["Membre " . ($year - 1)]);
+$prevTeamStmt->execute([($appSettings['membre_team_prefix'] ?? 'Membre') . ' ' . ($year - 1)]);
 $prevTeam = $prevTeamStmt->fetch(PDO::FETCH_OBJ);
 $prevTeamId = $prevTeam ? (int)$prevTeam->id : 0;
 

@@ -1,4 +1,11 @@
 <?php
+/**
+ * UserProperty entity — loads and holds a single user attribute/suivi entry.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+
 class UserProperty
 {
     public $id;

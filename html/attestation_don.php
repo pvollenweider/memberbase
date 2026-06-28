@@ -1,4 +1,11 @@
 <?php
+/**
+ * Generates a single donation attestation PDF for one member/year via pdftk.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+
 require_once __DIR__ . '/includes/auth.inc';
 requireLogin();
 ob_start();
@@ -33,12 +40,12 @@ $npaParts = preg_split('/\s+/', trim($npaFull), 2);
 $npa      = $npaParts[0] ?? '';
 $localite = $npaParts[1] ?? '';
 
-// AcroForm field values — institution info is fixed
+// AcroForm field values — institution info from app_settings
 $fields = [
-    'Nom de institution' => 'Casa Alianza Suisse',
-    'Adresse'            => 'Rue Cécile-Biéler-Butticaz 5',
-    'NPA'                => '1207',
-    'Localite'           => 'Genève',
+    'Nom de institution' => $appSettings['org_name']    ?? '',
+    'Adresse'            => $appSettings['org_address']  ?? '',
+    'NPA'                => $appSettings['org_npa']      ?? '',
+    'Localite'           => $appSettings['org_city']     ?? '',
     'Nom'                => $user->getLastName() ?? '',
     'Prenom'             => $user->getFirstName() ?? '',
     'Adresse 2'          => $user->getAddress() ?? '',
@@ -48,7 +55,7 @@ $fields = [
     'annee2'             => (string)$year,
     'Case à cocher2'     => 'Oui',   // Dons en espèces
     'Somme'              => $totalFormatted,
-    'Lieu'               => 'Genève',
+    'Lieu'               => $appSettings['org_city'] ?? '',
     'mois'               => date('m'),
     'date'               => date('Y'),
 ];

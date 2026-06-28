@@ -1,4 +1,11 @@
 <?php
+/**
+ * Metagroup entity — loads and holds a filter group (group of groups).
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+
 class Metagroup
 {
     public $id;

@@ -120,6 +120,41 @@ $_activeTab = $_REQUEST['tab'] ?? null;
                   hx-swap="innerHTML">
               <input type="hidden" name="action" value="saveSettings"/>
               <input type="hidden" name="view" value="settings"/>
+              <p class="form-section-title"><i class="fas fa-building me-1" aria-hidden="true"></i>Organisation</p>
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_name">Nom de l'organisation</label>
+                <input type="text" name="org_name" id="s_org_name" class="form-control form-control-sm" style="max-width:320px"
+                       value="<?= htmlspecialchars($appSettings['org_name'] ?? '', ENT_QUOTES, $charset) ?>">
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_address">Adresse</label>
+                <input type="text" name="org_address" id="s_org_address" class="form-control form-control-sm" style="max-width:320px"
+                       value="<?= htmlspecialchars($appSettings['org_address'] ?? '', ENT_QUOTES, $charset) ?>">
+              </div>
+              <div class="row g-2 mb-3" style="max-width:320px">
+                <div class="col-4">
+                  <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_npa">NPA</label>
+                  <input type="text" name="org_npa" id="s_org_npa" class="form-control form-control-sm"
+                         value="<?= htmlspecialchars($appSettings['org_npa'] ?? '', ENT_QUOTES, $charset) ?>">
+                </div>
+                <div class="col-8">
+                  <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_city">Ville</label>
+                  <input type="text" name="org_city" id="s_org_city" class="form-control form-control-sm"
+                         value="<?= htmlspecialchars($appSettings['org_city'] ?? '', ENT_QUOTES, $charset) ?>">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_country">Pays</label>
+                <input type="text" name="org_country" id="s_org_country" class="form-control form-control-sm" style="max-width:320px"
+                       value="<?= htmlspecialchars($appSettings['org_country'] ?? '', ENT_QUOTES, $charset) ?>">
+              </div>
+              <div class="mb-4">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team_prefix">Préfixe des groupes membres</label>
+                <p class="text-muted mb-2" style="font-size:0.78rem">Préfixe utilisé pour retrouver les groupes membres des années précédentes (ex: «Membre» pour les groupes «Membre 2025», «Membre 2026»…).</p>
+                <input type="text" name="membre_team_prefix" id="s_membre_team_prefix" class="form-control form-control-sm" style="max-width:200px"
+                       value="<?= htmlspecialchars($appSettings['membre_team_prefix'] ?? 'Membre', ENT_QUOTES, $charset) ?>">
+              </div>
+              <p class="form-section-title"><i class="fas fa-sliders-h me-1" aria-hidden="true"></i>Groupes</p>
               <div class="mb-4">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_default_team">Groupe affiché par défaut</label>
                 <p class="text-muted mb-2" style="font-size:0.78rem">Groupe sélectionné à l'ouverture de la liste des membres. Choisir le groupe correspondant aux membres de l'année en cours (ex: «Membre 2026»). À mettre à jour chaque année.</p>

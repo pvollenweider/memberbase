@@ -1,8 +1,12 @@
 <?php
 /**
- * auth.inc — Application authentication helpers.
- * Loaded at the very top of index.php (before any HTML output).
+ * Authentication helpers — session management, login, CSRF, and access guards.
+ *
+ * Loaded at the very top of every protected page, before any output.
  * login.php handles session_start() itself; all other pages go through here.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
 if (session_status() === PHP_SESSION_NONE) {

@@ -50,9 +50,9 @@ if (isset($_REQUEST['year'])) {
                         $mg = new Metagroup();
                         $mg->lookupMetagroup($metagroup);
                         $currentTeamTitle = $mg->getName();
-                    } else if ($team == -3) {
+                    } else if ($team == FILTER_ALL_EXCEPT_ARCHIVES) {
                         $currentTeamTitle = $GLOBAL['allExceptArchives'];
-                    } else if ($team == -3333) {
+                    } else if ($team == FILTER_UNPAID_COTI_3Y) {
                         $currentTeamTitle = $GLOBAL['cotiUnpayedLast3Years'];
                         $_noCotiTeamId3 = (int)($appSettings['member_no_coti_team'] ?? 0);
                         $_noCotiExclusion = '';
@@ -65,13 +65,13 @@ if (isset($_REQUEST['year'])) {
                             }
                         }
                         $currentFilterDesc = "Profils ayant payé au moins une cotisation dans leur historique, mais aucune lors des 3 dernières années (" . ($year-2) . "–$year)." . $_noCotiExclusion;
-                    } else if ($team == -5555) {
+                    } else if ($team == FILTER_NO_ACTIVITY_10Y) {
                         $currentTeamTitle = $GLOBAL['nothingLast10Years'];
                         $currentFilterDesc = "Profils actifs sans aucune entrée comptable (cotisation, don ou autre) depuis " . ($year-10) . ".";
-                    } else if ($team == -6666) {
+                    } else if ($team == FILTER_NON_INSTIT_LAST_YEAR) {
                         $currentTeamTitle = $GLOBAL['nonInstitPayedSomethingLastYear'];
                         $currentFilterDesc = "Profils ayant effectué au moins un versement non institutionnel en " . ($year-1) . " — inclut cotisations, dons et tout autre type non marqué «&nbsp;Institutionnel&nbsp;» dans les types compta.";
-                    } else if ($team == -4) {
+                    } else if ($team == FILTER_UNPAID_COTI_CURRENT) {
                         $currentTeamTitle = $GLOBAL['cotiUnpayed'];
                         $currentFilterDesc = "Membres dont la cotisation $year n'a pas encore été enregistrée.";
                     } else {
@@ -112,15 +112,15 @@ if (isset($_REQUEST['year'])) {
                       <i class="fas fa-bolt me-1" aria-hidden="true"></i>Filtres rapides
                     </h6>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-3"><?= $GLOBAL['allExceptArchives'] ?></a>
+                       href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_ALL_EXCEPT_ARCHIVES ?>"><?= $GLOBAL['allExceptArchives'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-3333"><?= $GLOBAL['cotiUnpayedLast3Years'] ?></a>
+                       href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_UNPAID_COTI_3Y ?>"><?= $GLOBAL['cotiUnpayedLast3Years'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-5555"><?= $GLOBAL['nothingLast10Years'] ?></a>
+                       href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_NO_ACTIVITY_10Y ?>"><?= $GLOBAL['nothingLast10Years'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-4"><?= $GLOBAL['cotiUnpayed'] ?></a>
+                       href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_UNPAID_COTI_CURRENT ?>"><?= $GLOBAL['cotiUnpayed'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= $_SERVER['PHP_SELF'] ?>?team=-6666"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
+                       href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_NON_INSTIT_LAST_YEAR ?>"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
 
                         <?php
                         $stmtTeams = $pdo->query("
@@ -244,11 +244,11 @@ $query .= " FROM users";
 if ($metagroup > 0) {
     $query .= ",user_properties ";
 } else {
-    if ($team == -4) {
+    if ($team == FILTER_UNPAID_COTI_CURRENT) {
         $query .= ",compta ";
     }
-    // -3/-3333/-5555/-6666 no longer need user_properties join
-    if ($team != -1 && $team != -3 && $team != -3333 && $team != -5555 && $team != -6666) {
+    // Virtual filter IDs do not target a specific team — no user_properties join needed
+    if ($team != -1 && $team != FILTER_ALL_EXCEPT_ARCHIVES && $team != FILTER_UNPAID_COTI_3Y && $team != FILTER_NO_ACTIVITY_10Y && $team != FILTER_NON_INSTIT_LAST_YEAR) {
         $query .= ",user_properties ";
     }
 }
@@ -285,9 +285,9 @@ if ($metagroup > 0) {
         $query .= " AND 1=0"; // metagroup has no teams — return empty
     }
 } else if ($team != -1) {
-    if ($team == -3 || $team == -3333 || $team == -5555 || $team == -6666) {
+    if ($team == FILTER_ALL_EXCEPT_ARCHIVES || $team == FILTER_UNPAID_COTI_3Y || $team == FILTER_NO_ACTIVITY_10Y || $team == FILTER_NON_INSTIT_LAST_YEAR) {
         // status=1 already excludes archived members — no user_properties condition needed
-    } else if ($team == -4 || $team == -1234) {
+    } else if ($team == FILTER_UNPAID_COTI_CURRENT || $team == -1234) {
         $query .= " AND users.id=user_properties.user_id ";
         $query .= "AND ( ";
         $query .= "user_properties.parameter='team_$membre') ";
@@ -343,7 +343,7 @@ $query .= " ORDER BY $orderColumn $orderSort";
             <?=$GLOBAL['creationDate']?>
     </th>
     <th class="d-none d-sm-table-cell">Types</th>
-    <?php if ($team == -5555): ?>
+    <?php if ($team == FILTER_NO_ACTIVITY_10Y): ?>
     <th class="d-none d-sm-table-cell" style="font-size:0.75rem;white-space:nowrap">Historique compta</th>
     <?php endif ?>
     <th></th>
@@ -351,9 +351,9 @@ $query .= " ORDER BY $orderColumn $orderSort";
 </thead>
 <tbody>
 <?php
-// Pre-fetch non-institutional compta for -6666 (replaces 1 SQL/user)
+// Pre-fetch non-institutional compta for FILTER_NON_INSTIT_LAST_YEAR (avoids N+1 SQL)
 $_nonInstit6666 = [];
-if ($team == -6666) {
+if ($team == FILTER_NON_INSTIT_LAST_YEAR) {
     $_instit6666Ids = array_column($pdo->query("SELECT id FROM compta_type WHERE is_institutional=1")->fetchAll(PDO::FETCH_OBJ), 'id');
     $_from6666pre = mktime(0,0,0,1,0,$year-1);
     $_to6666pre   = mktime(0,0,0,1,1,$year);
@@ -370,11 +370,11 @@ if ($team == -6666) {
     }
 }
 
-// Pre-fetch cotisation history for -3333: ever paid + paid in last 3 years
-// Also pre-fetch member_no_coti_team members to exclude them
+// Pre-fetch cotisation history for FILTER_UNPAID_COTI_3Y: ever paid vs. paid in last 3 years
+// Also pre-fetch member_no_coti_team members to exclude them from coti filters
 $_coti3333 = [];
 $_noCotiMembers = [];
-if ($team == -3333 || $team == -4) {
+if ($team == FILTER_UNPAID_COTI_3Y || $team == FILTER_UNPAID_COTI_CURRENT) {
     $_noCotiTeam = (int)($appSettings['member_no_coti_team'] ?? 0);
     if ($_noCotiTeam > 0) {
         $_stNoCoti = $pdo->prepare("SELECT user_id FROM user_properties WHERE parameter=?");
@@ -384,7 +384,7 @@ if ($team == -3333 || $team == -4) {
         }
     }
 }
-if ($team == -3333) {
+if ($team == FILTER_UNPAID_COTI_3Y) {
     $_cutoff3333 = mktime(0, 0, 0, 1, 0, $year - 2);
     $_st3333 = $pdo->query("
         SELECT
@@ -400,9 +400,9 @@ if ($team == -3333) {
     }
 }
 
-// Pre-fetch compta summary for -5555 to avoid N+1 queries (hasComptaEntries per user)
+// Pre-fetch compta summary for FILTER_NO_ACTIVITY_10Y to avoid N+1 queries
 $_compta5555 = [];
-if ($team == -5555) {
+if ($team == FILTER_NO_ACTIVITY_10Y) {
     $_from5555 = mktime(0, 0, 0, 1, 0, $year - 10);
     $_to5555   = mktime(0, 0, 0, 1, 1, $year + 1);
     $_st5555 = $pdo->query("
@@ -465,7 +465,7 @@ foreach ($_allRows as $row) {
             $displayLine = true;
         }
         $displayLine = !$displayLine;
-    } else if ($team == -3333) {
+    } else if ($team == FILTER_UNPAID_COTI_3Y) {
         $displayLine = false;
         if (empty($_noCotiMembers[$user->getId()])) {
             $_u3 = $_coti3333[$user->getId()] ?? null;
@@ -473,18 +473,18 @@ foreach ($_allRows as $row) {
                 $displayLine = true;
             }
         }
-    } else if ($team == -5555) {
+    } else if ($team == FILTER_NO_ACTIVITY_10Y) {
         $displayLine = true;
         $_c5 = $_compta5555[$user->getId()] ?? null;
         if ($_c5 && (int)$_c5->recent_count > 0) {
             $displayLine = false;
         }
-    } else if ($team == -6666) {
+    } else if ($team == FILTER_NON_INSTIT_LAST_YEAR) {
         $displayLine = false;
         if (!empty($_nonInstit6666[$user->getId()])) {
             $displayLine = true;
         }
-    } else if ($team == -4) {
+    } else if ($team == FILTER_UNPAID_COTI_CURRENT) {
         if (!empty($_noCotiMembers[$user->getId()]) || $user->isCotisationPayed($year) > -1) {
             $displayLine = false;
         }
@@ -554,7 +554,7 @@ foreach ($_allRows as $row) {
               </a>
               <?php endif ?>
             </td>
-            <?php if ($team == -5555):
+            <?php if ($team == FILTER_NO_ACTIVITY_10Y):
                 $_c5 = $_compta5555[$user->getId()] ?? null; ?>
             <td class="d-none d-sm-table-cell text-muted" style="font-size:0.72rem;line-height:1.3">
                 <?php if ($_c5 && (int)$_c5->total > 0):
@@ -591,7 +591,7 @@ if ($searchString) {
     <?php
 
 }
-if ($team == -4) {
+if ($team == FILTER_UNPAID_COTI_CURRENT) {
     ?><span style="color:red">manque a gagner de CHF <?=$rowCount*50?> pour <?=$year?> avec les cotis non pay&eacute;es...</span><br/><?php
 }
 ?>

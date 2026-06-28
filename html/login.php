@@ -1,4 +1,11 @@
 <?php
+/**
+ * Login page — handles credential validation and session creation.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+
 $charset = "UTF-8";
 
 // Auth bootstrap (before any output)
@@ -52,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion — Casa Alianza</title>
+    <title>Connexion — <?= htmlspecialchars($appSettings['org_name'] ?: 'Gestion des membres', ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="stylesheet" href="css/vendor/inter.css">
     <link rel="stylesheet" href="css/vendor/bootstrap.min.css">
     <link rel="stylesheet" href="css/custom.css">
@@ -65,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <div class="login-card p-4">
     <div class="text-center mb-4">
-        <div class="login-logo mb-1">Casa Alianza</div>
+        <div class="login-logo mb-1"><?= htmlspecialchars($appSettings['org_name'] ?: 'Gestion des membres', ENT_QUOTES, 'UTF-8') ?></div>
         <div class="text-muted" style="font-size:0.8rem">Gestion des membres</div>
     </div>
 
