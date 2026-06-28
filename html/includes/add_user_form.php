@@ -3,6 +3,14 @@ $searchString = "";
 if (isset($_REQUEST["searchString"])) {
     $searchString = trim($_REQUEST["searchString"]);
 }
+$fromTeam     = (int)($_REQUEST['fromTeam'] ?? 0);
+$fromTeamName = '';
+if ($fromTeam > 0) {
+    $_ft = $pdo->prepare("SELECT name FROM team WHERE id = ?");
+    $_ft->execute([$fromTeam]);
+    $fromTeamName = (string)($_ft->fetchColumn() ?: '');
+    unset($_ft);
+}
 ?>
 
 <div class="row justify-content-center mt-3">
@@ -11,6 +19,9 @@ if (isset($_REQUEST["searchString"])) {
     <h6 class="form-section-title" style="margin-top:0"><?= $GLOBAL['addUser'] ?></h6>
 
     <form action="<?= $_SERVER['PHP_SELF'] ?>?action=addUser&amp;view=updateUser" method="post" id="addUser">
+      <?php if ($fromTeam > 0): ?>
+      <input type="hidden" name="fromTeam" value="<?= $fromTeam ?>">
+      <?php endif ?>
 
       <p class="form-section-title"><?= $GLOBAL['contactInfo'] ?></p>
 
@@ -139,6 +150,19 @@ if (isset($_REQUEST["searchString"])) {
                     placeholder="<?= htmlentities($GLOBAL['compet'], ENT_COMPAT, $charset) ?>"></textarea>
         </div>
       </div>
+
+      <?php if ($fromTeam > 0 && $fromTeamName): ?>
+      <div class="row mb-3">
+        <div class="col-8 offset-4 col-sm-9 offset-sm-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="addToFromTeam" name="addToFromTeam" value="1" checked>
+            <label class="form-check-label" for="addToFromTeam" style="font-size:0.85rem">
+              Ajouter au groupe <strong><?= htmlspecialchars($fromTeamName, ENT_QUOTES, $charset) ?></strong>
+            </label>
+          </div>
+        </div>
+      </div>
+      <?php endif ?>
 
       <div class="row">
         <div class="col-8 offset-4 col-sm-9 offset-sm-3">

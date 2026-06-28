@@ -168,7 +168,7 @@ if (isset($_REQUEST['year'])) {
                 </div>
   </div>
 
-  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?>"
+  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?><?= $team > 0 ? '&fromTeam=' . $team : '' ?>"
      class="ms-auto ca-filter-btn text-decoration-none"
      title="<?= $GLOBAL['addUser'] ?>">
     <i class="fas fa-user-plus" aria-hidden="true"></i>

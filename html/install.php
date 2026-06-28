@@ -292,17 +292,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
 
             // Create default member group for current year and set as default_team + membre_team
             $currentYear = (int)date('Y');
-            $defaultGroupName = ($memberPrefix ?: 'Membre') . ' ' . $currentYear;
-            $existingTeam = $pdo->prepare("SELECT id FROM team WHERE name = ?");
-            $existingTeam->execute([$defaultGroupName]);
-            $defaultTeamId = $existingTeam->fetchColumn();
+            $prefix = $memberPrefix ?: 'Membre';
+            $insertTeam = $pdo->prepare("INSERT INTO team (name, hidden) VALUES (?, 0)");
+            $findTeam   = $pdo->prepare("SELECT id FROM team WHERE name = ?");
+
+            // Previous year team (for delta display in resume)
+            $prevGroupName = $prefix . ' ' . ($currentYear - 1);
+            $findTeam->execute([$prevGroupName]);
+            $prevTeamId = (int)$findTeam->fetchColumn();
+            if (!$prevTeamId) {
+                $insertTeam->execute([$prevGroupName]);
+                $prevTeamId = (int)$pdo->lastInsertId();
+            }
+
+            // Current year team
+            $defaultGroupName = $prefix . ' ' . $currentYear;
+            $findTeam->execute([$defaultGroupName]);
+            $defaultTeamId = (int)$findTeam->fetchColumn();
             if (!$defaultTeamId) {
-                $pdo->prepare("INSERT INTO team (name, hidden) VALUES (?, 0)")->execute([$defaultGroupName]);
+                $insertTeam->execute([$defaultGroupName]);
                 $defaultTeamId = (int)$pdo->lastInsertId();
             }
             $setTeam = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
             $setTeam->execute(['default_team', (string)$defaultTeamId]);
             $setTeam->execute(['membre_team',  (string)$defaultTeamId]);
+
+            // Create "Membres" metagroup category and assign both teams
+            $mvRow = $pdo->query("SELECT value FROM maxval WHERE parameter='metagroup_id'")->fetch(PDO::FETCH_OBJ);
+            $metaId = $mvRow ? (int)$mvRow->value + 1 : 1;
+            $existingMeta = (int)$pdo->query("SELECT COUNT(*) FROM metagroup WHERE name='Membres'")->fetchColumn();
+            if (!$existingMeta) {
+                $pdo->prepare("INSERT INTO metagroup (id, name, teamid, is_filter, sort_order) VALUES (?, ?, NULL, 0, 1)")->execute([$metaId, 'Membres']);
+                $pdo->prepare("INSERT INTO metagroup (id, name, teamid, is_filter, sort_order) VALUES (?, NULL, ?, 0, 0)")->execute([$metaId, $prevTeamId]);
+                $pdo->prepare("INSERT INTO metagroup (id, name, teamid, is_filter, sort_order) VALUES (?, NULL, ?, 0, 0)")->execute([$metaId, $defaultTeamId]);
+                $pdo->prepare("UPDATE maxval SET value=? WHERE parameter='metagroup_id'")->execute([$metaId]);
+            }
 
             // Seed minimal compta_type if table is empty
             $typeCount = (int)$pdo->query("SELECT COUNT(*) FROM compta_type")->fetchColumn();

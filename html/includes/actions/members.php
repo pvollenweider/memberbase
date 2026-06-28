@@ -219,4 +219,13 @@ if ($_REQUEST['action'] == 'updateUser') {
     $user->comment = unquote($_REQUEST['comment']);
     $userid = $user->save();
     auditLog($pdo, 'addUser', "id=$userid | {$user->firstName} {$user->lastName} | email: {$user->email}", (int)$userid);
+    $fromTeam = (int)($_REQUEST['fromTeam'] ?? 0);
+    if ($fromTeam > 0 && !empty($_REQUEST['addToFromTeam'])) {
+        $chk = $pdo->prepare("SELECT COUNT(*) FROM team WHERE id=?");
+        $chk->execute([$fromTeam]);
+        if ($chk->fetchColumn() > 0) {
+            $ins = $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, 'true')");
+            $ins->execute([$userid, 'team_' . $fromTeam]);
+        }
+    }
 }
