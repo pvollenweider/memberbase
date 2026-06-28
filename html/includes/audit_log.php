@@ -21,8 +21,8 @@
                 <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty>
                     <input type="hidden" name="action" value="flushAuditLog">
                     <input type="hidden" name="keep_days" value="0">
-                    <button type="submit" class="btn btn-danger btn-sm"
-                            onclick="return confirm('Supprimer tout le journal ?')">
+                    <button type="button" class="btn btn-danger btn-sm"
+                            data-bs-toggle="modal" data-bs-target="#modal-flush-all">
                         <i class="fas fa-trash me-1"></i><?= $GLOBAL['deleteAll'] ?>
                     </button>
                 </form>
@@ -147,3 +147,27 @@ $(function () {
     });
 });
 </script>
+
+<div class="modal fade" id="modal-flush-all" tabindex="-1" aria-labelledby="modal-flush-all-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-flush-all-label">Supprimer tout le journal</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body">
+        Cette action supprimera <strong>toutes</strong> les entrées du journal. Continuer?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty class="d-inline">
+          <input type="hidden" name="action" value="flushAuditLog">
+          <input type="hidden" name="keep_days" value="0">
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash me-1"></i><?= $GLOBAL['deleteAll'] ?>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

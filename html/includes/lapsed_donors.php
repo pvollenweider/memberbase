@@ -52,16 +52,36 @@ $count = count($rows);
   </div>
 </div>
 
-<form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline">
-  <input type="hidden" name="action"    value="createLapsedGroup">
-  <input type="hidden" name="groupType" value="donors">
-  <input type="hidden" name="year"      value="<?= $year ?>">
-  <input type="hidden" name="view"      value="lapsedDonors">
-  <button type="submit" class="btn btn-outline-warning btn-sm mb-3"
-          onclick="return confirm('Créer le groupe «Donateurs à relancer <?= $year ?>» avec <?= $count ?> personne(s)?')">
-    <i class="fas fa-users me-1" aria-hidden="true"></i>Créer groupe «Donateurs à relancer <?= $year ?>»
-  </button>
-</form>
+<button type="button" class="btn btn-outline-warning btn-sm mb-3"
+        data-bs-toggle="modal" data-bs-target="#modal-create-lapsed-donors">
+  <i class="fas fa-users me-1" aria-hidden="true"></i>Créer groupe «Donateurs à relancer <?= $year ?>»
+</button>
+
+<div class="modal fade" id="modal-create-lapsed-donors" tabindex="-1" aria-labelledby="modal-create-lapsed-donors-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-create-lapsed-donors-label">Créer le groupe</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body">
+        Créer le groupe «Donateurs à relancer <?= $year ?>» avec <strong><?= $count ?></strong> personne(s)?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline">
+          <input type="hidden" name="action"    value="createLapsedGroup">
+          <input type="hidden" name="groupType" value="donors">
+          <input type="hidden" name="year"      value="<?= $year ?>">
+          <input type="hidden" name="view"      value="lapsedDonors">
+          <button type="submit" class="btn btn-warning">
+            <i class="fas fa-users me-1" aria-hidden="true"></i>Créer
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="alert alert-warning d-flex align-items-start gap-2 py-2 mb-3" role="status" style="font-size:0.85rem">
   <i class="fas fa-user-clock mt-1 flex-shrink-0" aria-hidden="true"></i>
