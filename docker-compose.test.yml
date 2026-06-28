@@ -1,0 +1,4 @@
+services:
+  php:
+    environment:
+      DB_NAME: members_test

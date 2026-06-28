@@ -1,0 +1,19 @@
+{
+  "name": "membres.casa-alianza.ch",
+  "version": "1.0.0",
+  "description": "[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.2-777BB4)](https://www.php.net) [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
+}
