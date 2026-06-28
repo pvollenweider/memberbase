@@ -4,6 +4,16 @@ Application web PHP de gestion des membres, groupes, cotisations et dons.
 
 ---
 
+## Histoire
+
+MemberBase est né au début des années 2000 dans le cadre de [Casa Alianza Suisse](https://www.casa-alianza.ch), une association suisse qui soutient des enfants et adolescents vulnérables en Amérique latine — victimes d'exploitation, de violence et d'exclusion sociale — en leur offrant des programmes de réhabilitation, de formation professionnelle et de réinsertion au Guatemala, Honduras et Mexique.
+
+Comme dans beaucoup d'associations de l'époque, la gestion des membres et des donateurs se faisait dans des fichiers Excel. Ça a rapidement atteint ses limites. Lors d'un trajet vers la montagne un week-end, l'un des membres fondateurs a sorti son portable et commencé à coder les bases de ce qui allait devenir MemberBase: un système simple d'appartenance à des groupes et une base de données pour saisir des lignes de comptabilité. Ce noyau n'a jamais vraiment changé — il a juste grandi.
+
+Avec le temps, l'application a été refactorisée pour devenir aussi générique que possible, utilisable par n'importe quelle association quelle que soit sa structure. C'est un projet open source, communautaire, construit pour un besoin réel — et livré tel quel, sans prétention. Il peut être utilisé directement ou adapté librement. Toute contribution est la bienvenue.
+
+---
+
 ## Fonctionnalités
 
 ### Gestion des membres
