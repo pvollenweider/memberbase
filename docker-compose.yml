@@ -5,6 +5,7 @@ services:
       - "8080:80"
     volumes:
       - ./html:/var/www/html
+      - ./conf:/var/www/conf
       - ./logs:/var/www/logs
     environment:
       DB_HOST: mariadb

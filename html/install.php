@@ -19,8 +19,141 @@ declare(strict_types=1);
 
 define('INSTALL_MODE', true);
 
-$confFile   = __DIR__ . '/../conf/db.php';
-$schemaFile = __DIR__ . '/../schema.sql';
+$confFile = __DIR__ . '/../conf/db.php';
+
+// Full schema — embedded so install.php has no external file dependency.
+// All statements use CREATE TABLE IF NOT EXISTS (idempotent).
+$schemaSql = <<<'SQL'
+SET NAMES utf8mb4;
+SET foreign_key_checks = 0;
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `id`               int(8)       NOT NULL AUTO_INCREMENT,
+  `lastname`         varchar(255) NOT NULL DEFAULT '',
+  `firstname`        varchar(255) NOT NULL DEFAULT '',
+  `society`          varchar(255) NOT NULL DEFAULT '',
+  `address`          varchar(255) NOT NULL DEFAULT '',
+  `npa`              varchar(255) NOT NULL DEFAULT '',
+  `tel`              varchar(255) NOT NULL DEFAULT '',
+  `telprof`          varchar(255) NOT NULL DEFAULT '',
+  `portable`         varchar(255) NOT NULL DEFAULT '',
+  `fax`              varchar(255) NOT NULL DEFAULT '',
+  `email`            varchar(255) NOT NULL DEFAULT '',
+  `web`              varchar(255) NOT NULL DEFAULT '',
+  `sexe`             varchar(8)   NOT NULL DEFAULT 'na',
+  `title`            varchar(255) NOT NULL DEFAULT '',
+  `comment`          mediumtext   NOT NULL,
+  `birthday`         int(16)      NOT NULL DEFAULT 0,
+  `creationDate`     int(16)      NOT NULL DEFAULT 0,
+  `modificationDate` int(16)      NOT NULL DEFAULT 0,
+  `status`           tinyint(1)   NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  KEY `lastname`         (`lastname`(250)),
+  KEY `firstname`        (`firstname`(250)),
+  KEY `idx_users_status` (`status`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PACK_KEYS=1;
+
+CREATE TABLE IF NOT EXISTS `team` (
+  `id`     int(11)     NOT NULL AUTO_INCREMENT,
+  `name`   varchar(64) NOT NULL DEFAULT '',
+  `hidden` tinyint(1)  NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `id`         (`id`, `name`),
+  KEY `idx_hidden` (`hidden`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `user_properties` (
+  `id`        int(8)       NOT NULL DEFAULT 0,
+  `user_id`   int(8)       NOT NULL DEFAULT 0,
+  `parameter` varchar(64)  NOT NULL DEFAULT '',
+  `date`      int(16)      NOT NULL DEFAULT 0,
+  `value`     varchar(255) NOT NULL DEFAULT '',
+  KEY `parameter`      (`parameter`),
+  KEY `id`             (`id`),
+  KEY `idx_user_param` (`user_id`, `parameter`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `metagroup` (
+  `id`         int(11)      NOT NULL,
+  `name`       varchar(255) DEFAULT NULL,
+  `teamid`     int(11)      DEFAULT NULL,
+  `is_filter`  tinyint(1)   NOT NULL DEFAULT 1,
+  `sort_order` int(11)      NOT NULL DEFAULT 0,
+  KEY `idx_teamid`  (`teamid`),
+  KEY `idx_id_name` (`id`, `name`(64))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+CREATE TABLE IF NOT EXISTS `compta_type` (
+  `id`                        int(11)      NOT NULL AUTO_INCREMENT,
+  `label`                     varchar(255) NOT NULL,
+  `color`                     varchar(64)  NOT NULL DEFAULT 'bg-light',
+  `sort_order`                int(11)      NOT NULL DEFAULT 0,
+  `is_cotisation`             tinyint(1)   NOT NULL DEFAULT 0,
+  `is_excluded_from_donation` tinyint(1)   NOT NULL DEFAULT 0,
+  `is_institutional`          tinyint(1)   NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+
+CREATE TABLE IF NOT EXISTS `compta` (
+  `id`                int(8)       NOT NULL AUTO_INCREMENT,
+  `user_id`           int(8)       NOT NULL DEFAULT 0,
+  `date`              int(16)      NOT NULL DEFAULT 0,
+  `libele`            varchar(255) NOT NULL DEFAULT '',
+  `sum`               varchar(64)  NOT NULL DEFAULT '',
+  `quittance`         varchar(64)  NOT NULL DEFAULT '',
+  `type_id`           int(11)      DEFAULT NULL,
+  `wants_attestation` tinyint(1)   NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `user_id`     (`user_id`),
+  KEY `user_id_2`   (`user_id`, `date`),
+  KEY `idx_type_id` (`type_id`),
+  KEY `idx_date`    (`date`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `maxval` (
+  `parameter` varchar(64) NOT NULL DEFAULT '',
+  `value`     int(8)      NOT NULL DEFAULT 0,
+  PRIMARY KEY (`parameter`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `app_settings` (
+  `key`   varchar(64)  NOT NULL,
+  `value` varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `app_users` (
+  `id`                    int(11)      NOT NULL AUTO_INCREMENT,
+  `username`              varchar(100) NOT NULL,
+  `display_name`          varchar(200) DEFAULT NULL,
+  `email`                 varchar(200) DEFAULT NULL,
+  `password_hash`         varchar(255) NOT NULL,
+  `role`                  enum('admin','user') NOT NULL DEFAULT 'user',
+  `force_password_change` tinyint(1)   NOT NULL DEFAULT 1,
+  `is_active`             tinyint(1)   NOT NULL DEFAULT 1,
+  `created_at`            timestamp    NOT NULL DEFAULT current_timestamp(),
+  `last_login`            timestamp    NULL DEFAULT NULL,
+  `reset_token`           varchar(64)  DEFAULT NULL,
+  `token_expires_at`      datetime     DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `audit_log` (
+  `id`              int(11)      NOT NULL AUTO_INCREMENT,
+  `created_at`      datetime     NOT NULL DEFAULT current_timestamp(),
+  `app_user_id`     int(11)      DEFAULT NULL,
+  `username`        varchar(100) DEFAULT NULL,
+  `action`          varchar(100) NOT NULL,
+  `detail`          text         DEFAULT NULL,
+  `subject_user_id` int(10) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_created_at`   (`created_at`),
+  KEY `idx_subject_user` (`subject_user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET foreign_key_checks = 1;
+SQL;
 $step       = $_GET['step'] ?? '1';
 $errors     = [];
 
@@ -102,15 +235,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '2') {
 // ---------- Step 3 POST — run schema ----------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '3') {
     if (!file_exists($confFile)) { header('Location: install.php?step=2'); exit; }
-    if (!file_exists($schemaFile)) { $errors[] = "Fichier <code>schema.sql</code> introuvable ($schemaFile)."; }
 
     if (!$errors) {
         require_once $confFile;
         try {
             $pdo = installerPdo();
-            $sql = file_get_contents($schemaFile);
             $statements = array_filter(
-                array_map('trim', preg_split('/;\s*\n/', $sql)),
+                array_map('trim', preg_split('/;\s*\n/', $schemaSql)),
                 fn($s) => $s !== '' && !str_starts_with(ltrim($s), '--')
             );
             foreach ($statements as $stmt) {
@@ -230,14 +361,27 @@ $prereqs = [
 $prereqsOk = array_reduce($prereqs, fn($c, $p) => $c && $p['ok'], true);
 
 // Prefill for step 2
-$prefill = ['db_host' => 'localhost', 'db_port' => '3306', 'db_name' => '', 'db_user' => ''];
+$prefill = [
+    'db_host' => 'localhost',
+    'db_port' => '3306',
+    'db_name' => '',
+    'db_user' => '',
+];
+// Pre-fill from environment variables (Docker / 12-factor) or existing conf file
 if (file_exists($confFile)) {
     require_once $confFile;
-    $prefill['db_host'] = defined('DB_HOST') ? DB_HOST : $prefill['db_host'];
-    $prefill['db_port'] = defined('DB_PORT') ? (string)DB_PORT : $prefill['db_port'];
-    $prefill['db_name'] = defined('DB_NAME') ? DB_NAME : $prefill['db_name'];
-    $prefill['db_user'] = defined('DB_USER') ? DB_USER : $prefill['db_user'];
 }
+if (defined('DB_HOST')) $prefill['db_host'] = DB_HOST;
+elseif (getenv('DB_HOST')) $prefill['db_host'] = getenv('DB_HOST');
+
+if (defined('DB_PORT')) $prefill['db_port'] = (string)DB_PORT;
+elseif (getenv('DB_PORT')) $prefill['db_port'] = getenv('DB_PORT');
+
+if (defined('DB_NAME')) $prefill['db_name'] = DB_NAME;
+elseif (getenv('DB_NAME')) $prefill['db_name'] = getenv('DB_NAME');
+
+if (defined('DB_USER')) $prefill['db_user'] = DB_USER;
+elseif (getenv('DB_USER')) $prefill['db_user'] = getenv('DB_USER');
 $prefill = array_map(fn($v) => htmlspecialchars($v, ENT_QUOTES, 'UTF-8'), $prefill);
 
 $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' => 'Organisation', '5' => 'Compte admin'];

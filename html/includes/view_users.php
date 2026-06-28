@@ -3,7 +3,7 @@ $searchString = "";
 if (isset ($_REQUEST["searchString"])) {
     $searchString = trim($_REQUEST["searchString"]);
 }
-$team = (int)($appSettings['default_team'] ?? 249);
+$team = (int)($appSettings['default_team'] ?? 0);
 $membre = (int)($appSettings['membre_team'] ?? 245);
 if (isset ($_REQUEST["team"])) {
     $team = $_REQUEST["team"];
@@ -74,10 +74,12 @@ if (isset($_REQUEST['year'])) {
                     } else if ($team == FILTER_UNPAID_COTI_CURRENT) {
                         $currentTeamTitle = $GLOBAL['cotiUnpayed'];
                         $currentFilterDesc = "Membres dont la cotisation $year n'a pas encore été enregistrée.";
-                    } else {
+                    } else if ($team > 0) {
                         $currentteam = new Team();
                         $currentteam->lookupTeam($team);
                         $currentTeamTitle = $currentteam->getName();
+                    } else {
+                        $currentTeamTitle = $GLOBAL['list'];
                     }
                     ?>
 
@@ -250,8 +252,8 @@ if ($metagroup > 0) {
     if ($team == FILTER_UNPAID_COTI_CURRENT) {
         $query .= ",compta ";
     }
-    // Virtual filter IDs do not target a specific team — no user_properties join needed
-    if ($team != -1 && $team != FILTER_ALL_EXCEPT_ARCHIVES && $team != FILTER_UNPAID_COTI_3Y && $team != FILTER_NO_ACTIVITY_10Y && $team != FILTER_NON_INSTIT_LAST_YEAR) {
+    // Virtual filter IDs and team=0 (all members) do not need a user_properties join
+    if ($team != 0 && $team != -1 && $team != FILTER_ALL_EXCEPT_ARCHIVES && $team != FILTER_UNPAID_COTI_3Y && $team != FILTER_NO_ACTIVITY_10Y && $team != FILTER_NON_INSTIT_LAST_YEAR) {
         $query .= ",user_properties ";
     }
 }
@@ -288,8 +290,8 @@ if ($metagroup > 0) {
         $query .= " AND 1=0"; // metagroup has no teams — return empty
     }
 } else if ($team != -1) {
-    if ($team == FILTER_ALL_EXCEPT_ARCHIVES || $team == FILTER_UNPAID_COTI_3Y || $team == FILTER_NO_ACTIVITY_10Y || $team == FILTER_NON_INSTIT_LAST_YEAR) {
-        // status=1 already excludes archived members — no user_properties condition needed
+    if ($team == 0 || $team == FILTER_ALL_EXCEPT_ARCHIVES || $team == FILTER_UNPAID_COTI_3Y || $team == FILTER_NO_ACTIVITY_10Y || $team == FILTER_NON_INSTIT_LAST_YEAR) {
+        // team=0 = all active members; virtual filters already handled by WHERE status=1
     } else if ($team == FILTER_UNPAID_COTI_CURRENT || $team == -1234) {
         $query .= " AND users.id=user_properties.user_id ";
         $query .= "AND ( ";

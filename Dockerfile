@@ -15,4 +15,4 @@ COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 RUN echo "error_reporting = E_ALL & ~E_NOTICE" > /usr/local/etc/php/conf.d/casa.ini
 
 # Permissions
-RUN mkdir -p /var/www/logs && chown -R www-data:www-data /var/www/logs
+RUN mkdir -p /var/www/logs /var/www/conf && chown -R www-data:www-data /var/www/logs /var/www/conf
