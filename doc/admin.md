@@ -161,7 +161,7 @@ Adapter le chemin de destination selon la configuration Apache du serveur.
 ### Première installation
 
 1. Créer la base de données et importer le schéma SQL
-2. Configurer `html/includes/declarations.inc` avec les paramètres de connexion DB
+2. Configurer `conf/db.php` avec les paramètres de connexion DB (ou passer par les variables d'environnement `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`)
 3. Créer le compte admin initial — voir `migration_app_users.sql`
 4. Se connecter avec `admin` / `ChangeMe123!` et changer le mot de passe immédiatement
 
