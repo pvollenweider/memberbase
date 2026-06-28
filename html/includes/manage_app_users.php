@@ -136,7 +136,7 @@ if ($__flash):
           <h6 class="modal-title" id="modal-create-user-title" style="font-size:0.9rem">
             <i class="fas fa-user-plus me-2" aria-hidden="true"></i>Nouvel utilisateur
           </h6>
-          <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="Fermer"></button>
+          <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
         </div>
         <div class="modal-body" style="font-size:0.875rem">
           <?php if (!empty($_GET['au_error'])): ?>
@@ -205,7 +205,7 @@ if ($__flash):
           </script>
         </div>
         <div class="modal-footer py-2">
-          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
           <button type="submit" class="btn btn-primary btn-sm">Créer</button>
         </div>
       </form>

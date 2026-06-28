@@ -137,7 +137,7 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
               <p class="text-muted mb-1" style="font-size:0.83rem" id="unarchive-modal-name"></p>
               <p class="text-muted mb-4" style="font-size:0.83rem">Le profil réapparaîtra dans toutes les listes.</p>
               <div class="d-flex gap-2 justify-content-center">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
                 <button type="button" class="btn btn-success" id="unarchive-confirm-btn">
                   <i class="fas fa-box-open me-1" aria-hidden="true"></i>Désarchiver
                 </button>

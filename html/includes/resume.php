@@ -19,12 +19,12 @@ if ($membreTeamId > 0) {
 <?php
 $_yearLabel = match(true) {
     isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -2 => $GLOBAL['allYear'],
-    isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -3 => '12 derniers mois',
-    isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -4 => '24 derniers mois',
+    isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -3 => $GLOBAL['last12Months'],
+    isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -4 => $GLOBAL['last24Months'],
     default => $year,
 };
 if ($showAll) {
-    $_amountLabel = '<i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Toutes entrées';
+    $_amountLabel = '<i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>' . $GLOBAL['allEntries'];
 } else {
     $_amountLabel = 'Min. ' . number_format($minSum, 0, '.', '\'') . ' CHF';
 }
@@ -123,7 +123,7 @@ if ($year != -2) {
 <div class="ca-resume-cards d-flex gap-2 mb-4">
   <!-- Total contributions -->
   <div style="flex:2 0 0;min-width:160px;background:var(--ca-primary);color:#fff;border-radius:10px;padding:0.85rem 1rem">
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.8">Contributions <?= $year ?></div>
+    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.8"><?= $GLOBAL['contributions'] ?> <?= $year ?></div>
     <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem">
       <?= number_format($_kTotal, 0, '.', '\'') ?> <span style="font-size:1rem;font-weight:400">CHF</span>
     </div>
@@ -175,7 +175,7 @@ if ($year != -2) {
   </div>
   <!-- Donateurs -->
   <div style="flex:1 0 0;min-width:120px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem">
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)">Donateurs</div>
+    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)"><?= $GLOBAL['donors'] ?></div>
     <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem;color:var(--ca-ink,#212529)"><?= $_kDonateurs ?></div>
     <?php if ($_kDonDelta !== null): ?>
     <div style="font-size:0.78rem;margin-top:0.3rem;color:var(--ca-ink-muted)">
@@ -218,7 +218,7 @@ if ($year != -2) {
          title="Première contribution en <?= $year ?>"
          style="color:inherit;text-decoration:none"
          onclick="event.stopPropagation()">
-        <i class="fas fa-star me-1" aria-hidden="true" style="color:var(--bs-warning)"></i><?= $_kNouveaux ?> nouveaux
+        <i class="fas fa-star me-1" aria-hidden="true" style="color:var(--bs-warning)"></i><?= $_kNouveaux ?> <?= \$GLOBAL['newDonors'] ?>
       </a>
       <?php if ($_kLapsed > 0): ?>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedDonors&amp;year=<?= $year ?>"
@@ -233,7 +233,7 @@ if ($year != -2) {
   <!-- Membres actifs -->
   <?php if ($membreTeamId > 0): ?>
   <div style="flex:1 0 0;min-width:120px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem">
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)">Membres actifs</div>
+    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)"><?= $GLOBAL['activeMembers'] ?></div>
     <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem;color:var(--ca-ink,#212529)"><?= $_kMembres ?></div>
     <?php if ($_kMembresDelta !== null): ?>
     <div style="font-size:0.78rem;margin-top:0.3rem;color:var(--ca-ink-muted)">
@@ -290,7 +290,7 @@ if ($_showPie) {
 ?>
 <?php if ($_showPie): ?>
   <div style="flex:1 0 0;min-width:130px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem">
-    <canvas id="resumePie" width="80" height="80" aria-label="Répartition par type de don" role="img"></canvas>
+    <canvas id="resumePie" width="80" height="80" aria-label="<?= $GLOBAL['distByType'] ?>" role="img"></canvas>
     <div id="resumePieLegend" style="font-size:0.7rem;line-height:1.6;width:100%"></div>
   </div>
 <?php endif ?>
@@ -341,7 +341,7 @@ if ($_showPie) {
 
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
 
-  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Contributions</span>
+  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em"><?= $GLOBAL['contributions'] ?></span>
 
   <!-- Montant minimum -->
   <div class="dropdown">
@@ -376,10 +376,10 @@ if ($_showPie) {
       <li><hr class="dropdown-divider"></li>
       <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -3) ? ' active' : '' ?>"
              href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-3">
-          <i class="fas fa-rotate me-1 text-muted" aria-hidden="true"></i>12 derniers mois</a></li>
+          <i class="fas fa-rotate me-1 text-muted" aria-hidden="true"></i><?= $GLOBAL['last12Months'] ?></a></li>
       <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -4) ? ' active' : '' ?>"
              href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-4">
-          <i class="fas fa-rotate me-1 text-muted" aria-hidden="true"></i>24 derniers mois</a></li>
+          <i class="fas fa-rotate me-1 text-muted" aria-hidden="true"></i><?= $GLOBAL['last24Months'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
       <?php
       $currentYear = date("Y");
@@ -595,7 +595,7 @@ $(document).ready(function() {
         <h6 class="modal-title" id="bulk-attest-title" style="font-size:0.9rem">
           <i class="fas fa-file-pdf me-2 text-danger" aria-hidden="true"></i>Générer les attestations
         </h6>
-        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div id="bulk-attest-confirm-body" class="modal-body py-3" style="font-size:0.875rem">
         <p class="mb-2">Générer un PDF avec les attestations de dons pour <strong id="bulk-attest-count">…</strong> personne(s).</p>
@@ -609,7 +609,7 @@ $(document).ready(function() {
         <p class="text-muted mb-0" style="font-size:0.8rem">Vous pouvez fermer cette fenêtre. La génération continue dans l'onglet ouvert.</p>
       </div>
       <div class="modal-footer py-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <button type="button" id="bulk-attest-go" class="btn btn-danger btn-sm">
           <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Générer
         </button>

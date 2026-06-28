@@ -110,7 +110,7 @@ $_activeTab = $_REQUEST['tab'] ?? null;
           <!-- Réglages -->
           <div class="tab-pane fade" id="tab-settings" role="tabpanel" aria-labelledby="tab-settings-btn">
             <?php if (!isAdmin()): ?>
-            <div class="alert alert-danger" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i>Accès réservé aux administrateurs.</div>
+            <div class="alert alert-danger" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i><?= $GLOBAL['adminOnly'] ?></div>
             <?php else: ?>
             <div class="col-md-8">
             <div id="settings-save-msg"></div>
@@ -189,7 +189,7 @@ $_activeTab = $_REQUEST['tab'] ?? null;
                   <?php endforeach ?>
                 </select>
               </div>
-              <button type="submit" class="btn btn-primary btn-sm">Sauvegarder</button>
+              <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['save'] ?></button>
             </form>
             </div>
             <?php endif ?>
@@ -198,7 +198,7 @@ $_activeTab = $_REQUEST['tab'] ?? null;
           <!-- Types compta (admin only) -->
           <div class="tab-pane fade" id="tab-compta" role="tabpanel" aria-labelledby="tab-compta-btn">
             <?php if (isAdmin()): $ctEmbedded = true; $ctReturnView = 'settings'; $ctReturnTab = 'compta'; include 'manage_compta_types.php'; else: ?>
-            <div class="alert alert-danger mt-3" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i>Accès réservé aux administrateurs.</div>
+            <div class="alert alert-danger mt-3" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i><?= $GLOBAL['adminOnly'] ?></div>
             <?php endif ?>
           </div><!-- #tab-compta -->
 

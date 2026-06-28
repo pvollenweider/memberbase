@@ -52,7 +52,7 @@ if (isset($_REQUEST['view'])) {
                 </div>
                 <div class="d-flex gap-2 justify-content-end">
                   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$user->getId() ?>"
-                     class="btn btn-outline-secondary">Annuler</a>
+                     class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
                   <button type="submit" class="btn btn-danger">Confirmer</button>
                 </div>
               </form>

@@ -143,7 +143,7 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
           Le profil sera retiré de toutes les listes.<br>Désarchivable à tout moment.
         </p>
         <div class="d-flex gap-2 justify-content-center">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
           <button type="button" class="btn btn-danger"
                   onclick="bootstrap.Modal.getInstance(document.getElementById('deactivate-modal')).hide();document.getElementById('status-toggle-form').submit()">
             <i class="fas fa-archive me-1" aria-hidden="true"></i>Archiver

@@ -9,6 +9,47 @@ $GLOBAL['cotiUnpayedLast3Years']   = "Aucune cotisation ces 3 dernières années
 $GLOBAL['nothingLast10Years']      = "Aucun versement ces 10 dernières années";
 $GLOBAL['nonInstitPayedSomethingLastYear'] = "Donateur non institutionnel actif en " . (date('Y') - 1);
 
+// --- Navigation ---
+$GLOBAL['search']          = "Chercher";
+$GLOBAL['logout']          = "Déconnexion";
+$GLOBAL['changePassword']  = "Mot de passe";
+$GLOBAL['donationOverview']= "Aperçu des dons";
+$GLOBAL['administration']  = "Administration";
+
+// --- Common actions ---
+$GLOBAL['save']            = "Sauvegarder";
+$GLOBAL['cancel']          = "Annuler";
+$GLOBAL['close']           = "Fermer";
+$GLOBAL['confirm']         = "Confirmer";
+$GLOBAL['archive']         = "Archiver";
+$GLOBAL['anonymize']       = "Anonymiser";
+
+// --- Dashboard / resume ---
+$GLOBAL['donors']          = "Donateurs";
+$GLOBAL['activeMembers']   = "Membres actifs";
+$GLOBAL['contributions']   = "Contributions";
+$GLOBAL['loyalDonors']     = "Fidèles";
+$GLOBAL['newDonors']       = "Nouveaux";
+$GLOBAL['lapsedDonors']    = "Perdus";
+$GLOBAL['last12Months']    = "12 derniers mois";
+$GLOBAL['last24Months']    = "24 derniers mois";
+$GLOBAL['allEntries']      = "Toutes entrées";
+$GLOBAL['wantsAttestation']= "Souhaite une attestation";
+$GLOBAL['donationsOnly']   = "Dons uniquement";
+$GLOBAL['withoutType']     = "Sans type";
+$GLOBAL['historyByYear']   = "Historique par année";
+$GLOBAL['distByType']      = "Répartition par type";
+
+// --- Member form sections ---
+$GLOBAL['contactInfo']     = "Coordonnées";
+$GLOBAL['additionalInfo']  = "Infos complémentaires";
+$GLOBAL['city']            = "Ville";
+$GLOBAL['country']         = "Pays";
+
+// --- Settings ---
+$GLOBAL['saveSettings']    = "Sauvegarder";
+$GLOBAL['adminOnly']       = "Accès réservé aux administrateurs.";
+
 // --- UI labels ---
 $GLOBAL['add']             = "<i class=\"fas fa-plus\"></i> Ajouter";
 $GLOBAL['addMetagroup']    = "Ajouter meta-groupe";

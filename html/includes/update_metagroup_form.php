@@ -63,7 +63,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
     Vous pouvez maintenant assigner des groupes ci-dessous, ou
     <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=filters" class="alert-link">retourner à la liste</a>.
   </div>
-  <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Fermer"></button>
+  <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="<?= $GLOBAL['close'] ?>"></button>
 </div>
 <?php endif ?>
 <div class="row justify-content-center mt-4">
@@ -98,7 +98,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=<?= $_mgBackTab ?>" class="btn btn-outline-secondary btn-sm">Annuler</a>
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=<?= $_mgBackTab ?>" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
         </div>
       </form>
     </div>
@@ -276,8 +276,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <button type="button" id="mg-toast-undo"
                   class="btn btn-sm btn-link text-white text-decoration-underline me-1 flex-shrink-0"
                   style="display:none;font-size:0.78rem;padding:0.1rem 0.4rem"
-                  aria-label="Annuler la dernière action">Annuler</button>
-          <button type="button" class="btn-close btn-close-white me-2 ms-1 flex-shrink-0" data-bs-dismiss="toast" aria-label="Fermer"></button>
+                  aria-label="Annuler la dernière action"><?= $GLOBAL['cancel'] ?></button>
+          <button type="button" class="btn-close btn-close-white me-2 ms-1 flex-shrink-0" data-bs-dismiss="toast" aria-label="<?= $GLOBAL['close'] ?>"></button>
         </div>
       </div>
     </div>

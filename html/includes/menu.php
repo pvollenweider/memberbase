@@ -28,11 +28,11 @@ if (isset ($_REQUEST["searchString"])) {
                 <i class="fas fa-book-open"></i>
             </a>
             <a class="nav-link text-white px-2<?= $view === 'resume' ? ' opacity-100' : ' opacity-75' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=resume" title="Aperçu des dons" aria-label="Aperçu des dons">
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=resume" title="<?= $GLOBAL['donationOverview'] ?>" aria-label="<?= $GLOBAL['donationOverview'] ?>">
                 <i class="fas fa-chart-pie"></i>
             </a>
             <a class="nav-link text-white px-2<?= $view === 'settings' ? ' opacity-100' : ' opacity-75' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="Administration" aria-label="Administration">
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>" aria-label="<?= $GLOBAL['administration'] ?>">
                 <i class="fas fa-cog"></i>
             </a>
             <?php $__authUser = authUser(); ?>
@@ -44,12 +44,12 @@ if (isset ($_REQUEST["searchString"])) {
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><span class="dropdown-item-text small text-muted"><?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?></span></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword">Mot de passe</a></li>
+                    <li><a class="dropdown-item" href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword"><?= $GLOBAL['changePassword'] ?></a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                       <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty hx-boost="false">
                         <input type="hidden" name="action" value="logout">
-                        <button type="submit" class="dropdown-item text-danger">Déconnexion</button>
+                        <button type="submit" class="dropdown-item text-danger"><?= $GLOBAL['logout'] ?></button>
                       </form>
                     </li>
                 </ul>
@@ -63,13 +63,13 @@ if (isset ($_REQUEST["searchString"])) {
                        title="<?= $GLOBAL['manageTeam'] ?>"><i class="fas fa-list"></i> <?= $GLOBAL['list'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'lastEntryCompta' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta"><i class="fas fa-coins me-1" aria-hidden="true"></i>Compta</a>
+                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta"><i class="fas fa-coins me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'lastEntrySuivi' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi"><i class="fas fa-book-open me-1" aria-hidden="true"></i>Suivi</a>
+                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi"><i class="fas fa-book-open me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'resume' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=resume"><i class="fas fa-chart-pie me-1" aria-hidden="true"></i>Aperçu des dons</a>
+                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=resume"><i class="fas fa-chart-pie me-1" aria-hidden="true"></i><?= $GLOBAL['donationOverview'] ?></a>
                 </li>
             </ul>
 
@@ -77,7 +77,7 @@ if (isset ($_REQUEST["searchString"])) {
 
             <!-- Settings cog (right side) -->
             <a class="nav-link text-white my-2 my-lg-0 me-2<?= $view === 'settings' ? ' active' : '' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="Administration">
+               href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>">
                 <i class="fas fa-cog"></i>
             </a>
 
@@ -99,8 +99,8 @@ if (isset ($_REQUEST["searchString"])) {
 
             <form class="d-flex gap-2 my-2 my-lg-0" role="search" action="<?= $_SERVER['PHP_SELF'] ?>" method="get" data-no-dirty id="main-search-form">
                 <input type="hidden" name="action" value="search"/>
-                <input type="hidden" name="team" value="-3"/>
-                <input class="form-control me-sm-2" id="search" type="search" aria-label="Search" placeholder="Chercher"
+                <input type="hidden" name="team" value="<?= FILTER_ALL_EXCEPT_ARCHIVES ?>"/>
+                <input class="form-control me-sm-2" id="search" type="search" aria-label="<?= $GLOBAL['search'] ?>" placeholder="<?= $GLOBAL['search'] ?>"
                        name="searchString" value="<?= htmlentities($searchString, ENT_COMPAT, $charset) ?>"
                        autocomplete="off">
             </form>

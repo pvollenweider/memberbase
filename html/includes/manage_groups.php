@@ -262,7 +262,7 @@ function toggleHiddenSection(btn) {
     <div class="modal-content">
       <div class="modal-header py-2">
         <h6 class="modal-title" id="mg-name-modal-label" style="font-size:0.85rem">Nom du filtre</h6>
-        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body py-2">
         <input type="text" id="mg-name-input" class="form-control form-control-sm" placeholder="Ex: Donateurs actifs" maxlength="255"/>

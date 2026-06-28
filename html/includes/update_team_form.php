@@ -142,7 +142,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
         <div class="d-flex gap-2">
           <button type="submit" id="btn-update-team" class="btn btn-primary btn-sm"><?=$GLOBAL['update']?></button>
-          <a href="<?=$_SERVER['PHP_SELF']?>?view=settings&amp;tab=groups" class="btn btn-outline-secondary btn-sm">Annuler</a>
+          <a href="<?=$_SERVER['PHP_SELF']?>?view=settings&amp;tab=groups" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
         </div>
       </form>
     </div>

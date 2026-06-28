@@ -247,7 +247,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
               :style="!allResolved ? 'opacity:.5;pointer-events:none' : ''">
         <i class="fas fa-code-merge me-1" aria-hidden="true"></i>Fusionner
       </button>
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=integrity" class="btn btn-outline-secondary">Annuler</a>
+      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=integrity" class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
       <span class="text-muted ms-2" style="font-size:0.82rem" x-show="!allResolved" x-cloak>
         <i class="fas fa-info-circle me-1" aria-hidden="true"></i>
         Résolvez tous les champs divergents pour continuer.
@@ -272,7 +272,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
         <li>Les appartenances aux groupes seront fusionnées (dédoublonnage automatique).</li>
       </ul>
       <div class="d-flex gap-2 justify-content-end mt-4">
-        <button type="button" class="btn btn-outline-secondary" @click="closeConfirm()">Annuler</button>
+        <button type="button" class="btn btn-outline-secondary" @click="closeConfirm()"><?= $GLOBAL['cancel'] ?></button>
         <button type="submit" form="merge-form" class="btn btn-danger">
           <i class="fas fa-code-merge me-1" aria-hidden="true"></i>Confirmer la fusion
         </button>

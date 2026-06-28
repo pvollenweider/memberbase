@@ -211,9 +211,9 @@ $types = $pdo->query("
                        class="form-control form-control-sm" style="width:70px" min="0">
               </div>
               <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary btn-sm">Sauvegarder</button>
+                <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['save'] ?></button>
                 <button type="button" class="btn btn-outline-secondary btn-sm"
-                        onclick="toggleEdit(<?= $ct->id ?>)">Annuler</button>
+                        onclick="toggleEdit(<?= $ct->id ?>)"><?= $GLOBAL['cancel'] ?></button>
               </div>
             </form>
           </td>

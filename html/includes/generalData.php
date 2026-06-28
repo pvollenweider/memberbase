@@ -4,7 +4,7 @@
     <input type="hidden" name="action" value="updateUser"/>
     <input type="hidden" name="view" value="generalData"/>
 
-    <p class="form-section-title">Coordonnées</p>
+    <p class="form-section-title"><?= $GLOBAL['contactInfo'] ?></p>
 
     <div class="row mb-2">
         <label for="society" class="col-md-3 col-form-label"><?= $GLOBAL['society'] ?></label>
@@ -85,7 +85,7 @@
         </div>
     </div>
 
-    <p class="form-section-title">Infos complémentaires</p>
+    <p class="form-section-title"><?= $GLOBAL['additionalInfo'] ?></p>
 
     <div class="row mb-2">
         <label for="telProf" class="col-md-3 col-form-label">

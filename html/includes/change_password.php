@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_REQUEST['action'] ?? '') === 'ch
         </div>
         <div class="d-flex gap-2">
           <?php if (!$_cpForced): ?>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-outline-secondary">Annuler</a>
+          <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
           <?php endif ?>
           <button type="submit" class="btn btn-primary">Enregistrer</button>
         </div>

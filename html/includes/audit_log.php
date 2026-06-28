@@ -10,7 +10,7 @@
 <?php if (isset($_GET['flushed'])): ?>
 <div class="alert alert-success alert-dismissible fade show" role="alert">
     Journal nettoyé.
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="<?= $GLOBAL['close'] ?>"></button>
 </div>
 <?php endif; ?>
 
