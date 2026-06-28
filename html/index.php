@@ -346,6 +346,13 @@ include "includes/menu.php";
         }
     }
 
+    document.addEventListener('htmx:beforeHistorySave', function () {
+        if ($.fn.DataTable) {
+            $.fn.DataTable.tables({ visible: true,  api: true }).destroy();
+            $.fn.DataTable.tables({ visible: false, api: true }).destroy();
+        }
+    });
+
     document.addEventListener('htmx:afterSwap', function (e) {
         casaInit(e.target);
         var toastEl = document.getElementById('casaToast');

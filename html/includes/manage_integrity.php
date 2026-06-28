@@ -106,7 +106,8 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
           <?php endforeach ?>
           <?php if (count($ids) === 2): ?>
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&amp;a=<?= (int)$ids[0] ?>&amp;b=<?= (int)$ids[1] ?>"
-             class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem">
+             class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem"
+             hx-boost="false">
             <i class="fas fa-code-merge me-1" aria-hidden="true"></i>Fusionner
           </a>
           <?php elseif (count($ids) > 2): ?>
@@ -163,7 +164,8 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
           <?php endforeach ?>
           <?php if (count($ids) === 2): ?>
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&amp;a=<?= (int)$ids[0] ?>&amp;b=<?= (int)$ids[1] ?>"
-             class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem">
+             class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem"
+             hx-boost="false">
             <i class="fas fa-code-merge me-1" aria-hidden="true"></i>Fusionner
           </a>
           <?php elseif (count($ids) > 2): ?>

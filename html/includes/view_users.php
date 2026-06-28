@@ -167,8 +167,11 @@ if (isset($_REQUEST['year'])) {
   </div>
 
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?>"
-     class="ms-auto btn btn-sm btn-outline-secondary py-0"
-     title="<?= $GLOBAL['addUser'] ?>"><i class="fas fa-user-plus" aria-hidden="true"></i></a>
+     class="ms-auto ca-filter-btn text-decoration-none"
+     title="<?= $GLOBAL['addUser'] ?>">
+    <i class="fas fa-user-plus" aria-hidden="true"></i>
+    <span><?= $GLOBAL['addUser'] ?></span>
+  </a>
 </div>
 <script>
 function filterTeamDropdown(q) {

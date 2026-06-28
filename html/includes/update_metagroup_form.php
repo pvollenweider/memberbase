@@ -422,12 +422,34 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="<?= $_mgBackTab ?>"/>
         <input type="hidden" name="id" value="<?= $mgId ?>"/>
-        <button type="submit" class="btn btn-sm btn-danger"
-                onclick="return confirm('Supprimer «<?= htmlentities($mg->getName(), ENT_QUOTES, $charset) ?>» ?')">
+        <button type="button" class="btn btn-sm btn-danger"
+                data-bs-toggle="modal" data-bs-target="#modal-delete-metagroup">
           <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
         </button>
       </form>
     </div>
 
+  </div>
+</div>
+
+<div class="modal fade" id="modal-delete-metagroup" tabindex="-1" aria-labelledby="modal-delete-metagroup-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-delete-metagroup-label"><?= $GLOBAL['delete'] ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body">
+        Supprimer «<?= htmlentities($mg->getName(), ENT_QUOTES, $charset) ?>» ?
+        <p class="small text-muted mt-1 mb-0">Les groupes membres ne seront pas supprimés.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <button type="button" class="btn btn-danger"
+                onclick="document.querySelector('form [name=action][value=deleteMetagroup]').closest('form').submit()">
+          <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
