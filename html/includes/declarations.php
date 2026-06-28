@@ -10,11 +10,18 @@
 
 date_default_timezone_set("Europe/Zurich");
 
-// database settings — env vars override defaults (Docker dev)
-$hostname = getenv('DB_HOST') ?: "localhost";
-$username = getenv('DB_USER') ?: "members";
-$password = getenv('DB_PASS') ?: "members";
-$database = getenv('DB_NAME') ?: "members";
+// Load DB config from conf/db.php if present (traditional install),
+// otherwise fall back to environment variables (Docker / 12-factor).
+$_confFile = __DIR__ . '/../../conf/db.php';
+if (file_exists($_confFile)) {
+    require_once $_confFile;
+}
+unset($_confFile);
+
+$hostname = defined('DB_HOST') ? DB_HOST : (getenv('DB_HOST') ?: 'localhost');
+$username = defined('DB_USER') ? DB_USER : (getenv('DB_USER') ?: 'members');
+$password = defined('DB_PASS') ? DB_PASS : (getenv('DB_PASS') ?: 'members');
+$database = defined('DB_NAME') ? DB_NAME : (getenv('DB_NAME') ?: 'members');
 
 $dsn = "mysql:host={$hostname};dbname={$database};charset=utf8mb4";
 $pdo = new PDO($dsn, $username, $password, [
