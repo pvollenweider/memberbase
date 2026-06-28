@@ -153,7 +153,7 @@ while ($row = $stmt->fetchObject()) {
         <td class="d-none d-sm-table-cell"><?= htmlspecialchars($quittance, ENT_QUOTES, $charset) ?></td>
         <td class="d-none d-sm-table-cell text-center">
             <?php if ($row->wants_attestation): ?>
-                <i class="fas fa-check text-success" aria-label="<?= \$GLOBAL['wantsAttestation'] ?>" title="<?= \$GLOBAL['wantsAttestation'] ?>"></i>
+                <i class="fas fa-check text-success" aria-label="<?= $GLOBAL['wantsAttestation'] ?>" title="<?= $GLOBAL['wantsAttestation'] ?>"></i>
             <?php endif ?>
         </td>
         <td>
@@ -229,7 +229,7 @@ $_periodAgg = []; // period key => amount
 $_stmt2 = $pdo->query($query2);
 while ($_r = $_stmt2->fetchObject()) {
     // Donut: aggregate by type
-    $_lbl = $_r->ct_label ?? \$GLOBAL['withoutType'];
+    $_lbl = $_r->ct_label ?? $GLOBAL['withoutType'];
     $_col = $_r->ct_color ?? 'bg-secondary-subtle';
     if (!isset($_typeAgg[$_lbl])) $_typeAgg[$_lbl] = ['sum' => 0.0, 'color' => $_col];
     $_typeAgg[$_lbl]['sum'] += (float)$_r->sum;
@@ -279,7 +279,7 @@ $_showTimeline = count($_periodAgg) >= 2;
   <?php if ($_showTimeline): ?>
   <div class="col-md-7">
     <p class="text-muted small fw-semibold mb-2 text-center">
-      <?= $year == -2 ? '<?= \$GLOBAL['historyByYear'] ?>' : 'Mensuel vs cumulé' ?>
+      <?= $year == -2 ? $GLOBAL['historyByYear'] : 'Mensuel vs cumulé' ?>
     </p>
     <div style="position:relative;height:260px">
       <canvas id="timelineChart"></canvas>
