@@ -2,6 +2,38 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [3.5.0] — 2026-06-28
+
+### Highlights
+
+Premier release public sous le nom **MemberBase** — l'application est désormais générique, open source, et installable sans intervention manuelle.
+
+### Nouveautés
+
+- **Installeur web** (`install.php`) — wizard 5 étapes : prérequis, connexion DB, schéma, paramètres organisation, compte admin. Crée automatiquement les groupes "Membre {N-1}" et "Membre {N}" dans une catégorie "Membres"
+- **Redirect automatique** vers `install.php` si la DB est inaccessible ou le schéma absent
+- **Ajout au groupe depuis addUser** — checkbox "Ajouter au groupe «…»" pré-cochée quand on navigue depuis une vue de groupe
+- **Mobile nav** — icônes de navigation (liste, compta, suivi, résumé) à gauche ; recherche, réglages, user à droite
+
+### Rebrand & généralisation
+
+- Renommé **MemberBase** (anciennement Casa Members)
+- Suppression de toutes les références à l'instance d'origine dans le code, les templates et la documentation
+- Config Apache spécifique à l'instance supprimée du repo
+- `label.pl` supprimé
+
+### Documentation & communauté
+
+- README entièrement revu : guide d'installation, structure, badges
+- Section "Histoire" — origine du projet
+- `CONTRIBUTING.md`, templates GitHub (bug report, feature request, PR)
+- Repo renommé `pvollenweider/memberbase` et passé en public
+
+### Corrections
+
+- `value='1'` → `value='true'` dans `user_properties` pour cohérence avec le reste de l'application
+- Crash sur fresh install quand `default_team = 0` résolu
+
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [versionnement sémantique](https://semver.org/lang/fr/).
 
