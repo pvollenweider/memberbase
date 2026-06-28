@@ -16,7 +16,7 @@ test.describe('Members', () => {
   });
 
   test('search for a member by name', async ({ page }) => {
-    await page.goto('/index.php?searchString=Dupont');
+    await page.goto('/index.php?action=search&searchString=Dupont');
     const rows = page.locator('table.table tbody tr');
     await expect(rows.first()).toBeVisible();
     await expect(rows.first()).toContainText('Dupont');
