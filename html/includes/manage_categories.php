@@ -1,3 +1,11 @@
+<?php
+/**
+ * Admin UI for managing group categories.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+?>
 <p class="small text-muted mb-3">Organisent les groupes en sections visuelles dans les listes. Un groupe appartient à une seule catégorie.</p>
 
 <?php

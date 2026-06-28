@@ -1,4 +1,10 @@
 <?php
+/**
+ * Action handler for group management: create, rename, delete, import, and bulk operations.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 // actions: deleteTeam, deleteTeamForce, reassignTeam, importTeamMembers,
 //          importCotisants, importDonors, bulkHide, bulkShow,
 //          undoGroupVisibility, bulkCreateMetagroup, createLapsedGroup,

@@ -1,4 +1,10 @@
 <?php
+/**
+ * Renders the main navigation menu with active-view highlighting.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 $view = "list";
 if (isset($_REQUEST['view'])) {
     $view = $_REQUEST['view'];

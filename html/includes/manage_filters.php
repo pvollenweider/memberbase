@@ -1,3 +1,11 @@
+<?php
+/**
+ * Admin UI for managing navigation filters (metagroups).
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+?>
 <p class="small text-muted mb-3">Regroupent plusieurs groupes en un filtre dynamique — accessible depuis la barre de navigation.</p>
 
 <?php

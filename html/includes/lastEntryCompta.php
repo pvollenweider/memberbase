@@ -1,4 +1,10 @@
 <?php
+/**
+ * Accounting entries list with sorting, filtering, and attestation support.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 $year = -1; // date("Y");
 $type = "allTypes";
 $sort = "c.date";

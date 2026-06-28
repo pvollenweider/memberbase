@@ -1,4 +1,10 @@
 <?php
+/**
+ * Handles membership toggle actions and renders the membership panel.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 // Membership toast sentinel
 $_msAction  = $_REQUEST['action'] ?? '';
 $_msTeamId  = (int)($_REQUEST['teamId'] ?? 0);

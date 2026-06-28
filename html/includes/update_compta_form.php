@@ -1,4 +1,10 @@
 <?php
+/**
+ * Form for creating or editing an accounting entry.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 if ($userid == -1) {
     if (isset($_REQUEST['userid'])) {
         $userid = $_REQUEST['userid'];

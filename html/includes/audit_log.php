@@ -1,4 +1,11 @@
-<?php if (!isAdmin()) { echo '<div class="alert alert-danger">Accès refusé.</div>'; return; } ?>
+<?php
+/**
+ * Admin-only activity audit log view.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+if (!isAdmin()) { echo '<div class="alert alert-danger">Accès refusé.</div>'; return; } ?>
 
 <div class="d-flex align-items-center justify-content-between mb-3">
     <h2 class="mb-0">Journal d'activité</h2>
