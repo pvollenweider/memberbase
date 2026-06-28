@@ -77,7 +77,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <th><?=$GLOBAL['libele']?></th>
     <th><?=$GLOBAL['sum']?></th>
     <th class="d-none d-sm-table-cell"><?=$GLOBAL['quittance']?></th>
-    <th class="d-none d-sm-table-cell" title="<?= \$GLOBAL['wantsAttestation'] ?>"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
+    <th class="d-none d-sm-table-cell" title="<?= $GLOBAL['wantsAttestation'] ?>"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
     <th>&nbsp;</td>
 </tr>
 </thead>
