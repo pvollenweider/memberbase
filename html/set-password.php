@@ -81,7 +81,7 @@ if ($token === '') {
           <div class="form-text">8 caractères minimum.</div>
         </div>
         <div class="mb-4">
-          <label for="pw2" class="form-label form-label-sm">Confirmer le mot de passe</label>
+          <label for="pw2" class="form-label form-label-sm"><?= $GLOBAL['confirmPassword'] ?></label>
           <input type="password" class="form-control form-control-sm" id="pw2" name="pw2"
                  minlength="8" required autocomplete="new-password">
         </div>

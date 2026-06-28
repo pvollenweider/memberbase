@@ -18,6 +18,9 @@ $GLOBAL['administration']  = "Administration";
 
 // --- Common actions ---
 $GLOBAL['save']            = "Sauvegarder";
+$GLOBAL['saved']           = "Enregistré.";
+$GLOBAL['groupModified']   = "Groupe modifié.";
+$GLOBAL['confirmPassword'] = "Confirmer le mot de passe";
 $GLOBAL['cancel']          = "Annuler";
 $GLOBAL['close']           = "Fermer";
 $GLOBAL['confirm']         = "Confirmer";

@@ -238,9 +238,9 @@ include "includes/menu.php";
     <div id="casaToast" class="toast text-bg-success border-0" role="status" aria-live="polite" aria-atomic="true">
         <div class="d-flex align-items-center px-3 py-2 gap-2">
             <i class="fas fa-check-circle flex-shrink-0" aria-hidden="true"></i>
-            <span id="casaToastMsg" class="flex-grow-1">Enregistré.</span>
-            <a id="casaToastUndo" href="#" class="btn btn-sm btn-outline-light py-0 px-2 flex-shrink-0" style="display:none;font-size:0.78rem">Annuler</a>
-            <button type="button" class="btn-close btn-close-white flex-shrink-0" data-bs-dismiss="toast" aria-label="Fermer"></button>
+            <span id="casaToastMsg" class="flex-grow-1"><?= $GLOBAL['saved'] ?></span>
+            <a id="casaToastUndo" href="#" class="btn btn-sm btn-outline-light py-0 px-2 flex-shrink-0" style="display:none;font-size:0.78rem"><?= $GLOBAL['cancel'] ?></a>
+            <button type="button" class="btn-close btn-close-white flex-shrink-0" data-bs-dismiss="toast" aria-label="<?= $GLOBAL['close'] ?>"></button>
         </div>
     </div>
 </div>
@@ -354,14 +354,14 @@ include "includes/menu.php";
         var msgEl  = document.getElementById('casaToastMsg');
 
         if (e.target.querySelector('#casa-save-ok')) {
-            msgEl.textContent = 'Enregistré.';
+            msgEl.textContent = '<?= addslashes($GLOBAL['saved']) ?>';
             if (undoEl) undoEl.style.display = 'none';
             bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3000 }).show();
         }
 
         var membership = e.target.querySelector('#casa-membership-toast');
         if (membership) {
-            var msg     = membership.dataset.msg     || 'Groupe modifié.';
+            var msg     = membership.dataset.msg     || '<?= addslashes($GLOBAL['groupModified']) ?>';
             var undoUrl = membership.dataset.undoUrl || '';
             msgEl.textContent = msg;
             if (undoEl) {
