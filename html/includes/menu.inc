@@ -15,6 +15,11 @@ if (isset ($_REQUEST["searchString"])) {
 
         <!-- Mobile icon bar — replaces hamburger -->
         <div class="d-flex d-lg-none align-items-center gap-1 ms-auto">
+            <button class="btn btn-sm text-white border-0 px-2 opacity-75" type="button"
+                    id="mobile-search-toggle" aria-label="Rechercher" aria-expanded="false"
+                    aria-controls="mobile-search-bar">
+                <i class="fas fa-search"></i>
+            </button>
             <a class="nav-link text-white px-2<?= in_array($view, ['list','']) ? ' opacity-100' : ' opacity-75' ?>"
                href="<?= $_SERVER['PHP_SELF'] ?>" title="<?= $GLOBAL['list'] ?>" aria-label="<?= $GLOBAL['list'] ?>">
                 <i class="fas fa-list"></i>
@@ -130,4 +135,48 @@ if (isset ($_REQUEST["searchString"])) {
         </div>
     </div>
 </nav>
+
+<!-- Mobile search bar — hidden by default, toggled by loupe button -->
+<div id="mobile-search-bar" class="d-lg-none bg-primary px-3 pb-2" style="display:none!important">
+    <form class="d-flex" role="search" action="<?= $_SERVER['PHP_SELF'] ?>" method="get" data-no-dirty id="mobile-search-form">
+        <input type="hidden" name="action" value="search"/>
+        <input type="hidden" name="team" value="-3"/>
+        <input class="form-control form-control-sm me-2" id="mobile-search" type="search" aria-label="Rechercher"
+               placeholder="Chercher…" name="searchString"
+               value="<?= htmlentities($searchString, ENT_COMPAT, $charset) ?>"
+               autocomplete="off" autocorrect="off" autocapitalize="off">
+        <button class="btn btn-sm btn-light" type="submit"><i class="fas fa-search" aria-hidden="true"></i></button>
+    </form>
+</div>
+<script>
+(function () {
+    var btn = document.getElementById('mobile-search-toggle');
+    var bar = document.getElementById('mobile-search-bar');
+    var inp = document.getElementById('mobile-search');
+    if (!btn || !bar) return;
+    btn.addEventListener('click', function () {
+        var open = bar.style.display !== 'none' && bar.style.display !== '';
+        if (open) {
+            bar.style.display = 'none';
+            btn.setAttribute('aria-expanded', 'false');
+        } else {
+            bar.style.display = 'block';
+            btn.setAttribute('aria-expanded', 'true');
+            if (inp) { inp.focus(); inp.select(); }
+        }
+    });
+    // auto-submit on 3+ chars
+    if (inp) {
+        var frm = document.getElementById('mobile-search-form');
+        var timer = null;
+        inp.addEventListener('input', function () {
+            clearTimeout(timer);
+            var val = inp.value;
+            if (val.length === 0 || val.length >= 3) {
+                timer = setTimeout(function () { frm.requestSubmit(); }, 400);
+            }
+        });
+    }
+})();
+</script>
 

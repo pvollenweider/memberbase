@@ -10,7 +10,8 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] == 'updateUser') {
         include "update_user_form.inc";
     } else if ($_REQUEST['view'] == 'updateTeam') {
-        include "update_team_form.inc";
+        $_REQUEST['tab'] = 'groups';
+        include "settings_form.inc";
     } else if ($_REQUEST['view'] == 'generalData') {
         include "update_user_form.inc";
     } else if ($_REQUEST['view'] == 'compta') {
@@ -75,7 +76,8 @@ if (isset($_REQUEST['view'])) {
         header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=groups');
         exit;
     } else if ($_REQUEST['view'] == 'updateMetagroup') {
-        include "update_metagroup_form.inc";
+        $_REQUEST['tab'] = 'filters';
+        include "settings_form.inc";
     } else if ($_REQUEST['view'] == 'updateCompta') {
         include "update_compta_form.inc";
     } else if ($_REQUEST['view'] == 'lastEntryCompta') {

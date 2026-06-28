@@ -134,7 +134,6 @@ if ($addMem != -1) {
     <th><?=$GLOBAL['sum']?></th>
     <th><?=$GLOBAL['comment']?></th>
     <th><?=$GLOBAL['creationDate']?></th>
-    <th></th>
 </tr>
 </thead>
 <?php
@@ -210,10 +209,6 @@ while ($row = $stmt->fetchObject()) {
         <td style="text-align:right;"><?= number_format($sum, 2, '.', '\'') ?></td>
         <td><?= htmlentities($quittance, ENT_COMPAT, $charset) ?></td>
         <td><?= timeStampToformatedDate($user->getCreationDate()) ?></td>
-        <td>
-            <a href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=(int)$userId?>"
-               class="ca-row-link-anchor" hx-boost="false" tabindex="-1" aria-hidden="true"></a>
-        </td>
     </tr>
     <?php
 }

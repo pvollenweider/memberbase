@@ -209,22 +209,19 @@ if ($year != -2) {
     <?php endif ?>
     <div style="font-size:0.75rem;color:var(--ca-ink-muted);margin-top:0.3rem;display:flex;gap:0.6rem;flex-wrap:wrap">
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=loyalDonors&amp;year=<?= $year ?>"
-         title="Ont aussi donné en <?= $year-1 ?>"
-         style="color:inherit;text-decoration:none"
-         onclick="event.stopPropagation()">
+         class="ca-card-link" title="Ont aussi donné en <?= $year-1 ?>"
+         style="color:inherit;text-decoration:none;cursor:pointer">
         <i class="fas fa-rotate me-1" aria-hidden="true" style="color:var(--bs-success)"></i><?= $_kRecurrents ?> fidèles
       </a>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=newDonors&amp;year=<?= $year ?>"
-         title="Première contribution en <?= $year ?>"
-         style="color:inherit;text-decoration:none"
-         onclick="event.stopPropagation()">
+         class="ca-card-link" title="Première contribution en <?= $year ?>"
+         style="color:inherit;text-decoration:none;cursor:pointer">
         <i class="fas fa-star me-1" aria-hidden="true" style="color:var(--bs-warning)"></i><?= $_kNouveaux ?> nouveaux
       </a>
       <?php if ($_kLapsed > 0): ?>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedDonors&amp;year=<?= $year ?>"
-         title="Ont donné en <?= $year-1 ?> mais pas en <?= $year ?>"
-         style="color:var(--bs-danger);text-decoration:none"
-         onclick="event.stopPropagation()">
+         class="ca-card-link" title="Ont donné en <?= $year-1 ?> mais pas en <?= $year ?>"
+         style="color:var(--bs-danger);text-decoration:none;cursor:pointer">
         <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= $_kLapsed ?> perdus
       </a>
       <?php endif ?>
@@ -246,9 +243,8 @@ if ($year != -2) {
     <?php if (!empty($_kMembresLapsed) && $_kMembresLapsed > 0): ?>
     <div style="font-size:0.75rem;margin-top:0.3rem">
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedMembers&amp;year=<?= $year ?>"
-         title="Membres <?= $year-1 ?> non reconduits en <?= $year ?>"
-         style="color:var(--bs-danger);text-decoration:none"
-         onclick="event.stopPropagation()">
+         class="ca-card-link" title="Membres <?= $year-1 ?> non reconduits en <?= $year ?>"
+         style="color:var(--bs-danger);text-decoration:none;cursor:pointer">
         <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= $_kMembresLapsed ?> perdus
       </a>
     </div>
@@ -521,7 +517,7 @@ foreach ($rows as $row):
         default => ''
     };
     ?>
-    <tr class="position-relative" style="cursor:pointer">
+    <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&userid=<?=(int)$row->id?>" style="cursor:pointer">
         <td><?=$society?></td>
         <td><?=$sexe?><span class="hide"><?=$sexe2?></span></td>
         <td><strong><?=$lastName?></strong></td>
@@ -547,9 +543,6 @@ foreach ($rows as $row):
                 <i class="fas fa-file-pdf" aria-hidden="true"></i>
             </a>
             <?php endif ?>
-            <a href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=(int)$row->id?>"
-               class="stretched-link" hx-boost="false"
-               aria-label="Voir compta de <?= htmlspecialchars($lastName . ' ' . $firstName, ENT_QUOTES, $charset) ?>"></a>
         </td>
     </tr>
     <?php
@@ -600,12 +593,25 @@ $(document).ready(function() {
             searchPlaceholder: 'Filtrer…'
         }
     });
-    // iOS Safari doesn't fire clicks on tr::after (stretched-link) inside DataTables wrappers
-    $(document).on('click touchend', '.export tbody tr.position-relative', function(e) {
-        if ($(e.target).closest('a, button').length) return;
-        var href = $(this).find('.stretched-link').attr('href');
-        if (href) window.location.href = href;
-    });
+    // Row click delegation (desktop + iOS)
+    var _resumeTbody = document.querySelector('.export tbody');
+    if (_resumeTbody) {
+        var _resumeMoved = false;
+        _resumeTbody.addEventListener('touchstart', function() { _resumeMoved = false; }, {passive: true});
+        _resumeTbody.addEventListener('touchmove',  function() { _resumeMoved = true;  }, {passive: true});
+        _resumeTbody.addEventListener('touchend', function(e) {
+            if (_resumeMoved) return;
+            var tr = e.target.closest('tr.ca-row-link');
+            if (!tr || e.target.closest('a, button')) return;
+            e.preventDefault();
+            window.location.href = tr.dataset.href;
+        });
+        _resumeTbody.addEventListener('click', function(e) {
+            var tr = e.target.closest('tr.ca-row-link');
+            if (!tr || e.target.closest('a, button')) return;
+            window.location.href = tr.dataset.href;
+        });
+    }
 });
 </script>
 

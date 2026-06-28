@@ -320,6 +320,15 @@ include "includes/menu.inc";
         });
     });
 
+    // Destroy DataTables before htmx snapshots the DOM for history cache
+    // (prevents htmx restoring a DataTables-wrapped DOM that causes column mismatch on re-init)
+    document.addEventListener('htmx:beforeHistorySave', function () {
+        if ($.fn.DataTable) {
+            $.fn.DataTable.tables({ visible: true,  api: true }).destroy();
+            $.fn.DataTable.tables({ visible: false, api: true }).destroy();
+        }
+    });
+
     // Re-initialize jQuery plugins after every htmx content swap
     function casaInit(root) {
         root = root || document;

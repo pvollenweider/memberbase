@@ -167,8 +167,11 @@ if (isset($_REQUEST['year'])) {
   </div>
 
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?>"
-     class="ms-auto btn btn-sm btn-outline-secondary py-0"
-     title="<?= $GLOBAL['addUser'] ?>"><i class="fas fa-user-plus" aria-hidden="true"></i></a>
+     class="ms-auto ca-filter-btn text-decoration-none"
+     title="<?= $GLOBAL['addUser'] ?>">
+    <i class="fas fa-user-plus" aria-hidden="true"></i>
+    <span><?= $GLOBAL['addUser'] ?></span>
+  </a>
 </div>
 <script>
 function filterTeamDropdown(q) {
@@ -346,7 +349,6 @@ $query .= " ORDER BY $orderColumn $orderSort";
     <?php if ($team == -5555): ?>
     <th class="d-none d-sm-table-cell" style="font-size:0.75rem;white-space:nowrap">Historique compta</th>
     <?php endif ?>
-    <th></th>
 </tr>
 </thead>
 <tbody>
@@ -526,16 +528,16 @@ foreach ($_allRows as $row) {
         #}
         $emailStr = str_replace(",","<br/>",$emailStr);
         ?>
-        <tr class="position-relative">
+        <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=generalData&id=<?=(int)$id?>" style="cursor:pointer">
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=$sexe?></td>
             <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
             <td class="text-nowrap"><?=$lastName?></td>
             <td class="text-nowrap2"><?=$firstName?></td>
             <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>
             <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
-            <td class="d-md-table-cell"><a href="mailto:<?=$email?>" style="position:relative;z-index:2"><?=$emailStr?></a></td>
+            <td class="d-md-table-cell"><a href="mailto:<?=$email?>"><?=$emailStr?></a></td>
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate($user->getCreationDate())?></td>
-            <td class="d-none d-sm-table-cell" style="white-space:nowrap;position:relative;z-index:2">
+            <td class="d-none d-sm-table-cell" style="white-space:nowrap">
               <?php if (!empty($_userComptaTypes[$id])): ?>
               <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&userid=<?= (int)$id ?>" class="text-decoration-none">
               <?php foreach ($_userComptaTypes[$id] as $_ct):
@@ -565,12 +567,6 @@ foreach ($_allRows as $row) {
                 else: ?><span style="opacity:0.4">—</span><?php endif ?>
             </td>
             <?php endif ?>
-            <td>
-                <a href="<?=$_SERVER['PHP_SELF']?>?view=generalData&amp;id=<?=(int)$id?>"
-                   class="stretched-link" hx-boost="false"
-                   aria-label="Ouvrir la fiche de <?= htmlspecialchars($firstName . ' ' . $lastName, ENT_QUOTES, $charset) ?>"></a>
-                </a>
-            </td>
         </tr>
         <?php
     }
@@ -598,6 +594,14 @@ if ($team == -4) {
 <script>
 // bfcache: DataTables DOM state survives navigation — reload to avoid column mismatch
 window.addEventListener('pageshow', function(e) { if (e.persisted) window.location.reload(); });
+
+// Row click — delegate on tbody to survive DataTables re-render, skip inner links/buttons
+document.querySelector('.export tbody') && document.querySelector('.export tbody').addEventListener('click', function(e) {
+    var tr = e.target.closest('tr.ca-row-link');
+    if (!tr) return;
+    if (e.target.closest('a, button')) return;
+    window.location.href = tr.dataset.href;
+});
 $(document).ready(function () {
     $.fn.dataTable.moment('DD/MM/YYYY');
     if ($.fn.DataTable.isDataTable('.export')) { $('.export').DataTable().destroy(); }

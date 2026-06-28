@@ -422,12 +422,37 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="<?= $_mgBackTab ?>"/>
         <input type="hidden" name="id" value="<?= $mgId ?>"/>
-        <button type="submit" class="btn btn-sm btn-danger"
-                onclick="return confirm('Supprimer «<?= htmlentities($mg->getName(), ENT_QUOTES, $charset) ?>» ?')">
+        <button type="button" class="btn btn-sm btn-danger"
+                data-bs-toggle="modal" data-bs-target="#modal-delete-metagroup">
           <i class="fas fa-trash me-1" aria-hidden="true"></i>Supprimer
         </button>
       </form>
     </div>
 
+  </div>
+</div>
+
+<!-- Modal: Supprimer métagroupe -->
+<div class="modal fade" id="modal-delete-metagroup" tabindex="-1" aria-labelledby="modal-delete-metagroup-label" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title text-danger" id="modal-delete-metagroup-label">
+          <i class="fas fa-trash me-2" aria-hidden="true"></i>Supprimer le métagroupe
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        Supprimer définitivement <strong>«&nbsp;<?= htmlentities($mg->getName(), ENT_QUOTES, $charset) ?>&nbsp;»</strong> ?
+        Les groupes membres ne seront pas affectés.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-danger"
+                onclick="document.querySelector('form [name=action][value=deleteMetagroup]').closest('form').submit()">
+          <i class="fas fa-trash me-1" aria-hidden="true"></i>Supprimer
+        </button>
+      </div>
+    </div>
   </div>
 </div>

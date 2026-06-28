@@ -43,8 +43,6 @@ while ($row = $stmt->fetchObject()) {
                aria-label="Supprimer">
                 <i class="fas fa-trash-alt" style="font-size:0.75rem" aria-hidden="true"></i>
             </a>
-            <a href="<?=$_SERVER['PHP_SELF']?>?view=updateSuivi&amp;suiviid=<?=(int)$id?>&amp;userid=<?=(int)$userid?>"
-               class="ca-row-link-anchor" hx-boost="false" tabindex="-1" aria-hidden="true"></a>
         </td>
     </tr>
     <?php

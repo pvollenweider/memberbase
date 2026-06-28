@@ -350,8 +350,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
                   <option value="<?= $t->id ?>"><?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $cnt > 0 ? " ($cnt)" : '' ?></option>
                 <?php endforeach ?>
               </select>
-              <button type="submit" class="btn btn-sm btn-warning"
-                      onclick="return confirm('Réaffecter <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> et supprimer le groupe «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>» ?')">
+              <button type="button" class="btn btn-sm btn-warning"
+                      data-bs-toggle="modal" data-bs-target="#modal-reassign-team">
                 Transférer et dissoudre
               </button>
             </form>
@@ -367,8 +367,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$team->getId()?>"/>
-              <button type="submit" class="btn btn-sm btn-danger"
-                      onclick="return confirm('Supprimer le groupe «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>» et retirer ses <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> ?')">
+              <button type="button" class="btn btn-sm btn-danger"
+                      data-bs-toggle="modal" data-bs-target="#modal-delete-team-members">
                 <i class="fas fa-trash me-1" aria-hidden="true"></i>Retirer les membres et supprimer
               </button>
             </form>
@@ -383,8 +383,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$team->getId()?>"/>
-              <button type="submit" class="btn btn-sm btn-danger"
-                      onclick="return confirm('Supprimer le groupe «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>» ?')">
+              <button type="button" class="btn btn-sm btn-danger"
+                      data-bs-toggle="modal" data-bs-target="#modal-delete-team-empty">
                 <i class="fas fa-trash me-1" aria-hidden="true"></i>Supprimer
               </button>
             </form>
@@ -397,3 +397,79 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
   </div>
 </div>
+
+<?php if ($memberCount > 0): ?>
+<!-- Modal: Transférer et dissoudre -->
+<div class="modal fade" id="modal-reassign-team" tabindex="-1" aria-labelledby="modal-reassign-team-label" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-reassign-team-label">Transférer et dissoudre</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        Réaffecter <strong><?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?></strong> vers le groupe sélectionné et supprimer
+        <strong>«&nbsp;<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>&nbsp;»</strong> ?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-warning"
+                onclick="document.querySelector('form [name=action][value=reassignTeam]').closest('form').submit()">
+          Transférer et dissoudre
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Retirer membres et supprimer -->
+<div class="modal fade" id="modal-delete-team-members" tabindex="-1" aria-labelledby="modal-delete-team-members-label" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title text-danger" id="modal-delete-team-members-label">
+          <i class="fas fa-trash me-2" aria-hidden="true"></i>Supprimer le groupe
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        Les <strong><?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?></strong> seront retirés du groupe
+        <strong>«&nbsp;<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>&nbsp;»</strong>
+        (leurs comptes resteront intacts) et le groupe sera supprimé. Cette action est irréversible.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-danger"
+                onclick="document.querySelector('form [name=action][value=deleteTeamForce]').closest('form').submit()">
+          <i class="fas fa-trash me-1" aria-hidden="true"></i>Retirer les membres et supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php else: ?>
+<!-- Modal: Supprimer groupe vide -->
+<div class="modal fade" id="modal-delete-team-empty" tabindex="-1" aria-labelledby="modal-delete-team-empty-label" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title text-danger" id="modal-delete-team-empty-label">
+          <i class="fas fa-trash me-2" aria-hidden="true"></i>Supprimer le groupe
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        Supprimer définitivement le groupe <strong>«&nbsp;<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>&nbsp;»</strong> ?
+        Cette action est irréversible.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-danger"
+                onclick="document.querySelector('form [name=action][value=deleteTeamForce]').closest('form').submit()">
+          <i class="fas fa-trash me-1" aria-hidden="true"></i>Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif ?>

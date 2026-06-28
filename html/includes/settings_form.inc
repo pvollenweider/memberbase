@@ -2,6 +2,14 @@
 $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
 $saved = isset($_GET['saved']);
 $_activeTab = $_REQUEST['tab'] ?? null;
+// In drill-down views (updateTeam, updateMetagroup), sidebar items navigate rather than toggle tabs
+$_settingsDrillDown = in_array($_REQUEST['view'] ?? '', ['updateTeam', 'updateMetagroup']);
+// Helper: returns 'show active' for the tab panel that should be visible on load
+$_paneClass = function(string $tab) use ($_activeTab): string {
+    $active = $_activeTab ?? '';
+    if ($active === 'teams') $active = 'groups';
+    return $active === $tab ? ' show active' : '';
+};
 ?>
 <div class="row justify-content-center mt-4">
   <div class="col-12 col-xl-10">
@@ -25,74 +33,41 @@ $_activeTab = $_REQUEST['tab'] ?? null;
     <div class="ca-settings-layout">
 
       <!-- Sidebar nav -->
+      <?php
+      // In drill-down views, nav items are links; in normal settings, they are tab-toggle buttons.
+      function _settings_nav_item(string $tab, string $icon, string $label, string $activeTab, bool $drillDown, string $self): void {
+          $isActive = $activeTab === $tab;
+          $activeClass = $isActive ? ' active' : '';
+          if ($drillDown) {
+              $url = htmlspecialchars($self . '?view=settings&tab=' . $tab, ENT_QUOTES);
+              echo '<li role="presentation">'
+                 . '<a class="ca-settings-nav-btn' . $activeClass . '" href="' . $url . '" style="text-decoration:none">'
+                 . '<i class="' . $icon . ' fa-fw" aria-hidden="true"></i>' . htmlspecialchars($label)
+                 . '</a></li>';
+          } else {
+              echo '<li role="presentation">'
+                 . '<button class="ca-settings-nav-btn' . $activeClass . '" id="tab-' . $tab . '-btn"'
+                 . ' data-bs-toggle="tab" data-bs-target="#tab-' . $tab . '"'
+                 . ' type="button" role="tab" aria-controls="tab-' . $tab . '" aria-selected="' . ($isActive ? 'true' : 'false') . '">'
+                 . '<i class="' . $icon . ' fa-fw" aria-hidden="true"></i>' . htmlspecialchars($label)
+                 . '</button></li>';
+          }
+      }
+      $_navSelf = $_SERVER['PHP_SELF'];
+      $_navActive = $_activeTab ?? '';
+      ?>
       <nav class="ca-settings-nav" aria-label="Sections des réglages">
-        <ul role="tablist" aria-orientation="vertical" id="settings-tabs">
-          <li role="presentation">
-            <button class="ca-settings-nav-btn" id="tab-groups-btn"
-                    data-bs-toggle="tab" data-bs-target="#tab-groups"
-                    type="button" role="tab"
-                    aria-controls="tab-groups" aria-selected="false">
-              <i class="fas fa-users fa-fw" aria-hidden="true"></i>Groupes
-            </button>
-          </li>
-          <li role="presentation">
-            <button class="ca-settings-nav-btn" id="tab-categories-btn"
-                    data-bs-toggle="tab" data-bs-target="#tab-categories"
-                    type="button" role="tab"
-                    aria-controls="tab-categories" aria-selected="false">
-              <i class="fas fa-tag fa-fw" aria-hidden="true"></i>Catégories
-            </button>
-          </li>
-          <li role="presentation">
-            <button class="ca-settings-nav-btn" id="tab-filters-btn"
-                    data-bs-toggle="tab" data-bs-target="#tab-filters"
-                    type="button" role="tab"
-                    aria-controls="tab-filters" aria-selected="false">
-              <i class="fas fa-layer-group fa-fw" aria-hidden="true"></i>Métagroupes
-            </button>
-          </li>
+        <ul <?= $_settingsDrillDown ? '' : 'role="tablist" aria-orientation="vertical"' ?> id="settings-tabs">
+          <?php _settings_nav_item('groups',    'fas fa-users',      'Groupes',      $_navActive, $_settingsDrillDown, $_navSelf) ?>
+          <?php _settings_nav_item('categories','fas fa-tag',        'Catégories',   $_navActive, $_settingsDrillDown, $_navSelf) ?>
+          <?php _settings_nav_item('filters',   'fas fa-layer-group','Métagroupes',  $_navActive, $_settingsDrillDown, $_navSelf) ?>
           <?php if (isAdmin()): ?>
           <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true">Administration</li>
-          <li role="presentation">
-            <button class="ca-settings-nav-btn" id="tab-compta-btn"
-                    data-bs-toggle="tab" data-bs-target="#tab-compta"
-                    type="button" role="tab"
-                    aria-controls="tab-compta" aria-selected="false">
-              <i class="fas fa-tags fa-fw" aria-hidden="true"></i>Types compta
-            </button>
-          </li>
-          <li role="presentation">
-            <button class="ca-settings-nav-btn" id="tab-settings-btn"
-                    data-bs-toggle="tab" data-bs-target="#tab-settings"
-                    type="button" role="tab"
-                    aria-controls="tab-settings" aria-selected="false">
-              <i class="fas fa-sliders-h fa-fw" aria-hidden="true"></i>Réglages
-            </button>
-          </li>
-          <li role="presentation">
-            <button class="ca-settings-nav-btn" id="tab-users-btn"
-                    data-bs-toggle="tab" data-bs-target="#tab-users"
-                    type="button" role="tab"
-                    aria-controls="tab-users" aria-selected="false">
-              <i class="fas fa-user-shield fa-fw" aria-hidden="true"></i>Utilisateurs
-            </button>
-          </li>
-          <li role="presentation">
-            <button class="ca-settings-nav-btn" id="tab-audit-btn"
-                    data-bs-toggle="tab" data-bs-target="#tab-audit"
-                    type="button" role="tab"
-                    aria-controls="tab-audit" aria-selected="false">
-              <i class="fas fa-history fa-fw" aria-hidden="true"></i>Journal
-            </button>
-          </li>
-          <li role="presentation">
-            <button class="ca-settings-nav-btn" id="tab-integrity-btn"
-                    data-bs-toggle="tab" data-bs-target="#tab-integrity"
-                    type="button" role="tab"
-                    aria-controls="tab-integrity" aria-selected="false">
-              <i class="fas fa-stethoscope fa-fw" aria-hidden="true"></i>Intégrité
-            </button>
-          </li>
+          <?php _settings_nav_item('compta',    'fas fa-tags',       'Types compta', $_navActive, $_settingsDrillDown, $_navSelf) ?>
+          <?php _settings_nav_item('settings',  'fas fa-sliders-h',  'Réglages',     $_navActive, $_settingsDrillDown, $_navSelf) ?>
+          <?php _settings_nav_item('users',     'fas fa-user-shield','Utilisateurs', $_navActive, $_settingsDrillDown, $_navSelf) ?>
+          <?php _settings_nav_item('audit',     'fas fa-history',    'Journal',      $_navActive, $_settingsDrillDown, $_navSelf) ?>
+          <?php _settings_nav_item('integrity', 'fas fa-stethoscope','Intégrité',    $_navActive, $_settingsDrillDown, $_navSelf) ?>
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers"
                style="text-decoration:none">
@@ -108,7 +83,7 @@ $_activeTab = $_REQUEST['tab'] ?? null;
         <div class="tab-content">
 
           <!-- Réglages -->
-          <div class="tab-pane fade" id="tab-settings" role="tabpanel" aria-labelledby="tab-settings-btn">
+          <div class="tab-pane fade<?= $_paneClass('settings') ?>" id="tab-settings" role="tabpanel" aria-labelledby="tab-settings-btn">
             <?php if (!isAdmin()): ?>
             <div class="alert alert-danger" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i>Accès réservé aux administrateurs.</div>
             <?php else: ?>
@@ -161,21 +136,25 @@ $_activeTab = $_REQUEST['tab'] ?? null;
           </div><!-- #tab-settings -->
 
           <!-- Types compta (admin only) -->
-          <div class="tab-pane fade" id="tab-compta" role="tabpanel" aria-labelledby="tab-compta-btn">
+          <div class="tab-pane fade<?= $_paneClass('compta') ?>" id="tab-compta" role="tabpanel" aria-labelledby="tab-compta-btn">
             <?php if (isAdmin()): $ctEmbedded = true; $ctReturnView = 'settings'; $ctReturnTab = 'compta'; include 'manage_compta_types.inc'; else: ?>
             <div class="alert alert-danger mt-3" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i>Accès réservé aux administrateurs.</div>
             <?php endif ?>
           </div><!-- #tab-compta -->
 
           <!-- Groupes -->
-          <div class="tab-pane fade" id="tab-groups" role="tabpanel" aria-labelledby="tab-groups-btn">
+          <div class="tab-pane fade<?= $_paneClass('groups') ?>" id="tab-groups" role="tabpanel" aria-labelledby="tab-groups-btn">
             <div class="mt-1">
-            <?php include 'manage_groups.inc'; ?>
+            <?php if (($_REQUEST['view'] ?? '') === 'updateTeam'): ?>
+              <?php include 'update_team_form.inc'; ?>
+            <?php else: ?>
+              <?php include 'manage_groups.inc'; ?>
+            <?php endif ?>
             </div>
           </div><!-- #tab-groups -->
 
           <!-- Catégories -->
-          <div class="tab-pane fade" id="tab-categories" role="tabpanel" aria-labelledby="tab-categories-btn">
+          <div class="tab-pane fade<?= $_paneClass('categories') ?>" id="tab-categories" role="tabpanel" aria-labelledby="tab-categories-btn">
             <div class="mt-1 col-md-9">
             <p class="form-section-title" style="margin-top:0"><i class="fas fa-tag me-1" aria-hidden="true"></i>Catégories</p>
             <?php include 'manage_categories.inc'; ?>
@@ -183,26 +162,30 @@ $_activeTab = $_REQUEST['tab'] ?? null;
           </div><!-- #tab-categories -->
 
           <!-- Métagroupes -->
-          <div class="tab-pane fade" id="tab-filters" role="tabpanel" aria-labelledby="tab-filters-btn">
+          <div class="tab-pane fade<?= $_paneClass('filters') ?>" id="tab-filters" role="tabpanel" aria-labelledby="tab-filters-btn">
             <div class="mt-1 col-md-9">
+            <?php if (($_REQUEST['view'] ?? '') === 'updateMetagroup'): ?>
+              <?php include 'update_metagroup_form.inc'; ?>
+            <?php else: ?>
             <p class="form-section-title" style="margin-top:0"><i class="fas fa-layer-group me-1" aria-hidden="true"></i>Métagroupes</p>
             <?php include 'manage_filters.inc'; ?>
+            <?php endif ?>
             </div>
           </div><!-- #tab-filters -->
 
           <?php if (isAdmin()): ?>
           <!-- Utilisateurs app -->
-          <div class="tab-pane fade" id="tab-users" role="tabpanel" aria-labelledby="tab-users-btn">
+          <div class="tab-pane fade<?= $_paneClass('users') ?>" id="tab-users" role="tabpanel" aria-labelledby="tab-users-btn">
             <?php include 'manage_app_users.inc'; ?>
           </div><!-- #tab-users -->
 
           <!-- Journal d'activité -->
-          <div class="tab-pane fade" id="tab-audit" role="tabpanel" aria-labelledby="tab-audit-btn">
+          <div class="tab-pane fade<?= $_paneClass('audit') ?>" id="tab-audit" role="tabpanel" aria-labelledby="tab-audit-btn">
             <?php include 'audit_log.inc'; ?>
           </div><!-- #tab-audit -->
 
           <!-- Intégrité -->
-          <div class="tab-pane fade" id="tab-integrity" role="tabpanel" aria-labelledby="tab-integrity-btn">
+          <div class="tab-pane fade<?= $_paneClass('integrity') ?>" id="tab-integrity" role="tabpanel" aria-labelledby="tab-integrity-btn">
             <div class="mt-1 col-md-10">
             <?php include 'manage_integrity.inc'; ?>
             </div>
@@ -242,7 +225,13 @@ $_activeTab = $_REQUEST['tab'] ?? null;
         bootstrap.Tab.getOrCreateInstance(btn).show();
       } else {
         var first = tabs.querySelector('[data-bs-toggle="tab"]');
-        if (first) bootstrap.Tab.getOrCreateInstance(first).show();
+        if (first) {
+          bootstrap.Tab.getOrCreateInstance(first).show();
+        } else {
+          // drill-down mode: no tab buttons — activate pane directly
+          var pane = document.querySelector(targetPane);
+          if (pane) { pane.classList.add('show', 'active'); }
+        }
       }
 
       // Sync select value to active pane

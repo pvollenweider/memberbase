@@ -78,7 +78,6 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <th><?=$GLOBAL['sum']?></th>
     <th class="d-none d-sm-table-cell"><?=$GLOBAL['quittance']?></th>
     <th class="d-none d-sm-table-cell" title="Souhaite attestation"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
-    <th>&nbsp;</td>
 </tr>
 </thead>
 <tr>
@@ -155,10 +154,6 @@ while ($row = $stmt->fetchObject()) {
             <?php if ($row->wants_attestation): ?>
                 <i class="fas fa-check text-success" aria-label="Souhaite une attestation" title="Souhaite une attestation de don"></i>
             <?php endif ?>
-        </td>
-        <td>
-            <a href="<?=$_SERVER['PHP_SELF']?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>"
-               class="ca-row-link-anchor" hx-boost="false" tabindex="-1" aria-hidden="true"></a>
         </td>
     </tr>
     <?php

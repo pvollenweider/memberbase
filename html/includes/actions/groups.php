@@ -246,6 +246,9 @@ if ($action == 'deleteTeam') {
     $team->save();
     $_auNewTeam = $team->id;
     auditLog($pdo, 'addTeam', "id=$_auNewTeam | {$_REQUEST['name']}");
+    $_addTeamUrl = $_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . (int)$_auNewTeam;
+    if ($isHtmx) { header('HX-Location: ' . $_addTeamUrl); } else { header('Location: ' . $_addTeamUrl); }
+    exit;
 
 } elseif ($action == 'addTeamWithImport') {
     $team = new Team();
@@ -273,8 +276,8 @@ if ($action == 'deleteTeam') {
         }
     }
     auditLog($pdo, 'addTeamWithImport', "id=$newTeamId | {$_REQUEST['name']} | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
-    $_atwUrl = $_SERVER['PHP_SELF'] . '?view=settings&tab=groups';
-    if ($isHtmx) { header('HX-Location: ' . $_atwUrl); } else { echo '<script>window.location.replace(' . json_encode($_atwUrl) . ');</script>'; }
+    $_atwUrl = $_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . (int)$newTeamId;
+    if ($isHtmx) { header('HX-Location: ' . $_atwUrl); } else { header('Location: ' . $_atwUrl); }
     exit;
 
 } elseif ($action == 'renameTeam') {

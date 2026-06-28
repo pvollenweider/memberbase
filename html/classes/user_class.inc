@@ -194,7 +194,7 @@ class User
 
     public function hasComptaEntry(): bool
     {
-        global $pdo;            
+        global $pdo;
         $stmt = $pdo->prepare("SELECT 1 FROM compta WHERE user_id=? LIMIT 1");
         $stmt->execute([$this->id]);
         return $stmt->fetchObject() !== false;
