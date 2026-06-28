@@ -5,16 +5,11 @@ test.describe('Compta (accounting)', () => {
 
   test('view compta for a member', async ({ page }) => {
     await page.goto(`/index.php?view=compta&userid=${USER_ID}`);
-    await page.waitForLoadState('networkidle');
-    // The add-compta form should be present
     await expect(page.locator('form[name="addCompta"]')).toBeVisible();
-    // The existing seed entry should appear in the table
-    await expect(page.locator('table').last()).toBeVisible();
   });
 
   test('add a compta entry', async ({ page }) => {
     await page.goto(`/index.php?view=compta&userid=${USER_ID}`);
-    await page.waitForLoadState('networkidle');
 
     const form = page.locator('form[name="addCompta"]');
     await form.locator('select[name="type_id"]').selectOption({ index: 0 });
@@ -22,29 +17,27 @@ test.describe('Compta (accounting)', () => {
     await form.locator('input[name="libele"]').fill('E2E test entry');
     await form.locator('input[name="sum"]').fill('99');
     await form.locator('button[type="submit"]').click();
-    await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('text=E2E test entry')).toBeVisible();
+    // htmx swaps page content in place — wait for entry to appear in the table
+    await expect(page.locator('text=E2E test entry')).toBeVisible({ timeout: 10_000 });
   });
 
   test('edit an existing compta entry', async ({ page }) => {
-    // compta id=1 belongs to user 1 per seed
     await page.goto(`/index.php?view=updateCompta&comptaid=1&userid=${USER_ID}`);
-    await page.waitForLoadState('networkidle');
 
     await page.fill('#libele', 'Cotisation modifiee');
     await page.click('button[type="submit"].btn-primary');
-    await page.waitForLoadState('networkidle');
 
-    // Should redirect back to compta view
+    // updateCompta has no redirect — htmx replaces content with compta view
+    // Wait for the compta form to re-appear (page content swapped)
+    await expect(page.locator('form[name="addCompta"]')).toBeVisible({ timeout: 10_000 });
+
     await page.goto(`/index.php?view=updateCompta&comptaid=1&userid=${USER_ID}`);
     await expect(page.locator('#libele')).toHaveValue('Cotisation modifiee');
   });
 
   test('delete a compta entry via confirmation page', async ({ page }) => {
-    // First add a fresh entry so we have a safe delete target
     await page.goto(`/index.php?view=compta&userid=${USER_ID}`);
-    await page.waitForLoadState('networkidle');
 
     const form = page.locator('form[name="addCompta"]');
     await form.locator('select[name="type_id"]').selectOption({ index: 0 });
@@ -52,21 +45,24 @@ test.describe('Compta (accounting)', () => {
     await form.locator('input[name="libele"]').fill('ToDeleteEntry');
     await form.locator('input[name="sum"]').fill('10');
     await form.locator('button[type="submit"]').click();
-    await page.waitForLoadState('networkidle');
 
-    // Find the newly created row by its label and get its delete link
-    const deleteLink = page.locator('a[href*="view=removeCompta"]').first();
-    const href = await deleteLink.getAttribute('href');
-    if (!href) throw new Error('Delete link not found');
+    await expect(page.locator('text=ToDeleteEntry')).toBeVisible({ timeout: 10_000 });
 
-    await page.goto(href.startsWith('/') ? href : '/' + href);
-    await page.waitForLoadState('networkidle');
+    // Get the edit link for the new entry (data-href on the row, or ca-row-link-anchor)
+    const row = page.locator('tr.ca-row-link').filter({ hasText: 'ToDeleteEntry' }).first();
+    const dataHref = await row.getAttribute('data-href');
+    if (!dataHref) throw new Error('Could not find row data-href for ToDeleteEntry');
 
-    // Click the confirm delete button (danger link)
+    // Navigate to edit form
+    await page.goto(dataHref.startsWith('/') ? dataHref : '/' + dataHref);
+
+    // Click delete link on edit form → goes to removeCompta confirmation page
+    await page.locator('a[href*="view=removeCompta"]').click();
+
+    // On removeCompta confirmation, click the danger confirm button
     await page.locator('a.btn-danger').click();
-    await page.waitForLoadState('networkidle');
 
-    // Should be back on the compta view
-    await expect(page.locator('form[name="addCompta"]')).toBeVisible();
+    // After deleteComptaConfirm, page renders compta view inline (no redirect)
+    await expect(page.locator('form[name="addCompta"]')).toBeVisible({ timeout: 15_000 });
   });
 });

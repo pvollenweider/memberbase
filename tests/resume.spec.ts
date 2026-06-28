@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Resume (statistics)', () => {
   test('view resume page — KPI cards visible', async ({ page }) => {
     await page.goto('/index.php?view=resume');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     await expect(page.locator('.ca-resume-cards')).toBeVisible();
   });
 
@@ -12,7 +12,7 @@ test.describe('Resume (statistics)', () => {
     const prevYear = currentYear - 1;
 
     await page.goto(`/index.php?view=resume&year=${prevYear}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // The year dropdown button should reflect the selected year
     await expect(page.locator(`button[aria-label="Année"]`)).toContainText(String(prevYear));
@@ -20,7 +20,7 @@ test.describe('Resume (statistics)', () => {
 
   test('change min amount filter', async ({ page }) => {
     await page.goto('/index.php?view=resume&minSum=100');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Page loads without error and KPI cards are still present
     await expect(page.locator('.ca-resume-cards')).toBeVisible();

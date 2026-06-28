@@ -12,7 +12,8 @@ $charset = "UTF-8";
 require_once __DIR__ . '/includes/auth.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_set_cookie_params(['lifetime'=>0,'path'=>'/','httponly'=>true,'samesite'=>'Lax','secure'=>true]);
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['SERVER_PORT'] ?? 80) == 443;
+    session_set_cookie_params(['lifetime'=>0,'path'=>'/','httponly'=>true,'samesite'=>'Lax','secure'=>$isHttps]);
     session_start();
 }
 
