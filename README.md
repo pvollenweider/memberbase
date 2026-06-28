@@ -191,7 +191,7 @@ Rôles : `admin` (gestion des utilisateurs) et `user`. L'admin peut créer/suppr
 
 Jail configurée sur le serveur pour bannir les IPs après 5 tentatives de login échouées en 5 minutes (ban 24h).
 
-**Filtre** `/etc/fail2ban/filter.d/casa-login.conf` :
+**Filtre** `/etc/fail2ban/filter.d/memberbase-login.conf` :
 ```ini
 [Definition]
 failregex = ^<HOST> .* "POST /login\.php HTTP/1\.[01]" 200
@@ -200,14 +200,14 @@ ignoreregex =
 
 **Jail** dans `/etc/fail2ban/jail.local` :
 ```ini
-[casa-login]
+[memberbase-login]
 enabled  = true
 port     = http,https
-filter   = casa-login
+filter   = memberbase-login
 logpath  = /var/log/apache2/votre-domaine-access_log
 maxretry = 5
 findtime = 300
 bantime  = 86400
 ```
 
-Vérifier l'état : `fail2ban-client status casa-login`
+Vérifier l'état : `fail2ban-client status memberbase-login`
