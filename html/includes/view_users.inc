@@ -604,34 +604,12 @@ $(document).ready(function () {
     $('.export').DataTable({
         order: [[2, 'asc']],
         paging: false,
-        dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
-        buttons: [
-            {
-                extend: 'collection',
-                text: 'Exporter <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
-                className: 'btn btn-dt',
-                buttons: [
-                    { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i>Copier' },
-                    { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i>Excel' },
-                    { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i>Imprimer' },
-                    { extend: 'pdf',   text: '<i class="fas fa-file-pdf me-2" aria-hidden="true"></i>PDF' }
-                ]
-            },
-            {
-                extend: 'colvis',
-                text: '<i class="fas fa-columns me-1" aria-hidden="true"></i>Colonnes',
-                className: 'btn btn-dt'
-            }
-        ],
+        dom: CA_DT_DOM,
+        buttons: [...CA_DT_BUTTONS, CA_DT_COLVIS],
         columnDefs: [
             { targets: [0, 4, 5, 7], visible: false }
         ],
-        language: {
-            info: '_TOTAL_ profils',
-            infoFiltered: '(filtrés sur _MAX_)',
-            search: '',
-            searchPlaceholder: 'Filtrer…'
-        }
+        language: Object.assign({}, CA_DT_LANGUAGE, { info: '_TOTAL_ profils', infoFiltered: '(filtrés sur _MAX_)' })
     });
 });
 </script>

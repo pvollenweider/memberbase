@@ -103,6 +103,9 @@ if ($isHtmx) {
     <!-- DataTables moment sorting plugin -->
     <script src="js/vendor/datetime-moment.js"></script>
 
+    <!-- Shared DataTables defaults -->
+    <script src="js/dt_defaults.js"></script>
+
     <!-- Chart.js -->
     <script src="js/vendor/Chart.bundle.min.js"></script>
 

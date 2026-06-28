@@ -59,78 +59,22 @@ $count = count($rows);
   <span><strong><?= $count ?> donateur<?= $count > 1 ? 's' : '' ?> fidèles</strong> — ont contribué à la fois en <strong><?= $year-1 ?></strong> et en <strong><?= $year ?></strong>.</span>
 </div>
 
-<table class="table table-hover table-sm export">
-<thead>
-<tr>
-  <th><?= $GLOBAL['society'] ?></th>
-  <th><?= $GLOBAL['lastName'] ?></th>
-  <th><?= $GLOBAL['firstName'] ?></th>
-  <th><?= $GLOBAL['email'] ?></th>
-  <th><?= $GLOBAL['address'] ?></th>
-  <th><?= $GLOBAL['npa'] ?></th>
-  <th>Don <?= $year ?></th>
-  <th>Don <?= $year-1 ?></th>
-  <th></th>
-</tr>
-</thead>
-<tbody>
-<?php foreach ($rows as $row):
-  $society   = htmlentities($row->society   ?? '', ENT_COMPAT, $charset);
-  $lastName  = htmlentities($row->lastname  ?? '', ENT_COMPAT, $charset);
-  $firstName = htmlentities($row->firstname ?? '', ENT_COMPAT, $charset);
-  $email     = htmlentities($row->email     ?? '', ENT_COMPAT, $charset);
-  $address   = htmlentities($row->address   ?? '', ENT_COMPAT, $charset);
-  $npa       = htmlentities($row->npa       ?? '', ENT_COMPAT, $charset);
+<?php
+$dt_order      = [[6, 'desc']];
+$extra_columns = [
+    [
+        'label'  => 'Don ' . $year,
+        'value'  => fn($row) => number_format((float)$row->total_curr, 2, '.', '\''),
+        'style'  => 'text-align:right',
+        'footer' => array_sum(array_map(fn($r) => (float)$r->total_curr, $rows)),
+    ],
+    [
+        'label'  => 'Don ' . ($year - 1),
+        'value'  => fn($row) => number_format((float)$row->total_prev, 2, '.', '\''),
+        'style'  => 'text-align:right',
+        'footer' => array_sum(array_map(fn($r) => (float)$r->total_prev, $rows)),
+    ],
+];
+$row_href = fn($row) => $_SERVER['PHP_SELF'] . '?view=compta&userid=' . (int)$row->id;
+include '_donor_table.inc';
 ?>
-<tr class="position-relative">
-  <td><?= $society ?></td>
-  <td><strong><?= $lastName ?></strong></td>
-  <td><?= $firstName ?></td>
-  <td><?= $email ?></td>
-  <td><?= $address ?></td>
-  <td><?= $npa ?></td>
-  <td style="text-align:right"><?= number_format((float)$row->total_curr, 2, '.', '\'') ?></td>
-  <td style="text-align:right"><?= number_format((float)$row->total_prev, 2, '.', '\'') ?></td>
-  <td>
-    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$row->id ?>&amp;year=<?= $year ?>"
-       class="stretched-link" hx-boost="false"
-       aria-label="Voir compta de <?= htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset) ?>"></a>
-  </td>
-</tr>
-<?php endforeach ?>
-</tbody>
-<tfoot>
-<tr>
-  <td colspan="6" class="text-end text-muted" style="font-size:0.8rem">Total</td>
-  <td style="text-align:right"><strong><?= number_format(array_sum(array_map(fn($r) => (float)$r->total_curr, $rows)), 2, '.', '\'') ?></strong></td>
-  <td style="text-align:right"><strong><?= number_format(array_sum(array_map(fn($r) => (float)$r->total_prev, $rows)), 2, '.', '\'') ?></strong></td>
-</tr>
-</tfoot>
-</table>
-
-<script>
-$(document).ready(function() {
-    $('.export').DataTable({
-        order: [[6, 'desc']],
-        paging: false,
-        dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
-        buttons: [{
-            extend: 'collection',
-            text: 'Exporter <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
-            className: 'btn btn-dt',
-            buttons: [
-                { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i>Copier' },
-                { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i>Excel' },
-                { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i>Imprimer' },
-                { extend: 'pdf',   text: '<i class="fas fa-file-pdf me-2" aria-hidden="true"></i>PDF' }
-            ]
-        }],
-        language: {
-            info: '_TOTAL_ entrées',
-            infoFiltered: '(filtrées sur _MAX_)',
-            search: '',
-            searchPlaceholder: 'Filtrer…'
-        }
-    });
-});
-</script>

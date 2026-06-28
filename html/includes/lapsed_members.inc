@@ -69,71 +69,10 @@ $count = count($rows);
   <span><strong><?= $count ?> membre<?= $count > 1 ? 's' : '' ?></strong> étaient dans «Membre <?= $year-1 ?>» mais pas dans «Membre <?= $year ?>».</span>
 </div>
 
-<table class="table table-hover table-sm export">
-<thead>
-<tr>
-  <th><?= $GLOBAL['society'] ?></th>
-  <th><?= $GLOBAL['lastName'] ?></th>
-  <th><?= $GLOBAL['firstName'] ?></th>
-  <th><?= $GLOBAL['email'] ?></th>
-  <th><?= $GLOBAL['address'] ?></th>
-  <th><?= $GLOBAL['npa'] ?></th>
-  <th></th>
-</tr>
-</thead>
-<tbody>
-<?php foreach ($rows as $row):
-  $society   = htmlentities($row->society   ?? '', ENT_COMPAT, $charset);
-  $lastName  = htmlentities($row->lastname  ?? '', ENT_COMPAT, $charset);
-  $firstName = htmlentities($row->firstname ?? '', ENT_COMPAT, $charset);
-  $email     = htmlentities($row->email     ?? '', ENT_COMPAT, $charset);
-  $address   = htmlentities($row->address   ?? '', ENT_COMPAT, $charset);
-  $npa       = htmlentities($row->npa       ?? '', ENT_COMPAT, $charset);
+<?php
+$dt_order      = [[1, 'asc']];
+$extra_columns = [];
+$row_href      = fn($row) => $_SERVER['PHP_SELF'] . '?view=compta&userid=' . (int)$row->id;
+include '_donor_table.inc';
 ?>
-<tr class="position-relative">
-  <td><?= $society ?></td>
-  <td><strong><?= $lastName ?></strong></td>
-  <td><?= $firstName ?></td>
-  <td><?= $email ?></td>
-  <td><?= $address ?></td>
-  <td><?= $npa ?></td>
-  <td>
-    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$row->id ?>"
-       class="stretched-link" hx-boost="false"
-       aria-label="Voir compta de <?= htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset) ?>"></a>
-  </td>
-</tr>
-<?php endforeach ?>
-</tbody>
-</table>
-
-<script>
-$(document).ready(function() {
-    $.fn.dataTable.moment('DD/MM/YYYY');
-    $('.export').DataTable({
-        order: [[1, 'asc']],
-        paging: false,
-        dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
-        buttons: [
-            {
-                extend: 'collection',
-                text: 'Exporter <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
-                className: 'btn btn-dt',
-                buttons: [
-                    { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i>Copier' },
-                    { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i>Excel' },
-                    { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i>Imprimer' },
-                    { extend: 'pdf',   text: '<i class="fas fa-file-pdf me-2" aria-hidden="true"></i>PDF' }
-                ]
-            }
-        ],
-        language: {
-            info: '_TOTAL_ entrées',
-            infoFiltered: '(filtrées sur _MAX_)',
-            search: '',
-            searchPlaceholder: 'Filtrer…'
-        }
-    });
-});
-</script>
 <?php endif ?>
