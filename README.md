@@ -123,17 +123,22 @@ html/
 ├── assets/
 │   └── attestation.pdf         # Template AcroForm officiel
 ├── includes/
-│   ├── declarations.php        # Bootstrap PHP, PDO, types compta, app_settings
-│   ├── manage_views.php        # Routeur de vues
-│   ├── manage_actions.php      # Dispatcher actions POST
-│   ├── view_users.php          # Liste membres
-│   ├── add_user_form.php       # Formulaire ajout membre
-│   ├── update_user_form.php    # Formulaire édition membre
-│   ├── resume.php              # Vue contributions (KPIs + liste donateurs)
-│   ├── lapsed_donors.php       # Vue donateurs perdus
-│   ├── lapsed_members.php      # Vue membres perdus
-│   ├── actions/                # Handlers CRUD (members, groups, compta…)
-│   └── ...
+│   ├── lib/
+│   │   ├── auth.php            # Session, login, requireLogin()
+│   │   └── bootstrap.php       # PDO, app settings, helpers (was declarations.php)
+│   ├── routing/
+│   │   ├── views.php           # View router (was manage_views.php)
+│   │   └── actions.php         # POST action dispatcher (was manage_actions.php)
+│   ├── views/                  # Page fragments, prefixed by domain
+│   │   ├── users_list.php      # Member list
+│   │   ├── users_edit_form.php # Edit member (tabs: data, compta, suivi, history)
+│   │   ├── donors_summary.php  # Contributions KPIs + donor list
+│   │   ├── settings_general.php# Settings (groups, categories, filters, compta types…)
+│   │   └── ...
+│   ├── partials/
+│   │   ├── menu.php            # Nav sidebar
+│   │   └── donor_table.php     # Shared donor table partial
+│   └── actions/                # CRUD handlers (members, groups, compta…)
 ├── classes/
 │   ├── user_class.php          # Classe User (CRUD, cotisation, dons)
 │   └── team_class.php          # Classe Team
