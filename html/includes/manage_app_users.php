@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
-        <form method="post" class="d-inline" id="modal-reset-form">
+        <form method="post" class="d-inline" id="modal-reset-form" hx-boost="false">
           <input type="hidden" name="action"    value="resetUserPassword">
           <input type="hidden" name="target_id" id="modal-reset-target-id" value="">
           <button type="submit" class="btn btn-warning">
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
-        <form method="post" class="d-inline" id="modal-delete-app-form">
+        <form method="post" class="d-inline" id="modal-delete-app-form" hx-boost="false">
           <input type="hidden" name="action"    value="deleteAppUser">
           <input type="hidden" name="target_id" id="modal-delete-app-target-id" value="">
           <button type="submit" class="btn btn-danger">
