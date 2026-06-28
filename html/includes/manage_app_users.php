@@ -99,22 +99,18 @@ if ($__flash):
   </td>
   <td class="text-end" style="white-space:nowrap">
     <?php if (!$isSelf): ?>
-    <form method="post" class="d-inline"
-          onsubmit="return confirm('Réinitialiser le mot de passe de «<?= htmlspecialchars(addslashes($_au->username), ENT_QUOTES, $charset) ?>»?')">
-      <input type="hidden" name="action"    value="resetUserPassword">
-      <input type="hidden" name="target_id" value="<?= (int)$_au->id ?>">
-      <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2" title="Réinitialiser mot de passe">
-        <i class="fas fa-key" aria-hidden="true"></i>
-      </button>
-    </form>
-    <form method="post" class="d-inline"
-          onsubmit="return confirm('Supprimer l\'utilisateur «<?= htmlspecialchars(addslashes($_au->username), ENT_QUOTES, $charset) ?>»?')">
-      <input type="hidden" name="action"    value="deleteAppUser">
-      <input type="hidden" name="target_id" value="<?= (int)$_au->id ?>">
-      <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="<?= $GLOBAL['delete'] ?>">
-        <i class="fas fa-trash" aria-hidden="true"></i>
-      </button>
-    </form>
+    <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" title="Réinitialiser mot de passe"
+            data-bs-toggle="modal" data-bs-target="#modal-reset-app-user"
+            data-user-id="<?= (int)$_au->id ?>"
+            data-username="<?= htmlspecialchars($_au->username, ENT_QUOTES, $charset) ?>">
+      <i class="fas fa-key" aria-hidden="true"></i>
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" title="<?= $GLOBAL['delete'] ?>"
+            data-bs-toggle="modal" data-bs-target="#modal-delete-app-user"
+            data-user-id="<?= (int)$_au->id ?>"
+            data-username="<?= htmlspecialchars($_au->username, ENT_QUOTES, $charset) ?>">
+      <i class="fas fa-trash" aria-hidden="true"></i>
+    </button>
     <?php else: ?>
     <a href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Changer mon mot de passe">
       <i class="fas fa-key" aria-hidden="true"></i>
@@ -219,3 +215,63 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <?php endif ?>
+
+<div class="modal fade" id="modal-reset-app-user" tabindex="-1" aria-labelledby="modal-reset-app-user-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-reset-app-user-label">Réinitialiser le mot de passe</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body">
+        Réinitialiser le mot de passe de «<strong id="modal-reset-username"></strong>»?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <form method="post" class="d-inline" id="modal-reset-form">
+          <input type="hidden" name="action"    value="resetUserPassword">
+          <input type="hidden" name="target_id" id="modal-reset-target-id" value="">
+          <button type="submit" class="btn btn-warning">
+            <i class="fas fa-key me-1" aria-hidden="true"></i>Réinitialiser
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modal-delete-app-user" tabindex="-1" aria-labelledby="modal-delete-app-user-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-delete-app-user-label">Supprimer l'utilisateur</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body">
+        Supprimer l'utilisateur «<strong id="modal-delete-app-username"></strong>»? Cette action est irréversible.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <form method="post" class="d-inline" id="modal-delete-app-form">
+          <input type="hidden" name="action"    value="deleteAppUser">
+          <input type="hidden" name="target_id" id="modal-delete-app-target-id" value="">
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('modal-reset-app-user').addEventListener('show.bs.modal', function (e) {
+    var btn = e.relatedTarget;
+    document.getElementById('modal-reset-username').textContent  = btn.dataset.username;
+    document.getElementById('modal-reset-target-id').value       = btn.dataset.userId;
+});
+document.getElementById('modal-delete-app-user').addEventListener('show.bs.modal', function (e) {
+    var btn = e.relatedTarget;
+    document.getElementById('modal-delete-app-username').textContent = btn.dataset.username;
+    document.getElementById('modal-delete-app-target-id').value      = btn.dataset.userId;
+});
+</script>

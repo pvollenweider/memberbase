@@ -175,9 +175,9 @@ $types = $pdo->query("
             <button type="button" class="btn btn-outline-secondary btn-sm py-0"
                     onclick="toggleEdit(<?= $ct->id ?>)"><?= $GLOBAL['edit'] ?></button>
             <?php if ($ct->cnt == 0): ?>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?action=deleteComptaType&id=<?= $ct->id ?>&returnView=<?= urlencode($ctReturnView) ?>&returnTab=<?= urlencode($ctReturnTab) ?>"
-               class="btn btn-outline-danger btn-sm py-0"
-               onclick="return confirm('Supprimer ce type ?')">Suppr.</a>
+            <button type="button" class="btn btn-outline-danger btn-sm py-0"
+                    data-bs-toggle="modal" data-bs-target="#modal-delete-compta-type"
+                    data-href="<?= htmlspecialchars($_SERVER['PHP_SELF'] . '?action=deleteComptaType&id=' . $ct->id . '&returnView=' . urlencode($ctReturnView) . '&returnTab=' . urlencode($ctReturnTab), ENT_QUOTES, $charset) ?>">Suppr.</button>
             <?php endif ?>
           </td>
         </tr>
@@ -284,4 +284,26 @@ function toggleEdit(id) {
     edit.style.display = hidden ? '' : 'none';
     row.style.display  = hidden ? 'none' : '';
 }
+</script>
+
+<div class="modal fade" id="modal-delete-compta-type" tabindex="-1" aria-labelledby="modal-delete-compta-type-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-delete-compta-type-label">Supprimer ce type</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body">Supprimer ce type de cotisation? Cette action est irréversible.</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <a id="modal-delete-compta-type-link" href="#" class="btn btn-danger"><?= $GLOBAL['delete'] ?></a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('modal-delete-compta-type').addEventListener('show.bs.modal', function (e) {
+    var href = e.relatedTarget ? e.relatedTarget.dataset.href : '';
+    document.getElementById('modal-delete-compta-type-link').href = href || '#';
+});
 </script>
