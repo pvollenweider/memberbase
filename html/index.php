@@ -72,7 +72,7 @@ if ($isHtmx) {
     <link rel="stylesheet" href="css/custom.css">
 
     <!-- jQuery (required by DataTables, datetimepicker) -->
-    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/vendor/jquery-3.7.1.min.js"></script>
 
     <!-- Bootstrap 5 bundle (includes Popper) -->
     <script src="js/vendor/bootstrap.bundle.min.js"></script>
@@ -82,11 +82,11 @@ if ($isHtmx) {
     <script src="js/vendor/fr.js"></script>
 
     <!-- Datetimepicker -->
-    <script src="js/bootstrap-datetimepicker.min.js"></script>
+    <script src="js/vendor/bootstrap-datetimepicker.min.js"></script>
 
     <!-- Highlight + datahref -->
-    <script src="js/jquery.highlight.js"></script>
-    <script src="js/datahref2.jquery.js"></script>
+    <script src="js/vendor/jquery.highlight.js"></script>
+    <script src="js/vendor/datahref2.jquery.js"></script>
 
     <!-- DataTables 1.13.x + Bootstrap 5 -->
     <script src="js/vendor/jquery.dataTables.min.js"></script>
