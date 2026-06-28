@@ -1,4 +1,4 @@
-# Guide administrateur — Casa Alianza Membres
+# Guide administrateur — MemberBase
 
 Ce guide couvre les tâches réservées aux comptes de rôle **admin** : gestion des utilisateurs de l'application, configuration, déploiement et maintenance serveur.
 
@@ -146,7 +146,7 @@ Un filtre regroupe plusieurs groupes : sélectionner ce filtre dans la liste mem
 L'application se déploie par **rsync** (pas de git pull sur le serveur).
 
 ```bash
-rsync -avz --delete html/ user@membres.casa-alianza.ch:/var/www/membres.casa-alianza.ch/html/
+rsync -avz --delete html/ user@votre-domaine:/var/www/votre-domaine/html/
 ```
 
 Adapter le chemin de destination selon la configuration Apache du serveur.
