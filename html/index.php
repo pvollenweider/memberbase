@@ -66,7 +66,7 @@ if ($isHtmx) {
     <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="plugins/font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="css/vendor/font-awesome.min.css">
 
     <!-- Custom -->
     <link rel="stylesheet" href="css/custom.css">
