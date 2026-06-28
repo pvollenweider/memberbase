@@ -44,7 +44,7 @@ jobs:
         run: bash tests/fixtures/reset-db.sh
 
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx playwright test --retries=0
 
       - name: Upload Playwright report
         if: failure()
