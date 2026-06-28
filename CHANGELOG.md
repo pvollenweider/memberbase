@@ -9,6 +9,32 @@ et ce projet adhère au [versionnement sémantique](https://semver.org/lang/fr/)
 
 ---
 
+## [3.2.0] — 2026-06-28
+
+### Ajouté
+- **Modaux de confirmation** : remplacement de tous les `confirm()` natifs par des modaux Bootstrap (groupes à relancer, journal d'activité, types compta, utilisateurs app)
+
+### Modifié
+- **Font Awesome 5 → 6** : mise à jour de tous les noms d'icônes dans l'ensemble des fichiers PHP (fa-trash-alt → fa-trash-can, fa-times → fa-xmark, fa-history → fa-clock-rotate-left, etc.)
+- **Font Awesome** : migration vers auto-hébergement (css/vendor/font-awesome.min.css + css/webfonts/)
+- **jQuery** : mise à jour 3.3.1 → 3.7.1
+- **JS vendors** : déplacement des scripts à la racine vers js/vendor/
+- **Navbar** : icône home remplacée par label texte "Casa"
+
+### Corrigé
+- **Modaux + htmx** : nettoyage du backdrop Bootstrap après chaque swap htmx (modal-backdrop + classe modal-open)
+- **Modaux + htmx** : ajout de hx-boost="false" sur tous les formulaires déclenchés depuis un modal
+- **Groupes "à relancer"** : erreur "Could not find team with id [0]" — garde id ≤ 0 avec redirection
+- **Police FA6** : webfonts déplacées vers css/webfonts/ pour correspondre aux url() du CSS
+
+### Supprimé
+- **CKEditor** : suppression complète (remplacé par TipTap)
+- **Fichiers morts** : manage_teams.php, php7-mysql-shim.php, datahref.jquery.js, buttons.bootstrap4.min.js, moment-with-locales.min.js, popper.min.js, jquery_ckeditor.js
+- **plugins/** : dossiers bootstrap/, font-awesome/, ckeditor/ supprimés
+- **conf/htpasswd** : fichier sensible purgé de tout l'historique git
+
+---
+
 ## [3.1.1] — 2026-06-27
 
 ### Ajouté
