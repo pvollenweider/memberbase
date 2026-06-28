@@ -1,5 +1,9 @@
 # MemberBase
 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+[![PHP](https://img.shields.io/badge/PHP-8.2-777BB4)](https://www.php.net)
+[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
+
 Application web PHP de gestion des membres, groupes, cotisations et dons.
 
 ---
