@@ -343,7 +343,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <?php if (count($otherTeams) > 0): ?>
           <div class="p-3" style="background:var(--ca-ground);border-radius:6px">
             <p class="small fw-semibold mb-2">Transférer les membres vers un autre groupe</p>
-            <form action="<?=$_SERVER['PHP_SELF']?>" method="post" class="d-flex align-items-center gap-2 flex-wrap">
+            <form action="<?=$_SERVER['PHP_SELF']?>" method="post" class="d-flex align-items-center gap-2 flex-wrap" hx-boost="false">
               <input type="hidden" name="action" value="reassignTeam"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
@@ -367,7 +367,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <div class="p-3" style="background:var(--ca-danger-light);border-radius:6px">
             <p class="small fw-semibold mb-1" style="color:var(--ca-danger)">Retirer tous les membres et supprimer le groupe</p>
             <p class="small text-muted mb-2">Les <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> seront retirés du groupe mais leurs comptes resteront intacts.</p>
-            <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
+            <form action="<?=$_SERVER['PHP_SELF']?>" method="post" hx-boost="false">
               <input type="hidden" name="action" value="deleteTeamForce"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
@@ -383,7 +383,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <!-- No members — simple delete -->
           <div>
             <p class="small text-muted mb-2">Ce groupe n'a aucun membre.</p>
-            <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
+            <form action="<?=$_SERVER['PHP_SELF']?>" method="post" hx-boost="false">
               <input type="hidden" name="action" value="deleteTeamForce"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>

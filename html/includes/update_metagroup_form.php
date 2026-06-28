@@ -417,7 +417,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
     <div>
       <p class="form-section-title" style="color:var(--ca-danger)"><?= $GLOBAL['delete'] ?></p>
       <p class="small text-muted mb-2">Supprime le métagroupe. Les groupes membres ne sont pas affectés.</p>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
+      <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" hx-boost="false">
         <input type="hidden" name="action" value="deleteMetagroup"/>
         <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="<?= $_mgBackTab ?>"/>

@@ -160,7 +160,7 @@ $(function () {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
-        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty class="d-inline">
+        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty class="d-inline" hx-boost="false">
           <input type="hidden" name="action" value="flushAuditLog">
           <input type="hidden" name="keep_days" value="0">
           <button type="submit" class="btn btn-danger">
