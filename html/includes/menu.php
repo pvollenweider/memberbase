@@ -12,50 +12,56 @@ if (isset ($_REQUEST["searchString"])) {
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-2">
     <div class="container">
         <!-- Mobile icon bar — replaces hamburger -->
-        <div class="d-flex d-lg-none align-items-center gap-1 ms-auto">
-            <button class="btn btn-sm text-white border-0 px-2 opacity-75" type="button"
-                    id="mobile-search-toggle" aria-label="Rechercher" aria-expanded="false"
-                    aria-controls="mobile-search-bar">
-                <i class="fas fa-magnifying-glass"></i>
-            </button>
-            <a class="nav-link text-white px-2<?= in_array($view, ['list','']) ? ' opacity-100' : ' opacity-75' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>" title="<?= $GLOBAL['list'] ?>" aria-label="<?= $GLOBAL['list'] ?>">
-                <i class="fas fa-list"></i>
-            </a>
-            <a class="nav-link text-white px-2<?= $view === 'lastEntryCompta' ? ' opacity-100' : ' opacity-75' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta" title="Compta" aria-label="Compta">
-                <i class="fas fa-coins"></i>
-            </a>
-            <a class="nav-link text-white px-2<?= $view === 'lastEntrySuivi' ? ' opacity-100' : ' opacity-75' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi" title="Suivi" aria-label="Suivi">
-                <i class="fas fa-book-open"></i>
-            </a>
-            <a class="nav-link text-white px-2<?= $view === 'resume' ? ' opacity-100' : ' opacity-75' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=resume" title="<?= $GLOBAL['donationOverview'] ?>" aria-label="<?= $GLOBAL['donationOverview'] ?>">
-                <i class="fas fa-chart-pie"></i>
-            </a>
-            <a class="nav-link text-white px-2<?= $view === 'settings' ? ' opacity-100' : ' opacity-75' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>" aria-label="<?= $GLOBAL['administration'] ?>">
-                <i class="fas fa-gear"></i>
-            </a>
-            <?php $__authUser = authUser(); ?>
-            <div class="dropdown">
+        <div class="d-flex d-lg-none align-items-center justify-content-between w-100">
+            <!-- Left: navigation views -->
+            <div class="d-flex align-items-center gap-1">
+                <a class="nav-link text-white px-2<?= in_array($view, ['list','']) ? ' opacity-100' : ' opacity-75' ?>"
+                   href="<?= $_SERVER['PHP_SELF'] ?>" title="<?= $GLOBAL['list'] ?>" aria-label="<?= $GLOBAL['list'] ?>">
+                    <i class="fas fa-list"></i>
+                </a>
+                <a class="nav-link text-white px-2<?= $view === 'lastEntryCompta' ? ' opacity-100' : ' opacity-75' ?>"
+                   href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta" title="Compta" aria-label="Compta">
+                    <i class="fas fa-coins"></i>
+                </a>
+                <a class="nav-link text-white px-2<?= $view === 'lastEntrySuivi' ? ' opacity-100' : ' opacity-75' ?>"
+                   href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi" title="Suivi" aria-label="Suivi">
+                    <i class="fas fa-book-open"></i>
+                </a>
+                <a class="nav-link text-white px-2<?= $view === 'resume' ? ' opacity-100' : ' opacity-75' ?>"
+                   href="<?= $_SERVER['PHP_SELF'] ?>?view=resume" title="<?= $GLOBAL['donationOverview'] ?>" aria-label="<?= $GLOBAL['donationOverview'] ?>">
+                    <i class="fas fa-chart-pie"></i>
+                </a>
+            </div>
+            <!-- Right: search, settings, user -->
+            <div class="d-flex align-items-center gap-1">
                 <button class="btn btn-sm text-white border-0 px-2 opacity-75" type="button"
-                        data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu utilisateur">
-                    <i class="fas fa-circle-user"></i>
+                        id="mobile-search-toggle" aria-label="Rechercher" aria-expanded="false"
+                        aria-controls="mobile-search-bar">
+                    <i class="fas fa-magnifying-glass"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><span class="dropdown-item-text small text-muted"><?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?></span></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword"><?= $GLOBAL['changePassword'] ?></a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                      <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty hx-boost="false">
-                        <input type="hidden" name="action" value="logout">
-                        <button type="submit" class="dropdown-item text-danger"><?= $GLOBAL['logout'] ?></button>
-                      </form>
-                    </li>
-                </ul>
+                <a class="nav-link text-white px-2<?= $view === 'settings' ? ' opacity-100' : ' opacity-75' ?>"
+                   href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>" aria-label="<?= $GLOBAL['administration'] ?>">
+                    <i class="fas fa-gear"></i>
+                </a>
+                <?php $__authUser = authUser(); ?>
+                <div class="dropdown">
+                    <button class="btn btn-sm text-white border-0 px-2 opacity-75" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu utilisateur">
+                        <i class="fas fa-circle-user"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><span class="dropdown-item-text small text-muted"><?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?></span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword"><?= $GLOBAL['changePassword'] ?></a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                          <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty hx-boost="false">
+                            <input type="hidden" name="action" value="logout">
+                            <button type="submit" class="dropdown-item text-danger"><?= $GLOBAL['logout'] ?></button>
+                          </form>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
