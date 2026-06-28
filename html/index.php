@@ -250,7 +250,7 @@ include "includes/menu.php";
     <div class="container">
         <small>Process time: [<?= (int)(($end - $start) * 1000) ?>
             ms]. Date: [<?= date("d.m.Y H:i", time()) ?>]<br/>
-            MemberBase v3.5.0
+            <a href="https://github.com/pvollenweider/memberbase" target="_blank" rel="noopener" class="text-muted">MemberBase v3.5.0</a>
         </small>
     </div>
 </footer>
