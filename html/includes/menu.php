@@ -11,7 +11,7 @@ if (isset ($_REQUEST["searchString"])) {
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-2">
     <div class="container">
-        <a class="navbar-brand" href="<?= $_SERVER['PHP_SELF'] ?>"><i class="fas fa-home"></i> </a>
+        <a class="navbar-brand" href="<?= $_SERVER['PHP_SELF'] ?>">Casa</a>
 
         <!-- Mobile icon bar — replaces hamburger -->
         <div class="d-flex d-lg-none align-items-center gap-1 ms-auto">
