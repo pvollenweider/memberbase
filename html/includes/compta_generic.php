@@ -34,7 +34,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
            <?= $donsOnly ? 'checked' : '' ?>
            data-no-dirty
            onchange="window.__dirtyOverride=true;window.location='<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>&amp;year=<?= $year ?>'+(this.checked?'&amp;dons_only=1':'')">
-    <label class="form-check-label small" for="dons-only-toggle">Dons uniquement</label>
+    <label class="form-check-label small" for="dons-only-toggle"><?= $GLOBAL['donationsOnly'] ?></label>
   </div>
 
   <?php if ($year != -2): ?>
@@ -77,7 +77,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <th><?=$GLOBAL['libele']?></th>
     <th><?=$GLOBAL['sum']?></th>
     <th class="d-none d-sm-table-cell"><?=$GLOBAL['quittance']?></th>
-    <th class="d-none d-sm-table-cell" title="Souhaite attestation"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
+    <th class="d-none d-sm-table-cell" title="<?= \$GLOBAL['wantsAttestation'] ?>"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
     <th>&nbsp;</td>
 </tr>
 </thead>
@@ -144,7 +144,7 @@ while ($row = $stmt->fetchObject()) {
         <td>
             <?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>
             <?php if ($row->ct_excl): ?>
-            <span class="ms-1 text-muted" style="font-size:0.65rem;opacity:0.55" title="Non compté comme don">non-don</span>
+            <span class="ms-1 text-muted" style="font-size:0.65rem;opacity:0.55" title="Non compté comme don"><?= $GLOBAL['nonDonation'] ?></span>
             <?php endif ?>
         </td>
         <td><?=timeStampToformatedDate($date)?></td>
@@ -153,7 +153,7 @@ while ($row = $stmt->fetchObject()) {
         <td class="d-none d-sm-table-cell"><?= htmlspecialchars($quittance, ENT_QUOTES, $charset) ?></td>
         <td class="d-none d-sm-table-cell text-center">
             <?php if ($row->wants_attestation): ?>
-                <i class="fas fa-check text-success" aria-label="Souhaite une attestation" title="Souhaite une attestation de don"></i>
+                <i class="fas fa-check text-success" aria-label="<?= \$GLOBAL['wantsAttestation'] ?>" title="<?= \$GLOBAL['wantsAttestation'] ?>"></i>
             <?php endif ?>
         </td>
         <td>
@@ -229,7 +229,7 @@ $_periodAgg = []; // period key => amount
 $_stmt2 = $pdo->query($query2);
 while ($_r = $_stmt2->fetchObject()) {
     // Donut: aggregate by type
-    $_lbl = $_r->ct_label ?? 'Sans type';
+    $_lbl = $_r->ct_label ?? \$GLOBAL['withoutType'];
     $_col = $_r->ct_color ?? 'bg-secondary-subtle';
     if (!isset($_typeAgg[$_lbl])) $_typeAgg[$_lbl] = ['sum' => 0.0, 'color' => $_col];
     $_typeAgg[$_lbl]['sum'] += (float)$_r->sum;
@@ -269,7 +269,7 @@ $_showTimeline = count($_periodAgg) >= 2;
 
   <!-- Donut: répartition par type -->
   <div class="col-md-5">
-    <p class="text-muted small fw-semibold mb-2 text-center">Répartition par type</p>
+    <p class="text-muted small fw-semibold mb-2 text-center"><?= $GLOBAL['distByType'] ?></p>
     <div style="position:relative;height:300px">
       <canvas id="myChart"></canvas>
     </div>
@@ -279,7 +279,7 @@ $_showTimeline = count($_periodAgg) >= 2;
   <?php if ($_showTimeline): ?>
   <div class="col-md-7">
     <p class="text-muted small fw-semibold mb-2 text-center">
-      <?= $year == -2 ? 'Historique par année' : 'Mensuel vs cumulé' ?>
+      <?= $year == -2 ? '<?= \$GLOBAL['historyByYear'] ?>' : 'Mensuel vs cumulé' ?>
     </p>
     <div style="position:relative;height:260px">
       <canvas id="timelineChart"></canvas>

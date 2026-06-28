@@ -39,6 +39,7 @@ $GLOBAL['donationsOnly']   = "Dons uniquement";
 $GLOBAL['withoutType']     = "Sans type";
 $GLOBAL['historyByYear']   = "Historique par année";
 $GLOBAL['distByType']      = "Répartition par type";
+$GLOBAL['nonDonation']     = "non-don";
 
 // --- Member form sections ---
 $GLOBAL['contactInfo']     = "Coordonnées";
