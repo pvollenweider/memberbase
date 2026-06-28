@@ -24,11 +24,22 @@ $password = defined('DB_PASS') ? DB_PASS : (getenv('DB_PASS') ?: 'members');
 $database = defined('DB_NAME') ? DB_NAME : (getenv('DB_NAME') ?: 'members');
 
 $dsn = "mysql:host={$hostname};dbname={$database};charset=utf8mb4";
-$pdo = new PDO($dsn, $username, $password, [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-]);
+try {
+    $pdo = new PDO($dsn, $username, $password, [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ]);
+} catch (PDOException $e) {
+    header('Location: install.php'); exit;
+}
+
+// Redirect to installer if schema not yet initialized
+try {
+    $pdo->query("SELECT 1 FROM compta_type LIMIT 1");
+} catch (PDOException $e) {
+    header('Location: install.php'); exit;
+}
 
 // Compta types
 $_ctRows = $pdo->query("SELECT id, label, color, sort_order, is_cotisation, is_excluded_from_donation FROM compta_type ORDER BY sort_order ASC, label ASC")->fetchAll(PDO::FETCH_OBJ);
