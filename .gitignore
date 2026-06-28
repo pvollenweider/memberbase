@@ -8,3 +8,9 @@ html/log4php/
 
 .idea/
 .claude/
+
+# Playwright
+node_modules/
+playwright-report/
+test-results/
+tests/.auth/

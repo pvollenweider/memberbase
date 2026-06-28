@@ -1,4 +1,4 @@
-.PHONY: up down logs shell db import open
+.PHONY: up down logs shell db import open test test-ui test-reset-db
 
 open:
 	open http://localhost:8080
@@ -23,3 +23,12 @@ db:
 import:
 	@test -n "$(DUMP)" || (echo "Usage: make import DUMP=path/to/dump.sql" && exit 1)
 	docker compose exec -T mariadb mariadb -umembers -pmembers members < $(DUMP)
+
+test:
+	npx playwright test
+
+test-ui:
+	npx playwright test --ui
+
+test-reset-db:
+	bash tests/fixtures/reset-db.sh

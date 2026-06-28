@@ -1,0 +1,55 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Compose (test stack)
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --build
+
+      - name: Wait for app to be healthy
+        run: |
+          echo "Waiting for http://localhost:8080..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/login.php > /dev/null 2>&1; then
+              echo "App is up."
+              break
+            fi
+            echo "Attempt $i/30 — sleeping 3s"
+            sleep 3
+          done
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Reset test database
+        run: bash tests/fixtures/reset-db.sh
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
