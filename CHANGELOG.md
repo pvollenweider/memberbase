@@ -37,6 +37,29 @@ Premier release public sous le nom **MemberBase** — l'application est désorma
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [versionnement sémantique](https://semver.org/lang/fr/).
 
+## [3.5.1] — 2026-06-28
+
+### Refactoring interne
+
+- **Restructuration des includes** — les fichiers de `html/includes/` sont organisés en sous-dossiers conventionnels :
+  - `lib/` — bootstrap PHP (`bootstrap.php`, ex `declarations.php`) et authentification (`auth.php`)
+  - `routing/` — routeur de vues (`views.php`, ex `manage_views.php`) et dispatcher d'actions (`actions.php`, ex `manage_actions.php`)
+  - `views/` — fragments de page, nommés par domaine (`users_list.php`, `donors_summary.php`, `settings_general.php`, etc.)
+  - `partials/` — composants réutilisables (`menu.php`, `donor_table.php`)
+- Tous les fichiers renommés en anglais et en snake_case
+- Tous les `include` convertis en chemins `__DIR__`-relatifs pour éviter les ambiguïtés CWD/Apache
+
+### Tests
+
+- **Suite Playwright complète** — 55 tests E2E couvrant auth, membres, compta, suivi, groupes, filtres, types compta, fusion, anonymisation, historique, intégrité, réglages
+- Pipeline CI GitHub Actions (`e2e.yml`) — reset DB, warm-up, run suite sur chaque push/PR
+- En-têtes de licence AGPL-3.0 ajoutées sur tous les fichiers PHP modifiés
+
+### Documentation
+
+- `README.md` — arborescence `includes/` mise à jour avec la nouvelle structure
+- `doc/admin.md` — référence de configuration DB corrigée (`conf/db.php` / variables d'environnement)
+
 ## [Non publié]
 
 ---
