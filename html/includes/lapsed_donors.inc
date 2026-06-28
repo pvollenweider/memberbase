@@ -79,7 +79,6 @@ $count = count($rows);
   <th><?= $GLOBAL['npa'] ?></th>
   <th>Don <?= $year-1 ?></th>
   <th>Dernier don</th>
-  <th></th>
 </tr>
 </thead>
 <tbody>
@@ -91,7 +90,9 @@ $count = count($rows);
   $address   = htmlentities($row->address   ?? '', ENT_COMPAT, $charset);
   $npa       = htmlentities($row->npa       ?? '', ENT_COMPAT, $charset);
 ?>
-<tr class="position-relative">
+<tr style="cursor:pointer"
+    data-href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$row->id ?>"
+    aria-label="Voir toutes les écritures de <?= htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset) ?>">
   <td><?= $society ?></td>
   <td><strong><?= $lastName ?></strong></td>
   <td><?= $firstName ?></td>
@@ -100,11 +101,6 @@ $count = count($rows);
   <td><?= $npa ?></td>
   <td style="text-align:right"><?= number_format((float)$row->total_prev, 2, '.', '\'') ?></td>
   <td><?= timeStampToformatedDate($row->last_date) ?></td>
-  <td>
-    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$row->id ?>&amp;year=<?= $year-1 ?>"
-       class="stretched-link" hx-boost="false"
-       aria-label="Voir compta de <?= htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset) ?>"></a>
-  </td>
 </tr>
 <?php endforeach ?>
 </tbody>
@@ -112,7 +108,6 @@ $count = count($rows);
 <tr>
   <td colspan="6" class="text-end text-muted" style="font-size:0.8rem">Total</td>
   <td style="text-align:right"><strong><?= number_format(array_sum(array_map(fn($r) => (float)$r->total_prev, $rows)), 2, '.', '\'') ?></strong></td>
-  <td></td>
 </tr>
 </tfoot>
 </table>
@@ -120,7 +115,7 @@ $count = count($rows);
 <script>
 $(document).ready(function() {
     $.fn.dataTable.moment('DD/MM/YYYY');
-    $('.export').DataTable({
+    var dt = $('.export').DataTable({
         order: [[6, 'desc']],
         paging: false,
         dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
@@ -143,6 +138,10 @@ $(document).ready(function() {
             search: '',
             searchPlaceholder: 'Filtrer…'
         }
+    });
+    $('.export tbody').on('click', 'tr[data-href]', function() {
+        window.__dirtyOverride = true;
+        window.location = $(this).data('href');
     });
 });
 </script>
