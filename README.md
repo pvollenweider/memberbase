@@ -177,7 +177,7 @@ La configuration de la base de données est stockée dans `conf/db.php` (hors we
 
 ## Accès
 
-`https://membres.casa-alianza.ch/`
+`https://votre-domaine/`
 
 ## Sécurité
 
@@ -204,7 +204,7 @@ ignoreregex =
 enabled  = true
 port     = http,https
 filter   = casa-login
-logpath  = /var/log/apache2/membres.casa-alianza.ch-access_log
+logpath  = /var/log/apache2/votre-domaine-access_log
 maxretry = 5
 findtime = 300
 bantime  = 86400
