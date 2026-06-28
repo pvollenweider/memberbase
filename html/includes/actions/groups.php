@@ -304,7 +304,7 @@ if ($action == 'deleteTeam') {
     $team = new Team();
     $team->lookupTeam($_REQUEST['id']);
     $_auTOldName   = $team->name;
-    $_auTOldHidden = (int)$team->isHidden();
+    $_auTOldHidden = (int)$team->getHidden();
     $teamId = (int)$_REQUEST['id'];
     $_auTOldCatRow = $pdo->prepare("SELECT m.name FROM metagroup m JOIN metagroup j ON j.id=m.id WHERE j.teamid=? AND m.name IS NOT NULL AND m.is_filter=0 LIMIT 1");
     $_auTOldCatRow->execute([$teamId]);
