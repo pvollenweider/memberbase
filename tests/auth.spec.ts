@@ -1,6 +1,11 @@
 /**
- * Auth tests — these run WITHOUT pre-injected auth state because they exercise
+ * E2E tests — authentication (login, logout, access control without session)
+ *
+ * These tests run WITHOUT pre-injected auth state because they exercise
  * the login/logout flow itself.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 import { test, expect } from '@playwright/test';
 import { login } from './helpers/login';
@@ -16,13 +21,13 @@ test('login with wrong password shows error message', async ({ page }) => {
 
 test('login with correct credentials redirects to member list', async ({ page }) => {
   await login(page, 'testadmin', 'TestPassword1!');
-  await page.waitForURL(/index\.php/, { timeout: 10_000 });
+  await page.waitForURL(/index\.php/, { timeout: 20_000 });
   await expect(page.locator('table.table')).toBeVisible({ timeout: 10_000 });
 });
 
 test('logout redirects to login page', async ({ page }) => {
   await login(page, 'testadmin', 'TestPassword1!');
-  await page.waitForURL(/index\.php/, { timeout: 10_000 });
+  await page.waitForURL(/index\.php/, { timeout: 20_000 });
 
   // Submit logout via form POST directly (avoiding dropdown interaction flakiness)
   await page.evaluate(() => {

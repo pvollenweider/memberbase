@@ -1,3 +1,10 @@
+/**
+ * Playwright global setup — resets test database and saves admin auth state
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+
 import { chromium, FullConfig } from '@playwright/test';
 import { execSync } from 'child_process';
 import * as path from 'path';

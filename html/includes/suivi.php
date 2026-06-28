@@ -1,3 +1,11 @@
+<?php
+/**
+ * Form for adding a new follow-up (suivi) entry to a member's record.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+?>
 <form action="<?=$_SERVER['PHP_SELF']?>" method="post" name="addSuivi">
 <input type="hidden" name="action" value="addSuivi"/>
 <input type="hidden" name="view" value="suivi"/>

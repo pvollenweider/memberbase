@@ -1,4 +1,10 @@
 <?php
+/**
+ * Lists members by their most recent follow-up (suivi) entry date.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 $stmt = $pdo->query(
     "SELECT users.id, users.firstname, users.lastname, users.society,
             user_properties.date, user_properties.value

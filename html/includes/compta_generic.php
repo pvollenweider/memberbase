@@ -1,4 +1,10 @@
 <?php
+/**
+ * Generic accounting entries view with year and type filters.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 $year = -2; // default: all years
 if (isset($_REQUEST['year'])) {
     $year = $_REQUEST['year'];

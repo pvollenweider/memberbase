@@ -1,3 +1,11 @@
+<?php
+/**
+ * General data tab form for viewing and editing a member's core information.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+?>
 <?php if (!empty($_savedOk)): ?><div id="casa-save-ok" hidden></div><?php endif ?>
 <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" name="updateUser" role="form">
     <input type="hidden" name="id" value="<?= $user->getId() ?>"/>

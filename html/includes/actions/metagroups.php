@@ -1,4 +1,10 @@
 <?php
+/**
+ * Action handler for metagroup management: create, update, delete, and category assignment.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 // actions: updateCategoryOrder, updateTeamCategory, updateMetagroupTeams,
 //          deleteMetagroup, addMetagroup, updateMetagroup
 

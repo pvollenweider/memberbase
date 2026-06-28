@@ -1,4 +1,10 @@
 <?php
+/**
+ * UI and logic for merging two duplicate member records.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 $_muIdA = (int)($_GET['a'] ?? 0);
 $_muIdB = (int)($_GET['b'] ?? 0);
 

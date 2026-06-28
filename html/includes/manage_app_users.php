@@ -1,4 +1,10 @@
 <?php
+/**
+ * Admin panel for managing application user accounts.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 if (!isAdmin()) { echo '<div class="alert alert-danger">Accès refusé.</div>'; return; }
 
 $_auRows = $pdo->query(

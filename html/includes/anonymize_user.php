@@ -1,4 +1,10 @@
 <?php
+/**
+ * Anonymizes a member's personal data on request.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 $user = new User();
 $user->lookupUser((int)($_REQUEST['id'] ?? 0));
 if (!$user->getId()) { echo '<div class="alert alert-danger">Membre introuvable.</div>'; return; }

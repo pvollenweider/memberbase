@@ -1,4 +1,10 @@
 <?php
+/**
+ * Dashboard summary of members, donations, and attestation figures.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 $showAll             = isset($_REQUEST['showAll']) && $_REQUEST['showAll'] == '1';
 $includeAttestation  = !isset($_REQUEST['includeAttestation']) || $_REQUEST['includeAttestation'] == '1';
 $minSum              = $showAll ? 0 : max(0, (int)(isset($_REQUEST['minSum']) ? $_REQUEST['minSum'] : 100));

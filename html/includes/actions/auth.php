@@ -1,4 +1,10 @@
 <?php
+/**
+ * Action handler for authentication: logout, password change, and app user management.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 // actions: logout, changePassword, createAppUser, deleteAppUser,
 //          resetUserPassword, flushAuditLog
 

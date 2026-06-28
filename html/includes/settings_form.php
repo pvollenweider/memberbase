@@ -1,4 +1,10 @@
 <?php
+/**
+ * Application settings form covering groups, filters, and accounting types.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
 $saved = isset($_GET['saved']);
 $_activeTab = $_REQUEST['tab'] ?? null;

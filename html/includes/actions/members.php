@@ -1,4 +1,10 @@
 <?php
+/**
+ * Action handler for member records: add and update.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 // actions: updateUser, addUser
 
 if ($_REQUEST['action'] == 'updateUser') {

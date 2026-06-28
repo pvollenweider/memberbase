@@ -1,4 +1,10 @@
 <?php
+/**
+ * Action handler for accounting entries: add, update, and attestation toggle.
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
 // actions: addCompta, updateCompta, toggleWantsAttestation
 
 $action = $_REQUEST['action'];
