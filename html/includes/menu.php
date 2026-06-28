@@ -91,7 +91,7 @@ if (isset ($_REQUEST["searchString"])) {
                 <li>
                   <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty hx-boost="false">
                     <input type="hidden" name="action" value="logout">
-                    <button type="submit" class="dropdown-item text-danger">Déconnexion</button>
+                    <button type="submit" class="dropdown-item text-danger"><?= $GLOBAL['logout'] ?></button>
                   </form>
                 </li>
               </ul>

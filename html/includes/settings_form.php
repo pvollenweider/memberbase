@@ -52,7 +52,7 @@ $_activeTab = $_REQUEST['tab'] ?? null;
             </button>
           </li>
           <?php if (isAdmin()): ?>
-          <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true">Administration</li>
+          <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['administration'] ?></li>
           <li role="presentation">
             <button class="ca-settings-nav-btn" id="tab-compta-btn"
                     data-bs-toggle="tab" data-bs-target="#tab-compta"

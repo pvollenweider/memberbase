@@ -12,7 +12,7 @@ if (isset($_REQUEST["searchString"])) {
 
     <form action="<?= $_SERVER['PHP_SELF'] ?>?action=addUser&amp;view=updateUser" method="post" id="addUser">
 
-      <p class="form-section-title">Coordonnées</p>
+      <p class="form-section-title"><?= $GLOBAL['contactInfo'] ?></p>
 
       <div class="row mb-2">
         <label for="society" class="col-sm-3 col-form-label col-form-label-sm text-sm-end"><?= $GLOBAL['society'] ?></label>
@@ -87,7 +87,7 @@ if (isset($_REQUEST["searchString"])) {
         </div>
       </div>
 
-      <p class="form-section-title">Infos complémentaires</p>
+      <p class="form-section-title"><?= $GLOBAL['additionalInfo'] ?></p>
 
       <div class="row mb-2">
         <label for="telProf" class="col-sm-3 col-form-label col-form-label-sm text-sm-end">

@@ -34,7 +34,7 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
             </a>
           </li>
           <?php if (isAdmin()): ?>
-          <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true">Administration</li>
+          <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['administration'] ?></li>
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=compta"
                style="text-decoration:none">
