@@ -72,7 +72,7 @@ if ($isHtmx) {
     <link rel="stylesheet" href="css/custom.css">
 
     <!-- jQuery (required by DataTables, CKEditor, datetimepicker) -->
-    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/jquery-3.7.1.min.js"></script>
 
     <!-- Bootstrap 5 bundle (includes Popper) -->
     <script src="js/vendor/bootstrap.bundle.min.js"></script>
