@@ -1,4 +1,5 @@
 <?php
+define('APP_ENTRY', true);
 /**
  * Generates a single donation attestation PDF for one member/year via pdftk.
  *
@@ -6,10 +7,10 @@
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/lib/auth.php';
 requireLogin();
 ob_start();
-include "includes/declarations.php";
+include __DIR__ . "/includes/lib/bootstrap.php";
 include "classes/user_class.php";
 
 $userid = isset($_GET['userid']) ? (int)$_GET['userid'] : 0;

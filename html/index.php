@@ -6,11 +6,13 @@
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
+define('APP_ENTRY', true);
+
 ob_start();
 $charset = "UTF-8";
 
 // Auth — must run before any output
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/lib/auth.php';
 requireLogin();
 requirePasswordChange();
 
@@ -18,7 +20,7 @@ header("Content-Type: text/html; charset=$charset");
 
 // Load core dependencies before any output (needed for appSettings in page title)
 include "locales/resources_fr.php";
-include "includes/declarations.php";
+include __DIR__ . "/includes/lib/bootstrap.php";
 include "classes/user_class.php";
 include "classes/team_class.php";
 include "classes/compta_class.php";
@@ -30,8 +32,8 @@ $isHtmx = !empty($_SERVER['HTTP_HX_REQUEST']);
 if ($isHtmx) {
     $userid = -1;
     $view = $_REQUEST['view'] ?? 'list';
-    include "includes/manage_actions.php";
-    include "includes/manage_views.php";
+    include __DIR__ . "/includes/routing/actions.php";
+    include __DIR__ . "/includes/routing/views.php";
     ob_end_flush();
     exit;
 }
@@ -219,15 +221,15 @@ if ($isHtmx) {
 <body hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">
 
 <?php
-include "includes/menu.php";
+include __DIR__ . "/includes/partials/menu.php";
 ?>
 <div class="container mt-2">
     <div class="row">
         <div class="col-12" id="main-content">
             <?php
             $userid = -1;
-            include "includes/manage_actions.php";
-            include "includes/manage_views.php";
+            include __DIR__ . "/includes/routing/actions.php";
+            include __DIR__ . "/includes/routing/views.php";
             $end = getMicroTime();
             ?>
         </div>

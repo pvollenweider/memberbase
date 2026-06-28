@@ -1,4 +1,5 @@
 <?php
+define('APP_ENTRY', true);
 /**
  * Token-based password setup for new users (public page, no login required).
  *
@@ -7,7 +8,7 @@
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-require_once __DIR__ . '/includes/declarations.php';
+require_once __DIR__ . '/includes/lib/bootstrap.php';
 
 $token = trim($_GET['token'] ?? '');
 $error = '';

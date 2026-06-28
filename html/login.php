@@ -1,4 +1,5 @@
 <?php
+define('APP_ENTRY', true);
 /**
  * Login page — handles credential validation and session creation.
  *
@@ -9,7 +10,7 @@
 $charset = "UTF-8";
 
 // Auth bootstrap (before any output)
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/lib/auth.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['SERVER_PORT'] ?? 80) == 443;
@@ -23,7 +24,7 @@ if (isLoggedIn() && empty($_SESSION['force_password_change'])) {
     exit;
 }
 
-require_once __DIR__ . '/includes/declarations.php';
+require_once __DIR__ . '/includes/lib/bootstrap.php';
 
 $error = '';
 $csrfToken = $_SESSION['csrf_login'] ?? (function() {

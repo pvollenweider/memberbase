@@ -1,4 +1,5 @@
 <?php
+defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * Metagroup entity — loads and holds a filter group (group of groups).
  *

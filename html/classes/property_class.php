@@ -1,4 +1,5 @@
 <?php
+defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * UserProperty entity — loads and holds a single user attribute/suivi entry.
  *
