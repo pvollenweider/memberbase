@@ -109,7 +109,7 @@ if (isset($_REQUEST["searchString"])) {
       </div>
       <div class="row mb-2 align-items-center">
         <label for="portable" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end" style="font-size:0.82rem">
-          <i class="fas fa-mobile-alt" aria-hidden="true"></i> <?= $GLOBAL['portable'] ?>
+          <i class="fas fa-mobile-screen-button" aria-hidden="true"></i> <?= $GLOBAL['portable'] ?>
         </label>
         <div class="col-8 col-sm-9">
           <input type="text" id="portable" name="portable" class="form-control form-control-sm"

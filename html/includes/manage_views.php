@@ -47,7 +47,7 @@ if (isset($_REQUEST['view'])) {
                   </label>
                   <label class="ca-merge-radio ca-merge-radio--danger" style="cursor:pointer">
                     <input type="radio" name="dispose" value="delete">
-                    <span><i class="fas fa-trash-alt me-1" aria-hidden="true"></i><strong><?= $GLOBAL['deletePermanently'] ?></strong></span>
+                    <span><i class="fas fa-trash-can me-1" aria-hidden="true"></i><strong><?= $GLOBAL['deletePermanently'] ?></strong></span>
                     <span class="text-muted ms-1" style="font-size:0.78rem">— irréversible</span>
                   </label>
                 </div>
@@ -102,7 +102,7 @@ if (isset($_REQUEST['view'])) {
           <div class="card shadow-sm border-0" style="max-width:420px;width:100%">
             <div class="card-body p-4 text-center">
               <div class="mb-3" style="font-size:2rem;color:var(--bs-danger)">
-                <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                <i class="fas fa-trash-can" aria-hidden="true"></i>
               </div>
               <h5 class="card-title mb-1"><?= $GLOBAL['deleteEntry'] ?>&nbsp;?</h5>
               <p class="text-muted mb-3" style="font-size:0.85rem">Cette action est irréversible.</p>
@@ -147,7 +147,7 @@ if (isset($_REQUEST['view'])) {
           <div class="card shadow-sm border-0" style="max-width:420px;width:100%">
             <div class="card-body p-4 text-center">
               <div class="mb-3" style="font-size:2rem;color:var(--bs-danger)">
-                <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                <i class="fas fa-trash-can" aria-hidden="true"></i>
               </div>
               <h5 class="card-title mb-1"><?= $GLOBAL['deleteSuiviEntry'] ?>&nbsp;?</h5>
               <p class="text-muted mb-3" style="font-size:0.85rem">Cette action est irréversible.</p>

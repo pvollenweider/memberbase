@@ -368,7 +368,7 @@ if ($_showPie) {
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
             aria-label="Année">
-      <i class="fas fa-calendar-alt me-1" aria-hidden="true"></i><?= htmlspecialchars($_yearLabel, ENT_QUOTES, $charset) ?>
+      <i class="fas fa-calendar-days me-1" aria-hidden="true"></i><?= htmlspecialchars($_yearLabel, ENT_QUOTES, $charset) ?>
     </button>
     <ul class="dropdown-menu">
       <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -2) ? ' active' : '' ?>"

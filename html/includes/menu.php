@@ -18,7 +18,7 @@ if (isset ($_REQUEST["searchString"])) {
             <button class="btn btn-sm text-white border-0 px-2 opacity-75" type="button"
                     id="mobile-search-toggle" aria-label="Rechercher" aria-expanded="false"
                     aria-controls="mobile-search-bar">
-                <i class="fas fa-search"></i>
+                <i class="fas fa-magnifying-glass"></i>
             </button>
             <a class="nav-link text-white px-2<?= in_array($view, ['list','']) ? ' opacity-100' : ' opacity-75' ?>"
                href="<?= $_SERVER['PHP_SELF'] ?>" title="<?= $GLOBAL['list'] ?>" aria-label="<?= $GLOBAL['list'] ?>">
@@ -38,13 +38,13 @@ if (isset ($_REQUEST["searchString"])) {
             </a>
             <a class="nav-link text-white px-2<?= $view === 'settings' ? ' opacity-100' : ' opacity-75' ?>"
                href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>" aria-label="<?= $GLOBAL['administration'] ?>">
-                <i class="fas fa-cog"></i>
+                <i class="fas fa-gear"></i>
             </a>
             <?php $__authUser = authUser(); ?>
             <div class="dropdown">
                 <button class="btn btn-sm text-white border-0 px-2 opacity-75" type="button"
                         data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu utilisateur">
-                    <i class="fas fa-user-circle"></i>
+                    <i class="fas fa-circle-user"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><span class="dropdown-item-text small text-muted"><?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?></span></li>
@@ -83,7 +83,7 @@ if (isset ($_REQUEST["searchString"])) {
             <!-- Settings cog (right side) -->
             <a class="nav-link text-white my-2 my-lg-0 me-2<?= $view === 'settings' ? ' active' : '' ?>"
                href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>">
-                <i class="fas fa-cog"></i>
+                <i class="fas fa-gear"></i>
             </a>
 
             <div class="dropdown my-2 my-lg-0 me-2">
@@ -145,7 +145,7 @@ if (isset ($_REQUEST["searchString"])) {
                placeholder="Chercher…" name="searchString"
                value="<?= htmlentities($searchString, ENT_COMPAT, $charset) ?>"
                autocomplete="off" autocorrect="off" autocapitalize="off">
-        <button class="btn btn-sm btn-light" type="submit"><i class="fas fa-search" aria-hidden="true"></i></button>
+        <button class="btn btn-sm btn-light" type="submit"><i class="fas fa-magnifying-glass" aria-hidden="true"></i></button>
     </form>
 </div>
 <script>

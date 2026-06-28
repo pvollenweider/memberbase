@@ -44,7 +44,7 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=settings"
                style="text-decoration:none">
-              <i class="fas fa-sliders-h fa-fw" aria-hidden="true"></i>Réglages
+              <i class="fas fa-sliders fa-fw" aria-hidden="true"></i>Réglages
             </a>
           </li>
           <li role="presentation">
@@ -56,7 +56,7 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=audit"
                style="text-decoration:none">
-              <i class="fas fa-history fa-fw" aria-hidden="true"></i>Journal
+              <i class="fas fa-clock-rotate-left fa-fw" aria-hidden="true"></i>Journal
             </a>
           </li>
           <li role="presentation">

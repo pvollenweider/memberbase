@@ -52,7 +52,7 @@
             </a>
             <br>
             <a href="https://www.google.ch/maps/place/<?= urlencode($user->getAddress() . ',' . $user->getNpa()) ?>" target="_blank">
-                <i class="fas fa-map-marker-alt" aria-hidden="true"></i> map
+                <i class="fas fa-location-dot" aria-hidden="true"></i> map
             </a>
         </label>
         <div class="col-md-9">
@@ -107,7 +107,7 @@
     </div>
     <div class="row mb-2">
         <label for="portable" class="col-md-3 col-form-label">
-            <i class="fas fa-mobile-alt" aria-hidden="true"></i> <?= $GLOBAL['portable'] ?>
+            <i class="fas fa-mobile-screen-button" aria-hidden="true"></i> <?= $GLOBAL['portable'] ?>
         </label>
         <div class="col-md-9">
             <input type="text" class="form-control form-control-sm" name="portable" id="portable"
@@ -143,8 +143,8 @@
                     <button type="button" class="tt-btn" data-tt="bulletList" title="Liste à puces" aria-label="Liste à puces"><i class="fas fa-list-ul"></i></button>
                     <button type="button" class="tt-btn" data-tt="orderedList" title="Liste numérotée" aria-label="Liste numérotée"><i class="fas fa-list-ol"></i></button>
                     <span class="tt-sep"></span>
-                    <button type="button" class="tt-btn" data-tt="undo" title="Annuler (Ctrl+Z)" aria-label="Annuler"><i class="fas fa-undo"></i></button>
-                    <button type="button" class="tt-btn" data-tt="redo" title="Rétablir (Ctrl+Shift+Z)" aria-label="Rétablir"><i class="fas fa-redo"></i></button>
+                    <button type="button" class="tt-btn" data-tt="undo" title="Annuler (Ctrl+Z)" aria-label="Annuler"><i class="fas fa-rotate-left"></i></button>
+                    <button type="button" class="tt-btn" data-tt="redo" title="Rétablir (Ctrl+Shift+Z)" aria-label="Rétablir"><i class="fas fa-rotate-right"></i></button>
                 </div>
                 <div id="tiptap-comment" class="tiptap-body px-3 py-2" style="min-height:80px;cursor:text" aria-label="<?= htmlspecialchars($GLOBAL['compet'], ENT_QUOTES, 'UTF-8') ?>" aria-multiline="true"></div>
             </div>

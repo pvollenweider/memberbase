@@ -187,7 +187,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <button type="button" class="btn btn-sm py-0 px-1 text-muted mg-team-cb mg-remove-btn"
                     data-teamid="<?= (int)$t->id ?>" data-checked="1"
                     title="Retirer de la catégorie" aria-label="Retirer <?= htmlentities($t->name, ENT_QUOTES, $charset) ?>">
-              <i class="fas fa-times" style="font-size:0.75rem" aria-hidden="true"></i>
+              <i class="fas fa-xmark" style="font-size:0.75rem" aria-hidden="true"></i>
             </button>
             <input type="hidden" class="mg-cat-member" data-teamid="<?= (int)$t->id ?>" value="1"/>
           </li>
@@ -366,7 +366,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             btn.dataset.checked = '1';
             btn.title = 'Retirer de la catégorie';
             btn.setAttribute('aria-label', 'Retirer ' + span.textContent.trim());
-            btn.querySelector('i').className = 'fas fa-times';
+            btn.querySelector('i').className = 'fas fa-xmark';
             btn.removeEventListener('click', btn._addHandler);
             btn.addEventListener('click', btn._removeHandler = function() { moveRow(btn, false); });
             memberList.appendChild(row);

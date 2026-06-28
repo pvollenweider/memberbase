@@ -103,7 +103,7 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
         </a>
         <a class="btn btn-sm <?= $view === 'suivi' ? 'btn-primary' : 'btn-outline-secondary' ?>"
            href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= $user->getId() ?>">
-            <i class="far fa-list-alt me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?>
+            <i class="far fa-rectangle-list me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?>
             <?php if ($_suiviCount > 0): ?>
             <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= $_suiviCount ?></span>
             <?php endif ?>
@@ -111,7 +111,7 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
         <?php if (isAdmin()): ?>
         <a class="btn btn-sm <?= $view === 'userHistory' ? 'btn-primary' : 'btn-outline-secondary' ?>"
            href="<?= $_SERVER['PHP_SELF'] ?>?view=userHistory&amp;userid=<?= $user->getId() ?>">
-            <i class="fas fa-history me-1" aria-hidden="true"></i><span class="d-none d-sm-inline">Historique</span><span class="d-sm-none">Hist.</span>
+            <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><span class="d-none d-sm-inline">Historique</span><span class="d-sm-none">Hist.</span>
         </a>
         <?php endif ?>
     </div>
@@ -197,7 +197,7 @@ if ($view == "compta") {
         <?php endif ?>
         <?php if ($user->getPortable()): ?>
         <div><a href="tel:<?= htmlspecialchars(preg_replace('/\s+/','',$user->getPortable()), ENT_QUOTES, $charset) ?>" class="text-decoration-none">
-          <i class="fas fa-mobile-alt fa-fw me-1 text-muted" aria-hidden="true"></i><?= htmlspecialchars($user->getPortable(), ENT_QUOTES, $charset) ?>
+          <i class="fas fa-mobile-screen-button fa-fw me-1 text-muted" aria-hidden="true"></i><?= htmlspecialchars($user->getPortable(), ENT_QUOTES, $charset) ?>
         </a></div>
         <?php endif ?>
         <?php if ($user->getTel()): ?>
@@ -307,7 +307,7 @@ if ($view == "compta") {
           <!-- No compta → allow delete -->
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=deleteUser&amp;id=<?= (int)$user->getId() ?>"
              class="btn btn-danger btn-sm">
-            <i class="fas fa-user-times me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
+            <i class="fas fa-user-xmark me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
           </a>
           <?php endif ?>
         <?php endif ?>

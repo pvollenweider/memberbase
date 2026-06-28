@@ -3,7 +3,7 @@
 <div class="d-flex align-items-center justify-content-between mb-3">
     <h2 class="mb-0">Journal d'activité</h2>
     <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#flushPanel">
-        <i class="fas fa-trash-alt me-1"></i>Nettoyer
+        <i class="fas fa-trash-can me-1"></i>Nettoyer
     </button>
 </div>
 
@@ -75,7 +75,7 @@ $auditActions = $pdo->query("SELECT DISTINCT action FROM audit_log ORDER BY acti
     </select>
   </div>
   <button type="button" id="audit-filter-reset" class="btn btn-outline-secondary btn-sm mb-0" style="align-self:flex-end">
-    <i class="fas fa-times me-1" aria-hidden="true"></i>Réinitialiser
+    <i class="fas fa-xmark me-1" aria-hidden="true"></i>Réinitialiser
   </button>
   <span class="text-muted ms-auto" style="align-self:flex-end">
     <?= $total ?> entrée<?= $total > 1 ? 's' : '' ?> au total<?= $total > 2000 ? ' (2000 affichées)' : '' ?>

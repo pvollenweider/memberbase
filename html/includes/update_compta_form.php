@@ -96,7 +96,7 @@ $typeId = $compta->getTypeId();
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
           <a href="<?= $_SERVER['PHP_SELF'] ?>?userid=<?= $user->getId() ?>&amp;view=removeCompta&amp;comptaid=<?= $comptaid ?>"
              class="btn btn-outline-danger btn-sm">
-            <i class="fas fa-times me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
+            <i class="fas fa-xmark me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
           </a>
         </div>
       </div>

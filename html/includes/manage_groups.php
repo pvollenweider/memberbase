@@ -225,7 +225,7 @@ while ($row = $stmt->fetchObject()) {
               </button>
               <button type="button" class="btn btn-sm btn-outline-secondary team-rename-cancel px-2 py-0"
                       aria-label="Annuler (Échap)" style="font-size:0.75rem;line-height:1.6">
-                <i class="fas fa-times" aria-hidden="true"></i>
+                <i class="fas fa-xmark" aria-hidden="true"></i>
               </button>
             </span>
           </td>
@@ -237,7 +237,7 @@ while ($row = $stmt->fetchObject()) {
             </button>
             <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $id ?>"
                class="text-decoration-none text-muted" aria-label="Réglages du groupe «<?= $name ?>»" style="font-size:0.78rem">
-              <i class="fas fa-cog" aria-hidden="true"></i>
+              <i class="fas fa-gear" aria-hidden="true"></i>
             </a>
           </td>
         </tr>

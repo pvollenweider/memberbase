@@ -21,7 +21,7 @@ $_userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
       </p>
 
       <div class="alert alert-info py-2 px-3 mb-4" style="font-size:0.82rem">
-        <i class="fas fa-info-circle me-1" aria-hidden="true"></i>
+        <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
         Ce profil possède <strong><?= $_comptaCount ?> écriture<?= $_comptaCount > 1 ? 's' : '' ?> comptable<?= $_comptaCount > 1 ? 's' : '' ?></strong>.
         La suppression définitive est impossible pour des raisons de traçabilité comptable.<br><br>
         L'anonymisation efface toutes les données personnelles (nom, prénom, adresse, email, téléphone…) tout en conservant l'historique comptable associé à cet identifiant interne.

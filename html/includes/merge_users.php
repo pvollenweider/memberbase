@@ -4,7 +4,7 @@ $_muIdB = (int)($_GET['b'] ?? 0);
 
 if ($_muIdA <= 0 || $_muIdB <= 0 || $_muIdA === $_muIdB) { ?>
 <div class="alert alert-danger mt-4" role="alert">
-  <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>Paramètres de fusion invalides.
+  <i class="fas fa-triangle-exclamation me-2" aria-hidden="true"></i>Paramètres de fusion invalides.
 </div>
 <?php return; }
 
@@ -13,7 +13,7 @@ $_muUserB = new User(); $_muUserB->lookupUser($_muIdB);
 
 if (!$_muUserA->getId() || !$_muUserB->getId()) { ?>
 <div class="alert alert-danger mt-4" role="alert">
-  <i class="fas fa-exclamation-triangle me-2" aria-hidden="true"></i>Membre introuvable.
+  <i class="fas fa-triangle-exclamation me-2" aria-hidden="true"></i>Membre introuvable.
 </div>
 <?php return; }
 
@@ -226,12 +226,12 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
             </label>
             <label class="ca-merge-radio ca-merge-radio--danger" x-bind:class="{'active': disposal === 'delete'}">
               <input type="radio" name="disposal" value="delete" x-model="disposal" class="visually-hidden">
-              <i class="fas fa-trash-alt me-1" aria-hidden="true"></i>
+              <i class="fas fa-trash-can me-1" aria-hidden="true"></i>
               <span><?= $GLOBAL['delete'] ?></span>
             </label>
           </div>
           <p class="text-muted mt-1 mb-0" style="font-size:0.78rem" x-show="disposal === 'delete'">
-            <i class="fas fa-exclamation-triangle text-danger me-1" aria-hidden="true"></i>
+            <i class="fas fa-triangle-exclamation text-danger me-1" aria-hidden="true"></i>
             Irréversible — toutes les données du profil source seront effacées.
           </p>
         </div>
@@ -249,7 +249,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
       </button>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=integrity" class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
       <span class="text-muted ms-2" style="font-size:0.82rem" x-show="!allResolved" x-cloak>
-        <i class="fas fa-info-circle me-1" aria-hidden="true"></i>
+        <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
         Résolvez tous les champs divergents pour continuer.
       </span>
     </div>
@@ -260,7 +260,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
   <dialog id="merge-dialog" class="ca-merge-dialog" aria-labelledby="merge-dialog-title">
     <div class="ca-merge-dialog-body">
       <h2 class="ca-merge-dialog-title" id="merge-dialog-title">
-        <i class="fas fa-exclamation-triangle text-danger me-2" aria-hidden="true"></i>
+        <i class="fas fa-triangle-exclamation text-danger me-2" aria-hidden="true"></i>
         <?= $GLOBAL['confirmMerge'] ?>
       </h2>
       <p style="font-size:0.9rem">Cette opération est irréversible. Vérifiez le résumé avant de confirmer.</p>

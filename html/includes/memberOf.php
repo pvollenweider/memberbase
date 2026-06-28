@@ -126,7 +126,7 @@ uasort($nonMemberBycat, $_catSortFn);
         <div class="group-add-list mb-1">
             <?php foreach ($group['teams'] as $t): ?>
                 <a href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=addMembership&amp;id=<?= $user->id ?>&amp;teamId=<?= $t->id ?>">
-                    <i class="far fa-plus-square" aria-hidden="true"></i>
+                    <i class="far fa-square-plus" aria-hidden="true"></i>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
                 </a>
             <?php endforeach ?>

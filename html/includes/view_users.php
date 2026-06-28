@@ -317,7 +317,7 @@ $query .= " ORDER BY $orderColumn $orderSort";
 </p>
     <?php endif; endif; ?>
 <?php if (!empty($currentFilterDesc)): ?>
-<p class="text-muted mb-2" style="font-size:0.78rem"><i class="fas fa-info-circle me-1" aria-hidden="true"></i><?= $currentFilterDesc ?></p>
+<p class="text-muted mb-2" style="font-size:0.78rem"><i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= $currentFilterDesc ?></p>
 <?php endif ?>
 <div class="table-responsive">
 <table class="table table-hover table-sm export">

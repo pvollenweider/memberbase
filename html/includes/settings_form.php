@@ -66,9 +66,9 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['administration'] ?></li>
           <?php
           _settings_nav_item('compta',     'fas fa-tags',        'Types compta', $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('settings',   'fas fa-sliders-h',   'Réglages',     $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('settings',   'fas fa-sliders',   'Réglages',     $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('users',      'fas fa-user-shield', 'Utilisateurs', $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('audit',      'fas fa-history',     'Journal',      $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('audit',      'fas fa-clock-rotate-left',     'Journal',      $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('integrity',  'fas fa-stethoscope', 'Intégrité',    $_navActive, $_settingsDrillDown, $_navSelf);
           ?>
           <li role="presentation">
@@ -132,7 +132,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                 <input type="text" name="membre_team_prefix" id="s_membre_team_prefix" class="form-control form-control-sm" style="max-width:200px"
                        value="<?= htmlspecialchars($appSettings['membre_team_prefix'] ?? 'Membre', ENT_QUOTES, $charset) ?>">
               </div>
-              <p class="form-section-title"><i class="fas fa-sliders-h me-1" aria-hidden="true"></i>Groupes</p>
+              <p class="form-section-title"><i class="fas fa-sliders me-1" aria-hidden="true"></i>Groupes</p>
               <div class="mb-4">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_default_team">Groupe affiché par défaut</label>
                 <p class="text-muted mb-2" style="font-size:0.78rem">Groupe sélectionné à l'ouverture de la liste des membres. Choisir le groupe correspondant aux membres de l'année en cours (ex: «Membre 2026»). À mettre à jour chaque année.</p>

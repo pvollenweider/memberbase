@@ -76,7 +76,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 
 <details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
-    <i class="fas fa-user-friends me-1 <?= !empty($dupNames) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-user-group me-1 <?= !empty($dupNames) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
     Membres avec même nom
     <?php if (!empty($dupNames)): ?>
       <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dupNames) ?></span>

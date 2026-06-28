@@ -41,7 +41,7 @@ while ($row = $stmt->fetchObject()) {
                style="position:relative;z-index:2"
                title="Supprimer cette entrée"
                aria-label="<?= $GLOBAL['delete'] ?>">
-                <i class="fas fa-trash-alt" style="font-size:0.75rem" aria-hidden="true"></i>
+                <i class="fas fa-trash-can" style="font-size:0.75rem" aria-hidden="true"></i>
             </a>
         </td>
     </tr>
