@@ -290,6 +290,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
                 $upsert->execute([$k, $v]);
             }
 
+            // Create default member group for current year and set as default_team + membre_team
+            $currentYear = (int)date('Y');
+            $defaultGroupName = ($memberPrefix ?: 'Membre') . ' ' . $currentYear;
+            $existingTeam = $pdo->prepare("SELECT id FROM team WHERE name = ?");
+            $existingTeam->execute([$defaultGroupName]);
+            $defaultTeamId = $existingTeam->fetchColumn();
+            if (!$defaultTeamId) {
+                $pdo->prepare("INSERT INTO team (name, hidden) VALUES (?, 0)")->execute([$defaultGroupName]);
+                $defaultTeamId = (int)$pdo->lastInsertId();
+            }
+            $setTeam = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
+            $setTeam->execute(['default_team', (string)$defaultTeamId]);
+            $setTeam->execute(['membre_team',  (string)$defaultTeamId]);
+
             // Seed minimal compta_type if table is empty
             $typeCount = (int)$pdo->query("SELECT COUNT(*) FROM compta_type")->fetchColumn();
             if ($typeCount === 0) {
@@ -502,7 +516,7 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
   <div class="card shadow-sm">
     <div class="card-body">
       <h2 class="h5 mb-1">Configuration de l'organisation</h2>
-      <p class="text-muted small mb-3">Ces informations apparaissent dans le titre de l'application et sur les attestations de dons.</p>
+      <p class="text-muted small mb-3">Ces informations apparaissent dans le titre de l'application et sur les attestations de dons. Un groupe membres pour l'année en cours sera créé automatiquement.</p>
       <form method="post" action="install.php?step=4">
         <div class="mb-2">
           <label class="form-label small fw-semibold" for="org_name">Nom de l'organisation <span class="text-danger">*</span></label>
