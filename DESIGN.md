@@ -1,6 +1,6 @@
 ---
 name: Casa Membres
-description: Outil de gestion des membres de l'association Casa Alianza — admin interne sobre et efficace.
+description: Outil de gestion des membres de l'organisation — admin interne sobre et efficace.
 register: product
 colors:
   primary: "#4f7ac7"
@@ -145,7 +145,7 @@ Palette fonctionnelle à 3 couches: fond, surfaces, signaux.
 ## 4. Composants
 
 ### Navbar
-Fond `primary` (#4f7ac7). Texte blanc. Hauteur 56px. Logo "Casa Alianza — Membres" à gauche. Nav items principaux (Membres, Équipes, Compta, Export) à droite. Actif: bold + underline blanc.
+Fond `primary` (#4f7ac7). Texte blanc. Hauteur 56px. Logo "MemberBase — Membres" à gauche. Nav items principaux (Membres, Équipes, Compta, Export) à droite. Actif: bold + underline blanc.
 
 ### Tableau membres (DataTable)
 - En-têtes: fond `ground`, label style (uppercase, muted, 12px).

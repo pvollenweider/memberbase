@@ -1,12 +1,12 @@
-# Guide utilisateur — Casa Alianza Membres
+# Guide utilisateur — MemberBase
 
-Application de gestion des membres, cotisations et dons de Casa Alianza Suisse.
+Application de gestion des membres, cotisations et dons de MemberBase.
 
 ---
 
 ## Connexion
 
-1. Ouvrir `https://membres.casa-alianza.ch/`
+1. Ouvrir `https://votre-domaine/`
 2. Saisir le nom d'utilisateur et le mot de passe fournis par l'administrateur
 3. Si c'est la première connexion ou si l'admin a réinitialisé le mot de passe, l'application affiche le mot de passe temporaire et oblige à le changer immédiatement
 
