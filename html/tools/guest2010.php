@@ -2,13 +2,13 @@
 $charset = "UTF-8";
 header("Content-Type: text/html; charset=$charset");
 
-include "resources_fr.inc";
-include "declarations.inc";
-include "user_class.inc";
-include "team_class.inc";
-include "compta_class.inc";
-include "property_class.inc";
-include "metagroup_class.inc";
+include "resources_fr.php";
+include "declarations.php";
+include "user_class.php";
+include "team_class.php";
+include "compta_class.php";
+include "property_class.php";
+include "metagroup_class.php";
 
 $FileName = "2010.txt";
 $FileHandle = fopen($FileName, "r");

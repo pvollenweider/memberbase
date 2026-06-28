@@ -9,7 +9,7 @@
 $charset = "UTF-8";
 
 // Auth bootstrap (before any output)
-require_once __DIR__ . '/includes/auth.inc';
+require_once __DIR__ . '/includes/auth.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params(['lifetime'=>0,'path'=>'/','httponly'=>true,'samesite'=>'Lax','secure'=>true]);
@@ -22,7 +22,7 @@ if (isLoggedIn() && empty($_SESSION['force_password_change'])) {
     exit;
 }
 
-require_once __DIR__ . '/includes/declarations.inc';
+require_once __DIR__ . '/includes/declarations.php';
 
 $error = '';
 $csrfToken = $_SESSION['csrf_login'] ?? (function() {

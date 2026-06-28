@@ -197,7 +197,7 @@ $_activeTab = $_REQUEST['tab'] ?? null;
 
           <!-- Types compta (admin only) -->
           <div class="tab-pane fade" id="tab-compta" role="tabpanel" aria-labelledby="tab-compta-btn">
-            <?php if (isAdmin()): $ctEmbedded = true; $ctReturnView = 'settings'; $ctReturnTab = 'compta'; include 'manage_compta_types.inc'; else: ?>
+            <?php if (isAdmin()): $ctEmbedded = true; $ctReturnView = 'settings'; $ctReturnTab = 'compta'; include 'manage_compta_types.php'; else: ?>
             <div class="alert alert-danger mt-3" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i>Accès réservé aux administrateurs.</div>
             <?php endif ?>
           </div><!-- #tab-compta -->
@@ -205,7 +205,7 @@ $_activeTab = $_REQUEST['tab'] ?? null;
           <!-- Groupes -->
           <div class="tab-pane fade" id="tab-groups" role="tabpanel" aria-labelledby="tab-groups-btn">
             <div class="mt-1">
-            <?php include 'manage_groups.inc'; ?>
+            <?php include 'manage_groups.php'; ?>
             </div>
           </div><!-- #tab-groups -->
 
@@ -213,7 +213,7 @@ $_activeTab = $_REQUEST['tab'] ?? null;
           <div class="tab-pane fade" id="tab-categories" role="tabpanel" aria-labelledby="tab-categories-btn">
             <div class="mt-1 col-md-9">
             <p class="form-section-title" style="margin-top:0"><i class="fas fa-tag me-1" aria-hidden="true"></i>Catégories</p>
-            <?php include 'manage_categories.inc'; ?>
+            <?php include 'manage_categories.php'; ?>
             </div>
           </div><!-- #tab-categories -->
 
@@ -221,25 +221,25 @@ $_activeTab = $_REQUEST['tab'] ?? null;
           <div class="tab-pane fade" id="tab-filters" role="tabpanel" aria-labelledby="tab-filters-btn">
             <div class="mt-1 col-md-9">
             <p class="form-section-title" style="margin-top:0"><i class="fas fa-layer-group me-1" aria-hidden="true"></i>Métagroupes</p>
-            <?php include 'manage_filters.inc'; ?>
+            <?php include 'manage_filters.php'; ?>
             </div>
           </div><!-- #tab-filters -->
 
           <?php if (isAdmin()): ?>
           <!-- Utilisateurs app -->
           <div class="tab-pane fade" id="tab-users" role="tabpanel" aria-labelledby="tab-users-btn">
-            <?php include 'manage_app_users.inc'; ?>
+            <?php include 'manage_app_users.php'; ?>
           </div><!-- #tab-users -->
 
           <!-- Journal d'activité -->
           <div class="tab-pane fade" id="tab-audit" role="tabpanel" aria-labelledby="tab-audit-btn">
-            <?php include 'audit_log.inc'; ?>
+            <?php include 'audit_log.php'; ?>
           </div><!-- #tab-audit -->
 
           <!-- Intégrité -->
           <div class="tab-pane fade" id="tab-integrity" role="tabpanel" aria-labelledby="tab-integrity-btn">
             <div class="mt-1 col-md-10">
-            <?php include 'manage_integrity.inc'; ?>
+            <?php include 'manage_integrity.php'; ?>
             </div>
           </div><!-- #tab-integrity -->
           <?php endif ?>

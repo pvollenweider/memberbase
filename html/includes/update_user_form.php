@@ -158,16 +158,16 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
 <?php
 if ($view == "compta") {
 
-    //include "avocat.inc";
-    //include "cd.inc";
-    //include "coti.inc";
-    //include "dons.inc";
-    //include "reintegration.inc";
-    include "compta_generic.inc";
+    //include "avocat.php";
+    //include "cd.php";
+    //include "coti.php";
+    //include "dons.php";
+    //include "reintegration.php";
+    include "compta_generic.php";
 } else if ($view == "suivi") {
-    ?><?php include "suivi.inc"; ?><?php
+    ?><?php include "suivi.php"; ?><?php
 } else if ($view == "userHistory") {
-    ?><?php include "user_history.inc"; ?><?php
+    ?><?php include "user_history.php"; ?><?php
 } else {
     ?>
     <?php if (!$user->status): ?>
@@ -213,10 +213,10 @@ if ($view == "compta") {
 
       <div class="row">
           <div class="col-md-8 ca-mobile-expandable" x-show="showAll">
-              <?php include "generalData.inc"; ?>
+              <?php include "generalData.php"; ?>
           </div>
           <div class="col-md-4 small">
-              <?php include "memberOf.inc"; ?>
+              <?php include "memberOf.php"; ?>
               <?php if ((int)$_stats->don_count > 0): ?>
               <div class="ca-stats-mini mt-3 p-3 rounded border" style="background:var(--bs-light)">
                 <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">

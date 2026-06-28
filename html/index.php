@@ -10,28 +10,28 @@ ob_start();
 $charset = "UTF-8";
 
 // Auth — must run before any output
-require_once __DIR__ . '/includes/auth.inc';
+require_once __DIR__ . '/includes/auth.php';
 requireLogin();
 requirePasswordChange();
 
 header("Content-Type: text/html; charset=$charset");
 
 // Load core dependencies before any output (needed for appSettings in page title)
-include "locales/resources_fr.inc";
-include "includes/declarations.inc";
-include "classes/user_class.inc";
-include "classes/team_class.inc";
-include "classes/compta_class.inc";
-include "classes/property_class.inc";
-include "classes/metagroup_class.inc";
+include "locales/resources_fr.php";
+include "includes/declarations.php";
+include "classes/user_class.php";
+include "classes/team_class.php";
+include "classes/compta_class.php";
+include "classes/property_class.php";
+include "classes/metagroup_class.php";
 
 // htmx partial response — skip layout, return only content fragment
 $isHtmx = !empty($_SERVER['HTTP_HX_REQUEST']);
 if ($isHtmx) {
     $userid = -1;
     $view = $_REQUEST['view'] ?? 'list';
-    include "includes/manage_actions.inc";
-    include "includes/manage_views.inc";
+    include "includes/manage_actions.php";
+    include "includes/manage_views.php";
     ob_end_flush();
     exit;
 }
@@ -219,15 +219,15 @@ if ($isHtmx) {
 <body hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">
 
 <?php
-include "includes/menu.inc";
+include "includes/menu.php";
 ?>
 <div class="container mt-2">
     <div class="row">
         <div class="col-12" id="main-content">
             <?php
             $userid = -1;
-            include "includes/manage_actions.inc";
-            include "includes/manage_views.inc";
+            include "includes/manage_actions.php";
+            include "includes/manage_views.php";
             $end = getMicroTime();
             ?>
         </div>

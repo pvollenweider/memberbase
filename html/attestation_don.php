@@ -6,11 +6,11 @@
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
-require_once __DIR__ . '/includes/auth.inc';
+require_once __DIR__ . '/includes/auth.php';
 requireLogin();
 ob_start();
-include "includes/declarations.inc";
-include "classes/user_class.inc";
+include "includes/declarations.php";
+include "classes/user_class.php";
 
 $userid = isset($_GET['userid']) ? (int)$_GET['userid'] : 0;
 $year   = isset($_GET['year'])   ? (int)$_GET['year']   : (int)date('Y');

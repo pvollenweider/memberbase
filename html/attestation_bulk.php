@@ -8,13 +8,13 @@
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
-require_once __DIR__ . '/includes/auth.inc';
+require_once __DIR__ . '/includes/auth.php';
 requireLogin();
 ob_start();
 set_time_limit(120);
 
-include "includes/declarations.inc";
-include "classes/user_class.inc";
+include "includes/declarations.php";
+include "classes/user_class.php";
 
 $year   = isset($_GET['year'])   ? (int)$_GET['year']   : (int)date('Y');
 $minSum = isset($_GET['minSum']) ? (int)$_GET['minSum'] : 1;

@@ -85,5 +85,5 @@ $extra_columns = [
     ],
 ];
 $row_href = fn($row) => $_SERVER['PHP_SELF'] . '?view=compta&userid=' . (int)$row->id;
-include '_donor_table.inc';
+include '_donor_table.php';
 ?>

@@ -7,7 +7,7 @@
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-require_once __DIR__ . '/includes/declarations.inc';
+require_once __DIR__ . '/includes/declarations.php';
 
 $token = trim($_GET['token'] ?? '');
 $error = '';

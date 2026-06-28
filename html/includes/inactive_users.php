@@ -12,7 +12,7 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
 
     <div class="ca-settings-layout">
 
-      <!-- Sidebar nav (same as settings_form.inc) -->
+      <!-- Sidebar nav (same as settings_form.php) -->
       <nav class="ca-settings-nav" aria-label="Sections des réglages">
         <ul role="tablist" aria-orientation="vertical" id="settings-tabs">
           <li role="presentation">

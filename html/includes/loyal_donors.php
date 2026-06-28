@@ -9,16 +9,18 @@ $kTo1   = mktime(0, 0, 0, 1, 1, $year);
 
 $excl = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
 
-// Donors in year who did NOT donate in year-1 (nouveaux)
+// Donors in year who also donated in year-1 (fidèles / récurrents)
 $sql = "
     SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
            SUM(c.sum) AS total_curr,
-           MIN(c.date) AS first_date
+           (SELECT COALESCE(SUM(c2.sum),0) FROM compta c2
+            WHERE c2.user_id = u.id AND c2.date > ? AND c2.date < ?
+              AND c2.type_id NOT IN ($excl)) AS total_prev
     FROM users u
     JOIN compta c ON u.id = c.user_id
     WHERE u.status=1 AND c.date > ? AND c.date < ?
       AND c.type_id NOT IN ($excl)
-      AND u.id NOT IN (
+      AND u.id IN (
           SELECT DISTINCT user_id FROM compta
           WHERE date > ? AND date < ?
             AND type_id NOT IN ($excl)
@@ -27,7 +29,7 @@ $sql = "
     ORDER BY total_curr DESC, u.lastname, u.firstname
 ";
 $stmt = $pdo->prepare($sql);
-$stmt->execute([$kFrom, $kTo, $kFrom1, $kTo1]);
+$stmt->execute([$kFrom1, $kTo1, $kFrom, $kTo, $kFrom1, $kTo1]);
 $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
 $count = count($rows);
 ?>
@@ -36,7 +38,7 @@ $count = count($rows);
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Retour à l'aperçu des dons
   </a>
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    Nouveaux donateurs <?= $year ?>
+    Donateurs fidèles <?= $year ?>
   </span>
   <div class="dropdown ms-1">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -45,16 +47,16 @@ $count = count($rows);
     <ul class="dropdown-menu">
       <?php for ($i = 0; $i < 8; $i++): $y = (int)date("Y") - $i; ?>
       <li><a class="dropdown-item<?= $y === $year ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=newDonors&amp;year=<?= $y ?>"><?= $y ?></a></li>
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=loyalDonors&amp;year=<?= $y ?>"><?= $y ?></a></li>
       <?php endfor ?>
     </ul>
   </div>
 </div>
 
 <div class="alert d-flex align-items-start gap-2 py-2 mb-3" role="status"
-     style="font-size:0.85rem;background:rgba(255,193,7,0.12);border:1px solid rgba(255,193,7,0.4);border-radius:6px">
-  <i class="fas fa-star mt-1 flex-shrink-0" aria-hidden="true" style="color:var(--bs-warning)"></i>
-  <span><strong><?= $count ?> nouveau<?= $count > 1 ? 'x' : '' ?> donateur<?= $count > 1 ? 's' : '' ?></strong> — ont contribué en <strong><?= $year ?></strong> sans donation en <strong><?= $year-1 ?></strong>.</span>
+     style="font-size:0.85rem;background:rgba(25,135,84,0.1);border:1px solid rgba(25,135,84,0.3);border-radius:6px">
+  <i class="fas fa-rotate mt-1 flex-shrink-0" aria-hidden="true" style="color:var(--bs-success)"></i>
+  <span><strong><?= $count ?> donateur<?= $count > 1 ? 's' : '' ?> fidèles</strong> — ont contribué à la fois en <strong><?= $year-1 ?></strong> et en <strong><?= $year ?></strong>.</span>
 </div>
 
 <?php
@@ -67,12 +69,12 @@ $extra_columns = [
         'footer' => array_sum(array_map(fn($r) => (float)$r->total_curr, $rows)),
     ],
     [
-        'label'  => 'Premier don',
-        'value'  => fn($row) => timeStampToformatedDate($row->first_date),
-        'style'  => '',
-        'footer' => null,
+        'label'  => 'Don ' . ($year - 1),
+        'value'  => fn($row) => number_format((float)$row->total_prev, 2, '.', '\''),
+        'style'  => 'text-align:right',
+        'footer' => array_sum(array_map(fn($r) => (float)$r->total_prev, $rows)),
     ],
 ];
 $row_href = fn($row) => $_SERVER['PHP_SELF'] . '?view=compta&userid=' . (int)$row->id;
-include '_donor_table.inc';
+include '_donor_table.php';
 ?>
