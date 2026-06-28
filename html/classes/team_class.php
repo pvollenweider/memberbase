@@ -27,7 +27,7 @@ class Team
             $this->name   = $row->name;
             $this->hidden = (int) $row->hidden;
         } else {
-            print "Could not find team with id [$id]";
+            throw new \RuntimeException("Could not find team with id [$id]");
         }
     }
 

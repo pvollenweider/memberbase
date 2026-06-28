@@ -1,5 +1,10 @@
 <?php
-$id = $_REQUEST['id'];
+$id = (int)($_REQUEST['id'] ?? 0);
+if ($id <= 0) {
+    $url = $_SERVER['PHP_SELF'] . '?view=settings&tab=groups';
+    if (!empty($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . $url); } else { header('Location: ' . $url); }
+    exit;
+}
 $team = new Team();
 $team->lookupTeam($id);
 
