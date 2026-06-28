@@ -250,7 +250,7 @@ include "includes/menu.php";
     <div class="container">
         <small>Process time: [<?= (int)(($end - $start) * 1000) ?>
             ms]. Date: [<?= date("d.m.Y H:i", time()) ?>]<br/>
-            Casa Members v3.2.0
+            MemberBase v3.2.0
         </small>
     </div>
 </footer>

@@ -429,7 +429,7 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Installation — Casa Members</title>
+<title>Installation — MemberBase</title>
 <link rel="stylesheet" href="css/vendor/bootstrap.min.css">
 <style>
   body { background: #f0f4f8; }
@@ -442,7 +442,7 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
 <body>
 <div class="install-card px-3">
   <div class="text-center mb-4">
-    <h1 class="h4 fw-bold">Casa Members</h1>
+    <h1 class="h4 fw-bold">MemberBase</h1>
     <p class="text-muted small mb-0">Assistant d'installation</p>
   </div>
 
@@ -644,7 +644,7 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
   <?php endif ?>
 
   <p class="text-center text-muted mt-3" style="font-size:.75rem">
-    Casa Members — <a href="https://github.com/pvollenweider/casa-membres" class="text-muted">AGPL-3.0</a>
+    MemberBase — <a href="https://github.com/pvollenweider/casa-membres" class="text-muted">AGPL-3.0</a>
   </p>
 </div>
 </body>
