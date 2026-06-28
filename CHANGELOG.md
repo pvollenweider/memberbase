@@ -11,27 +11,48 @@ et ce projet adhère au [versionnement sémantique](https://semver.org/lang/fr/)
 
 ## [3.2.0] — 2026-06-28
 
+Release majeure combinant un refactoring architectural complet, la généralisation de l'application pour toute association, une internationalisation complète, des améliorations UX et un nettoyage massif des dépendances (−237 000 lignes, dont la suppression de CKEditor).
+
+### Refactoring architectural
+- **Renommage .inc → .php** : tous les fichiers includes renommés en `.php` avec protection HTTP via `.htaccess`
+- **Généralisation** : suppression de tout contenu hardcodé spécifique à Casa Alianza — l'application est désormais réutilisable pour toute association
+- **AGPL-3.0** : ajout de la licence open-source
+- **Paramètres d'organisation** : table `app_settings` pour stocker le nom de l'org, utilisé dynamiquement dans le titre de page
+- **DataTables** : extraction des defaults dans `js/dt_defaults.js`, unification des tables donateurs (`_donor_table.php`) — DRY sur toutes les vues lapsed/resume
+
+### Internationalisation (i18n)
+- Centralisation de toutes les chaînes UI françaises hardcodées dans le fichier locale (`locales/resources_fr.php`)
+- Couvre : labels de formulaires, messages toast, navigation, confirmations, messages d'erreur — tout passe par `$GLOBAL[...]`
+
 ### Ajouté
-- **Modaux de confirmation** : remplacement de tous les `confirm()` natifs par des modaux Bootstrap (groupes à relancer, journal d'activité, types compta, utilisateurs app)
+- **Donateurs à relancer** (`?view=lapsedDonors`) : lignes de tableau cliquables vers la compta complète du donateur
+- **Membres à relancer** (`?view=lapsedMembers`) : même pattern de navigation
+- **Modaux de confirmation** : remplacement de tous les `confirm()` JS natifs par des modaux Bootstrap accessibles (création de groupes, suppression journal, types compta, utilisateurs app, groupes, métagroupes)
+- **Sidebar settings** : navigation contextuelle avec mode drill-down pour `updateTeam` / `updateMetagroup`
+
+### UX & Mobile
+- **Barre de recherche mobile** : icône loupe + barre expansible (remplace le hamburger)
+- **iOS tap fixes** : `data-href` + délégation JS sur tbody pour les lignes cliquables (resume, compta, suivi)
+- **Redirection après création de groupe** : `addTeam` / `addTeamWithImport` redirigent vers `updateTeam`
+- **Garde `updateTeam`** : redirection si `id` manquant ou invalide
 
 ### Modifié
-- **Font Awesome 5 → 6** : mise à jour de tous les noms d'icônes dans l'ensemble des fichiers PHP (fa-trash-alt → fa-trash-can, fa-times → fa-xmark, fa-history → fa-clock-rotate-left, etc.)
-- **Font Awesome** : migration vers auto-hébergement (css/vendor/font-awesome.min.css + css/webfonts/)
-- **jQuery** : mise à jour 3.3.1 → 3.7.1
-- **JS vendors** : déplacement des scripts à la racine vers js/vendor/
-- **Navbar** : icône home remplacée par label texte "Casa"
+- **Font Awesome 5 → 6.7.2** : mise à jour de tous les noms d'icônes dans l'ensemble des fichiers PHP + auto-hébergement (`css/vendor/font-awesome.min.css` + `css/webfonts/`)
+- **jQuery 3.3.1 → 3.7.1**
+- **JS vendors** : tous les scripts tiers déplacés dans `js/vendor/`
+- **Navbar** : brand/home redondant supprimé
 
 ### Corrigé
-- **Modaux + htmx** : nettoyage du backdrop Bootstrap après chaque swap htmx (modal-backdrop + classe modal-open)
-- **Modaux + htmx** : ajout de hx-boost="false" sur tous les formulaires déclenchés depuis un modal
-- **Groupes "à relancer"** : erreur "Could not find team with id [0]" — garde id ≤ 0 avec redirection
-- **Police FA6** : webfonts déplacées vers css/webfonts/ pour correspondre aux url() du CSS
+- **Backdrop Bootstrap + htmx** : nettoyage automatique du `.modal-backdrop` et des classes `modal-open` après chaque swap htmx
+- **`hx-boost="false"`** sur tous les formulaires déclenchés depuis un modal
+- **Parse errors** : backslashes parasites dans `resume.php` et `compta_generic.php` (`\$GLOBAL` → `$GLOBAL`)
+- **FA6 webfonts** : chemin corrigé vers `css/webfonts/`
 
 ### Supprimé
-- **CKEditor** : suppression complète (remplacé par TipTap)
-- **Fichiers morts** : manage_teams.php, php7-mysql-shim.php, datahref.jquery.js, buttons.bootstrap4.min.js, moment-with-locales.min.js, popper.min.js, jquery_ckeditor.js
-- **plugins/** : dossiers bootstrap/, font-awesome/, ckeditor/ supprimés
-- **conf/htpasswd** : fichier sensible purgé de tout l'historique git
+- **CKEditor** : 554 fichiers / 6,1 Mo supprimés (remplacé par TipTap)
+- **`conf/htpasswd`** : fichier sensible purgé de tout l'historique git
+- **Fichiers morts** : `manage_teams.php`, `php7-mysql-shim.php`, `datahref.jquery.js`, `buttons.bootstrap4.min.js`, `moment-with-locales.min.js`, `popper.min.js`, `jquery_ckeditor.js`, `tools/normalize_comments.php`
+- **`plugins/`** : dossiers `bootstrap/`, `font-awesome/`, `ckeditor/` supprimés
 
 ---
 
