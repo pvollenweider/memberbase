@@ -363,6 +363,12 @@ include "includes/menu.php";
     });
 
     document.addEventListener('htmx:afterSwap', function (e) {
+        // Clean up Bootstrap modal state left behind after htmx content swap
+        document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+
         casaInit(e.target);
         var toastEl = document.getElementById('casaToast');
         if (!toastEl || !e.target.querySelector) return;
