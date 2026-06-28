@@ -1,0 +1,42 @@
+services:
+  php:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/var/www/html
+      - ./logs:/var/www/logs
+    environment:
+      DB_HOST: mariadb
+      DB_NAME: members
+      DB_USER: members
+      DB_PASS: members
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  mariadb:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: members
+      MARIADB_USER: members
+      MARIADB_PASSWORD: members
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./docker/initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-umembers", "-pmembers"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer
+    ports:
+      - "8082:8080"
+    depends_on:
+      - mariadb
+
+volumes:
+  mariadb_data:
