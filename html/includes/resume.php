@@ -218,7 +218,7 @@ if ($year != -2) {
          title="Première contribution en <?= $year ?>"
          style="color:inherit;text-decoration:none"
          onclick="event.stopPropagation()">
-        <i class="fas fa-star me-1" aria-hidden="true" style="color:var(--bs-warning)"></i><?= $_kNouveaux ?> <?= \$GLOBAL['newDonors'] ?>
+        <i class="fas fa-star me-1" aria-hidden="true" style="color:var(--bs-warning)"></i><?= $_kNouveaux ?> <?= $GLOBAL['newDonors'] ?>
       </a>
       <?php if ($_kLapsed > 0): ?>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedDonors&amp;year=<?= $year ?>"
