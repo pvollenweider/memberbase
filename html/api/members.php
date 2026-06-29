@@ -30,6 +30,27 @@ match (true) {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
+function memberFieldsForDiff(User $u): array
+{
+    return [
+        'firstName' => (string)$u->getFirstName(),
+        'lastName'  => (string)$u->getLastName(),
+        'society'   => (string)$u->getSociety(),
+        'gender'    => (string)$u->getSexe(),
+        'title'     => (string)$u->getTitle(),
+        'address'   => (string)$u->getAddress(),
+        'npa'       => (string)$u->getNpa(),
+        'email'     => (string)$u->getEmail(),
+        'tel'       => (string)$u->getTel(),
+        'telProf'   => (string)$u->getTelProf(),
+        'portable'  => (string)$u->getPortable(),
+        'fax'       => (string)$u->getFax(),
+        'web'       => (string)$u->getWeb(),
+        'birthDate' => $u->getBirthDay() ? date('Y-m-d', (int)$u->getBirthDay()) : '',
+        'comment'   => (string)$u->getComment(),
+    ];
+}
+
 function memberToArray(User $u): array
 {
     return [
@@ -185,25 +206,28 @@ function handleUpdate(int $id): void
     $user->lookupUser($id);
     if (!$user->getId()) apiError(404, 'Member not found');
 
-    $before = memberToArray($user);
+    $before = memberFieldsForDiff($user);
     applyFields($user, $body);
     $user->save();
-    $after  = memberToArray($user);
+
+    // Reload from DB for accurate after state
+    $freshUser = new User();
+    $freshUser->lookupUser($id);
+    $after = memberFieldsForDiff($freshUser);
 
     $diffs = [];
     foreach (array_keys($body) as $k) {
-        $bval = (string)($before[$k] ?? '');
-        $aval = (string)($after[$k]  ?? '');
-        if ($bval !== $aval) {
-            $diffs[] = "$k: «$bval» → «$aval»";
-        }
+        if (!array_key_exists($k, $before)) continue;
+        $bval = $before[$k];
+        $aval = $after[$k];
+        if ($bval === $aval) continue;
+        $diffs[] = "$k: «" . ($bval !== '' ? $bval : '∅') . "» → «" . ($aval !== '' ? $aval : '∅') . "»";
     }
-    $detail = "id=$id | {$user->firstName} {$user->lastName}";
+    $detail = "id=$id | {$freshUser->getFirstName()} {$freshUser->getLastName()}";
     $detail .= $diffs ? ' | ' . implode(' ; ', $diffs) : ' | (aucune modification)';
     auditLog($pdo, 'updateUser', $detail, $id);
 
-    $user->lookupUser($id);
-    echo json_encode(['data' => memberToArray($user)],
+    echo json_encode(['data' => memberToArray($freshUser)],
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
