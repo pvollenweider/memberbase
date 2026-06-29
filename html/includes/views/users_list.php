@@ -98,7 +98,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="min-width:220px;max-height:80vh;overflow-y:auto;font-size:0.75rem">
 
                     <div class="px-2 pb-1">
-                      <input type="text" id="team-filter-input" class="form-control form-control-sm" placeholder="Filtrer…" autocomplete="off">
+                      <input type="text" id="team-filter-input" class="form-control form-control-sm" placeholder="Filtrer…" autocomplete="off" oninput="filterTeamDropdown(this.value)">
                     </div>
                     <div class="dropdown-divider mt-1 mb-0"></div>
 
@@ -210,12 +210,6 @@ function visibleItems() {
 // One-time init guard prevents duplicates when the script re-executes on boost navigation.
 if (!window._caTeamFilterInit) {
   window._caTeamFilterInit = true;
-
-  // Filter on input — delegation survives htmx swaps
-  document.addEventListener('input', function(e) {
-    if (!e.target || e.target.id !== 'team-filter-input') return;
-    filterTeamDropdown(e.target.value);
-  });
 
   document.addEventListener('keydown', function(e) {
     if (!e.target || e.target.id !== 'team-filter-input') return;
