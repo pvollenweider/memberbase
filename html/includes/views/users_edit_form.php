@@ -8,9 +8,9 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 if ($userid == -1) {
     if (isset($_REQUEST['userid'])) {
-        $userid = $_REQUEST['userid'];
+        $userid = (int)$_REQUEST['userid'];
     } else {
-        $userid = $_REQUEST['id'];
+        $userid = (int)$_REQUEST['id'];
     }
 }
 $user = new User();
