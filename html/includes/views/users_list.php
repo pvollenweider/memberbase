@@ -154,7 +154,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                         while ($row = $stmtTeams->fetchObject()) {
                             $catId = (int)$row->cat_id;
                             if ($catId !== $prevCatId) {
-                                if ($prevCatId !== -1) echo '<div class="dropdown-divider my-0"></div>';
+                                if ($prevCatId !== -1) echo '<div class="dropdown-divider my-0 team-cat-divider" data-cat="' . $catId . '"></div>';
                                 $prevCatId = $catId;
                                 $label = $row->cat_name ?: 'Sans catégorie';
                                 echo '<h6 class="dropdown-header team-cat-header" data-cat="' . $catId . '" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">' . htmlentities($label, ENT_COMPAT, $charset) . '</h6>';
@@ -195,7 +195,10 @@ function filterTeamDropdown(q) {
     var hasVisible = Array.from(document.querySelectorAll('.team-filterable[data-cat="' + cat + '"]')).some(function(el) {
       return el.style.display !== 'none';
     });
-    h.style.display = hasVisible ? '' : 'none';
+    var display = hasVisible ? '' : 'none';
+    h.style.display = display;
+    var divider = document.querySelector('.team-cat-divider[data-cat="' + cat + '"]');
+    if (divider) divider.style.display = display;
   });
   document.querySelectorAll('.team-filterable.kb-focus').forEach(function(el) { el.classList.remove('kb-focus'); });
 }
