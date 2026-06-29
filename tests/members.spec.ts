@@ -40,6 +40,10 @@ test.describe('Members', () => {
   test('edit a member firstname and verify updated', async ({ page }) => {
     await page.goto('/index.php?view=generalData&userid=1');
 
+    // View/edit toggle: click the card to enter edit mode before filling fields
+    await page.locator('.member-view-card').click();
+    await expect(page.locator('#firstName')).toBeVisible({ timeout: 5_000 });
+
     await page.locator('#firstName').fill('AliceModified');
     await page.click('button[type="submit"].btn-primary');
 
@@ -47,6 +51,8 @@ test.describe('Members', () => {
     await expect(page.locator('#casa-save-ok')).toBeAttached({ timeout: 10_000 });
 
     await page.goto('/index.php?view=generalData&userid=1');
+    await page.locator('.member-view-card').click();
+    await expect(page.locator('#firstName')).toBeVisible({ timeout: 5_000 });
     await expect(page.locator('#firstName')).toHaveValue('AliceModified');
 
     // Restore
