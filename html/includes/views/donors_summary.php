@@ -232,6 +232,7 @@ if ($year != -2) {
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedDonors&amp;year=<?= $year ?>"
          title="Ont donné en <?= $year-1 ?> mais pas en <?= $year ?>"
          style="color:var(--bs-danger);text-decoration:none"
+         hx-boost="false"
          onclick="event.stopPropagation()">
         <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= $_kLapsed ?> perdus
       </a>
@@ -256,6 +257,7 @@ if ($year != -2) {
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedMembers&amp;year=<?= $year ?>"
          title="Membres <?= $year-1 ?> non reconduits en <?= $year ?>"
          style="color:var(--bs-danger);text-decoration:none"
+         hx-boost="false"
          onclick="event.stopPropagation()">
         <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= $_kMembresLapsed ?> perdus
       </a>

@@ -184,7 +184,7 @@ if ($view == "compta") {
       <span>Ce profil est <strong>archivé</strong> — il n'apparaît dans aucune liste.</span>
     </div>
     <?php endif ?>
-    <div class="position-relative <?= !$user->status ? 'ca-inactive-wrap' : '' ?>" x-data="{ showAll: false }">
+    <div class="position-relative <?= !$user->status ? 'ca-inactive-wrap' : '' ?>" x-data="{ showAll: window.matchMedia('(min-width: 768px)').matches }">
       <?php if (!$user->status): ?>
       <div class="ca-inactive-overlay" aria-hidden="true"></div>
       <?php endif ?>
