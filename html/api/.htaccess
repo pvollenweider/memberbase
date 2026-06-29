@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule ^members/([0-9]+)/?$ members.php?id=$1 [QSA,L]
