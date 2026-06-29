@@ -115,6 +115,8 @@ if ($isHtmx) {
 
     <!-- htmx + Alpine.js -->
     <script src="js/vendor/htmx.min.js"></script>
+    <!-- Alpine components (external — CSP 'self' compatible, loaded before Alpine init) -->
+    <script src="js/member-general-form.js"></script>
     <script defer src="js/vendor/alpine.min.js"></script>
     <meta name="htmx-config" content='{"scrollIntoViewOnBoost": false, "defaultSwapStyle": "innerHTML"}'>
 
