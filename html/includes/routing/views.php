@@ -12,6 +12,7 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] === 'manageAppUsers') {
         include __DIR__ . "/../views/settings_app_users.php";
     } else if ($_REQUEST['view'] == 'addUser') {
+        if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
         include __DIR__ . "/../views/users_add_form.php";
     } else if ($_REQUEST['view'] == 'updateUser') {
         include __DIR__ . "/../views/users_edit_form.php";
@@ -27,6 +28,7 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] == 'userHistory') {
         include __DIR__ . "/../views/users_edit_form.php";
     } else if ($_REQUEST['view'] == 'deleteUser') {
+        if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
         $user = new User();
         $user->lookupUser((int)$_REQUEST['id']);
         $userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
@@ -101,6 +103,7 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] == 'lastEntrySuivi') {
         include __DIR__ . "/../views/suivi_last_entry.php";
     } else if ($_REQUEST['view'] == 'removeCompta') {
+        if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
         $compta = new Compta();
         $compta->lookupCompta($_REQUEST['comptaid']);
         ?>
@@ -130,6 +133,7 @@ if (isset($_REQUEST['view'])) {
         </div>
         <?php
     } else if ($_REQUEST['view'] == 'deleteComptaConfirm') {
+        if (!canWrite()) { http_response_code(403); exit; }
         $compta = new Compta();
         $compta->lookupCompta($_REQUEST['comptaid']);
         $_auDcUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
@@ -146,6 +150,7 @@ if (isset($_REQUEST['view'])) {
         $view = "suivi";
         include __DIR__ . "/../views/suivi_edit_form.php";
     } else if ($_REQUEST['view'] == 'removeSuivi') {
+        if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
         $userProperty = new UserProperty();
         $userProperty->lookupUserProperty($_REQUEST['suiviid']);
         ?>

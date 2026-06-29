@@ -47,8 +47,10 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
         <option value="#tab-groups">Groupes</option>
         <option value="#tab-categories">Catégories</option>
         <option value="#tab-filters">Métagroupes</option>
-        <?php if (isAdmin()): ?>
+        <?php if (isManager()): ?>
         <option value="#tab-compta">Types compta</option>
+        <?php endif ?>
+        <?php if (isAdmin()): ?>
         <option value="#tab-settings">Réglages</option>
         <option value="#tab-users">Utilisateurs</option>
         <option value="#tab-audit">Journal</option>
@@ -68,14 +70,19 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           _settings_nav_item('groups',     'fas fa-users',       'Groupes',      $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('categories', 'fas fa-tag',         'Catégories',   $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('filters',    'fas fa-layer-group', 'Métagroupes',  $_navActive, $_settingsDrillDown, $_navSelf);
+          if (isManager()):
+          ?>
+          <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true">Gestion</li>
+          <?php
+          _settings_nav_item('compta',     'fas fa-tags',        'Types compta', $_navActive, $_settingsDrillDown, $_navSelf);
+          endif;
           if (isAdmin()):
           ?>
           <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['administration'] ?></li>
           <?php
-          _settings_nav_item('compta',     'fas fa-tags',        'Types compta', $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('settings',   'fas fa-sliders',   'Réglages',     $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('settings',   'fas fa-sliders',     'Réglages',     $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('users',      'fas fa-user-shield', 'Utilisateurs', $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('audit',      'fas fa-clock-rotate-left',     'Journal',      $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('audit',      'fas fa-clock-rotate-left', 'Journal', $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('integrity',  'fas fa-stethoscope', 'Intégrité',    $_navActive, $_settingsDrillDown, $_navSelf);
           ?>
           <li role="presentation">
@@ -180,9 +187,9 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
             <?php endif ?>
           </div><!-- #tab-settings -->
 
-          <!-- Types compta (admin only) -->
+          <!-- Types compta (manager+) -->
           <div class="tab-pane fade<?= $_paneClass('compta') ?>" id="tab-compta" role="tabpanel" aria-labelledby="tab-compta-btn">
-            <?php if (isAdmin()): $ctEmbedded = true; $ctReturnView = 'settings'; $ctReturnTab = 'compta'; include __DIR__ . '/settings_compta_types.php'; else: ?>
+            <?php if (isManager()): $ctEmbedded = true; $ctReturnView = 'settings'; $ctReturnTab = 'compta'; include __DIR__ . '/settings_compta_types.php'; else: ?>
             <div class="alert alert-danger mt-3" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i><?= $GLOBAL['adminOnly'] ?></div>
             <?php endif ?>
           </div><!-- #tab-compta -->

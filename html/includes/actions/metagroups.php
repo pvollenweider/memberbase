@@ -9,6 +9,8 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 // actions: updateCategoryOrder, updateTeamCategory, updateMetagroupTeams,
 //          deleteMetagroup, addMetagroup, updateMetagroup
 
+if (!isManager()) { http_response_code(403); exit; }
+
 $action = $_REQUEST['action'];
 
 if ($action == 'updateCategoryOrder') {

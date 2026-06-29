@@ -11,6 +11,12 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
+if ($action === 'saveSettings') {
+    if (!isAdmin()) { http_response_code(403); exit; }
+} elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
+    if (!isManager()) { http_response_code(403); exit; }
+}
+
 if ($action == 'saveSettings') {
     // Integer settings — stored as numeric values
     $intKeys = ['default_team', 'membre_team', 'member_no_coti_team'];

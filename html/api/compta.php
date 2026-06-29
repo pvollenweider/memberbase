@@ -128,6 +128,7 @@ function handleGet(int $id): void
 function handleCreate(): void
 {
     global $pdo, $comptaTypes;
+    if (!canWrite()) apiError(403, 'Forbidden');
     $body = requestBody();
 
     $memberId = isset($body['memberId']) ? (int)$body['memberId'] : 0;
@@ -166,6 +167,7 @@ function handleCreate(): void
 function handleUpdate(int $id): void
 {
     global $pdo, $comptaTypes;
+    if (!canWrite()) apiError(403, 'Forbidden');
     $body = requestBody();
 
     $c = new Compta();
@@ -188,7 +190,7 @@ function handleDelete(int $id): void
 {
     global $pdo;
 
-    if (!isAdmin()) apiError(403, 'Admin role required to delete an accounting entry');
+    if (!canWrite()) apiError(403, 'Forbidden');
 
     $c = new Compta();
     $c->lookupCompta($id);
