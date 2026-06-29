@@ -656,3 +656,37 @@ tr.position-relative { cursor: pointer; }
     background: #e8edf8 !important;
     border-color: #b3c2e0 !important;
 }
+
+/* Member general data — view/edit toggle */
+.member-view-card {
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    transition: background 0.15s;
+}
+.member-view-card:hover {
+    background: #f0f4ff;
+}
+.member-view-hint {
+    font-size: 0.75rem;
+    opacity: 0.6;
+}
+.member-view-card:hover .member-view-hint {
+    opacity: 1;
+}
+.member-view-row {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.2rem 0;
+    font-size: 0.9rem;
+}
+.member-view-label {
+    flex: 0 0 160px;
+    color: #6c757d;
+    font-size: 0.8rem;
+    padding-top: 0.1rem;
+}
+.member-view-value {
+    flex: 1;
+    word-break: break-word;
+}
