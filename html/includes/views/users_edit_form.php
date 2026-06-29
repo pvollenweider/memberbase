@@ -184,7 +184,7 @@ if ($view == "compta") {
       <span>Ce profil est <strong>archivé</strong> — il n'apparaît dans aucune liste.</span>
     </div>
     <?php endif ?>
-    <div class="position-relative <?= !$user->status ? 'ca-inactive-wrap' : '' ?>" x-data="{ showAll: false }">
+    <div class="position-relative <?= !$user->status ? 'ca-inactive-wrap' : '' ?>">
       <?php if (!$user->status): ?>
       <div class="ca-inactive-overlay" aria-hidden="true"></div>
       <?php endif ?>
@@ -213,14 +213,10 @@ if ($view == "compta") {
           <i class="fas fa-phone fa-fw me-1 text-muted" aria-hidden="true"></i><?= htmlspecialchars($user->getTel(), ENT_QUOTES, $charset) ?>
         </a></div>
         <?php endif ?>
-        <button type="button" class="btn btn-sm btn-outline-secondary mt-3 w-100"
-                @click="showAll = !showAll"
-                x-text="showAll ? 'Masquer les champs' : 'Voir tous les champs'">
-        </button>
       </div>
 
       <div class="row">
-          <div class="col-md-8 ca-mobile-expandable" x-show="showAll">
+          <div class="col-md-8 ca-mobile-expandable">
               <?php include __DIR__ . "/users_general_data.php"; ?>
           </div>
           <div class="col-md-4 small">
