@@ -59,12 +59,25 @@ function loadGroup(int $id): Team
 function groupToArray(object $row): array
 {
     return [
-        'id'          => (int)$row->id,
-        'name'        => $row->name,
-        'hidden'      => (bool)$row->hidden,
-        'memberCount' => isset($row->member_count) ? (int)$row->member_count : null,
+        'id'           => (int)$row->id,
+        'name'         => $row->name,
+        'hidden'       => (bool)$row->hidden,
+        'memberCount'  => isset($row->member_count) ? (int)$row->member_count : null,
+        'categoryId'   => (isset($row->cat_id)   && $row->cat_id)   ? (int)$row->cat_id   : null,
+        'categoryName' => (isset($row->cat_name) && $row->cat_name) ? $row->cat_name       : null,
     ];
 }
+
+// Subquery: resolves the non-filter category (is_filter=0) for each team.
+define('CAT_JOIN',
+    "LEFT JOIN (
+        SELECT j.teamid, c.id, c.name, c.sort_order
+        FROM metagroup j
+        JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
+        WHERE j.teamid IS NOT NULL
+        GROUP BY j.teamid
+    ) cat ON cat.teamid = t.id"
+);
 
 // ── handlers ─────────────────────────────────────────────────────────────────
 
@@ -74,12 +87,16 @@ function handleList(): void
 
     $stmt = $pdo->query(
         "SELECT t.id, t.name, t.hidden,
-                COUNT(up.user_id) AS member_count
+                COUNT(up.user_id) AS member_count,
+                cat.id AS cat_id, cat.name AS cat_name
          FROM team t
          LEFT JOIN user_properties up ON up.parameter = CONCAT('team_', t.id)
          LEFT JOIN users u ON u.id = up.user_id AND u.status = 1
-         GROUP BY t.id, t.name, t.hidden
-         ORDER BY t.hidden ASC, t.name ASC"
+         " . CAT_JOIN . "
+         GROUP BY t.id, t.name, t.hidden, cat.id, cat.name, cat.sort_order
+         ORDER BY COALESCE(cat.sort_order, 99999) ASC,
+                  COALESCE(cat.name, 'ZZZZ') ASC,
+                  t.hidden ASC, t.name ASC"
     );
 
     echo json_encode(
@@ -94,12 +111,14 @@ function handleGet(int $id): void
 
     $stmt = $pdo->prepare(
         "SELECT t.id, t.name, t.hidden,
-                COUNT(up.user_id) AS member_count
+                COUNT(up.user_id) AS member_count,
+                cat.id AS cat_id, cat.name AS cat_name
          FROM team t
          LEFT JOIN user_properties up ON up.parameter = CONCAT('team_', t.id)
          LEFT JOIN users u ON u.id = up.user_id AND u.status = 1
+         " . CAT_JOIN . "
          WHERE t.id = ?
-         GROUP BY t.id, t.name, t.hidden"
+         GROUP BY t.id, t.name, t.hidden, cat.id, cat.name, cat.sort_order"
     );
     $stmt->execute([$id]);
     $row = $stmt->fetchObject();
@@ -152,7 +171,7 @@ function handleCreate(): void
 
     auditLog($pdo, 'addTeam', "name: $name");
 
-    $stmt = $pdo->prepare("SELECT t.id, t.name, t.hidden, 0 AS member_count FROM team t WHERE t.id=?");
+    $stmt = $pdo->prepare("SELECT t.id, t.name, t.hidden, 0 AS member_count, NULL AS cat_id, NULL AS cat_name FROM team t WHERE t.id=?");
     $stmt->execute([$team->getId()]);
 
     http_response_code(201);
@@ -174,11 +193,15 @@ function handleUpdate(int $id): void
     auditLog($pdo, 'renameTeam', "id=$id | name: {$team->getName()}");
 
     $stmt = $pdo->prepare(
-        "SELECT t.id, t.name, t.hidden, COUNT(up.user_id) AS member_count
+        "SELECT t.id, t.name, t.hidden,
+                COUNT(up.user_id) AS member_count,
+                cat.id AS cat_id, cat.name AS cat_name
          FROM team t
          LEFT JOIN user_properties up ON up.parameter = CONCAT('team_', t.id)
          LEFT JOIN users u ON u.id = up.user_id AND u.status = 1
-         WHERE t.id = ? GROUP BY t.id, t.name, t.hidden"
+         " . CAT_JOIN . "
+         WHERE t.id = ?
+         GROUP BY t.id, t.name, t.hidden, cat.id, cat.name, cat.sort_order"
     );
     $stmt->execute([$id]);
 

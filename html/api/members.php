@@ -225,17 +225,29 @@ function handleGetGroups(int $id): void
     if (!$chk->fetchColumn()) apiError(404, 'Member not found');
 
     $stmt = $pdo->prepare(
-        "SELECT t.id, t.name, t.hidden
+        "SELECT t.id, t.name, t.hidden,
+                cat.id AS cat_id, cat.name AS cat_name
          FROM team t
          JOIN user_properties up ON up.parameter = CONCAT('team_', t.id) AND up.user_id = ?
-         ORDER BY t.name ASC"
+         LEFT JOIN (
+             SELECT j.teamid, c.id, c.name, c.sort_order
+             FROM metagroup j
+             JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
+             WHERE j.teamid IS NOT NULL
+             GROUP BY j.teamid
+         ) cat ON cat.teamid = t.id
+         ORDER BY COALESCE(cat.sort_order, 99999) ASC,
+                  COALESCE(cat.name, 'ZZZZ') ASC,
+                  t.name ASC"
     );
     $stmt->execute([$id]);
 
     $data = array_map(fn($r) => [
-        'id'     => (int)$r->id,
-        'name'   => $r->name,
-        'hidden' => (bool)$r->hidden,
+        'id'           => (int)$r->id,
+        'name'         => $r->name,
+        'hidden'       => (bool)$r->hidden,
+        'categoryId'   => ($r->cat_id)   ? (int)$r->cat_id   : null,
+        'categoryName' => ($r->cat_name) ? $r->cat_name       : null,
     ], $stmt->fetchAll());
 
     echo json_encode(['data' => $data], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
