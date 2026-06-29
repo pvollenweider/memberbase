@@ -16,14 +16,16 @@ require_once __DIR__ . '/../classes/user_class.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
+$sub    = $_GET['sub'] ?? null;
 
 match (true) {
-    $method === 'GET'    && $id === null => handleList(),
-    $method === 'GET'                    => handleGet($id),
-    $method === 'POST'   && $id === null => handleCreate(),
-    $method === 'PUT'    && $id !== null => handleUpdate($id),
-    $method === 'DELETE' && $id !== null => handleDelete($id),
-    default                              => apiError(405, 'Method Not Allowed'),
+    $method === 'GET'    && $id === null                      => handleList(),
+    $method === 'GET'    && $id !== null && $sub === 'groups' => handleGetGroups($id),
+    $method === 'GET'    && $id !== null                      => handleGet($id),
+    $method === 'POST'   && $id === null                      => handleCreate(),
+    $method === 'PUT'    && $id !== null                      => handleUpdate($id),
+    $method === 'DELETE' && $id !== null                      => handleDelete($id),
+    default                                                   => apiError(405, 'Method Not Allowed'),
 };
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -212,4 +214,29 @@ function handleDelete(int $id): void
     }
 
     http_response_code(204);
+}
+
+function handleGetGroups(int $id): void
+{
+    global $pdo;
+
+    $chk = $pdo->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $chk->execute([$id]);
+    if (!$chk->fetchColumn()) apiError(404, 'Member not found');
+
+    $stmt = $pdo->prepare(
+        "SELECT t.id, t.name, t.hidden
+         FROM team t
+         JOIN user_properties up ON up.parameter = CONCAT('team_', t.id) AND up.user_id = ?
+         ORDER BY t.name ASC"
+    );
+    $stmt->execute([$id]);
+
+    $data = array_map(fn($r) => [
+        'id'     => (int)$r->id,
+        'name'   => $r->name,
+        'hidden' => (bool)$r->hidden,
+    ], $stmt->fetchAll());
+
+    echo json_encode(['data' => $data], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
