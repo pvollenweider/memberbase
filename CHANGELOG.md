@@ -2,6 +2,47 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [3.5.2] — 2026-06-29
+
+### Nouveautés
+
+- **API REST complète** — 7 endpoints couvrant membres, compta, suivi, groupes et types compta :
+  - `GET /api/members` — liste paginée avec recherche et filtres
+  - `GET/POST/PATCH/DELETE /api/members/{id}` — CRUD complet, PATCH avec payload diff-only (seuls les champs modifiés sont envoyés, l'audit log reflète les vraies valeurs avant/après)
+  - `GET /api/members/{id}/groups` — groupes d'un membre avec catégorie
+  - `GET/POST/PATCH/DELETE /api/compta` — entrées comptables
+  - `GET /api/compta-types` — types comptables
+  - `GET /api/suivi` — historique de suivi
+  - `GET /api/groups` — groupes avec catégorie et nombre de membres
+- **Système de permissions à 4 niveaux** — `readonly`, `user`, `manager`, `admin` ; contrôle fin sur les actions CRUD et les réglages
+- **Édition inline** sur la fiche membre (données générales) — bascule vue/édition sans rechargement de page, sauvegarde partielle via Alpine.js
+- **Filtres virtuels enrichis** — colonne "Groupes de groupes" dans la liste, adhésion modifiable via API, édition des app-users depuis l'interface
+- **Groupes par métagroupe dans la dropdown de filtre** — section "Groupes de groupes" au-dessus des catégories
+
+### Corrections
+
+- **Filtre de groupe** — l'entrée clavier n'avait aucun effet : Bootstrap `.d-flex { display: flex !important }` écrasait le `style="display:none"` posé par le filtre ; corrigé en utilisant une classe CSS `.team-hidden { display: none !important }` à plus haute spécificité
+- Les séparateurs entre catégories restaient visibles quand toute la catégorie était filtrée
+- La saisie dans l'input de filtre déclenchait la dialog "modifications non sauvegardées"
+- Ajout du champ `wants_attestation` dans le formulaire d'ajout d'écriture comptable
+- Données de profil masquées en vue desktop — recalcul du collapse Alpine réactivé au bon moment
+- Liens "périmés" ne bypassaient pas htmx boost sur mobile
+- Régression `setTimeout(caInitDT)` — cassait le bouton ColVis DataTables
+- Race condition Alpine sur la fiche membre (données nulles au premier rendu)
+- `unquote nullsafe`, `.htaccess FollowSymLinks`, `member-general-form.js` externalisé
+- Diff d'audit utilise des chaînes typées — les valeurs avant/après sont lisibles
+- API groupes inclut `categoryId` et `categoryName` dans la réponse
+
+### Tests
+
+- Suite Playwright API — 1 spec couvrant tous les endpoints REST (CRUD complet)
+- CI : URL de recherche membres corrigée, le pipeline échoue correctement sur test flakeux
+
+### Documentation
+
+- `MIGRATION_PROD.md` — checklist de déploiement en production (Docker, k8s, variables d'environnement)
+- Vhost Apache pour l'API + bloc `Directory` explicite dans `docker/apache.conf`
+
 ## [3.5.0] — 2026-06-28
 
 ### Highlights
