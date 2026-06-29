@@ -1,2 +1,3 @@
 RewriteEngine On
 RewriteRule ^members/([0-9]+)/?$ members.php?id=$1 [QSA,L]
+RewriteRule ^compta/([0-9]+)/?$  compta.php?id=$1  [QSA,L]
