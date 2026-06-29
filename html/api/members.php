@@ -154,6 +154,7 @@ function handleGet(int $id): void
 function handleCreate(): void
 {
     global $pdo;
+    if (!canWrite()) apiError(403, 'Forbidden');
     $body = requestBody();
 
     if (empty(trim((string)($body['lastName'] ?? '')))) {
@@ -175,6 +176,7 @@ function handleCreate(): void
 function handleUpdate(int $id): void
 {
     global $pdo;
+    if (!canWrite()) apiError(403, 'Forbidden');
     $body = requestBody();
 
     $user = new User();

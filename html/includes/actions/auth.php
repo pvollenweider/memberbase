@@ -55,7 +55,7 @@ if ($action === 'logout') {
     $auUsername    = trim($_POST['au_username']    ?? '');
     $auDisplayName = trim($_POST['au_display_name'] ?? '');
     $auEmail       = trim($_POST['au_email']       ?? '');
-    $auRole        = in_array($_POST['au_role'] ?? '', ['admin','user']) ? $_POST['au_role'] : 'user';
+    $auRole        = in_array($_POST['au_role'] ?? '', ['admin','manager','user','readonly'], true) ? $_POST['au_role'] : 'user';
     $auPasswordRaw = trim($_POST['au_password'] ?? '');
     $errParam      = '';
 

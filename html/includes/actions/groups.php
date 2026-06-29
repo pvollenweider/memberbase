@@ -12,6 +12,8 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 //          addTeam, addTeamWithImport, renameTeam, updateTeam,
 //          addMembership, removeMembership
 
+if (!isManager()) { http_response_code(403); exit; }
+
 $action = $_REQUEST['action'];
 
 if ($action == 'deleteTeam') {

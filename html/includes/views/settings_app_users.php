@@ -90,11 +90,12 @@ if ($__flash):
   <td><?= htmlspecialchars($_au->display_name ?? '', ENT_QUOTES, $charset) ?></td>
   <td><?= htmlspecialchars($_au->email ?? '', ENT_QUOTES, $charset) ?></td>
   <td>
-    <?php if ($_au->role === 'admin'): ?>
-      <span class="badge bg-danger" style="font-size:0.7rem">Admin</span>
-    <?php else: ?>
-      <span class="badge bg-secondary" style="font-size:0.7rem">Utilisateur</span>
-    <?php endif ?>
+    <?php match($_au->role) {
+      'admin'    => print('<span class="badge bg-danger"   style="font-size:0.7rem">Admin</span>'),
+      'manager'  => print('<span class="badge bg-warning text-dark" style="font-size:0.7rem">Manager</span>'),
+      'readonly' => print('<span class="badge bg-light text-dark border" style="font-size:0.7rem">Lecture seule</span>'),
+      default    => print('<span class="badge bg-secondary" style="font-size:0.7rem">Utilisateur</span>'),
+    } ?>
   </td>
   <td>
     <?php if ($_au->is_active): ?>
@@ -165,7 +166,9 @@ if ($__flash):
           <div class="mb-3">
             <label for="au_role" class="form-label">Rôle</label>
             <select class="form-select form-select-sm" id="au_role" name="au_role">
-              <option value="user">Utilisateur</option>
+              <option value="readonly">Lecture seule</option>
+              <option value="user" selected>Utilisateur</option>
+              <option value="manager">Manager</option>
               <option value="admin">Admin</option>
             </select>
           </div>

@@ -8,6 +8,8 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 // actions: addSuivi, updateSuivi
 
+if (!canWrite()) { http_response_code(403); exit; }
+
 $action = $_REQUEST['action'];
 
 if ($action == 'addSuivi') {

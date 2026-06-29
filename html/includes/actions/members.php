@@ -8,6 +8,8 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 // actions: updateUser, addUser
 
+if (!canWrite()) { http_response_code(403); exit; }
+
 if ($_REQUEST['action'] == 'updateUser') {
     $user = new User();
     $user->lookupUser($_REQUEST['id']);
