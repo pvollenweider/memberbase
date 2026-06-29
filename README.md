@@ -98,14 +98,35 @@ Navigation par barre latérale (desktop) / sélecteur (mobile) avec sections :
 - **Catégories** — réordonnement par glisser-déposer
 - **Filtres** — métagroupes de filtrage, avec undo sur les modifications d'appartenance
 - **Types de compta** — UI complète : ajout, édition inline, toggle flags, réordonnement
+- **Comptes utilisateurs** — gestion des comptes app (admin uniquement) : création, modification de rôle, réinitialisation de mot de passe, suppression
 - **Intégrité** — détection des groupes masqués avec assignations actives
+
+### API REST
+
+Endpoints JSON disponibles sous `/api/` (authentification de session requise) :
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| `GET` | `/api/members` | Liste des membres (filtrés par groupes, métagroupes, statut, recherche) |
+| `GET` | `/api/members/{id}` | Fiche membre complète |
+| `PATCH` | `/api/members/{id}` | Modification partielle (champs individuels, audit log diff) |
+| `GET` | `/api/members/{id}/groups` | Groupes du membre |
+| `GET` | `/api/groups` | Liste des groupes avec comptage membres |
+| `GET` | `/api/groups/{id}` | Groupe avec ses membres |
+| `GET` | `/api/compta` | Entrées comptables (filtres: membre, type, année) |
+| `GET` | `/api/compta-types` | Types de compta configurés |
+| `GET` | `/api/suivi` | Notes de suivi (filtres: membre, année) |
+
+Filtres communs sur `/api/members` : `group`, `metagroup`, `active`, `search`, `limit`, `offset`.
+
+Toutes les réponses sont en JSON UTF-8. Les erreurs retournent `{"error": "message"}` avec le code HTTP approprié.
 
 ---
 
 ## Stack technique
 
-- **Backend**: PHP 8, PDO/MySQL (MariaDB)
-- **Frontend**: Bootstrap 5.3.8, DataTables 1.13, jQuery 3, Font Awesome 6, Chart.js, moment.js 2.30 — tous auto-hébergés (zéro CDN)
+- **Backend**: PHP 8.2, PDO/MySQL (MariaDB)
+- **Frontend**: Bootstrap 5.3.8, htmx 2.0.4, Alpine.js 3, DataTables 1.13, jQuery 3, Font Awesome 6, Chart.js, moment.js 2.30 — tous auto-hébergés (zéro CDN)
 - **PDF**: pdftk (fill AcroForm) sur le serveur
 - **Génération documents**: MHTML (quittances Word)
 
@@ -120,20 +141,30 @@ html/
 ├── attestation_don.php         # Génération PDF attestation individuelle
 ├── attestation_bulk.php        # Génération PDF attestation en masse
 ├── quittancedon.php            # Génération quittance Word
+├── api/                        # API REST JSON
+│   ├── .htaccess               # Rewrite vers index.php (FollowSymLinks)
+│   ├── _bootstrap.php          # Auth de session + headers JSON
+│   ├── members.php             # GET /api/members, GET|PATCH /api/members/{id}
+│   ├── groups.php              # GET /api/groups, GET /api/groups/{id}
+│   ├── compta.php              # GET /api/compta
+│   ├── compta-types.php        # GET /api/compta-types
+│   └── suivi.php               # GET /api/suivi
 ├── assets/
 │   └── attestation.pdf         # Template AcroForm officiel
 ├── includes/
 │   ├── lib/
-│   │   ├── auth.php            # Session, login, requireLogin()
-│   │   └── bootstrap.php       # PDO, app settings, helpers (was declarations.php)
+│   │   ├── auth.php            # Session, login, rôles (readonly/user/manager/admin)
+│   │   └── bootstrap.php       # PDO, app settings, helpers
 │   ├── routing/
-│   │   ├── views.php           # View router (was manage_views.php)
-│   │   └── actions.php         # POST action dispatcher (was manage_actions.php)
+│   │   ├── views.php           # View router
+│   │   └── actions.php         # POST action dispatcher
 │   ├── views/                  # Page fragments, prefixed by domain
-│   │   ├── users_list.php      # Member list
-│   │   ├── users_edit_form.php # Edit member (tabs: data, compta, suivi, history)
+│   │   ├── users_list.php      # Member list + team filter dropdown
+│   │   ├── users_general_data.php # Fiche membre (view/edit Alpine toggle)
+│   │   ├── users_edit_form.php # Onglets compta, suivi, historique
 │   │   ├── donors_summary.php  # Contributions KPIs + donor list
-│   │   ├── settings_general.php# Settings (groups, categories, filters, compta types…)
+│   │   ├── settings_general.php# Settings (groupes, catégories, filtres, compta, comptes)
+│   │   ├── settings_app_users.php # Gestion des comptes utilisateurs (admin)
 │   │   └── ...
 │   ├── partials/
 │   │   ├── menu.php            # Nav sidebar
@@ -149,6 +180,7 @@ html/
 │   ├── webfonts/               # Font Awesome 6 woff2/ttf
 │   └── vendor/                 # Bootstrap, DataTables, Font Awesome CSS
 ├── js/
+│   ├── member-general-form.js  # Alpine component: view/edit toggle fiche membre
 │   └── vendor/                 # Bootstrap, DataTables, moment, Chart.js, htmx, Alpine.js
 └── fonts/
     └── inter/                  # Inter woff2 (latin + latin-ext)
@@ -210,11 +242,18 @@ La configuration de la base de données est stockée dans `conf/db.php` (hors we
 
 ## Sécurité
 
-### Authentification
+### Authentification et rôles
 
-Gérée par PHP (table `app_users`, bcrypt). Pas de htaccess. Le compte admin est créé via l'installeur web (`install.php`).
+Gérée par PHP (table `app_users`, bcrypt). Le compte admin initial est créé via l'installeur web (`install.php`). Les comptes suivants sont gérés dans Réglages → Comptes utilisateurs (admin uniquement).
 
-Rôles : `admin` (gestion des utilisateurs) et `user`. L'admin peut créer/supprimer des comptes et réinitialiser les mots de passe. Tout utilisateur peut changer son propre mot de passe.
+| Rôle | Lecture | Écriture | Suppression | Gestion des comptes |
+|------|---------|----------|-------------|---------------------|
+| `readonly` | ✓ | — | — | — |
+| `user` | ✓ | ✓ | — | — |
+| `manager` | ✓ | ✓ | ✓ | — |
+| `admin` | ✓ | ✓ | ✓ | ✓ |
+
+Tout utilisateur peut changer son propre mot de passe. L'admin peut réinitialiser les mots de passe des autres comptes.
 
 ### Fail2Ban
 
