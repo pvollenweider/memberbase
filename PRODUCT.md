@@ -6,15 +6,15 @@ product
 
 ## Users
 
-Administrateurs de l'organisation (1–3 personnes). Accès interne uniquement. Gèrent la base de données des membres, les équipes, les cotisations, la comptabilité et les exports.
+Collaborateurs internes de l'organisation (1–5 personnes). Accès interne uniquement. Quatre rôles : `readonly` (consultation seule), `user` (saisie), `manager` (saisie + suppression), `admin` (gestion des comptes + accès total). La gestion des comptes est réservée aux admins.
 
 Contexte: bureau, poste fixe ou laptop, usage régulier mais pas quotidien. Pas d'usage mobile prioritaire. L'app est un outil de travail, pas une vitrine.
 
 ## Product Purpose
 
-Application de gestion des membres de l'organisation. Permet de créer, consulter et modifier les fiches membres, gérer l'appartenance aux équipes, suivre les cotisations et entrées comptables, générer des étiquettes d'adresse et des exports XLS.
+Application de gestion des membres de l'organisation. Permet de créer, consulter et modifier les fiches membres, gérer l'appartenance aux équipes, suivre les cotisations et entrées comptables, générer des étiquettes d'adresse et des exports XLS. Expose une API REST JSON pour l'intégration avec des outils tiers.
 
-Succès: un administrateur trouve et met à jour une fiche membre en moins de 30 secondes. Les exports fonctionnent sans friction.
+Succès: un administrateur trouve et met à jour une fiche membre en moins de 30 secondes. Les exports fonctionnent sans friction. L'API retourne des données structurées sans configuration supplémentaire.
 
 ## Brand Personality
 
