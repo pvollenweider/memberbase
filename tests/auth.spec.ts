@@ -27,7 +27,7 @@ test('login with correct credentials redirects to member list', async ({ page })
 
 test('logout redirects to login page', async ({ page }) => {
   await login(page, 'testadmin', 'TestPassword1!');
-  await page.waitForURL(/index\.php/, { timeout: 20_000 });
+  await expect(page.locator('table.table')).toBeVisible({ timeout: 30_000 });
 
   // Submit logout via form POST directly (avoiding dropdown interaction flakiness)
   await page.evaluate(() => {
