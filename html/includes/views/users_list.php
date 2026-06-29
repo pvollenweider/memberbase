@@ -188,12 +188,12 @@ function filterTeamDropdown(q) {
   var val = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   document.querySelectorAll('.team-filterable').forEach(function(el) {
     var label = (el.dataset.label || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
-    el.style.display = label.includes(val) ? '' : 'none';
+    el.classList.toggle('team-hidden', !label.includes(val));
   });
   document.querySelectorAll('.team-cat-header').forEach(function(h) {
     var cat = h.dataset.cat;
     var hasVisible = Array.from(document.querySelectorAll('.team-filterable[data-cat="' + cat + '"]')).some(function(el) {
-      return el.style.display !== 'none';
+      return !el.classList.contains('team-hidden');
     });
     var display = hasVisible ? '' : 'none';
     h.style.display = display;
@@ -205,7 +205,7 @@ function filterTeamDropdown(q) {
 
 function visibleItems() {
   return Array.from(document.querySelectorAll('.team-filterable')).filter(function(el) {
-    return el.style.display !== 'none';
+    return !el.classList.contains('team-hidden');
   });
 }
 
@@ -250,6 +250,7 @@ if (!window._caTeamFilterInit) {
 </script>
 <style>
 .team-filterable.kb-focus { background: var(--ca-primary-light) !important; color: var(--ca-primary-dark) !important; }
+.team-filterable.team-hidden { display: none !important; }
 .text-bg-ca-orange  { background-color: rgba(253,126,20,0.85)  !important; color:#fff !important; }
 .text-bg-ca-teal    { background-color: rgba(32,201,151,0.85)  !important; color:#fff !important; }
 .text-bg-ca-pink    { background-color: rgba(214,51,132,0.85)  !important; color:#fff !important; }
