@@ -8,9 +8,9 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 if ($userid == -1) {
     if (isset($_REQUEST['userid'])) {
-        $userid = $_REQUEST['userid'];
+        $userid = (int)$_REQUEST['userid'];
     } else {
-        $userid = $_REQUEST['id'];
+        $userid = (int)$_REQUEST['id'];
     }
 }
 $user = new User();
@@ -122,7 +122,7 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
         </a>
         <?php endif ?>
     </div>
-    <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex align-items-center" data-no-dirty id="status-toggle-form" name="updateUser">
+    <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex align-items-center" data-no-dirty id="status-toggle-form">
         <input type="hidden" name="action"   value="<?= $user->status ? 'deactivateUser' : 'reactivateUser' ?>">
         <input type="hidden" name="id"       value="<?= (int)$user->getId() ?>">
         <input type="hidden" name="redirect" value="updateUser">
@@ -184,7 +184,7 @@ if ($view == "compta") {
       <span>Ce profil est <strong>archivé</strong> — il n'apparaît dans aucune liste.</span>
     </div>
     <?php endif ?>
-    <div class="position-relative <?= !$user->status ? 'ca-inactive-wrap' : '' ?>" x-data="{ showAll: window.matchMedia('(min-width: 768px)').matches }">
+    <div class="position-relative <?= !$user->status ? 'ca-inactive-wrap' : '' ?>">
       <?php if (!$user->status): ?>
       <div class="ca-inactive-overlay" aria-hidden="true"></div>
       <?php endif ?>
@@ -213,106 +213,85 @@ if ($view == "compta") {
           <i class="fas fa-phone fa-fw me-1 text-muted" aria-hidden="true"></i><?= htmlspecialchars($user->getTel(), ENT_QUOTES, $charset) ?>
         </a></div>
         <?php endif ?>
-        <button type="button" class="btn btn-sm btn-outline-secondary mt-3 w-100"
-                @click="showAll = !showAll"
-                x-text="showAll ? 'Masquer les champs' : 'Voir tous les champs'">
-        </button>
       </div>
 
       <div class="row">
-          <div class="col-md-8 ca-mobile-expandable" x-show="showAll">
+          <div class="col-md-8 ca-mobile-expandable">
               <?php include __DIR__ . "/users_general_data.php"; ?>
-              <?php $_comptaUrl = $_SERVER['PHP_SELF'] . '?view=compta&amp;userid=' . (int)$user->getId(); ?>
-              <?php if ((int)$_stats->compta_count > 0): ?>
-              <div class="row g-2 mt-2 small">
-                <?php if ((int)$_stats->don_count > 0): ?>
-                <div class="col-sm-6">
-                  <a href="<?= $_comptaUrl ?>" class="ca-stats-link d-block text-reset text-decoration-none">
-                  <div class="ca-stats-mini p-3 rounded border h-100" style="background:var(--bs-light)">
-                    <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">
-                      <i class="fas fa-hand-holding-heart me-1" aria-hidden="true"></i>Dons
-                    </div>
-                    <div class="d-flex flex-column gap-1">
-                      <div class="d-flex justify-content-between align-items-baseline">
-                        <span style="font-size:0.8rem"><?= $_year ?></span>
-                        <span class="fw-bold" style="font-size:0.95rem">
-                          <?php if ((int)$_stats->this_year_count > 0): ?>
-                            <?= number_format((float)$_stats->this_year_amount, 2, '.', "'") ?> <small class="text-muted fw-normal" style="font-size:0.7rem">CHF</small>
-                          <?php else: ?><span class="text-muted" style="font-size:0.8rem">—</span><?php endif ?>
-                        </span>
-                      </div>
-                      <div class="d-flex justify-content-between align-items-baseline text-muted">
-                        <span style="font-size:0.8rem"><?= $_year - 1 ?></span>
-                        <span style="font-size:0.85rem">
-                          <?php if ((int)$_stats->last_year_count > 0): ?>
-                            <?= number_format((float)$_stats->last_year_amount, 2, '.', "'") ?> <small style="font-size:0.7rem">CHF</small>
-                          <?php else: ?>—<?php endif ?>
-                        </span>
-                      </div>
-                      <div class="d-flex justify-content-between align-items-baseline border-top pt-1 mt-1">
-                        <span style="font-size:0.75rem;color:var(--ca-ink-muted)">Total depuis <?= $_stats->don_first_ts ? date('Y', (int)$_stats->don_first_ts) : '—' ?></span>
-                        <span class="fw-semibold" style="font-size:0.85rem">
-                          <?= number_format((float)$_stats->total_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  </a>
+          </div>
+          <div class="col-md-4 small">
+              <?php include __DIR__ . "/users_member_of.php"; ?>
+              <?php if ((int)$_stats->don_count > 0): ?>
+              <div class="ca-stats-mini mt-3 p-3 rounded border" style="background:var(--bs-light)">
+                <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">
+                  <i class="fas fa-hand-holding-heart me-1" aria-hidden="true"></i>Dons
                 </div>
-                <?php endif ?>
-                <?php if ((int)$_stats->other_count > 0): ?>
-                <?php $_otherTypeLabels = implode(', ', array_map(fn($t) => htmlentities((string)$t->label, ENT_COMPAT, $charset), array_filter($_otherTypes, fn($t) => (int)$t->this_year_count > 0 || (int)$t->last_year_count > 0))); ?>
-                <div class="col-sm-6">
-                  <a href="<?= $_comptaUrl ?>" class="ca-stats-link d-block text-reset text-decoration-none">
-                  <div class="ca-stats-mini p-3 rounded border h-100" style="background:var(--bs-light)">
-                    <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">
-                      <i class="fas fa-receipt me-1" aria-hidden="true"></i>Autres versements<?php if ($_otherTypeLabels): ?> <span class="fw-normal text-lowercase" style="letter-spacing:0">(<?= $_otherTypeLabels ?>)</span><?php endif ?>
-                    </div>
-                    <div class="d-flex flex-column gap-1">
-                      <div class="d-flex justify-content-between align-items-baseline">
-                        <span style="font-size:0.8rem"><?= $_year ?></span>
-                        <span class="fw-bold" style="font-size:0.95rem">
-                          <?php if ((int)$_stats->other_this_year_count > 0): ?>
-                            <?= number_format((float)$_stats->other_this_year_amount, 2, '.', "'") ?> <small class="text-muted fw-normal" style="font-size:0.7rem">CHF</small>
-                          <?php else: ?><span class="text-muted" style="font-size:0.8rem">—</span><?php endif ?>
-                        </span>
-                      </div>
-                      <div class="d-flex justify-content-between align-items-baseline text-muted">
-                        <span style="font-size:0.8rem"><?= $_year - 1 ?></span>
-                        <span style="font-size:0.85rem">
-                          <?php if ((int)$_stats->other_last_year_count > 0): ?>
-                            <?= number_format((float)$_stats->other_last_year_amount, 2, '.', "'") ?> <small style="font-size:0.7rem">CHF</small>
-                          <?php else: ?>—<?php endif ?>
-                        </span>
-                      </div>
-                      <div class="d-flex justify-content-between align-items-baseline border-top pt-1 mt-1">
-                        <span style="font-size:0.75rem;color:var(--ca-ink-muted)">Total depuis <?= $_stats->other_first_ts ? date('Y', (int)$_stats->other_first_ts) : '—' ?></span>
-                        <span class="fw-semibold" style="font-size:0.85rem">
-                          <?= number_format((float)$_stats->other_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  </a>
-                </div>
-                <?php endif ?>
-                <?php if ((int)$_stats->don_count > 0 && (int)$_stats->other_count > 0): ?>
-                <div class="col-12">
-                  <a href="<?= $_comptaUrl ?>" class="ca-stats-link d-block text-reset text-decoration-none">
-                  <div class="px-3 py-2 rounded border d-flex justify-content-between align-items-baseline" style="background:var(--bs-light)">
-                    <span class="text-muted" style="font-size:0.75rem">Total depuis <?= $_stats->all_first_ts ? date('Y', (int)$_stats->all_first_ts) : '—' ?></span>
-                    <span class="fw-semibold" style="font-size:0.85rem">
-                      <?= number_format((float)$_stats->all_time_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
+                <div class="d-flex flex-column gap-1">
+                  <div class="d-flex justify-content-between align-items-baseline">
+                    <span style="font-size:0.8rem"><?= $_year ?></span>
+                    <span class="fw-bold" style="font-size:0.95rem">
+                      <?php if ((int)$_stats->this_year_count > 0): ?>
+                        <?= number_format((float)$_stats->this_year_amount, 2, '.', "'") ?> <small class="text-muted fw-normal" style="font-size:0.7rem">CHF</small>
+                      <?php else: ?><span class="text-muted" style="font-size:0.8rem">—</span><?php endif ?>
                     </span>
                   </div>
-                  </a>
+                  <div class="d-flex justify-content-between align-items-baseline text-muted">
+                    <span style="font-size:0.8rem"><?= $_year - 1 ?></span>
+                    <span style="font-size:0.85rem">
+                      <?php if ((int)$_stats->last_year_count > 0): ?>
+                        <?= number_format((float)$_stats->last_year_amount, 2, '.', "'") ?> <small style="font-size:0.7rem">CHF</small>
+                      <?php else: ?>—<?php endif ?>
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-baseline border-top pt-1 mt-1">
+                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)">Total depuis <?= $_stats->don_first_ts ? date('Y', (int)$_stats->don_first_ts) : '—' ?></span>
+                    <span class="fw-semibold" style="font-size:0.85rem">
+                      <?= number_format((float)$_stats->total_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
+                    </span>
+                  </div>
                 </div>
-                <?php endif ?>
               </div>
               <?php endif ?>
-          </div>
-          <div class="col-md-4 small" id="ca-member-panel" hx-boost="false">
-              <?php include __DIR__ . "/users_member_of.php"; ?>
+              <?php if ((int)$_stats->other_count > 0): ?>
+              <?php $_otherTypeLabels = implode(', ', array_map(fn($t) => htmlentities((string)$t->label, ENT_COMPAT, $charset), array_filter($_otherTypes, fn($t) => (int)$t->this_year_count > 0 || (int)$t->last_year_count > 0))); ?>
+              <div class="ca-stats-mini mt-2 p-3 rounded border" style="background:var(--bs-light)">
+                <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">
+                  <i class="fas fa-receipt me-1" aria-hidden="true"></i>Autres versements<?php if ($_otherTypeLabels): ?> <span class="fw-normal text-lowercase" style="letter-spacing:0">(<?= $_otherTypeLabels ?>)</span><?php endif ?>
+                </div>
+                <div class="d-flex flex-column gap-1">
+                  <div class="d-flex justify-content-between align-items-baseline">
+                    <span style="font-size:0.8rem"><?= $_year ?></span>
+                    <span class="fw-bold" style="font-size:0.95rem">
+                      <?php if ((int)$_stats->other_this_year_count > 0): ?>
+                        <?= number_format((float)$_stats->other_this_year_amount, 2, '.', "'") ?> <small class="text-muted fw-normal" style="font-size:0.7rem">CHF</small>
+                      <?php else: ?><span class="text-muted" style="font-size:0.8rem">—</span><?php endif ?>
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-baseline text-muted">
+                    <span style="font-size:0.8rem"><?= $_year - 1 ?></span>
+                    <span style="font-size:0.85rem">
+                      <?php if ((int)$_stats->other_last_year_count > 0): ?>
+                        <?= number_format((float)$_stats->other_last_year_amount, 2, '.', "'") ?> <small style="font-size:0.7rem">CHF</small>
+                      <?php else: ?>—<?php endif ?>
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-baseline border-top pt-1 mt-1">
+                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)">Total depuis <?= $_stats->other_first_ts ? date('Y', (int)$_stats->other_first_ts) : '—' ?></span>
+                    <span class="fw-semibold" style="font-size:0.85rem">
+                      <?= number_format((float)$_stats->other_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <?php endif ?>
+              <?php if ((int)$_stats->compta_count > 0): ?>
+              <div class="mt-2 px-3 py-2 rounded border d-flex justify-content-between align-items-baseline" style="background:var(--bs-light)">
+                <span class="text-muted" style="font-size:0.75rem">Total depuis <?= $_stats->all_first_ts ? date('Y', (int)$_stats->all_first_ts) : '—' ?></span>
+                <span class="fw-semibold" style="font-size:0.85rem">
+                  <?= number_format((float)$_stats->all_time_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
+                </span>
+              </div>
+              <?php endif ?>
           </div>
       </div>
     </div>
