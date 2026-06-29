@@ -29,9 +29,8 @@ test.describe('Members', () => {
     await page.fill('#email', 'e2e@example.com');
     await page.click('button[type="submit"].btn-success');
 
-    // htmx swaps in updateUser form (no HX-Location, just renders the new user's form)
-    // Wait for the updateUser form's hidden id field (scoped to avoid status-toggle-form)
-    await expect(page.locator('form[name="updateUser"] input[type="hidden"][name="id"]')).toBeAttached({ timeout: 15_000 });
+    // After add, htmx-boost navigates to generalData — wait for URL to contain userid
+    await page.waitForURL(/userid=/, { timeout: 15_000 });
 
     await page.goto('/index.php?action=search&searchString=Testmembre');
     await expect(page.locator('table.table tbody tr').first()).toContainText('Testmembre');
@@ -66,9 +65,9 @@ test.describe('Members', () => {
     await page.fill('#firstName', 'Temp');
     await page.click('button[type="submit"].btn-success');
 
-    // Wait for updateUser form, then extract new user id from hidden input
-    await expect(page.locator('form[name="updateUser"] input[type="hidden"][name="id"]')).toBeAttached({ timeout: 15_000 });
-    const uid = await page.locator('form[name="updateUser"] input[type="hidden"][name="id"]').getAttribute('value');
+    // After add, htmx-boost navigates to generalData — extract userid from URL
+    await page.waitForURL(/userid=/, { timeout: 15_000 });
+    const uid = new URL(page.url()).searchParams.get('userid');
     if (!uid) throw new Error('Could not determine new user id');
 
     await page.goto(`/index.php?view=deleteUser&id=${uid}`);

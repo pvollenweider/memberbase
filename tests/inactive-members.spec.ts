@@ -16,8 +16,8 @@ test.describe.serial('Inactive members', () => {
     await page.fill('#lastName', 'Archived');
     await page.fill('#firstName', 'Temp');
     await page.click('button[type="submit"].btn-success');
-    await expect(page.locator('form[name="updateUser"] input[type="hidden"][name="id"]')).toBeAttached({ timeout: 15_000 });
-    archivedId = await page.locator('form[name="updateUser"] input[type="hidden"][name="id"]').getAttribute('value') ?? '';
+    await page.waitForURL(/userid=/, { timeout: 15_000 });
+    archivedId = new URL(page.url()).searchParams.get('userid') ?? '';
     if (!archivedId) throw new Error('Could not get new user id');
 
     // Deactivate via deleteUser page (choose deactivate, not delete)
