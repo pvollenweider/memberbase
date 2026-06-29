@@ -40,18 +40,23 @@ test.describe('Members', () => {
   test('edit a member firstname and verify updated', async ({ page }) => {
     await page.goto('/index.php?view=generalData&userid=1');
 
-    await page.locator('#firstName').fill('AliceModified');
-    await page.click('button[type="submit"].btn-primary');
+    // Enter edit mode via hover zone click
+    await page.locator('.ca-view-zone').click();
+    await expect(page.locator('#gd-firstName')).toBeVisible({ timeout: 5_000 });
 
-    // updateUser response injects #casa-save-ok into the swapped content
+    await page.locator('#gd-firstName').fill('AliceModified');
+    await page.click('button:has-text("Enregistrer")');
+
+    // Alpine injects #casa-save-ok after successful save
     await expect(page.locator('#casa-save-ok')).toBeAttached({ timeout: 10_000 });
 
-    await page.goto('/index.php?view=generalData&userid=1');
-    await expect(page.locator('#firstName')).toHaveValue('AliceModified');
+    // View mode shows updated name without page reload
+    await expect(page.locator('.ca-view-zone')).toContainText('AliceModified', { timeout: 5_000 });
 
     // Restore
-    await page.locator('#firstName').fill('Alice');
-    await page.click('button[type="submit"].btn-primary');
+    await page.locator('.ca-view-zone').click();
+    await page.locator('#gd-firstName').fill('Alice');
+    await page.click('button:has-text("Enregistrer")');
     await expect(page.locator('#casa-save-ok')).toBeAttached({ timeout: 10_000 });
   });
 
