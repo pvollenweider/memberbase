@@ -21,23 +21,45 @@ ALTER TABLE app_users
 
 ---
 
-### 2. Activation de `mod_rewrite` Apache (si pas déjà actif)
+### 2. Configuration Apache — routes API
 
-Les endpoints API utilisent des URLs propres (`/api/members/42`) via `.htaccess`.
-Vérifier que `mod_rewrite` est activé et que `AllowOverride All` est configuré
-pour le répertoire `html/`.
+Les endpoints API utilisent des URLs propres (`/api/members/42`).
+`mod_rewrite` doit être actif et les règles déclarées **dans le vhost** (pas via `.htaccess`,
+car `AllowOverride AuthConfig` bloque les directives Rewrite dans `.htaccess`).
 
 ```bash
 a2enmod rewrite
 systemctl reload apache2
 ```
 
-Vérifier dans la config Apache (ou vhost) :
+Ajouter ce bloc dans le vhost HTTPS (`/etc/apache2/sites-available/membres.casa-alianza.ch.conf`),
+à l'intérieur du `<VirtualHost *:443>` :
 
 ```apache
-<Directory "/var/www/html">
-    AllowOverride All
+<Directory "/var/www/vhosts/membres.casa-alianza.ch/html/api">
+    Options FollowSymLinks
+    AllowOverride None
+    Require all granted
+
+    RewriteEngine On
+    RewriteRule ^members/([0-9]+)/groups/?$     members.php?id=$1&sub=groups  [QSA,L]
+    RewriteRule ^members/([0-9]+)/?$            members.php?id=$1             [QSA,L]
+    RewriteRule ^members/?$                     members.php                   [QSA,L]
+    RewriteRule ^compta/([0-9]+)/?$             compta.php?id=$1              [QSA,L]
+    RewriteRule ^compta/?$                      compta.php                    [QSA,L]
+    RewriteRule ^compta-types/?$                compta-types.php              [QSA,L]
+    RewriteRule ^suivi/([0-9]+)/?$              suivi.php?id=$1               [QSA,L]
+    RewriteRule ^suivi/?$                       suivi.php                     [QSA,L]
+    RewriteRule ^groups/([0-9]+)/members/?$     groups.php?id=$1&sub=members  [QSA,L]
+    RewriteRule ^groups/([0-9]+)/?$             groups.php?id=$1              [QSA,L]
+    RewriteRule ^groups/?$                      groups.php                    [QSA,L]
 </Directory>
+```
+
+Puis recharger Apache :
+
+```bash
+apachectl configtest && systemctl reload apache2
 ```
 
 ---
