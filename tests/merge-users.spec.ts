@@ -17,16 +17,16 @@ test.describe.serial('Merge members', () => {
     await page.fill('#lastName', 'MergeA');
     await page.fill('#firstName', 'Temp');
     await page.click('button[type="submit"].btn-success');
-    await expect(page.locator('form[name="updateUser"] input[type="hidden"][name="id"]')).toBeAttached({ timeout: 15_000 });
-    idA = await page.locator('form[name="updateUser"] input[type="hidden"][name="id"]').getAttribute('value') ?? '';
+    await page.waitForURL(/userid=/, { timeout: 15_000 });
+    idA = new URL(page.url()).searchParams.get('userid') ?? '';
 
     // Member B
     await page.goto('/index.php?view=addUser');
     await page.fill('#lastName', 'MergeB');
     await page.fill('#firstName', 'Temp');
     await page.click('button[type="submit"].btn-success');
-    await expect(page.locator('form[name="updateUser"] input[type="hidden"][name="id"]')).toBeAttached({ timeout: 15_000 });
-    idB = await page.locator('form[name="updateUser"] input[type="hidden"][name="id"]').getAttribute('value') ?? '';
+    await page.waitForURL(/userid=/, { timeout: 15_000 });
+    idB = new URL(page.url()).searchParams.get('userid') ?? '';
 
     if (!idA || !idB) throw new Error('Could not get user ids');
   });
