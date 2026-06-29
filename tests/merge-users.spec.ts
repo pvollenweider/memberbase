@@ -5,7 +5,14 @@
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
+
+async function getNewUserId(page: Page): Promise<string> {
+  const link = page.locator('a[href*="view=generalData&userid="]').first();
+  await expect(link).toBeAttached({ timeout: 15_000 });
+  const href = await link.getAttribute('href') ?? '';
+  return new URLSearchParams(href.split('?')[1]).get('userid') ?? '';
+}
 
 test.describe.serial('Merge members', () => {
   let idA: string;
@@ -17,16 +24,14 @@ test.describe.serial('Merge members', () => {
     await page.fill('#lastName', 'MergeA');
     await page.fill('#firstName', 'Temp');
     await page.click('button[type="submit"].btn-success');
-    await page.waitForURL(/userid=/, { timeout: 15_000 });
-    idA = new URL(page.url()).searchParams.get('userid') ?? '';
+    idA = await getNewUserId(page);
 
     // Member B
     await page.goto('/index.php?view=addUser');
     await page.fill('#lastName', 'MergeB');
     await page.fill('#firstName', 'Temp');
     await page.click('button[type="submit"].btn-success');
-    await page.waitForURL(/userid=/, { timeout: 15_000 });
-    idB = new URL(page.url()).searchParams.get('userid') ?? '';
+    idB = await getNewUserId(page);
 
     if (!idA || !idB) throw new Error('Could not get user ids');
   });
