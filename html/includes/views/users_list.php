@@ -208,33 +208,44 @@ function visibleItems() {
   });
 }
 
-document.getElementById('team-filter-input').addEventListener('keydown', function(e) {
-  var items = visibleItems();
-  if (!items.length) return;
-  var focused = document.querySelector('.team-filterable.kb-focus');
+// Use document-level delegation so these listeners survive htmx content swaps.
+// One-time init guard prevents duplicates when the script re-executes on boost navigation.
+if (!window._caTeamFilterInit) {
+  window._caTeamFilterInit = true;
 
-  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    e.preventDefault();
-    if (focused) focused.classList.remove('kb-focus');
-    var idx = focused ? items.indexOf(focused) : -1;
-    idx = e.key === 'ArrowDown' ? Math.min(idx + 1, items.length - 1) : Math.max(idx - 1, 0);
-    items[idx].classList.add('kb-focus');
-    items[idx].scrollIntoView({ block: 'nearest' });
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    var target = focused || items[0];
-    if (target) window.location = target.href;
-  } else if (e.key === 'Escape') {
-    bootstrap.Dropdown.getInstance(document.getElementById('navbarDropdown')).hide();
-  }
-});
+  document.addEventListener('keydown', function(e) {
+    if (!e.target || e.target.id !== 'team-filter-input') return;
+    var items = visibleItems();
+    if (!items.length) return;
+    var focused = document.querySelector('.team-filterable.kb-focus');
 
-document.getElementById('navbarDropdown').addEventListener('shown.bs.dropdown', function() {
-  var input = document.getElementById('team-filter-input');
-  input.value = '';
-  filterTeamDropdown('');
-  setTimeout(function() { input.focus(); }, 0);
-});
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (focused) focused.classList.remove('kb-focus');
+      var idx = focused ? items.indexOf(focused) : -1;
+      idx = e.key === 'ArrowDown' ? Math.min(idx + 1, items.length - 1) : Math.max(idx - 1, 0);
+      items[idx].classList.add('kb-focus');
+      items[idx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      var target = focused || items[0];
+      if (target) window.location = target.href;
+    } else if (e.key === 'Escape') {
+      var dd = document.getElementById('navbarDropdown');
+      var inst = dd && bootstrap.Dropdown.getInstance(dd);
+      if (inst) inst.hide();
+    }
+  });
+
+  document.addEventListener('shown.bs.dropdown', function(e) {
+    if (!e.target || e.target.id !== 'navbarDropdown') return;
+    var input = document.getElementById('team-filter-input');
+    if (!input) return;
+    input.value = '';
+    filterTeamDropdown('');
+    setTimeout(function() { input.focus(); }, 0);
+  });
+}
 </script>
 <style>
 .team-filterable.kb-focus { background: var(--ca-primary-light) !important; color: var(--ca-primary-dark) !important; }
