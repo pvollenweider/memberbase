@@ -109,6 +109,16 @@ if ($__flash):
   </td>
   <td class="text-end" style="white-space:nowrap">
     <?php if (!$isSelf): ?>
+    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Modifier"
+            data-bs-toggle="modal" data-bs-target="#modal-edit-app-user"
+            data-user-id="<?= (int)$_au->id ?>"
+            data-username="<?= htmlspecialchars($_au->username, ENT_QUOTES, $charset) ?>"
+            data-display-name="<?= htmlspecialchars($_au->display_name ?? '', ENT_QUOTES, $charset) ?>"
+            data-email="<?= htmlspecialchars($_au->email ?? '', ENT_QUOTES, $charset) ?>"
+            data-role="<?= htmlspecialchars($_au->role, ENT_QUOTES, $charset) ?>"
+            data-is-active="<?= $_au->is_active ? '1' : '0' ?>">
+      <i class="fas fa-pen" aria-hidden="true"></i>
+    </button>
     <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" title="Réinitialiser mot de passe"
             data-bs-toggle="modal" data-bs-target="#modal-reset-app-user"
             data-user-id="<?= (int)$_au->id ?>"
@@ -228,6 +238,50 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <?php endif ?>
 
+<div class="modal fade" id="modal-edit-app-user" tabindex="-1" aria-labelledby="modal-edit-app-user-label" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" hx-boost="false">
+        <input type="hidden" name="action"    value="updateAppUser">
+        <input type="hidden" name="target_id" id="modal-edit-target-id" value="">
+        <div class="modal-header py-2">
+          <h6 class="modal-title" id="modal-edit-app-user-label" style="font-size:0.9rem">
+            <i class="fas fa-pen me-2" aria-hidden="true"></i>Modifier <strong id="modal-edit-username"></strong>
+          </h6>
+          <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+        </div>
+        <div class="modal-body" style="font-size:0.875rem">
+          <div class="mb-3">
+            <label for="modal-edit-display-name" class="form-label">Nom affiché</label>
+            <input type="text" class="form-control form-control-sm" id="modal-edit-display-name" name="au_display_name" maxlength="200">
+          </div>
+          <div class="mb-3">
+            <label for="modal-edit-email" class="form-label">Email</label>
+            <input type="email" class="form-control form-control-sm" id="modal-edit-email" name="au_email" maxlength="200">
+          </div>
+          <div class="mb-3">
+            <label for="modal-edit-role" class="form-label">Rôle</label>
+            <select class="form-select form-select-sm" id="modal-edit-role" name="au_role">
+              <option value="readonly">Lecture seule</option>
+              <option value="user">Utilisateur</option>
+              <option value="manager">Manager</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="modal-edit-is-active" name="au_is_active" value="1">
+            <label class="form-check-label" for="modal-edit-is-active">Compte actif</label>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+          <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="modal-reset-app-user" tabindex="-1" aria-labelledby="modal-reset-app-user-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -285,5 +339,14 @@ document.getElementById('modal-delete-app-user').addEventListener('show.bs.modal
     var btn = e.relatedTarget;
     document.getElementById('modal-delete-app-username').textContent = btn.dataset.username;
     document.getElementById('modal-delete-app-target-id').value      = btn.dataset.userId;
+});
+document.getElementById('modal-edit-app-user').addEventListener('show.bs.modal', function (e) {
+    var btn = e.relatedTarget;
+    document.getElementById('modal-edit-target-id').value        = btn.dataset.userId;
+    document.getElementById('modal-edit-username').textContent   = btn.dataset.username;
+    document.getElementById('modal-edit-display-name').value     = btn.dataset.displayName;
+    document.getElementById('modal-edit-email').value            = btn.dataset.email;
+    document.getElementById('modal-edit-role').value             = btn.dataset.role;
+    document.getElementById('modal-edit-is-active').checked      = btn.dataset.isActive === '1';
 });
 </script>

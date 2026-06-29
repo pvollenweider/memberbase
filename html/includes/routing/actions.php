@@ -51,6 +51,7 @@ if (isset($_REQUEST['action'])) {
         'logout'               => 'auth',
         'changePassword'       => 'auth',
         'createAppUser'        => 'auth',
+        'updateAppUser'        => 'auth',
         'deleteAppUser'        => 'auth',
         'resetUserPassword'    => 'auth',
         'flushAuditLog'        => 'auth',

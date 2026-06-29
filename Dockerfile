@@ -3,11 +3,11 @@ FROM php:8.2-apache
 # Extensions PHP
 RUN docker-php-ext-install pdo pdo_mysql
 
-# mod_rewrite
-RUN a2enmod rewrite
-
-# pdftk-java
-RUN apt-get update && apt-get install -y pdftk-java && rm -rf /var/lib/apt/lists/*
+# System packages + Apache modules
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends pdftk-java \
+    && rm -rf /var/lib/apt/lists/* \
+    && a2enmod rewrite headers expires deflate brotli
 
 # Apache config
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf

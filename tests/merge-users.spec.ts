@@ -81,7 +81,7 @@ test.describe.serial('Merge members', () => {
 
     // Member A should still exist, B should be gone
     await page.goto(`/index.php?view=generalData&userid=${idA}`);
-    await expect(page.locator('#lastName')).toHaveValue('MergeA');
+    await expect(page.locator('.ca-view-zone')).toContainText('MergeA', { timeout: 5_000 });
 
     // Cleanup A
     await page.goto(`/index.php?view=deleteUser&id=${idA}`);

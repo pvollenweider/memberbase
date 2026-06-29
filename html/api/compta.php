@@ -147,6 +147,11 @@ function handleCreate(): void
 
     $c = new Compta();
     $c->setUserId($memberId);
+    $c->setlibele('');
+    $c->setQuittance('');
+    $c->setSum(0);
+    $c->setDate(0);
+    $c->setWantsAttestation(false);
     applyFields($c, $body);
     $c->save();
 

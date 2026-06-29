@@ -45,6 +45,9 @@ if (isset($_REQUEST['year'])) {
     $year = $_REQUEST['year'];
 }
 
+// AJAX search is safe when no complex server-side filter is active
+$_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
+
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <div class="dropdown">
@@ -326,9 +329,9 @@ $query .= " ORDER BY $orderColumn $orderSort";
     <?= implode(' · ', array_map(fn($n) => htmlspecialchars($n, ENT_QUOTES, $charset), $mgTeamNames)) ?>
 </p>
     <?php endif; endif; ?>
-<?php if (!empty($currentFilterDesc)): ?>
-<p class="text-muted mb-2" style="font-size:0.78rem"><i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= $currentFilterDesc ?></p>
-<?php endif ?>
+<p id="ca-filter-desc" class="text-muted mb-2" style="font-size:0.78rem<?= empty($currentFilterDesc) ? ';display:none' : '' ?>">
+  <i class="fas fa-circle-info me-1" aria-hidden="true"></i><span id="ca-filter-desc-text"><?= htmlspecialchars($currentFilterDesc, ENT_COMPAT, $charset) ?></span>
+</p>
 <div class="table-responsive">
 <table class="table table-hover table-sm export">
 <thead>
@@ -614,10 +617,12 @@ document.querySelector('.export tbody') && document.querySelector('.export tbody
     if (e.target.closest('a, button')) return;
     window.location.href = tr.dataset.href;
 });
-$(document).ready(function () {
+
+var CA_DT_INSTANCE = null;
+function caInitDT() {
     $.fn.dataTable.moment('DD/MM/YYYY');
     if ($.fn.DataTable.isDataTable('.export')) { $('.export').DataTable().destroy(); }
-    $('.export').DataTable({
+    CA_DT_INSTANCE = $('.export').DataTable({
         order: [[2, 'asc']],
         paging: false,
         dom: CA_DT_DOM,
@@ -627,5 +632,268 @@ $(document).ready(function () {
         ],
         language: Object.assign({}, CA_DT_LANGUAGE, { info: '_TOTAL_ profils', infoFiltered: '(filtrés sur _MAX_)' })
     });
-});
+}
+$(document).ready(caInitDT);
+
+(function () {
+  var BASE_PATH        = <?= json_encode($_SERVER['PHP_SELF']) ?>;
+  var SEARCH_AJAX_OK   = <?= $_ajaxSearchOk ? 'true' : 'false' ?>;
+  var INITIAL_METAGROUP = <?= (int)$metagroup ?>;
+  var _year = new Date().getFullYear();
+  var FILTER_DESCS = {
+    '-4':    "Membres dont la cotisation " + _year + " n’a pas encore été enregistrée.",
+    '-3333': "Profils ayant payé au moins une cotisation dans leur historique, mais aucune lors des 3 dernières années (" + (_year - 2) + "–" + _year + ").",
+    '-5555': "Profils actifs sans aucune entrée comptable (cotisation, don ou autre) depuis " + (_year - 10) + ".",
+    '-6666': "Profils ayant effectué au moins un versement non institutionnel en " + (_year - 1) + " — inclut cotisations, dons et tout autre type non marqué « Institutionnel » dans les types compta."
+  };
+
+  function sexeIcon(g) {
+    if (g === 'm')  return "<i class='fas fa-male s' aria-hidden='true'></i><span class='d-none'>Monsieur</span>";
+    if (g === 'f')  return "<i class='fas fa-female s' aria-hidden='true'></i><span class='d-none'>Madame</span>";
+    if (g === 'hf') return "<i class='fas fa-male s' aria-hidden='true'></i><i class='fas fa-female s' aria-hidden='true'></i><span class='d-none'>Madame et Monsieur</span>";
+    return '';
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear();
+  }
+
+  var BG_MAP = {'ca-orange':'rgba(253,126,20,0.85)','ca-teal':'rgba(32,201,151,0.85)','ca-pink':'rgba(214,51,132,0.85)','ca-purple':'rgba(111,66,193,0.85)','ca-indigo':'rgba(102,16,242,0.85)','ca-lime':'rgba(128,189,64,0.85)'};
+
+  function typesBadges(types, userId) {
+    if (!types || !types.length) return '';
+    var inner = types.map(function(t) {
+      var cls = t.color || 'bg-secondary';
+      cls = cls.replace('-subtle', '');
+      if (cls.startsWith('ca-')) {
+        var bg = BG_MAP[cls];
+        var style = bg ? 'background:' + bg + ';color:#fff;font-size:0.6rem;padding:2px 4px' : 'font-size:0.6rem;padding:2px 4px';
+        return '<span class="badge" style="' + style + '" title="' + esc(t.label) + '">' + abbr(t.label) + '</span>';
+      }
+      var bgClass = cls.startsWith('bg-') ? cls.replace('bg-', 'text-bg-') : 'text-bg-secondary';
+      return '<span class="badge ' + bgClass + '" style="font-size:0.6rem;padding:2px 4px" title="' + esc(t.label) + '">' + abbr(t.label) + '</span>';
+    }).join('');
+    return '<a href="' + BASE_PATH + '?view=compta&userid=' + userId + '" class="text-decoration-none">' + inner + '</a>';
+  }
+
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function abbr(s) { return esc(((s||'').substring(0, 3)).toUpperCase()); }
+
+  function groupsBadges(groups) {
+    if (!groups || !groups.length) return '';
+    return groups.map(function(g) {
+      return '<span class="badge text-bg-light border" style="font-size:0.6rem;padding:2px 5px;font-weight:500" title="' + esc(g.name) + '">' + esc(g.name) + '</span>';
+    }).join(' ');
+  }
+
+  function buildRow(m) {
+    var href = BASE_PATH + '?view=generalData&id=' + m.id;
+    var email = m.email ? '<a href="mailto:' + esc(m.email) + '">' + esc(m.email).replace(',','<br>') + '</a>' : '';
+    var typesOrGroups = m.groups && m.groups.length ? groupsBadges(m.groups) : typesBadges(m.types, m.id);
+    return '<tr class="ca-row-link" data-href="' + href + '" style="cursor:pointer">' +
+      '<td class="d-none d-sm-table-cell d-md-table-cell">' + sexeIcon(m.gender) + '</td>' +
+      '<td class="bold"><div class="text-truncate" style="max-width:200px">' + esc(m.society||'') + '</div></td>' +
+      '<td class="text-nowrap">' + esc(m.lastName||'') + '</td>' +
+      '<td class="text-nowrap2">' + esc(m.firstName||'') + '</td>' +
+      '<td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px">' + esc(m.address||'') + '</div></td>' +
+      '<td class="text-nowrap d-none d-sm-table-cell">' + esc(m.npa||'') + '</td>' +
+      '<td class="d-md-table-cell">' + email + '</td>' +
+      '<td class="d-none d-sm-table-cell d-md-table-cell">' + formatDate(m.createdAt) + '</td>' +
+      '<td class="d-none d-sm-table-cell">' + typesOrGroups + '</td>' +
+      '</tr>';
+  }
+
+  var _abortCtrl  = null;
+  var _loaderTimer = null;
+
+  // Virtual filter team IDs — must fall back to server-side render
+  var VIRTUAL_FILTERS = [-3, -4, -3333, -5555, -6666];
+
+  // Loader — after 200 ms replaces tbody with a spinner row; hidden on resolve/reject
+  var _savedTbody = null;
+  var _loader = {
+    show: function() {
+      var tbody = document.querySelector('.export tbody');
+      if (!tbody) return;
+      if ($.fn.DataTable.isDataTable('.export')) { $('.export').DataTable().destroy(); }
+      _savedTbody = tbody.innerHTML;
+      var cols = document.querySelectorAll('.export thead tr th').length || 9;
+      tbody.innerHTML = '<tr><td colspan="' + cols + '" class="text-center py-4 text-muted">' +
+        '<div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>' +
+        'Chargement…</td></tr>';
+    },
+    hide: function() { _savedTbody = null; }
+  };
+
+  function applyHighlight(q) {
+    if (!q) return;
+    var terms = q.split(/\s+/).filter(Boolean);
+    if (!terms.length) return;
+    var re = new RegExp('(' + terms.map(function(t) {
+      return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }).join('|') + ')', 'gi');
+    var tbody = document.querySelector('.export tbody');
+    if (!tbody) return;
+    // Walk text nodes only — skip already-marked nodes
+    var walker = document.createTreeWalker(tbody, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n) {
+        return n.parentNode && n.parentNode.nodeName !== 'MARK' && n.nodeValue.trim()
+          ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function(node) {
+      if (!re.test(node.nodeValue)) return;
+      re.lastIndex = 0;
+      var frag = document.createDocumentFragment();
+      var last = 0, m;
+      while ((m = re.exec(node.nodeValue)) !== null) {
+        if (m.index > last) frag.appendChild(document.createTextNode(node.nodeValue.slice(last, m.index)));
+        var mark = document.createElement('mark');
+        mark.textContent = m[0];
+        frag.appendChild(mark);
+        last = m.index + m[0].length;
+      }
+      if (last < node.nodeValue.length) frag.appendChild(document.createTextNode(node.nodeValue.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  function setFilterDesc(desc) {
+    var el  = document.getElementById('ca-filter-desc');
+    var txt = document.getElementById('ca-filter-desc-text');
+    if (!el || !txt) return;
+    if (desc) { txt.textContent = desc; el.style.display = ''; }
+    else       { txt.textContent = '';  el.style.display = 'none'; }
+  }
+
+  function doFetch(apiUrl, pushUrl, searchTerm) {
+    if (_abortCtrl) _abortCtrl.abort();
+    _abortCtrl = new AbortController();
+
+    clearTimeout(_loaderTimer);
+    _loaderTimer = setTimeout(function() { _loader.show(); }, 200);
+
+    fetch(apiUrl, { signal: _abortCtrl.signal, credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(json) {
+        clearTimeout(_loaderTimer);
+        _loader.hide();
+
+        var rows = (json.data || []).map(buildRow).join('');
+        var tbody = document.querySelector('.export tbody');
+        if (!tbody) return;
+
+        if ($.fn.DataTable.isDataTable('.export')) { $('.export').DataTable().destroy(); }
+        tbody.innerHTML = rows;
+        setTimeout(function() {
+          caInitDT();
+          if (searchTerm) applyHighlight(searchTerm);
+        }, 0);
+
+        // Update filter description for virtual filters
+        var _usp  = new URLSearchParams(apiUrl.split('?')[1] || '');
+        var _team = _usp.has('team') ? _usp.get('team') : null;
+        setFilterDesc(_team ? (FILTER_DESCS[_team] || '') : '');
+
+        history.pushState({caState: {apiUrl: apiUrl, pushUrl: pushUrl, searchTerm: searchTerm}}, '', pushUrl);
+      })
+      .catch(function(e) {
+        clearTimeout(_loaderTimer);
+        _loader.hide();
+        if (e.name !== 'AbortError') console.error('member fetch failed', e);
+      });
+  }
+
+  function doSearch(q) {
+    var apiUrl  = '/api/members?limit=2000&types=1' + (q ? '&search=' + encodeURIComponent(q) : '');
+    var pushUrl = window.location.pathname + (q
+      ? '?action=search&team=<?= FILTER_ALL_EXCEPT_ARCHIVES ?>&searchString=' + encodeURIComponent(q)
+      : '?view=usersList');
+    doFetch(apiUrl, pushUrl, q);
+  }
+
+  // Intercept both search forms before htmx handles them (only when no complex filter active)
+  if (SEARCH_AJAX_OK) {
+    ['main-search-form', 'mobile-search-form'].forEach(function(id) {
+      var frm = document.getElementById(id);
+      if (!frm) return;
+      frm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation(); // prevent htmx boost
+        var inp = frm.querySelector('[name="searchString"]');
+        var q = inp ? inp.value.trim() : '';
+        ['search', 'mobile-search'].forEach(function(sid) {
+          var el = document.getElementById(sid);
+          if (el && el !== inp) el.value = q;
+        });
+        doSearch(q);
+      }, true); // capture phase — fires before htmx listener
+    });
+  }
+
+  // Intercept team/metagroup dropdown links (skip virtual filters)
+  document.addEventListener('click', function(e) {
+    var link = e.target.closest('.dropdown-item[href]');
+    if (!link) return;
+    var href = link.getAttribute('href') || '';
+    var usp  = new URLSearchParams(href.split('?')[1] || '');
+    var teamVal = usp.has('team') ? parseInt(usp.get('team'), 10) : null;
+    var mgVal   = usp.has('metagroup') ? parseInt(usp.get('metagroup'), 10) : null;
+
+    // Let non-team/non-metagroup links navigate normally
+    if (teamVal === null && mgVal === null) return;
+
+    e.preventDefault();
+    e.stopPropagation();       // prevent event reaching htmx bubble listener on body
+    e.stopImmediatePropagation();
+
+    var apiUrl = '/api/members?limit=2000&types=1';
+    if (teamVal !== null && teamVal !== 0) apiUrl += '&team=' + teamVal;
+    if (mgVal   !== null && mgVal   > 0)  apiUrl += '&metagroup=' + mgVal;
+
+    // team=0 = all members, no extra param needed
+    doFetch(apiUrl, href, '');
+
+    // Update active state in dropdown
+    document.querySelectorAll('.dropdown-item.active').forEach(function(el) { el.classList.remove('active'); });
+    link.classList.add('active');
+
+    // Update dropdown button label — use first non-badge span to exclude member count badge
+    var btnEl = document.getElementById('navbarDropdown');
+    if (btnEl) {
+      var nameSpan = link.querySelector('span:not(.badge)');
+      btnEl.textContent = nameSpan ? nameSpan.textContent.trim() : link.textContent.replace(/\s*\d+\s*$/, '').trim();
+    }
+
+    // Close dropdown
+    var ddEl = document.getElementById('navbarDropdown');
+    if (ddEl && bootstrap && bootstrap.Dropdown) {
+      var dd = bootstrap.Dropdown.getInstance(ddEl);
+      if (dd) dd.hide();
+    }
+  }, true); // capture phase
+
+  // On popstate (browser back/forward)
+  window.addEventListener('popstate', function(e) {
+    if (e.state && e.state.caState) {
+      var s = e.state.caState;
+      var inp = document.getElementById('search');
+      if (inp) inp.value = s.searchTerm || '';
+      doFetch(s.apiUrl, s.pushUrl, s.searchTerm || '');
+    }
+  });
+
+  // On metagroup page load, replace PHP-rendered table with API result (includes groups column)
+  if (INITIAL_METAGROUP > 0) {
+    doFetch(
+      '/api/members?limit=2000&types=1&metagroup=' + INITIAL_METAGROUP,
+      window.location.href,
+      ''
+    );
+  }
+})();
 </script>

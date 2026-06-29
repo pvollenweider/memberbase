@@ -111,7 +111,7 @@ uasort($nonMemberBycat, $_catSortFn);
                    title="<?= $t->hidden ? '[Groupe masqué] ' : '' ?>Retirer de <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>">
                     <?php if ($t->hidden): ?><i class="fas fa-eye-slash me-1" aria-label="Groupe masqué" style="font-size:0.65rem;opacity:0.6"></i><?php endif ?>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
-                    <span class="pill-x" aria-hidden="true">✕</span>
+                    <span class="pill-x" aria-hidden="true">&#x2715;</span>
                 </a>
             <?php endforeach ?>
         </div>
@@ -154,3 +154,97 @@ uasort($nonMemberBycat, $_catSortFn);
     </div>
   </div>
 </details>
+<script>
+(function () {
+  var _userId = <?= (int)$user->getId() ?>;
+  var _busy   = false;
+
+  function _showToast(msg, undoAction, teamId) {
+    var toastEl = document.getElementById('casaToast');
+    var msgEl   = document.getElementById('casaToastMsg');
+    var undoEl  = document.getElementById('casaToastUndo');
+    if (!toastEl || !msgEl) return;
+    msgEl.textContent = msg;
+    if (undoEl) {
+      if (undoAction) {
+        undoEl.style.display = '';
+        undoEl.onclick = function (e) {
+          e.preventDefault();
+          bootstrap.Toast.getInstance(toastEl)?.hide();
+          _doMembership(undoAction, teamId, null);
+        };
+      } else {
+        undoEl.style.display = 'none';
+      }
+    }
+    bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 5000 }).show();
+  }
+
+  function _refreshPanel() {
+    var panel = document.getElementById('ca-member-panel');
+    return fetch(location.pathname + '?view=generalData&id=' + _userId, {
+      headers: { 'HX-Request': 'true' },
+      credentials: 'same-origin'
+    })
+    .then(function (r) { return r.text(); })
+    .then(function (html) {
+      var doc      = new DOMParser().parseFromString(html, 'text/html');
+      var newPanel = doc.getElementById('ca-member-panel');
+      if (newPanel && panel) {
+        panel.innerHTML = newPanel.innerHTML;
+      }
+    });
+  }
+
+  function _doMembership(action, teamId, teamName) {
+    if (_busy) return;
+    _busy = true;
+    fetch('/api/groups/' + teamId + '/members', {
+      method:      action === 'add' ? 'POST' : 'DELETE',
+      headers:     { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body:        JSON.stringify({ memberId: _userId })
+    })
+    .then(function (r) {
+      if (!r.ok) throw new Error('API ' + r.status);
+      return _refreshPanel();
+    })
+    .then(function () {
+      _busy = false;
+      if (teamName) {
+        var undoAct = action === 'add' ? 'remove' : 'add';
+        _showToast(action === 'add' ? 'Ajouté : ' + teamName : 'Retiré : ' + teamName, undoAct, teamId);
+      }
+    })
+    .catch(function (err) { _busy = false; console.error('membership error', err); });
+  }
+
+  function _teamIdFromHref(href) {
+    return parseInt(new URLSearchParams((href || '').split('?')[1] || '').get('teamId') || '0', 10);
+  }
+
+  // Single permanent capture-phase delegated listener — fires before htmx body bubble listener
+  document.addEventListener('click', function (e) {
+    var pill = e.target.closest('#ca-member-panel a.member-pill');
+    if (pill && pill.getAttribute('href')) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      var teamId   = _teamIdFromHref(pill.getAttribute('href'));
+      var teamName = (pill.textContent || '').replace(/✕/g, '').trim();
+      if (teamId > 0) _doMembership('remove', teamId, teamName);
+      return;
+    }
+    var addLink = e.target.closest('#ca-member-panel .group-add-list a');
+    if (addLink && addLink.getAttribute('href')) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      var teamId   = _teamIdFromHref(addLink.getAttribute('href'));
+      var teamName = (addLink.textContent || '').trim();
+      if (teamId > 0) _doMembership('add', teamId, teamName);
+      return;
+    }
+  }, true); // capture phase — fires before htmx body bubble listener
+})();
+</script>
