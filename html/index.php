@@ -269,6 +269,7 @@ include __DIR__ . "/includes/partials/menu.php";
         if (!el || !el.closest) return;
         if (el.classList.contains('mg-team-cb')) return;
         if (el.id === 'includeAttestation') return;
+        if (el.id === 'team-filter-input') return;
         if (el.closest('[data-no-dirty]')) return;
         if (el.closest('.dt-search, .dataTables_filter')) return;
         if (el.closest('.modal')) return;
