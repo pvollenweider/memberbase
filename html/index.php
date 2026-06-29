@@ -197,6 +197,9 @@ if ($isHtmx) {
         document.addEventListener('htmx:afterSwap',  function(e) { initTiptap(e.detail.target); });
     </script>
 
+    <!-- Alpine components (external — CSP 'self' compatible) -->
+    <script src="js/member-general-form.js"></script>
+
     <script>
         sfFocus = function () {
             var sfEls = document.getElementsByTagName("INPUT");
