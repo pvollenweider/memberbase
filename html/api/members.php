@@ -23,7 +23,7 @@ match (true) {
     $method === 'GET'    && $id !== null && $sub === 'groups' => handleGetGroups($id),
     $method === 'GET'    && $id !== null                      => handleGet($id),
     $method === 'POST'   && $id === null                      => handleCreate(),
-    $method === 'PUT'    && $id !== null                      => handleUpdate($id),
+    ($method === 'PUT' || $method === 'PATCH') && $id !== null => handleUpdate($id),
     $method === 'DELETE' && $id !== null                      => handleDelete($id),
     default                                                   => apiError(405, 'Method Not Allowed'),
 };
@@ -185,9 +185,22 @@ function handleUpdate(int $id): void
     $user->lookupUser($id);
     if (!$user->getId()) apiError(404, 'Member not found');
 
+    $before = memberToArray($user);
     applyFields($user, $body);
     $user->save();
-    auditLog($pdo, 'updateUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
+    $after  = memberToArray($user);
+
+    $diffs = [];
+    foreach (array_keys($body) as $k) {
+        $bval = (string)($before[$k] ?? '');
+        $aval = (string)($after[$k]  ?? '');
+        if ($bval !== $aval) {
+            $diffs[] = "$k: «$bval» → «$aval»";
+        }
+    }
+    $detail = "id=$id | {$user->firstName} {$user->lastName}";
+    $detail .= $diffs ? ' | ' . implode(' ; ', $diffs) : ' | (aucune modification)';
+    auditLog($pdo, 'updateUser', $detail, $id);
 
     $user->lookupUser($id);
     echo json_encode(['data' => memberToArray($user)],

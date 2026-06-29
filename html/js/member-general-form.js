@@ -51,13 +51,27 @@ function memberGeneralForm() {
         async save() {
             var ta = document.getElementById('comment');
             if (ta) this.draft.comment = ta.value;
+
+            // Send only changed fields (PATCH semantics — makes audit log trivial)
+            var patch = {};
+            for (var k in this.draft) {
+                if (Object.prototype.hasOwnProperty.call(this.draft, k) &&
+                    this.draft[k] !== this.data[k]) {
+                    patch[k] = this.draft[k];
+                }
+            }
+            if (Object.keys(patch).length === 0) {
+                this.editing = false;
+                return;
+            }
+
             this.saving = true;
             this.error  = null;
             try {
                 var resp = await fetch('/api/members/' + this.memberId, {
-                    method:  'PUT',
+                    method:  'PATCH',
                     headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify(this.draft),
+                    body:    JSON.stringify(patch),
                 });
                 var body = await resp.json();
                 if (!resp.ok) {
