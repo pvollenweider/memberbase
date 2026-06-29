@@ -117,9 +117,6 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
         <?php endif ?>
 
         <div class="mt-3 d-flex align-items-center gap-3 flex-wrap">
-            <button type="button" class="btn btn-outline-secondary btn-sm" @click.stop="startEdit()">
-                <i class="fas fa-pencil" aria-hidden="true"></i> <?= $GLOBAL['update'] ?>
-            </button>
             <?php
             $_noCotiTeamGd = (int)($appSettings['member_no_coti_team'] ?? 0);
             $_showCotiWarn = (int)$_stats->ever_coti > 0
