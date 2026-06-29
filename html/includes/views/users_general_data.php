@@ -95,7 +95,10 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
 [x-cloak] { display: none !important; }
 </style>
 
-<div x-data="memberGeneralForm(<?= $_mid ?>, <?= $_iData ?>, <?= $_gLabels ?>)"
+<div x-data="memberGeneralForm()"
+     data-member-id="<?= $_mid ?>"
+     data-initial="<?= htmlspecialchars($_iData, ENT_QUOTES, 'UTF-8') ?>"
+     data-gender-labels="<?= htmlspecialchars($_gLabels, ENT_QUOTES, 'UTF-8') ?>"
      data-no-dirty>
 
     <template x-if="saved"><div id="casa-save-ok"></div></template>
@@ -384,84 +387,3 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
 
 </div>
 
-<script>
-function memberGeneralForm(memberId, initial, genderLabels) {
-    return {
-        editing:      false,
-        saving:       false,
-        saved:        false,
-        error:        null,
-        data:         { ...initial },
-        draft:        {},
-        genderLabels,
-
-        startEdit() {
-            this.draft   = { ...this.data };
-            this.editing = true;
-            this.saved   = false;
-            this.error   = null;
-            this.$nextTick(() => {
-                // Sync TipTap editor content with current data
-                const el = document.getElementById('tiptap-comment');
-                if (el && el._tt) el._tt.commands.setContent(this.data.comment || '');
-            });
-        },
-
-        cancel() {
-            this.editing = false;
-            this.error   = null;
-        },
-
-        formatDate(iso) {
-            if (!iso) return '';
-            const [y, m, d] = iso.split('-');
-            return `${d}.${m}.${y}`;
-        },
-
-        async save() {
-            // Pull TipTap content into draft before sending
-            const ta = document.getElementById('comment');
-            if (ta) this.draft.comment = ta.value;
-
-            this.saving = true;
-            this.error  = null;
-            try {
-                const resp = await fetch(`/api/members/${memberId}`, {
-                    method:  'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify(this.draft),
-                });
-                const body = await resp.json();
-                if (!resp.ok) {
-                    this.error = body.error ?? 'Erreur lors de la sauvegarde';
-                    return;
-                }
-                const d = body.data;
-                this.data = {
-                    lastName:  d.lastName  ?? '',
-                    firstName: d.firstName ?? '',
-                    society:   d.society   ?? '',
-                    gender:    d.gender    ?? 'na',
-                    title:     d.title     ?? '',
-                    address:   d.address   ?? '',
-                    npa:       d.npa       ?? '',
-                    email:     d.email     ?? '',
-                    web:       d.web       ?? '',
-                    telProf:   d.telProf   ?? '',
-                    tel:       d.tel       ?? '',
-                    portable:  d.portable  ?? '',
-                    fax:       d.fax       ?? '',
-                    birthDate: d.birthDate ?? '',
-                    comment:   d.comment   ?? '',
-                };
-                this.editing = false;
-                this.saved   = true;
-            } catch (_) {
-                this.error = 'Erreur réseau';
-            } finally {
-                this.saving = false;
-            }
-        },
-    };
-}
-</script>
