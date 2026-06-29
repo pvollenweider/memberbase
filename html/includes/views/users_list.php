@@ -789,10 +789,8 @@ $(document).ready(caInitDT);
 
         if ($.fn.DataTable.isDataTable('.export')) { $('.export').DataTable().destroy(); }
         tbody.innerHTML = rows;
-        setTimeout(function() {
-          caInitDT();
-          if (searchTerm) applyHighlight(searchTerm);
-        }, 0);
+        caInitDT();
+        if (searchTerm) applyHighlight(searchTerm);
 
         // Update filter description for virtual filters
         var _usp  = new URLSearchParams(apiUrl.split('?')[1] || '');
