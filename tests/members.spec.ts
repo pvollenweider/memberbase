@@ -5,7 +5,16 @@
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
+
+async function getNewUserId(page: Page): Promise<string> {
+  // After addUser submit, htmx swaps in generalData without changing the URL.
+  // The "Données" tab link reliably contains the new userid in its href.
+  const link = page.locator('a[href*="view=generalData&userid="]').first();
+  await expect(link).toBeAttached({ timeout: 15_000 });
+  const href = await link.getAttribute('href') ?? '';
+  return new URLSearchParams(href.split('?')[1]).get('userid') ?? '';
+}
 
 test.describe('Members', () => {
   test('view member list — table visible with at least 2 rows', async ({ page }) => {
@@ -29,8 +38,8 @@ test.describe('Members', () => {
     await page.fill('#email', 'e2e@example.com');
     await page.click('button[type="submit"].btn-success');
 
-    // After add, htmx-boost navigates to generalData — wait for URL to contain userid
-    await page.waitForURL(/userid=/, { timeout: 15_000 });
+    // htmx swaps in generalData without changing URL — confirm swap completed
+    await getNewUserId(page);
 
     await page.goto('/index.php?action=search&searchString=Testmembre');
     await expect(page.locator('table.table tbody tr').first()).toContainText('Testmembre');
@@ -65,9 +74,8 @@ test.describe('Members', () => {
     await page.fill('#firstName', 'Temp');
     await page.click('button[type="submit"].btn-success');
 
-    // After add, htmx-boost navigates to generalData — extract userid from URL
-    await page.waitForURL(/userid=/, { timeout: 15_000 });
-    const uid = new URL(page.url()).searchParams.get('userid');
+    // htmx swaps in generalData without changing URL — extract userid from Données link
+    const uid = await getNewUserId(page);
     if (!uid) throw new Error('Could not determine new user id');
 
     await page.goto(`/index.php?view=deleteUser&id=${uid}`);
