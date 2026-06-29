@@ -29,16 +29,16 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
         <?php if ($user->getSociety()): ?>
         <div class="member-view-row">
             <span class="member-view-label"><?= $GLOBAL['society'] ?></span>
-            <span class="member-view-value"><?= htmlentities($user->getSociety(), ENT_COMPAT, $charset) ?></span>
+            <span class="member-view-value"><?= htmlentities((string)$user->getSociety(), ENT_COMPAT, $charset) ?></span>
         </div>
         <?php endif ?>
         <div class="member-view-row">
             <span class="member-view-label"><?= $GLOBAL['lastName'] ?></span>
-            <span class="member-view-value"><?= htmlentities($user->getLastName(), ENT_COMPAT, $charset) ?></span>
+            <span class="member-view-value"><?= htmlentities((string)$user->getLastName(), ENT_COMPAT, $charset) ?></span>
         </div>
         <div class="member-view-row">
             <span class="member-view-label"><?= $GLOBAL['firstName'] ?></span>
-            <span class="member-view-value"><?= htmlentities($user->getFirstName(), ENT_COMPAT, $charset) ?></span>
+            <span class="member-view-value"><?= htmlentities((string)$user->getFirstName(), ENT_COMPAT, $charset) ?></span>
         </div>
         <?php if ($user->sexe && $user->sexe !== 'na'): ?>
         <div class="member-view-row">
@@ -49,16 +49,16 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
         <?php if ($user->getTitle()): ?>
         <div class="member-view-row">
             <span class="member-view-label"><?= $GLOBAL['title'] ?></span>
-            <span class="member-view-value"><?= htmlentities($user->getTitle(), ENT_COMPAT, $charset) ?></span>
+            <span class="member-view-value"><?= htmlentities((string)$user->getTitle(), ENT_COMPAT, $charset) ?></span>
         </div>
         <?php endif ?>
         <?php if ($user->getAddress() || $user->getNpa()): ?>
         <div class="member-view-row">
             <span class="member-view-label"><?= $GLOBAL['address'] ?></span>
             <span class="member-view-value">
-                <?= htmlentities($user->getAddress(), ENT_COMPAT, $charset) ?>
+                <?= htmlentities((string)$user->getAddress(), ENT_COMPAT, $charset) ?>
                 <?php if ($user->getNpa()): ?>
-                    <br><?= htmlentities($user->getNpa(), ENT_COMPAT, $charset) ?>
+                    <br><?= htmlentities((string)$user->getNpa(), ENT_COMPAT, $charset) ?>
                 <?php endif ?>
             </span>
         </div>
@@ -66,13 +66,13 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
         <?php if ($user->getEmail()): ?>
         <div class="member-view-row">
             <span class="member-view-label"><i class="fas fa-envelope" aria-hidden="true"></i> <?= $GLOBAL['email'] ?></span>
-            <span class="member-view-value"><?= htmlentities($user->getEmail(), ENT_COMPAT, $charset) ?></span>
+            <span class="member-view-value"><?= htmlentities((string)$user->getEmail(), ENT_COMPAT, $charset) ?></span>
         </div>
         <?php endif ?>
         <?php if ($user->getWeb()): ?>
         <div class="member-view-row">
             <span class="member-view-label"><i class="fas fa-globe" aria-hidden="true"></i> <?= $GLOBAL['web'] ?></span>
-            <span class="member-view-value"><?= htmlentities($user->getWeb(), ENT_COMPAT, $charset) ?></span>
+            <span class="member-view-value"><?= htmlentities((string)$user->getWeb(), ENT_COMPAT, $charset) ?></span>
         </div>
         <?php endif ?>
 
@@ -81,25 +81,25 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
         <?php if ($user->getTelProf()): ?>
         <div class="member-view-row">
             <span class="member-view-label"><i class="fas fa-phone" aria-hidden="true"></i> <?= $GLOBAL['telProf'] ?></span>
-            <span class="member-view-value"><?= htmlentities($user->getTelProf(), ENT_COMPAT, $charset) ?></span>
+            <span class="member-view-value"><?= htmlentities((string)$user->getTelProf(), ENT_COMPAT, $charset) ?></span>
         </div>
         <?php endif ?>
         <?php if ($user->getTel()): ?>
         <div class="member-view-row">
             <span class="member-view-label"><i class="fas fa-phone" aria-hidden="true"></i> <?= $GLOBAL['tel'] ?></span>
-            <span class="member-view-value"><?= htmlentities($user->getTel(), ENT_COMPAT, $charset) ?></span>
+            <span class="member-view-value"><?= htmlentities((string)$user->getTel(), ENT_COMPAT, $charset) ?></span>
         </div>
         <?php endif ?>
         <?php if ($user->getPortable()): ?>
         <div class="member-view-row">
             <span class="member-view-label"><i class="fas fa-mobile-screen-button" aria-hidden="true"></i> <?= $GLOBAL['portable'] ?></span>
-            <span class="member-view-value"><?= htmlentities($user->getPortable(), ENT_COMPAT, $charset) ?></span>
+            <span class="member-view-value"><?= htmlentities((string)$user->getPortable(), ENT_COMPAT, $charset) ?></span>
         </div>
         <?php endif ?>
         <?php if ($user->getFax()): ?>
         <div class="member-view-row">
             <span class="member-view-label"><i class="fas fa-print" aria-hidden="true"></i> <?= $GLOBAL['fax'] ?></span>
-            <span class="member-view-value"><?= htmlentities($user->getFax(), ENT_COMPAT, $charset) ?></span>
+            <span class="member-view-value"><?= htmlentities((string)$user->getFax(), ENT_COMPAT, $charset) ?></span>
         </div>
         <?php endif ?>
         <?php if ($user->getBirthDay()): ?>
@@ -151,21 +151,21 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
             <label for="society" class="col-md-3 col-form-label"><?= $GLOBAL['society'] ?></label>
             <div class="col-md-9">
                 <input type="text" class="form-control form-control-sm" name="society" id="society"
-                       value="<?= htmlentities($user->getSociety(), ENT_COMPAT, $charset) ?>"/>
+                       value="<?= htmlentities((string)$user->getSociety(), ENT_COMPAT, $charset) ?>"/>
             </div>
         </div>
         <div class="row mb-2">
             <label for="lastName" class="col-md-3 col-form-label"><?= $GLOBAL['lastName'] ?></label>
             <div class="col-md-9">
                 <input type="text" class="form-control form-control-sm" name="lastName" id="lastName"
-                       value="<?= htmlentities($user->getLastName(), ENT_COMPAT, $charset) ?>"/>
+                       value="<?= htmlentities((string)$user->getLastName(), ENT_COMPAT, $charset) ?>"/>
             </div>
         </div>
         <div class="row mb-2">
             <label for="firstName" class="col-md-3 col-form-label"><?= $GLOBAL['firstName'] ?></label>
             <div class="col-md-9">
                 <input type="text" class="form-control form-control-sm" name="firstName" id="firstName"
-                       value="<?= htmlentities($user->getFirstName(), ENT_COMPAT, $charset) ?>"/>
+                       value="<?= htmlentities((string)$user->getFirstName(), ENT_COMPAT, $charset) ?>"/>
             </div>
         </div>
         <div class="row mb-2">
@@ -183,7 +183,7 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
             <label for="title" class="col-md-3 col-form-label"><?= $GLOBAL['title'] ?></label>
             <div class="col-md-9">
                 <input type="text" class="form-control form-control-sm" name="title" id="title"
-                       value="<?= htmlentities($user->getTitle(), ENT_COMPAT, $charset) ?>"/>
+                       value="<?= htmlentities((string)$user->getTitle(), ENT_COMPAT, $charset) ?>"/>
             </div>
         </div>
         <div class="row mb-2">
@@ -195,14 +195,14 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
                 </a>
             </label>
             <div class="col-md-9">
-                <textarea class="form-control form-control-sm" rows="2" name="address" id="address"><?= htmlentities($user->getAddress(), ENT_COMPAT, $charset) ?></textarea>
+                <textarea class="form-control form-control-sm" rows="2" name="address" id="address"><?= htmlentities((string)$user->getAddress(), ENT_COMPAT, $charset) ?></textarea>
             </div>
         </div>
         <div class="row mb-2">
             <label for="npa" class="col-md-3 col-form-label"><?= $GLOBAL['npa'] ?></label>
             <div class="col-md-9">
                 <input type="text" class="form-control form-control-sm" name="npa" id="npa"
-                       value="<?= htmlentities($user->getNpa(), ENT_COMPAT, $charset) ?>"/>
+                       value="<?= htmlentities((string)$user->getNpa(), ENT_COMPAT, $charset) ?>"/>
             </div>
         </div>
         <div class="row mb-2">
@@ -211,7 +211,7 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
             </label>
             <div class="col-md-9">
                 <input type="text" class="form-control form-control-sm" name="email" id="email"
-                       value="<?= htmlentities($user->getEmail(), ENT_COMPAT, $charset) ?>"/>
+                       value="<?= htmlentities((string)$user->getEmail(), ENT_COMPAT, $charset) ?>"/>
             </div>
         </div>
         <div class="row mb-2">
@@ -220,7 +220,7 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
             </label>
             <div class="col-md-9">
                 <input type="text" class="form-control form-control-sm" name="web" id="web"
-                       value="<?= htmlentities($user->getWeb(), ENT_COMPAT, $charset) ?>"/>
+                       value="<?= htmlentities((string)$user->getWeb(), ENT_COMPAT, $charset) ?>"/>
             </div>
         </div>
 
@@ -232,7 +232,7 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
             </label>
             <div class="col-md-9">
                 <input type="text" class="form-control form-control-sm" name="telProf" id="telProf"
-                       value="<?= htmlentities($user->getTelProf(), ENT_COMPAT, $charset) ?>"/>
+                       value="<?= htmlentities((string)$user->getTelProf(), ENT_COMPAT, $charset) ?>"/>
             </div>
         </div>
         <div class="row mb-2">
@@ -241,7 +241,7 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
             </label>
             <div class="col-md-9">
                 <input type="text" class="form-control form-control-sm" name="tel" id="tel"
-                       value="<?= htmlentities($user->getTel(), ENT_COMPAT, $charset) ?>"/>
+                       value="<?= htmlentities((string)$user->getTel(), ENT_COMPAT, $charset) ?>"/>
             </div>
         </div>
         <div class="row mb-2">
@@ -250,7 +250,7 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
             </label>
             <div class="col-md-9">
                 <input type="text" class="form-control form-control-sm" name="portable" id="portable"
-                       value="<?= htmlentities($user->getPortable(), ENT_COMPAT, $charset) ?>"/>
+                       value="<?= htmlentities((string)$user->getPortable(), ENT_COMPAT, $charset) ?>"/>
             </div>
         </div>
         <div class="row mb-2">
@@ -259,7 +259,7 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
             </label>
             <div class="col-md-9">
                 <input type="text" class="form-control form-control-sm" name="fax" id="fax"
-                       value="<?= htmlentities($user->getFax(), ENT_COMPAT, $charset) ?>"/>
+                       value="<?= htmlentities((string)$user->getFax(), ENT_COMPAT, $charset) ?>"/>
             </div>
         </div>
         <div class="row mb-2">
@@ -287,7 +287,7 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
                     </div>
                     <div id="tiptap-comment" class="tiptap-body px-3 py-2" style="min-height:80px;cursor:text" aria-label="<?= htmlspecialchars($GLOBAL['compet'], ENT_QUOTES, 'UTF-8') ?>" aria-multiline="true"></div>
                 </div>
-                <textarea name="comment" id="comment" style="display:none"><?= htmlentities($user->getComment(), ENT_COMPAT, $charset) ?></textarea>
+                <textarea name="comment" id="comment" style="display:none"><?= htmlentities((string)$user->getComment(), ENT_COMPAT, $charset) ?></textarea>
             </div>
         </div>
 
