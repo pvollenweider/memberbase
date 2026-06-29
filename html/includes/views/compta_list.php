@@ -103,6 +103,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <td><input type="text" name="libele" class="form-control" maxlength="255"/></td>
     <td><input type="text" name="sum" size="10" class="form-control "maxlength="64"/></td>
     <td class="d-none d-sm-table-cell"><input type="text" name="quittance" size="10" class="form-control" maxlength="64"/></td>
+    <td class="d-none d-sm-table-cell text-center"><input type="checkbox" name="wants_attestation" value="1" /></td>
     <td><button type="submit" class="btn btn-primary"><?=$GLOBAL['add']?></button></td>
 </tr>
 <?php
