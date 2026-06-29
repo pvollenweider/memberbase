@@ -40,6 +40,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
 
+      - name: Fix conf/ permissions (Docker creates it as www-data)
+        run: sudo chmod -R 777 conf/ 2>/dev/null || sudo mkdir -p conf && sudo chmod 777 conf
+
       - name: Reset test database
         run: bash tests/fixtures/reset-db.sh
 
