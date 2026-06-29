@@ -159,10 +159,6 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
                        target="_blank" class="text-muted small" @click.stop>
                         <i class="fas fa-location-dot me-1" aria-hidden="true"></i>Google Maps
                     </a>
-                    <a :href="'http://tel.local.ch/fr/q/' + encodeURIComponent(data.lastName + ' ' + data.firstName) + '.html'"
-                       target="_blank" class="text-muted small" @click.stop>
-                        <i class="fas fa-home me-1" aria-hidden="true"></i>tel.local.ch
-                    </a>
                 </div>
             </div>
 

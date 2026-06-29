@@ -97,6 +97,35 @@ if ($action === 'logout') {
     }
     exit;
 
+} elseif ($action === 'updateAppUser') {
+    if (!isAdmin()) { http_response_code(403); exit; }
+    $targetId    = (int)($_POST['target_id'] ?? 0);
+    $displayName = trim($_POST['au_display_name'] ?? '');
+    $email       = trim($_POST['au_email'] ?? '');
+    $role        = in_array($_POST['au_role'] ?? '', ['readonly','user','manager','admin']) ? $_POST['au_role'] : 'user';
+    $isActive    = isset($_POST['au_is_active']) ? 1 : 0;
+    $isSelf      = $targetId === (int)$_SESSION['app_user_id'];
+    // Prevent self-demotion or self-deactivation
+    if ($isSelf) {
+        $role     = 'admin';
+        $isActive = 1;
+    }
+    // Prevent removing last admin
+    if ($role !== 'admin') {
+        $adminCount = (int)$pdo->query("SELECT COUNT(*) FROM app_users WHERE role='admin' AND is_active=1")->fetchColumn();
+        $curRole    = $pdo->prepare("SELECT role FROM app_users WHERE id=?");
+        $curRole->execute([$targetId]);
+        if ($curRole->fetchColumn() === 'admin' && $adminCount <= 1) {
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&au_error=' . urlencode('Impossible de rétrograder le dernier administrateur.'));
+            exit;
+        }
+    }
+    $pdo->prepare("UPDATE app_users SET display_name=?, email=?, role=?, is_active=? WHERE id=?")
+        ->execute([$displayName ?: null, $email ?: null, $role, $isActive, $targetId]);
+    auditLog($pdo, 'updateAppUser', "id=$targetId role=$role active=$isActive");
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
+    exit;
+
 } elseif ($action === 'deleteAppUser') {
     if (!isAdmin()) { http_response_code(403); exit; }
     $targetId = (int)($_POST['target_id'] ?? 0);

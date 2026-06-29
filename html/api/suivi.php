@@ -49,10 +49,12 @@ function requestBody(): array
 
 function loadEntry(int $id): UserProperty
 {
+    global $pdo;
+    $chk = $pdo->prepare("SELECT id FROM user_properties WHERE id=? AND parameter='suivi' LIMIT 1");
+    $chk->execute([$id]);
+    if (!$chk->fetchColumn()) apiError(404, 'Entry not found');
     $p = new UserProperty();
     $p->lookupUserProperty($id);
-    if (!$p->getId()) apiError(404, 'Entry not found');
-    if ($p->getParameter() !== 'suivi') apiError(404, 'Entry not found');
     return $p;
 }
 

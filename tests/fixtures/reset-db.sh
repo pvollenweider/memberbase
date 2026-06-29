@@ -26,7 +26,14 @@ docker compose -f "$REPO_ROOT/docker-compose.yml" exec -T mariadb \
 docker compose -f "$REPO_ROOT/docker-compose.yml" exec -T mariadb \
   mariadb -umembers -pmembers members_test < "$SCRIPT_DIR/seed.sql"
 
-# Remove conf/db.php so env vars (DB_NAME=members_test) take precedence
-rm -f "$REPO_ROOT/conf/db.php"
+# Write conf/db.php pointing at members_test so the app uses it during tests
+mkdir -p "$REPO_ROOT/conf"
+cat > "$REPO_ROOT/conf/db.php" <<'PHP'
+<?php
+define('DB_HOST', 'mariadb');
+define('DB_NAME', 'members_test');
+define('DB_USER', 'members');
+define('DB_PASS', 'members');
+PHP
 
 echo "members_test reset complete."

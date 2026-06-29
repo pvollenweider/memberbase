@@ -645,3 +645,14 @@ tr.position-relative { cursor: pointer; }
     font-size: 1.3rem !important;
   }
 }
+
+.ca-stats-link .ca-stats-mini,
+.ca-stats-link > div {
+    transition: background 0.15s, border-color 0.15s;
+    cursor: pointer;
+}
+.ca-stats-link:hover .ca-stats-mini,
+.ca-stats-link:hover > div {
+    background: #e8edf8 !important;
+    border-color: #b3c2e0 !important;
+}

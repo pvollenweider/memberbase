@@ -15,7 +15,7 @@ const BASE = 'http://localhost:8080';
 // ── Auth guard ────────────────────────────────────────────────────────────────
 
 test('API returns 401 without session', async ({ playwright }) => {
-  const unauth = await playwright.request.newContext({ baseURL: BASE });
+  const unauth = await playwright.request.newContext({ baseURL: BASE, storageState: { cookies: [], origins: [] } });
   const resp = await unauth.get('/api/members');
   expect(resp.status()).toBe(401);
   const body = await resp.json();

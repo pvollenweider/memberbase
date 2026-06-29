@@ -22,6 +22,17 @@ $method = $_SERVER['REQUEST_METHOD'];
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $sub    = $_GET['sub'] ?? null; // 'members' for /api/groups/{id}/members
 
+// Subquery: resolves the non-filter category (is_filter=0) for each team.
+define('CAT_JOIN',
+    "LEFT JOIN (
+        SELECT j.teamid, c.id, c.name, c.sort_order
+        FROM metagroup j
+        JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
+        WHERE j.teamid IS NOT NULL
+        GROUP BY j.teamid
+    ) cat ON cat.teamid = t.id"
+);
+
 match (true) {
     $method === 'GET'    && $id === null && $sub === null  => handleList(),
     $method === 'GET'    && $id !== null && $sub === null  => handleGet($id),
@@ -68,16 +79,6 @@ function groupToArray(object $row): array
     ];
 }
 
-// Subquery: resolves the non-filter category (is_filter=0) for each team.
-define('CAT_JOIN',
-    "LEFT JOIN (
-        SELECT j.teamid, c.id, c.name, c.sort_order
-        FROM metagroup j
-        JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-        WHERE j.teamid IS NOT NULL
-        GROUP BY j.teamid
-    ) cat ON cat.teamid = t.id"
-);
 
 // ── handlers ─────────────────────────────────────────────────────────────────
 
@@ -245,9 +246,10 @@ function handleAddMember(int $groupId): void
     $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, 'true')")
         ->execute([$memberId, "team_$groupId"]);
 
-    $_auU = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+    $_auU = $pdo->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
     $_auU->execute([$memberId]);
-    auditLog($pdo, 'addMembership', "group_id=$groupId | membre: " . ($_auU->fetchColumn() ?: "id=$memberId"), $memberId);
+    $_auName = trim((string)$_auU->fetchColumn());
+    auditLog($pdo, 'addMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
 
     http_response_code(204);
 }
@@ -264,9 +266,10 @@ function handleRemoveMember(int $groupId): void
     $pdo->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter=?")
         ->execute([$memberId, "team_$groupId"]);
 
-    $_auU = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+    $_auU = $pdo->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
     $_auU->execute([$memberId]);
-    auditLog($pdo, 'removeMembership', "group_id=$groupId | membre: " . ($_auU->fetchColumn() ?: "id=$memberId"), $memberId);
+    $_auName = trim((string)$_auU->fetchColumn());
+    auditLog($pdo, 'removeMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
 
     http_response_code(204);
 }
