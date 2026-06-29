@@ -188,9 +188,7 @@ $_sexeDisplay = $_sexeLabels[$user->sexe] ?? htmlentities((string)$user->sexe, E
         </div>
         <div class="row mb-2">
             <label for="address" class="col-md-3 col-form-label">
-                <a target="_blank" href="http://tel.local.ch/fr/q/<?= urlencode($user->getLastName() . ' ' . $user->getFirstName()) ?>.html">
-                    <i class="fas fa-home" aria-hidden="true"></i> <?= $GLOBAL['address'] ?>
-                </a>
+                <i class="fas fa-home" aria-hidden="true"></i> <?= $GLOBAL['address'] ?>
                 <br>
                 <a href="https://www.google.ch/maps/place/<?= urlencode($user->getAddress() . ',' . $user->getNpa()) ?>" target="_blank">
                     <i class="fas fa-location-dot" aria-hidden="true"></i> map
