@@ -1,0 +1,738 @@
+{
+  "version": "1.0.0",
+  "kind": "domain",
+  "project": {
+    "name": "memberbase",
+    "description": "Self-hosted membership and donor management web app for small associations, handling member lifecycle, accounting, group organization, and follow-up tracking."
+  },
+  "domains": [
+    {
+      "id": "domain:members",
+      "name": "Members",
+      "description": "Core member entity management including personal data, status lifecycle, deduplication, and filtering.",
+      "color": "#4A90D9",
+      "flows": [
+        {
+          "id": "flow:member-lifecycle",
+          "name": "Member Lifecycle",
+          "description": "Full lifecycle from creation through editing, group assignment, and eventual deactivation or removal.",
+          "steps": [
+            {
+              "id": "step:create-member",
+              "name": "Create Member",
+              "description": "Register a new member with personal data fields.",
+              "entities": [
+                "User",
+                "users"
+              ],
+              "apis": [
+                "/api/members"
+              ]
+            },
+            {
+              "id": "step:edit-member",
+              "name": "Edit General Data",
+              "description": "Update member personal information such as name, email, address, phone, and birthdate.",
+              "entities": [
+                "User",
+                "users"
+              ],
+              "apis": [
+                "/api/members/{id}"
+              ]
+            },
+            {
+              "id": "step:assign-groups",
+              "name": "Assign to Groups",
+              "description": "Add the member to one or more teams via user_properties records.",
+              "entities": [
+                "User",
+                "Team",
+                "user_properties"
+              ],
+              "apis": [
+                "/api/members/{id}/groups",
+                "/api/groups/{id}/members"
+              ]
+            },
+            {
+              "id": "step:deactivate-member",
+              "name": "Deactivate / Anonymize / Delete",
+              "description": "Set status=0 to deactivate, anonymize personal data, or permanently delete the member.",
+              "entities": [
+                "User",
+                "users"
+              ],
+              "apis": [
+                "/api/members/{id}"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "flow:member-search-filter",
+          "name": "Member Search and Filter",
+          "description": "Find members using virtual filters for unpaid cotisation, lapsed status, or group membership.",
+          "steps": [
+            {
+              "id": "step:apply-filter",
+              "name": "Apply Filter",
+              "description": "Filter member list by group, metagroup, lapsed, or unpaid virtual filters.",
+              "entities": [
+                "User",
+                "users",
+                "Metagroup",
+                "Team"
+              ],
+              "apis": [
+                "/api/members"
+              ]
+            },
+            {
+              "id": "step:view-member",
+              "name": "View Member Detail",
+              "description": "Display full member profile including groups, compta history, and suivi notes.",
+              "entities": [
+                "User",
+                "users",
+                "UserProperty"
+              ],
+              "apis": [
+                "/api/members/{id}"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "flow:merge-duplicates",
+          "name": "Merge Duplicate Members",
+          "description": "Identify duplicate member records and merge them by selecting which fields to keep.",
+          "steps": [
+            {
+              "id": "step:detect-duplicate",
+              "name": "Detect Duplicate",
+              "description": "Surface potential duplicate members based on name or email similarity.",
+              "entities": [
+                "User",
+                "users"
+              ],
+              "apis": [
+                "/api/members"
+              ]
+            },
+            {
+              "id": "step:merge-fields",
+              "name": "Select and Merge Fields",
+              "description": "Choose which field values to retain and merge the two records into one.",
+              "entities": [
+                "User",
+                "users",
+                "user_properties",
+                "compta"
+              ],
+              "apis": [
+                "/api/members/{id}"
+              ]
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "User",
+        "users",
+        "user_properties",
+        "audit_log"
+      ],
+      "apis": [
+        "/api/members",
+        "/api/members/{id}",
+        "/api/members/{id}/groups"
+      ]
+    },
+    {
+      "id": "domain:donors",
+      "name": "Donors",
+      "description": "Donor identification, year-over-year analysis, and attestation PDF generation for tax purposes.",
+      "color": "#E8A838",
+      "flows": [
+        {
+          "id": "flow:donor-analysis",
+          "name": "Donor Analysis",
+          "description": "Summarize donation activity by year and classify donors as new, loyal, or lapsed.",
+          "steps": [
+            {
+              "id": "step:view-donor-summary",
+              "name": "View Donor Summary",
+              "description": "Display aggregated donation totals per member per year.",
+              "entities": [
+                "User",
+                "compta",
+                "compta_type"
+              ],
+              "apis": [
+                "/api/compta",
+                "/api/members"
+              ]
+            },
+            {
+              "id": "step:classify-donors",
+              "name": "Classify Donors",
+              "description": "Identify new donors (first year), loyal donors (consecutive years), and lapsed donors (gave last year, not this year).",
+              "entities": [
+                "User",
+                "compta",
+                "compta_type"
+              ],
+              "apis": [
+                "/api/compta"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "flow:attestation-generation",
+          "name": "Attestation Generation",
+          "description": "Generate and deliver PDF tax attestations for qualifying donors.",
+          "steps": [
+            {
+              "id": "step:toggle-attestation",
+              "name": "Toggle Attestation Flag",
+              "description": "Mark a compta entry as eligible for attestation PDF generation.",
+              "entities": [
+                "Compta",
+                "compta"
+              ],
+              "apis": [
+                "/api/compta/{id}"
+              ]
+            },
+            {
+              "id": "step:generate-pdf",
+              "name": "Generate PDF Attestation",
+              "description": "Produce a filled PDF attestation via pdftk-java from the base template using member and donation data.",
+              "entities": [
+                "User",
+                "Compta",
+                "compta"
+              ],
+              "apis": [
+                "/api/compta/{id}"
+              ]
+            },
+            {
+              "id": "step:export-donors",
+              "name": "Export Donor List",
+              "description": "Export the donor list for the selected year for external use.",
+              "entities": [
+                "User",
+                "compta"
+              ],
+              "apis": [
+                "/api/compta",
+                "/api/members"
+              ]
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "User",
+        "users",
+        "Compta",
+        "compta",
+        "compta_type"
+      ],
+      "apis": [
+        "/api/compta",
+        "/api/compta/{id}",
+        "/api/members",
+        "/api/members/{id}"
+      ]
+    },
+    {
+      "id": "domain:groups",
+      "name": "Groups",
+      "description": "Team and metagroup management including member import, visibility control, and category assignment.",
+      "color": "#5BAD6F",
+      "flows": [
+        {
+          "id": "flow:group-management",
+          "name": "Group Management",
+          "description": "Create and configure teams, assign them to metagroup categories, and control visibility.",
+          "steps": [
+            {
+              "id": "step:create-group",
+              "name": "Create Group",
+              "description": "Define a new team with a name and optional hidden flag.",
+              "entities": [
+                "Team",
+                "team"
+              ],
+              "apis": [
+                "/api/groups"
+              ]
+            },
+            {
+              "id": "step:assign-metagroup",
+              "name": "Assign to Metagroup Category",
+              "description": "Link the team to a metagroup so it appears under the correct navigation filter.",
+              "entities": [
+                "Team",
+                "Metagroup",
+                "metagroup"
+              ],
+              "apis": [
+                "/api/groups/{id}"
+              ]
+            },
+            {
+              "id": "step:bulk-visibility",
+              "name": "Bulk Show / Hide Groups",
+              "description": "Toggle the hidden flag on multiple teams at once.",
+              "entities": [
+                "Team",
+                "team"
+              ],
+              "apis": [
+                "/api/groups/{id}"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "flow:member-import",
+          "name": "Member Import into Group",
+          "description": "Populate a group by importing members from other groups, cotisants, or donors.",
+          "steps": [
+            {
+              "id": "step:select-source",
+              "name": "Select Import Source",
+              "description": "Choose the source set: another group, all current cotisants, or all donors.",
+              "entities": [
+                "Team",
+                "User",
+                "compta"
+              ],
+              "apis": [
+                "/api/groups",
+                "/api/members"
+              ]
+            },
+            {
+              "id": "step:import-members",
+              "name": "Import Members",
+              "description": "Add the selected members to the target group via bulk user_properties inserts.",
+              "entities": [
+                "Team",
+                "User",
+                "user_properties"
+              ],
+              "apis": [
+                "/api/groups/{id}/members"
+              ]
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "Team",
+        "team",
+        "Metagroup",
+        "metagroup",
+        "user_properties"
+      ],
+      "apis": [
+        "/api/groups",
+        "/api/groups/{id}",
+        "/api/groups/{id}/members"
+      ]
+    },
+    {
+      "id": "domain:accounting",
+      "name": "Accounting",
+      "description": "Financial entry management covering cotisation and donation records with type classification.",
+      "color": "#9B59B6",
+      "flows": [
+        {
+          "id": "flow:compta-entry",
+          "name": "Accounting Entry Management",
+          "description": "Record, update, and remove cotisation or donation entries for members.",
+          "steps": [
+            {
+              "id": "step:add-entry",
+              "name": "Add Compta Entry",
+              "description": "Create a new accounting entry linked to a member, specifying type, date, and amount.",
+              "entities": [
+                "Compta",
+                "compta",
+                "compta_type"
+              ],
+              "apis": [
+                "/api/compta"
+              ]
+            },
+            {
+              "id": "step:edit-entry",
+              "name": "Edit Entry",
+              "description": "Modify the amount, date, or type of an existing compta entry.",
+              "entities": [
+                "Compta",
+                "compta"
+              ],
+              "apis": [
+                "/api/compta/{id}"
+              ]
+            },
+            {
+              "id": "step:delete-entry",
+              "name": "Delete Entry",
+              "description": "Remove an accounting entry and update the member status accordingly.",
+              "entities": [
+                "Compta",
+                "compta"
+              ],
+              "apis": [
+                "/api/compta/{id}"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "flow:cotisation-tracking",
+          "name": "Cotisation Tracking",
+          "description": "Verify whether each member has paid their annual cotisation to drive unpaid/lapsed virtual filters.",
+          "steps": [
+            {
+              "id": "step:check-cotisation",
+              "name": "Check Cotisation Status",
+              "description": "Evaluate isCotisationPayed() by querying compta for a cotisation-type entry in the current year.",
+              "entities": [
+                "User",
+                "Compta",
+                "compta",
+                "compta_type"
+              ],
+              "apis": [
+                "/api/compta",
+                "/api/members"
+              ]
+            },
+            {
+              "id": "step:view-compta-types",
+              "name": "View Compta Types",
+              "description": "List available entry types with their cotisation and donation flags and display colors.",
+              "entities": [
+                "compta_type"
+              ],
+              "apis": [
+                "/api/compta-types"
+              ]
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "Compta",
+        "compta",
+        "compta_type",
+        "maxval"
+      ],
+      "apis": [
+        "/api/compta",
+        "/api/compta/{id}",
+        "/api/compta-types"
+      ]
+    },
+    {
+      "id": "domain:suivi",
+      "name": "Follow-up (Suivi)",
+      "description": "Key-value member attributes and free-text follow-up notes attached to individual members.",
+      "color": "#E67E22",
+      "flows": [
+        {
+          "id": "flow:suivi-notes",
+          "name": "Follow-up Note Management",
+          "description": "Create, update, and delete follow-up notes or custom attribute values for a member.",
+          "steps": [
+            {
+              "id": "step:add-note",
+              "name": "Add Suivi Note",
+              "description": "Attach a new follow-up note or attribute entry to a member record.",
+              "entities": [
+                "UserProperty",
+                "user_properties"
+              ],
+              "apis": [
+                "/api/suivi"
+              ]
+            },
+            {
+              "id": "step:edit-note",
+              "name": "Edit Note",
+              "description": "Update the content of an existing suivi note or attribute value.",
+              "entities": [
+                "UserProperty",
+                "user_properties"
+              ],
+              "apis": [
+                "/api/suivi/{id}"
+              ]
+            },
+            {
+              "id": "step:delete-note",
+              "name": "Delete Note",
+              "description": "Remove a suivi entry from the member record.",
+              "entities": [
+                "UserProperty",
+                "user_properties"
+              ],
+              "apis": [
+                "/api/suivi/{id}"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "flow:attribute-tracking",
+          "name": "Custom Attribute Tracking",
+          "description": "Store and retrieve arbitrary key-value attributes per member for flexible data extension.",
+          "steps": [
+            {
+              "id": "step:set-attribute",
+              "name": "Set Attribute",
+              "description": "Write a key-value pair to user_properties for a given member.",
+              "entities": [
+                "UserProperty",
+                "user_properties"
+              ],
+              "apis": [
+                "/api/suivi"
+              ]
+            },
+            {
+              "id": "step:list-attributes",
+              "name": "List Member Attributes",
+              "description": "Retrieve all attributes and notes associated with a specific member.",
+              "entities": [
+                "UserProperty",
+                "user_properties"
+              ],
+              "apis": [
+                "/api/suivi"
+              ]
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "UserProperty",
+        "user_properties"
+      ],
+      "apis": [
+        "/api/suivi",
+        "/api/suivi/{id}"
+      ]
+    },
+    {
+      "id": "domain:administration",
+      "name": "Administration",
+      "description": "Application configuration, user role management, data integrity checks, and audit log maintenance.",
+      "color": "#E74C3C",
+      "flows": [
+        {
+          "id": "flow:app-user-management",
+          "name": "App User Management",
+          "description": "Invite, create, and assign roles to application users who access the system.",
+          "steps": [
+            {
+              "id": "step:invite-user",
+              "name": "Invite User",
+              "description": "Generate an invitation token and send it to a new application user.",
+              "entities": [
+                "app_users"
+              ],
+              "apis": []
+            },
+            {
+              "id": "step:assign-role",
+              "name": "Assign Role",
+              "description": "Set the application user role to admin, manager, user, or readonly.",
+              "entities": [
+                "app_users"
+              ],
+              "apis": []
+            }
+          ]
+        },
+        {
+          "id": "flow:settings-configuration",
+          "name": "Settings Configuration",
+          "description": "Manage organization-wide settings such as org name and default team assignments.",
+          "steps": [
+            {
+              "id": "step:edit-settings",
+              "name": "Edit Settings",
+              "description": "Update key-value pairs in app_settings for organization name and default teams.",
+              "entities": [
+                "app_settings"
+              ],
+              "apis": []
+            },
+            {
+              "id": "step:manage-metagroups",
+              "name": "Manage Group Categories",
+              "description": "Create, rename, or delete metagroups used for navigation shortcuts.",
+              "entities": [
+                "Metagroup",
+                "metagroup"
+              ],
+              "apis": []
+            }
+          ]
+        },
+        {
+          "id": "flow:audit-maintenance",
+          "name": "Audit Log Maintenance",
+          "description": "Review and periodically flush the audit trail of all system mutations.",
+          "steps": [
+            {
+              "id": "step:view-audit-log",
+              "name": "View Audit Log",
+              "description": "Browse the full chronological log of all create, update, and delete actions.",
+              "entities": [
+                "audit_log"
+              ],
+              "apis": []
+            },
+            {
+              "id": "step:flush-audit-log",
+              "name": "Flush Audit Log",
+              "description": "Permanently delete old audit log entries to reclaim storage.",
+              "entities": [
+                "audit_log"
+              ],
+              "apis": []
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "app_users",
+        "app_settings",
+        "audit_log",
+        "Metagroup",
+        "metagroup"
+      ],
+      "apis": []
+    },
+    {
+      "id": "domain:authentication",
+      "name": "Authentication",
+      "description": "Login, session management, forced password changes, and token-based user invitation flow.",
+      "color": "#2C3E50",
+      "flows": [
+        {
+          "id": "flow:login",
+          "name": "Login Flow",
+          "description": "Authenticate an application user and establish a session, enforcing password change if required.",
+          "steps": [
+            {
+              "id": "step:submit-credentials",
+              "name": "Submit Credentials",
+              "description": "Validate username and password against app_users and start the session.",
+              "entities": [
+                "app_users"
+              ],
+              "apis": []
+            },
+            {
+              "id": "step:forced-password-change",
+              "name": "Forced Password Change",
+              "description": "Redirect the user to set a new password before accessing the application if the flag is set.",
+              "entities": [
+                "app_users"
+              ],
+              "apis": []
+            }
+          ]
+        },
+        {
+          "id": "flow:invitation",
+          "name": "User Invitation Flow",
+          "description": "Allow an admin to invite a new user via a single-use token link that sets their initial password.",
+          "steps": [
+            {
+              "id": "step:generate-token",
+              "name": "Generate Invitation Token",
+              "description": "Create a time-limited token stored with the pending app_users record.",
+              "entities": [
+                "app_users"
+              ],
+              "apis": []
+            },
+            {
+              "id": "step:accept-invitation",
+              "name": "Accept Invitation",
+              "description": "New user follows the token link, sets their password, and activates their account.",
+              "entities": [
+                "app_users"
+              ],
+              "apis": []
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "app_users"
+      ],
+      "apis": []
+    }
+  ],
+  "crossDomainLinks": [
+    {
+      "from": "domain:members",
+      "to": "domain:accounting",
+      "description": "Member records are the subject of all compta entries; isCotisationPayed() and hasDonated() query the compta table."
+    },
+    {
+      "from": "domain:members",
+      "to": "domain:groups",
+      "description": "Group membership is stored as user_properties records keyed to each member."
+    },
+    {
+      "from": "domain:members",
+      "to": "domain:suivi",
+      "description": "Suivi notes and custom attributes are anchored to individual member records."
+    },
+    {
+      "from": "domain:donors",
+      "to": "domain:accounting",
+      "description": "Donor classification and attestation generation are driven entirely by compta entries with donation-type flags."
+    },
+    {
+      "from": "domain:donors",
+      "to": "domain:members",
+      "description": "Donor views augment member records with year-over-year donation summaries."
+    },
+    {
+      "from": "domain:groups",
+      "to": "domain:accounting",
+      "description": "Group import flows use compta data to identify cotisants and donors as import sources."
+    },
+    {
+      "from": "domain:administration",
+      "to": "domain:authentication",
+      "description": "Admins manage app_users records and issue invitation tokens consumed by the authentication flow."
+    },
+    {
+      "from": "domain:administration",
+      "to": "domain:groups",
+      "description": "Admins create and manage metagroups that organize teams for navigation."
+    },
+    {
+      "from": "domain:accounting",
+      "to": "domain:suivi",
+      "description": "Both domains write to user_properties-adjacent structures to extend member data beyond core fields."
+    }
+  ]
+}
