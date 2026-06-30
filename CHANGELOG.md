@@ -6,14 +6,31 @@ Tous les changements notables de ce projet sont documentés dans ce fichier.
 
 ### Nouveautés
 
-- **API REST complète** — 7 endpoints couvrant membres, compta, suivi, groupes et types compta :
+- **API REST complète** — endpoints JSON sous `/api/`, authentification par session, permissions par rôle :
   - `GET /api/members` — liste paginée avec recherche et filtres
-  - `GET/POST/PATCH/DELETE /api/members/{id}` — CRUD complet, PATCH avec payload diff-only (seuls les champs modifiés sont envoyés, l'audit log reflète les vraies valeurs avant/après)
+  - `POST /api/members` — créer un membre
+  - `GET /api/members/{id}` — fiche complète
+  - `PUT` / `PATCH /api/members/{id}` — modification partielle, payload diff-only (audit log reflète les vraies valeurs avant/après)
+  - `DELETE /api/members/{id}` — désactiver ou supprimer (`?dispose=delete`, admin)
   - `GET /api/members/{id}/groups` — groupes d'un membre avec catégorie
-  - `GET/POST/PATCH/DELETE /api/compta` — entrées comptables
+  - `GET /api/groups` — liste avec catégorie et nombre de membres
+  - `POST /api/groups` — créer un groupe (manager)
+  - `PUT /api/groups/{id}` — renommer / basculer visibilité (manager)
+  - `DELETE /api/groups/{id}` — supprimer un groupe vide (manager)
+  - `GET /api/groups/{id}/members` — membres d'un groupe
+  - `POST /api/groups/{id}/members` — ajouter un membre à un groupe (manager)
+  - `DELETE /api/groups/{id}/members` — retirer un membre d'un groupe (manager)
+  - `GET /api/compta?memberId={id}` — entrées comptables d'un membre
+  - `POST /api/compta` — créer une écriture comptable
+  - `GET /api/compta/{id}` — détail d'une écriture
+  - `PUT /api/compta/{id}` — modifier une écriture
+  - `DELETE /api/compta/{id}` — supprimer une écriture
   - `GET /api/compta-types` — types comptables
-  - `GET /api/suivi` — historique de suivi
-  - `GET /api/groups` — groupes avec catégorie et nombre de membres
+  - `GET /api/suivi?memberId={id}` — notes de suivi d'un membre
+  - `POST /api/suivi` — créer une note de suivi
+  - `GET /api/suivi/{id}` — détail d'une note
+  - `PUT /api/suivi/{id}` — modifier une note
+  - `DELETE /api/suivi/{id}` — supprimer une note
 - **Système de permissions à 4 niveaux** — `readonly`, `user`, `manager`, `admin` ; contrôle fin sur les actions CRUD et les réglages
 - **Édition inline** sur la fiche membre (données générales) — bascule vue/édition sans rechargement de page, sauvegarde partielle via Alpine.js
 - **Filtres virtuels enrichis** — colonne "Groupes de groupes" dans la liste, adhésion modifiable via API, édition des app-users depuis l'interface
@@ -21,7 +38,7 @@ Tous les changements notables de ce projet sont documentés dans ce fichier.
 
 ### Corrections
 
-- **Filtre de groupe** — l'entrée clavier n'avait aucun effet : Bootstrap `.d-flex { display: flex !important }` écrasait le `style="display:none"` posé par le filtre ; corrigé en utilisant une classe CSS `.team-hidden { display: none !important }` à plus haute spécificité
+- **Filtre de groupe** — l'entrée clavier n'avait aucun effet : Bootstrap `.d-flex { display: flex !important }` écrasait le `style="display:none"` posé par le filtre ; corrigé en utilisant une classe CSS `.team-filterable.team-hidden { display: none !important }` à plus haute spécificité
 - Les séparateurs entre catégories restaient visibles quand toute la catégorie était filtrée
 - La saisie dans l'input de filtre déclenchait la dialog "modifications non sauvegardées"
 - Ajout du champ `wants_attestation` dans le formulaire d'ajout d'écriture comptable
@@ -42,6 +59,57 @@ Tous les changements notables de ce projet sont documentés dans ce fichier.
 
 - `MIGRATION_PROD.md` — checklist de déploiement en production (Docker, k8s, variables d'environnement)
 - Vhost Apache pour l'API + bloc `Directory` explicite dans `docker/apache.conf`
+
+### Migration depuis v3.5.1
+
+Aucun changement de schéma. Aucun changement de configuration. Si vous utilisez Docker/k8s, reconstruire l'image et redéployer. Les endpoints API requièrent `mod_rewrite` Apache (déjà configuré dans `docker/apache.conf`).
+
+---
+
+## [3.5.1] — 2026-06-28
+
+### Refactoring interne
+
+- **Restructuration des includes** — les fichiers de `html/includes/` sont organisés en sous-dossiers conventionnels :
+  - `lib/` — bootstrap PHP (`bootstrap.php`, ex `declarations.php`) et authentification (`auth.php`)
+  - `routing/` — routeur de vues (`views.php`, ex `manage_views.php`) et dispatcher d'actions (`actions.php`, ex `manage_actions.php`)
+  - `views/` — fragments de page, nommés par domaine (`users_list.php`, `donors_summary.php`, `settings_general.php`, etc.)
+  - `partials/` — composants réutilisables (`menu.php`, `donor_table.php`)
+- Tous les fichiers renommés en anglais et en snake_case
+- Tous les `include` convertis en chemins `__DIR__`-relatifs pour éviter les ambiguïtés CWD/Apache
+
+Table des renommages (`html/includes/`) :
+
+| Ancien nom | Nouveau chemin | Rôle |
+|---|---|---|
+| `declarations.php` | `lib/bootstrap.php` | PDO, app settings, helpers |
+| `auth.php` | `lib/auth.php` | Session, login, requireLogin() |
+| `manage_views.php` | `routing/views.php` | View router |
+| `manage_actions.php` | `routing/actions.php` | POST action dispatcher |
+| `view_users.php` | `views/users_list.php` | Member list |
+| `update_user_form.php` | `views/users_edit_form.php` | Edit member |
+| `resume.php` | `views/donors_summary.php` | Contributions KPIs |
+| `settings_form.php` | `views/settings_general.php` | App settings |
+| `menu.php` | `partials/menu.php` | Nav sidebar |
+| `_donor_table.php` | `partials/donor_table.php` | Donor table partial |
+| _(et 27 autres fichiers de vues)_ | `views/` | Fragments préfixés par domaine |
+
+### Tests
+
+- **Suite Playwright complète** — 55 tests E2E couvrant auth, membres, compta, suivi, groupes, filtres, types compta, fusion, anonymisation, historique, intégrité, réglages
+- Pipeline CI GitHub Actions (`e2e.yml`) — reset DB, warm-up, run suite sur chaque push/PR
+- En-têtes de licence AGPL-3.0 ajoutées sur tous les fichiers PHP modifiés
+
+### Documentation
+
+- `README.md` — arborescence `includes/` mise à jour avec la nouvelle structure
+- `doc/admin.md` — référence de configuration DB corrigée (`conf/db.php` / variables d'environnement)
+
+### Migration depuis v3.5.0
+
+Aucun changement de schéma. Aucun changement de configuration. Si des scripts ou intégrations référencent des fichiers sous `html/includes/` par leurs anciens noms, mettre à jour ces chemins vers la nouvelle structure.
+
+---
 
 ## [3.5.0] — 2026-06-28
 
@@ -74,34 +142,6 @@ Premier release public sous le nom **MemberBase** — l'application est désorma
 
 - `value='1'` → `value='true'` dans `user_properties` pour cohérence avec le reste de l'application
 - Crash sur fresh install quand `default_team = 0` résolu
-
-Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
-et ce projet adhère au [versionnement sémantique](https://semver.org/lang/fr/).
-
-## [3.5.1] — 2026-06-28
-
-### Refactoring interne
-
-- **Restructuration des includes** — les fichiers de `html/includes/` sont organisés en sous-dossiers conventionnels :
-  - `lib/` — bootstrap PHP (`bootstrap.php`, ex `declarations.php`) et authentification (`auth.php`)
-  - `routing/` — routeur de vues (`views.php`, ex `manage_views.php`) et dispatcher d'actions (`actions.php`, ex `manage_actions.php`)
-  - `views/` — fragments de page, nommés par domaine (`users_list.php`, `donors_summary.php`, `settings_general.php`, etc.)
-  - `partials/` — composants réutilisables (`menu.php`, `donor_table.php`)
-- Tous les fichiers renommés en anglais et en snake_case
-- Tous les `include` convertis en chemins `__DIR__`-relatifs pour éviter les ambiguïtés CWD/Apache
-
-### Tests
-
-- **Suite Playwright complète** — 55 tests E2E couvrant auth, membres, compta, suivi, groupes, filtres, types compta, fusion, anonymisation, historique, intégrité, réglages
-- Pipeline CI GitHub Actions (`e2e.yml`) — reset DB, warm-up, run suite sur chaque push/PR
-- En-têtes de licence AGPL-3.0 ajoutées sur tous les fichiers PHP modifiés
-
-### Documentation
-
-- `README.md` — arborescence `includes/` mise à jour avec la nouvelle structure
-- `doc/admin.md` — référence de configuration DB corrigée (`conf/db.php` / variables d'environnement)
-
-## [Non publié]
 
 ---
 
@@ -352,3 +392,8 @@ Release majeure combinant un refactoring architectural complet, la généralisat
 ## [2.0.0] — 2025-10-01
 
 Version initiale publique documentée.
+
+---
+
+Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
+et ce projet adhère au [versionnement sémantique](https://semver.org/lang/fr/).
