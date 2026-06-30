@@ -1,5 +1,20 @@
 # votre-domaine — notes développement
 
+## Git — identité des commits
+
+**Tous les commits doivent être signés `pvollenweider <pvollenweider@jahia.com>`**, aussi bien en auteur qu'en committer. Ne jamais laisser `Claude <noreply@anthropic.com>` apparaître.
+
+Le dépôt est configuré avec `git config user.name/user.email` pour cette identité. Toujours passer `--author="pvollenweider <pvollenweider@jahia.com>"` lors d'un `git commit`, et ne jamais ajouter de ligne `Co-Authored-By:` ou `Claude-Session:` dans les messages de commit.
+
+```bash
+# ✅ correct
+git commit --author="pvollenweider <pvollenweider@jahia.com>" -m "message"
+
+# ❌ ne jamais faire
+git commit -m "message
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
 ## Stack
 
 PHP 8.2 / MariaDB / Bootstrap 5.3 / htmx 2.0.4 / Alpine.js  
