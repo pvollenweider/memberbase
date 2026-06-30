@@ -1,239 +1,891 @@
 # Guide administrateur — MemberBase
 
-Ce guide couvre les tâches réservées aux comptes de rôle **admin** : gestion des utilisateurs de l'application, configuration, déploiement et maintenance serveur.
+Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase. Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
 
 ---
 
-## Comptes utilisateurs de l'application
+## Table des matières
 
-Accès : **Groupes** → icône engrenage → **Utilisateurs** (ou `?view=manageAppUsers`).
+1. [Prérequis](#1-prérequis)
+2. [Installation](#2-installation)
+3. [Configuration](#3-configuration)
+4. [Déploiement Apache (production)](#4-déploiement-apache-production)
+5. [Docker](#5-docker)
+6. [Gestion des comptes utilisateurs](#6-gestion-des-comptes-utilisateurs)
+7. [Sécurité](#7-sécurité)
+8. [API REST](#8-api-rest)
+9. [Sauvegarde](#9-sauvegarde)
+10. [Intégrité des données](#10-intégrité-des-données)
+11. [CI/CD](#11-cicd)
+12. [Mise à jour du schéma](#12-mise-à-jour-du-schéma)
+13. [Logs d'audit](#13-logs-daudit)
 
-### Créer un compte
+---
+
+## 1. Prérequis
+
+### Logiciels obligatoires
+
+| Composant | Version minimale | Notes |
+|-----------|-----------------|-------|
+| PHP | 8.1 (8.2 recommandé) | Extensions `pdo_mysql` et `mbstring` requises |
+| MariaDB | 10.5 | MySQL 8+ aussi compatible |
+| Apache | 2.4 | Module `mod_rewrite` activé |
+| pdftk-java | toute version stable | Génération des attestations PDF AcroForm |
+
+### Installation des dépendances sur Debian/Ubuntu
+
+```bash
+# PHP et extensions
+apt install php8.2 php8.2-mysql php8.2-mbstring
+
+# pdftk-java (génération PDF)
+apt install pdftk-java
+
+# Activer mod_rewrite
+a2enmod rewrite
+systemctl reload apache2
+```
+
+### Vérification rapide
+
+```bash
+php -r "echo PHP_VERSION, ' pdo_mysql=', extension_loaded('pdo_mysql') ? 'OK' : 'MANQUANT', ' mbstring=', extension_loaded('mbstring') ? 'OK' : 'MANQUANT', PHP_EOL;"
+pdftk --version
+```
+
+---
+
+## 2. Installation
+
+### 2.1 Via le wizard web (recommandé pour la production)
+
+Le wizard `install.php` guide l'installation en 5 étapes. Il est la seule méthode garantissant un schéma cohérent et un premier compte admin valide.
+
+**Préparation :**
+
+```bash
+# Cloner le dépôt
+git clone <url-depot> /var/www/votre-domaine
+
+# Pointer Apache sur html/ (voir section 4)
+# S'assurer que conf/ est accessible en écriture par www-data
+mkdir -p /var/www/votre-domaine/conf
+chown www-data:www-data /var/www/votre-domaine/conf
+chmod 750 /var/www/votre-domaine/conf
+```
+
+Puis naviguer sur `https://votre-domaine/install.php`.
+
+**Étape 1 — Prérequis serveur**
+
+L'installeur vérifie automatiquement :
+- PHP >= 8.1
+- Extension PDO MySQL
+- Extension mbstring
+- Répertoire `conf/` accessible en écriture
+
+Tous les indicateurs doivent être verts avant de continuer.
+
+**Étape 2 — Connexion à la base de données**
+
+Saisir les paramètres de connexion. L'installeur teste la connexion et, si elle réussit, écrit `conf/db.php`. Les champs sont préremplis depuis les variables d'environnement si elles sont définies.
+
+| Champ | Valeur exemple | Notes |
+|-------|---------------|-------|
+| Hôte | `localhost` | `mariadb` sous Docker |
+| Port | `3306` | |
+| Nom de la base | `members` | Base à créer au préalable |
+| Utilisateur | `members` | |
+| Mot de passe | `***` | |
+
+**Étape 3 — Initialisation du schéma**
+
+Crée les tables suivantes (toutes avec `CREATE TABLE IF NOT EXISTS` — idempotent) :
+
+`users` `team` `user_properties` `metagroup` `compta` `compta_type` `maxval` `app_settings` `app_users` `audit_log`
+
+Un clic suffit. Les tables existantes ne sont pas modifiées.
+
+**Étape 4 — Configuration de l'organisation**
+
+Saisir les informations de l'association (nom, adresse, NPA, ville, pays). Ces données apparaissent dans le titre de l'application et sur les attestations de dons PDF.
+
+Le wizard crée automatiquement :
+- Deux groupes membres : `{Préfixe} {année-1}` et `{Préfixe} {année}` (ex. `Membre 2024` et `Membre 2025`)
+- Une catégorie `Membres` regroupant ces deux groupes
+- Quatre types de compta de base si la table est vide :
+
+| Type | Couleur | Flags |
+|------|---------|-------|
+| Cotisation | `bg-light` | `is_cotisation=1`, exclu des dons |
+| Don | `bg-info-subtle` | |
+| Evénementiel | `bg-primary-subtle` | exclu des dons |
+| Institutionnel | `bg-warning-subtle` | `is_institutional=1` |
+
+**Étape 5 — Compte administrateur**
+
+Crée le premier compte `admin`. Règles de validation :
+- Identifiant : 2 à 50 caractères, uniquement lettres/chiffres/`.`/`-`/`_`
+- Mot de passe : 8 caractères minimum
+- Le hash est généré en bcrypt via `PASSWORD_DEFAULT`
+- Le flag `force_password_change` est mis à `0` pour ce compte initial
+
+**Après installation :**
+
+La page `install.php` est automatiquement bloquée dès qu'un compte admin actif existe en base (redirection vers `index.php`). Elle reste accessible sur les étapes 4 et 5 si la config DB existe mais sans admin. Supprimer ou protéger le fichier n'est pas obligatoire, mais reste une bonne pratique.
+
+### 2.2 Via Docker (développement)
+
+```bash
+git clone <url-depot> memberbase
+cd memberbase
+
+# Rendre conf/ accessible en écriture par le process PHP dans le conteneur
+chmod 777 conf/
+
+# Démarrer la stack
+docker compose up -d
+
+# Ouvrir le wizard
+open http://localhost:8080/install.php
+# Utiliser "mariadb" comme hôte DB (pas "localhost")
+```
+
+Voir la section [5 — Docker](#5-docker) pour le détail de la stack.
+
+### 2.3 Mise à jour d'une instance existante
+
+```bash
+git pull
+systemctl reload apache2   # si des fichiers PHP ont changé
+```
+
+Aucune migration manuelle n'est requise pour les mises à jour mineures. Voir la section [12 — Mise à jour du schéma](#12-mise-à-jour-du-schéma) pour les cas exceptionnels.
+
+---
+
+## 3. Configuration
+
+### 3.1 conf/db.php
+
+Fichier écrit par le wizard à l'étape 2. Situé **hors du webroot** (`conf/` est au niveau de la racine du dépôt, pas dans `html/`). Ce fichier est gitignored.
+
+Structure générée :
+
+```php
+<?php
+// Generated by installer — 2025-01-15 14:32:00
+define('DB_HOST', 'localhost');
+define('DB_PORT', 3306);
+define('DB_NAME', 'members');
+define('DB_USER', 'members');
+define('DB_PASS', 'secret');
+```
+
+Ne pas modifier ce fichier manuellement sauf nécessité — utiliser plutôt les variables d'environnement en environnement Docker.
+
+### 3.2 Variables d'environnement (Docker / 12-factor)
+
+Si `conf/db.php` est absent, `html/includes/lib/bootstrap.php` utilise les variables d'environnement en fallback :
+
+| Variable | Valeur par défaut | Description |
+|----------|-------------------|-------------|
+| `DB_HOST` | `localhost` | Hôte MariaDB |
+| `DB_PORT` | `3306` | Port MariaDB |
+| `DB_NAME` | `members` | Nom de la base |
+| `DB_USER` | `members` | Utilisateur DB |
+| `DB_PASS` | `members` | Mot de passe DB |
+
+### 3.3 Paramètres applicatifs (table app_settings)
+
+Stockés en base, modifiables dans Réglages → Général. Clés principales :
+
+| Clé | Description |
+|-----|-------------|
+| `org_name` | Nom de l'association (titre et attestations) |
+| `org_address` | Adresse (attestations) |
+| `org_npa` | Code postal (attestations) |
+| `org_city` | Ville (attestations) |
+| `org_country` | Pays (attestations) |
+| `default_team` | ID du groupe affiché par défaut dans la liste membres |
+| `membre_team` | ID du groupe de référence pour les filtres cotisation |
+| `archive_id` | ID du groupe archives (exclu des vues par défaut) |
+| `membre_team_prefix` | Préfixe des groupes membres annuels (ex. `Membre`) |
+
+Modification directe en SQL si nécessaire :
+
+```sql
+UPDATE app_settings SET value = 'Nouvelle valeur' WHERE `key` = 'org_name';
+```
+
+---
+
+## 4. Déploiement Apache (production)
+
+### Configuration VirtualHost
+
+Le `DocumentRoot` doit pointer sur `html/`, pas sur la racine du dépôt. Le répertoire `conf/` doit rester hors du webroot.
+
+```apache
+<VirtualHost *:443>
+    ServerName membres.votre-domaine.ch
+    DocumentRoot /var/www/membres.votre-domaine.ch/html
+
+    <Directory /var/www/membres.votre-domaine.ch/html>
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    # HTTPS — certificat Let's Encrypt ou autre
+    SSLEngine on
+    SSLCertificateFile    /etc/letsencrypt/live/membres.votre-domaine.ch/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/membres.votre-domaine.ch/privkey.pem
+
+    ErrorLog  /var/log/apache2/membres.votre-domaine.ch-error.log
+    CustomLog /var/log/apache2/membres.votre-domaine.ch-access.log combined
+</VirtualHost>
+```
+
+### Permissions
+
+```bash
+WEBROOT=/var/www/membres.votre-domaine.ch
+
+# conf/ en écriture pour www-data (l'installeur doit pouvoir écrire conf/db.php)
+chown www-data:www-data $WEBROOT/conf
+chmod 750 $WEBROOT/conf
+
+# html/ en lecture seule pour www-data (sauf assets si upload prévu)
+chown -R www-data:www-data $WEBROOT/html
+find $WEBROOT/html -type d -exec chmod 755 {} \;
+find $WEBROOT/html -type f -exec chmod 644 {} \;
+```
+
+### pdftk
+
+La génération d'attestations PDF appelle `pdftk` via `exec()`. Le binaire doit être accessible dans le PATH du process Apache :
+
+```bash
+which pdftk          # doit retourner un chemin
+apt install pdftk-java
+```
+
+### HTTPS
+
+Le cookie de session est émis avec `Secure=true` uniquement si la requête arrive sur HTTPS. En HTTP, la session ne fonctionne pas. HTTPS est donc obligatoire en production.
+
+---
+
+## 5. Docker
+
+### 5.1 Stack de développement (docker-compose.yml)
+
+```yaml
+services:
+  php:
+    build: .                           # Dockerfile à la racine
+    ports:
+      - "8080:80"                      # App sur http://localhost:8080
+    volumes:
+      - ./html:/var/www/html           # Bind mount — modifications en direct
+      - ./conf:/var/www/conf           # Conf DB partagée avec l'hôte
+      - ./logs:/var/www/logs
+    environment:
+      DB_HOST: mariadb                 # Nom du service Docker, pas "localhost"
+      DB_NAME: members
+      DB_USER: members
+      DB_PASS: members
+    depends_on:
+      mariadb:
+        condition: service_healthy     # Attend que MariaDB réponde avant de démarrer
+
+  mariadb:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: members
+      MARIADB_USER: members
+      MARIADB_PASSWORD: members
+    volumes:
+      - mariadb_data:/var/lib/mysql    # Volume nommé — données persistées
+      - ./docker/initdb:/docker-entrypoint-initdb.d  # Scripts SQL d'init optionnels
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-umembers", "-pmembers"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer
+    ports:
+      - "8082:8080"                    # Interface web DB sur http://localhost:8082
+
+volumes:
+  mariadb_data:
+```
+
+Points importants :
+- Le bind mount `./html:/var/www/html` permet d'éditer les fichiers PHP sans reconstruire l'image.
+- `conf/` est également monté — `conf/db.php` créé par le wizard est visible sur l'hôte.
+- L'hôte MariaDB à saisir dans le wizard est `mariadb` (nom du service), pas `localhost`.
+
+### 5.2 Stack de test (docker-compose.test.yml)
+
+Override minimal utilisé par la CI :
+
+```yaml
+services:
+  php:
+    environment:
+      DB_NAME: members_test            # Base séparée, n'écrase pas "members"
+```
+
+Utilisé avec :
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --build
+```
+
+La base de test `members_test` est exposée sur le port `3307` de l'hôte (pas `3306`), ce qui évite tout conflit avec la stack de développement.
+
+### 5.3 Dockerfile
+
+Image basée sur `php:8.2-apache`. Extensions installées : `pdo`, `pdo_mysql`. Un vhost Apache personnalisé est configuré dans l'image. Les répertoires `logs/` et `conf/` sont créés avec les bonnes permissions pour `www-data`.
+
+### 5.4 Commandes courantes
+
+```bash
+# Démarrer la stack de dev
+docker compose up -d
+
+# Voir les logs PHP/Apache
+docker compose logs -f php
+
+# Accéder au shell PHP
+docker compose exec php bash
+
+# Redémarrer après modification du Dockerfile
+docker compose up -d --build php
+
+# Arrêter et supprimer les conteneurs (données MariaDB conservées dans le volume)
+docker compose down
+
+# Supprimer aussi les volumes (reset complet)
+docker compose down -v
+```
+
+---
+
+## 6. Gestion des comptes utilisateurs
+
+### 6.1 Rôles et permissions
+
+MemberBase définit quatre rôles, définis dans `html/includes/lib/auth.php` :
+
+| Rôle | Lecture | Écriture | Suppression | Gestion des comptes |
+|------|:-------:|:--------:|:-----------:|:-------------------:|
+| `readonly` | Oui | Non | Non | Non |
+| `user` | Oui | Oui | Non | Non |
+| `manager` | Oui | Oui | Oui | Non |
+| `admin` | Oui | Oui | Oui | Oui |
+
+Fonctions PHP correspondantes : `isLoggedIn()`, `canWrite()`, `isManager()`, `isAdmin()`.
+
+Tout utilisateur connecté peut changer son propre mot de passe (`?view=changePassword`). Seul un `admin` peut réinitialiser le mot de passe d'un autre compte ou le supprimer.
+
+### 6.2 Accès à l'interface de gestion
+
+**Réglages → Comptes utilisateurs** (ou `?view=settings&section=app_users`)
+
+L'onglet est invisible pour les rôles non-admin.
+
+### 6.3 Créer un compte
 
 1. Cliquer **Nouvel utilisateur**
-2. Saisir : nom d'affichage, identifiant (login), mot de passe temporaire, rôle (`admin` ou `user`)
+2. Remplir :
+   - **Identifiant** : 2 à 100 caractères, lettres/chiffres/`.`/`-`/`_`
+   - **Nom affiché** : optionnel, repris de l'identifiant si vide
+   - **Email** : optionnel
+   - **Rôle** : `readonly` / `user` / `manager` / `admin`
+   - **Mot de passe temporaire** : saisir ou générer aléatoirement via le bouton dé. Laisser vide pour utiliser `changeme` par défaut
 3. Cliquer **Créer**
-4. Communiquer le mot de passe temporaire à l'utilisateur — il devra le changer à la première connexion
 
-### Réinitialiser un mot de passe
+Le compte est créé avec `force_password_change=1`. L'utilisateur sera bloqué sur la page de changement de mot de passe à sa première connexion.
 
-1. Dans la liste des utilisateurs, cliquer **Réinitialiser** à côté du compte concerné
-2. Un mot de passe temporaire est affiché une seule fois à l'écran — le noter et le transmettre à l'utilisateur
-3. L'utilisateur sera forcé de changer ce mot de passe à sa prochaine connexion
+**Option alternative — lien d'invitation :** après création, l'interface peut générer un token valable 7 jours. Copier le lien affiché et l'envoyer à l'utilisateur. Il définira son propre mot de passe sans que vous n'ayez à communiquer un mot de passe temporaire.
 
-> Le mot de passe temporaire n'apparaît jamais dans les logs Apache (transmis via session, pas via URL).
+### 6.4 Modifier un compte
 
-### Supprimer un compte
+Cliquer l'icône crayon sur la ligne du compte concerné. Champs modifiables : nom affiché, email, rôle, statut actif/inactif.
 
-Dans la liste des utilisateurs, cliquer **Supprimer** → confirmer. L'opération est irréversible.
+Un compte `is_active=0` ne peut plus se connecter mais n'est pas supprimé.
 
-### Rôles
+### 6.5 Réinitialiser un mot de passe
 
-| Rôle | Accès |
-|------|-------|
-| `user` | Toutes les fonctions métier (membres, compta, groupes, rapports) |
-| `admin` | Idem + gestion des comptes utilisateurs |
+1. Cliquer l'icône clé sur la ligne du compte
+2. Confirmer dans la boîte de dialogue
+3. Un mot de passe temporaire aléatoire est affiché une seule fois — le noter et le transmettre à l'utilisateur
+4. `force_password_change` est remis à `1` : l'utilisateur sera forcé de changer ce mot de passe à la connexion suivante
+
+Le mot de passe temporaire transite via session flash (`$_SESSION['reset_pw_flash']`), jamais en paramètre URL. Il n'apparaît pas dans les logs Apache.
+
+### 6.6 Supprimer un compte
+
+Cliquer l'icône corbeille → confirmer. Action irréversible. Un admin ne peut pas supprimer son propre compte (le bouton n'est pas affiché sur la ligne `vous`).
+
+### 6.7 Compte admin initial
+
+Créé via `install.php` étape 5. C'est le seul compte pour lequel `force_password_change=0` est défini à la création. Pour tous les comptes créés ensuite via l'interface, ce flag est `1`.
+
+---
+
+## 7. Sécurité
+
+### 7.1 Authentification
+
+- Mots de passe hashés en **bcrypt** (`password_hash($password, PASSWORD_DEFAULT)` / `password_verify()`)
+- Après login réussi, `session_regenerate_id(true)` est appelé pour prévenir la fixation de session
+- Cookie de session : `httponly=true`, `samesite=Lax`, `secure=true` (HTTPS uniquement)
+- Durée de session : `lifetime=0` (session navigateur — expire à la fermeture de l'onglet)
+
+### 7.2 Fail2Ban
+
+Jail configurée pour bannir les IPs après 5 tentatives de login échouées en 5 minutes (ban 24 heures).
+
+Un login échoué retourne HTTP 200 (le formulaire est ré-affiché). Un login réussi retourne HTTP 302. Fail2Ban distingue les deux via ce code de retour.
+
+**Filtre** — créer `/etc/fail2ban/filter.d/memberbase-login.conf` :
+
+```ini
+[Definition]
+failregex = ^<HOST> .* "POST /login\.php HTTP/1\.[01]" 200
+ignoreregex =
+```
+
+**Jail** — ajouter dans `/etc/fail2ban/jail.local` :
+
+```ini
+[memberbase-login]
+enabled  = true
+port     = http,https
+filter   = memberbase-login
+logpath  = /var/log/apache2/membres.votre-domaine.ch-access.log
+maxretry = 5
+findtime = 300
+bantime  = 86400
+```
+
+Adapter `logpath` au nom réel du fichier de log Apache.
+
+**Commandes de gestion :**
+
+```bash
+# Recharger la configuration après modification
+systemctl reload fail2ban
+
+# Vérifier l'état de la jail
+fail2ban-client status memberbase-login
+
+# Débannir une IP manuellement
+fail2ban-client set memberbase-login unbanip <IP>
+
+# Whitelister des IPs (jamais bannies) — dans jail.local section [DEFAULT]
+# ignoreip = 127.0.0.1/8 ::1 192.168.1.0/24
+
+# Vérifier la whitelist
+fail2ban-client -d | grep ignoreip
+```
+
+### 7.3 Protection des répertoires sensibles
+
+Les répertoires `html/includes/` et `html/api/` contiennent des `.htaccess` qui bloquent l'accès direct. Les fichiers PHP de ces dossiers ne doivent être inclus que par `index.php` (qui définit la constante `APP_ENTRY`). Tout accès direct déclenche `die('Direct access not permitted.')`.
+
+### 7.4 Audit log
+
+Voir la section [13 — Logs d'audit](#13-logs-daudit).
+
+### 7.5 Procédure en cas de compromission de compte
+
+1. Se connecter avec un autre compte admin
+2. Réglages → Comptes → réinitialiser le mot de passe du compte compromis
+3. Si le compte admin unique est compromis, réinitialiser le hash directement en base :
+
+```sql
+-- Générer un nouveau hash bcrypt en PHP :
+-- php -r "echo password_hash('NouveauMotDePasse!', PASSWORD_DEFAULT);"
+UPDATE app_users
+SET password_hash = '$2y$10$...hash...', force_password_change = 1
+WHERE username = 'admin';
+```
+
+---
+
+## 8. API REST
+
+### 8.1 Activation
+
+L'API est toujours disponible. Aucun flag d'activation n'existe. Elle requiert une **authentification de session** active — il n'y a pas d'authentification par token ou clé API. L'utilisateur doit d'abord se connecter via `POST /login.php`, puis inclure le cookie de session dans les requêtes API.
+
+Le bootstrap de l'API se trouve dans `html/api/_bootstrap.php` : il vérifie `isLoggedIn()` et émet les headers `Content-Type: application/json` et CORS appropriés.
+
+### 8.2 Authentification par session pour les appels curl
+
+```bash
+# 1. Se connecter et récupérer le cookie de session
+curl -c cookies.txt -b cookies.txt \
+  -d "username=admin&password=VotreMotDePasse" \
+  https://membres.votre-domaine.ch/login.php
+
+# 2. Utiliser le cookie pour les appels API suivants
+curl -b cookies.txt https://membres.votre-domaine.ch/api/members
+```
+
+### 8.3 Endpoints disponibles
+
+| Méthode | Endpoint | Description |
+|---------|----------|-------------|
+| `GET` | `/api/members` | Liste des membres |
+| `GET` | `/api/members/{id}` | Fiche membre complète |
+| `PATCH` | `/api/members/{id}` | Modification partielle (génère un audit log) |
+| `GET` | `/api/members/{id}/groups` | Groupes du membre |
+| `GET` | `/api/groups` | Liste des groupes avec comptage membres |
+| `GET` | `/api/groups/{id}` | Groupe avec ses membres |
+| `GET` | `/api/compta` | Entrées comptables |
+| `GET` | `/api/compta-types` | Types de compta configurés |
+| `GET` | `/api/suivi` | Notes de suivi |
+
+### 8.4 Paramètres de filtrage
+
+**`GET /api/members`**
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `group` | int | Filtrer par ID de groupe |
+| `metagroup` | int | Filtrer par ID de métagroupe |
+| `active` | bool | `1` = membres actifs uniquement |
+| `search` | string | Recherche textuelle (nom, prénom, email) |
+| `limit` | int | Nombre de résultats (pagination) |
+| `offset` | int | Décalage (pagination) |
+
+**`GET /api/compta`**
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `member` | int | Filtrer par ID membre |
+| `type` | int | Filtrer par ID type compta |
+| `year` | int | Filtrer par année |
+
+**`GET /api/suivi`**
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `member` | int | Filtrer par ID membre |
+| `year` | int | Filtrer par année |
+
+### 8.5 Exemples curl
+
+```bash
+BASE=https://membres.votre-domaine.ch
+COOKIES=cookies.txt
+
+# Liste des membres du groupe 3, actifs
+curl -b $COOKIES "$BASE/api/members?group=3&active=1"
+
+# Fiche complète du membre 42
+curl -b $COOKIES "$BASE/api/members/42"
+
+# Modifier le prénom du membre 42
+curl -b $COOKIES -X PATCH \
+  -H "Content-Type: application/json" \
+  -d '{"firstname": "Jean-Pierre"}' \
+  "$BASE/api/members/42"
+
+# Entrées compta du membre 42 pour 2024
+curl -b $COOKIES "$BASE/api/compta?member=42&year=2024"
+
+# Liste des groupes
+curl -b $COOKIES "$BASE/api/groups"
+```
+
+### 8.6 Format des réponses
+
+Toutes les réponses sont en JSON UTF-8. Les erreurs retournent un objet `{"error": "message descriptif"}` avec le code HTTP approprié :
+
+| Code | Situation |
+|------|-----------|
+| 200 | Succès |
+| 400 | Paramètre invalide ou corps JSON malformé |
+| 401 | Non authentifié |
+| 403 | Authentifié mais rôle insuffisant |
+| 404 | Ressource introuvable |
+| 405 | Méthode HTTP non supportée |
+
+---
+
+## 9. Sauvegarde
+
+### Ce qu'il faut sauvegarder
+
+| Élément | Emplacement | Priorité |
+|---------|-------------|----------|
+| Base de données | MariaDB | Critique |
+| Config DB | `conf/db.php` | Haute |
+| Template PDF | `html/assets/attestation.pdf` | Haute |
+| Assets personnalisés | `html/assets/` | Selon usage |
+
+Il n'y a pas de fichiers uploadés par les utilisateurs à gérer : MemberBase ne stocke pas de pièces jointes.
+
+### Sauvegarde de la base de données
+
+```bash
+# Dump complet avec compression
+mysqldump -h localhost -u members -p members \
+  | gzip > /var/backups/memberbase/db_$(date +%Y%m%d_%H%M%S).sql.gz
+
+# Planifier via cron (tous les jours à 3h)
+# 0 3 * * * mysqldump -h localhost -u members -pmotdepasse members | gzip > /var/backups/memberbase/db_$(date +\%Y\%m\%d).sql.gz
+```
+
+### Restauration
+
+```bash
+gunzip < backup_20250115.sql.gz | mysql -u members -p members
+```
+
+### Sauvegarde de la configuration
+
+```bash
+cp /var/www/membres.votre-domaine.ch/conf/db.php /var/backups/memberbase/
+```
+
+---
+
+## 10. Intégrité des données
+
+### Accès
+
+**Réglages → Intégrité** (onglet dans la barre latérale des réglages)
+
+Accessible uniquement aux comptes `admin` et `manager`.
+
+### Ce que l'outil vérifie
+
+L'outil effectue cinq contrôles en lecture seule sur la base de données :
+
+| Contrôle | Sévérité | Description |
+|----------|----------|-------------|
+| Membres avec même nom | Danger | Deux membres actifs avec le même prénom ET nom (insensible à la casse) |
+| Membres avec même email | Danger | Deux membres actifs avec la même adresse email |
+| Groupes masqués dans une catégorie | Avertissement | Un groupe `hidden=1` est encore assigné à une catégorie |
+| Groupes masqués dans un métagroupe | Avertissement | Un groupe `hidden=1` est encore référencé dans un métagroupe de filtrage |
+| Groupes masqués avec des membres | Avertissement | Un groupe `hidden=1` a encore des membres actifs assignés |
+
+### Actions disponibles
+
+- **Doublons de nom/email** : liens directs vers les fiches membres concernées. Pour deux doublons, un bouton **Fusionner** apparaît (vue `mergeUsers`).
+- **Groupes masqués** : lien **Éditer** vers la page de configuration du métagroupe ou de la catégorie pour retirer l'assignation.
+
+### Quand l'utiliser
+
+- Après une importation de données en masse
+- En cas de signalement d'incohérences par les utilisateurs
+- Avant une exportation ou un bilan annuel
+- Périodiquement, comme contrôle de routine (recommandé : mensuel)
+
+---
+
+## 11. CI/CD
+
+### Pipeline GitHub Actions (`.github/workflows/e2e.yml`)
+
+Le workflow se déclenche sur chaque push vers `main` et sur chaque pull request.
+
+**Étapes du pipeline :**
+
+1. **Checkout** du code
+
+2. **Démarrage de la stack Docker de test**
+   ```bash
+   docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --build
+   ```
+   Utilise la base `members_test` (override via `docker-compose.test.yml`).
+
+3. **Attente de disponibilité** : polling de `http://localhost:8080/login.php` toutes les 3 secondes, jusqu'à 30 tentatives (90 secondes maximum).
+
+4. **Installation Node.js 20** et dépendances npm (`npm ci`).
+
+5. **Installation Playwright** (navigateur Chromium uniquement + dépendances système).
+
+6. **Correction des permissions `conf/`** : Docker crée ce répertoire avec `www-data` comme propriétaire ; le runner GitHub Actions (non-root) doit pouvoir y écrire pour que l'installeur fonctionne.
+
+7. **Reset de la base de test** :
+   ```bash
+   bash tests/fixtures/reset-db.sh
+   ```
+   Ce script recharge le schéma et les fixtures dans `members_test`.
+
+8. **Exécution des tests Playwright** sans retry (`--retries=0` pour obtenir des échecs francs).
+
+9. **Artefact en cas d'échec** : le rapport Playwright (`playwright-report/`) est conservé 7 jours dans GitHub Actions pour investigation.
+
+### Reproduire localement
+
+```bash
+# Démarrer la stack de test
+docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --build
+
+# Attendre que l'app réponde
+curl -sf http://localhost:8080/login.php
+
+# Reset DB
+bash tests/fixtures/reset-db.sh
+
+# Lancer les tests
+npx playwright test
+
+# Voir le rapport HTML
+npx playwright show-report
+```
+
+---
+
+## 12. Mise à jour du schéma
+
+### Principe général
+
+Toutes les instructions `CREATE TABLE` dans `install.php` utilisent `CREATE TABLE IF NOT EXISTS`. Un `git pull` suivi d'un rechargement Apache suffit pour les mises à jour courantes — les tables existantes ne sont pas touchées.
+
+Ce schéma idempotent signifie que re-passer par `install.php?step=3` sur une instance existante est sans danger : les tables sont ignorées, les données conservées.
+
+### Migrations exceptionnelles
+
+Les modifications de schéma non rétrocompatibles (ajout de colonne `NOT NULL` sans valeur par défaut, renommage de table, changement d'index) sont documentées dans `MIGRATION_PROD.md` à la racine du dépôt.
+
+Avant toute migration :
+1. Lire `MIGRATION_PROD.md` pour la version cible
+2. Faire un dump de la base (`mysqldump`)
+3. Tester la migration sur un environnement de staging
+4. Appliquer en production dans une fenêtre de maintenance
+
+### Vérifier l'état du schéma
+
+```sql
+-- Lister les tables existantes
+SHOW TABLES;
+
+-- Vérifier la structure d'une table
+DESCRIBE app_users;
+
+-- Comparer avec le schéma cible dans install.php
+```
+
+---
+
+## 13. Logs d'audit
+
+### Table audit_log
+
+Structure :
+
+| Colonne | Type | Description |
+|---------|------|-------------|
+| `id` | int AUTO_INCREMENT | Identifiant de l'entrée |
+| `created_at` | datetime | Horodatage (timezone Europe/Zurich) |
+| `app_user_id` | int | ID du compte applicatif auteur |
+| `username` | varchar(100) | Nom d'utilisateur au moment de l'action |
+| `action` | varchar(100) | Code de l'action (ex. `PATCH /api/members/{id}`) |
+| `detail` | text | Détail JSON (diff avant/après pour les PATCH) |
+| `subject_user_id` | int unsigned | ID du membre concerné |
+
+### Ce qui est tracé
+
+La fonction `auditLog()` dans `bootstrap.php` est appelée par les endpoints API qui modifient des données :
+
+- **`PATCH /api/members/{id}`** : enregistre un diff des champs modifiés (valeur avant / valeur après) au format JSON dans la colonne `detail`.
+
+Les actions de gestion des comptes (création, suppression, réinitialisation de mot de passe) transitent par les actions POST de l'interface web et ne passent pas par l'API — elles ne génèrent pas d'entrée `audit_log` à ce stade.
+
+### Consulter les logs
+
+**Via l'interface** : Réglages → Audit Log (onglet visible pour les admins).
+
+**Via SQL :**
+
+```sql
+-- 50 dernières entrées
+SELECT created_at, username, action, detail, subject_user_id
+FROM audit_log
+ORDER BY created_at DESC
+LIMIT 50;
+
+-- Actions d'un utilisateur précis
+SELECT * FROM audit_log
+WHERE username = 'dupont'
+ORDER BY created_at DESC;
+
+-- Modifications d'un membre
+SELECT * FROM audit_log
+WHERE subject_user_id = 42
+ORDER BY created_at DESC;
+```
+
+### Purge
+
+La table `audit_log` n'est pas purgée automatiquement. Purge manuelle si nécessaire :
+
+```sql
+-- Supprimer les entrées de plus de 2 ans
+DELETE FROM audit_log WHERE created_at < DATE_SUB(NOW(), INTERVAL 2 YEAR);
+```
 
 ---
 
 ## Réglages de l'application
 
-Accès : icône engrenage dans la barre de navigation → **Réglages** (ou `?view=settings`).
-
-La page de réglages est organisée en sections accessibles via une barre latérale (desktop) ou un sélecteur déroulant (mobile).
-
 ### Général
+
+Accès : **Réglages** → section **Général**
 
 | Réglage | Description |
 |---------|-------------|
-| **Groupe par défaut** | Groupe affiché à l'ouverture de la liste membres |
-| **Groupe membres de référence** | Groupe utilisé comme référence pour les filtres cotisation |
-| **Groupe archives** | Groupe exclu des vues par défaut (filtre "tous sauf archives") |
+| Groupe par défaut | Groupe affiché à l'ouverture de la liste membres |
+| Groupe membres de référence | Référence pour les filtres cotisation non payée |
+| Groupe archives | Exclu des vues "tous sauf archives" |
 
-Modifier les valeurs et cliquer **Enregistrer**.
+### Types de compta
 
-### Groupes
+Accès : **Réglages** → section **Types de compta**
 
-Liste de tous les groupes actifs avec deux actions par ligne :
+Les types définissent les catégories d'entrées financières. Flags disponibles :
 
-- **Crayon** — renommage rapide inline, sans rechargement de page
-- **Engrenage** — ouvre la page de réglages complète du groupe (catégorie, visibilité, membres)
-
-Pour créer un groupe, utiliser le formulaire en haut de l'onglet. La section "Importer les membres d'autres groupes" propose les groupes source triés par catégorie.
-
----
-
-## Types de compta
-
-Accès : icône engrenage → **Réglages** → section **Types de compta** (barre latérale).
-
-Les types de compta définissent les catégories d'entrées (cotisation, don ponctuel, don récurrent, etc.).
-
-### Créer un type
-
-1. Remplir : libellé, classe de couleur Bootstrap (ex. `success`, `info`, `warning`, `danger`, `primary`)
-2. Cocher les flags selon le besoin :
-   - **Cotisation** — ce type est pris en compte dans les filtres "cotisation non payée" et l'import par cotisants
-   - **Exclu des dons** — ce type n'apparaît pas dans la vue Contributions ni dans les attestations
-3. Cliquer **Ajouter**
-
-### Modifier un type
-
-Cliquer l'icône crayon sur la ligne → modifier → **Enregistrer**.
-
-### Archiver un type
-
-Cocher **Archivé** sur un type existant. Le type disparaît du formulaire de saisie mais reste visible sur les entrées historiques. À utiliser plutôt que supprimer si le type a des entrées existantes.
-
-### Supprimer un type
-
-Disponible uniquement si le type n'est utilisé par aucune entrée compta. Sinon, archiver.
-
-### Réordonner
-
-Glisser-déposer les lignes pour changer l'ordre d'affichage dans les formulaires de saisie.
+| Flag | Effet |
+|------|-------|
+| `is_cotisation` | Pris en compte dans les filtres "cotisation non payée" et l'import de cotisants |
+| `is_excluded_from_donation` | Exclu de la vue Contributions et des attestations de dons |
+| `is_institutional` | Donateur institutionnel (filtres spécifiques) |
+| Archivé | Masqué à la saisie mais visible sur les entrées historiques |
 
 ---
 
-## Catégories de groupes
-
-Accès : **Groupes** → onglet **Catégories**.
-
-Les catégories organisent visuellement les groupes dans les listes (elles n'apparaissent pas dans le menu de filtrage).
-
-### Créer une catégorie
-
-1. Saisir le nom dans le champ en bas
-2. Cliquer **Créer**
-
-### Réordonner
-
-Glisser-déposer les catégories dans la liste.
-
-### Assigner un groupe à une catégorie
-
-1. Aller sur **Groupes** → cliquer l'icône engrenage du groupe
-2. Sélectionner la catégorie dans le champ **Catégorie**
-3. Cliquer **Mettre à jour**
-
----
-
-## Filtres de groupes (métagroupes)
-
-Accès : **Groupes** → onglet **Filtres**.
-
-Un filtre regroupe plusieurs groupes : sélectionner ce filtre dans la liste membres affiche l'union de tous ses groupes membres.
-
-### Créer un filtre depuis zéro
-
-1. Saisir un nom dans le champ en bas de l'onglet Filtres
-2. Cliquer **Créer un filtre**
-3. Cliquer le nom du filtre créé pour ouvrir sa page d'édition
-4. Cocher les groupes à inclure — sauvegarde automatique à chaque coche
-
-> Un bouton **Annuler** apparaît dans la notification après chaque modification (fenêtre de 4 secondes).
-
-### Créer un filtre depuis une sélection de groupes
-
-1. Dans l'onglet **Groupes**, cocher plusieurs groupes
-2. Cliquer **Créer un métagroupe**
-3. Nommer le métagroupe créé depuis sa page d'édition
-
----
-
-## Déploiement
-
-L'application se déploie par **rsync** (pas de git pull sur le serveur).
+## Référence rapide
 
 ```bash
-rsync -avz --delete html/ user@votre-domaine:/var/www/votre-domaine/html/
+# Vérifier l'état de Fail2Ban
+fail2ban-client status memberbase-login
+
+# Recharger Apache sans coupure
+systemctl reload apache2
+
+# Dump base de données
+mysqldump -u members -p members | gzip > backup.sql.gz
+
+# Logs Apache en temps réel
+tail -f /var/log/apache2/membres.votre-domaine.ch-access.log
+
+# Stack Docker — état des services
+docker compose ps
+
+# Stack Docker — logs en temps réel
+docker compose logs -f
 ```
-
-Adapter le chemin de destination selon la configuration Apache du serveur.
-
-### Prérequis serveur
-
-- PHP 8+ avec extensions PDO, PDO_MySQL, mbstring, gd
-- MariaDB (ou MySQL 8+)
-- `pdftk-java` pour la génération d'attestations PDF : `apt install pdftk-java`
-- Apache avec mod_rewrite
-
-### Première installation
-
-1. Créer la base de données et importer le schéma SQL
-2. Configurer `conf/db.php` avec les paramètres de connexion DB (ou passer par les variables d'environnement `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`)
-3. Créer le compte admin initial — voir `migration_app_users.sql`
-4. Se connecter avec `admin` / `ChangeMe123!` et changer le mot de passe immédiatement
-
----
-
-## Fail2Ban
-
-Le serveur est configuré avec Fail2Ban pour bloquer les attaques par force brute sur le formulaire de login.
-
-### Règle en place
-
-- **5 tentatives échouées** en 5 minutes → bannissement de l'IP pendant **24 heures**
-- Un login échoué retourne HTTP 200 (login échoué affiche le formulaire) ; un succès retourne HTTP 302 (redirection) — Fail2Ban distingue les deux
-
-### Vérifier l'état
-
-```bash
-fail2ban-client status casa-login
-```
-
-Affiche les IPs actuellement bannies et les compteurs.
-
-### Débannir une IP manuellement
-
-```bash
-fail2ban-client set casa-login unbanip <IP>
-```
-
-### IPs en whitelist (jamais bannies)
-
-La whitelist est configurée dans `/etc/fail2ban/jail.local` section `[DEFAULT]` sous `ignoreip`. Elle s'applique à tous les jails (SSH, Apache, Casa Login).
-
-Pour ajouter une IP ou un CIDR :
-
-1. Éditer `/etc/fail2ban/jail.local`
-2. Ajouter l'IP à la ligne `ignoreip = ...` (séparées par des espaces)
-3. Redémarrer Fail2Ban : `systemctl restart fail2ban`
-4. Vérifier : `fail2ban-client -d | grep ignoreip`
-
-### Vérifier qu'une IP est bien whitelistée
-
-```bash
-fail2ban-client -d | grep ignoreip
-```
-
-Toutes les jails doivent afficher la même liste d'IPs.
-
----
-
-## Sécurité — points importants
-
-- **Mots de passe** stockés en bcrypt (`password_hash` / `password_verify`), jamais en clair
-- **Cookie de session** avec `secure=true` (HTTPS uniquement) et `httponly=true`
-- **Mot de passe temporaire** transmis via session flash, jamais en paramètre URL (pas de trace dans les logs Apache)
-- **Tous les endpoints** nécessitent une authentification — `requireLogin()` en tête de `index.php`, `attestation_don.php` et `attestation_bulk.php`
-- **HTTPS** obligatoire — le cookie session ne fonctionne pas en HTTP
-
-### Procédure en cas de compromission d'un compte
-
-1. Se connecter avec un compte admin
-2. Aller dans **Utilisateurs** → **Réinitialiser** le mot de passe du compte compromis
-3. Communiquer le nouveau mot de passe temporaire par un canal sécurisé
-4. L'utilisateur change le mot de passe à la connexion suivante
-
----
-
-## Sauvegarde de la base de données
-
-La base n'est pas sauvegardée automatiquement par l'application. Mettre en place une sauvegarde régulière côté serveur :
-
-```bash
-mysqldump -u <user> -p <dbname> | gzip > backup_$(date +%Y%m%d).sql.gz
-```
-
-À planifier via cron ou le système de backup du serveur.
