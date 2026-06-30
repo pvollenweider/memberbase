@@ -116,7 +116,7 @@ intercepte les redirections 302 mais les traite différemment selon la version.
 
 ## 4. Couches architecturales
 
-Le graphe de connaissance identifie 13 couches logiques :
+Le graphe de connaissance identifie 14 couches logiques :
 
 | Couche       | Rôle                                                          | Fichiers représentatifs                       |
 |--------------|---------------------------------------------------------------|-----------------------------------------------|

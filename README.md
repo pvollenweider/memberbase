@@ -110,16 +110,32 @@ Endpoints JSON disponibles sous `/api/` (authentification de session requise) :
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
 | `GET` | `/api/members` | Liste des membres (filtrés par groupes, métagroupes, statut, recherche) |
+| `POST` | `/api/members` | Créer un membre |
 | `GET` | `/api/members/{id}` | Fiche membre complète |
-| `PATCH` | `/api/members/{id}` | Modification partielle (champs individuels, audit log diff) |
+| `PUT` / `PATCH` | `/api/members/{id}` | Modifier un membre (champs individuels, audit log diff) |
+| `DELETE` | `/api/members/{id}` | Désactiver (`status=0`) ou supprimer (`?dispose=delete`, admin) |
 | `GET` | `/api/members/{id}/groups` | Groupes du membre |
 | `GET` | `/api/groups` | Liste des groupes avec comptage membres |
-| `GET` | `/api/groups/{id}` | Groupe avec ses membres |
-| `GET` | `/api/compta` | Entrées comptables (filtres: membre, type, année) |
+| `POST` | `/api/groups` | Créer un groupe (manager) |
+| `GET` | `/api/groups/{id}` | Détail d'un groupe |
+| `PUT` | `/api/groups/{id}` | Renommer / basculer visibilité (manager) |
+| `DELETE` | `/api/groups/{id}` | Supprimer un groupe vide (manager) |
+| `GET` | `/api/groups/{id}/members` | Membres d'un groupe |
+| `POST` | `/api/groups/{id}/members` | Ajouter un membre à un groupe (manager) |
+| `DELETE` | `/api/groups/{id}/members` | Retirer un membre d'un groupe (manager) |
+| `GET` | `/api/compta` | Entrées comptables d'un membre (filtres: `memberId`, `year`) |
+| `POST` | `/api/compta` | Créer une écriture comptable |
+| `GET` | `/api/compta/{id}` | Détail d'une écriture comptable |
+| `PUT` | `/api/compta/{id}` | Modifier une écriture comptable |
+| `DELETE` | `/api/compta/{id}` | Supprimer une écriture comptable |
 | `GET` | `/api/compta-types` | Types de compta configurés |
-| `GET` | `/api/suivi` | Notes de suivi (filtres: membre, année) |
+| `GET` | `/api/suivi` | Notes de suivi d'un membre (filtre: `memberId`) |
+| `POST` | `/api/suivi` | Créer une note de suivi |
+| `GET` | `/api/suivi/{id}` | Détail d'une note de suivi |
+| `PUT` | `/api/suivi/{id}` | Modifier une note de suivi |
+| `DELETE` | `/api/suivi/{id}` | Supprimer une note de suivi |
 
-Filtres communs sur `/api/members` : `group`, `metagroup`, `active`, `search`, `limit`, `offset`.
+Filtres sur `/api/members` : `search`, `team`, `metagroup`, `page`, `limit`, `types`.
 
 Toutes les réponses sont en JSON UTF-8. Les erreurs retournent `{"error": "message"}` avec le code HTTP approprié.
 
@@ -142,15 +158,14 @@ html/
 ├── install.php                 # Installeur web (wizard 5 étapes)
 ├── attestation_don.php         # Génération PDF attestation individuelle
 ├── attestation_bulk.php        # Génération PDF attestation en masse
-├── quittancedon.php            # Génération quittance Word
 ├── api/                        # API REST JSON
 │   ├── .htaccess               # Rewrite vers index.php (FollowSymLinks)
 │   ├── _bootstrap.php          # Auth de session + headers JSON
-│   ├── members.php             # GET /api/members, GET|PATCH /api/members/{id}
-│   ├── groups.php              # GET /api/groups, GET /api/groups/{id}
-│   ├── compta.php              # GET /api/compta
+│   ├── members.php             # CRUD /api/members, GET|PUT|PATCH|DELETE /api/members/{id}
+│   ├── groups.php              # CRUD /api/groups, membres /api/groups/{id}/members
+│   ├── compta.php              # CRUD /api/compta, GET|PUT|DELETE /api/compta/{id}
 │   ├── compta-types.php        # GET /api/compta-types
-│   └── suivi.php               # GET /api/suivi
+│   └── suivi.php               # CRUD /api/suivi, GET|PUT|DELETE /api/suivi/{id}
 ├── assets/
 │   └── attestation.pdf         # Template AcroForm officiel
 ├── includes/
@@ -174,7 +189,10 @@ html/
 │   └── actions/                # CRUD handlers (members, groups, compta…)
 ├── classes/
 │   ├── user_class.php          # Classe User (CRUD, cotisation, dons)
-│   └── team_class.php          # Classe Team
+│   ├── team_class.php          # Classe Team (groupes)
+│   ├── compta_class.php        # Classe Compta (écritures comptables)
+│   ├── metagroup_class.php     # Classe Metagroup (catégories de groupes)
+│   └── property_class.php      # Classe UserProperty (appartenance, suivi)
 ├── locales/
 │   └── resources_fr.php        # Libellés français (UTF-8)
 ├── css/
