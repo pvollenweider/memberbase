@@ -9,5 +9,8 @@ export async function login(page: Page, username: string, password: string) {
   await page.goto('/login.php');
   await page.fill('#username', username);
   await page.fill('#password', password);
-  await page.click('button[type="submit"]');
+  await Promise.all([
+    page.waitForLoadState('load', { timeout: 30_000 }),
+    page.click('button[type="submit"]'),
+  ]);
 }

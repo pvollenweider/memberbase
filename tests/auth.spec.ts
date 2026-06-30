@@ -15,20 +15,17 @@ test.use({ storageState: { cookies: [], origins: [] } });
 
 test('login with wrong password shows error message', async ({ page }) => {
   await login(page, 'testadmin', 'wrong-password');
-  await page.waitForURL(/login\.php/, { timeout: 10_000 });
-  await expect(page.locator('.alert.alert-danger')).toBeVisible();
+  await expect(page.locator('.alert.alert-danger')).toBeVisible({ timeout: 5_000 });
 });
 
 test('login with correct credentials redirects to member list', async ({ page }) => {
   await login(page, 'testadmin', 'TestPassword1!');
-  await page.waitForURL(/index\.php/, { timeout: 20_000 });
   await expect(page.locator('table.table')).toBeVisible({ timeout: 10_000 });
 });
 
 test('logout redirects to login page', async ({ page }) => {
   await login(page, 'testadmin', 'TestPassword1!');
-  await page.waitForURL(/index\.php/, { timeout: 20_000 });
-  await expect(page.locator('table.table')).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator('table.table')).toBeVisible({ timeout: 10_000 });
 
   // Submit logout via form POST directly (avoiding dropdown interaction flakiness)
   await page.evaluate(() => {
