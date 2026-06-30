@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `lastname`         (`lastname`(250)),
   KEY `firstname`        (`firstname`(250)),
   KEY `idx_users_status` (`status`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `team` (
   `id`     int(11)     NOT NULL AUTO_INCREMENT,
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `team` (
   PRIMARY KEY (`id`),
   KEY `id`         (`id`, `name`),
   KEY `idx_hidden` (`hidden`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `user_properties` (
   `id`        int(8)       NOT NULL DEFAULT 0,
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `user_properties` (
   KEY `parameter`      (`parameter`),
   KEY `id`             (`id`),
   KEY `idx_user_param` (`user_id`, `parameter`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `metagroup` (
   `id`         int(11)      NOT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `metagroup` (
   `sort_order` int(11)      NOT NULL DEFAULT 0,
   KEY `idx_teamid`  (`teamid`),
   KEY `idx_id_name` (`id`, `name`(64))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `compta_type` (
   `id`                        int(11)      NOT NULL AUTO_INCREMENT,
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS `compta_type` (
   `is_excluded_from_donation` tinyint(1)   NOT NULL DEFAULT 0,
   `is_institutional`          tinyint(1)   NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `compta` (
   `id`                int(8)       NOT NULL AUTO_INCREMENT,
@@ -109,19 +109,19 @@ CREATE TABLE IF NOT EXISTS `compta` (
   KEY `user_id_2`   (`user_id`, `date`),
   KEY `idx_type_id` (`type_id`),
   KEY `idx_date`    (`date`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `maxval` (
   `parameter` varchar(64) NOT NULL DEFAULT '',
   `value`     int(8)      NOT NULL DEFAULT 0,
   PRIMARY KEY (`parameter`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `app_settings` (
   `key`   varchar(64)  NOT NULL,
   `value` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `app_users` (
   `id`                    int(11)      NOT NULL AUTO_INCREMENT,

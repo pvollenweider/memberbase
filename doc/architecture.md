@@ -143,13 +143,13 @@ Le graphe de connaissance identifie 13 couches logiques :
 
 | Table            | Moteur  | Rôle                                                                       |
 |------------------|---------|----------------------------------------------------------------------------|
-| `users`          | MyISAM  | Membres : données personnelles, statut (1=actif, 0=archivé)               |
-| `team`           | MyISAM  | Groupes : nom, visibilité (`hidden`)                                       |
-| `user_properties`| MyISAM  | EAV multi-usage : appartenance groupe (`team_N`=true), notes de suivi      |
+| `users`          | InnoDB  | Membres : données personnelles, statut (1=actif, 0=archivé)               |
+| `team`           | InnoDB  | Groupes : nom, visibilité (`hidden`)                                       |
+| `user_properties`| InnoDB  | EAV multi-usage : appartenance groupe (`team_N`=true), notes de suivi      |
 | `metagroup`      | InnoDB  | Métagroupes : regroupe plusieurs teams en catégories de filtres            |
 | `compta_type`    | InnoDB  | Types de transaction : libellé, couleur, flags is_cotisation / is_excluded |
-| `compta`         | MyISAM  | Écritures comptables : montant (CHF), date, quittance, lien type           |
-| `maxval`         | MyISAM  | Séquences manuelles pour metagroup_id et user_properties.id (legacy)      |
+| `compta`         | InnoDB  | Écritures comptables : montant (CHF), date, quittance, lien type           |
+| `maxval`         | InnoDB  | Séquences manuelles pour metagroup_id et user_properties.id (legacy)      |
 | `app_settings`   | InnoDB  | Configuration organisation : clé/valeur (org_name, membre_team, etc.)     |
 | `app_users`      | InnoDB  | Comptes applicatifs : bcrypt, rôle, force_password_change, last_login      |
 | `audit_log`      | InnoDB  | Journal d'activité : qui, quoi, quand, sur quel membre                     |
@@ -191,10 +191,9 @@ team (id)
   Les fonctions `formatedDateToTimeStamp` et `timeStampToformatedDate` font la
   conversion dans `bootstrap.php`.
 
-- `users` et `compta` utilisent **MyISAM** (héritage). `metagroup`, `compta_type`,
-  `app_users`, `audit_log` utilisent InnoDB. Il n'y a pas de clés étrangères
-  déclarées au niveau SQL ; l'intégrité référentielle est assurée par le code
-  applicatif.
+- Toutes les tables utilisent **InnoDB** (utf8mb4_unicode_ci). Il n'y a pas de
+  clés étrangères déclarées au niveau SQL ; l'intégrité référentielle est
+  assurée par le code applicatif.
 
 - `maxval` est un compteur de séquence manuel, subsistant pour `metagroup_id`
   (dont l'`id` est partagé entre ligne header et lignes membres) et
