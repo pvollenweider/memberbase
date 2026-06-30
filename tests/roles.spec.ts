@@ -69,7 +69,7 @@ test.describe('UI — settings gear (isManager)', () => {
     test(`${role}: settings gear visible`, async ({ browser }) => {
       const { page, ctx } = await openAs(browser, role);
       await page.goto('/index.php');
-      await expect(page.locator('a[href*="view=settings"]').first()).toBeVisible();
+      await expect(page.locator('.navbar-collapse a[href*="view=settings"]')).toBeVisible();
       await ctx.close();
     });
   }
@@ -129,7 +129,7 @@ test.describe('UI — compta add row (canWrite)', () => {
   test('readonly: add row absent', async ({ browser }) => {
     const { page, ctx } = await openAs(browser, 'readonly');
     await page.goto(`/index.php?view=compta&userid=${ACTIVE_MEMBER_ID}`);
-    await expect(page.locator('form[name="addCompta"] input[name="type_id"]')).toHaveCount(0);
+    await expect(page.locator('form[name="addCompta"] select[name="type_id"]')).toHaveCount(0);
     await ctx.close();
   });
 
@@ -137,7 +137,7 @@ test.describe('UI — compta add row (canWrite)', () => {
     test(`${role}: add row visible`, async ({ browser }) => {
       const { page, ctx } = await openAs(browser, role);
       await page.goto(`/index.php?view=compta&userid=${ACTIVE_MEMBER_ID}`);
-      await expect(page.locator('form[name="addCompta"] input[name="type_id"]')).toBeVisible();
+      await expect(page.locator('form[name="addCompta"] select[name="type_id"]')).toBeVisible();
       await ctx.close();
     });
   }
