@@ -112,13 +112,14 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
 
     <!-- ── VIEW MODE ────────────────────────────────────────────────── -->
     <div x-show="!editing"
-         class="ca-view-zone"
-         @click="startEdit()"
-         title="Cliquer pour modifier">
+         class="ca-view-zone<?= canWrite() ? '' : ' pe-none' ?>"
+         <?= canWrite() ? '@click="startEdit()" title="Cliquer pour modifier"' : '' ?>>
 
+        <?php if (canWrite()): ?>
         <span class="ca-edit-hint" aria-hidden="true">
             <i class="fas fa-pen me-1"></i>Modifier
         </span>
+        <?php endif ?>
 
         <p class="form-section-title mt-0"><?= $GLOBAL['contactInfo'] ?></p>
 
@@ -229,6 +230,7 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
     </div>
 
     <!-- ── EDIT MODE ────────────────────────────────────────────────── -->
+    <?php if (canWrite()): ?>
     <div x-show="editing" x-cloak>
 
         <p class="form-section-title mt-0"><?= $GLOBAL['contactInfo'] ?></p>
@@ -380,6 +382,7 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
             <?php endif ?>
         </div>
     </div>
+    <?php endif ?>
 
 </div>
 

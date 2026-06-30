@@ -122,6 +122,7 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
         </a>
         <?php endif ?>
     </div>
+    <?php if (isManager()): ?>
     <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex align-items-center" data-no-dirty id="status-toggle-form">
         <input type="hidden" name="action"   value="<?= $user->status ? 'deactivateUser' : 'reactivateUser' ?>">
         <input type="hidden" name="id"       value="<?= (int)$user->getId() ?>">
@@ -135,6 +136,9 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
             <label class="form-check-label small" for="status-toggle"><?= $user->status ? 'Actif' : 'Archivé' ?></label>
         </div>
     </form>
+    <?php else: ?>
+    <span class="small text-muted"><?= $user->status ? 'Actif' : 'Archivé' ?></span>
+    <?php endif ?>
 </div>
 
 <?php if ($user->status): ?>
@@ -296,10 +300,10 @@ if ($view == "compta") {
       </div>
     </div>
     <?php $_hasCompta = (int)$_stats->compta_count > 0; ?>
+    <?php if (isAdmin() && !$user->status): ?>
     <div class="row mt-3">
       <div class="col-md-12 d-flex align-items-center justify-content-end gap-3">
 
-        <?php if (!$user->status): ?>
           <?php if ($_hasCompta): ?>
           <!-- Has compta → offer anonymize, not delete -->
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=anonymizeUser&amp;id=<?= (int)$user->getId() ?>"
@@ -314,10 +318,10 @@ if ($view == "compta") {
             <i class="fas fa-user-xmark me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
           </a>
           <?php endif ?>
-        <?php endif ?>
 
       </div>
     </div>
+    <?php endif ?>
     <?php
 }
 

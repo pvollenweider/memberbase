@@ -106,6 +106,7 @@ uasort($nonMemberBycat, $_catSortFn);
             foreach ($group['teams'] as $t):
                 $isNew = $_justAdded === (int)$t->id;
             ?>
+                <?php if (isManager()): ?>
                 <a class="member-pill<?= $isNew ? ' pill-just-added' : '' ?><?= $t->hidden ? ' pill-hidden' : '' ?>"
                    href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=removeMembership&amp;id=<?= $user->id ?>&amp;teamId=<?= $t->id ?>"
                    title="<?= $t->hidden ? '[Groupe masqué] ' : '' ?>Retirer de <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>">
@@ -113,11 +114,18 @@ uasort($nonMemberBycat, $_catSortFn);
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
                     <span class="pill-x" aria-hidden="true">&#x2715;</span>
                 </a>
+                <?php else: ?>
+                <span class="member-pill<?= $t->hidden ? ' pill-hidden' : '' ?>">
+                    <?php if ($t->hidden): ?><i class="fas fa-eye-slash me-1" aria-label="Groupe masqué" style="font-size:0.65rem;opacity:0.6"></i><?php endif ?>
+                    <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
+                </span>
+                <?php endif ?>
             <?php endforeach ?>
         </div>
     <?php endforeach ?>
 <?php endif ?>
 
+<?php if (isManager()): ?>
 <details class="ca-integrity-section mt-3" <?= ((($_REQUEST['action'] ?? '') === 'addMembership') || !empty($_REQUEST['viewall'])) ? 'open' : '' ?>>
   <summary class="ca-integrity-summary">
     <i class="fas fa-plus me-1 text-muted" style="font-size:0.7rem" aria-hidden="true"></i>
@@ -154,6 +162,7 @@ uasort($nonMemberBycat, $_catSortFn);
     </div>
   </div>
 </details>
+<?php endif ?>
 <script>
 (function () {
   var _userId = <?= (int)$user->getId() ?>;

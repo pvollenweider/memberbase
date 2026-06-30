@@ -46,10 +46,12 @@ if (isset ($_REQUEST["searchString"])) {
                         aria-controls="mobile-search-bar">
                     <i class="fas fa-magnifying-glass"></i>
                 </button>
+                <?php if (isManager()): ?>
                 <a class="nav-link text-white px-2<?= $view === 'settings' ? ' opacity-100' : ' opacity-75' ?>"
                    href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>" aria-label="<?= $GLOBAL['administration'] ?>">
                     <i class="fas fa-gear"></i>
                 </a>
+                <?php endif ?>
                 <?php $__authUser = authUser(); ?>
                 <div class="dropdown">
                     <button class="btn btn-sm text-white border-0 px-2 opacity-75" type="button"
@@ -92,10 +94,12 @@ if (isset ($_REQUEST["searchString"])) {
             <?php $__authUser = authUser(); ?>
 
             <!-- Settings cog (right side) -->
+            <?php if (isManager()): ?>
             <a class="nav-link text-white my-2 my-lg-0 me-2<?= $view === 'settings' ? ' active' : '' ?>"
                href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>">
                 <i class="fas fa-gear"></i>
             </a>
+            <?php endif ?>
 
             <div class="dropdown my-2 my-lg-0 me-2">
               <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
