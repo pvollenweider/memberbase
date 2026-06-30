@@ -10,7 +10,7 @@ export async function login(page: Page, username: string, password: string) {
   await page.fill('#username', username);
   await page.fill('#password', password);
   await Promise.all([
-    page.waitForLoadState('load', { timeout: 30_000 }),
+    page.waitForNavigation({ waitUntil: 'load', timeout: 30_000 }),
     page.click('button[type="submit"]'),
   ]);
 }
