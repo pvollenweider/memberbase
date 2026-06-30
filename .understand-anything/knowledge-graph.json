@@ -1,4 +1,5 @@
 {
+  "version": "1.0.0",
   "project": {
     "name": "memberbase",
     "description": "A self-hosted membership and donor management web application for small associations. Built on PHP 8.2 / MariaDB with an htmx + Alpine.js frontend and a JSON REST API.",
