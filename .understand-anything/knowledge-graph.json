@@ -1,0 +1,3044 @@
+{
+  "project": {
+    "name": "memberbase",
+    "description": "A self-hosted membership and donor management web application for small associations. Built on PHP 8.2 / MariaDB with an htmx + Alpine.js frontend and a JSON REST API.",
+    "languages": [
+      "PHP",
+      "SQL",
+      "JavaScript",
+      "TypeScript",
+      "CSS"
+    ],
+    "frameworks": [
+      "htmx 2.0.4",
+      "Alpine.js",
+      "Bootstrap 5.3",
+      "DataTables",
+      "Playwright"
+    ],
+    "analyzedAt": "2026-06-30T06:12:32.536065Z",
+    "gitCommitHash": "ff2512ccdc4c76d8abc2a492babf9db81d3f4d96"
+  },
+  "nodes": [
+    {
+      "id": "file:html/classes/user_class.php",
+      "type": "file",
+      "name": "user_class.php",
+      "filePath": "html/classes/user_class.php",
+      "summary": "Defines the User entity class that loads, holds, and persists a single member record including personal data, team memberships, and accounting queries.",
+      "tags": [
+        "entity",
+        "member",
+        "orm",
+        "pdo"
+      ],
+      "complexity": 6
+    },
+    {
+      "id": "file:html/classes/compta_class.php",
+      "type": "file",
+      "name": "compta_class.php",
+      "filePath": "html/classes/compta_class.php",
+      "summary": "Defines the Compta entity class representing a single accounting entry with CRUD operations against the compta table.",
+      "tags": [
+        "entity",
+        "accounting",
+        "orm",
+        "pdo"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/classes/metagroup_class.php",
+      "type": "file",
+      "name": "metagroup_class.php",
+      "filePath": "html/classes/metagroup_class.php",
+      "summary": "Defines the Metagroup entity class for filter groups (group-of-groups), supporting lookup, save, and removal with dependency checks.",
+      "tags": [
+        "entity",
+        "group",
+        "filter",
+        "orm",
+        "pdo"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/classes/property_class.php",
+      "type": "file",
+      "name": "property_class.php",
+      "filePath": "html/classes/property_class.php",
+      "summary": "Defines the UserProperty entity class representing a single user attribute or suivi entry stored in the user_properties table.",
+      "tags": [
+        "entity",
+        "property",
+        "suivi",
+        "orm",
+        "pdo"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/classes/team_class.php",
+      "type": "file",
+      "name": "team_class.php",
+      "filePath": "html/classes/team_class.php",
+      "summary": "Defines the Team entity class representing a group record with metagroup membership management and usage checks before removal.",
+      "tags": [
+        "entity",
+        "team",
+        "group",
+        "orm",
+        "pdo"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "file:html/includes/lib/bootstrap.php",
+      "type": "file",
+      "name": "bootstrap.php",
+      "filePath": "html/includes/lib/bootstrap.php",
+      "summary": "Application bootstrap that establishes the PDO database connection, loads compta types and app settings into globals, defines virtual filter constants, and provides shared utility functions.",
+      "tags": [
+        "bootstrap",
+        "database",
+        "pdo",
+        "config",
+        "utility"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/lib/auth.php",
+      "type": "file",
+      "name": "auth.php",
+      "filePath": "html/includes/lib/auth.php",
+      "summary": "Authentication helpers managing PHP session lifecycle, login/logout, CSRF-safe cookie settings, role checks, and access guards for protected pages.",
+      "tags": [
+        "auth",
+        "session",
+        "security",
+        "role"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "file:schema.sql",
+      "type": "file",
+      "name": "schema.sql",
+      "filePath": "schema.sql",
+      "summary": "Full idempotent MariaDB schema defining all application tables: users, team, user_properties, metagroup, compta, compta_type, maxval, app_settings, app_users, and audit_log.",
+      "tags": [
+        "schema",
+        "sql",
+        "database",
+        "mariadb"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/locales/resources_fr.php",
+      "type": "file",
+      "name": "resources_fr.php",
+      "filePath": "html/locales/resources_fr.php",
+      "summary": "French locale file providing all UI display strings as a flat $GLOBAL array for labels, navigation, actions, and form fields.",
+      "tags": [
+        "locale",
+        "i18n",
+        "french",
+        "ui"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "class:User",
+      "type": "class",
+      "name": "User",
+      "filePath": "html/classes/user_class.php",
+      "summary": "Member entity with full CRUD, team membership helpers, and accounting query methods (isCotisationPayed, hasDonated, etc.).",
+      "tags": [
+        "entity",
+        "member",
+        "crud"
+      ],
+      "complexity": 7
+    },
+    {
+      "id": "class:Compta",
+      "type": "class",
+      "name": "Compta",
+      "filePath": "html/classes/compta_class.php",
+      "summary": "Accounting entry entity with lookupCompta, save (insert/update), and remove methods.",
+      "tags": [
+        "entity",
+        "accounting",
+        "crud"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "class:Metagroup",
+      "type": "class",
+      "name": "Metagroup",
+      "filePath": "html/classes/metagroup_class.php",
+      "summary": "Filter-group entity with lookup, save (using updateAndGetMaxVal for new IDs), isUsed check, and remove.",
+      "tags": [
+        "entity",
+        "group",
+        "filter"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "class:UserProperty",
+      "type": "class",
+      "name": "UserProperty",
+      "filePath": "html/classes/property_class.php",
+      "summary": "User attribute/suivi entity with lookup, save (using updateAndGetMaxVal for new IDs), and remove.",
+      "tags": [
+        "entity",
+        "property",
+        "suivi"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "class:Team",
+      "type": "class",
+      "name": "Team",
+      "filePath": "html/classes/team_class.php",
+      "summary": "Group entity with metagroup membership management methods and an isUsed guard before removal.",
+      "tags": [
+        "entity",
+        "team",
+        "group"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "function:getMaxVal",
+      "type": "function",
+      "name": "getMaxVal",
+      "filePath": "html/includes/lib/bootstrap.php",
+      "summary": "Reads or initializes a sequence counter value from the maxval table for a named parameter.",
+      "tags": [
+        "utility",
+        "sequence",
+        "database"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "function:updateAndGetMaxVal",
+      "type": "function",
+      "name": "updateAndGetMaxVal",
+      "filePath": "html/includes/lib/bootstrap.php",
+      "summary": "Increments and returns the next sequence value from maxval, used as a manual auto-increment for metagroup and user_properties IDs.",
+      "tags": [
+        "utility",
+        "sequence",
+        "database"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "function:formatedDateToTimeStamp",
+      "type": "function",
+      "name": "formatedDateToTimeStamp",
+      "filePath": "html/includes/lib/bootstrap.php",
+      "summary": "Parses a d/m/Y date string to a Unix timestamp.",
+      "tags": [
+        "utility",
+        "date"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "function:timeStampToformatedDate",
+      "type": "function",
+      "name": "timeStampToformatedDate",
+      "filePath": "html/includes/lib/bootstrap.php",
+      "summary": "Formats a Unix timestamp to a d/m/Y display string.",
+      "tags": [
+        "utility",
+        "date"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "function:unquote",
+      "type": "function",
+      "name": "unquote",
+      "filePath": "html/includes/lib/bootstrap.php",
+      "summary": "Replaces typographic apostrophes with straight apostrophes in user input.",
+      "tags": [
+        "utility",
+        "string"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "function:auditLog",
+      "type": "function",
+      "name": "auditLog",
+      "filePath": "html/includes/lib/bootstrap.php",
+      "summary": "Inserts an audit log entry recording the acting app user, action, detail, and optional subject member.",
+      "tags": [
+        "audit",
+        "logging",
+        "security"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "function:authUser",
+      "type": "function",
+      "name": "authUser",
+      "filePath": "html/includes/lib/auth.php",
+      "summary": "Returns an object with the current session user's id, username, display_name, role, and force_password_change flag, or null if not logged in.",
+      "tags": [
+        "auth",
+        "session"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "function:isLoggedIn",
+      "type": "function",
+      "name": "isLoggedIn",
+      "filePath": "html/includes/lib/auth.php",
+      "summary": "Returns true if a user session is active.",
+      "tags": [
+        "auth",
+        "session"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "function:isAdmin",
+      "type": "function",
+      "name": "isAdmin",
+      "filePath": "html/includes/lib/auth.php",
+      "summary": "Returns true if the current session user has the admin role.",
+      "tags": [
+        "auth",
+        "role"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "function:isManager",
+      "type": "function",
+      "name": "isManager",
+      "filePath": "html/includes/lib/auth.php",
+      "summary": "Returns true if the current session user has admin or manager role.",
+      "tags": [
+        "auth",
+        "role"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "function:canWrite",
+      "type": "function",
+      "name": "canWrite",
+      "filePath": "html/includes/lib/auth.php",
+      "summary": "Returns true if the current session user has admin, manager, or user role.",
+      "tags": [
+        "auth",
+        "role"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "function:requireLogin",
+      "type": "function",
+      "name": "requireLogin",
+      "filePath": "html/includes/lib/auth.php",
+      "summary": "Redirects to login.php and exits if no user is logged in.",
+      "tags": [
+        "auth",
+        "guard"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "function:requirePasswordChange",
+      "type": "function",
+      "name": "requirePasswordChange",
+      "filePath": "html/includes/lib/auth.php",
+      "summary": "Redirects to the changePassword view if the session flag force_password_change is set.",
+      "tags": [
+        "auth",
+        "guard",
+        "password"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "function:authLogin",
+      "type": "function",
+      "name": "authLogin",
+      "filePath": "html/includes/lib/auth.php",
+      "summary": "Verifies credentials against app_users, regenerates session ID on success, and stores user data in session.",
+      "tags": [
+        "auth",
+        "login",
+        "security"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "function:authLogout",
+      "type": "function",
+      "name": "authLogout",
+      "filePath": "html/includes/lib/auth.php",
+      "summary": "Clears and destroys the current session and removes the session cookie.",
+      "tags": [
+        "auth",
+        "logout",
+        "session"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "schema:users",
+      "type": "schema",
+      "name": "users",
+      "filePath": "schema.sql",
+      "summary": "Member records table with personal info fields, status flag, and indexes on lastname/firstname/status.",
+      "tags": [
+        "table",
+        "member"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "schema:team",
+      "type": "schema",
+      "name": "team",
+      "filePath": "schema.sql",
+      "summary": "Groups table with name and hidden flag.",
+      "tags": [
+        "table",
+        "group"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "schema:user_properties",
+      "type": "schema",
+      "name": "user_properties",
+      "filePath": "schema.sql",
+      "summary": "Key-value property bag for members, also used to store team memberships as parameter='team_{id}'.",
+      "tags": [
+        "table",
+        "property",
+        "membership"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "schema:metagroup",
+      "type": "schema",
+      "name": "metagroup",
+      "filePath": "schema.sql",
+      "summary": "Smart filter groups table; rows with name set are headers, rows with teamid set are member-team links.",
+      "tags": [
+        "table",
+        "filter",
+        "group"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "schema:compta",
+      "type": "schema",
+      "name": "compta",
+      "filePath": "schema.sql",
+      "summary": "Accounting entries table linking members to payment records with type, date, sum, and attestation flag.",
+      "tags": [
+        "table",
+        "accounting"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "schema:compta_type",
+      "type": "schema",
+      "name": "compta_type",
+      "filePath": "schema.sql",
+      "summary": "Accounting entry type definitions with cotisation, donation-exclusion, and institutional flags.",
+      "tags": [
+        "table",
+        "accounting",
+        "type"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "schema:app_users",
+      "type": "schema",
+      "name": "app_users",
+      "filePath": "schema.sql",
+      "summary": "Application user accounts with hashed passwords, roles, active flag, and password-reset token fields.",
+      "tags": [
+        "table",
+        "auth",
+        "user"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "schema:audit_log",
+      "type": "schema",
+      "name": "audit_log",
+      "filePath": "schema.sql",
+      "summary": "Activity log recording every significant action with actor, action type, detail, and subject member.",
+      "tags": [
+        "table",
+        "audit",
+        "logging"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "schema:maxval",
+      "type": "schema",
+      "name": "maxval",
+      "filePath": "schema.sql",
+      "summary": "Manual sequence counter table used for metagroup and user_properties IDs.",
+      "tags": [
+        "table",
+        "sequence"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "schema:app_settings",
+      "type": "schema",
+      "name": "app_settings",
+      "filePath": "schema.sql",
+      "summary": "Key-value application configuration table for org info, default teams, and other settings.",
+      "tags": [
+        "table",
+        "config"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "file:html/api/_bootstrap.php",
+      "type": "file",
+      "name": "_bootstrap.php",
+      "filePath": "html/api/_bootstrap.php",
+      "summary": "Shared bootstrap for all API endpoints: sets JSON content-type header, initializes DB/session, enforces authentication guard, and provides the apiError helper.",
+      "tags": [
+        "api",
+        "bootstrap",
+        "auth",
+        "json"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "file:html/api/members.php",
+      "type": "file",
+      "name": "members.php",
+      "filePath": "html/api/members.php",
+      "summary": "REST API endpoint for member (user) records supporting CRUD operations with pagination, search, team/metagroup filtering, and virtual filters for lapsed/unpaid members.",
+      "tags": [
+        "api",
+        "members",
+        "crud",
+        "pagination",
+        "search",
+        "rest"
+      ],
+      "complexity": 9
+    },
+    {
+      "id": "file:html/api/compta.php",
+      "type": "file",
+      "name": "compta.php",
+      "filePath": "html/api/compta.php",
+      "summary": "REST API endpoint for accounting entries (compta), supporting full CRUD with type validation, audit logging, and optional year filtering on list.",
+      "tags": [
+        "api",
+        "accounting",
+        "compta",
+        "crud",
+        "rest"
+      ],
+      "complexity": 6
+    },
+    {
+      "id": "file:html/api/compta-types.php",
+      "type": "file",
+      "name": "compta-types.php",
+      "filePath": "html/api/compta-types.php",
+      "summary": "Read-only REST API endpoint returning all accounting types ordered by sort_order and label.",
+      "tags": [
+        "api",
+        "accounting",
+        "types",
+        "read-only",
+        "rest"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "file:html/api/groups.php",
+      "type": "file",
+      "name": "groups.php",
+      "filePath": "html/api/groups.php",
+      "summary": "REST API endpoint for group (team) management including listing, creating, renaming, deleting groups and managing member membership within groups.",
+      "tags": [
+        "api",
+        "groups",
+        "teams",
+        "membership",
+        "crud",
+        "rest"
+      ],
+      "complexity": 7
+    },
+    {
+      "id": "file:html/api/suivi.php",
+      "type": "file",
+      "name": "suivi.php",
+      "filePath": "html/api/suivi.php",
+      "summary": "REST API endpoint for follow-up (suivi) notes attached to members, supporting full CRUD with audit logging.",
+      "tags": [
+        "api",
+        "suivi",
+        "notes",
+        "crud",
+        "rest"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/routing/actions.php",
+      "type": "file",
+      "name": "actions.php",
+      "filePath": "html/includes/routing/actions.php",
+      "summary": "Routes incoming action requests (POST) to the appropriate action handler file using a static dispatch map covering members, groups, metagroups, settings, compta, suivi, and auth.",
+      "tags": [
+        "routing",
+        "actions",
+        "dispatch"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/includes/routing/views.php",
+      "type": "file",
+      "name": "views.php",
+      "filePath": "html/includes/routing/views.php",
+      "summary": "Dispatches view requests to the appropriate view template includes, handling member CRUD views, compta views, suivi views, settings views, and legacy redirects.",
+      "tags": [
+        "routing",
+        "views",
+        "dispatch",
+        "templates"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/index.php",
+      "type": "file",
+      "name": "index.php",
+      "filePath": "html/index.php",
+      "summary": "Application entry point that handles both full HTML page renders and htmx partial fragment responses, bootstrapping auth, classes, routing, and all frontend assets including htmx, Alpine.js, Bootstrap, DataTables, and the dirty-form guard.",
+      "tags": [
+        "entry-point",
+        "htmx",
+        "routing",
+        "frontend",
+        "bootstrap",
+        "dirty-form"
+      ],
+      "complexity": 8
+    },
+    {
+      "id": "endpoint:GET /api/members",
+      "type": "endpoint",
+      "name": "GET /api/members",
+      "filePath": "html/api/members.php",
+      "summary": "List members with pagination, optional search, team/metagroup filter, and virtual filters for lapsed/unpaid subsets.",
+      "tags": [
+        "members",
+        "list",
+        "pagination",
+        "search",
+        "filter"
+      ],
+      "complexity": 7
+    },
+    {
+      "id": "endpoint:GET /api/members/{id}",
+      "type": "endpoint",
+      "name": "GET /api/members/{id}",
+      "filePath": "html/api/members.php",
+      "summary": "Retrieve a single member record by ID.",
+      "tags": [
+        "members",
+        "read"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "endpoint:GET /api/members/{id}/groups",
+      "type": "endpoint",
+      "name": "GET /api/members/{id}/groups",
+      "filePath": "html/api/members.php",
+      "summary": "List all groups a member belongs to, with category information.",
+      "tags": [
+        "members",
+        "groups"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "endpoint:POST /api/members",
+      "type": "endpoint",
+      "name": "POST /api/members",
+      "filePath": "html/api/members.php",
+      "summary": "Create a new member record; requires write permission.",
+      "tags": [
+        "members",
+        "create"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "endpoint:PUT /api/members/{id}",
+      "type": "endpoint",
+      "name": "PUT /api/members/{id}",
+      "filePath": "html/api/members.php",
+      "summary": "Update an existing member record with diff-based audit logging; requires write permission.",
+      "tags": [
+        "members",
+        "update",
+        "audit"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "endpoint:DELETE /api/members/{id}",
+      "type": "endpoint",
+      "name": "DELETE /api/members/{id}",
+      "filePath": "html/api/members.php",
+      "summary": "Deactivate (default) or permanently delete a member; permanent delete requires admin role.",
+      "tags": [
+        "members",
+        "delete",
+        "deactivate"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "endpoint:GET /api/compta",
+      "type": "endpoint",
+      "name": "GET /api/compta",
+      "filePath": "html/api/compta.php",
+      "summary": "List accounting entries for a given memberId, optionally filtered by year.",
+      "tags": [
+        "compta",
+        "list"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "endpoint:GET /api/compta/{id}",
+      "type": "endpoint",
+      "name": "GET /api/compta/{id}",
+      "filePath": "html/api/compta.php",
+      "summary": "Retrieve a single accounting entry by ID.",
+      "tags": [
+        "compta",
+        "read"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "endpoint:POST /api/compta",
+      "type": "endpoint",
+      "name": "POST /api/compta",
+      "filePath": "html/api/compta.php",
+      "summary": "Create a new accounting entry; requires write permission and valid typeId.",
+      "tags": [
+        "compta",
+        "create"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "endpoint:PUT /api/compta/{id}",
+      "type": "endpoint",
+      "name": "PUT /api/compta/{id}",
+      "filePath": "html/api/compta.php",
+      "summary": "Update an existing accounting entry; requires write permission.",
+      "tags": [
+        "compta",
+        "update"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "endpoint:DELETE /api/compta/{id}",
+      "type": "endpoint",
+      "name": "DELETE /api/compta/{id}",
+      "filePath": "html/api/compta.php",
+      "summary": "Delete an accounting entry; requires write permission.",
+      "tags": [
+        "compta",
+        "delete"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "endpoint:GET /api/compta-types",
+      "type": "endpoint",
+      "name": "GET /api/compta-types",
+      "filePath": "html/api/compta-types.php",
+      "summary": "Return all accounting types ordered by sort_order and label.",
+      "tags": [
+        "compta-types",
+        "list",
+        "read-only"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "endpoint:GET /api/groups",
+      "type": "endpoint",
+      "name": "GET /api/groups",
+      "filePath": "html/api/groups.php",
+      "summary": "List all groups with member count and category information.",
+      "tags": [
+        "groups",
+        "list"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "endpoint:GET /api/groups/{id}",
+      "type": "endpoint",
+      "name": "GET /api/groups/{id}",
+      "filePath": "html/api/groups.php",
+      "summary": "Retrieve a single group by ID with member count.",
+      "tags": [
+        "groups",
+        "read"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "endpoint:GET /api/groups/{id}/members",
+      "type": "endpoint",
+      "name": "GET /api/groups/{id}/members",
+      "filePath": "html/api/groups.php",
+      "summary": "List all active members belonging to a group.",
+      "tags": [
+        "groups",
+        "members",
+        "list"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "endpoint:POST /api/groups",
+      "type": "endpoint",
+      "name": "POST /api/groups",
+      "filePath": "html/api/groups.php",
+      "summary": "Create a new group; requires manager role.",
+      "tags": [
+        "groups",
+        "create"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "endpoint:PUT /api/groups/{id}",
+      "type": "endpoint",
+      "name": "PUT /api/groups/{id}",
+      "filePath": "html/api/groups.php",
+      "summary": "Rename a group or toggle its hidden flag; requires manager role.",
+      "tags": [
+        "groups",
+        "update"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "endpoint:DELETE /api/groups/{id}",
+      "type": "endpoint",
+      "name": "DELETE /api/groups/{id}",
+      "filePath": "html/api/groups.php",
+      "summary": "Delete a group if it has no members; requires manager role.",
+      "tags": [
+        "groups",
+        "delete"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "endpoint:POST /api/groups/{id}/members",
+      "type": "endpoint",
+      "name": "POST /api/groups/{id}/members",
+      "filePath": "html/api/groups.php",
+      "summary": "Add a member to a group; requires manager role.",
+      "tags": [
+        "groups",
+        "membership",
+        "add"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "endpoint:DELETE /api/groups/{id}/members",
+      "type": "endpoint",
+      "name": "DELETE /api/groups/{id}/members",
+      "filePath": "html/api/groups.php",
+      "summary": "Remove a member from a group; requires manager role.",
+      "tags": [
+        "groups",
+        "membership",
+        "remove"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "endpoint:GET /api/suivi",
+      "type": "endpoint",
+      "name": "GET /api/suivi",
+      "filePath": "html/api/suivi.php",
+      "summary": "List follow-up notes for a given memberId, newest first.",
+      "tags": [
+        "suivi",
+        "list"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "endpoint:GET /api/suivi/{id}",
+      "type": "endpoint",
+      "name": "GET /api/suivi/{id}",
+      "filePath": "html/api/suivi.php",
+      "summary": "Retrieve a single follow-up note by ID.",
+      "tags": [
+        "suivi",
+        "read"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "endpoint:POST /api/suivi",
+      "type": "endpoint",
+      "name": "POST /api/suivi",
+      "filePath": "html/api/suivi.php",
+      "summary": "Create a new follow-up note for a member; requires write permission.",
+      "tags": [
+        "suivi",
+        "create"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "endpoint:PUT /api/suivi/{id}",
+      "type": "endpoint",
+      "name": "PUT /api/suivi/{id}",
+      "filePath": "html/api/suivi.php",
+      "summary": "Update a follow-up note; requires write permission.",
+      "tags": [
+        "suivi",
+        "update"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "endpoint:DELETE /api/suivi/{id}",
+      "type": "endpoint",
+      "name": "DELETE /api/suivi/{id}",
+      "filePath": "html/api/suivi.php",
+      "summary": "Delete a follow-up note; requires write permission.",
+      "tags": [
+        "suivi",
+        "delete"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "file:html/includes/actions/auth.php",
+      "type": "file",
+      "name": "auth.php",
+      "filePath": "html/includes/actions/auth.php",
+      "summary": "Action handler for authentication operations including logout, password change, and app user management (create, update, delete, reset password, flush audit log). Requires admin role for most operations.",
+      "tags": [
+        "auth",
+        "users",
+        "admin",
+        "audit",
+        "password"
+      ],
+      "complexity": 7
+    },
+    {
+      "id": "file:html/includes/actions/members.php",
+      "type": "file",
+      "name": "members.php",
+      "filePath": "html/includes/actions/members.php",
+      "summary": "Action handler for member record management including add, update, merge, anonymize, deactivate, reactivate, and delete operations. Uses the User class and logs all changes to audit log.",
+      "tags": [
+        "members",
+        "crud",
+        "merge",
+        "anonymize",
+        "audit"
+      ],
+      "complexity": 8
+    },
+    {
+      "id": "file:html/includes/actions/compta.php",
+      "type": "file",
+      "name": "compta.php",
+      "filePath": "html/includes/actions/compta.php",
+      "summary": "Action handler for accounting entries: add new compta records, update existing ones, and toggle attestation flag. Uses the Compta class with full audit logging.",
+      "tags": [
+        "compta",
+        "accounting",
+        "attestation",
+        "audit"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/actions/groups.php",
+      "type": "file",
+      "name": "groups.php",
+      "filePath": "html/includes/actions/groups.php",
+      "summary": "Action handler for group (team) management including create, rename, delete, reassign, bulk show/hide, import members from other groups or accounting data, and manage memberships. Requires manager role.",
+      "tags": [
+        "groups",
+        "teams",
+        "membership",
+        "bulk",
+        "import",
+        "audit"
+      ],
+      "complexity": 9
+    },
+    {
+      "id": "file:html/includes/actions/metagroups.php",
+      "type": "file",
+      "name": "metagroups.php",
+      "filePath": "html/includes/actions/metagroups.php",
+      "summary": "Action handler for metagroup (category/filter group) management including create, update, delete, reorder categories, and assign teams to metagroups. Uses the Metagroup class.",
+      "tags": [
+        "metagroups",
+        "categories",
+        "filters",
+        "ordering",
+        "audit"
+      ],
+      "complexity": 6
+    },
+    {
+      "id": "file:html/includes/actions/settings.php",
+      "type": "file",
+      "name": "settings.php",
+      "filePath": "html/includes/actions/settings.php",
+      "summary": "Action handler for application settings persistence and compta type management (add, update, delete, reorder). Admin required for settings, manager for compta type operations.",
+      "tags": [
+        "settings",
+        "compta-types",
+        "admin",
+        "configuration",
+        "audit"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/actions/suivi.php",
+      "type": "file",
+      "name": "suivi.php",
+      "filePath": "html/includes/actions/suivi.php",
+      "summary": "Action handler for follow-up (suivi) entries on member records: add and update UserProperty records with date, parameter, and value. Full audit logging included.",
+      "tags": [
+        "suivi",
+        "follow-up",
+        "user-properties",
+        "audit"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/login.php",
+      "type": "file",
+      "name": "login.php",
+      "filePath": "html/login.php",
+      "summary": "Login page handling credential validation with CSRF protection and session creation. Redirects authenticated users and forces password change if required.",
+      "tags": [
+        "auth",
+        "login",
+        "csrf",
+        "session"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "file:html/set-password.php",
+      "type": "file",
+      "name": "set-password.php",
+      "filePath": "html/set-password.php",
+      "summary": "Token-based password setup page for new users invited by an admin. Validates invite token expiry and sets the user's initial password.",
+      "tags": [
+        "auth",
+        "password",
+        "invite",
+        "token"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/install.php",
+      "type": "file",
+      "name": "install.php",
+      "filePath": "html/install.php",
+      "summary": "5-step web installer wizard: checks prerequisites, configures DB connection, runs schema SQL, seeds organisation settings and compta types, and creates the first admin account.",
+      "tags": [
+        "install",
+        "setup",
+        "schema",
+        "admin",
+        "wizard"
+      ],
+      "complexity": 8
+    },
+    {
+      "id": "file:html/includes/views/users_list.php",
+      "type": "file",
+      "name": "users_list.php",
+      "filePath": "html/includes/views/users_list.php",
+      "summary": "Member list view with search, column sorting, and multi-filter navigation (by team, metagroup, or special filters like unpaid contributions). Supports AJAX search and bulk membership operations.",
+      "tags": [
+        "member",
+        "list",
+        "search",
+        "filter",
+        "htmx"
+      ],
+      "complexity": 8
+    },
+    {
+      "id": "file:html/includes/views/users_edit_form.php",
+      "type": "file",
+      "name": "users_edit_form.php",
+      "filePath": "html/includes/views/users_edit_form.php",
+      "summary": "Tabbed member profile editor showing donation/contribution stats mini-dashboard and navigation to sub-views (generalData, compta, suivi, memberOf, history). Heavily queries compta and compta_type tables.",
+      "tags": [
+        "member",
+        "edit",
+        "dashboard",
+        "stats"
+      ],
+      "complexity": 9
+    },
+    {
+      "id": "file:html/includes/views/users_add_form.php",
+      "type": "file",
+      "name": "users_add_form.php",
+      "filePath": "html/includes/views/users_add_form.php",
+      "summary": "Form for creating a new member record with full contact fields. Supports optional fromTeam parameter to auto-assign group after creation.",
+      "tags": [
+        "member",
+        "add",
+        "form"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "file:html/includes/views/users_general_data.php",
+      "type": "file",
+      "name": "users_general_data.php",
+      "filePath": "html/includes/views/users_general_data.php",
+      "summary": "Inline view/edit tab for a member's general contact data using Alpine.js and the PUT /api/members/{id} JSON API. Hover-to-edit pattern with no page reload.",
+      "tags": [
+        "member",
+        "edit",
+        "alpine",
+        "api"
+      ],
+      "complexity": 6
+    },
+    {
+      "id": "file:html/includes/views/users_history.php",
+      "type": "file",
+      "name": "users_history.php",
+      "filePath": "html/includes/views/users_history.php",
+      "summary": "Admin-only tab showing a member's full activity and change history from the audit_log table, ordered by date descending.",
+      "tags": [
+        "member",
+        "history",
+        "admin",
+        "audit"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/includes/views/users_inactive.php",
+      "type": "file",
+      "name": "users_inactive.php",
+      "filePath": "html/includes/views/users_inactive.php",
+      "summary": "Lists all inactive (status=0) members with options to reactivate them or assign them to groups. Requires admin access.",
+      "tags": [
+        "member",
+        "inactive",
+        "admin"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "file:html/includes/views/users_merge.php",
+      "type": "file",
+      "name": "users_merge.php",
+      "filePath": "html/includes/views/users_merge.php",
+      "summary": "UI and logic for merging two duplicate member records by selecting which fields to keep from each. Requires two valid user IDs via GET parameters.",
+      "tags": [
+        "member",
+        "merge",
+        "deduplication"
+      ],
+      "complexity": 7
+    },
+    {
+      "id": "file:html/includes/views/users_anonymize.php",
+      "type": "file",
+      "name": "users_anonymize.php",
+      "filePath": "html/includes/views/users_anonymize.php",
+      "summary": "GDPR-style anonymization confirmation screen for a member, showing their compta entry count before irreversibly wiping personal data.",
+      "tags": [
+        "member",
+        "anonymize",
+        "gdpr"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/includes/views/users_member_of.php",
+      "type": "file",
+      "name": "users_member_of.php",
+      "filePath": "html/includes/views/users_member_of.php",
+      "summary": "Handles add/remove membership toggle actions and renders the group membership panel for a member, with undo toast notifications.",
+      "tags": [
+        "member",
+        "groups",
+        "membership"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/views/donors_summary.php",
+      "type": "file",
+      "name": "donors_summary.php",
+      "filePath": "html/includes/views/donors_summary.php",
+      "summary": "Dashboard summary of members, donations, and attestation figures for a selected year, with configurable minimum amount threshold and attestation inclusion toggle.",
+      "tags": [
+        "donor",
+        "dashboard",
+        "summary",
+        "attestation"
+      ],
+      "complexity": 7
+    },
+    {
+      "id": "file:html/includes/views/donors_new.php",
+      "type": "file",
+      "name": "donors_new.php",
+      "filePath": "html/includes/views/donors_new.php",
+      "summary": "Lists first-time donors for a given year — members who gave in the selected year but had no prior donation history.",
+      "tags": [
+        "donor",
+        "new",
+        "report"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/views/donors_loyal.php",
+      "type": "file",
+      "name": "donors_loyal.php",
+      "filePath": "html/includes/views/donors_loyal.php",
+      "summary": "Lists loyal donors who gave consistently across multiple consecutive years, with year-over-year comparison.",
+      "tags": [
+        "donor",
+        "loyal",
+        "report"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/views/donors_lapsed.php",
+      "type": "file",
+      "name": "donors_lapsed.php",
+      "filePath": "html/includes/views/donors_lapsed.php",
+      "summary": "Lists donors who gave in a prior year but not in the selected year, identifying lapsed contributors.",
+      "tags": [
+        "donor",
+        "lapsed",
+        "report"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/views/members_lapsed.php",
+      "type": "file",
+      "name": "members_lapsed.php",
+      "filePath": "html/includes/views/members_lapsed.php",
+      "summary": "Lists members whose membership lapsed compared to the previous year, based on team membership changes between years.",
+      "tags": [
+        "member",
+        "donor",
+        "lapsed",
+        "report"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/views/compta_list.php",
+      "type": "file",
+      "name": "compta_list.php",
+      "filePath": "html/includes/views/compta_list.php",
+      "summary": "Generic accounting entries list with year filter, donation-only toggle, and per-type filtering. Displays all compta records across members.",
+      "tags": [
+        "compta",
+        "list",
+        "filter"
+      ],
+      "complexity": 6
+    },
+    {
+      "id": "file:html/includes/views/compta_edit_form.php",
+      "type": "file",
+      "name": "compta_edit_form.php",
+      "filePath": "html/includes/views/compta_edit_form.php",
+      "summary": "Form for creating or editing a single accounting entry linked to a member, supporting amount, date, type, and notes fields.",
+      "tags": [
+        "compta",
+        "edit",
+        "form"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/views/compta_last_entry.php",
+      "type": "file",
+      "name": "compta_last_entry.php",
+      "filePath": "html/includes/views/compta_last_entry.php",
+      "summary": "Accounting entries list with advanced sorting, year/type filters, and attestation PDF link generation. Serves as the per-member compta tab.",
+      "tags": [
+        "compta",
+        "list",
+        "attestation",
+        "sort"
+      ],
+      "complexity": 7
+    },
+    {
+      "id": "file:html/includes/views/suivi_list.php",
+      "type": "file",
+      "name": "suivi_list.php",
+      "filePath": "html/includes/views/suivi_list.php",
+      "summary": "Form for adding a new follow-up (suivi) note entry to a member's record, posting to the addSuivi action.",
+      "tags": [
+        "suivi",
+        "add",
+        "form"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "file:html/includes/views/suivi_edit_form.php",
+      "type": "file",
+      "name": "suivi_edit_form.php",
+      "filePath": "html/includes/views/suivi_edit_form.php",
+      "summary": "Form for editing an existing follow-up entry, loading data via UserProperty and User lookups by suivi ID.",
+      "tags": [
+        "suivi",
+        "edit",
+        "form"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/includes/views/suivi_last_entry.php",
+      "type": "file",
+      "name": "suivi_last_entry.php",
+      "filePath": "html/includes/views/suivi_last_entry.php",
+      "summary": "Global list of all members ordered by their most recent follow-up date, joining users and user_properties on the suivi parameter.",
+      "tags": [
+        "suivi",
+        "list",
+        "report"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/includes/views/settings_general.php",
+      "type": "file",
+      "name": "settings_general.php",
+      "filePath": "html/includes/views/settings_general.php",
+      "summary": "Main settings panel with tabbed navigation covering groups, filters, accounting types, and app configuration. Entry point for all settings sub-views.",
+      "tags": [
+        "settings",
+        "admin",
+        "tabs"
+      ],
+      "complexity": 7
+    },
+    {
+      "id": "file:html/includes/views/settings_app_users.php",
+      "type": "file",
+      "name": "settings_app_users.php",
+      "filePath": "html/includes/views/settings_app_users.php",
+      "summary": "Admin-only panel for managing application user accounts: listing, creating, editing roles, and resetting passwords.",
+      "tags": [
+        "settings",
+        "admin",
+        "users",
+        "auth"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/views/settings_categories.php",
+      "type": "file",
+      "name": "settings_categories.php",
+      "filePath": "html/includes/views/settings_categories.php",
+      "summary": "Admin UI for managing group categories (metagroup visual sections), listing all categories with their associated groups.",
+      "tags": [
+        "settings",
+        "categories",
+        "metagroup"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "file:html/includes/views/settings_groups.php",
+      "type": "file",
+      "name": "settings_groups.php",
+      "filePath": "html/includes/views/settings_groups.php",
+      "summary": "Admin UI for listing and managing all groups (teams), showing member counts and category assignments, with links to per-group edit.",
+      "tags": [
+        "settings",
+        "groups",
+        "teams"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/views/settings_group_edit.php",
+      "type": "file",
+      "name": "settings_group_edit.php",
+      "filePath": "html/includes/views/settings_group_edit.php",
+      "summary": "Form for creating or editing a single group (team) with name, category, and visibility settings. Redirects to settings on invalid ID.",
+      "tags": [
+        "settings",
+        "groups",
+        "edit",
+        "form"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "file:html/includes/views/settings_compta_types.php",
+      "type": "file",
+      "name": "settings_compta_types.php",
+      "filePath": "html/includes/views/settings_compta_types.php",
+      "summary": "Admin UI for managing accounting entry types with color coding, cotisation flag, donation exclusion flag, and sort order.",
+      "tags": [
+        "settings",
+        "compta",
+        "types",
+        "admin"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/views/settings_filters.php",
+      "type": "file",
+      "name": "settings_filters.php",
+      "filePath": "html/includes/views/settings_filters.php",
+      "summary": "Admin UI for listing navigation filters (is_filter=1 metagroups) that group multiple teams into dynamic filters in the navbar.",
+      "tags": [
+        "settings",
+        "filters",
+        "metagroup"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "file:html/includes/views/settings_filter_edit.php",
+      "type": "file",
+      "name": "settings_filter_edit.php",
+      "filePath": "html/includes/views/settings_filter_edit.php",
+      "summary": "Form for creating or editing a metagroup used as a navigation filter, with team assignment management.",
+      "tags": [
+        "settings",
+        "filters",
+        "metagroup",
+        "edit",
+        "form"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/includes/views/settings_integrity.php",
+      "type": "file",
+      "name": "settings_integrity.php",
+      "filePath": "html/includes/views/settings_integrity.php",
+      "summary": "Admin tool for detecting data integrity issues including duplicate members by name and links to the merge tool for resolution.",
+      "tags": [
+        "settings",
+        "integrity",
+        "admin",
+        "deduplication"
+      ],
+      "complexity": 6
+    },
+    {
+      "id": "file:html/includes/views/settings_audit_log.php",
+      "type": "file",
+      "name": "settings_audit_log.php",
+      "filePath": "html/includes/views/settings_audit_log.php",
+      "summary": "Admin-only view of the full audit_log table with optional flush/cleanup action for old entries.",
+      "tags": [
+        "settings",
+        "audit",
+        "admin",
+        "log"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "file:html/includes/views/auth_change_password.php",
+      "type": "file",
+      "name": "auth_change_password.php",
+      "filePath": "html/includes/views/auth_change_password.php",
+      "summary": "Password change form supporting both voluntary change and forced password-change flow (force_password_change flag). Delegates action to the auth action handler.",
+      "tags": [
+        "auth",
+        "password",
+        "form"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/includes/partials/menu.php",
+      "type": "file",
+      "name": "menu.php",
+      "filePath": "html/includes/partials/menu.php",
+      "summary": "Main navigation bar partial with active-view highlighting and links to all top-level views. Included on every page load.",
+      "tags": [
+        "partial",
+        "navigation",
+        "layout"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "file:html/includes/partials/donor_table.php",
+      "type": "file",
+      "name": "donor_table.php",
+      "filePath": "html/includes/partials/donor_table.php",
+      "summary": "Reusable DataTables-powered donor/member table component accepting rows, column definitions, footer totals, and a row click URL callable. Shared across all donor report views.",
+      "tags": [
+        "partial",
+        "table",
+        "datatables",
+        "donor",
+        "reusable"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/attestation_bulk.php",
+      "type": "file",
+      "name": "attestation_bulk.php",
+      "filePath": "html/attestation_bulk.php",
+      "summary": "Standalone script that generates a merged bulk donation attestation PDF for all qualifying donors in a year using pdftk. Requires login and has a 120s time limit.",
+      "tags": [
+        "attestation",
+        "pdf",
+        "bulk",
+        "donor"
+      ],
+      "complexity": 6
+    },
+    {
+      "id": "file:html/attestation_don.php",
+      "type": "file",
+      "name": "attestation_don.php",
+      "filePath": "html/attestation_don.php",
+      "summary": "Standalone script that generates a single-member donation attestation PDF for a given user and year via pdftk. Requires login.",
+      "tags": [
+        "attestation",
+        "pdf",
+        "donor"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "file:html/js/dt_defaults.js",
+      "type": "file",
+      "name": "dt_defaults.js",
+      "filePath": "html/js/dt_defaults.js",
+      "summary": "Shared DataTables configuration constants (DOM layout, export buttons, French language strings) reused by all views that initialize a DataTable.",
+      "tags": [
+        "javascript",
+        "datatables",
+        "frontend",
+        "shared-config"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "file:html/js/member-general-form.js",
+      "type": "file",
+      "name": "member-general-form.js",
+      "filePath": "html/js/member-general-form.js",
+      "summary": "Alpine.js component for the member general-data inline edit form; sends PATCH requests to /api/members/{id} with only changed fields and handles CSP 'self' compliance.",
+      "tags": [
+        "javascript",
+        "alpine.js",
+        "frontend",
+        "api-client",
+        "forms"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "file:html/css/custom.css",
+      "type": "file",
+      "name": "custom.css",
+      "filePath": "html/css/custom.css",
+      "summary": "Application-level CSS extending Bootstrap 5 with custom CSS variables (--ca-primary, --ca-danger, etc.) and component overrides for navbar, tables, and forms.",
+      "tags": [
+        "css",
+        "frontend",
+        "bootstrap",
+        "design-system"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "config:docker-compose.yml",
+      "type": "config",
+      "name": "docker-compose.yml",
+      "filePath": "docker-compose.yml",
+      "summary": "Docker Compose stack defining three services: php (Apache/PHP 8.2 app on port 8080), mariadb:11 with health check, and adminer on port 8082.",
+      "tags": [
+        "docker",
+        "infrastructure",
+        "mariadb",
+        "php",
+        "devops"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "config:Dockerfile",
+      "type": "config",
+      "name": "Dockerfile",
+      "filePath": "Dockerfile",
+      "summary": "Builds the PHP 8.2 Apache image with pdo_mysql extension, pdftk-java for PDF generation, and Apache modules (rewrite, headers, brotli).",
+      "tags": [
+        "docker",
+        "php",
+        "infrastructure",
+        "build"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "config:Makefile",
+      "type": "config",
+      "name": "Makefile",
+      "filePath": "Makefile",
+      "summary": "Developer convenience targets wrapping docker compose commands (up, down, logs, shell, db, import) and Playwright test runners (test, test-ui, test-reset-db).",
+      "tags": [
+        "build",
+        "devops",
+        "developer-experience",
+        "testing"
+      ],
+      "complexity": 2
+    },
+    {
+      "id": "config:package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "package.json",
+      "summary": "Node.js project manifest with a single devDependency on @playwright/test for E2E testing; exposes 'test' and 'test:ui' npm scripts.",
+      "tags": [
+        "nodejs",
+        "playwright",
+        "testing",
+        "dependencies"
+      ],
+      "complexity": 1
+    },
+    {
+      "id": "config:playwright.config.ts",
+      "type": "config",
+      "name": "playwright.config.ts",
+      "filePath": "playwright.config.ts",
+      "summary": "Playwright configuration targeting localhost:8080, running tests sequentially on Chromium with pre-authenticated storage state and HTML/line reporters.",
+      "tags": [
+        "playwright",
+        "testing",
+        "e2e",
+        "configuration"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "config:.github/workflows/e2e.yml",
+      "type": "config",
+      "name": "e2e.yml",
+      "filePath": ".github/workflows/e2e.yml",
+      "summary": "GitHub Actions CI workflow that spins up the Docker test stack, resets the test database, installs Playwright, runs E2E tests, and uploads the HTML report on failure.",
+      "tags": [
+        "ci",
+        "github-actions",
+        "playwright",
+        "e2e",
+        "devops"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "document:doc/architecture.md",
+      "type": "document",
+      "name": "architecture.md",
+      "filePath": "doc/architecture.md",
+      "summary": "Comprehensive architecture reference covering request flows (htmx GET/POST PRG), 13 architectural layers, database schema with 10 tables, domain classes, auth system, API structure, frontend libraries, and code conventions.",
+      "tags": [
+        "architecture",
+        "documentation",
+        "php",
+        "htmx",
+        "database"
+      ],
+      "complexity": 9
+    },
+    {
+      "id": "document:doc/api.md",
+      "type": "document",
+      "name": "api.md",
+      "filePath": "doc/api.md",
+      "summary": "REST API reference documenting all endpoints for members, groups, compta, and suivi — including virtual filter values, request/response schemas, HTTP codes, and curl examples.",
+      "tags": [
+        "api",
+        "documentation",
+        "rest",
+        "json"
+      ],
+      "complexity": 6
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Project overview and user-facing documentation covering features (members, groups, compta, PDF attestations, API), tech stack, project structure, installation wizard, and security setup including Fail2Ban.",
+      "tags": [
+        "readme",
+        "documentation",
+        "installation",
+        "features"
+      ],
+      "complexity": 5
+    },
+    {
+      "id": "document:CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "filePath": "CLAUDE.md",
+      "summary": "Developer coding rules for AI-assisted development covering the dirty-form guard pattern (data-no-dirty, __dirtyOverride), htmx redirect conventions (HX-Location), and users.status filtering requirement.",
+      "tags": [
+        "dev-notes",
+        "coding-rules",
+        "htmx",
+        "javascript",
+        "conventions"
+      ],
+      "complexity": 3
+    },
+    {
+      "id": "document:DESIGN.md",
+      "type": "document",
+      "name": "DESIGN.md",
+      "filePath": "DESIGN.md",
+      "summary": "Design system specification with YAML frontmatter defining the full color palette, typography, spacing, and component tokens; body documents the 'clean admin' direction and Bootstrap 4→5 migration checklist.",
+      "tags": [
+        "design",
+        "design-system",
+        "css",
+        "bootstrap",
+        "typography"
+      ],
+      "complexity": 4
+    },
+    {
+      "id": "document:PRODUCT.md",
+      "type": "document",
+      "name": "PRODUCT.md",
+      "filePath": "PRODUCT.md",
+      "summary": "Product context document defining user personas (1–5 internal staff, 4 roles), product purpose, brand personality (efficient/sober/professional), and design principles.",
+      "tags": [
+        "product",
+        "ux",
+        "personas",
+        "design-principles"
+      ],
+      "complexity": 2
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:html/classes/user_class.php",
+      "target": "class:User",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/classes/compta_class.php",
+      "target": "class:Compta",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/classes/metagroup_class.php",
+      "target": "class:Metagroup",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/classes/property_class.php",
+      "target": "class:UserProperty",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/classes/team_class.php",
+      "target": "class:Team",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/bootstrap.php",
+      "target": "function:getMaxVal",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/bootstrap.php",
+      "target": "function:updateAndGetMaxVal",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/bootstrap.php",
+      "target": "function:formatedDateToTimeStamp",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/bootstrap.php",
+      "target": "function:timeStampToformatedDate",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/bootstrap.php",
+      "target": "function:unquote",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/bootstrap.php",
+      "target": "function:auditLog",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/auth.php",
+      "target": "function:authUser",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/auth.php",
+      "target": "function:isLoggedIn",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/auth.php",
+      "target": "function:isAdmin",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/auth.php",
+      "target": "function:isManager",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/auth.php",
+      "target": "function:canWrite",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/auth.php",
+      "target": "function:requireLogin",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/auth.php",
+      "target": "function:requirePasswordChange",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/auth.php",
+      "target": "function:authLogin",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/auth.php",
+      "target": "function:authLogout",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "function:updateAndGetMaxVal",
+      "target": "function:getMaxVal",
+      "type": "calls",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "function:isLoggedIn",
+      "target": "function:authUser",
+      "type": "calls",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "class:Metagroup",
+      "target": "function:updateAndGetMaxVal",
+      "type": "calls",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "class:UserProperty",
+      "target": "function:updateAndGetMaxVal",
+      "type": "calls",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "class:User",
+      "target": "schema:users",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "class:User",
+      "target": "schema:user_properties",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "class:User",
+      "target": "schema:compta",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "class:Compta",
+      "target": "schema:compta",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "class:Metagroup",
+      "target": "schema:metagroup",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "class:UserProperty",
+      "target": "schema:user_properties",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "class:Team",
+      "target": "schema:team",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "class:Team",
+      "target": "schema:metagroup",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "class:Team",
+      "target": "schema:user_properties",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "function:auditLog",
+      "target": "schema:audit_log",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "function:getMaxVal",
+      "target": "schema:maxval",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "function:updateAndGetMaxVal",
+      "target": "schema:maxval",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "function:authLogin",
+      "target": "schema:app_users",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/bootstrap.php",
+      "target": "schema:compta_type",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/lib/bootstrap.php",
+      "target": "schema:app_settings",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/members.php",
+      "target": "file:html/api/_bootstrap.php",
+      "type": "imports",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/compta.php",
+      "target": "file:html/api/_bootstrap.php",
+      "type": "imports",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/compta-types.php",
+      "target": "file:html/api/_bootstrap.php",
+      "type": "imports",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/groups.php",
+      "target": "file:html/api/_bootstrap.php",
+      "type": "imports",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/suivi.php",
+      "target": "file:html/api/_bootstrap.php",
+      "type": "imports",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/members.php",
+      "target": "endpoint:GET /api/members",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/members.php",
+      "target": "endpoint:GET /api/members/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/members.php",
+      "target": "endpoint:GET /api/members/{id}/groups",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/members.php",
+      "target": "endpoint:POST /api/members",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/members.php",
+      "target": "endpoint:PUT /api/members/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/members.php",
+      "target": "endpoint:DELETE /api/members/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/compta.php",
+      "target": "endpoint:GET /api/compta",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/compta.php",
+      "target": "endpoint:GET /api/compta/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/compta.php",
+      "target": "endpoint:POST /api/compta",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/compta.php",
+      "target": "endpoint:PUT /api/compta/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/compta.php",
+      "target": "endpoint:DELETE /api/compta/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/compta-types.php",
+      "target": "endpoint:GET /api/compta-types",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/groups.php",
+      "target": "endpoint:GET /api/groups",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/groups.php",
+      "target": "endpoint:GET /api/groups/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/groups.php",
+      "target": "endpoint:GET /api/groups/{id}/members",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/groups.php",
+      "target": "endpoint:POST /api/groups",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/groups.php",
+      "target": "endpoint:PUT /api/groups/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/groups.php",
+      "target": "endpoint:DELETE /api/groups/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/groups.php",
+      "target": "endpoint:POST /api/groups/{id}/members",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/groups.php",
+      "target": "endpoint:DELETE /api/groups/{id}/members",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/suivi.php",
+      "target": "endpoint:GET /api/suivi",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/suivi.php",
+      "target": "endpoint:GET /api/suivi/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/suivi.php",
+      "target": "endpoint:POST /api/suivi",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/suivi.php",
+      "target": "endpoint:PUT /api/suivi/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/suivi.php",
+      "target": "endpoint:DELETE /api/suivi/{id}",
+      "type": "contains",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/members.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/compta.php",
+      "target": "class:Compta",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/groups.php",
+      "target": "class:Team",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/groups.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/api/suivi.php",
+      "target": "class:UserProperty",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/index.php",
+      "target": "file:html/includes/routing/actions.php",
+      "type": "imports",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/index.php",
+      "target": "file:html/includes/routing/views.php",
+      "type": "imports",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/index.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/index.php",
+      "target": "class:Team",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/index.php",
+      "target": "class:Compta",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/index.php",
+      "target": "class:UserProperty",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/routing/views.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/routing/views.php",
+      "target": "class:Compta",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/routing/views.php",
+      "target": "class:UserProperty",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/actions/members.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 3
+    },
+    {
+      "source": "file:html/includes/actions/compta.php",
+      "target": "class:Compta",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 3
+    },
+    {
+      "source": "file:html/includes/actions/groups.php",
+      "target": "class:Team",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/actions/groups.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/actions/metagroups.php",
+      "target": "class:Metagroup",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/actions/suivi.php",
+      "target": "class:UserProperty",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/login.php",
+      "target": "file:html/includes/lib/auth.php",
+      "type": "imports",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/login.php",
+      "target": "file:html/includes/lib/bootstrap.php",
+      "type": "imports",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/set-password.php",
+      "target": "file:html/includes/lib/bootstrap.php",
+      "type": "imports",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/actions/auth.php",
+      "target": "function:auditLog",
+      "type": "calls",
+      "direction": "outgoing",
+      "weight": 3
+    },
+    {
+      "source": "file:html/includes/actions/members.php",
+      "target": "function:auditLog",
+      "type": "calls",
+      "direction": "outgoing",
+      "weight": 3
+    },
+    {
+      "source": "file:html/includes/actions/compta.php",
+      "target": "function:auditLog",
+      "type": "calls",
+      "direction": "outgoing",
+      "weight": 3
+    },
+    {
+      "source": "file:html/includes/actions/groups.php",
+      "target": "function:auditLog",
+      "type": "calls",
+      "direction": "outgoing",
+      "weight": 3
+    },
+    {
+      "source": "file:html/includes/actions/metagroups.php",
+      "target": "function:auditLog",
+      "type": "calls",
+      "direction": "outgoing",
+      "weight": 3
+    },
+    {
+      "source": "file:html/includes/actions/settings.php",
+      "target": "function:auditLog",
+      "type": "calls",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/actions/suivi.php",
+      "target": "function:auditLog",
+      "type": "calls",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/users_list.php",
+      "target": "class:Team",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/users_list.php",
+      "target": "class:Metagroup",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/users_list.php",
+      "target": "file:html/includes/partials/donor_table.php",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/views/users_edit_form.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 3
+    },
+    {
+      "source": "file:html/includes/views/users_general_data.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 3
+    },
+    {
+      "source": "file:html/includes/views/users_general_data.php",
+      "target": "endpoint:PUT /api/members/{id}",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/users_history.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/views/users_merge.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 3
+    },
+    {
+      "source": "file:html/includes/views/users_anonymize.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/users_member_of.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/donors_summary.php",
+      "target": "file:html/includes/partials/donor_table.php",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/donors_new.php",
+      "target": "file:html/includes/partials/donor_table.php",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/donors_loyal.php",
+      "target": "file:html/includes/partials/donor_table.php",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/donors_lapsed.php",
+      "target": "file:html/includes/partials/donor_table.php",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/members_lapsed.php",
+      "target": "file:html/includes/partials/donor_table.php",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/views/compta_edit_form.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/views/suivi_edit_form.php",
+      "target": "class:UserProperty",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/suivi_edit_form.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/includes/views/settings_categories.php",
+      "target": "class:Metagroup",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/settings_groups.php",
+      "target": "class:Team",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/settings_group_edit.php",
+      "target": "class:Team",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/settings_filters.php",
+      "target": "class:Metagroup",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "file:html/includes/views/settings_filter_edit.php",
+      "target": "class:Metagroup",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 3
+    },
+    {
+      "source": "file:html/attestation_bulk.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "file:html/attestation_don.php",
+      "target": "class:User",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "config:Dockerfile",
+      "target": "config:docker-compose.yml",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "config:Makefile",
+      "target": "config:docker-compose.yml",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "config:Makefile",
+      "target": "config:package.json",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "config:.github/workflows/e2e.yml",
+      "target": "config:docker-compose.yml",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "config:.github/workflows/e2e.yml",
+      "target": "config:package.json",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "config:.github/workflows/e2e.yml",
+      "target": "config:playwright.config.ts",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "config:playwright.config.ts",
+      "target": "config:package.json",
+      "type": "depends_on",
+      "direction": "outgoing",
+      "weight": 1
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:doc/architecture.md",
+      "type": "documents",
+      "direction": "outgoing",
+      "weight": 2
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:doc/api.md",
+      "type": "documents",
+      "direction": "outgoing",
+      "weight": 2
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:database",
+      "name": "Database / Schema",
+      "description": "MariaDB tables and the schema.sql definition that underpins all data persistence.",
+      "nodeIds": [
+        "file:schema.sql",
+        "schema:users",
+        "schema:team",
+        "schema:user_properties",
+        "schema:metagroup",
+        "schema:compta",
+        "schema:compta_type",
+        "schema:app_users",
+        "schema:audit_log",
+        "schema:maxval",
+        "schema:app_settings"
+      ]
+    },
+    {
+      "id": "layer:domain",
+      "name": "Domain Classes",
+      "description": "PHP entity classes (User, Compta, Team, Metagroup, UserProperty) that encapsulate data access and business rules.",
+      "nodeIds": [
+        "class:User",
+        "class:Compta",
+        "class:Metagroup",
+        "class:UserProperty",
+        "class:Team"
+      ]
+    },
+    {
+      "id": "layer:lib",
+      "name": "Library / Bootstrap",
+      "description": "Shared PHP infrastructure: database connection, global utility functions, auth session management, and locale strings.",
+      "nodeIds": [
+        "file:html/includes/lib/bootstrap.php",
+        "file:html/includes/lib/auth.php",
+        "file:html/locales/resources_fr.php",
+        "function:getMaxVal",
+        "function:updateAndGetMaxVal",
+        "function:formatedDateToTimeStamp",
+        "function:timeStampToformatedDate",
+        "function:unquote",
+        "function:auditLog",
+        "function:authUser",
+        "function:isLoggedIn",
+        "function:isAdmin",
+        "function:isManager",
+        "function:canWrite",
+        "function:requireLogin",
+        "function:requirePasswordChange",
+        "function:authLogin",
+        "function:authLogout"
+      ]
+    },
+    {
+      "id": "layer:api",
+      "name": "REST API",
+      "description": "JSON REST API endpoints under /api/ for members, groups, compta, suivi, and compta-types.",
+      "nodeIds": [
+        "file:html/api/_bootstrap.php",
+        "file:html/api/members.php",
+        "file:html/api/compta.php",
+        "file:html/api/compta-types.php",
+        "file:html/api/groups.php",
+        "file:html/api/suivi.php",
+        "endpoint:GET /api/members",
+        "endpoint:GET /api/members/{id}",
+        "endpoint:GET /api/members/{id}/groups",
+        "endpoint:POST /api/members",
+        "endpoint:PUT /api/members/{id}",
+        "endpoint:DELETE /api/members/{id}",
+        "endpoint:GET /api/compta",
+        "endpoint:GET /api/compta/{id}",
+        "endpoint:POST /api/compta",
+        "endpoint:PUT /api/compta/{id}",
+        "endpoint:DELETE /api/compta/{id}",
+        "endpoint:GET /api/compta-types",
+        "endpoint:GET /api/groups",
+        "endpoint:GET /api/groups/{id}",
+        "endpoint:GET /api/groups/{id}/members",
+        "endpoint:POST /api/groups",
+        "endpoint:PUT /api/groups/{id}",
+        "endpoint:DELETE /api/groups/{id}",
+        "endpoint:POST /api/groups/{id}/members",
+        "endpoint:DELETE /api/groups/{id}/members",
+        "endpoint:GET /api/suivi",
+        "endpoint:GET /api/suivi/{id}",
+        "endpoint:POST /api/suivi",
+        "endpoint:PUT /api/suivi/{id}",
+        "endpoint:DELETE /api/suivi/{id}",
+        "file:html/includes/views/users_general_data.php"
+      ]
+    },
+    {
+      "id": "layer:routing",
+      "name": "Routing",
+      "description": "Action and view dispatch routers: actions.php maps POST actions to handlers, views.php maps GET view names to templates.",
+      "nodeIds": [
+        "file:html/includes/routing/actions.php",
+        "file:html/includes/routing/views.php",
+        "file:html/index.php"
+      ]
+    },
+    {
+      "id": "layer:actions",
+      "name": "Action Handlers",
+      "description": "POST request handlers that validate input, orchestrate domain class operations, and write to the audit log.",
+      "nodeIds": [
+        "file:html/includes/actions/auth.php",
+        "file:html/includes/actions/members.php",
+        "file:html/includes/actions/compta.php",
+        "file:html/includes/actions/groups.php",
+        "file:html/includes/actions/metagroups.php",
+        "file:html/includes/actions/settings.php",
+        "file:html/includes/actions/suivi.php"
+      ]
+    },
+    {
+      "id": "layer:views",
+      "name": "View Templates",
+      "description": "PHP view templates rendered into the main layout, covering member CRUD, donor reports, accounting, suivi, settings, and auth flows.",
+      "nodeIds": [
+        "file:html/includes/views/users_list.php",
+        "file:html/includes/views/users_edit_form.php",
+        "file:html/includes/views/users_add_form.php",
+        "file:html/includes/views/users_general_data.php",
+        "file:html/includes/views/users_history.php",
+        "file:html/includes/views/users_inactive.php",
+        "file:html/includes/views/users_merge.php",
+        "file:html/includes/views/users_anonymize.php",
+        "file:html/includes/views/users_member_of.php",
+        "file:html/includes/views/donors_summary.php",
+        "file:html/includes/views/donors_new.php",
+        "file:html/includes/views/donors_loyal.php",
+        "file:html/includes/views/donors_lapsed.php",
+        "file:html/includes/views/members_lapsed.php",
+        "file:html/includes/views/compta_list.php",
+        "file:html/includes/views/compta_edit_form.php",
+        "file:html/includes/views/compta_last_entry.php",
+        "file:html/includes/views/suivi_list.php",
+        "file:html/includes/views/suivi_edit_form.php",
+        "file:html/includes/views/suivi_last_entry.php",
+        "file:html/includes/views/settings_general.php",
+        "file:html/includes/views/settings_app_users.php",
+        "file:html/includes/views/settings_categories.php",
+        "file:html/includes/views/settings_groups.php",
+        "file:html/includes/views/settings_group_edit.php",
+        "file:html/includes/views/settings_compta_types.php",
+        "file:html/includes/views/settings_filters.php",
+        "file:html/includes/views/settings_filter_edit.php",
+        "file:html/includes/views/settings_integrity.php",
+        "file:html/includes/views/settings_audit_log.php",
+        "file:html/includes/views/auth_change_password.php"
+      ]
+    },
+    {
+      "id": "layer:partials",
+      "name": "Partials & Standalone",
+      "description": "Reusable page fragments (menu, donor_table) and standalone scripts (login, install, attestation PDFs).",
+      "nodeIds": [
+        "file:html/includes/partials/menu.php",
+        "file:html/includes/partials/donor_table.php",
+        "file:html/login.php",
+        "file:html/set-password.php",
+        "file:html/install.php",
+        "file:html/attestation_bulk.php",
+        "file:html/attestation_don.php"
+      ]
+    },
+    {
+      "id": "layer:frontend",
+      "name": "Frontend Assets",
+      "description": "Client-side JavaScript (Alpine.js components, DataTables config) and CSS design system.",
+      "nodeIds": [
+        "file:html/js/dt_defaults.js",
+        "file:html/js/member-general-form.js",
+        "file:html/css/custom.css"
+      ]
+    },
+    {
+      "id": "layer:infra",
+      "name": "Infrastructure & CI",
+      "description": "Docker configuration, Makefile, and GitHub Actions CI workflow for local dev and automated E2E testing.",
+      "nodeIds": [
+        "config:docker-compose.yml",
+        "config:Dockerfile",
+        "config:Makefile",
+        "config:package.json",
+        "config:playwright.config.ts",
+        "config:.github/workflows/e2e.yml"
+      ]
+    },
+    {
+      "id": "layer:docs",
+      "name": "Documentation",
+      "description": "Architecture, API, product, and design documentation alongside developer conventions (CLAUDE.md).",
+      "nodeIds": [
+        "document:doc/architecture.md",
+        "document:doc/api.md",
+        "document:README.md",
+        "document:CLAUDE.md",
+        "document:DESIGN.md",
+        "document:PRODUCT.md"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Start: entry point & request flow",
+      "description": "index.php is the single PHP front-controller. It bootstraps auth and class instances, then delegates to the action or view router depending on the request. Understanding this file shows how every page and htmx request is handled.",
+      "nodeIds": [
+        "file:html/index.php",
+        "file:html/includes/routing/actions.php",
+        "file:html/includes/routing/views.php"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Database schema",
+      "description": "schema.sql defines all 10 tables. Start here to understand the full data model: members, groups (team), properties, metagroups, accounting, app users, and audit logging.",
+      "nodeIds": [
+        "file:schema.sql",
+        "schema:users",
+        "schema:team",
+        "schema:user_properties",
+        "schema:compta",
+        "schema:audit_log"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Core domain classes",
+      "description": "The five entity classes (User, Team, Compta, Metagroup, UserProperty) map directly to the schema tables. They handle all DB reads and writes. User is the most important — it has member CRUD and membership helpers.",
+      "nodeIds": [
+        "class:User",
+        "class:Team",
+        "class:Compta",
+        "class:Metagroup",
+        "class:UserProperty"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Bootstrap & auth infrastructure",
+      "description": "bootstrap.php sets up the PDO connection and global utilities. auth.php manages sessions, roles, and guards. Every PHP page includes bootstrap first.",
+      "nodeIds": [
+        "file:html/includes/lib/bootstrap.php",
+        "file:html/includes/lib/auth.php",
+        "function:auditLog",
+        "function:authUser"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "REST API layer",
+      "description": "Six API files under /api/ expose JSON endpoints consumed by the Alpine.js frontend and external integrations. _bootstrap.php is the shared API guard and error helper.",
+      "nodeIds": [
+        "file:html/api/_bootstrap.php",
+        "file:html/api/members.php",
+        "endpoint:GET /api/members",
+        "endpoint:PUT /api/members/{id}",
+        "file:html/api/compta.php",
+        "file:html/api/groups.php"
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Member list & edit views (most-used UI)",
+      "description": "users_list.php is the primary screen users see. users_edit_form.php is the tabbed profile editor. users_general_data.php implements the hover-to-edit Alpine.js pattern.",
+      "nodeIds": [
+        "file:html/includes/views/users_list.php",
+        "file:html/includes/views/users_edit_form.php",
+        "file:html/includes/views/users_general_data.php",
+        "file:html/js/member-general-form.js"
+      ]
+    },
+    {
+      "order": 7,
+      "title": "Donor & accounting modules",
+      "description": "The donor views (donors_summary, donors_new, donors_loyal, donors_lapsed) provide year-over-year fundraising analytics. The compta views handle per-member accounting entries and attestation PDF generation.",
+      "nodeIds": [
+        "file:html/includes/views/donors_summary.php",
+        "file:html/includes/views/compta_last_entry.php",
+        "file:html/attestation_don.php",
+        "file:html/attestation_bulk.php"
+      ]
+    },
+    {
+      "order": 8,
+      "title": "Settings & administration",
+      "description": "settings_general.php is the admin hub with tabs for groups, filters, accounting types, and app users. All administrative mutations go through action handlers that enforce role checks.",
+      "nodeIds": [
+        "file:html/includes/views/settings_general.php",
+        "file:html/includes/views/settings_app_users.php",
+        "file:html/includes/actions/settings.php",
+        "file:html/includes/actions/auth.php"
+      ]
+    }
+  ]
+}
