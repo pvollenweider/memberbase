@@ -176,9 +176,48 @@ curl -b cookies.txt "https://votre-domaine/api/members/42"
 
 ---
 
-### `PATCH /api/members/{id}`
+### `POST /api/members`
 
-Modification partielle d'un membre. Seuls les champs présents dans le corps sont modifiés. Chaque modification est enregistrée dans l'audit log avec la valeur avant et après.
+Créer un nouveau membre. Requiert le rôle **canWrite**.
+
+#### Corps de requête (JSON)
+
+| Champ | Type | Obligatoire | Description |
+|-------|------|-------------|-------------|
+| `firstName` | string | **oui** | Prénom |
+| `lastName` | string | **oui** | Nom de famille |
+| `society` | string | non | Nom de société ou organisation |
+| `gender` | string | non | `"m"`, `"f"`, `"hf"` ou `"na"` (défaut `"na"`) |
+| `title` | string | non | Civilité |
+| `address` | string | non | Adresse postale |
+| `npa` | string | non | Code postal + localité |
+| `email` | string | non | Adresse e-mail |
+| `tel` | string | non | Téléphone fixe |
+| `telProf` | string | non | Téléphone professionnel |
+| `portable` | string | non | Téléphone mobile |
+| `fax` | string | non | Fax |
+| `web` | string | non | URL du site web |
+| `birthDate` | string | non | Date de naissance au format `YYYY-MM-DD` |
+| `comment` | string | non | Commentaire interne |
+
+#### Réponse
+
+`201 Created` — objet membre complet (même structure que `GET /api/members/{id}`).
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt \
+  -X POST "https://votre-domaine/api/members" \
+  -H "Content-Type: application/json" \
+  -d '{"firstName": "Marie", "lastName": "Dupont", "email": "marie@example.com"}'
+```
+
+---
+
+### `PUT /api/members/{id}` / `PATCH /api/members/{id}`
+
+Modification d'un membre. Seuls les champs présents dans le corps sont modifiés. Chaque modification est enregistrée dans l'audit log avec la valeur avant et après.
 
 Requiert le rôle **canWrite**.
 
@@ -226,6 +265,37 @@ curl -b cookies.txt \
   -X PATCH "https://votre-domaine/api/members/42" \
   -H "Content-Type: application/json" \
   -d '{"email": "nouveau@example.com", "portable": "+41 79 111 11 11"}'
+```
+
+---
+
+### `DELETE /api/members/{id}`
+
+Désactive un membre (`status = 0`). Avec `?dispose=delete`, supprime définitivement l'enregistrement (requiert le rôle **admin**).
+
+#### Paramètres de query
+
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `dispose` | string | Si `"delete"` : suppression définitive (admin uniquement). Par défaut : désactivation |
+
+#### Réponse
+
+`204 No Content`
+
+#### Erreurs
+
+- `403` — rôle insuffisant
+- `404` — membre introuvable
+
+#### Exemple curl
+
+```bash
+# Désactivation (status=0)
+curl -b cookies.txt -X DELETE "https://votre-domaine/api/members/42"
+
+# Suppression définitive (admin)
+curl -b cookies.txt -X DELETE "https://votre-domaine/api/members/42?dispose=delete"
 ```
 
 ---
@@ -318,6 +388,32 @@ curl -b cookies.txt "https://votre-domaine/api/groups"
 
 ---
 
+### `POST /api/groups`
+
+Créer un groupe. Requiert le rôle **manager**.
+
+#### Corps de requête (JSON)
+
+| Champ | Type | Obligatoire | Description |
+|-------|------|-------------|-------------|
+| `name` | string | **oui** | Nom du groupe |
+| `hidden` | boolean | non | `true` pour masquer le groupe (défaut `false`) |
+
+#### Réponse
+
+`201 Created` — objet groupe créé.
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt \
+  -X POST "https://votre-domaine/api/groups" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Nouveaux membres 2025"}'
+```
+
+---
+
 ### `GET /api/groups/{id}`
 
 Détail d'un groupe avec son nombre de membres actifs.
@@ -351,6 +447,131 @@ Détail d'un groupe avec son nombre de membres actifs.
 
 ```bash
 curl -b cookies.txt "https://votre-domaine/api/groups/7"
+```
+
+---
+
+### `PUT /api/groups/{id}`
+
+Renommer un groupe ou basculer sa visibilité. Requiert le rôle **manager**.
+
+#### Corps de requête (JSON)
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `name` | string | Nouveau nom du groupe |
+| `hidden` | boolean | `true` pour masquer, `false` pour afficher |
+
+#### Réponse
+
+Objet groupe mis à jour.
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt \
+  -X PUT "https://votre-domaine/api/groups/7" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Conseil 2025", "hidden": false}'
+```
+
+---
+
+### `DELETE /api/groups/{id}`
+
+Supprimer un groupe. Requiert le rôle **manager**. Retourne `409` si le groupe contient des membres actifs.
+
+#### Réponse
+
+`204 No Content`
+
+#### Erreurs
+
+- `403` — rôle insuffisant
+- `404` — groupe introuvable
+- `409` — groupe non vide
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt -X DELETE "https://votre-domaine/api/groups/7"
+```
+
+---
+
+### `GET /api/groups/{id}/members`
+
+Liste des membres actifs d'un groupe.
+
+#### Réponse
+
+```json
+{
+  "data": [
+    {
+      "id": 42,
+      "lastName": "Dupont",
+      "firstName": "Marie",
+      "email": "marie.dupont@example.com"
+    }
+  ]
+}
+```
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt "https://votre-domaine/api/groups/7/members"
+```
+
+---
+
+### `POST /api/groups/{id}/members`
+
+Ajouter un membre à un groupe. Requiert le rôle **manager**.
+
+#### Corps de requête (JSON)
+
+| Champ | Type | Obligatoire | Description |
+|-------|------|-------------|-------------|
+| `memberId` | integer | **oui** | Identifiant du membre à ajouter |
+
+#### Réponse
+
+`201 Created`
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt \
+  -X POST "https://votre-domaine/api/groups/7/members" \
+  -H "Content-Type: application/json" \
+  -d '{"memberId": 42}'
+```
+
+---
+
+### `DELETE /api/groups/{id}/members`
+
+Retirer un membre d'un groupe. Requiert le rôle **manager**.
+
+#### Corps de requête (JSON)
+
+| Champ | Type | Obligatoire | Description |
+|-------|------|-------------|-------------|
+| `memberId` | integer | **oui** | Identifiant du membre à retirer |
+
+#### Réponse
+
+`204 No Content`
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt \
+  -X DELETE "https://votre-domaine/api/groups/7/members" \
+  -H "Content-Type: application/json" \
+  -d '{"memberId": 42}'
 ```
 
 ---
@@ -395,6 +616,95 @@ Liste des écritures comptables d'un membre, triées par date décroissante.
 
 ```bash
 curl -b cookies.txt "https://votre-domaine/api/compta?memberId=42&year=2024"
+```
+
+---
+
+### `POST /api/compta`
+
+Créer une écriture comptable. Requiert le rôle **canWrite**.
+
+#### Corps de requête (JSON)
+
+| Champ | Type | Obligatoire | Description |
+|-------|------|-------------|-------------|
+| `memberId` | integer | **oui** | Identifiant du membre |
+| `typeId` | integer | **oui** | Identifiant du type comptable |
+| `date` | string | **oui** | Date au format `YYYY-MM-DD` |
+| `amount` | number | **oui** | Montant en CHF |
+| `label` | string | non | Libellé de l'écriture |
+| `receipt` | string | non | Référence quittance |
+| `wantsAttestation` | boolean | non | L'adhérent souhaite une attestation de don |
+
+#### Réponse
+
+`201 Created` — objet écriture créée.
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt \
+  -X POST "https://votre-domaine/api/compta" \
+  -H "Content-Type: application/json" \
+  -d '{"memberId": 42, "typeId": 1, "date": "2025-03-15", "amount": 200}'
+```
+
+---
+
+### `GET /api/compta/{id}`
+
+Détail d'une écriture comptable.
+
+#### Réponse
+
+Même structure qu'un élément de `GET /api/compta`.
+
+#### Erreurs
+
+- `404` — écriture introuvable
+
+---
+
+### `PUT /api/compta/{id}`
+
+Modifier une écriture comptable. Requiert le rôle **canWrite**. Seuls les champs présents sont mis à jour.
+
+#### Corps de requête (JSON)
+
+Mêmes champs que `POST /api/compta`, tous optionnels sauf `memberId` (non modifiable).
+
+#### Réponse
+
+Objet écriture mis à jour.
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt \
+  -X PUT "https://votre-domaine/api/compta/301" \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 250, "wantsAttestation": true}'
+```
+
+---
+
+### `DELETE /api/compta/{id}`
+
+Supprimer une écriture comptable. Requiert le rôle **canWrite**.
+
+#### Réponse
+
+`204 No Content`
+
+#### Erreurs
+
+- `403` — rôle insuffisant
+- `404` — écriture introuvable
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt -X DELETE "https://votre-domaine/api/compta/301"
 ```
 
 ---
@@ -477,4 +787,92 @@ Liste des notes de suivi d'un membre, triées par date décroissante.
 
 ```bash
 curl -b cookies.txt "https://votre-domaine/api/suivi?memberId=42"
+```
+
+---
+
+### `POST /api/suivi`
+
+Créer une note de suivi. Requiert le rôle **canWrite**.
+
+#### Corps de requête (JSON)
+
+| Champ | Type | Obligatoire | Description |
+|-------|------|-------------|-------------|
+| `memberId` | integer | **oui** | Identifiant du membre |
+| `date` | string | **oui** | Date au format `YYYY-MM-DD` |
+| `note` | string | **oui** | Contenu de la note |
+
+#### Réponse
+
+`201 Created` — objet note créée.
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt \
+  -X POST "https://votre-domaine/api/suivi" \
+  -H "Content-Type: application/json" \
+  -d '{"memberId": 42, "date": "2025-06-30", "note": "Appel téléphonique. Renouvellement confirmé."}'
+```
+
+---
+
+### `GET /api/suivi/{id}`
+
+Détail d'une note de suivi.
+
+#### Réponse
+
+Même structure qu'un élément de `GET /api/suivi`.
+
+#### Erreurs
+
+- `404` — note introuvable
+
+---
+
+### `PUT /api/suivi/{id}`
+
+Modifier une note de suivi. Requiert le rôle **canWrite**.
+
+#### Corps de requête (JSON)
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `date` | string | Nouvelle date au format `YYYY-MM-DD` |
+| `note` | string | Nouveau contenu |
+
+#### Réponse
+
+Objet note mis à jour.
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt \
+  -X PUT "https://votre-domaine/api/suivi/88" \
+  -H "Content-Type: application/json" \
+  -d '{"note": "Appel téléphonique. Renouvellement confirmé. Attestation demandée."}'
+```
+
+---
+
+### `DELETE /api/suivi/{id}`
+
+Supprimer une note de suivi. Requiert le rôle **canWrite**.
+
+#### Réponse
+
+`204 No Content`
+
+#### Erreurs
+
+- `403` — rôle insuffisant
+- `404` — note introuvable
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt -X DELETE "https://votre-domaine/api/suivi/88"
 ```
