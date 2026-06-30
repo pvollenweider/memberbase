@@ -28,7 +28,7 @@ if (isset($_REQUEST['view'])) {
     } else if ($_REQUEST['view'] == 'userHistory') {
         include __DIR__ . "/../views/users_edit_form.php";
     } else if ($_REQUEST['view'] == 'deleteUser') {
-        if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
+        if (!isAdmin()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
         $user = new User();
         $user->lookupUser((int)$_REQUEST['id']);
         $userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
@@ -179,8 +179,10 @@ if (isset($_REQUEST['view'])) {
         </div>
         <?php
     } else if ($_REQUEST['view'] == 'anonymizeUser') {
+        if (!isAdmin()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
         include __DIR__ . "/../views/users_anonymize.php";
     } else if ($_REQUEST['view'] == 'mergeUsers') {
+        if (!isManager()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
         include __DIR__ . "/../views/users_merge.php";
     } else if ($_REQUEST['view'] == 'inactiveUsers') {
         include __DIR__ . "/../views/users_inactive.php";

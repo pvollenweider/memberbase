@@ -21,6 +21,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
     <th>&nbsp;</th>
 </tr>
 </thead>
+<?php if (canWrite()): ?>
 <tr>
     <td>
         <input type="text" name="date" id="date" class="form-control datepicker" maxlength="30" value="<?=date("d/m/Y")?>"/>
@@ -28,6 +29,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
     <td><textarea name="value"class="form-control"  rows="3" id="comment"></textarea></td>
     <td><button type="submit" class="btn btn-primary"><?=$GLOBAL['add']?></button></td>
 </tr>
+<?php endif ?>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 $query = "SELECT id,user_id,parameter,date,value FROM user_properties ".
@@ -42,10 +44,11 @@ while ($row = $stmt->fetchObject()) {
     $parameter = $row->parameter;
     $value = $row->value;
     ?>
-     <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=updateSuivi&suiviid=<?=(int)$id?>&userid=<?=(int)$userid?>" style="cursor:pointer">
+     <tr <?= canWrite() ? 'class="ca-row-link" data-href="' . $_SERVER['PHP_SELF'] . '?view=updateSuivi&suiviid=' . (int)$id . '&userid=' . (int)$userid . '" style="cursor:pointer"' : '' ?>>
         <td><?=timeStampToformatedDate($date)?></td>
         <td><?=html_entity_decode($value,ENT_COMPAT,$charset)?></td>
         <td class="text-end" style="white-space:nowrap">
+            <?php if (canWrite()): ?>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=removeSuivi&amp;suiviid=<?=(int)$id?>&amp;userid=<?=(int)$userid?>"
                class="btn btn-sm py-0 px-1 text-muted"
                style="position:relative;z-index:2"
@@ -53,6 +56,7 @@ while ($row = $stmt->fetchObject()) {
                aria-label="<?= $GLOBAL['delete'] ?>">
                 <i class="fas fa-trash-can" style="font-size:0.75rem" aria-hidden="true"></i>
             </a>
+            <?php endif ?>
         </td>
     </tr>
     <?php

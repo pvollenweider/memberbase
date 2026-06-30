@@ -1,0 +1,490 @@
+/**
+ * E2E tests — role-based access control
+ *
+ * For each role (readonly / user / manager / admin):
+ *   1. UI  — action elements visible or hidden as expected
+ *   2. API — forced HTTP calls blocked at the server (HTTP 403)
+ *
+ * Seed users (all with password TestPassword1!):
+ *   testreadonly → role=readonly
+ *   testuser     → role=user
+ *   testmanager  → role=manager
+ *   testadmin    → role=admin
+ *
+ * Seed members used:
+ *   id=1  Alice Dupont   — active, has compta
+ *   id=2  Bob Martin     — active, no compta
+ *   id=3  Archived Member — status=0, no compta → eligible for delete
+ *
+ * @copyright 2024 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+
+import { test, expect, Browser, APIRequestContext } from '@playwright/test';
+import * as path from 'path';
+
+// ── constants ─────────────────────────────────────────────────────────────────
+
+const ACTIVE_MEMBER_ID  = 1;  // Alice Dupont, active, has compta
+const ARCHIVED_MEMBER_ID = 3; // Archived member, no compta
+
+function stateFile(role: string): string {
+  return path.resolve(__dirname, `.auth/${role}.json`);
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+
+/** Open a new page authenticated as the given role. Caller must close ctx. */
+async function openAs(browser: Browser, role: string) {
+  const ctx = await browser.newContext({ storageState: stateFile(role) });
+  const page = await ctx.newPage();
+  return { page, ctx };
+}
+
+// ── API helper ────────────────────────────────────────────────────────────────
+
+/** Create a request context authenticated as the given role. */
+async function apiAs(playwright: { request: { newContext: Function } }, role: string): Promise<APIRequestContext> {
+  return playwright.request.newContext({
+    baseURL: 'http://localhost:8080',
+    storageState: stateFile(role),
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI — navigation bar
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('UI — settings gear (isManager)', () => {
+  for (const role of ['readonly', 'user']) {
+    test(`${role}: settings gear hidden`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto('/index.php');
+      await expect(page.locator('a[href*="view=settings"]')).toHaveCount(0);
+      await ctx.close();
+    });
+  }
+
+  for (const role of ['manager', 'admin']) {
+    test(`${role}: settings gear visible`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto('/index.php');
+      await expect(page.locator('.navbar-collapse a[href*="view=settings"]')).toBeVisible();
+      await ctx.close();
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI — member list: "Add member" button (canWrite)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('UI — add-member button (canWrite)', () => {
+  test('readonly: add-member button hidden', async ({ browser }) => {
+    const { page, ctx } = await openAs(browser, 'readonly');
+    await page.goto('/index.php');
+    await expect(page.locator('a[href*="view=addUser"]')).toHaveCount(0);
+    await ctx.close();
+  });
+
+  for (const role of ['user', 'manager', 'admin']) {
+    test(`${role}: add-member button visible`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto('/index.php');
+      await expect(page.locator('a[href*="view=addUser"]').first()).toBeVisible();
+      await ctx.close();
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI — member profile: click-to-edit (canWrite)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('UI — click-to-edit on member profile (canWrite)', () => {
+  test('readonly: edit hint absent, view zone has pe-none', async ({ browser }) => {
+    const { page, ctx } = await openAs(browser, 'readonly');
+    await page.goto(`/index.php?view=generalData&userid=${ACTIVE_MEMBER_ID}`);
+    await expect(page.locator('.ca-edit-hint')).toHaveCount(0);
+    await expect(page.locator('.ca-view-zone.pe-none')).toBeVisible();
+    await ctx.close();
+  });
+
+  for (const role of ['user', 'manager', 'admin']) {
+    test(`${role}: edit hint present and view zone is clickable`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto(`/index.php?view=generalData&userid=${ACTIVE_MEMBER_ID}`);
+      await expect(page.locator('.ca-edit-hint').first()).toBeAttached();
+      await expect(page.locator('.ca-view-zone:not(.pe-none)').first()).toBeVisible();
+      await ctx.close();
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI — compta add row (canWrite)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('UI — compta add row (canWrite)', () => {
+  test('readonly: add row absent', async ({ browser }) => {
+    const { page, ctx } = await openAs(browser, 'readonly');
+    await page.goto(`/index.php?view=compta&userid=${ACTIVE_MEMBER_ID}`);
+    await expect(page.locator('form[name="addCompta"] select[name="type_id"]')).toHaveCount(0);
+    await ctx.close();
+  });
+
+  for (const role of ['user', 'manager', 'admin']) {
+    test(`${role}: add row visible`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto(`/index.php?view=compta&userid=${ACTIVE_MEMBER_ID}`);
+      await expect(page.locator('form[name="addCompta"] select[name="type_id"]')).toBeVisible();
+      await ctx.close();
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI — suivi add row (canWrite)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('UI — suivi add row (canWrite)', () => {
+  test('readonly: add row absent', async ({ browser }) => {
+    const { page, ctx } = await openAs(browser, 'readonly');
+    await page.goto(`/index.php?view=suivi&userid=${ACTIVE_MEMBER_ID}`);
+    await expect(page.locator('form[name="addSuivi"] input[name="date"]')).toHaveCount(0);
+    await ctx.close();
+  });
+
+  for (const role of ['user', 'manager', 'admin']) {
+    test(`${role}: add row visible`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto(`/index.php?view=suivi&userid=${ACTIVE_MEMBER_ID}`);
+      await expect(page.locator('form[name="addSuivi"] input[name="date"]')).toBeVisible();
+      await ctx.close();
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI — archive toggle (isManager)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('UI — archive/activate toggle (isManager)', () => {
+  for (const role of ['readonly', 'user']) {
+    test(`${role}: archive toggle absent — status shown as text`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto(`/index.php?view=generalData&userid=${ACTIVE_MEMBER_ID}`);
+      await expect(page.locator('form#status-toggle-form')).toHaveCount(0);
+      await expect(page.locator('text=Actif')).toBeVisible();
+      await ctx.close();
+    });
+  }
+
+  for (const role of ['manager', 'admin']) {
+    test(`${role}: archive toggle visible`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto(`/index.php?view=generalData&userid=${ACTIVE_MEMBER_ID}`);
+      await expect(page.locator('form#status-toggle-form')).toBeVisible();
+      await ctx.close();
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI — group management on member profile (isManager)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('UI — group management (isManager)', () => {
+  for (const role of ['readonly', 'user']) {
+    test(`${role}: group pills are plain spans (no remove link)`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto(`/index.php?view=generalData&userid=${ACTIVE_MEMBER_ID}`);
+      await expect(page.locator('a.member-pill')).toHaveCount(0);
+      await expect(page.locator('span.member-pill').first()).toBeVisible();
+      await ctx.close();
+    });
+
+    test(`${role}: add-group details section absent`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto(`/index.php?view=generalData&userid=${ACTIVE_MEMBER_ID}`);
+      await expect(page.locator('details.ca-integrity-section')).toHaveCount(0);
+      await ctx.close();
+    });
+  }
+
+  for (const role of ['manager', 'admin']) {
+    test(`${role}: group pills are remove links`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto(`/index.php?view=generalData&userid=${ACTIVE_MEMBER_ID}`);
+      await expect(page.locator('a.member-pill').first()).toBeVisible();
+      await ctx.close();
+    });
+
+    test(`${role}: add-group details section present`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto(`/index.php?view=generalData&userid=${ACTIVE_MEMBER_ID}`);
+      await expect(page.locator('details.ca-integrity-section')).toBeVisible();
+      await ctx.close();
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI — delete / anonymize on archived profile (isAdmin)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('UI — delete/anonymize on archived profile (isAdmin)', () => {
+  for (const role of ['readonly', 'user', 'manager']) {
+    test(`${role}: delete button absent on archived profile`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto(`/index.php?view=generalData&userid=${ARCHIVED_MEMBER_ID}`);
+      await expect(page.locator(`a[href*="view=deleteUser"]`)).toHaveCount(0);
+      await expect(page.locator(`a[href*="view=anonymizeUser"]`)).toHaveCount(0);
+      await ctx.close();
+    });
+  }
+
+  test('admin: delete button visible on archived profile (no compta)', async ({ browser }) => {
+    const { page, ctx } = await openAs(browser, 'admin');
+    await page.goto(`/index.php?view=generalData&userid=${ARCHIVED_MEMBER_ID}`);
+    await expect(page.locator(`a[href*="view=deleteUser"]`)).toBeVisible();
+    await ctx.close();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI — view-level access guards (redirect to access-denied message)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('UI — view access guards', () => {
+  test('readonly: view=addUser shows access denied', async ({ browser }) => {
+    const { page, ctx } = await openAs(browser, 'readonly');
+    await page.goto('/index.php?view=addUser');
+    await expect(page.locator('.alert-danger')).toBeVisible();
+    await ctx.close();
+  });
+
+  test('user: view=deleteUser shows access denied', async ({ browser }) => {
+    const { page, ctx } = await openAs(browser, 'user');
+    await page.goto(`/index.php?view=deleteUser&id=${ARCHIVED_MEMBER_ID}`);
+    await expect(page.locator('.alert-danger')).toBeVisible();
+    await ctx.close();
+  });
+
+  test('user: view=mergeUsers shows access denied', async ({ browser }) => {
+    const { page, ctx } = await openAs(browser, 'user');
+    await page.goto(`/index.php?view=mergeUsers&a=${ACTIVE_MEMBER_ID}&b=2`);
+    await expect(page.locator('.alert-danger')).toBeVisible();
+    await ctx.close();
+  });
+
+  test('manager: view=anonymizeUser shows access denied', async ({ browser }) => {
+    const { page, ctx } = await openAs(browser, 'manager');
+    // User 1 has compta so anonymize link would appear for admin; manager gets blocked
+    await page.goto(`/index.php?view=anonymizeUser&id=${ACTIVE_MEMBER_ID}`);
+    await expect(page.locator('.alert-danger')).toBeVisible();
+    await ctx.close();
+  });
+
+  test('manager: view=deleteUser shows access denied', async ({ browser }) => {
+    const { page, ctx } = await openAs(browser, 'manager');
+    await page.goto(`/index.php?view=deleteUser&id=${ARCHIVED_MEMBER_ID}`);
+    await expect(page.locator('.alert-danger')).toBeVisible();
+    await ctx.close();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Server enforcement — actions/members.php (HTTP 403)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Server — members action guards', () => {
+  // readonly blocked by top-level canWrite() guard in members.php
+  test('readonly: action=updateUser → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'readonly');
+    const r = await api.post('/index.php', { form: { action: 'updateUser', id: String(ACTIVE_MEMBER_ID), firstName: 'Hacked' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  // user blocked for manager-level actions
+  test('user: action=deactivateUser → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'user');
+    const r = await api.post('/index.php', { form: { action: 'deactivateUser', id: String(ACTIVE_MEMBER_ID) } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('user: action=reactivateUser → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'user');
+    const r = await api.post('/index.php', { form: { action: 'reactivateUser', id: String(ARCHIVED_MEMBER_ID) } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('user: action=mergeUsers → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'user');
+    const r = await api.post('/index.php', { form: { action: 'mergeUsers', idA: String(ACTIVE_MEMBER_ID), idB: '2', survivor: 'a', disposal: 'deactivate' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  // user blocked for admin-level actions
+  test('user: action=anonymizeUser → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'user');
+    const r = await api.post('/index.php', { form: { action: 'anonymizeUser', id: String(ACTIVE_MEMBER_ID) } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('user: action=deleteOrDeactivateUser → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'user');
+    const r = await api.post('/index.php', { form: { action: 'deleteOrDeactivateUser', id: String(ARCHIVED_MEMBER_ID), dispose: 'delete' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  // manager blocked for admin-only actions
+  test('manager: action=anonymizeUser → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'manager');
+    const r = await api.post('/index.php', { form: { action: 'anonymizeUser', id: String(ACTIVE_MEMBER_ID) } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('manager: action=deleteOrDeactivateUser dispose=delete → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'manager');
+    const r = await api.post('/index.php', { form: { action: 'deleteOrDeactivateUser', id: String(ARCHIVED_MEMBER_ID), dispose: 'delete' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  // positive: manager CAN deactivate
+  test('manager: action=deactivateUser on active member → not 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'manager');
+    const r = await api.post('/index.php', { form: { action: 'deactivateUser', id: '2' } });
+    expect(r.status()).not.toBe(403);
+    await api.dispose();
+    // Restore: reactivate via admin
+    const admin = await apiAs(playwright, 'admin');
+    await admin.post('/index.php', { form: { action: 'reactivateUser', id: '2' } });
+    await admin.dispose();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Server enforcement — actions/compta.php (HTTP 403)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Server — compta action guards', () => {
+  test('readonly: action=addCompta → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'readonly');
+    const r = await api.post('/index.php', { form: {
+      action: 'addCompta', userid: String(ACTIVE_MEMBER_ID),
+      type_id: '1', date: '01/01/2025', libele: 'Hack', sum: '50',
+    }});
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('readonly: action=updateCompta → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'readonly');
+    const r = await api.post('/index.php', { form: {
+      action: 'updateCompta', comptaid: '1', userid: String(ACTIVE_MEMBER_ID),
+      type_id: '1', date: '01/01/2025', libele: 'Hack', sum: '99',
+    }});
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Server enforcement — actions/suivi.php (HTTP 403)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Server — suivi action guards', () => {
+  test('readonly: action=addSuivi → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'readonly');
+    const r = await api.post('/index.php', { form: {
+      action: 'addSuivi', userid: String(ACTIVE_MEMBER_ID),
+      parameter: 'suivi', date: '01/01/2025', value: 'Hack',
+    }});
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Server enforcement — actions/groups.php (HTTP 403)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Server — group action guards', () => {
+  test('readonly: action=addMembership → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'readonly');
+    const r = await api.post('/index.php', { form: { action: 'addMembership', id: String(ACTIVE_MEMBER_ID), teamId: '1' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('user: action=removeMembership → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'user');
+    const r = await api.post('/index.php', { form: { action: 'removeMembership', id: String(ACTIVE_MEMBER_ID), teamId: '1' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Server enforcement — REST API /api/members (HTTP 403)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Server — REST API /api/members guards', () => {
+  test('readonly: PUT /api/members/{id} → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'readonly');
+    const r = await api.put(`/api/members/${ACTIVE_MEMBER_ID}`, { data: { firstName: 'Hacked' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('readonly: POST /api/members → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'readonly');
+    const r = await api.post('/api/members', { data: { firstName: 'X', lastName: 'Y' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('user: DELETE /api/members/{id} with dispose=delete → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'user');
+    const r = await api.delete(`/api/members/${ARCHIVED_MEMBER_ID}?dispose=delete`);
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('manager: DELETE /api/members/{id} with dispose=delete → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'manager');
+    const r = await api.delete(`/api/members/${ARCHIVED_MEMBER_ID}?dispose=delete`);
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  // positive: user CAN update a member via REST API
+  test('user: PUT /api/members/{id} → not 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'user');
+    const r = await api.put(`/api/members/${ACTIVE_MEMBER_ID}`, { data: { firstName: 'Alice' } });
+    expect(r.status()).not.toBe(403);
+    await api.dispose();
+  });
+
+  // positive: manager CAN delete (deactivate, not permanent) via REST API
+  test('manager: DELETE /api/members/{id} (deactivate) → not 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'manager');
+    // Member 2 (Bob) — deactivate only (no dispose=delete)
+    const r = await api.delete(`/api/members/2`);
+    expect(r.status()).not.toBe(403);
+    await api.dispose();
+    // Restore
+    const admin = await apiAs(playwright, 'admin');
+    await admin.post('/index.php', { form: { action: 'reactivateUser', id: '2' } });
+    await admin.dispose();
+  });
+});

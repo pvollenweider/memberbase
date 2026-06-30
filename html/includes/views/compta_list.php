@@ -88,6 +88,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <th>&nbsp;</td>
 </tr>
 </thead>
+<?php if (canWrite()): ?>
 <tr>
     <td>
         <select name="type_id" class="form-control">
@@ -106,6 +107,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <td class="d-none d-sm-table-cell text-center"><input type="checkbox" name="wants_attestation" value="1" /></td>
     <td><button type="submit" class="btn btn-primary"><?=$GLOBAL['add']?></button></td>
 </tr>
+<?php endif ?>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 $query = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE c.user_id=" . $user->getId() . " ";
@@ -149,7 +151,7 @@ while ($row = $stmt->fetchObject()) {
     ];
     $rowStyle = isset($bgVarMap[$ctColor]) ? '--bs-table-bg:' . $bgVarMap[$ctColor] : '';
     ?>
-     <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=updateCompta&comptaid=<?=(int)$id?>&userid=<?=(int)$user->getId()?>" style="cursor:pointer;<?= htmlentities($rowStyle, ENT_COMPAT, $charset) ?>">
+     <tr <?= canWrite() ? 'class="ca-row-link" data-href="' . $_SERVER['PHP_SELF'] . '?view=updateCompta&comptaid=' . (int)$id . '&userid=' . (int)$user->getId() . '" style="cursor:pointer;' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' : 'style="' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' ?>>
         <td>
             <?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>
             <?php if ($row->ct_excl): ?>
@@ -166,8 +168,10 @@ while ($row = $stmt->fetchObject()) {
             <?php endif ?>
         </td>
         <td>
+            <?php if (canWrite()): ?>
             <a href="<?=$_SERVER['PHP_SELF']?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>"
                class="ca-row-link-anchor" hx-boost="false" tabindex="-1" aria-hidden="true"></a>
+            <?php endif ?>
         </td>
     </tr>
     <?php

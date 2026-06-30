@@ -80,6 +80,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     $_savedOk = true;
 
 } elseif ($_REQUEST['action'] == 'mergeUsers') {
+    if (!isManager()) { http_response_code(403); exit; }
     $idA = (int)($_REQUEST['idA'] ?? 0);
     $idB = (int)($_REQUEST['idB'] ?? 0);
     if ($idA <= 0 || $idB <= 0 || $idA === $idB) { return; }
@@ -151,6 +152,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     exit;
 
 } elseif ($_REQUEST['action'] == 'anonymizeUser') {
+    if (!isAdmin()) { http_response_code(403); exit; }
     $uid = (int)($_REQUEST['id'] ?? 0);
     if ($uid <= 0) { return; }
     $chk = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
@@ -166,6 +168,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     header('Location: ' . $_SERVER['PHP_SELF'] . '?view=updateUser&id=' . $uid); exit;
 
 } elseif ($_REQUEST['action'] == 'deactivateUser') {
+    if (!isManager()) { http_response_code(403); exit; }
     $uid = (int)($_REQUEST['id'] ?? 0);
     if ($uid > 0) {
         $pdo->prepare("UPDATE users SET status=0 WHERE id=?")->execute([$uid]);
@@ -181,6 +184,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     exit;
 
 } elseif ($_REQUEST['action'] == 'deleteOrDeactivateUser') {
+    if (!isAdmin()) { http_response_code(403); exit; }
     $uid = (int)($_REQUEST['id'] ?? 0);
     if ($uid <= 0) { return; }
     $user = new User(); $user->lookupUser($uid);
@@ -196,6 +200,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     header('Location: ' . $_SERVER['PHP_SELF']); exit;
 
 } elseif ($_REQUEST['action'] == 'reactivateUser') {
+    if (!isManager()) { http_response_code(403); exit; }
     $uid = (int)($_REQUEST['id'] ?? 0);
     if ($uid > 0) {
         $pdo->prepare("UPDATE users SET status=1 WHERE id=?")->execute([$uid]);

@@ -36,12 +36,12 @@ test.describe.serial('Inactive members', () => {
   test('view inactive members list', async ({ page }) => {
     await page.goto('/index.php?view=inactiveUsers');
     await expect(page.locator('table')).toBeVisible();
-    await expect(page.locator('text=Archived')).toBeVisible();
+    await expect(page.locator('text=Archived Temp')).toBeVisible();
   });
 
   test('reactivate the archived member', async ({ page }) => {
     await page.goto('/index.php?view=inactiveUsers');
-    const row = page.locator('tr').filter({ hasText: 'Archived' }).first();
+    const row = page.locator('tr').filter({ hasText: 'Archived Temp' }).first();
     await expect(row).toBeVisible({ timeout: 10_000 });
 
     // Click the "Désarchiver" button to open Bootstrap modal
@@ -53,7 +53,7 @@ test.describe.serial('Inactive members', () => {
       page.waitForNavigation({ timeout: 15_000 }),
       page.locator('#unarchive-confirm-btn').click(),
     ]);
-    await expect(page.locator('text=Archived')).toHaveCount(0);
+    await expect(page.locator('tr').filter({ hasText: 'Archived Temp' })).toHaveCount(0);
 
     // Verify member is back in main list
     await page.goto('/index.php?action=search&searchString=Archived');

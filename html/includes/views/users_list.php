@@ -176,12 +176,14 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                 </div>
   </div>
 
+  <?php if (canWrite()): ?>
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?><?= $team > 0 ? '&fromTeam=' . $team : '' ?>"
      class="ms-auto ca-filter-btn text-decoration-none"
      title="<?= $GLOBAL['addUser'] ?>">
     <i class="fas fa-user-plus" aria-hidden="true"></i>
     <span><?= $GLOBAL['addUser'] ?></span>
   </a>
+  <?php endif ?>
 </div>
 <script>
 function filterTeamDropdown(q) {

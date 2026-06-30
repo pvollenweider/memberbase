@@ -5,15 +5,21 @@
 SET NAMES utf8mb4;
 SET foreign_key_checks = 0;
 
--- App user (admin)
+-- App users — one per role (all share password TestPassword1!)
 INSERT INTO `app_users` (`id`, `username`, `display_name`, `email`, `password_hash`, `role`, `force_password_change`, `is_active`)
-VALUES (1, 'testadmin', 'Test Admin', 'testadmin@example.com', '$2y$10$EYbiM6FFG8rJrlQfspD8wevoLGlK6aeE8CvvHt34lvxflse7Rq1MG', 'admin', 0, 1);
+VALUES
+  (1, 'testadmin',    'Test Admin',    'testadmin@example.com',    '$2y$10$EYbiM6FFG8rJrlQfspD8wevoLGlK6aeE8CvvHt34lvxflse7Rq1MG', 'admin',    0, 1),
+  (2, 'testmanager',  'Test Manager',  'manager@example.com',      '$2y$10$EYbiM6FFG8rJrlQfspD8wevoLGlK6aeE8CvvHt34lvxflse7Rq1MG', 'manager',  0, 1),
+  (3, 'testuser',     'Test User',     'user@example.com',         '$2y$10$EYbiM6FFG8rJrlQfspD8wevoLGlK6aeE8CvvHt34lvxflse7Rq1MG', 'user',     0, 1),
+  (4, 'testreadonly', 'Test Readonly', 'readonly@example.com',     '$2y$10$EYbiM6FFG8rJrlQfspD8wevoLGlK6aeE8CvvHt34lvxflse7Rq1MG', 'readonly', 0, 1);
 
 -- Regular members
 INSERT INTO `users` (`id`, `lastname`, `firstname`, `email`, `status`, `creationDate`, `modificationDate`, `comment`)
 VALUES
-  (1, 'Dupont', 'Alice', 'alice@example.com', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ''),
-  (2, 'Martin', 'Bob', 'bob@example.com', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), '');
+  (1, 'Dupont',   'Alice',  'alice@example.com',    1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ''),
+  (2, 'Martin',   'Bob',    'bob@example.com',      1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ''),
+  -- Archived, no compta → can be permanently deleted (admin only)
+  (3, 'Archived', 'Member', 'archived@example.com', 0, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), '');
 
 -- Teams / groups
 INSERT INTO `team` (`id`, `name`, `hidden`) VALUES (1, 'Membre 2025', 0);
