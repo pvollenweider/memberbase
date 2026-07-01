@@ -14,7 +14,8 @@ if (empty($_headers) || empty($_rows)) {
     exit;
 }
 
-$_preview = array_slice($_rows, 0, 5);
+// Scan up to 25 rows for examples — the first row is often sparse
+$_preview = array_slice($_rows, 0, 25);
 
 require_once __DIR__ . '/../lib/import_fields.php';
 $_memberFields = ['' => '— ignorer —'] + importFieldLabels();
@@ -24,6 +25,8 @@ $_autoMap = [
     'nom'         => 'lastName',  'name'        => 'lastName',  'lastname'    => 'lastName',
     'prénom'      => 'firstName', 'prenom'      => 'firstName', 'firstname'   => 'firstName',
     'société'     => 'society',   'societe'     => 'society',   'company'     => 'society', 'organisation' => 'society',
+    'genre'       => 'sexe',      'civilité'    => 'sexe',      'civilite'    => 'sexe',    'sexe'  => 'sexe',
+    'titre'       => 'title',
     'email'       => 'email',     'e-mail'      => 'email',     'courriel'    => 'email',
     'email alt'   => 'emailAlt',  'email2'      => 'emailAlt',  'email alt.'  => 'emailAlt',
     'tel'         => 'tel',       'téléphone'   => 'tel',       'telephone'   => 'tel',     'phone' => 'tel',
@@ -32,6 +35,7 @@ $_autoMap = [
     'fax'         => 'fax',
     'adresse'     => 'address',   'address'     => 'address',   'rue'         => 'address',
     'npa'         => 'npa',       'cp'          => 'npa',       'code postal' => 'npa',     'ville' => 'npa',
+    'npa / localité' => 'npa',    'npa / localite' => 'npa',    'localité'    => 'npa',     'localite' => 'npa',
     'web'         => 'web',       'site'        => 'web',       'url'         => 'web',
     'naissance'   => 'birthDay',  'birthday'    => 'birthDay',  'date naissance' => 'birthDay',
     'remarques'   => 'comment',   'comment'     => 'comment',   'note'        => 'comment', 'notes' => 'comment',
