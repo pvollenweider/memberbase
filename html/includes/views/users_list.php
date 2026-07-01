@@ -49,6 +49,15 @@ if (isset($_REQUEST['year'])) {
 $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
 
 ?>
+<?php if (!empty($_GET['import_done'])): ?>
+<div class="alert alert-success py-2 px-3 mb-3" role="alert" style="font-size:0.85rem">
+  <i class="fas fa-circle-check me-1" aria-hidden="true"></i>
+  Import terminé.
+  <?php if ((int)($_GET['import_resolved'] ?? 0) > 0): ?>
+    <strong><?= (int)$_GET['import_resolved'] ?></strong> doublon<?= (int)$_GET['import_resolved'] > 1 ? 's' : '' ?> mis à jour.
+  <?php endif ?>
+</div>
+<?php endif ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" id="navbarDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -177,8 +186,14 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
   </div>
 
   <?php if (canWrite()): ?>
-  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?><?= $team > 0 ? '&fromTeam=' . $team : '' ?>"
+  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=importStep1"
      class="ms-auto ca-filter-btn text-decoration-none"
+     title="Importer des contacts">
+    <i class="fas fa-file-import" aria-hidden="true"></i>
+    <span>Importer</span>
+  </a>
+  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?><?= $team > 0 ? '&fromTeam=' . $team : '' ?>"
+     class="ca-filter-btn text-decoration-none"
      title="<?= $GLOBAL['addUser'] ?>">
     <i class="fas fa-user-plus" aria-hidden="true"></i>
     <span><?= $GLOBAL['addUser'] ?></span>

@@ -66,6 +66,16 @@ header('Location: ' . $_SERVER['PHP_SELF'] . '?view=...');
 exit;
 ```
 
+## Import CSV (wizard 3 étapes)
+
+- Actions : `importUpload` → `importApply` → `importResolveDuplicates` dans `includes/actions/import.php`
+- Vues : `importStep1/2/3` → `includes/views/import_step{1,2,3}.php`
+- **Source unique des champs importables** : `includes/lib/import_fields.php` (`importFieldLabels()` / `importAllowedFields()`). Ne jamais dupliquer cette liste.
+- État du wizard en `$_SESSION['_import_*']` — les lignes parsées sont libérées dès la fin d'`importApply` (ne pas les faire survivre : session bloat)
+- Limites : 5 MB / 5 000 lignes (troncature signalée à l'étape 2)
+- Détection de doublons : maps en mémoire (email, nom+prénom) préchargées en une requête — ne pas revenir à des SELECT par ligne
+- La création des contacts est enveloppée dans une transaction
+
 ## Colonne `users.status`
 
 `TINYINT(1) NOT NULL DEFAULT 1` — 1 = actif, 0 = inactif.  
