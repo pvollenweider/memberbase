@@ -2,6 +2,55 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [3.5.4] — 2026-07-01
+
+### Nouveautés
+
+- **Terminologie « Segment »** — dans toute l'interface, « Groupe » devient **Segment** et « Métagroupe » devient **Segment combiné**. Changement de libellés uniquement : les colonnes de la base (`team`, `metagroup`), les noms de variables PHP et les paramètres de l'API restent inchangés.
+- **Import de contacts CSV / TSV** — assistant en 3 étapes accessible depuis la liste des membres (bouton « Importer », réservé aux rôles **Manager** et **Admin**) :
+  - **Étape 1 — Upload** : fichiers CSV ou TSV, détection automatique de l'encodage (UTF-8 / Latin-1) et du délimiteur (`,` `;` tabulation). Limites : 5 MB / 5 000 lignes (troncature signalée).
+  - **Étape 2 — Mapping** : association de chaque colonne à un champ membre, avec auto-détection par nom d'en-tête et aperçu échantillonné sur les 25 premières lignes. La civilité texte (Monsieur / Madame / Madame et Monsieur) est normalisée vers l'enum `sexe` (`m` / `f` / `hf` / `na`).
+  - **Étape 3 — Résultats & doublons** : rapport « N créés », puis résolution des doublons ligne par ligne (**ignorer** / **compléter les champs vides** / **écraser**). Détection des doublons par email **ou** prénom + nom.
+  - **Ajout à un segment** : à l'étape 2, les contacts importés (nouveaux **et** doublons existants) peuvent rejoindre un segment existant, un nouveau segment (avec catégorie optionnelle), ou — par défaut — un segment `Import JJ.MM.AAAA HH:MM` créé automatiquement.
+  - Audit log pour chaque création, mise à jour et ajout au segment. Création des contacts et du segment enveloppée dans une transaction.
+- **Champ e-mail alternatif (`email_alt`)** — adresse historique / secondaire, non utilisée pour les envois, éditable dans la fiche membre et importable.
+- **Tests d'intégrité étendus** (page *Réglages → Intégrité*) :
+  - Seuls les blocs présentant une anomalie sont affichés (ouverts par défaut) ; message « Tout est clean » sinon.
+  - Nouveaux contrôles de format : montants compta non numériques, dates compta invalides, entrées sans type, emails / emails alt. mal formatés, genre hors enum, dates de naissance dans le futur, membres sans nom de famille ni société.
+  - Actions correctives directes sur les montants compta invalides : **Mettre à 0** ou **Supprimer l'écriture**.
+- **Vue résumé — mode étendu** : colonnes séparées **Dons / Autres / Total compta**, surlignage des lignes de type exclu-don, bascule « Mode étendu ».
+- **Fusion de membres** : option « Garder les deux notes » ; rendu correct du HTML (Tiptap) du champ Note dans la vue de fusion.
+- **Pastilles de type compta cohérentes** dans la vue « dernière écriture » (dropdown + tableau).
+
+### Corrections
+
+- **Import entre segments cassé** — la requête d'import de membres depuis d'autres segments utilisait la colonne inexistante `userid` au lieu de `user_id` (levait une `PDOException`).
+- **Fusion de membres non atomique** — `mergeUsers` déplaçait compta et adhésions puis supprimait la source sans transaction ; un échec à mi-chemin laissait des écritures orphelines. L'opération est désormais transactionnelle (rollback sur erreur).
+- **Crash à la création partielle d'un membre** — `new User()` laissait `title`, `comment`, etc. à `null`, violant les contraintes `NOT NULL` lors d'un `save()` partiel (import). Les propriétés sont initialisées à `''` (`0` / `'na'` selon le type).
+- **Dates invalides acceptées** — `formatedDateToTimeStamp` acceptait des dates hors bornes (`32/13/2025`, 29/02 non bissextile) en les faisant déborder ; elles sont désormais rejetées via `DateTime::getLastErrors()`.
+- **Casts d'identifiants** — casts `(int)` systématiques sur les ids passés aux lookups et entités (actions compta, suivi, groups) pour éviter les échecs silencieux.
+- **Case « Ajouter au segment »** décochée par défaut sur le formulaire d'ajout de membre.
+
+### Sécurité
+
+- **Import réservé aux Manager / Admin** — garde `isManager()` sur l'action d'import et les vues `importStep1/2/3` ; bouton masqué aux autres rôles.
+- **Lectures API protégées** — nouveau rôle de lecture minimal `canRead()` (`admin` / `manager` / `user` / `readonly`) appliqué comme garde sur tous les endpoints `GET` (`members`, `compta`, `suivi`). Documentation de `DELETE /api/compta` alignée sur le rôle réellement exigé (`canWrite()`).
+
+### Performances
+
+- **Liste des membres** — suppression du `SELECT` complet exécuté par ligne (`lookupUser()`) : `creationDate` est désormais porté par la requête principale, éliminant une requête par membre affiché.
+- **Détection de doublons à l'import** — membres existants préchargés en une seule requête (maps en mémoire) au lieu de deux `SELECT` par ligne.
+
+### Migration depuis v3.5.3
+
+Ajouter la colonne `email_alt` sur la base de production si elle n'existe pas encore :
+
+```sql
+ALTER TABLE users ADD COLUMN email_alt VARCHAR(255) NOT NULL DEFAULT '' AFTER email;
+```
+
+Aucune autre migration de schéma n'est requise.
+
 ## [3.5.3] — 2026-07-01
 
 ### Nouveautés

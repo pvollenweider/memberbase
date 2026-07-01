@@ -5,6 +5,20 @@ lors du déploiement de chaque branche ou version.
 
 ---
 
+## v3.5.4 — champ e-mail alternatif
+
+Ajouter la colonne `email_alt` sur la table `users` si elle n'existe pas encore :
+
+```sql
+ALTER TABLE users ADD COLUMN email_alt VARCHAR(255) NOT NULL DEFAULT '' AFTER email;
+```
+
+> Colonne non nullable avec défaut vide : aucune donnée existante n'est affectée.
+> Aucune autre migration de schéma n'est requise pour la v3.5.4 (import CSV,
+> ajout à un segment, tests d'intégrité et gardes API sont purement applicatifs).
+
+---
+
 ## `feature/api-members` — API JSON + 4 rôles
 
 ### 1. Mise à jour du schéma — rôles utilisateurs

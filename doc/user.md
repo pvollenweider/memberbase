@@ -1,6 +1,10 @@
 # Guide utilisateur — MemberBase
 
-Guide pratique pour la gestion quotidienne des membres, groupes, comptabilité et suivi.
+Guide pratique pour la gestion quotidienne des membres, segments, comptabilité et suivi.
+
+> **Terminologie (v3.5.4).** L'interface parle de **Segment** (auparavant « groupe ») et
+> de **Segment combiné** (auparavant « métagroupe »). Les captures ou instructions
+> plus anciennes mentionnant « groupe » désignent la même notion.
 
 ---
 
@@ -8,11 +12,11 @@ Guide pratique pour la gestion quotidienne des membres, groupes, comptabilité e
 
 1. [Connexion et navigation](#1-connexion-et-navigation)
 2. [Liste des membres](#2-liste-des-membres)
-3. [Ajouter un membre](#3-ajouter-un-membre)
+3. [Ajouter un membre](#3-ajouter-un-membre) · [Importer des contacts](#importer-des-contacts-csv--tsv)
 4. [Fiche membre](#4-fiche-membre)
 5. [Comptabilité (onglet Compta)](#5-comptabilité-onglet-compta)
 6. [Suivi (onglet Suivi)](#6-suivi-onglet-suivi)
-7. [Groupes](#7-groupes)
+7. [Segments](#7-segments)
 8. [Vues d'activité — Rapports](#8-vues-dactivité--rapports)
 9. [Attestations de dons](#9-attestations-de-dons)
 10. [Réglages](#10-réglages)
@@ -150,7 +154,16 @@ Seules les lignes visibles (après filtrage) sont exportées.
 
 3. Cliquer **Ajouter** pour créer le profil.
 
-Le nouveau membre apparaît dans la liste. Si un groupe était actif dans le filtre au moment de l'ajout, le membre est automatiquement rattaché à ce groupe.
+Le nouveau membre apparaît dans la liste. Si un segment était actif dans le filtre au moment de l'ajout, le membre est automatiquement rattaché à ce segment.
+
+### Importer des contacts (CSV / TSV)
+
+Pour créer plusieurs membres d'un coup à partir d'un fichier, utiliser le bouton **Importer** de la barre d'outils de la liste des membres (réservé aux rôles **Manager** et **Admin**). L'assistant se déroule en 3 étapes :
+
+1. **Fichier** — sélectionner un fichier **CSV** ou **TSV** (séparateur virgule, point-virgule ou tabulation ; encodage UTF-8 ou Latin-1). La première ligne doit contenir les en-têtes de colonnes. Limites : 5 MB et 5 000 lignes (au-delà, un avertissement s'affiche et seules les 5 000 premières lignes sont importées).
+2. **Correspondance des colonnes** — associer chaque colonne du fichier à un champ membre (Nom, Prénom, Email, Genre/civilité, Adresse, etc.). Les colonnes courantes sont pré-associées automatiquement d'après leur en-tête. Un aperçu de valeurs (échantillonnées sur les 25 premières lignes) aide à vérifier. La civilité en texte (« Monsieur », « Madame », « Madame et Monsieur ») est convertie automatiquement.
+   - **Ajouter à un segment** : en bas de l'étape, choisir de rattacher les contacts importés à un segment existant, à un nouveau segment (avec catégorie optionnelle), ou — par défaut — à un segment `Import JJ.MM.AAAA HH:MM` créé pour l'occasion.
+3. **Résultats & doublons** — le rapport indique le nombre de contacts créés. Les **doublons** (même email, ou même prénom + nom qu'un membre existant) sont listés : pour chacun, choisir **Ignorer**, **Compléter les champs vides** ou **Écraser**. Les membres existants présents dans le fichier rejoignent aussi le segment choisi.
 
 ---
 
@@ -279,55 +292,55 @@ Les notes sont affichées de la plus récente à la plus ancienne.
 
 ---
 
-## 7. Groupes
+## 7. Segments
 
-Les groupes permettent de segmenter les membres en sous-ensembles (membres d'une année, comité, partenaires, etc.).
+Les segments permettent de découper les membres en sous-ensembles (membres d'une année, comité, partenaires, etc.). *(Anciennement « groupes ».)*
 
-### Accéder à la gestion des groupes
+### Accéder à la gestion des segments
 
-Cliquer **Groupes** dans la barre de navigation, puis **Réglages** (ou via la roue crantée).
+Cliquer **Segments** dans la barre de navigation, puis **Réglages** (ou via la roue crantée).
 
-La gestion des groupes se trouve dans les onglets **Groupes**, **Catégories** et **Métagroupes** de la page Réglages.
+La gestion se trouve dans les onglets **Segments**, **Catégories** et **Segments combinés** de la page Réglages.
 
-### Créer un groupe
+### Créer un segment
 
-1. Dans l'onglet **Groupes**, saisir le nom du nouveau groupe dans le champ en bas de liste.
+1. Dans l'onglet **Segments**, saisir le nom du nouveau segment dans le champ en bas de liste.
 2. Cliquer **Ajouter**.
 
-### Modifier un groupe
+### Modifier un segment
 
-1. Cliquer le nom du groupe dans la liste.
+1. Cliquer le nom du segment dans la liste.
 2. La page d'édition permet de :
-   - Renommer le groupe.
-   - Masquer le groupe (il n'apparaît plus dans le menu de filtre de la liste des membres, mais les membres restent rattachés).
+   - Renommer le segment.
+   - Masquer le segment (il n'apparaît plus dans le menu de filtre de la liste des membres, mais les membres restent rattachés).
    - Changer la catégorie d'appartenance.
-   - **Voir la liste** des membres de ce groupe.
-   - **Importer des membres** depuis un autre groupe (copie ponctuelle des membres).
+   - **Voir la liste** des membres de ce segment.
+   - **Importer des membres** depuis un autre segment (copie ponctuelle des membres).
    - **Importer les cotisants d'une année** : ajoute automatiquement les membres ayant payé une cotisation pour l'année sélectionnée.
    - **Importer les donateurs d'une année** : avec seuil minimum CHF.
-   - **Transférer et dissoudre** : déplace tous les membres vers un autre groupe, puis supprime le groupe.
-   - **Supprimer** le groupe (uniquement si le groupe est vide).
+   - **Transférer et dissoudre** : déplace tous les membres vers un autre segment, puis supprime le segment.
+   - **Supprimer** le segment (uniquement s'il est vide).
 
-### Groupes masqués
+### Segments masqués
 
-Un groupe masqué n'apparaît pas dans le menu de filtrage de la liste des membres. Il reste visible dans la gestion des groupes et dans les fiches membres. Utiliser cette option pour les groupes administratifs internes qui ne doivent pas encombrer le menu.
+Un segment masqué n'apparaît pas dans le menu de filtrage de la liste des membres. Il reste visible dans la gestion des segments et dans les fiches membres. Utiliser cette option pour les segments administratifs internes qui ne doivent pas encombrer le menu.
 
-### Catégories de groupes
+### Catégories de segments
 
-Les catégories servent à organiser visuellement les groupes dans le menu de filtrage (sections avec titre). Elles se gèrent dans l'onglet **Catégories** des réglages.
+Les catégories servent à organiser visuellement les segments dans le menu de filtrage (sections avec titre). Elles se gèrent dans l'onglet **Catégories** des réglages.
 
-### Métagroupes (filtres)
+### Segments combinés (filtres)
 
-Un métagroupe de type filtre regroupe plusieurs groupes. Sélectionner ce filtre dans la liste des membres affiche l'union de tous ses groupes membres.
+Un segment combiné regroupe plusieurs segments. Sélectionner ce filtre dans la liste des membres affiche l'union de tous ses segments membres. *(Anciennement « métagroupe ».)*
 
-**Créer un métagroupe :**
+**Créer un segment combiné :**
 
-1. Dans l'onglet **Métagroupes** des réglages, cliquer **Créer un filtre**.
+1. Dans l'onglet **Segments combinés** des réglages, cliquer **Créer un filtre**.
 2. Nommer le filtre.
-3. Cocher les groupes à inclure.
+3. Cocher les segments à inclure.
 4. Enregistrer.
 
-Le filtre apparaît ensuite dans le menu déroulant de la liste des membres, sous la section « Groupes de groupes ».
+Le filtre apparaît ensuite dans le menu déroulant de la liste des membres.
 
 ---
 
