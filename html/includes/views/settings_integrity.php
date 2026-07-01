@@ -67,7 +67,71 @@ $stmtMembers = $pdo->query("
 ");
 $hiddenWithMembers = $stmtMembers->fetchAll(PDO::FETCH_OBJ);
 
-$allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty($hiddenInMeta) && empty($hiddenWithMembers);
+// --- Format & cohérence des données ---
+
+// compta.sum non numérique ou vide
+$stmtSumInvalid = $pdo->query("
+    SELECT c.id, c.sum, c.user_id, u.firstname, u.lastname
+    FROM compta c
+    LEFT JOIN users u ON u.id = c.user_id
+    WHERE c.sum NOT REGEXP '^[0-9]+([.][0-9]+)?$'
+    ORDER BY c.id DESC
+    LIMIT 200
+");
+$sumInvalid = $stmtSumInvalid->fetchAll(PDO::FETCH_OBJ);
+
+// compta.date invalide (0 ou dans le futur)
+$stmtDateInvalid = $pdo->query("
+    SELECT c.id, c.date, c.user_id, u.firstname, u.lastname, c.libele
+    FROM compta c
+    LEFT JOIN users u ON u.id = c.user_id
+    WHERE c.date = 0 OR c.date > UNIX_TIMESTAMP()
+    ORDER BY c.id DESC
+    LIMIT 100
+");
+$dateInvalid = $stmtDateInvalid->fetchAll(PDO::FETCH_OBJ);
+
+// compta.type_id NULL
+$stmtTypeNull = $pdo->query("
+    SELECT c.id, c.user_id, u.firstname, u.lastname, c.libele, c.sum
+    FROM compta c
+    LEFT JOIN users u ON u.id = c.user_id
+    WHERE c.type_id IS NULL
+    ORDER BY c.id DESC
+    LIMIT 100
+");
+$typeNull = $stmtTypeNull->fetchAll(PDO::FETCH_OBJ);
+
+// users.email mal formaté (non-vide, pas de @)
+$stmtEmailInvalid = $pdo->query("
+    SELECT id, firstname, lastname, email
+    FROM users
+    WHERE status=1 AND TRIM(email) != '' AND email NOT LIKE '%@%'
+    ORDER BY lastname, firstname
+");
+$emailInvalid = $stmtEmailInvalid->fetchAll(PDO::FETCH_OBJ);
+
+// users.sexe hors enum
+$stmtSexeInvalid = $pdo->query("
+    SELECT id, firstname, lastname, sexe
+    FROM users
+    WHERE status=1 AND sexe NOT IN ('na','hf','f','m')
+    ORDER BY lastname, firstname
+");
+$sexeInvalid = $stmtSexeInvalid->fetchAll(PDO::FETCH_OBJ);
+
+// users.birthday dans le futur
+$stmtBirthdayFuture = $pdo->query("
+    SELECT id, firstname, lastname, birthday
+    FROM users
+    WHERE status=1 AND birthday > 0 AND birthday > UNIX_TIMESTAMP()
+    ORDER BY lastname, firstname
+");
+$birthdayFuture = $stmtBirthdayFuture->fetchAll(PDO::FETCH_OBJ);
+
+$allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty($hiddenInMeta) && empty($hiddenWithMembers)
+      && empty($sumInvalid) && empty($dateInvalid) && empty($typeNull)
+      && empty($emailInvalid) && empty($sexeInvalid) && empty($birthdayFuture);
 ?>
 
 <p class="form-section-title mb-1">
@@ -324,3 +388,200 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 </details>
 
 <?php endif ?>
+
+<p class="form-section-title mb-1 mt-4">
+  <i class="fas fa-database me-1" aria-hidden="true"></i>Format des données
+</p>
+<p class="small text-muted mb-3">Cohérence des valeurs stockées par rapport aux types attendus.</p>
+
+<details class="ca-integrity-section mb-3">
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-coins me-1 <?= !empty($sumInvalid) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
+    Montants compta non numériques ou vides
+    <?php if (!empty($sumInvalid)): ?>
+      <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($sumInvalid) ?></span>
+    <?php else: ?>
+      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
+    <?php endif ?>
+  </summary>
+  <?php if (!empty($sumInvalid)): ?>
+  <p class="small text-muted mt-2 mb-1">Le champ <code>sum</code> doit être un nombre décimal. Ces entrées ne seront pas comptabilisées correctement.</p>
+  <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
+    <thead><tr><th>Membre</th><th>Valeur</th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($sumInvalid as $r): ?>
+      <tr>
+        <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname) ?: '#'.(int)$r->user_id, ENT_COMPAT, $charset) ?></td>
+        <td><?php if ($r->sum === '' || $r->sum === null): ?><em class="text-muted">vide</em><?php else: ?><code class="text-danger"><?= htmlentities($r->sum, ENT_COMPAT, $charset) ?></code><?php endif ?></td>
+        <td class="text-end">
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Compta</a>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+  <?php else: ?>
+  <p class="text-muted small mt-2 mb-0">Tous les montants sont valides.</p>
+  <?php endif ?>
+</details>
+
+<details class="ca-integrity-section mb-3">
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-calendar-xmark me-1 <?= !empty($dateInvalid) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
+    Dates compta invalides
+    <?php if (!empty($dateInvalid)): ?>
+      <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dateInvalid) ?></span>
+    <?php else: ?>
+      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
+    <?php endif ?>
+  </summary>
+  <?php if (!empty($dateInvalid)): ?>
+  <p class="small text-muted mt-2 mb-1">Entrées avec date à 0 ou dans le futur.</p>
+  <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
+    <thead><tr><th>Membre</th><th>Libellé</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($dateInvalid as $r): ?>
+      <tr>
+        <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname) ?: '#'.(int)$r->user_id, ENT_COMPAT, $charset) ?></td>
+        <td><?= htmlentities($r->libele, ENT_COMPAT, $charset) ?></td>
+        <td><code class="text-danger"><?= $r->date == 0 ? '0 (vide)' : date('d.m.Y', (int)$r->date) ?></code></td>
+        <td class="text-end">
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Compta</a>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+  <?php else: ?>
+  <p class="text-muted small mt-2 mb-0">Toutes les dates sont valides.</p>
+  <?php endif ?>
+</details>
+
+<details class="ca-integrity-section mb-3">
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-tag me-1 <?= !empty($typeNull) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    Entrées compta sans type
+    <?php if (!empty($typeNull)): ?>
+      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($typeNull) ?></span>
+    <?php else: ?>
+      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
+    <?php endif ?>
+  </summary>
+  <?php if (!empty($typeNull)): ?>
+  <p class="small text-muted mt-2 mb-1">Ces entrées ont <code>type_id = NULL</code> — elles n'apparaissent dans aucune ventilation par type.</p>
+  <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
+    <thead><tr><th>Membre</th><th>Libellé</th><th>Montant</th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($typeNull as $r): ?>
+      <tr>
+        <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname) ?: '#'.(int)$r->user_id, ENT_COMPAT, $charset) ?></td>
+        <td><?= htmlentities($r->libele, ENT_COMPAT, $charset) ?></td>
+        <td><?= htmlentities($r->sum, ENT_COMPAT, $charset) ?></td>
+        <td class="text-end">
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Compta</a>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+  <?php else: ?>
+  <p class="text-muted small mt-2 mb-0">Toutes les entrées ont un type.</p>
+  <?php endif ?>
+</details>
+
+<details class="ca-integrity-section mb-3">
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-at me-1 <?= !empty($emailInvalid) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    Emails mal formatés
+    <?php if (!empty($emailInvalid)): ?>
+      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($emailInvalid) ?></span>
+    <?php else: ?>
+      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
+    <?php endif ?>
+  </summary>
+  <?php if (!empty($emailInvalid)): ?>
+  <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+    <thead><tr><th>Membre</th><th>Email</th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($emailInvalid as $r): ?>
+      <tr>
+        <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname), ENT_COMPAT, $charset) ?></td>
+        <td><code class="text-warning"><?= htmlentities($r->email, ENT_COMPAT, $charset) ?></code></td>
+        <td class="text-end">
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+  <?php else: ?>
+  <p class="text-muted small mt-2 mb-0">Aucun email mal formaté.</p>
+  <?php endif ?>
+</details>
+
+<details class="ca-integrity-section mb-3">
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-venus-mars me-1 <?= !empty($sexeInvalid) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    Genre hors valeurs autorisées
+    <?php if (!empty($sexeInvalid)): ?>
+      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($sexeInvalid) ?></span>
+    <?php else: ?>
+      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
+    <?php endif ?>
+  </summary>
+  <?php if (!empty($sexeInvalid)): ?>
+  <p class="small text-muted mt-2 mb-1">Valeurs attendues : <code>na</code>, <code>hf</code>, <code>f</code>, <code>m</code>.</p>
+  <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
+    <thead><tr><th>Membre</th><th>Valeur</th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($sexeInvalid as $r): ?>
+      <tr>
+        <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname), ENT_COMPAT, $charset) ?></td>
+        <td><code class="text-warning"><?= htmlentities($r->sexe, ENT_COMPAT, $charset) ?></code></td>
+        <td class="text-end">
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+  <?php else: ?>
+  <p class="text-muted small mt-2 mb-0">Aucune valeur invalide.</p>
+  <?php endif ?>
+</details>
+
+<details class="ca-integrity-section mb-3">
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-cake-candles me-1 <?= !empty($birthdayFuture) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    Date de naissance dans le futur
+    <?php if (!empty($birthdayFuture)): ?>
+      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($birthdayFuture) ?></span>
+    <?php else: ?>
+      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
+    <?php endif ?>
+  </summary>
+  <?php if (!empty($birthdayFuture)): ?>
+  <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+    <thead><tr><th>Membre</th><th>Date de naissance</th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($birthdayFuture as $r): ?>
+      <tr>
+        <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname), ENT_COMPAT, $charset) ?></td>
+        <td><code class="text-warning"><?= date('d.m.Y', (int)$r->birthday) ?></code></td>
+        <td class="text-end">
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+  <?php else: ?>
+  <p class="text-muted small mt-2 mb-0">Aucune date de naissance incorrecte.</p>
+  <?php endif ?>
+</details>
