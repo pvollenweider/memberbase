@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 // actions: importUpload, importApply, importResolveDuplicates
 
-if (!canWrite()) { http_response_code(403); exit; }
+if (!isManager()) { http_response_code(403); exit; }
 
 require_once __DIR__ . '/../lib/import_fields.php';
 
@@ -148,7 +148,8 @@ if ($_REQUEST['action'] === 'importUpload') {
         $user->firstName = unquote($firstName);
         $user->lastName  = unquote($lastName);
         $user->society   = unquote($data['society'] ?? '');
-        $user->sexe      = 'na';
+        $user->sexe      = isset($data['sexe']) ? importNormalizeSexe($data['sexe']) : 'na';
+        $user->title     = unquote($data['title'] ?? '');
         $user->address   = unquote($data['address'] ?? '');
         $user->npa       = unquote($data['npa'] ?? '');
         $user->email     = unquote($email);
@@ -208,7 +209,7 @@ if ($_REQUEST['action'] === 'importUpload') {
             if ($field === 'birthDay') {
                 $user->$field = (string)(int)formatedDateToTimeStamp($val);
             } else {
-                $user->$field = unquote($val);
+                $user->$field = importFieldValue($field, $val);
             }
         }
         $user->save();
