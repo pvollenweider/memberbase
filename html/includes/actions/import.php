@@ -10,17 +10,17 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 if (!canWrite()) { http_response_code(403); exit; }
 
-$_importRedirect = function(string $url) use ($isHtmx): never {
-    if ($isHtmx) { header('HX-Location: ' . $url); exit; }
+function importRedirect(string $url): never {
+    if (!empty($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . $url); exit; }
     header('Location: ' . $url); exit;
-};
+}
 
 // ── Step 1 → 2 : parse uploaded file ────────────────────────────────────────
 if ($_REQUEST['action'] === 'importUpload') {
     $err = $_FILES['csv']['error'] ?? UPLOAD_ERR_NO_FILE;
     if ($err !== UPLOAD_ERR_OK) {
         $msg = $err === UPLOAD_ERR_INI_SIZE ? 'toobig' : 'upload';
-        $($_importRedirect)($_SERVER['PHP_SELF'] . '?view=importStep1&err=' . $msg);
+        importRedirect($_SERVER['PHP_SELF'] . '?view=importStep1&err=' . $msg);
     }
 
     $content = file_get_contents($_FILES['csv']['tmp_name']);
@@ -58,14 +58,14 @@ if ($_REQUEST['action'] === 'importUpload') {
     fclose($tmp);
 
     if (empty($headers) || empty($rows)) {
-        $($_importRedirect)($_SERVER['PHP_SELF'] . '?view=importStep1&err=empty');
+        importRedirect($_SERVER['PHP_SELF'] . '?view=importStep1&err=empty');
     }
 
     $_SESSION['_import_headers']   = $headers;
     $_SESSION['_import_rows']      = $rows;
     $_SESSION['_import_delimiter'] = $delimiter;
 
-    $($_importRedirect)($_SERVER['PHP_SELF'] . '?view=importStep2');
+    importRedirect($_SERVER['PHP_SELF'] . '?view=importStep2');
 
 // ── Step 2 → 3 : apply mapping, create new, detect duplicates ───────────────
 } elseif ($_REQUEST['action'] === 'importApply') {
@@ -74,7 +74,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     $headers = $_SESSION['_import_headers'] ?? [];
 
     if (empty($rows)) {
-        $($_importRedirect)($_SERVER['PHP_SELF'] . '?view=importStep1&err=session');
+        importRedirect($_SERVER['PHP_SELF'] . '?view=importStep1&err=session');
     }
 
     $allowed = ['lastName','firstName','society','email','emailAlt','tel','telProf','portable','fax','address','npa','web','birthDay','comment'];
@@ -155,7 +155,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     $_SESSION['_import_created']    = $created;
     $_SESSION['_import_duplicates'] = $duplicates;
 
-    $($_importRedirect)($_SERVER['PHP_SELF'] . '?view=importStep3');
+    importRedirect($_SERVER['PHP_SELF'] . '?view=importStep3');
 
 // ── Step 3 : resolve duplicates ──────────────────────────────────────────────
 } elseif ($_REQUEST['action'] === 'importResolveDuplicates') {
@@ -191,5 +191,5 @@ if ($_REQUEST['action'] === 'importUpload') {
     unset($_SESSION['_import_headers'], $_SESSION['_import_rows'], $_SESSION['_import_delimiter'],
           $_SESSION['_import_created'], $_SESSION['_import_duplicates']);
 
-    $($_importRedirect)($_SERVER['PHP_SELF'] . '?import_done=1&import_resolved=' . $resolved);
+    importRedirect($_SERVER['PHP_SELF'] . '?import_done=1&import_resolved=' . $resolved);
 }
