@@ -570,16 +570,17 @@ foreach ($_allRows as $row) {
               <?php if (!empty($_userComptaTypes[$id])): ?>
               <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&userid=<?= (int)$id ?>" class="text-decoration-none">
               <?php foreach ($_userComptaTypes[$id] as $_ct):
-                  $_bgClass = str_replace('-subtle', '', $_ct->color ?: 'bg-secondary');
-                  if (str_starts_with($_bgClass, 'ca-')) {
-                      $_badgeColor = 'text-bg-' . $_bgClass; // ca-orange → text-bg-ca-orange
+                  $_bgClass  = $_ct->color ?: 'bg-secondary-subtle';
+                  if ($_bgClass === 'bg-light') {
+                      $_txtClass = 'text-body-secondary';
                   } else {
-                      $_badgeColor = preg_replace('/^bg-/', 'text-bg-', $_bgClass); // bg-primary → text-bg-primary
+                      $_txtClass = preg_replace('/^bg-(.+)-subtle$/', 'text-$1-emphasis', $_bgClass);
+                      if ($_txtClass === $_bgClass) $_txtClass = 'text-body'; // fallback si pas de -subtle
                   }
               ?>
-                <span class="badge <?= htmlspecialchars($_badgeColor, ENT_QUOTES, $charset) ?>"
+                <span class="d-inline-flex align-items-center justify-content-center rounded border <?= htmlspecialchars($_bgClass, ENT_QUOTES, $charset) ?> <?= htmlspecialchars($_txtClass, ENT_QUOTES, $charset) ?>"
                       title="<?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?>"
-                      style="font-size:0.6rem;padding:2px 4px"
+                      style="width:28px;height:20px;font-size:0.55rem;font-weight:700;line-height:1;letter-spacing:0.02em"
                       ><?= htmlspecialchars(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', mb_strtoupper(mb_substr($_ct->label, 0, 3))), ENT_QUOTES, $charset) ?></span>
               <?php endforeach ?>
               </a>
@@ -675,20 +676,16 @@ $(document).ready(caInitDT);
     return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear();
   }
 
-  var BG_MAP = {'ca-orange':'rgba(253,126,20,0.85)','ca-teal':'rgba(32,201,151,0.85)','ca-pink':'rgba(214,51,132,0.85)','ca-purple':'rgba(111,66,193,0.85)','ca-indigo':'rgba(102,16,242,0.85)','ca-lime':'rgba(128,189,64,0.85)'};
-
   function typesBadges(types, userId) {
     if (!types || !types.length) return '';
     var inner = types.map(function(t) {
-      var cls = t.color || 'bg-secondary';
-      cls = cls.replace('-subtle', '');
-      if (cls.startsWith('ca-')) {
-        var bg = BG_MAP[cls];
-        var style = bg ? 'background:' + bg + ';color:#fff;font-size:0.6rem;padding:2px 4px' : 'font-size:0.6rem;padding:2px 4px';
-        return '<span class="badge" style="' + style + '" title="' + esc(t.label) + '">' + abbr(t.label) + '</span>';
-      }
-      var bgClass = cls.startsWith('bg-') ? cls.replace('bg-', 'text-bg-') : 'text-bg-secondary';
-      return '<span class="badge ' + bgClass + '" style="font-size:0.6rem;padding:2px 4px" title="' + esc(t.label) + '">' + abbr(t.label) + '</span>';
+      var bg  = t.color || 'bg-secondary-subtle';
+      var txt = bg === 'bg-light' ? 'text-body-secondary'
+              : bg.replace(/^bg-(.+)-subtle$/, 'text-$1-emphasis');
+      if (txt === bg) txt = 'text-body';
+      return '<span class="d-inline-flex align-items-center justify-content-center rounded border ' + bg + ' ' + txt + '"'
+           + ' style="width:28px;height:20px;font-size:0.55rem;font-weight:700;line-height:1;letter-spacing:0.02em"'
+           + ' title="' + esc(t.label) + '">' + abbr(t.label) + '</span>';
     }).join('');
     return '<a href="' + BASE_PATH + '?view=compta&userid=' + userId + '" class="text-decoration-none">' + inner + '</a>';
   }
