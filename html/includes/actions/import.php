@@ -165,6 +165,9 @@ if ($_REQUEST['action'] === 'importUpload') {
     }
     $pdo->commit();
 
+    // Parsed rows are no longer needed — free the session (can hold MBs for large files)
+    unset($_SESSION['_import_headers'], $_SESSION['_import_rows'], $_SESSION['_import_delimiter']);
+
     $_SESSION['_import_created']    = $created;
     $_SESSION['_import_duplicates'] = $duplicates;
 
@@ -201,8 +204,7 @@ if ($_REQUEST['action'] === 'importUpload') {
         $resolved++;
     }
 
-    unset($_SESSION['_import_headers'], $_SESSION['_import_rows'], $_SESSION['_import_delimiter'],
-          $_SESSION['_import_created'], $_SESSION['_import_duplicates']);
+    unset($_SESSION['_import_created'], $_SESSION['_import_duplicates']);
 
     importRedirect($_SERVER['PHP_SELF'] . '?import_done=1&import_resolved=' . $resolved);
 }

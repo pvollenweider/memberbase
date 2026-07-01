@@ -45,10 +45,7 @@ $_fieldLabels = importFieldLabels();
         <i class="fas fa-list me-1" aria-hidden="true"></i>Voir la liste des membres
       </a>
     </div>
-    <?php
-    unset($_SESSION['_import_headers'], $_SESSION['_import_rows'], $_SESSION['_import_delimiter'],
-          $_SESSION['_import_created'], $_SESSION['_import_duplicates']);
-    ?>
+    <?php unset($_SESSION['_import_created'], $_SESSION['_import_duplicates']); ?>
 
     <?php else: ?>
     <!-- Duplicate resolution form -->
