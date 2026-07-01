@@ -536,7 +536,7 @@ foreach ($rows as $row):
         default => ''
     };
     ?>
-    <tr class="position-relative" style="cursor:pointer<?= ($showAll && $row->has_excluded) ? ';background-color:var(--bs-warning-bg-subtle)' : '' ?>">
+    <tr class="position-relative<?= ($showAll && $row->has_excluded) ? ' table-warning' : '' ?>" style="cursor:pointer">
         <td><?=$society?></td>
         <td><?=$sexe?><span class="hide"><?=$sexe2?></span></td>
         <td><strong><?=$lastName?></strong></td>
