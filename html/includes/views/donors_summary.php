@@ -459,8 +459,11 @@ if ($_showPie) {
     <th title="<?= htmlentities($membreTeamLabel, ENT_COMPAT, $charset) ?> / Don institutionnel">Statut</th>
     <th><?=$GLOBAL['address']?></th>
     <th><?=$GLOBAL['npa']?></th>
-    <?php if ($showAll): ?><th style="text-align:right">Total compta</th><?php endif ?>
     <th style="text-align:right">Dons</th>
+    <?php if ($showAll): ?>
+    <th style="text-align:right">Autres</th>
+    <th style="text-align:right">Total</th>
+    <?php endif ?>
     <th title="Souhaite attestation"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
     <th></th>
 </tr>
@@ -474,6 +477,7 @@ $baseSelect = "
     SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
            $_sumExpr AS total,
            SUM(CASE WHEN c.type_id NOT IN ($_exclSub) THEN c.sum ELSE 0 END) AS don_total,
+           SUM(CASE WHEN c.type_id IN ($_exclSub) THEN c.sum ELSE 0 END) AS autres_total,
            MAX(c.wants_attestation) AS wants_attestation,
            MAX(COALESCE(ct.is_institutional, 0)) AS has_institutional,
            MAX(COALESCE(ct.is_excluded_from_donation, 0)) AS has_excluded,
@@ -547,8 +551,11 @@ foreach ($rows as $row):
         <td class="text-nowrap"><?=$isActif?><?=$isInstit?></td>
         <td><?=$address?></td>
         <td><?=$npa?></td>
-        <?php if ($showAll): ?><td style="text-align:right"><?=number_format((float)$row->total, 2, '.', '\'')?></td><?php endif ?>
         <td style="text-align:right"><?=number_format((float)$row->don_total, 2, '.', '\'')?></td>
+        <?php if ($showAll): ?>
+        <td style="text-align:right"><?=number_format((float)$row->autres_total, 2, '.', '\'')?></td>
+        <td style="text-align:right"><strong><?=number_format((float)$row->total, 2, '.', '\'')?></strong></td>
+        <?php endif ?>
         <td class="text-center">
             <?php if ($row->wants_attestation): ?>
             <i class="fas fa-check text-success" aria-label="Souhaite attestation"></i>
