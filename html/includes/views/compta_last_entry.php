@@ -59,16 +59,21 @@ if ($addMem != -1) {
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em"><?= $GLOBAL['lastEntryCompta'] ?></span>
 
   <?php
-  function _lec_badge_class(string $color): string {
-      $bg = str_replace('-subtle', '', $color ?: 'bg-secondary');
-      return str_starts_with($bg, 'ca-') ? 'text-bg-' . $bg : preg_replace('/^bg-/', 'text-bg-', $bg);
+  function _lec_type_swatch(string $color, string $label, string $charset): string {
+      $bg  = $color ?: 'bg-secondary-subtle';
+      $txt = (str_contains($bg, '-subtle') || $bg === 'bg-light') ? '#212529' : '#fff';
+      return '<span class="d-inline-flex align-items-center justify-content-center rounded border ' . htmlentities($bg, ENT_COMPAT, $charset) . '"'
+           . ' style="width:28px;height:20px;font-size:0.55rem;font-weight:700;line-height:1;letter-spacing:0.02em;color:' . $txt . '"'
+           . ' title="' . htmlentities($label, ENT_COMPAT, $charset) . '">'
+           . htmlentities(mb_strtoupper(mb_substr($label, 0, 3)), ENT_COMPAT, $charset)
+           . '</span> ' . htmlentities($label, ENT_COMPAT, $charset);
   }
   $activeTypeCt = $filterTypeId > 0 ? ($comptaTypes[$filterTypeId] ?? null) : null;
   ?>
   <div class="dropdown ms-2">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <?php if ($activeTypeCt): ?>
-        <span class="badge <?= htmlentities(_lec_badge_class($activeTypeCt->color ?? ''), ENT_COMPAT, $charset) ?>"><?= htmlentities($activeTypeCt->label, ENT_COMPAT, $charset) ?></span>
+        <?= _lec_type_swatch($activeTypeCt->color ?? '', $activeTypeCt->label, $charset) ?>
       <?php else: ?>Tous les types<?php endif ?>
     </button>
     <ul class="dropdown-menu">
@@ -78,7 +83,7 @@ if ($addMem != -1) {
       <?php foreach ($comptaTypes as $ct): ?>
       <li><a class="dropdown-item<?= $filterTypeId === (int)$ct->id ? ' active' : '' ?>"
              href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= (int)$ct->id ?>&amp;year=<?= $year ?>">
-             <span class="badge <?= htmlentities(_lec_badge_class($ct->color ?? ''), ENT_COMPAT, $charset) ?>"><?= htmlentities($ct->label, ENT_COMPAT, $charset) ?></span>
+             <?= _lec_type_swatch($ct->color ?? '', $ct->label, $charset) ?>
       </a></li>
       <?php endforeach ?>
     </ul>
@@ -199,10 +204,8 @@ while ($row = $stmt->fetchObject()) {
     }
     ?>
     <?php
-    $_ctBgClass   = str_replace('-subtle', '', $row->ct_color ?: 'bg-secondary');
-    $_ctBadgeCls  = str_starts_with($_ctBgClass, 'ca-')
-        ? 'text-bg-' . $_ctBgClass
-        : preg_replace('/^bg-/', 'text-bg-', $_ctBgClass);
+    $_ctBg  = $row->ct_color ?: 'bg-secondary-subtle';
+    $_ctTxt = (str_contains($_ctBg, '-subtle') || $_ctBg === 'bg-light') ? '#212529' : '#fff';
     ?>
     <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&userid=<?=(int)$userId?>" style="cursor:pointer;">
         <td><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
@@ -212,7 +215,9 @@ while ($row = $stmt->fetchObject()) {
         <td><div class="text-truncate" style="max-width:125px"><?= htmlentities($address, ENT_COMPAT, $charset) ?></div></td>
         <td class="text-nowrap"><div class="text-truncate" style="max-width:100px"><?= htmlentities($npa, ENT_COMPAT, $charset) ?></div></td>
         <td class="text-nowrap"><div class="text-truncate" style="max-width:150px"><?= htmlentities($email, ENT_COMPAT, $charset) ?></div></td>
-        <td class="text-nowrap"><span class="badge <?= htmlentities($_ctBadgeCls, ENT_COMPAT, $charset) ?>"><?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?></span></td>
+        <td class="text-nowrap"><span class="d-inline-flex align-items-center justify-content-center rounded border <?= htmlentities($_ctBg, ENT_COMPAT, $charset) ?>"
+            style="width:28px;height:20px;font-size:0.55rem;font-weight:700;line-height:1;letter-spacing:0.02em;color:<?= $_ctTxt ?>"
+            title="<?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>"><?= htmlentities(mb_strtoupper(mb_substr($row->ct_label ?? '', 0, 3)), ENT_COMPAT, $charset) ?></span></td>
         <td><?= htmlentities($libele, ENT_COMPAT, $charset) ?></td>
         <td style="text-align:right;"><?= number_format($sum, 2, '.', '\'') ?></td>
         <td><?= htmlentities($quittance, ENT_COMPAT, $charset) ?></td>
