@@ -112,6 +112,37 @@ if ($_REQUEST['action'] === 'importUpload') {
     $duplicates = [];
 
     $pdo->beginTransaction();
+
+    // Resolve the target segment (team) the imported contacts should join.
+    $segMode     = $_POST['segment_mode'] ?? 'auto';
+    $segTeamId   = 0;
+    $segTeamName = '';
+    if ($segMode === 'existing') {
+        $segTeamId = (int)($_POST['segment_existing_id'] ?? 0);
+        $_chk = $pdo->prepare("SELECT name FROM team WHERE id=?");
+        $_chk->execute([$segTeamId]);
+        $segTeamName = (string)($_chk->fetchColumn() ?: '');
+        if ($segTeamName === '') { $segTeamId = 0; } // stale id → skip
+    } elseif ($segMode === 'new' || $segMode === 'auto') {
+        $segTeamName = $segMode === 'new' ? trim((string)($_POST['segment_new_name'] ?? '')) : '';
+        if ($segTeamName === '') { $segTeamName = 'Import ' . date('d.m.Y H:i'); }
+        $team = new Team();
+        $team->name = $segTeamName;
+        $team->setHidden(0);
+        $team->save();
+        $segTeamId = (int)$team->id;
+        // Attach to a category (metagroup) when one was chosen for a brand-new segment
+        $segCatId = $segMode === 'new' ? (int)($_POST['segment_new_category'] ?? 0) : 0;
+        if ($segTeamId > 0 && $segCatId > 0) {
+            $team->addMetagroupMembership($segCatId);
+        }
+    }
+    $segStmt = ($segTeamId > 0)
+        ? $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, 'true')")
+        : null;
+    $segParam = 'team_' . $segTeamId;
+    $segAdded = 0;
+
     foreach ($rows as $rowIdx => $row) {
         $data = [];
         foreach ($mapping as $colIdx => $field) {
@@ -134,6 +165,8 @@ if ($_REQUEST['action'] === 'importUpload') {
         }
 
         if ($existing) {
+            // Existing members in the imported list still join the target segment
+            if ($segStmt) { $segStmt->execute([(int)$existing->id, $segParam]); $segAdded += $segStmt->rowCount(); }
             $duplicates[] = [
                 'rowIdx'       => $rowIdx,
                 'data'         => $data,
@@ -168,6 +201,8 @@ if ($_REQUEST['action'] === 'importUpload') {
         auditLog($pdo, 'importUser', 'import CSV | ' . trim("$firstName $lastName") . ' | email: ' . $email, $newId);
         $created++;
 
+        if ($segStmt) { $segStmt->execute([$newId, $segParam]); $segAdded += $segStmt->rowCount(); }
+
         // Register in lookup maps so a repeated row in the same file is flagged as duplicate
         $_new = (object)['id' => $newId, 'firstName' => $firstName, 'lastName' => $lastName,
                          'society' => $data['society'] ?? '', 'email' => $email];
@@ -178,11 +213,16 @@ if ($_REQUEST['action'] === 'importUpload') {
     }
     $pdo->commit();
 
+    if ($segTeamId > 0) {
+        auditLog($pdo, 'importSegment', "segment: {$segTeamName} (id={$segTeamId}) | {$segAdded} membre(s) ajouté(s) | mode: {$segMode}");
+    }
+
     // Parsed rows are no longer needed — free the session (can hold MBs for large files)
     unset($_SESSION['_import_headers'], $_SESSION['_import_rows'], $_SESSION['_import_delimiter'], $_SESSION['_import_truncated']);
 
     $_SESSION['_import_created']    = $created;
     $_SESSION['_import_duplicates'] = $duplicates;
+    $_SESSION['_import_segment']    = $segTeamId > 0 ? ['id' => $segTeamId, 'name' => $segTeamName, 'added' => $segAdded] : null;
 
     importRedirect($_SERVER['PHP_SELF'] . '?view=importStep3');
 
@@ -217,7 +257,7 @@ if ($_REQUEST['action'] === 'importUpload') {
         $resolved++;
     }
 
-    unset($_SESSION['_import_created'], $_SESSION['_import_duplicates']);
+    unset($_SESSION['_import_created'], $_SESSION['_import_duplicates'], $_SESSION['_import_segment']);
 
     importRedirect($_SERVER['PHP_SELF'] . '?import_done=1&import_resolved=' . $resolved);
 }
