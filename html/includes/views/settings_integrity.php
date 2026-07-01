@@ -156,7 +156,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <p class="form-section-title mb-1">
   <i class="fas fa-stethoscope me-1" aria-hidden="true"></i>Intégrité
 </p>
-<p class="small text-muted mb-3">Doublons potentiels dans les membres et groupes masqués encore assignés.</p>
+<p class="small text-muted mb-3">Doublons potentiels dans les membres et segments masqués encore assignés.</p>
 
 <?php if ($allOk): ?>
 <div class="alert alert-success py-2 px-3" role="alert" style="font-size:0.85rem">
@@ -283,7 +283,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-tag me-1 <?= !empty($hiddenInCats) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
-    Groupes masqués dans une catégorie
+    Segments masqués dans une catégorie
     <?php if (!empty($hiddenInCats)): ?>
       <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenInCats) ?></span>
     <?php else: ?>
@@ -294,7 +294,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
-        <th>Groupe masqué</th>
+        <th>Segment masqué</th>
         <th>Catégorie</th>
         <th></th>
       </tr>
@@ -318,14 +318,14 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     </tbody>
   </table>
   <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucun groupe masqué dans une catégorie.</p>
+  <p class="text-muted small mt-2 mb-0">Aucun segment masqué dans une catégorie.</p>
   <?php endif ?>
 </details>
 
 <details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-layer-group me-1 <?= !empty($hiddenInMeta) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
-    Groupes masqués dans un métagroupe
+    Segments masqués dans un segment combiné
     <?php if (!empty($hiddenInMeta)): ?>
       <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenInMeta) ?></span>
     <?php else: ?>
@@ -336,8 +336,8 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
-        <th>Groupe masqué</th>
-        <th>Métagroupe</th>
+        <th>Segment masqué</th>
+        <th>Segment combiné</th>
         <th></th>
       </tr>
     </thead>
@@ -360,14 +360,14 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     </tbody>
   </table>
   <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucun groupe masqué dans un métagroupe.</p>
+  <p class="text-muted small mt-2 mb-0">Aucun segment masqué dans un segment combiné.</p>
   <?php endif ?>
 </details>
 
 <details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-users me-1 <?= !empty($hiddenWithMembers) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
-    Groupes masqués avec des membres
+    Segments masqués avec des membres
     <?php if (!empty($hiddenWithMembers)): ?>
       <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenWithMembers) ?></span>
     <?php else: ?>
@@ -378,7 +378,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
-        <th>Groupe masqué</th>
+        <th>Segment masqué</th>
         <th>Membres</th>
         <th></th>
       </tr>
@@ -402,7 +402,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     </tbody>
   </table>
   <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucun groupe masqué avec des membres.</p>
+  <p class="text-muted small mt-2 mb-0">Aucun segment masqué avec des membres.</p>
   <?php endif ?>
 </details>
 
@@ -463,9 +463,24 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
       <tr>
         <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname) ?: '#'.(int)$r->user_id, ENT_COMPAT, $charset) ?></td>
         <td><?php if ($r->sum === '' || $r->sum === null): ?><em class="text-muted">vide</em><?php else: ?><code class="text-danger"><?= htmlentities($r->sum, ENT_COMPAT, $charset) ?></code><?php endif ?></td>
-        <td class="text-end">
+        <td class="text-end" style="white-space:nowrap">
+          <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline">
+            <input type="hidden" name="action" value="fixComptaSum">
+            <input type="hidden" name="view" value="settings">
+            <input type="hidden" name="tab" value="integrity">
+            <input type="hidden" name="comptaid" value="<?= (int)$r->id ?>">
+            <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:0.75rem">Mettre à 0</button>
+          </form>
+          <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline ms-1"
+                onsubmit="return confirm('Supprimer cette écriture compta ?')">
+            <input type="hidden" name="action" value="deleteComptaEntry">
+            <input type="hidden" name="view" value="settings">
+            <input type="hidden" name="tab" value="integrity">
+            <input type="hidden" name="comptaid" value="<?= (int)$r->id ?>">
+            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem">Supprimer</button>
+          </form>
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Compta</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2 ms-1" style="font-size:0.75rem">Compta</a>
         </td>
       </tr>
     <?php endforeach ?>

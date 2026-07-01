@@ -71,6 +71,28 @@ if ($action == 'addCompta') {
     else            { $auDetail2 .= ' | (aucune modification)'; }
     auditLog($pdo, 'updateCompta', $auDetail2, (int)$compta->userId);
 
+} elseif ($action == 'fixComptaSum') {
+    $comptaid = (int)$_REQUEST['comptaid'];
+    $stmt = $pdo->prepare("UPDATE compta SET sum='0' WHERE id=?");
+    $stmt->execute([$comptaid]);
+    $_auFix = $pdo->prepare("SELECT CONCAT(u.firstName,' ',u.lastName) FROM compta c JOIN users u ON u.id=c.user_id WHERE c.id=?");
+    $_auFix->execute([$comptaid]);
+    auditLog($pdo, 'fixComptaSum', "compta#=$comptaid | " . ($_auFix->fetchColumn() ?: '') . " | sum mis à 0");
+    $isHtmx = isset($_SERVER['HTTP_HX_REQUEST']);
+    if ($isHtmx) { header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=integrity'); exit; }
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=integrity'); exit;
+
+} elseif ($action == 'deleteComptaEntry') {
+    $comptaid = (int)$_REQUEST['comptaid'];
+    $_auDel = $pdo->prepare("SELECT CONCAT(u.firstName,' ',u.lastName), c.sum FROM compta c JOIN users u ON u.id=c.user_id WHERE c.id=?");
+    $_auDel->execute([$comptaid]);
+    $_auDelRow = $_auDel->fetch(PDO::FETCH_NUM);
+    $pdo->prepare("DELETE FROM compta WHERE id=?")->execute([$comptaid]);
+    auditLog($pdo, 'deleteComptaEntry', "compta#=$comptaid | " . ($_auDelRow[0] ?? '') . " | sum={$_auDelRow[1]}");
+    $isHtmx = isset($_SERVER['HTTP_HX_REQUEST']);
+    if ($isHtmx) { header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=integrity'); exit; }
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=integrity'); exit;
+
 } elseif ($action == 'toggleWantsAttestation') {
     $comptaid = (int)$_REQUEST['comptaid'];
     $value    = isset($_REQUEST['wants_attestation']) ? 1 : 0;

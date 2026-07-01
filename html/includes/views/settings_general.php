@@ -44,9 +44,9 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
     <!-- Mobile: select replaces sidebar on small screens -->
     <div class="ca-settings-select-wrap">
       <select class="form-select form-select-sm" id="settings-select" aria-label="Section des réglages">
-        <option value="#tab-groups">Groupes</option>
+        <option value="#tab-groups">Segments</option>
         <option value="#tab-categories">Catégories</option>
-        <option value="#tab-filters">Métagroupes</option>
+        <option value="#tab-filters">Segments combinés</option>
         <?php if (isManager()): ?>
         <option value="#tab-compta">Types compta</option>
         <?php endif ?>
@@ -67,9 +67,9 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           <?php
           $_navSelf = $_SERVER['PHP_SELF'];
           $_navActive = $_activeTab ?? 'groups';
-          _settings_nav_item('groups',     'fas fa-users',       'Groupes',      $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('categories', 'fas fa-tag',         'Catégories',   $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('filters',    'fas fa-layer-group', 'Métagroupes',  $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('groups',     'fas fa-users',       'Segments',          $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('categories', 'fas fa-tag',         'Catégories',        $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('filters',    'fas fa-layer-group', 'Segments combinés', $_navActive, $_settingsDrillDown, $_navSelf);
           if (isManager()):
           ?>
           <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true">Gestion</li>
@@ -141,15 +141,15 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                        value="<?= htmlspecialchars($appSettings['org_country'] ?? '', ENT_QUOTES, $charset) ?>">
               </div>
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team_prefix">Préfixe des groupes membres</label>
-                <p class="text-muted mb-2" style="font-size:0.78rem">Préfixe utilisé pour retrouver les groupes membres des années précédentes (ex: «Membre» pour les groupes «Membre 2025», «Membre 2026»…).</p>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team_prefix">Préfixe des segments membres</label>
+                <p class="text-muted mb-2" style="font-size:0.78rem">Préfixe utilisé pour retrouver les segments membres des années précédentes (ex: «Membre» pour les segments «Membre 2025», «Membre 2026»…).</p>
                 <input type="text" name="membre_team_prefix" id="s_membre_team_prefix" class="form-control form-control-sm" style="max-width:200px"
                        value="<?= htmlspecialchars($appSettings['membre_team_prefix'] ?? 'Membre', ENT_QUOTES, $charset) ?>">
               </div>
-              <p class="form-section-title"><i class="fas fa-sliders me-1" aria-hidden="true"></i>Groupes</p>
+              <p class="form-section-title"><i class="fas fa-sliders me-1" aria-hidden="true"></i>Segments</p>
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_default_team">Groupe affiché par défaut</label>
-                <p class="text-muted mb-2" style="font-size:0.78rem">Groupe sélectionné à l'ouverture de la liste des membres. Choisir le groupe correspondant aux membres de l'année en cours (ex: «Membre 2026»). À mettre à jour chaque année.</p>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_default_team">Segment affiché par défaut</label>
+                <p class="text-muted mb-2" style="font-size:0.78rem">Segment sélectionné à l'ouverture de la liste des membres. Choisir le segment correspondant aux membres de l'année en cours (ex: «Membre 2026»). À mettre à jour chaque année.</p>
                 <select name="default_team" id="s_default_team" class="form-select form-select-sm" style="max-width:320px">
                   <?php foreach ($allTeams as $t): ?>
                   <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['default_team'] === (int)$t->id ? 'selected' : '' ?>>
@@ -159,8 +159,8 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                 </select>
               </div>
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team">Groupe membres (année de référence)</label>
-                <p class="text-muted mb-2" style="font-size:0.78rem">Groupe membres de l'année en cours (ex: «Membre 2026»). Utilisé pour les filtres cotisations et affiché dans le tableau de bord Contributions avec comparaison à l'année précédente. À mettre à jour chaque année.</p>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team">Segment membres (année de référence)</label>
+                <p class="text-muted mb-2" style="font-size:0.78rem">Segment membres de l'année en cours (ex: «Membre 2026»). Utilisé pour les filtres cotisations et affiché dans le tableau de bord Contributions avec comparaison à l'année précédente. À mettre à jour chaque année.</p>
                 <select name="membre_team" id="s_membre_team" class="form-select form-select-sm" style="max-width:320px">
                   <?php foreach ($allTeams as $t): ?>
                   <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['membre_team'] === (int)$t->id ? 'selected' : '' ?>>
@@ -170,7 +170,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                 </select>
               </div>
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_member_no_coti_team">Groupe membres sans cotisation</label>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_member_no_coti_team">Segment membres sans cotisation</label>
                 <p class="text-muted mb-2" style="font-size:0.78rem">Membres considérés comme actifs sans payer de cotisation (bénévoles, comité…). Exclus du filtre «Aucune cotisation ces 3 dernières années». Laisser vide si non applicable.</p>
                 <select name="member_no_coti_team" id="s_member_no_coti_team" class="form-select form-select-sm" style="max-width:320px">
                   <option value="0" <?= empty($appSettings['member_no_coti_team']) ? 'selected' : '' ?>>— Aucun —</option>
@@ -209,11 +209,11 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
             </div>
           </div><!-- #tab-categories -->
 
-          <!-- Métagroupes -->
+          <!-- Segments combinés -->
           <div class="tab-pane fade<?= $_paneClass('filters') ?>" id="tab-filters" role="tabpanel" aria-labelledby="tab-filters-btn">
             <div class="mt-1 col-md-9">
             <?php if (($_REQUEST['view'] ?? '') === 'updateMetagroup'): include __DIR__ . '/settings_filter_edit.php'; else: ?>
-            <p class="form-section-title" style="margin-top:0"><i class="fas fa-layer-group me-1" aria-hidden="true"></i>Métagroupes</p>
+            <p class="form-section-title" style="margin-top:0"><i class="fas fa-layer-group me-1" aria-hidden="true"></i>Segments combinés</p>
             <?php include __DIR__ . '/settings_filters.php'; endif; ?>
             </div>
           </div><!-- #tab-filters -->

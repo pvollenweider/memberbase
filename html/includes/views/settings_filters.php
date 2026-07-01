@@ -7,7 +7,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 ?>
-<p class="small text-muted mb-3">Regroupent plusieurs groupes en un filtre dynamique — accessible depuis la barre de navigation.</p>
+<p class="small text-muted mb-3">Regroupent plusieurs segments en un filtre dynamique — accessible depuis la barre de navigation.</p>
 
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
@@ -23,7 +23,7 @@ $allFilters = $pdo->query("SELECT m.id, m.name, COUNT(j.teamid) AS team_count FR
           <?= htmlentities($mg->name, ENT_COMPAT, $charset) ?>
         </a>
       </td>
-      <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= (int)$mg->team_count ?> groupe<?= $mg->team_count != 1 ? 's' : '' ?></td>
+      <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= (int)$mg->team_count ?> segment<?= $mg->team_count != 1 ? 's' : '' ?></td>
       <td class="text-end" style="width:2rem">
         <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateMetagroup&amp;id=<?= (int)$mg->id ?>" class="text-decoration-none text-muted" title="<?= $GLOBAL['edit'] ?>">
           <i class="fas fa-pen" style="font-size:0.75rem"></i>

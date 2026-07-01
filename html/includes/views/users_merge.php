@@ -214,7 +214,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
             <td class="text-center"><?= $cSuiviB ?></td>
           </tr>
           <tr>
-            <td>Groupes</td>
+            <td>Segments</td>
             <td class="text-muted" style="font-size:0.78rem"><?= htmlspecialchars($groupsA, ENT_QUOTES, $charset) ?></td>
             <td class="text-muted" style="font-size:0.78rem"><?= htmlspecialchars($groupsB, ENT_QUOTES, $charset) ?></td>
           </tr>
@@ -293,7 +293,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
         <li>Profil source supprimé : <span x-text="disposal === 'delete' ? 'oui (irréversible)' : 'non — archivé uniquement'"></span></li>
         <li x-show="<?= count($_muDivergent) ?> > 0"><?= count($_muDivergent) ?> champ(s) modifié(s) selon votre sélection.</li>
         <li>Toutes les entrées compta et suivi du profil source seront rattachées au profil survivant.</li>
-        <li>Les appartenances aux groupes seront fusionnées (dédoublonnage automatique).</li>
+        <li>Les appartenances aux segments seront fusionnées (dédoublonnage automatique).</li>
       </ul>
       <div class="d-flex gap-2 justify-content-end mt-4">
         <button type="button" class="btn btn-outline-secondary" @click="closeConfirm()"><?= $GLOBAL['cancel'] ?></button>

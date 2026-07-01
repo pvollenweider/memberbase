@@ -7,7 +7,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 ?>
-<p class="small text-muted mb-3">Organisent les groupes en sections visuelles dans les listes. Un groupe appartient à une seule catégorie.</p>
+<p class="small text-muted mb-3">Organisent les segments en sections visuelles dans les listes. Un segment appartient à une seule catégorie.</p>
 
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
@@ -34,7 +34,7 @@ $allCats = $pdo->query("
         <i class="fas fa-grip-vertical" style="font-size:0.75rem" aria-hidden="true"></i>
       </td>
       <td><?= htmlentities($cat->name, ENT_COMPAT, $charset) ?></td>
-      <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= (int)$cat->team_count ?> groupe<?= $cat->team_count != 1 ? 's' : '' ?></td>
+      <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= (int)$cat->team_count ?> segment<?= $cat->team_count != 1 ? 's' : '' ?></td>
       <td class="text-end" style="width:2rem">
         <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateMetagroup&amp;id=<?= (int)$cat->id ?>" class="text-decoration-none text-muted" title="<?= $GLOBAL['edit'] ?>">
           <i class="fas fa-pen" style="font-size:0.75rem"></i>

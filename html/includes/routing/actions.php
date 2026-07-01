@@ -46,6 +46,8 @@ if (isset($_REQUEST['action'])) {
         'addCompta'            => 'compta',
         'updateCompta'         => 'compta',
         'toggleWantsAttestation' => 'compta',
+        'fixComptaSum'           => 'compta',
+        'deleteComptaEntry'      => 'compta',
         'addSuivi'             => 'suivi',
         'updateSuivi'          => 'suivi',
         'logout'               => 'auth',

@@ -61,18 +61,18 @@ $count = count($rows);
 
 <button type="button" class="btn btn-outline-warning btn-sm mb-3"
         data-bs-toggle="modal" data-bs-target="#modal-create-lapsed-donors">
-  <i class="fas fa-users me-1" aria-hidden="true"></i>Créer groupe «Donateurs à relancer <?= $year ?>»
+  <i class="fas fa-users me-1" aria-hidden="true"></i>Créer segment «Donateurs à relancer <?= $year ?>»
 </button>
 
 <div class="modal fade" id="modal-create-lapsed-donors" tabindex="-1" aria-labelledby="modal-create-lapsed-donors-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-create-lapsed-donors-label">Créer le groupe</h5>
+        <h5 class="modal-title" id="modal-create-lapsed-donors-label">Créer le segment</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Créer le groupe «Donateurs à relancer <?= $year ?>» avec <strong><?= $count ?></strong> personne(s)?
+        Créer le segment «Donateurs à relancer <?= $year ?>» avec <strong><?= $count ?></strong> personne(s)?
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>

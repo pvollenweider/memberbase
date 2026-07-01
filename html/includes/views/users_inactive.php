@@ -25,7 +25,7 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups"
                style="text-decoration:none">
-              <i class="fas fa-users fa-fw" aria-hidden="true"></i>Groupes
+              <i class="fas fa-users fa-fw" aria-hidden="true"></i>Segments
             </a>
           </li>
           <li role="presentation">
@@ -37,7 +37,7 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=filters"
                style="text-decoration:none">
-              <i class="fas fa-layer-group fa-fw" aria-hidden="true"></i>Métagroupes
+              <i class="fas fa-layer-group fa-fw" aria-hidden="true"></i>Segments combinés
             </a>
           </li>
           <?php if (isAdmin()): ?>

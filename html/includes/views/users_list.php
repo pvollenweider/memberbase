@@ -71,7 +71,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                             $_noCotiTeamName3->execute([$_noCotiTeamId3]);
                             $_noCotiTeamNameStr = $_noCotiTeamName3->fetchColumn();
                             if ($_noCotiTeamNameStr) {
-                                $_noCotiExclusion = ' Les membres du groupe <a href="' . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) . '?team=' . $_noCotiTeamId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiTeamNameStr, ENT_QUOTES, $charset) . '</a> sont exclus.';
+                                $_noCotiExclusion = ' Les membres du segment <a href="' . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) . '?team=' . $_noCotiTeamId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiTeamNameStr, ENT_QUOTES, $charset) . '</a> sont exclus.';
                             }
                         }
                         $currentFilterDesc = "Profils ayant payé au moins une cotisation dans leur historique, mais aucune lors des 3 dernières années (" . ($year-2) . "–$year)." . $_noCotiExclusion;
@@ -107,7 +107,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                     $metagroups = $stmtMg->fetchAll(PDO::FETCH_OBJ);
                     if (count($metagroups) > 0):
                     ?>
-                    <h6 class="dropdown-header" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">Groupes de groupes</h6>
+                    <h6 class="dropdown-header" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">Segments combinés</h6>
                     <?php foreach ($metagroups as $mg): ?>
                     <a class="dropdown-item team-filterable <?= ($metagroup === (int)$mg->id) ? 'active' : '' ?>"
                        href="<?= $_SERVER['PHP_SELF'] ?>?metagroup=<?= (int)$mg->id ?>"

@@ -99,7 +99,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 <?php if (isset($_REQUEST['imported'])): ?>
 <div class="alert alert-success d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.82rem" role="status">
   <i class="fas fa-check-circle mt-1 flex-shrink-0" aria-hidden="true"></i>
-  <?= $_REQUEST['imported'] === 'cotisants' ? 'Cotisants importés dans le groupe.' : 'Donateurs importés dans le groupe.' ?>
+  <?= $_REQUEST['imported'] === 'cotisants' ? 'Cotisants importés dans le segment.' : 'Donateurs importés dans le segment.' ?>
 </div>
 <?php endif ?>
 <div class="row justify-content-center mt-4">
@@ -170,7 +170,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <details style="font-size:0.8rem">
           <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem">
             <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
-            Importer des membres d'autres groupes
+            Importer des membres d'autres segments
           </summary>
           <script>
             document.currentScript.closest('details').addEventListener('toggle', function() {
@@ -182,8 +182,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <div class="alert alert-warning d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.78rem;border-radius:6px" role="note">
               <i class="fas fa-copy mt-1 flex-shrink-0" aria-hidden="true"></i>
               <div>
-                <strong>Copie ponctuelle</strong> — l'import copie les membres tels qu'ils sont <em>maintenant</em>. Si le groupe source change plus tard, ce groupe n'est pas mis à jour.<br>
-                <span class="text-muted">Pour un filtre dynamique, utilise plutôt un filtre de groupes dans <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=groups">Groupes</a>.</span>
+                <strong>Copie ponctuelle</strong> — l'import copie les membres tels qu'ils sont <em>maintenant</em>. Si le segment source change plus tard, ce segment n'est pas mis à jour.<br>
+                <span class="text-muted">Pour un filtre dynamique, utilise plutôt un segment combiné dans <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=filters">Segments combinés</a>.</span>
               </div>
             </div>
             <div class="d-flex flex-column gap-1 mb-3">
@@ -231,7 +231,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <div class="alert alert-warning d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.78rem;border-radius:6px" role="note">
               <i class="fas fa-copy mt-1 flex-shrink-0" aria-hidden="true"></i>
               <div>
-                <strong>Copie ponctuelle</strong> — membres déjà dans ce groupe non touchés. Seuls les cotisants absents sont ajoutés.
+                <strong>Copie ponctuelle</strong> — membres déjà dans ce segment non touchés. Seuls les cotisants absents sont ajoutés.
                 <?php if (!empty($cotisTypeIds)): ?>
                 Types pris en compte: <?= implode(', ', array_map(fn($tid) => '<strong>' . htmlentities($comptaTypes[$tid]->label, ENT_COMPAT, $charset) . '</strong>', $cotisTypeIds)) ?>.
                 <?php else: ?>
@@ -278,7 +278,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <div class="alert alert-warning d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.78rem;border-radius:6px" role="note">
               <i class="fas fa-copy mt-1 flex-shrink-0" aria-hidden="true"></i>
               <div>
-                <strong>Copie ponctuelle</strong> — les membres déjà dans ce groupe ne sont pas touchés. Seuls les donateurs absents sont ajoutés.
+                <strong>Copie ponctuelle</strong> — les membres déjà dans ce segment ne sont pas touchés. Seuls les donateurs absents sont ajoutés.
               </div>
             </div>
             <div class="row g-2 align-items-end mb-3">
@@ -367,7 +367,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <!-- Member list -->
           <div>
             <p class="small text-muted mb-2">
-              <strong><?= $memberCount ?></strong> membre<?= $memberCount > 1 ? 's' : '' ?> appartiennent à ce groupe&nbsp;:
+              <strong><?= $memberCount ?></strong> membre<?= $memberCount > 1 ? 's' : '' ?> appartiennent à ce segment&nbsp;:
             </p>
             <ul class="list-unstyled mb-0" style="font-size:0.8rem;max-height:200px;overflow-y:auto;border:1px solid var(--ca-border);border-radius:4px;padding:0.4rem 0.75rem">
               <?php foreach ($members as $m): ?>
@@ -387,14 +387,14 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <!-- Option A: reassign -->
           <?php if (count($otherTeams) > 0): ?>
           <div class="p-3" style="background:var(--ca-ground);border-radius:6px">
-            <p class="small fw-semibold mb-2">Transférer les membres vers un autre groupe</p>
+            <p class="small fw-semibold mb-2">Transférer les membres vers un autre segment</p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post" class="d-flex align-items-center gap-2 flex-wrap" hx-boost="false">
               <input type="hidden" name="action" value="reassignTeam"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$team->getId()?>"/>
               <select name="targetTeamId" class="form-select form-select-sm" style="width:auto" required>
-                <option value="">— choisir le groupe —</option>
+                <option value="">— choisir le segment —</option>
                 <?php foreach ($otherTeams as $t): ?>
                   <?php $cnt = $teamCounts[(int)$t->id] ?? 0; ?>
                   <option value="<?= $t->id ?>"><?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $cnt > 0 ? " ($cnt)" : '' ?></option>
@@ -410,8 +410,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
           <!-- Option B: force delete -->
           <div class="p-3" style="background:var(--ca-danger-light);border-radius:6px">
-            <p class="small fw-semibold mb-1" style="color:var(--ca-danger)">Retirer tous les membres et supprimer le groupe</p>
-            <p class="small text-muted mb-2">Les <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> seront retirés du groupe mais leurs comptes resteront intacts.</p>
+            <p class="small fw-semibold mb-1" style="color:var(--ca-danger)">Retirer tous les membres et supprimer le segment</p>
+            <p class="small text-muted mb-2">Les <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> seront retirés du segment mais leurs comptes resteront intacts.</p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post" hx-boost="false">
               <input type="hidden" name="action" value="deleteTeamForce"/>
               <input type="hidden" name="view" value="settings"/>
@@ -427,7 +427,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <?php else: ?>
           <!-- No members — simple delete -->
           <div>
-            <p class="small text-muted mb-2">Ce groupe n'a aucun membre.</p>
+            <p class="small text-muted mb-2">Ce segment n'a aucun membre.</p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post" hx-boost="false">
               <input type="hidden" name="action" value="deleteTeamForce"/>
               <input type="hidden" name="view" value="settings"/>
@@ -457,7 +457,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Réaffecter <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> et supprimer le groupe
+        Réaffecter <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> et supprimer le segment
         «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>» ?
       </div>
       <div class="modal-footer">
@@ -479,7 +479,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Supprimer le groupe «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>»
+        Supprimer le segment «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>»
         et retirer ses <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> ?
       </div>
       <div class="modal-footer">
@@ -501,7 +501,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Supprimer le groupe «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>» ?
+        Supprimer le segment «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>» ?
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>

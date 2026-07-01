@@ -66,8 +66,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 <div class="alert alert-success alert-dismissible fade show d-flex align-items-start gap-2" role="alert">
   <i class="fas fa-check-circle mt-1 flex-shrink-0" aria-hidden="true"></i>
   <div>
-    <strong>Groupe filtre «<?= htmlspecialchars($mg->name, ENT_QUOTES, 'UTF-8') ?>» créé.</strong>
-    Vous pouvez maintenant assigner des groupes ci-dessous, ou
+    <strong>Segment combiné «<?= htmlspecialchars($mg->name, ENT_QUOTES, 'UTF-8') ?>» créé.</strong>
+    Vous pouvez maintenant assigner des segments ci-dessous, ou
     <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=filters" class="alert-link">retourner à la liste</a>.
   </div>
   <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="<?= $GLOBAL['close'] ?>"></button>
@@ -76,7 +76,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 <div class="row justify-content-center mt-4">
   <div class="col-md-6 d-flex flex-column gap-4">
 
-    <?php $_mgBackTab = $isFilter ? 'filters' : 'categories'; $_mgBackLabel = $isFilter ? 'métagroupes' : 'catégories'; ?>
+    <?php $_mgBackTab = $isFilter ? 'filters' : 'categories'; $_mgBackLabel = $isFilter ? 'segments combinés' : 'catégories'; ?>
     <div>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=<?= $_mgBackTab ?>"
          class="btn btn-sm btn-outline-secondary">
@@ -114,9 +114,9 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
     <div>
       <?php if ($isFilter): ?>
 
-      <!-- MÉTAGROUPE: all teams grouped by category, checkboxes -->
+      <!-- SEGMENT COMBINÉ: all teams grouped by category, checkboxes -->
       <div class="d-flex align-items-baseline justify-content-between mb-1">
-        <p class="form-section-title mb-0">Groupes membres</p>
+        <p class="form-section-title mb-0">Segments membres</p>
         <a href="<?= $_SERVER['PHP_SELF'] ?>?metagroup=<?= $mgId ?>" class="small">
           Voir la liste filtrée <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
         </a>
@@ -135,7 +135,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <label class="form-check-label" for="mgteam_<?= (int)$t->id ?>">
             <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
             <?php if ($isHidden): ?>
-            <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="groupe masqué" title="Groupe masqué"></i>
+            <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="segment masqué" title="Segment masqué"></i>
             <?php endif ?>
             <?php if (isset($teamCounts[(int)$t->id])): ?>
             <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
@@ -169,13 +169,13 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
       $nonMemberTeams = array_filter($allTeams, fn($t) => !in_array((int)$t->id, $memberTeamIds) && !(int)$t->hidden);
       ?>
 
-      <p class="form-section-title mb-1">Groupes dans cette catégorie</p>
+      <p class="form-section-title mb-1">Segments dans cette catégorie</p>
 
       <div id="mg-team-list">
         <?php if (empty($memberTeams)): ?>
-        <p class="text-muted small mb-2" id="mg-empty-msg">Aucun groupe dans cette catégorie.</p>
+        <p class="text-muted small mb-2" id="mg-empty-msg">Aucun segment dans cette catégorie.</p>
         <?php else: ?>
-        <p class="text-muted small mb-2" id="mg-empty-msg" style="display:none">Aucun groupe dans cette catégorie.</p>
+        <p class="text-muted small mb-2" id="mg-empty-msg" style="display:none">Aucun segment dans cette catégorie.</p>
         <?php endif ?>
 
         <ul class="list-unstyled mb-0 d-flex flex-column gap-1" id="mg-member-list" style="font-size:0.85rem">
@@ -185,7 +185,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <span>
               <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
               <?php if ($_mHidden): ?>
-              <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="groupe masqué" title="Groupe masqué"></i>
+              <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="segment masqué" title="Segment masqué"></i>
               <?php endif ?>
               <?php if (isset($teamCounts[(int)$t->id])): ?>
               <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
@@ -232,7 +232,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <span class="text-muted">
                 <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
                 <?php if ($_nmHidden): ?>
-                <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="groupe masqué" title="Groupe masqué"></i>
+                <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="segment masqué" title="Segment masqué"></i>
                 <?php endif ?>
                 <?php if (isset($teamCounts[(int)$t->id])): ?>
                 <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
@@ -423,7 +423,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
     <!-- Delete -->
     <div>
       <p class="form-section-title" style="color:var(--ca-danger)"><?= $GLOBAL['delete'] ?></p>
-      <p class="small text-muted mb-2">Supprime le métagroupe. Les groupes membres ne sont pas affectés.</p>
+      <p class="small text-muted mb-2">Supprime le segment combiné. Les segments membres ne sont pas affectés.</p>
       <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" hx-boost="false">
         <input type="hidden" name="action" value="deleteMetagroup"/>
         <input type="hidden" name="view" value="settings"/>
@@ -448,7 +448,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
       </div>
       <div class="modal-body">
         Supprimer «<?= htmlentities($mg->getName(), ENT_QUOTES, $charset) ?>» ?
-        <p class="small text-muted mt-1 mb-0">Les groupes membres ne seront pas supprimés.</p>
+        <p class="small text-muted mt-1 mb-0">Les segments membres ne seront pas supprimés.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
