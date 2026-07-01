@@ -83,15 +83,15 @@ $_fieldLabels = importFieldLabels();
           <?php endif ?>
           <div class="d-flex gap-3">
             <label class="d-flex align-items-center gap-1" style="cursor:pointer">
-              <input type="radio" name="choice[<?= $i ?>]" value="ignore" checked>
+              <input type="radio" name="choice[<?= $i ?>]" value="ignore" checked data-no-dirty>
               <span>Ignorer</span>
             </label>
             <label class="d-flex align-items-center gap-1" style="cursor:pointer">
-              <input type="radio" name="choice[<?= $i ?>]" value="fill">
+              <input type="radio" name="choice[<?= $i ?>]" value="fill" data-no-dirty>
               <span>Compléter les champs vides</span>
             </label>
             <label class="d-flex align-items-center gap-1" style="cursor:pointer">
-              <input type="radio" name="choice[<?= $i ?>]" value="overwrite">
+              <input type="radio" name="choice[<?= $i ?>]" value="overwrite" data-no-dirty>
               <span class="text-danger">Écraser</span>
             </label>
           </div>

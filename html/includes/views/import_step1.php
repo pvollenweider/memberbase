@@ -41,7 +41,7 @@ $_err = $_GET['err'] ?? '';
       <div class="mb-4">
         <label for="csv-file" class="form-label" style="font-size:0.85rem">Fichier CSV / TSV</label>
         <input type="file" id="csv-file" name="csv" class="form-control form-control-sm"
-               accept=".csv,.tsv,.txt" required>
+               accept=".csv,.tsv,.txt" required data-no-dirty>
         <div class="form-text">
           Formats acceptés : CSV (virgule ou point-virgule), TSV (tabulation).<br>
           Encodage UTF-8 ou Latin-1. Première ligne = en-têtes de colonnes.<br>
