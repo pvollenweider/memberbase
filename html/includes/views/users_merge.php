@@ -137,29 +137,45 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
             <input type="hidden" name="fields[<?= $key ?>]" value="a" x-bind:value="selections['<?= $key ?>']">
 
             <td class="ca-merge-cell ca-merge-cell--a"
-                :class="{'selected': selections['<?= $key ?>'] === 'a'}"
-                @click="select('<?= $key ?>', 'a')"
+                :class="{'selected': selections['<?= $key ?>'] === 'a' || selections['<?= $key ?>'] === 'both'}"
+                @click="<?= $isHtml ? "if(selections['{$key}'] !== 'both') select('{$key}', 'a')" : "select('{$key}', 'a')" ?>"
                 role="button"
                 tabindex="0"
-                @keydown.enter.prevent="select('<?= $key ?>', 'a')"
-                @keydown.space.prevent="select('<?= $key ?>', 'a')"
+                @keydown.enter.prevent="<?= $isHtml ? "if(selections['{$key}'] !== 'both') select('{$key}', 'a')" : "select('{$key}', 'a')" ?>"
+                @keydown.space.prevent="<?= $isHtml ? "if(selections['{$key}'] !== 'both') select('{$key}', 'a')" : "select('{$key}', 'a')" ?>"
                 :aria-pressed="selections['<?= $key ?>'] === 'a'"
                 aria-label="Choisir la valeur A pour <?= htmlspecialchars($label, ENT_QUOTES, $charset) ?>">
               <span class="ca-merge-cell-check" aria-hidden="true"><i class="fas fa-check"></i></span>
               <span class="ca-merge-cell-value"><?= $vAHtml ?: '<span class="text-muted fst-italic">vide</span>' ?></span>
             </td>
             <td class="ca-merge-cell ca-merge-cell--b"
-                :class="{'selected': selections['<?= $key ?>'] === 'b'}"
-                @click="select('<?= $key ?>', 'b')"
+                :class="{'selected': selections['<?= $key ?>'] === 'b' || selections['<?= $key ?>'] === 'both'}"
+                @click="<?= $isHtml ? "if(selections['{$key}'] !== 'both') select('{$key}', 'b')" : "select('{$key}', 'b')" ?>"
                 role="button"
                 tabindex="0"
-                @keydown.enter.prevent="select('<?= $key ?>', 'b')"
-                @keydown.space.prevent="select('<?= $key ?>', 'b')"
+                @keydown.enter.prevent="<?= $isHtml ? "if(selections['{$key}'] !== 'both') select('{$key}', 'b')" : "select('{$key}', 'b')" ?>"
+                @keydown.space.prevent="<?= $isHtml ? "if(selections['{$key}'] !== 'both') select('{$key}', 'b')" : "select('{$key}', 'b')" ?>"
                 :aria-pressed="selections['<?= $key ?>'] === 'b'"
                 aria-label="Choisir la valeur B pour <?= htmlspecialchars($label, ENT_QUOTES, $charset) ?>">
               <span class="ca-merge-cell-check" aria-hidden="true"><i class="fas fa-check"></i></span>
               <span class="ca-merge-cell-value"><?= $vBHtml ?: '<span class="text-muted fst-italic">vide</span>' ?></span>
             </td>
+
+            <?php if ($isHtml): ?>
+            </tr>
+            <tr class="ca-merge-row ca-merge-row--divergent">
+              <td></td>
+              <td colspan="2" class="pt-1 pb-2">
+                <div class="form-check form-check-inline mb-0">
+                  <input class="form-check-input" type="checkbox" id="merge_both_<?= $key ?>"
+                         :checked="selections['<?= $key ?>'] === 'both'"
+                         @change="select('<?= $key ?>', $event.target.checked ? 'both' : 'a')">
+                  <label class="form-check-label text-muted" for="merge_both_<?= $key ?>" style="font-size:0.8rem">
+                    Garder les deux notes (survivant en premier)
+                  </label>
+                </div>
+              </td>
+            <?php endif ?>
 
             <?php else: ?>
             <td class="ca-merge-cell ca-merge-cell--same">

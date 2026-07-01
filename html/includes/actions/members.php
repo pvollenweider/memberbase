@@ -100,15 +100,19 @@ if ($_REQUEST['action'] == 'updateUser') {
     $fields  = array_intersect_key($_REQUEST['fields'] ?? [], array_flip($allowed));
     $changedFields = [];
     foreach ($fields as $k => $side) {
+        if ($k === 'comment' && $side === 'both') {
+            $survivorComment = trim((string)$survivor->comment);
+            $sourceComment   = trim((string)($survivorSide === 'a' ? $userB->comment : $userA->comment));
+            $merged = $survivorComment . ($survivorComment && $sourceComment ? '<hr>' : '') . $sourceComment;
+            if ($merged !== (string)$survivor->comment) { $changedFields[] = $k; }
+            $survivor->comment = $merged;
+            continue;
+        }
         $from = $side === 'b' ? $userB : $userA;
         if ((string)$survivor->$k !== (string)$from->$k) {
             $changedFields[] = $k;
         }
-        if ($k === 'birthDay') {
-            $survivor->$k = $from->$k;
-        } else {
-            $survivor->$k = $from->$k;
-        }
+        $survivor->$k = $from->$k;
     }
     $survivor->save();
 
