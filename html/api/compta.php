@@ -6,7 +6,7 @@
  * GET    /api/compta/{id}                        single entry
  * POST   /api/compta                             create entry
  * PUT    /api/compta/{id}                        update entry
- * DELETE /api/compta/{id}                        delete entry (admin only)
+ * DELETE /api/compta/{id}                        delete entry (rôle écriture)
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -78,6 +78,7 @@ function validateTypeId(int $typeId): void
 function handleList(): void
 {
     global $pdo;
+    if (!canRead()) apiError(403, 'Forbidden');
 
     $memberId = isset($_GET['memberId']) ? (int)$_GET['memberId'] : null;
     if (!$memberId) apiError(400, 'memberId query parameter is required');
@@ -118,6 +119,7 @@ function handleList(): void
 
 function handleGet(int $id): void
 {
+    if (!canRead()) apiError(403, 'Forbidden');
     $c = new Compta();
     $c->lookupCompta($id);
     if (!$c->getId()) apiError(404, 'Entry not found');

@@ -39,6 +39,7 @@ function isLoggedIn(): bool  { return authUser() !== null; }
 function isAdmin(): bool    { return ($_SESSION['app_user_role'] ?? '') === 'admin'; }
 function isManager(): bool  { return in_array($_SESSION['app_user_role'] ?? '', ['admin', 'manager'], true); }
 function canWrite(): bool   { return in_array($_SESSION['app_user_role'] ?? '', ['admin', 'manager', 'user'], true); }
+function canRead(): bool    { return in_array($_SESSION['app_user_role'] ?? '', ['admin', 'manager', 'user', 'readonly'], true); }
 
 function requireLogin(): void
 {
