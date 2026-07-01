@@ -16,23 +16,8 @@ if (empty($_headers) || empty($_rows)) {
 
 $_preview = array_slice($_rows, 0, 5);
 
-$_memberFields = [
-    ''          => '— ignorer —',
-    'lastName'  => 'Nom de famille',
-    'firstName' => 'Prénom',
-    'society'   => 'Société',
-    'email'     => 'Email',
-    'emailAlt'  => 'Email alt.',
-    'tel'       => 'Téléphone fixe',
-    'telProf'   => 'Tél. professionnel',
-    'portable'  => 'Mobile',
-    'fax'       => 'Fax',
-    'address'   => 'Adresse',
-    'npa'       => 'NPA / Ville',
-    'web'       => 'Site web',
-    'birthDay'  => 'Date de naissance (JJ/MM/AAAA)',
-    'comment'   => 'Remarques',
-];
+require_once __DIR__ . '/../lib/import_fields.php';
+$_memberFields = ['' => '— ignorer —'] + importFieldLabels();
 
 // Auto-detect mapping by matching header labels (case-insensitive)
 $_autoMap = [

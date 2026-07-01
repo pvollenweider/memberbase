@@ -14,13 +14,8 @@ if (!isset($_SESSION['_import_created'])) {
     exit;
 }
 
-$_fieldLabels = [
-    'lastName'  => 'Nom',        'firstName' => 'Prénom',    'society'   => 'Société',
-    'email'     => 'Email',      'emailAlt'  => 'Email alt.','tel'       => 'Tél. fixe',
-    'telProf'   => 'Tél. prof.', 'portable'  => 'Mobile',    'fax'       => 'Fax',
-    'address'   => 'Adresse',    'npa'       => 'NPA',       'web'       => 'Web',
-    'birthDay'  => 'Naissance',  'comment'   => 'Remarques',
-];
+require_once __DIR__ . '/../lib/import_fields.php';
+$_fieldLabels = importFieldLabels();
 ?>
 <div class="row justify-content-center mt-4">
   <div class="col-12 col-xl-10">

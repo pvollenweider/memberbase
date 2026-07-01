@@ -10,6 +10,8 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 if (!canWrite()) { http_response_code(403); exit; }
 
+require_once __DIR__ . '/../lib/import_fields.php';
+
 function importRedirect(string $url): never {
     if (!empty($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . $url); exit; }
     header('Location: ' . $url); exit;
@@ -77,7 +79,7 @@ if ($_REQUEST['action'] === 'importUpload') {
         importRedirect($_SERVER['PHP_SELF'] . '?view=importStep1&err=session');
     }
 
-    $allowed = ['lastName','firstName','society','email','emailAlt','tel','telProf','portable','fax','address','npa','web','birthDay','comment'];
+    $allowed = importAllowedFields();
 
     $stmtByEmail = $pdo->prepare("
         SELECT id, firstName, lastName, society, email
@@ -161,7 +163,7 @@ if ($_REQUEST['action'] === 'importUpload') {
 } elseif ($_REQUEST['action'] === 'importResolveDuplicates') {
     $choices    = $_POST['choice'] ?? [];
     $duplicates = $_SESSION['_import_duplicates'] ?? [];
-    $allowed    = ['lastName','firstName','society','email','emailAlt','tel','telProf','portable','fax','address','npa','web','birthDay','comment'];
+    $allowed    = importAllowedFields();
 
     $resolved = 0;
     foreach ($duplicates as $i => $dup) {
