@@ -15,13 +15,13 @@ if (isset($_REQUEST['view'])) {
         if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
         include __DIR__ . "/../views/users_add_form.php";
     } else if ($_REQUEST['view'] == 'importStep1') {
-        if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
+        if (!isManager()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
         include __DIR__ . "/../views/import_step1.php";
     } else if ($_REQUEST['view'] == 'importStep2') {
-        if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
+        if (!isManager()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
         include __DIR__ . "/../views/import_step2.php";
     } else if ($_REQUEST['view'] == 'importStep3') {
-        if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
+        if (!isManager()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
         include __DIR__ . "/../views/import_step3.php";
     } else if ($_REQUEST['view'] == 'updateUser') {
         include __DIR__ . "/../views/users_edit_form.php";

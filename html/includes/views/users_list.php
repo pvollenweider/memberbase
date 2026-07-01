@@ -185,15 +185,17 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                 </div>
   </div>
 
-  <?php if (canWrite()): ?>
+  <?php if (isManager()): ?>
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=importStep1"
      class="ms-auto ca-filter-btn text-decoration-none"
      title="Importer des contacts">
     <i class="fas fa-file-import" aria-hidden="true"></i>
     <span>Importer</span>
   </a>
+  <?php endif ?>
+  <?php if (canWrite()): ?>
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?><?= $team > 0 ? '&fromTeam=' . $team : '' ?>"
-     class="ca-filter-btn text-decoration-none"
+     class="<?= isManager() ? '' : 'ms-auto ' ?>ca-filter-btn text-decoration-none"
      title="<?= $GLOBAL['addUser'] ?>">
     <i class="fas fa-user-plus" aria-hidden="true"></i>
     <span><?= $GLOBAL['addUser'] ?></span>

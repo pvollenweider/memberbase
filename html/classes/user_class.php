@@ -10,22 +10,24 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 class User
 {
     public $id;
-    public $firstName;
-    public $lastName;
-    public $society;
-    public $sexe;
-    public $title;
-    public $address;
-    public $npa;
-    public $tel;
-    public $telProf;
-    public $fax;
-    public $portable;
-    public $email;
-    public $emailAlt;
-    public $web;
-    public $birthDay;
-    public $comment;
+    // NOT NULL columns — default to '' so a freshly-built User is always safe to save,
+    // even when a caller (e.g. CSV import) only sets a subset of fields.
+    public $firstName = '';
+    public $lastName = '';
+    public $society = '';
+    public $sexe = 'na';
+    public $title = '';
+    public $address = '';
+    public $npa = '';
+    public $tel = '';
+    public $telProf = '';
+    public $fax = '';
+    public $portable = '';
+    public $email = '';
+    public $emailAlt = '';
+    public $web = '';
+    public $birthDay = 0;
+    public $comment = '';
     public $creationDate;
     public $modificationDate;
     public int $status = 1;
