@@ -43,8 +43,8 @@ $currentYear = (int)date('Y');
 
 $cotisTypeIds        = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
 $excludedTypeIds     = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_excluded_from_donation === 1));
-$institutionalTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_institutional === 1 && (int)$ct->is_excluded_from_donation === 0));
-$nonInstTypeIds      = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_institutional === 0 && (int)$ct->is_excluded_from_donation === 0));
+$institutionalTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)($ct->is_institutional ?? 0) === 1 && (int)($ct->is_excluded_from_donation ?? 0) === 0));
+$nonInstTypeIds      = array_keys(array_filter($comptaTypes, fn($ct) => (int)($ct->is_institutional ?? 0) === 0 && (int)($ct->is_excluded_from_donation ?? 0) === 0));
 
 /** Helper: count distinct donors for a given set of allowed type IDs */
 $countDonors = function(array $allowedTypeIds, int $from, int $to) use ($pdo, $id): int {
