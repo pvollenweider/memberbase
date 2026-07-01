@@ -355,9 +355,9 @@ if ($action == 'deleteTeam') {
         foreach ($_REQUEST['importFrom'] as $srcId) {
             $srcId = (int)$srcId;
             if ($srcId > 0 && $srcId !== $teamId) {
-                $pdo->prepare("INSERT IGNORE INTO user_properties (userid, parameter)
-                    SELECT userid, ? FROM user_properties WHERE parameter = ? AND userid NOT IN
-                    (SELECT userid FROM user_properties WHERE parameter = ?)"
+                $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter)
+                    SELECT user_id, ? FROM user_properties WHERE parameter = ? AND user_id NOT IN
+                    (SELECT user_id FROM user_properties WHERE parameter = ?)"
                 )->execute(["team_$teamId", "team_$srcId", "team_$teamId"]);
                 $importedFrom[] = $srcId;
             }
