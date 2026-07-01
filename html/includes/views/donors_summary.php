@@ -468,9 +468,10 @@ if ($_showPie) {
 defined('APP_ENTRY') or die('Direct access not permitted.');
 $params = ["team_$membreTeamId"];
 $_exclSub = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
+$_sumExpr = $showAll ? 'SUM(c.sum)' : "SUM(CASE WHEN c.type_id NOT IN ($_exclSub) THEN c.sum ELSE 0 END)";
 $baseSelect = "
     SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
-           <?= $showAll ? 'SUM(c.sum)' : "SUM(CASE WHEN c.type_id NOT IN ($_exclSub) THEN c.sum ELSE 0 END)" ?> AS total,
+           $_sumExpr AS total,
            MAX(c.wants_attestation) AS wants_attestation,
            MAX(COALESCE(ct.is_institutional, 0)) AS has_institutional,
            MAX(COALESCE(ct.is_excluded_from_donation, 0)) AS has_excluded,
