@@ -162,7 +162,7 @@ if ($fromTeam > 0) {
       <div class="row mb-3">
         <div class="col-8 offset-4 col-sm-9 offset-sm-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="addToFromTeam" name="addToFromTeam" value="1" checked x-init="$el.checked = true">
+            <input class="form-check-input" type="checkbox" id="addToFromTeam" name="addToFromTeam" value="1">
             <label class="form-check-label" for="addToFromTeam" style="font-size:0.85rem">
               Ajouter au groupe <strong><?= htmlspecialchars($fromTeamName, ENT_QUOTES, $charset) ?></strong>
             </label>
