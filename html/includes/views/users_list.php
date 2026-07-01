@@ -287,7 +287,8 @@ $query = "SELECT DISTINCT ".
            "users.sexe," .
            "users.address," .
            "users.npa," .
-           "users.email";
+           "users.email," .
+           "users.creationDate";
 $query .= " FROM users";
 if ($metagroup > 0) {
     $query .= ",user_properties ";
@@ -498,8 +499,11 @@ $rowCount = 0;
 foreach ($_allRows as $row) {
     $id = $row->id;
     $displayLine = true;
+    // $row already carries the display columns; only id-based methods
+    // (isCotisationPayed, addMembership…) are needed, so skip the per-row
+    // full SELECT that lookupUser() would run.
     $user = new User();
-    $user->lookupUser($id);
+    $user->id = $id;
 
     if ($team == -1234) {
         $displayLine = false;
@@ -582,7 +586,7 @@ foreach ($_allRows as $row) {
             <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>
             <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
             <td class="d-md-table-cell"><a href="mailto:<?=$email?>"><?=$emailStr?></a></td>
-            <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate($user->getCreationDate())?></td>
+            <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate((int)$row->creationDate)?></td>
             <td class="d-none d-sm-table-cell" style="white-space:nowrap">
               <?php if (!empty($_userComptaTypes[$id])): ?>
               <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&userid=<?= (int)$id ?>" class="text-decoration-none">
