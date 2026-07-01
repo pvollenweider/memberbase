@@ -117,28 +117,37 @@ if ($_REQUEST['action'] == 'updateUser') {
         }
         $survivor->$k = $from->$k;
     }
-    $survivor->save();
+    // All writes must succeed or none — otherwise moved compta/properties are orphaned
+    $pdo->beginTransaction();
+    try {
+        $survivor->save();
 
-    // Move compta
-    $pdo->prepare("UPDATE compta SET user_id=? WHERE user_id=?")->execute([$survivorId, $sourceId]);
+        // Move compta
+        $pdo->prepare("UPDATE compta SET user_id=? WHERE user_id=?")->execute([$survivorId, $sourceId]);
 
-    // Move non-team user_properties
-    $pdo->prepare("UPDATE user_properties SET user_id=? WHERE user_id=? AND parameter NOT LIKE 'team_%'")->execute([$survivorId, $sourceId]);
+        // Move non-team user_properties
+        $pdo->prepare("UPDATE user_properties SET user_id=? WHERE user_id=? AND parameter NOT LIKE 'team_%'")->execute([$survivorId, $sourceId]);
 
-    // Move team memberships (dedup)
-    $srcTeams = $pdo->prepare("SELECT parameter, value FROM user_properties WHERE user_id=? AND parameter LIKE 'team_%'");
-    $srcTeams->execute([$sourceId]);
-    $insTeam = $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, ?)");
-    while ($t = $srcTeams->fetchObject()) {
-        $insTeam->execute([$survivorId, $t->parameter, $t->value]);
-    }
-    $pdo->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter LIKE 'team_%'")->execute([$sourceId]);
+        // Move team memberships (dedup)
+        $srcTeams = $pdo->prepare("SELECT parameter, value FROM user_properties WHERE user_id=? AND parameter LIKE 'team_%'");
+        $srcTeams->execute([$sourceId]);
+        $insTeam = $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, ?)");
+        while ($t = $srcTeams->fetchObject()) {
+            $insTeam->execute([$survivorId, $t->parameter, $t->value]);
+        }
+        $pdo->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter LIKE 'team_%'")->execute([$sourceId]);
 
-    // Dispose source
-    if ($disposal === 'delete') {
-        $pdo->prepare("DELETE FROM users WHERE id=?")->execute([$sourceId]);
-    } else {
-        $pdo->prepare("UPDATE users SET status=0 WHERE id=?")->execute([$sourceId]);
+        // Dispose source
+        if ($disposal === 'delete') {
+            $pdo->prepare("DELETE FROM users WHERE id=?")->execute([$sourceId]);
+        } else {
+            $pdo->prepare("UPDATE users SET status=0 WHERE id=?")->execute([$sourceId]);
+        }
+
+        $pdo->commit();
+    } catch (\Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
     }
 
     $sourceName   = trim($userA->firstName . ' ' . $userA->lastName);
