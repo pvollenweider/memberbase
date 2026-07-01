@@ -570,11 +570,12 @@ foreach ($_allRows as $row) {
               <?php if (!empty($_userComptaTypes[$id])): ?>
               <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&userid=<?= (int)$id ?>" class="text-decoration-none">
               <?php foreach ($_userComptaTypes[$id] as $_ct):
-                  $_bgClass = $_ct->color ?: 'bg-secondary-subtle';
+                  $_bgClass  = $_ct->color ?: 'bg-secondary-subtle';
+                  $_txtColor = (str_contains($_bgClass, '-subtle') || $_bgClass === 'bg-light') ? '#212529' : '#fff';
               ?>
                 <span class="d-inline-flex align-items-center justify-content-center rounded border <?= htmlspecialchars($_bgClass, ENT_QUOTES, $charset) ?>"
                       title="<?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?>"
-                      style="width:28px;height:20px;font-size:0.55rem;font-weight:700;line-height:1;letter-spacing:0.02em;color:#212529"
+                      style="width:28px;height:20px;font-size:0.55rem;font-weight:700;line-height:1;letter-spacing:0.02em;color:<?= $_txtColor ?>"
                       ><?= htmlspecialchars(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', mb_strtoupper(mb_substr($_ct->label, 0, 3))), ENT_QUOTES, $charset) ?></span>
               <?php endforeach ?>
               </a>
@@ -673,9 +674,10 @@ $(document).ready(caInitDT);
   function typesBadges(types, userId) {
     if (!types || !types.length) return '';
     var inner = types.map(function(t) {
-      var bg = t.color || 'bg-secondary-subtle';
+      var bg  = t.color || 'bg-secondary-subtle';
+      var txt = (bg.indexOf('-subtle') !== -1 || bg === 'bg-light') ? '#212529' : '#fff';
       return '<span class="d-inline-flex align-items-center justify-content-center rounded border ' + bg + '"'
-           + ' style="width:28px;height:20px;font-size:0.55rem;font-weight:700;line-height:1;letter-spacing:0.02em;color:#212529"'
+           + ' style="width:28px;height:20px;font-size:0.55rem;font-weight:700;line-height:1;letter-spacing:0.02em;color:' + txt + '"'
            + ' title="' + esc(t.label) + '">' + abbr(t.label) + '</span>';
     }).join('');
     return '<a href="' + BASE_PATH + '?view=compta&userid=' + userId + '" class="text-decoration-none">' + inner + '</a>';
