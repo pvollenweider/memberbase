@@ -8,6 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $_created    = (int)($_SESSION['_import_created']    ?? 0);
 $_duplicates = $_SESSION['_import_duplicates'] ?? [];
+$_segment    = $_SESSION['_import_segment']    ?? null;
 
 if (!isset($_SESSION['_import_created'])) {
     header('Location: ' . $_SERVER['PHP_SELF'] . '?view=importStep1&err=session');
@@ -38,6 +39,14 @@ $_fieldLabels = importFieldLabels();
       <?php endif ?>
     </div>
 
+    <?php if ($_segment): ?>
+    <div class="alert alert-info py-2 px-3 mb-4" style="font-size:0.85rem">
+      <i class="fas fa-users me-1" aria-hidden="true"></i>
+      <strong><?= (int)$_segment['added'] ?></strong> contact<?= (int)$_segment['added'] > 1 ? 's' : '' ?> ajouté<?= (int)$_segment['added'] > 1 ? 's' : '' ?> au segment
+      <a href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= (int)$_segment['id'] ?>" class="alert-link"><?= htmlspecialchars($_segment['name'], ENT_QUOTES, $charset) ?></a>.
+    </div>
+    <?php endif ?>
+
     <?php if (empty($_duplicates)): ?>
     <!-- No duplicates — done -->
     <div class="d-flex gap-2">
@@ -45,7 +54,7 @@ $_fieldLabels = importFieldLabels();
         <i class="fas fa-list me-1" aria-hidden="true"></i>Voir la liste des membres
       </a>
     </div>
-    <?php unset($_SESSION['_import_created'], $_SESSION['_import_duplicates']); ?>
+    <?php unset($_SESSION['_import_created'], $_SESSION['_import_duplicates'], $_SESSION['_import_segment']); ?>
 
     <?php else: ?>
     <!-- Duplicate resolution form -->
