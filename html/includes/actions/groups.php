@@ -18,7 +18,7 @@ $action = $_REQUEST['action'];
 
 if ($action == 'deleteTeam') {
     $team = new Team();
-    $team->lookupTeam($_REQUEST['id']);
+    $team->lookupTeam((int)$_REQUEST['id']);
     auditLog($pdo, 'deleteTeam', "id={$team->id} {$team->name}");
     $team->remove();
 
@@ -321,7 +321,7 @@ if ($action == 'deleteTeam') {
 
 } elseif ($action == 'updateTeam') {
     $team = new Team();
-    $team->lookupTeam($_REQUEST['id']);
+    $team->lookupTeam((int)$_REQUEST['id']);
     $_auTOldName   = $team->name;
     $_auTOldHidden = (int)$team->getHidden();
     $teamId = (int)$_REQUEST['id'];
@@ -372,7 +372,7 @@ if ($action == 'deleteTeam') {
 
 } elseif ($action == 'addMembership') {
     $user = new User();
-    $user->lookupUser($_REQUEST['id']);
+    $user->lookupUser((int)$_REQUEST['id']);
     $user->addMembership((int)$_REQUEST['teamId']);
     $_auTeam = $pdo->prepare("SELECT name FROM team WHERE id=?");
     $_auTeam->execute([(int)$_REQUEST['teamId']]);
@@ -380,7 +380,7 @@ if ($action == 'deleteTeam') {
 
 } elseif ($action == 'removeMembership') {
     $user = new User();
-    $user->lookupUser($_REQUEST['id']);
+    $user->lookupUser((int)$_REQUEST['id']);
     $user->removeMembership((int)$_REQUEST['teamId']);
     $_auTeam = $pdo->prepare("SELECT name FROM team WHERE id=?");
     $_auTeam->execute([(int)$_REQUEST['teamId']]);
