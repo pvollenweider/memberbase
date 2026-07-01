@@ -128,7 +128,7 @@ if ($action == 'deleteTeam') {
               AND c.date > ? AND c.date < ?
               AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
             GROUP BY u.id
-            HAVING SUM(c.sum) >= ?
+            HAVING SUM(CAST(c.sum AS DECIMAL(10,2))) >= ?
         ")->execute(["team_$teamId", $from, $to, "team_$teamId", $minSum]);
     }
     $_auTeamD = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auTeamD->execute([$teamId]);
