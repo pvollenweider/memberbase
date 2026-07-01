@@ -81,21 +81,25 @@ if ($_REQUEST['action'] === 'importUpload') {
 
     $allowed = importAllowedFields();
 
-    $stmtByEmail = $pdo->prepare("
-        SELECT id, firstName, lastName, society, email
-        FROM users WHERE status=1 AND TRIM(email) != '' AND TRIM(LOWER(email))=TRIM(LOWER(?))
-    ");
-    $stmtByName = $pdo->prepare("
+    // Preload existing members once — O(1) in-memory lookups instead of 2 queries per row
+    $byEmail = [];
+    $byName  = [];
+    $stmtAll = $pdo->query("
         SELECT id, firstName, lastName, society, email
         FROM users WHERE status=1
-          AND TRIM(LOWER(firstName))=TRIM(LOWER(?))
-          AND TRIM(LOWER(lastName))=TRIM(LOWER(?))
-          AND TRIM(firstName) != '' AND TRIM(lastName) != ''
     ");
+    while ($u = $stmtAll->fetch(PDO::FETCH_OBJ)) {
+        $e = mb_strtolower(trim((string)$u->email));
+        if ($e !== '' && !isset($byEmail[$e])) { $byEmail[$e] = $u; }
+        $fn = mb_strtolower(trim((string)$u->firstName));
+        $ln = mb_strtolower(trim((string)$u->lastName));
+        if ($fn !== '' && $ln !== '' && !isset($byName["$fn|$ln"])) { $byName["$fn|$ln"] = $u; }
+    }
 
     $created    = 0;
     $duplicates = [];
 
+    $pdo->beginTransaction();
     foreach ($rows as $rowIdx => $row) {
         $data = [];
         foreach ($mapping as $colIdx => $field) {
@@ -108,15 +112,13 @@ if ($_REQUEST['action'] === 'importUpload') {
         $firstName = trim($data['firstName'] ?? '');
         $lastName  = trim($data['lastName'] ?? '');
 
-        // Duplicate detection: email first, then name
+        // Duplicate detection: email first, then name (in-memory maps)
         $existing = null;
         if ($email !== '') {
-            $stmtByEmail->execute([$email]);
-            $existing = $stmtByEmail->fetch(PDO::FETCH_OBJ) ?: null;
+            $existing = $byEmail[mb_strtolower($email)] ?? null;
         }
         if (!$existing && $firstName !== '' && $lastName !== '') {
-            $stmtByName->execute([$firstName, $lastName]);
-            $existing = $stmtByName->fetch(PDO::FETCH_OBJ) ?: null;
+            $existing = $byName[mb_strtolower($firstName) . '|' . mb_strtolower($lastName)] ?? null;
         }
 
         if ($existing) {
@@ -152,7 +154,16 @@ if ($_REQUEST['action'] === 'importUpload') {
         $newId = (int)$user->save();
         auditLog($pdo, 'importUser', 'import CSV | ' . trim("$firstName $lastName") . ' | email: ' . $email, $newId);
         $created++;
+
+        // Register in lookup maps so a repeated row in the same file is flagged as duplicate
+        $_new = (object)['id' => $newId, 'firstName' => $firstName, 'lastName' => $lastName,
+                         'society' => $data['society'] ?? '', 'email' => $email];
+        if ($email !== '') { $byEmail[mb_strtolower($email)] ??= $_new; }
+        if ($firstName !== '' && $lastName !== '') {
+            $byName[mb_strtolower($firstName) . '|' . mb_strtolower($lastName)] ??= $_new;
+        }
     }
+    $pdo->commit();
 
     $_SESSION['_import_created']    = $created;
     $_SESSION['_import_duplicates'] = $duplicates;
