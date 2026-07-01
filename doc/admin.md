@@ -161,7 +161,13 @@ git pull
 systemctl reload apache2   # si des fichiers PHP ont changé
 ```
 
-Aucune migration manuelle n'est requise pour les mises à jour mineures. Voir la section [12 — Mise à jour du schéma](#12-mise-à-jour-du-schéma) pour les cas exceptionnels.
+La plupart des mises à jour mineures ne demandent aucune migration. Certaines versions ajoutent toutefois une colonne : **consulter systématiquement [`MIGRATION_PROD.md`](../MIGRATION_PROD.md)**. Par exemple, la **v3.5.4** requiert l'ajout de la colonne `email_alt` :
+
+```sql
+ALTER TABLE users ADD COLUMN email_alt VARCHAR(255) NOT NULL DEFAULT '' AFTER email;
+```
+
+Voir aussi la section [12 — Mise à jour du schéma](#12-mise-à-jour-du-schéma) pour les cas exceptionnels.
 
 ---
 

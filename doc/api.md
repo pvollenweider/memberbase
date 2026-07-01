@@ -10,6 +10,13 @@ L'API ne dispose pas de token séparé. Elle repose sur **la session web de l'ap
 
 Si la session est absente ou expirée, toutes les routes retournent `401`.
 
+**Rôles requis** (depuis la v3.5.4) : les lectures (`GET`) exigent le rôle minimal
+`canRead()` (`readonly` et au-dessus) ; les écritures (`POST`/`PUT`/`DELETE`)
+exigent `canWrite()` (`user` et au-dessus). Un rôle insuffisant retourne `403`.
+
+> **Terminologie.** L'interface parle désormais de **Segment** ; l'API conserve
+> les chemins `/api/groups` et le vocabulaire « groupe » d'origine (entité `team`).
+
 ```bash
 # Exemple : login via le formulaire web, puis réutiliser le cookie
 curl -c cookies.txt -b cookies.txt \

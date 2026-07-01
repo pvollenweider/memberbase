@@ -1,7 +1,12 @@
 # Architecture de MemberBase
 
-MemberBase v3.5.3 — application PHP 8.2 de gestion des membres pour ONG.
+MemberBase v3.5.4 — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.
+
+> **Terminologie.** Depuis la v3.5.4, l'interface parle de **Segment** (au lieu de
+> « groupe ») et de **Segment combiné** (au lieu de « métagroupe »). Ce document et
+> l'API conservent les noms techniques d'origine : table `team`, table `metagroup`,
+> endpoints `/api/groups`. « Segment » (UI) = entité `team` (technique).
 
 ---
 
@@ -122,7 +127,7 @@ Le graphe de connaissance identifie 14 couches logiques :
 |--------------|---------------------------------------------------------------|-----------------------------------------------|
 | `infra`      | Infrastructure Docker, CI/CD, Makefile                        | `docker-compose.yml`, `.github/workflows/`    |
 | `entry`      | Point d'entrée unique de l'application web                    | `html/index.php`                              |
-| `core-lib`   | PDO, helpers de date, audit log, constantes de filtres        | `html/includes/lib/bootstrap.php`             |
+| `core-lib`   | PDO, helpers de date, audit log, constantes de filtres, champs d'import | `html/includes/lib/bootstrap.php`, `import_fields.php` |
 | `auth`       | Session PHP, bcrypt, gardes d'accès, 4 rôles                  | `html/includes/lib/auth.php`                  |
 | `routing`    | Dispatch GET (views.php) et POST (actions.php)                | `html/includes/routing/`                      |
 | `domain`     | Classes active-record : User, Team, Compta, Metagroup...      | `html/classes/`                               |
@@ -135,6 +140,13 @@ Le graphe de connaissance identifie 14 couches logiques :
 | `tests`      | Suite Playwright E2E, fixtures, reset DB                      | `tests/`, `tests/reset-db.sh`                 |
 | `docs`       | README, CHANGELOG, DESIGN, CONTRIBUTING, runbooks             | `*.md`                                        |
 
+**Assistant d'import CSV/TSV** (v3.5.4) — wizard web en 3 étapes réservé aux
+Manager/Admin : action `includes/actions/import.php` (`importUpload` →
+`importApply` → `importResolveDuplicates`), vues `includes/views/import_step{1,2,3}.php`,
+définition des champs importables dans `includes/lib/import_fields.php`. L'état du
+wizard transite par `$_SESSION['_import_*']` ; la création des contacts et du
+segment cible est enveloppée dans une transaction.
+
 ---
 
 ## 5. Schéma de base de données
@@ -143,8 +155,8 @@ Le graphe de connaissance identifie 14 couches logiques :
 
 | Table            | Moteur  | Rôle                                                                       |
 |------------------|---------|----------------------------------------------------------------------------|
-| `users`          | InnoDB  | Membres : données personnelles, statut (1=actif, 0=archivé)               |
-| `team`           | InnoDB  | Groupes : nom, visibilité (`hidden`)                                       |
+| `users`          | InnoDB  | Membres : données personnelles (dont `email_alt`), statut (1=actif, 0=archivé) |
+| `team`           | InnoDB  | Segments (UI) : nom, visibilité (`hidden`)                                 |
 | `user_properties`| InnoDB  | EAV multi-usage : appartenance groupe (`team_N`=true), notes de suivi      |
 | `metagroup`      | InnoDB  | Métagroupes : regroupe plusieurs teams en catégories de filtres            |
 | `compta_type`    | InnoDB  | Types de transaction : libellé, couleur, flags is_cotisation / is_excluded |
@@ -274,16 +286,17 @@ Les comptes applicatifs portent :
 
 ### Les 4 rôles
 
-| Rôle       | Prédicat PHP   | Droits                                           |
-|------------|----------------|--------------------------------------------------|
-| `readonly` | `isLoggedIn()` | Lecture seule — toutes les vues, aucune écriture |
-| `user`     | `canWrite()`   | Lecture + écriture des membres et comptabilité   |
-| `manager`  | `isManager()`  | `user` + gestion des groupes et paramètres       |
-| `admin`    | `isAdmin()`    | `manager` + gestion des comptes applicatifs      |
+| Rôle       | Prédicat PHP              | Droits                                                  |
+|------------|---------------------------|--------------------------------------------------------|
+| `readonly` | `canRead()` / `isLoggedIn()` | Lecture seule — toutes les vues et GET API, aucune écriture |
+| `user`     | `canWrite()`              | Lecture + écriture des membres et comptabilité         |
+| `manager`  | `isManager()`             | `user` + gestion des segments, paramètres et **import de contacts** |
+| `admin`    | `isAdmin()`               | `manager` + gestion des comptes applicatifs            |
 
 Les prédicats sont définis dans `auth.php` et appelés inline dans les routeurs
 et les handlers. Les vues qui nécessitent `canWrite()` vérifient le rôle en tête
-de handler et renvoient un bloc `alert-danger` en cas de refus.
+de handler et renvoient un bloc `alert-danger` en cas de refus. Depuis la v3.5.4,
+`canRead()` (`admin`/`manager`/`user`/`readonly`) garde les endpoints `GET` de l'API.
 
 ### Cycle de session
 
@@ -339,6 +352,11 @@ if (!isLoggedIn()) {
 Chaque endpoint commence par `require_once __DIR__ . '/_bootstrap.php'`. La
 session PHP est donc partagée entre l'interface web et l'API (pas de token JWT
 ni de clé API séparée).
+
+Au-delà du guard d'authentification, chaque handler applique un contrôle de rôle :
+les écritures (`POST`/`PUT`/`DELETE`) exigent `canWrite()`, et depuis la v3.5.4 les
+lectures (`GET`) exigent `canRead()` (rôle minimal `readonly`) — défense en
+profondeur sur les endpoints de consultation.
 
 ### Endpoint `members.php`
 

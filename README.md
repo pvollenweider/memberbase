@@ -36,19 +36,22 @@ Avec le temps, l'application a été refactorisée pour devenir aussi génériqu
 
 - Liste paginée et filtrée des membres avec recherche textuelle
 - Ajout, modification et suppression de membres
-- Champs: société, civilité, prénom, nom, adresse, NPA/localité, email, téléphone, portable, fax, web, date de naissance, compétences
-- Appartenance à un ou plusieurs groupes
+- Champs: société, civilité, prénom, nom, adresse, NPA/localité, email, **email alternatif** (`email_alt`, adresse historique non utilisée pour les envois), téléphone, portable, fax, web, date de naissance, compétences
+- Appartenance à un ou plusieurs segments
 - Suivi individuel (notes de contact)
+- **Import de contacts CSV / TSV** — assistant en 3 étapes (upload → mapping des colonnes → doublons), réservé aux rôles Manager/Admin. Détection d'encodage et de délimiteur, normalisation de la civilité, détection des doublons (email ou nom+prénom), et ajout optionnel des contacts à un segment (existant, nouveau, ou `Import <date>` par défaut). Voir [doc/user.md](doc/user.md).
 
-### Groupes et méta-groupes
+### Segments et segments combinés
 
-- Création et gestion de groupes (teams) avec visibilité configurable (actif/masqué)
-- Méta-groupes: regrouper des groupes en catégories pour filtrage
-- Filtre de la liste membres par groupe ou méta-groupe
-- Recherche incrémentale dans le dropdown de sélection de groupe
+> Terminologie : depuis la v3.5.4, l'interface parle de **Segment** (anciennement « groupe », entité technique `team`) et de **Segment combiné** (anciennement « métagroupe »).
+
+- Création et gestion de segments (`team`) avec visibilité configurable (actif/masqué)
+- Segments combinés (métagroupes): regrouper des segments en catégories pour filtrage
+- Filtre de la liste membres par segment ou segment combiné
+- Recherche incrémentale dans le dropdown de sélection de segment
 - Filtre rapide par statut: tout le monde sauf archives, cotisation non payée, rien ces 10 dernières années, non-instit ayant versé l'année passée
-- **Import automatique dans un groupe** depuis la page d'édition d'un groupe:
-  - Importer les membres d'un autre groupe (copie ponctuelle)
+- **Import automatique dans un segment** depuis la page d'édition d'un segment:
+  - Importer les membres d'un autre segment (copie ponctuelle)
   - Importer les **donateurs d'une année** (seuil min CHF configurable: 1 / 100 / 200 / 500 / 1000)
   - Importer les **cotisants d'une année** (filtre par types marqués "cotisation")
   - Chaque sélecteur d'année affiche le nombre de nouveaux membres qui seraient ajoutés
@@ -74,8 +77,8 @@ Avec le temps, l'application a été refactorisée pour devenir aussi génériqu
 | **Contributions** (`resume`) | Donateurs classés par total annuel, filtre min CHF (1 / 100 / 200 / 500 / 1000), filtre année, mode "toutes entrées", filtre "attestation demandée". KPIs: total CHF, delta même période N-1, progression vs total N-1, donateurs fidèles/nouveaux/perdus cliquables, répartition par type |
 | **Donateurs fidèles** (`loyalDonors`) | Donateurs ayant contribué en N et N-1, avec comparaison des deux montants |
 | **Nouveaux donateurs** (`newDonors`) | Primo-donateurs de l'année (pas de don en N-1) |
-| **Donateurs perdus** (`lapsedDonors`) | Donateurs de N-1 absents en N, avec création de groupe de relance |
-| **Membres perdus** (`lapsedMembers`) | Membres de l'équipe N-1 non reconduits en N, avec création de groupe de relance |
+| **Donateurs perdus** (`lapsedDonors`) | Donateurs de N-1 absents en N, avec création de segment de relance |
+| **Membres perdus** (`lapsedMembers`) | Membres de l'équipe N-1 non reconduits en N, avec création de segment de relance |
 
 ### Attestations de dons (PDF)
 
