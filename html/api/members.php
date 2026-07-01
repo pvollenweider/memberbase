@@ -303,6 +303,7 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
 function handleList(): void
 {
     global $pdo, $appSettings;
+    if (!canRead()) apiError(403, 'Forbidden');
 
     $search       = trim($_GET['search'] ?? '');
     $teamId       = isset($_GET['team']) ? (int)$_GET['team'] : null;
@@ -413,6 +414,7 @@ function handleList(): void
 
 function handleGet(int $id): void
 {
+    if (!canRead()) apiError(403, 'Forbidden');
     $user = new User();
     $user->lookupUser($id);
     if (!$user->getId()) apiError(404, 'Member not found');
@@ -510,6 +512,7 @@ function handleDelete(int $id): void
 function handleGetGroups(int $id): void
 {
     global $pdo;
+    if (!canRead()) apiError(403, 'Forbidden');
 
     $chk = $pdo->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
     $chk->execute([$id]);

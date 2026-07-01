@@ -63,6 +63,7 @@ function loadEntry(int $id): UserProperty
 function handleList(): void
 {
     global $pdo;
+    if (!canRead()) apiError(403, 'Forbidden');
 
     $memberId = isset($_GET['memberId']) ? (int)$_GET['memberId'] : null;
     if (!$memberId) apiError(400, 'memberId query parameter is required');
@@ -87,6 +88,7 @@ function handleList(): void
 
 function handleGet(int $id): void
 {
+    if (!canRead()) apiError(403, 'Forbidden');
     $p = loadEntry($id);
     echo json_encode(['data' => entryToArray($p)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
