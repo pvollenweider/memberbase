@@ -22,7 +22,7 @@ $_err = $_GET['err'] ?? '';
     </div>
     <?php elseif ($_err === 'toobig'): ?>
     <div class="alert alert-danger py-2 px-3 mb-3" style="font-size:0.85rem">
-      <i class="fas fa-triangle-exclamation me-1"></i>Fichier trop volumineux (limite serveur dépassée).
+      <i class="fas fa-triangle-exclamation me-1"></i>Fichier trop volumineux (maximum 5 MB).
     </div>
     <?php elseif ($_err === 'empty'): ?>
     <div class="alert alert-warning py-2 px-3 mb-3" style="font-size:0.85rem">

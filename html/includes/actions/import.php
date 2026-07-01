@@ -25,6 +25,10 @@ if ($_REQUEST['action'] === 'importUpload') {
         importRedirect($_SERVER['PHP_SELF'] . '?view=importStep1&err=' . $msg);
     }
 
+    if (($_FILES['csv']['size'] ?? 0) > 5 * 1024 * 1024) {
+        importRedirect($_SERVER['PHP_SELF'] . '?view=importStep1&err=toobig');
+    }
+
     $content = file_get_contents($_FILES['csv']['tmp_name']);
 
     // Convert Latin-1 → UTF-8 if needed
@@ -35,7 +39,8 @@ if ($_REQUEST['action'] === 'importUpload') {
     $content = ltrim($content, "\xEF\xBB\xBF");
 
     // Detect delimiter on first line
-    $firstLine = strtok($content, "\n");
+    $_nl = strpos($content, "\n");
+    $firstLine = $_nl === false ? $content : substr($content, 0, $_nl);
     $counts = ["\t" => substr_count($firstLine, "\t"), ';' => substr_count($firstLine, ';'), ',' => substr_count($firstLine, ',')];
     arsort($counts);
     $delimiter = key($counts);
