@@ -48,6 +48,21 @@ $_autoMap = [
       <span class="text-muted"><?= count($_rows) ?> ligne<?= count($_rows) > 1 ? 's' : '' ?> détectée<?= count($_rows) > 1 ? 's' : '' ?>.</span>
     </p>
 
+    <?php if (!empty($_SESSION['_import_truncated'])): ?>
+    <div class="alert alert-warning py-2 px-3 mb-3" style="font-size:0.85rem">
+      <i class="fas fa-triangle-exclamation me-1"></i>
+      Le fichier dépasse la limite de 5 000 lignes — seules les 5 000 premières seront importées.
+      Les lignes suivantes sont <strong>ignorées</strong>. Découpez le fichier pour importer le reste.
+    </div>
+    <?php endif ?>
+
+    <?php if (($_GET['err'] ?? '') === 'nomap'): ?>
+    <div class="alert alert-danger py-2 px-3 mb-3" style="font-size:0.85rem">
+      <i class="fas fa-triangle-exclamation me-1"></i>
+      Aucune colonne n'est associée à un champ membre — sélectionnez au moins un champ.
+    </div>
+    <?php endif ?>
+
     <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
       <input type="hidden" name="action" value="importApply">
       <input type="hidden" name="view"   value="importStep2">

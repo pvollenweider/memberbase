@@ -50,17 +50,18 @@ if ($_REQUEST['action'] === 'importUpload') {
     fwrite($tmp, $content);
     rewind($tmp);
 
-    $headers = null;
-    $rows    = [];
+    $headers   = null;
+    $rows      = [];
+    $truncated = false;
     while (($row = fgetcsv($tmp, 0, $delimiter)) !== false) {
         if ($headers === null) {
             $headers = array_map('trim', $row);
             continue;
         }
         if (count(array_filter($row, fn($v) => trim($v) !== '')) === 0) continue;
+        if (count($rows) >= 5000) { $truncated = true; break; }
         $row = array_slice(array_pad($row, count($headers), ''), 0, count($headers));
         $rows[] = array_map('trim', $row);
-        if (count($rows) >= 5000) break;
     }
     fclose($tmp);
 
@@ -71,6 +72,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     $_SESSION['_import_headers']   = $headers;
     $_SESSION['_import_rows']      = $rows;
     $_SESSION['_import_delimiter'] = $delimiter;
+    $_SESSION['_import_truncated'] = $truncated;
 
     importRedirect($_SERVER['PHP_SELF'] . '?view=importStep2');
 
@@ -85,6 +87,11 @@ if ($_REQUEST['action'] === 'importUpload') {
     }
 
     $allowed = importAllowedFields();
+
+    // At least one column must be mapped to a member field
+    if (empty(array_intersect(array_values($mapping), $allowed))) {
+        importRedirect($_SERVER['PHP_SELF'] . '?view=importStep2&err=nomap');
+    }
 
     // Preload existing members once — O(1) in-memory lookups instead of 2 queries per row
     $byEmail = [];
@@ -171,7 +178,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     $pdo->commit();
 
     // Parsed rows are no longer needed — free the session (can hold MBs for large files)
-    unset($_SESSION['_import_headers'], $_SESSION['_import_rows'], $_SESSION['_import_delimiter']);
+    unset($_SESSION['_import_headers'], $_SESSION['_import_rows'], $_SESSION['_import_delimiter'], $_SESSION['_import_truncated']);
 
     $_SESSION['_import_created']    = $created;
     $_SESSION['_import_duplicates'] = $duplicates;
