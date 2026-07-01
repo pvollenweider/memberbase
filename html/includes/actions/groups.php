@@ -112,20 +112,19 @@ if ($action == 'deleteTeam') {
     if ($teamId > 0 && $year >= 2000 && $year <= 2100) {
         $from = mktime(0, 0, 0, 1, 0, $year);
         $to   = mktime(0, 0, 0, 1, 1, $year + 1);
-        $instClause = '';
+        $instSubClause = '';
         if ($donorType === 'institutional') {
-            $instClause = 'AND ct.is_institutional = 1';
+            $instSubClause = 'AND c.type_id IN (SELECT id FROM compta_type WHERE is_institutional = 1)';
         } elseif ($donorType === 'non_institutional') {
-            $instClause = 'AND ct.is_institutional = 0';
+            $instSubClause = 'AND c.type_id NOT IN (SELECT id FROM compta_type WHERE is_institutional = 1)';
         }
         $pdo->prepare("
             INSERT INTO user_properties (user_id, parameter, value)
             SELECT u.id, ?, 'true'
             FROM users u
             JOIN compta c ON c.user_id = u.id
-            JOIN compta_type ct ON ct.id = c.type_id
-            WHERE ct.is_excluded_from_donation = 0
-              $instClause
+            WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
+              $instSubClause
               AND c.date > ? AND c.date < ?
               AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
             GROUP BY u.id
