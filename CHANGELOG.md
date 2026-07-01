@@ -2,6 +2,48 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [3.5.3] — 2026-07-01
+
+### Nouveautés
+
+- **Contrôle d'accès par rôle (RBAC)** — masquage conditionnel des actions dans l'UI selon le rôle (`readonly` / `user` / `manager` / `admin`) :
+  - Bouton "Ajouter un membre" masqué pour `readonly`
+  - Icône paramètres masquée pour `readonly` et `user`
+  - Click-to-edit et hint d'édition masqués pour `readonly`
+  - Lignes d'ajout compta et suivi masquées pour `readonly`
+  - Toggle archive/désarchiver masqué pour `readonly` et `user` (affiché en texte statique)
+  - Pills de groupe : lien de retrait masqué pour `readonly` et `user`
+  - Section gestion des groupes masquée pour `readonly` et `user`
+  - Boutons supprimer/anonymiser réservés à `admin`
+- **Enforcement serveur RBAC** — HTTP 403 pour les actions hors-rôle :
+  - `mergeUsers`, `deactivateUser`, `reactivateUser` requièrent `isManager()`
+  - `anonymizeUser`, `deleteOrDeactivateUser` requièrent `isAdmin()`
+  - Vues `deleteUser`, `anonymizeUser`, `mergeUsers` protégées côté serveur
+- **Import donateurs institutionnels** — le formulaire d'import donateurs propose désormais 3 options : tous / non-institutionnels / institutionnels ; badge dynamique affichant le nombre à importer en temps réel
+- **Pastilles de type compta** — les badges dans la liste membres respectent désormais les couleurs définies dans les paramètres (`bg-X-subtle` avec texte adapté au contraste)
+- **Validation du montant compta** — champ `sum` avec `pattern` HTML5 et `inputmode="decimal"` ; rejet 422 côté serveur si le montant n'est pas numérique
+
+### Corrections
+
+- `schema.sql` : ENUM `role` étendu à `('admin','manager','user','readonly')` — manquaient `manager` et `readonly`
+- `bootstrap.php` : `is_institutional` manquait dans la query de chargement de `$comptaTypes` — causait 0 résultat pour l'import institutionnel
+- Import donateurs : `SUM(c.sum)` protégé contre les valeurs non-numériques en base (MariaDB mode strict)
+
+### Tests
+
+- Nouvelle suite E2E `tests/roles.spec.ts` — 40+ tests couvrant la visibilité UI par rôle et l'enforcement HTTP 403 côté serveur
+- Seed de test étendu : 4 comptes app_users (un par rôle) + membre archivé pour les tests de suppression
+- Global setup Playwright : authentification et sauvegarde d'état pour les 4 rôles
+
+### Migration depuis v3.5.2
+
+Appliquer sur la base de données de production si la colonne `role` n'a pas encore les nouvelles valeurs :
+```sql
+ALTER TABLE app_users MODIFY COLUMN role ENUM('admin','manager','user','readonly') NOT NULL DEFAULT 'readonly';
+```
+
+---
+
 ## [3.5.2] — 2026-06-29
 
 ### Nouveautés

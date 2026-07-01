@@ -1,6 +1,6 @@
 # Architecture de MemberBase
 
-MemberBase v3.5.2 — application PHP 8.2 de gestion des membres pour ONG.
+MemberBase v3.5.3 — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.
 
 ---
