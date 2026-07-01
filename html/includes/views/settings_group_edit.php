@@ -41,38 +41,42 @@ $currentCatId = (int)($stmtCurrentCat->fetchColumn() ?: 0);
 $importCountsPerYear = [];
 $currentYear = (int)date('Y');
 
-$cotisTypeIds   = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
-$excludedTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_excluded_from_donation === 1));
+$cotisTypeIds        = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
+$excludedTypeIds     = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_excluded_from_donation === 1));
+$institutionalTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_institutional === 1 && (int)$ct->is_excluded_from_donation === 0));
+$nonInstTypeIds      = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_institutional === 0 && (int)$ct->is_excluded_from_donation === 0));
+
+/** Helper: count distinct donors for a given set of allowed type IDs */
+$countDonors = function(array $allowedTypeIds, int $from, int $to) use ($pdo, $id): int {
+    if (empty($allowedTypeIds)) return 0;
+    $ph = implode(',', array_fill(0, count($allowedTypeIds), '?'));
+    $r = $pdo->prepare("
+        SELECT COUNT(DISTINCT u.id)
+        FROM users u JOIN compta c ON c.user_id = u.id
+        WHERE c.type_id IN ($ph)
+          AND c.date > ? AND c.date < ?
+          AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
+    ");
+    $r->execute(array_merge($allowedTypeIds, [$from, $to, "team_$id"]));
+    return (int)$r->fetchColumn();
+};
+
+// All non-excluded type IDs (for "all donors" count)
+$allDonorTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_excluded_from_donation === 0));
 
 for ($yi = 0; $yi < 10; $yi++) {
     $dy   = $currentYear - $yi;
     $from = mktime(0, 0, 0, 1, 0, $dy);
     $to   = mktime(0, 0, 0, 1, 1, $dy + 1);
 
-    // Donors count
-    if (!empty($excludedTypeIds)) {
-        $excPlaceholders = implode(',', array_fill(0, count($excludedTypeIds), '?'));
-        $r = $pdo->prepare("
-            SELECT COUNT(DISTINCT u.id)
-            FROM users u JOIN compta c ON c.user_id = u.id
-            WHERE c.type_id NOT IN ($excPlaceholders)
-              AND c.date > ? AND c.date < ?
-              AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
-        ");
-        $r->execute(array_merge($excludedTypeIds, [$from, $to, "team_$id"]));
-    } else {
-        $r = $pdo->prepare("
-            SELECT COUNT(DISTINCT u.id)
-            FROM users u JOIN compta c ON c.user_id = u.id
-            WHERE c.date > ? AND c.date < ?
-              AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
-        ");
-        $r->execute([$from, $to, "team_$id"]);
-    }
-    $donorCount = (int)$r->fetchColumn();
+    $importCountsPerYear[$dy] = [
+        'donors'         => $countDonors($allDonorTypeIds,      $from, $to),
+        'donors_inst'    => $countDonors($institutionalTypeIds, $from, $to),
+        'donors_non_inst'=> $countDonors($nonInstTypeIds,       $from, $to),
+        'cotis'          => 0,
+    ];
 
     // Cotisants count
-    $cotisCount = 0;
     if (!empty($cotisTypeIds)) {
         $cotisPlaceholders = implode(',', array_fill(0, count($cotisTypeIds), '?'));
         $r2 = $pdo->prepare("
@@ -83,10 +87,8 @@ for ($yi = 0; $yi < 10; $yi++) {
               AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
         ");
         $r2->execute(array_merge($cotisTypeIds, [$from, $to, "team_$id"]));
-        $cotisCount = (int)$r2->fetchColumn();
+        $importCountsPerYear[$dy]['cotis'] = (int)$r2->fetchColumn();
     }
-
-    $importCountsPerYear[$dy] = ['donors' => $donorCount, 'cotis' => $cotisCount];
 }
 
 // Member counts per team (for badges)
@@ -281,11 +283,25 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             </div>
             <div class="row g-2 align-items-end mb-3">
               <div class="col-auto">
+                <label for="donor_type" class="form-label form-label-sm mb-1">Type</label>
+                <select class="form-select form-select-sm" id="donor_type" name="donor_type" style="width:auto"
+                        data-no-dirty onchange="caUpdateDonorCounts(this.closest('form'))">
+                  <option value="all">Tous les donateurs</option>
+                  <option value="non_institutional">Non-institutionnels</option>
+                  <option value="institutional">Institutionnels</option>
+                </select>
+              </div>
+              <div class="col-auto">
                 <label for="donor_year" class="form-label form-label-sm mb-1">Année</label>
-                <select class="form-select form-select-sm" id="donor_year" name="donor_year" style="width:auto">
-                  <?php for ($yi = 0; $yi < 10; $yi++): $dy = $currentYear - $yi;
-                    $cnt = $importCountsPerYear[$dy]['donors'] ?? 0; ?>
-                  <option value="<?= $dy ?>"><?= $dy ?><?= $cnt > 0 ? " (+$cnt)" : ' (0)' ?></option>
+                <select class="form-select form-select-sm" id="donor_year" name="donor_year" style="width:auto"
+                        data-no-dirty onchange="caUpdateDonorCounts(this.closest('form'))">
+                  <?php for ($yi = 0; $yi < 10; $yi++): $dy = $currentYear - $yi; ?>
+                  <option value="<?= $dy ?>"
+                    data-cnt-all="<?= $importCountsPerYear[$dy]['donors'] ?? 0 ?>"
+                    data-cnt-inst="<?= $importCountsPerYear[$dy]['donors_inst'] ?? 0 ?>"
+                    data-cnt-non-inst="<?= $importCountsPerYear[$dy]['donors_non_inst'] ?? 0 ?>">
+                    <?= $dy ?>
+                  </option>
                   <?php endfor ?>
                 </select>
               </div>
@@ -297,7 +313,29 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
                   <?php endforeach ?>
                 </select>
               </div>
+              <div class="col-auto align-self-end">
+                <span id="donor_count_badge" class="badge bg-secondary" style="font-size:0.75rem"></span>
+              </div>
             </div>
+            <script>
+            function caUpdateDonorCounts(form) {
+              var typeEl = form.querySelector('[name="donor_type"]');
+              var yearEl = form.querySelector('[name="donor_year"]');
+              var badge  = form.querySelector('#donor_count_badge');
+              if (!typeEl || !yearEl || !badge) return;
+              var opt = yearEl.options[yearEl.selectedIndex];
+              var cnt = 0;
+              if (typeEl.value === 'institutional')     cnt = parseInt(opt.dataset.cntInst    || 0);
+              else if (typeEl.value === 'non_institutional') cnt = parseInt(opt.dataset.cntNonInst || 0);
+              else                                       cnt = parseInt(opt.dataset.cntAll     || 0);
+              badge.textContent = cnt > 0 ? '+' + cnt + ' à importer' : '0 à importer';
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+              document.querySelectorAll('form [name="donor_type"]').forEach(function(el) {
+                caUpdateDonorCounts(el.closest('form'));
+              });
+            });
+            </script>
             <button type="submit" class="btn btn-sm btn-outline-primary">
               <i class="fas fa-file-import me-1" aria-hidden="true"></i>Importer les donateurs
             </button>
