@@ -160,21 +160,17 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 
 <?php if ($allOk): ?>
 <div class="alert alert-success py-2 px-3" role="alert" style="font-size:0.85rem">
-  <i class="fas fa-check-circle me-1" aria-hidden="true"></i>Aucun problème détecté.
+  <i class="fas fa-shield-halved me-1" aria-hidden="true"></i>Tout est clean — aucun problème détecté.
 </div>
 <?php else: ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($dupNames)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-user-group me-1 <?= !empty($dupNames) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-user-group me-1 text-danger" aria-hidden="true"></i>
     Membres avec même nom
-    <?php if (!empty($dupNames)): ?>
-      <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dupNames) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dupNames) ?></span>
   </summary>
-  <?php if (!empty($dupNames)): ?>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
@@ -217,22 +213,16 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucun doublon de nom détecté.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($dupEmails)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-envelope me-1 <?= !empty($dupEmails) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-envelope me-1 text-danger" aria-hidden="true"></i>
     Membres avec même email
-    <?php if (!empty($dupEmails)): ?>
-      <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dupEmails) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dupEmails) ?></span>
   </summary>
-  <?php if (!empty($dupEmails)): ?>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
@@ -275,22 +265,16 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucun doublon d'email détecté.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($hiddenInCats)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-tag me-1 <?= !empty($hiddenInCats) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-tag me-1 text-warning" aria-hidden="true"></i>
     Segments masqués dans une catégorie
-    <?php if (!empty($hiddenInCats)): ?>
-      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenInCats) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenInCats) ?></span>
   </summary>
-  <?php if (!empty($hiddenInCats)): ?>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
@@ -309,30 +293,22 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= htmlentities($row->mg_name, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateMetagroup&amp;id=<?= (int)$row->mg_id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">
-            Éditer
-          </a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
         </td>
       </tr>
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucun segment masqué dans une catégorie.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($hiddenInMeta)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-layer-group me-1 <?= !empty($hiddenInMeta) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-layer-group me-1 text-warning" aria-hidden="true"></i>
     Segments masqués dans un segment combiné
-    <?php if (!empty($hiddenInMeta)): ?>
-      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenInMeta) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenInMeta) ?></span>
   </summary>
-  <?php if (!empty($hiddenInMeta)): ?>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
@@ -351,30 +327,22 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= htmlentities($row->mg_name, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateMetagroup&amp;id=<?= (int)$row->mg_id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">
-            Éditer
-          </a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
         </td>
       </tr>
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucun segment masqué dans un segment combiné.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($hiddenWithMembers)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-users me-1 <?= !empty($hiddenWithMembers) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-users me-1 text-warning" aria-hidden="true"></i>
     Segments masqués avec des membres
-    <?php if (!empty($hiddenWithMembers)): ?>
-      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenWithMembers) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenWithMembers) ?></span>
   </summary>
-  <?php if (!empty($hiddenWithMembers)): ?>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
@@ -393,37 +361,22 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= (int)$row->member_count ?></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= (int)$row->team_id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">
-            Éditer
-          </a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
         </td>
       </tr>
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucun segment masqué avec des membres.</p>
-  <?php endif ?>
 </details>
-
 <?php endif ?>
 
-<p class="form-section-title mb-1 mt-4">
-  <i class="fas fa-database me-1" aria-hidden="true"></i>Format des données
-</p>
-<p class="small text-muted mb-3">Cohérence des valeurs stockées par rapport aux types attendus.</p>
-
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($noName)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-id-card me-1 <?= !empty($noName) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-id-card me-1 text-danger" aria-hidden="true"></i>
     Membres sans nom de famille ni société
-    <?php if (!empty($noName)): ?>
-      <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($noName) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($noName) ?></span>
   </summary>
-  <?php if (!empty($noName)): ?>
   <p class="small text-muted mt-2 mb-1">Ces membres n'ont ni nom de famille ni société — ils sont difficilement identifiables.</p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
     <thead><tr><th>Prénom</th><th></th></tr></thead>
@@ -439,22 +392,16 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Tous les membres ont au moins un nom ou une société.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($sumInvalid)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-coins me-1 <?= !empty($sumInvalid) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-coins me-1 text-danger" aria-hidden="true"></i>
     Montants compta non numériques ou vides
-    <?php if (!empty($sumInvalid)): ?>
-      <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($sumInvalid) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($sumInvalid) ?></span>
   </summary>
-  <?php if (!empty($sumInvalid)): ?>
   <p class="small text-muted mt-2 mb-1">Le champ <code>sum</code> doit être un nombre décimal. Ces entrées ne seront pas comptabilisées correctement.</p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
     <thead><tr><th>Membre</th><th>Valeur</th><th></th></tr></thead>
@@ -486,22 +433,16 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Tous les montants sont valides.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($dateInvalid)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-calendar-xmark me-1 <?= !empty($dateInvalid) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-calendar-xmark me-1 text-danger" aria-hidden="true"></i>
     Dates compta invalides
-    <?php if (!empty($dateInvalid)): ?>
-      <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dateInvalid) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dateInvalid) ?></span>
   </summary>
-  <?php if (!empty($dateInvalid)): ?>
   <p class="small text-muted mt-2 mb-1">Entrées avec date à 0 ou dans le futur.</p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
     <thead><tr><th>Membre</th><th>Libellé</th><th>Date</th><th></th></tr></thead>
@@ -519,22 +460,16 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Toutes les dates sont valides.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($typeNull)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-tag me-1 <?= !empty($typeNull) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-tag me-1 text-warning" aria-hidden="true"></i>
     Entrées compta sans type
-    <?php if (!empty($typeNull)): ?>
-      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($typeNull) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($typeNull) ?></span>
   </summary>
-  <?php if (!empty($typeNull)): ?>
   <p class="small text-muted mt-2 mb-1">Ces entrées ont <code>type_id = NULL</code> — elles n'apparaissent dans aucune ventilation par type.</p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
     <thead><tr><th>Membre</th><th>Libellé</th><th>Montant</th><th></th></tr></thead>
@@ -552,22 +487,16 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Toutes les entrées ont un type.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($emailInvalid)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-at me-1 <?= !empty($emailInvalid) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-at me-1 text-warning" aria-hidden="true"></i>
     Emails mal formatés
-    <?php if (!empty($emailInvalid)): ?>
-      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($emailInvalid) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($emailInvalid) ?></span>
   </summary>
-  <?php if (!empty($emailInvalid)): ?>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead><tr><th>Membre</th><th>Email</th><th></th></tr></thead>
     <tbody>
@@ -583,22 +512,16 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucun email mal formaté.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($emailAltInvalid)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-at me-1 <?= !empty($emailAltInvalid) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-at me-1 text-warning" aria-hidden="true"></i>
     Emails alt. mal formatés
-    <?php if (!empty($emailAltInvalid)): ?>
-      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($emailAltInvalid) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($emailAltInvalid) ?></span>
   </summary>
-  <?php if (!empty($emailAltInvalid)): ?>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead><tr><th>Membre</th><th>Email alt.</th><th></th></tr></thead>
     <tbody>
@@ -614,22 +537,16 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucun email alt. mal formaté.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($sexeInvalid)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-venus-mars me-1 <?= !empty($sexeInvalid) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-venus-mars me-1 text-warning" aria-hidden="true"></i>
     Genre hors valeurs autorisées
-    <?php if (!empty($sexeInvalid)): ?>
-      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($sexeInvalid) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($sexeInvalid) ?></span>
   </summary>
-  <?php if (!empty($sexeInvalid)): ?>
   <p class="small text-muted mt-2 mb-1">Valeurs attendues : <code>na</code>, <code>hf</code>, <code>f</code>, <code>m</code>.</p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
     <thead><tr><th>Membre</th><th>Valeur</th><th></th></tr></thead>
@@ -646,22 +563,16 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucune valeur invalide.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
 
-<details class="ca-integrity-section mb-3">
+<?php if (!empty($birthdayFuture)): ?>
+<details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
-    <i class="fas fa-cake-candles me-1 <?= !empty($birthdayFuture) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    <i class="fas fa-cake-candles me-1 text-warning" aria-hidden="true"></i>
     Date de naissance dans le futur
-    <?php if (!empty($birthdayFuture)): ?>
-      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($birthdayFuture) ?></span>
-    <?php else: ?>
-      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
-    <?php endif ?>
+    <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($birthdayFuture) ?></span>
   </summary>
-  <?php if (!empty($birthdayFuture)): ?>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead><tr><th>Membre</th><th>Date de naissance</th><th></th></tr></thead>
     <tbody>
@@ -677,7 +588,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
-  <?php else: ?>
-  <p class="text-muted small mt-2 mb-0">Aucune date de naissance incorrecte.</p>
-  <?php endif ?>
 </details>
+<?php endif ?>
+
+<?php endif ?>
