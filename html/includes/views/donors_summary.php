@@ -367,11 +367,6 @@ if ($_showPie) {
         Min. <?= number_format($_ms, 0, '.', '\'') ?> CHF
       </a></li>
       <?php endforeach ?>
-      <li><hr class="dropdown-divider"></li>
-      <li><a class="dropdown-item<?= $showAll ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;showAll=1&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>">
-        <i class="fas fa-triangle-exclamation me-1 text-warning" aria-hidden="true"></i>Toutes entrées (cotis. incluses)
-      </a></li>
     </ul>
   </div>
 
@@ -402,6 +397,12 @@ if ($_showPie) {
       ?>
     </ul>
   </div>
+
+  <!-- Mode étendu -->
+  <label class="ca-filter-btn d-flex align-items-center gap-1<?= $showAll ? ' active' : '' ?>" style="cursor:pointer;user-select:none" id="extended-mode-label">
+    <input type="checkbox" id="extendedMode" data-no-dirty <?= $showAll ? 'checked' : '' ?> style="outline:none;box-shadow:none">
+    <i class="fas fa-triangle-exclamation<?= $showAll ? ' text-warning' : '' ?>" aria-hidden="true"></i> Mode étendu
+  </label>
 
   <!-- Séparateur visuel -->
   <span class="text-muted d-none d-sm-inline" aria-hidden="true" style="font-size:0.9rem;padding:0 0.15rem">|</span>
@@ -572,6 +573,12 @@ endforeach;
 $(document).ready(function() {
     document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el) {
         new bootstrap.Popover(el);
+    });
+    document.getElementById('extendedMode').addEventListener('change', function() {
+        window.__dirtyOverride = true;
+        var url = '<?= $_SERVER['PHP_SELF'] ?>?view=resume&year=<?= $year ?>&includeAttestation=<?= $includeAttestation ? 1 : 0 ?>';
+        if (this.checked) { url += '&showAll=1'; } else { url += '&minSum=<?= $showAll ? 100 : $minSum ?>'; }
+        window.location = url;
     });
     document.getElementById('includeAttestation').addEventListener('change', function() {
         window.__dirtyOverride = true; // intentional navigation — skip beforeunload
