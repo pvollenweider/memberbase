@@ -51,7 +51,7 @@ $_muFields = [
     'email'     => ['Email',        (string)$_muUserA->email,                                   (string)$_muUserB->email],
     'web'       => ['Web',          (string)$_muUserA->web,                                     (string)$_muUserB->web],
     'birthDay'  => ['Naissance',    timeStampToformatedDate((int)$_muUserA->birthDay),           timeStampToformatedDate((int)$_muUserB->birthDay)],
-    'comment'   => ['Note',         strip_tags((string)$_muUserA->comment),                     strip_tags((string)$_muUserB->comment)],
+    'comment'   => ['Note',         (string)$_muUserA->comment,                                 (string)$_muUserB->comment],
 ];
 
 $_muDivergent = [];
@@ -125,8 +125,9 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
         <tbody>
           <?php foreach ($_muFields as $key => [$label, $vA, $vB]):
             $isDivergent = in_array($key, $_muDivergent);
-            $vAHtml = nl2br(htmlspecialchars($vA, ENT_QUOTES, $charset));
-            $vBHtml = nl2br(htmlspecialchars($vB, ENT_QUOTES, $charset));
+            $isHtml = ($key === 'comment');
+            $vAHtml = $isHtml ? ($vA ?: '') : nl2br(htmlspecialchars($vA, ENT_QUOTES, $charset));
+            $vBHtml = $isHtml ? ($vB ?: '') : nl2br(htmlspecialchars($vB, ENT_QUOTES, $charset));
           ?>
           <tr class="ca-merge-row <?= $isDivergent ? 'ca-merge-row--divergent' : 'ca-merge-row--same' ?>">
             <td class="ca-merge-label"><?= htmlspecialchars($label, ENT_QUOTES, $charset) ?></td>
