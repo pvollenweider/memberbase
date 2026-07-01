@@ -120,6 +120,15 @@ $stmtSexeInvalid = $pdo->query("
 ");
 $sexeInvalid = $stmtSexeInvalid->fetchAll(PDO::FETCH_OBJ);
 
+// users sans nom de famille ni société
+$stmtNoName = $pdo->query("
+    SELECT id, firstname, lastname, society
+    FROM users
+    WHERE status=1 AND TRIM(lastname) = '' AND TRIM(society) = ''
+    ORDER BY id
+");
+$noName = $stmtNoName->fetchAll(PDO::FETCH_OBJ);
+
 // users.birthday dans le futur
 $stmtBirthdayFuture = $pdo->query("
     SELECT id, firstname, lastname, birthday
@@ -131,7 +140,8 @@ $birthdayFuture = $stmtBirthdayFuture->fetchAll(PDO::FETCH_OBJ);
 
 $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty($hiddenInMeta) && empty($hiddenWithMembers)
       && empty($sumInvalid) && empty($dateInvalid) && empty($typeNull)
-      && empty($emailInvalid) && empty($sexeInvalid) && empty($birthdayFuture);
+      && empty($emailInvalid) && empty($sexeInvalid) && empty($birthdayFuture)
+      && empty($noName);
 ?>
 
 <p class="form-section-title mb-1">
@@ -393,6 +403,37 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
   <i class="fas fa-database me-1" aria-hidden="true"></i>Format des données
 </p>
 <p class="small text-muted mb-3">Cohérence des valeurs stockées par rapport aux types attendus.</p>
+
+<details class="ca-integrity-section mb-3">
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-id-card me-1 <?= !empty($noName) ? 'text-danger' : 'text-muted' ?>" aria-hidden="true"></i>
+    Membres sans nom de famille ni société
+    <?php if (!empty($noName)): ?>
+      <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($noName) ?></span>
+    <?php else: ?>
+      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
+    <?php endif ?>
+  </summary>
+  <?php if (!empty($noName)): ?>
+  <p class="small text-muted mt-2 mb-1">Ces membres n'ont ni nom de famille ni société — ils sont difficilement identifiables.</p>
+  <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
+    <thead><tr><th>Prénom</th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($noName as $r): ?>
+      <tr>
+        <td><?= htmlentities(trim($r->firstname) ?: '—', ENT_COMPAT, $charset) ?> <span class="text-muted" style="font-size:0.75rem">#<?= (int)$r->id ?></span></td>
+        <td class="text-end">
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+  <?php else: ?>
+  <p class="text-muted small mt-2 mb-0">Tous les membres ont au moins un nom ou une société.</p>
+  <?php endif ?>
+</details>
 
 <details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
