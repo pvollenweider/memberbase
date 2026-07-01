@@ -43,7 +43,7 @@ try {
 }
 
 // Compta types
-$_ctRows = $pdo->query("SELECT id, label, color, sort_order, is_cotisation, is_excluded_from_donation FROM compta_type ORDER BY sort_order ASC, label ASC")->fetchAll(PDO::FETCH_OBJ);
+$_ctRows = $pdo->query("SELECT id, label, color, sort_order, is_cotisation, is_excluded_from_donation, is_institutional FROM compta_type ORDER BY sort_order ASC, label ASC")->fetchAll(PDO::FETCH_OBJ);
 $comptaTypes = [];
 foreach ($_ctRows as $_ct) { $comptaTypes[(int)$_ct->id] = $_ct; }
 unset($_ctRows, $_ct);
