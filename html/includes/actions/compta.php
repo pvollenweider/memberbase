@@ -13,12 +13,14 @@ if (!canWrite()) { http_response_code(403); exit; }
 $action = $_REQUEST['action'];
 
 if ($action == 'addCompta') {
+    $_rawSum = trim(str_replace(',', '.', $_REQUEST['sum'] ?? ''));
+    if (!preg_match('/^[0-9]+(\.[0-9]+)?$/', $_rawSum)) { http_response_code(422); exit; }
     $compta = new Compta();
     $compta->userId = $_REQUEST['userid'];
     $compta->setTypeId((int)$_REQUEST['type_id']);
     $compta->date = formatedDateToTimeStamp($_REQUEST['date']);
     $compta->libele = unquote($_REQUEST['libele']);
-    $compta->sum = str_replace(',','.',$_REQUEST['sum']);
+    $compta->sum = $_rawSum;
     $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);
     $compta->save();
     $_auUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
@@ -27,6 +29,8 @@ if ($action == 'addCompta') {
     auditLog($pdo, 'addCompta', "membre: " . ($_auUser->fetchColumn() ?: "id={$compta->userId}") . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}", (int)$compta->userId);
 
 } elseif ($action == 'updateCompta') {
+    $_rawSum2 = trim(str_replace(',', '.', $_REQUEST['sum'] ?? ''));
+    if (!preg_match('/^[0-9]+(\.[0-9]+)?$/', $_rawSum2)) { http_response_code(422); exit; }
     $compta = new Compta();
     $compta->lookupCompta($_REQUEST['comptaid']);
     $_auBefore2 = [
@@ -41,7 +45,7 @@ if ($action == 'addCompta') {
     $date = formatedDateToTimeStamp($mydate);
     $compta->date = $date;
     $compta->libele = unquote($_REQUEST['libele']);
-    $compta->sum = str_replace(',','.',$_REQUEST['sum']);
+    $compta->sum = $_rawSum2;
     $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);
     $compta->setTypeId((int)$_REQUEST['type_id']);
     $compta->setWantsAttestation(isset($_REQUEST['wants_attestation']));

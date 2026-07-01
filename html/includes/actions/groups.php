@@ -103,27 +103,37 @@ if ($action == 'deleteTeam') {
     exit;
 
 } elseif ($action == 'importDonors') {
-    $teamId  = (int)$_REQUEST['id'];
-    $year    = isset($_REQUEST['donor_year'])   ? (int)$_REQUEST['donor_year']   : (int)date('Y');
-    $minSum  = isset($_REQUEST['donor_minsum']) ? (int)$_REQUEST['donor_minsum'] : 1;
+    $teamId    = (int)$_REQUEST['id'];
+    $year      = isset($_REQUEST['donor_year'])   ? (int)$_REQUEST['donor_year']   : (int)date('Y');
+    $minSum    = isset($_REQUEST['donor_minsum']) ? (int)$_REQUEST['donor_minsum'] : 1;
+    $donorType = in_array($_REQUEST['donor_type'] ?? '', ['all', 'institutional', 'non_institutional'])
+                 ? $_REQUEST['donor_type'] : 'all';
     if (!in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 1; }
     if ($teamId > 0 && $year >= 2000 && $year <= 2100) {
         $from = mktime(0, 0, 0, 1, 0, $year);
         $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+        $instSubClause = '';
+        if ($donorType === 'institutional') {
+            $instSubClause = 'AND c.type_id IN (SELECT id FROM compta_type WHERE is_institutional = 1)';
+        } elseif ($donorType === 'non_institutional') {
+            $instSubClause = 'AND c.type_id NOT IN (SELECT id FROM compta_type WHERE is_institutional = 1)';
+        }
         $pdo->prepare("
             INSERT INTO user_properties (user_id, parameter, value)
             SELECT u.id, ?, 'true'
             FROM users u
             JOIN compta c ON c.user_id = u.id
             WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
+              $instSubClause
               AND c.date > ? AND c.date < ?
               AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
             GROUP BY u.id
-            HAVING SUM(c.sum) >= ?
+            HAVING SUM(CASE WHEN c.sum REGEXP '^[0-9]+(\\.[0-9]+)?$' THEN c.sum + 0 ELSE 0 END) >= ?
         ")->execute(["team_$teamId", $from, $to, "team_$teamId", $minSum]);
     }
     $_auTeamD = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auTeamD->execute([$teamId]);
-    auditLog($pdo, 'importDonors', "vers groupe: " . ($_auTeamD->fetchColumn() ?: "id=$teamId") . " | année: $year | min: {$minSum} CHF");
+    $typeLabel = ['institutional' => 'institutionnels', 'non_institutional' => 'non-institutionnels', 'all' => 'tous'][$donorType];
+    auditLog($pdo, 'importDonors', "vers groupe: " . ($_auTeamD->fetchColumn() ?: "id=$teamId") . " | année: $year | min: {$minSum} CHF | type: $typeLabel");
     $_idUrl = $_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $teamId . '&imported=donors';
     if ($isHtmx) { header('HX-Location: ' . $_idUrl); } else { echo '<script>window.location.replace(' . json_encode($_idUrl) . ');</script>'; }
     exit;
