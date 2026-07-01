@@ -26,6 +26,7 @@ if ($_REQUEST['action'] == 'updateUser') {
         'portable'  => (string)$user->portable,
         'fax'       => (string)$user->fax,
         'email'     => (string)$user->email,
+        'emailAlt'  => (string)$user->emailAlt,
         'web'       => (string)$user->web,
         'birthDay'  => timeStampToformatedDate((int)$user->birthDay),
         'comment'   => preg_replace(['/(<(?!\/)[^>]+>)\s+/', '/\s+(<\/[^>]+>)/'], ['$1', '$1'], trim((string)$user->comment)),
@@ -42,6 +43,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     $user->portable = unquote($_REQUEST['portable'] ?? '');
     $user->fax = unquote($_REQUEST['fax'] ?? '');
     $user->email = unquote($_REQUEST['email'] ?? '');
+    $user->emailAlt = unquote($_REQUEST['emailAlt'] ?? '');
     $user->web = unquote($_REQUEST['web'] ?? '');
     $user->birthDay = unquote((string)formatedDateToTimeStamp($_REQUEST['birthDay'] ?? ''));
     $_rawComment = trim(unquote($_REQUEST['comment'] ?? ''));
@@ -62,6 +64,7 @@ if ($_REQUEST['action'] == 'updateUser') {
         'portable'  => (string)$user->portable,
         'fax'       => (string)$user->fax,
         'email'     => (string)$user->email,
+        'emailAlt'  => (string)$user->emailAlt,
         'web'       => (string)$user->web,
         'birthDay'  => timeStampToformatedDate((int)$user->birthDay),
         'comment'   => trim((string)$user->comment),
@@ -96,7 +99,7 @@ if ($_REQUEST['action'] == 'updateUser') {
 
     $disposal = ($_REQUEST['disposal'] ?? 'hide') === 'delete' ? 'delete' : 'hide';
 
-    $allowed = ['firstName','lastName','society','sexe','title','address','npa','tel','telProf','portable','fax','email','web','birthDay','comment'];
+    $allowed = ['firstName','lastName','society','sexe','title','address','npa','tel','telProf','portable','fax','email','emailAlt','web','birthDay','comment'];
     $fields  = array_intersect_key($_REQUEST['fields'] ?? [], array_flip($allowed));
     $changedFields = [];
     foreach ($fields as $k => $side) {
@@ -232,6 +235,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     $user->portable = unquote($_REQUEST['portable'] ?? '');
     $user->fax = unquote($_REQUEST['fax'] ?? '');
     $user->email = unquote($_REQUEST['email'] ?? '');
+    $user->emailAlt = unquote($_REQUEST['emailAlt'] ?? '');
     $user->web = unquote($_REQUEST['web'] ?? '');
     $user->birthDay = unquote((string)formatedDateToTimeStamp($_REQUEST['birthDay'] ?? ''));
     $user->comment = unquote($_REQUEST['comment'] ?? '');

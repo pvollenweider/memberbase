@@ -96,6 +96,15 @@ if ($fromTeam > 0) {
         </div>
       </div>
       <div class="row mb-2 align-items-center">
+        <label for="emailAlt" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end" style="font-size:0.82rem">
+          <i class="fas fa-envelope" aria-hidden="true"></i> E-mail alt.
+        </label>
+        <div class="col-8 col-sm-9">
+          <input type="text" id="emailAlt" name="emailAlt" class="form-control form-control-sm"
+                 placeholder="Adresse alternative / historique"/>
+        </div>
+      </div>
+      <div class="row mb-2 align-items-center">
         <label for="web" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end" style="font-size:0.82rem">
           <i class="fas fa-globe" aria-hidden="true"></i> <?= $GLOBAL['web'] ?>
         </label>

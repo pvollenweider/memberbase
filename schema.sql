@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `portable`         varchar(255) NOT NULL DEFAULT '',
   `fax`              varchar(255) NOT NULL DEFAULT '',
   `email`            varchar(255) NOT NULL DEFAULT '',
+  `email_alt`        varchar(255) NOT NULL DEFAULT '',
   `web`              varchar(255) NOT NULL DEFAULT '',
   `sexe`             varchar(8)   NOT NULL DEFAULT 'na',
   `title`            varchar(255) NOT NULL DEFAULT '',

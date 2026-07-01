@@ -21,6 +21,7 @@ $_iData = json_encode([
     'address'   => (string)$user->getAddress(),
     'npa'       => (string)$user->getNpa(),
     'email'     => (string)$user->getEmail(),
+    'emailAlt'  => (string)$user->getEmailAlt(),
     'web'       => (string)$user->getWeb(),
     'telProf'   => (string)$user->getTelProf(),
     'tel'       => (string)$user->getTel(),
@@ -170,6 +171,11 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
                 </div>
             </div>
 
+            <div x-show="data.emailAlt">
+                <div class="ca-field-label"><i class="fas fa-envelope me-1" aria-hidden="true"></i>E-mail alt.</div>
+                <div class="ca-field-value" x-text="data.emailAlt"></div>
+            </div>
+
             <div x-show="data.web">
                 <div class="ca-field-label"><i class="fas fa-globe me-1" aria-hidden="true"></i><?= $GLOBAL['web'] ?></div>
                 <div class="ca-field-value">
@@ -288,6 +294,15 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
             </label>
             <div class="col-md-9">
                 <input type="email" class="form-control form-control-sm" id="gd-email" x-model="draft.email"/>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <label for="gd-emailAlt" class="col-md-3 col-form-label">
+                <i class="fas fa-envelope me-1" aria-hidden="true"></i>E-mail alt.
+            </label>
+            <div class="col-md-9">
+                <input type="email" class="form-control form-control-sm" id="gd-emailAlt" x-model="draft.emailAlt"/>
+                <div class="form-text">Adresse historique / alternative — non utilisée pour les envois</div>
             </div>
         </div>
         <div class="row mb-2">

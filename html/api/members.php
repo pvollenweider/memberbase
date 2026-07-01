@@ -41,6 +41,7 @@ function memberFieldsForDiff(User $u): array
         'address'   => (string)$u->getAddress(),
         'npa'       => (string)$u->getNpa(),
         'email'     => (string)$u->getEmail(),
+        'emailAlt'  => (string)$u->getEmailAlt(),
         'tel'       => (string)$u->getTel(),
         'telProf'   => (string)$u->getTelProf(),
         'portable'  => (string)$u->getPortable(),
@@ -63,6 +64,7 @@ function memberToArray(User $u): array
         'address'          => $u->getAddress()  ?: null,
         'npa'              => $u->getNpa()      ?: null,
         'email'            => $u->getEmail()    ?: null,
+        'emailAlt'         => $u->getEmailAlt() ?: null,
         'tel'              => $u->getTel()      ?: null,
         'telProf'          => $u->getTelProf()  ?: null,
         'portable'         => $u->getPortable() ?: null,
@@ -89,7 +91,7 @@ function requestBody(): array
 function applyFields(User $user, array $body): void
 {
     $allowed = ['firstName','lastName','society','gender','title','address','npa',
-                'email','tel','telProf','portable','fax','web','comment'];
+                'email','emailAlt','tel','telProf','portable','fax','web','comment'];
     foreach ($allowed as $field) {
         if (!array_key_exists($field, $body)) continue;
         $val = (string)$body[$field];
@@ -432,7 +434,7 @@ function handleCreate(): void
     $user = new User();
     // Initialize all string fields to '' to avoid NOT NULL constraint on INSERT
     foreach (['firstName','lastName','society','title','address','npa','tel','telProf',
-              'portable','fax','email','web','comment'] as $_f) {
+              'portable','fax','email','emailAlt','web','comment'] as $_f) {
         $user->{'set' . ucfirst($_f)}('');
     }
     $user->setSexe('na');

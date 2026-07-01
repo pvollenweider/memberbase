@@ -22,6 +22,7 @@ class User
     public $fax;
     public $portable;
     public $email;
+    public $emailAlt;
     public $web;
     public $birthDay;
     public $comment;
@@ -49,6 +50,7 @@ class User
         $this->portable         = $row->portable;
         $this->fax              = $row->fax;
         $this->email            = $row->email;
+        $this->emailAlt         = $row->email_alt ?? '';
         $this->web              = $row->web;
         $this->birthDay         = $row->birthday;
         $this->comment          = $row->comment;
@@ -57,7 +59,7 @@ class User
         $this->status           = (int)$row->status;
     }
 
-    private const SELECT_COLS = "id,firstname,lastname,society,sexe,title,address,npa,tel,telprof,portable,fax,email,web,birthday,comment,creationDate,modificationDate,status";
+    private const SELECT_COLS = "id,firstname,lastname,society,sexe,title,address,npa,tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,modificationDate,status";
 
     public function lookupUserByEmail(string $email): void
     {
@@ -94,6 +96,7 @@ class User
     public function getPortable()         { return $this->portable; }
     public function getFax()              { return $this->fax; }
     public function getEmail()            { return $this->email; }
+    public function getEmailAlt()         { return $this->emailAlt; }
     public function getWeb()              { return $this->web; }
     public function getBirthDay()         { return $this->birthDay; }
     public function getComment()          { return $this->comment; }
@@ -112,6 +115,7 @@ class User
     public function setPortable($v)          { $this->portable = $v; }
     public function setFax($v)               { $this->fax = $v; }
     public function setEmail($v)             { $this->email = $v; }
+    public function setEmailAlt($v)          { $this->emailAlt = $v; }
     public function setWeb($v)               { $this->web = $v; }
     public function setComment($v)           { $this->comment = $v; }
     public function setCreationDate($v)      { $this->creationDate = $v; }
@@ -227,24 +231,24 @@ class User
         if ($this->id) {
             $pdo->prepare(
                 "UPDATE users SET firstname=?,lastname=?,society=?,sexe=?,title=?,address=?,npa=?,
-                 tel=?,telprof=?,portable=?,fax=?,email=?,web=?,birthday=?,comment=?,modificationDate=?
+                 tel=?,telprof=?,portable=?,fax=?,email=?,email_alt=?,web=?,birthday=?,comment=?,modificationDate=?
                  WHERE id=?"
             )->execute([
                 $this->firstName, $this->lastName, $this->society, $this->sexe, $this->title,
                 $this->address, $this->npa, $this->tel, $this->telProf, $this->portable,
-                $this->fax, $this->email, $this->web, $this->birthDay, $this->comment,
+                $this->fax, $this->email, $this->emailAlt ?? '', $this->web, $this->birthDay, $this->comment,
                 time(), $this->id,
             ]);
             return (int) $this->id;
         } else {
             $pdo->prepare(
                 "INSERT INTO users (firstname,lastname,society,sexe,title,address,npa,
-                 tel,telprof,portable,fax,email,web,birthday,comment,creationDate,modificationDate)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                 tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,modificationDate)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
             )->execute([
                 $this->firstName, $this->lastName, $this->society, $this->sexe,
                 $this->title, $this->address, $this->npa, $this->tel, $this->telProf,
-                $this->portable, $this->fax, $this->email, $this->web, $this->birthDay,
+                $this->portable, $this->fax, $this->email, $this->emailAlt ?? '', $this->web, $this->birthDay,
                 $this->comment, time(), time(),
             ]);
             return (int)$pdo->lastInsertId();

@@ -129,6 +129,15 @@ $stmtNoName = $pdo->query("
 ");
 $noName = $stmtNoName->fetchAll(PDO::FETCH_OBJ);
 
+// users.email_alt mal formaté
+$stmtEmailAltInvalid = $pdo->query("
+    SELECT id, firstname, lastname, email_alt
+    FROM users
+    WHERE status=1 AND TRIM(email_alt) != '' AND email_alt NOT LIKE '%@%'
+    ORDER BY lastname, firstname
+");
+$emailAltInvalid = $stmtEmailAltInvalid->fetchAll(PDO::FETCH_OBJ);
+
 // users.birthday dans le futur
 $stmtBirthdayFuture = $pdo->query("
     SELECT id, firstname, lastname, birthday
@@ -140,7 +149,7 @@ $birthdayFuture = $stmtBirthdayFuture->fetchAll(PDO::FETCH_OBJ);
 
 $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty($hiddenInMeta) && empty($hiddenWithMembers)
       && empty($sumInvalid) && empty($dateInvalid) && empty($typeNull)
-      && empty($emailInvalid) && empty($sexeInvalid) && empty($birthdayFuture)
+      && empty($emailInvalid) && empty($emailAltInvalid) && empty($sexeInvalid) && empty($birthdayFuture)
       && empty($noName);
 ?>
 
@@ -561,6 +570,37 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
   </table>
   <?php else: ?>
   <p class="text-muted small mt-2 mb-0">Aucun email mal formaté.</p>
+  <?php endif ?>
+</details>
+
+<details class="ca-integrity-section mb-3">
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-at me-1 <?= !empty($emailAltInvalid) ? 'text-warning' : 'text-muted' ?>" aria-hidden="true"></i>
+    Emails alt. mal formatés
+    <?php if (!empty($emailAltInvalid)): ?>
+      <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($emailAltInvalid) ?></span>
+    <?php else: ?>
+      <span class="badge text-bg-success ms-1" style="font-size:0.7rem">0</span>
+    <?php endif ?>
+  </summary>
+  <?php if (!empty($emailAltInvalid)): ?>
+  <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+    <thead><tr><th>Membre</th><th>Email alt.</th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($emailAltInvalid as $r): ?>
+      <tr>
+        <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname), ENT_COMPAT, $charset) ?></td>
+        <td><code class="text-warning"><?= htmlentities($r->email_alt, ENT_COMPAT, $charset) ?></code></td>
+        <td class="text-end">
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+  <?php else: ?>
+  <p class="text-muted small mt-2 mb-0">Aucun email alt. mal formaté.</p>
   <?php endif ?>
 </details>
 
