@@ -473,6 +473,7 @@ $baseSelect = "
            SUM(CASE WHEN c.type_id NOT IN ($_exclSub) THEN c.sum ELSE 0 END) AS total,
            MAX(c.wants_attestation) AS wants_attestation,
            MAX(COALESCE(ct.is_institutional, 0)) AS has_institutional,
+           MAX(COALESCE(ct.is_excluded_from_donation, 0)) AS has_excluded,
            EXISTS(
                SELECT 1 FROM user_properties up
                WHERE up.user_id = u.id AND up.parameter = ? AND up.value = 'true'
@@ -534,7 +535,7 @@ foreach ($rows as $row):
         default => ''
     };
     ?>
-    <tr class="position-relative" style="cursor:pointer">
+    <tr class="position-relative" style="cursor:pointer<?= ($showAll && $row->has_excluded) ? ';background-color:var(--bs-warning-bg-subtle)' : '' ?>">
         <td><?=$society?></td>
         <td><?=$sexe?><span class="hide"><?=$sexe2?></span></td>
         <td><strong><?=$lastName?></strong></td>
