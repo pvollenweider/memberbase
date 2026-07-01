@@ -77,7 +77,7 @@ if (!empty($_SESSION['group_toast'])) {
   <details style="font-size:0.8rem">
     <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem">
       <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
-      Importer les membres d'autres groupes
+      Importer les membres d'autres segments
     </summary>
     <script>
       document.currentScript.closest('details').addEventListener('toggle', function(e) {
@@ -86,7 +86,7 @@ if (!empty($_SESSION['group_toast'])) {
       });
     </script>
     <div class="mt-2 p-3" style="background:var(--ca-ground);border-radius:6px">
-      <p class="text-muted mb-2" style="font-size:0.75rem">Copie ponctuelle — les membres sont copiés tels qu'ils sont maintenant. Pour un filtre dynamique, crée plutôt un filtre de groupes.</p>
+      <p class="text-muted mb-2" style="font-size:0.75rem">Copie ponctuelle — les membres sont copiés tels qu'ils sont maintenant. Pour un filtre dynamique, crée plutôt un segment combiné.</p>
       <div class="d-flex flex-column gap-1">
         <?php
         function _renderImportCb($t, $teamCounts, $charset) { ?>
@@ -226,7 +226,7 @@ while ($row = $stmt->fetchObject()) {
               <input type="text" class="form-control form-control-sm d-inline-block team-rename-input"
                      value="<?= $name ?>" maxlength="255"
                      style="width:auto;max-width:220px;font-size:0.82rem;padding:0.15rem 0.4rem;height:auto"
-                     aria-label="Renommer le groupe «<?= $name ?>»"/>
+                     aria-label="Renommer le segment «<?= $name ?>»"/>
               <button type="button" class="btn btn-sm btn-success team-rename-save ms-1 px-2 py-0"
                       aria-label="Enregistrer (Entrée)" style="font-size:0.75rem;line-height:1.6">
                 <i class="fas fa-check" aria-hidden="true"></i>
@@ -244,7 +244,7 @@ while ($row = $stmt->fetchObject()) {
               <i class="fas fa-i-cursor" aria-hidden="true"></i>
             </button>
             <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $id ?>"
-               class="text-decoration-none text-muted" aria-label="Réglages du groupe «<?= $name ?>»" style="font-size:0.78rem">
+               class="text-decoration-none text-muted" aria-label="Réglages du segment «<?= $name ?>»" style="font-size:0.78rem">
               <i class="fas fa-gear" aria-hidden="true"></i>
             </a>
           </td>
@@ -390,10 +390,10 @@ function toggleHiddenSection(btn) {
         var link = view.querySelector('a');
         link.textContent = data.name;
         input.value = data.name;
-        input.setAttribute('aria-label', 'Renommer le groupe «' + data.name + '»');
+        input.setAttribute('aria-label', 'Renommer le segment «' + data.name + '»');
         row.querySelector('.team-rename-btn').setAttribute('aria-label', 'Renommer «' + data.name + '»');
         cancelRename(row);
-        _renameStatus.textContent = 'Groupe renommé en «' + data.name + '».';
+        _renameStatus.textContent = 'Segment renommé en «' + data.name + '».';
       } else {
         alert(data.error || 'Erreur lors du renommage');
       }
