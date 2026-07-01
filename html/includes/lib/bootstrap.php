@@ -99,7 +99,12 @@ function formatedDateToTimeStamp(?string $formatedDate): int
 {
     if ($formatedDate) {
         $d = DateTime::createFromFormat('d/m/Y', $formatedDate);
-        return $d ? $d->getTimestamp() : 0;
+        // Reject out-of-range dates (e.g. 32/13/2025) that createFromFormat silently rolls over
+        $errors = DateTime::getLastErrors();
+        if (!$d || ($errors && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))) {
+            return 0;
+        }
+        return $d->getTimestamp();
     }
     return 0;
 }

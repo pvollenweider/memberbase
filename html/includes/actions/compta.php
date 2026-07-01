@@ -16,7 +16,7 @@ if ($action == 'addCompta') {
     $_rawSum = trim(str_replace(',', '.', $_REQUEST['sum'] ?? ''));
     if (!preg_match('/^[0-9]+(\.[0-9]+)?$/', $_rawSum)) { http_response_code(422); exit; }
     $compta = new Compta();
-    $compta->userId = $_REQUEST['userid'];
+    $compta->userId = (int)$_REQUEST['userid'];
     $compta->setTypeId((int)$_REQUEST['type_id']);
     $compta->date = formatedDateToTimeStamp($_REQUEST['date']);
     $compta->libele = unquote($_REQUEST['libele']);
@@ -32,7 +32,7 @@ if ($action == 'addCompta') {
     $_rawSum2 = trim(str_replace(',', '.', $_REQUEST['sum'] ?? ''));
     if (!preg_match('/^[0-9]+(\.[0-9]+)?$/', $_rawSum2)) { http_response_code(422); exit; }
     $compta = new Compta();
-    $compta->lookupCompta($_REQUEST['comptaid']);
+    $compta->lookupCompta((int)$_REQUEST['comptaid']);
     $_auBefore2 = [
         'type'        => ($comptaTypes[(int)$compta->type_id]->label ?? "type={$compta->type_id}"),
         'date'        => timeStampToformatedDate((int)$compta->date),

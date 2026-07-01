@@ -14,7 +14,7 @@ $action = $_REQUEST['action'];
 
 if ($action == 'addSuivi') {
     $userProperty = new UserProperty();
-    $userProperty->userId = $_REQUEST['userid'];
+    $userProperty->userId = (int)$_REQUEST['userid'];
     $userProperty->parameter = $_REQUEST['parameter'];
     $userProperty->date = formatedDateToTimeStamp($_REQUEST['date']);
     $userProperty->value = unquote(str_replace(',','.',$_REQUEST['value']));
@@ -25,9 +25,9 @@ if ($action == 'addSuivi') {
 
 } elseif ($action == 'updateSuivi') {
     $userProperty = new UserProperty();
-    $userProperty->lookupUserProperty($_REQUEST['suiviid']);
+    $userProperty->lookupUserProperty((int)$_REQUEST['suiviid']);
     $userProperty->date = formatedDateToTimeStamp($_REQUEST['date']);
-    $userProperty->userId = $_REQUEST['userid'];
+    $userProperty->userId = (int)$_REQUEST['userid'];
     $userProperty->parameter = $_REQUEST['parameter'];
     $userProperty->value = unquote($_REQUEST['value']);
     $userProperty->save();
