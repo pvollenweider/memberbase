@@ -26,17 +26,17 @@ $_stStats = $pdo->prepare("
         COUNT(*) AS compta_count,
         -- dons (is_excluded_from_donation = 0)
         SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 THEN 1 ELSE 0 END) AS don_count,
-        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS total_amount,
-        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS this_year_amount,
-        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS last_year_amount,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 THEN c.`sum` ELSE 0 END), 0) AS total_amount,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN c.`sum` ELSE 0 END), 0) AS this_year_amount,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN c.`sum` ELSE 0 END), 0) AS last_year_amount,
         SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS this_year_count,
         SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS last_year_count,
         -- autres versements (is_excluded_from_donation = 1)
         SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 THEN 1 ELSE 0 END) AS other_count,
-        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS other_amount,
-        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS other_this_year_amount,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 THEN c.`sum` ELSE 0 END), 0) AS other_amount,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN c.`sum` ELSE 0 END), 0) AS other_this_year_amount,
         SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS other_this_year_count,
-        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END), 0) AS other_last_year_amount,
+        COALESCE(SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN c.`sum` ELSE 0 END), 0) AS other_last_year_amount,
         SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS other_last_year_count,
         -- cotisation
         SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 THEN 1 ELSE 0 END) AS ever_coti,
@@ -46,7 +46,7 @@ $_stStats = $pdo->prepare("
         MIN(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 THEN c.date ELSE NULL END) AS other_first_ts,
         MIN(c.date) AS all_first_ts,
         -- total tous versements
-        COALESCE(SUM(CAST(c.`sum` AS DECIMAL(10,2))), 0) AS all_time_amount
+        COALESCE(SUM(c.`sum`), 0) AS all_time_amount
     FROM compta c
     LEFT JOIN compta_type ct ON ct.id = c.type_id
     WHERE c.user_id=?
@@ -68,10 +68,10 @@ $_stats = $_stStats->fetchObject();
 $_stOtherTypes = $pdo->prepare("
     SELECT ct.label,
         COUNT(*) AS cnt,
-        COALESCE(SUM(CAST(c.`sum` AS DECIMAL(10,2))),0) AS amount,
-        COALESCE(SUM(CASE WHEN c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END),0) AS this_year_amount,
+        COALESCE(SUM(c.`sum`),0) AS amount,
+        COALESCE(SUM(CASE WHEN c.date >= ? AND c.date < ? THEN c.`sum` ELSE 0 END),0) AS this_year_amount,
         SUM(CASE WHEN c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS this_year_count,
-        COALESCE(SUM(CASE WHEN c.date >= ? AND c.date < ? THEN CAST(c.`sum` AS DECIMAL(10,2)) ELSE 0 END),0) AS last_year_amount,
+        COALESCE(SUM(CASE WHEN c.date >= ? AND c.date < ? THEN c.`sum` ELSE 0 END),0) AS last_year_amount,
         SUM(CASE WHEN c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS last_year_count
     FROM compta c
     LEFT JOIN compta_type ct ON ct.id = c.type_id

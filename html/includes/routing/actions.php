@@ -55,7 +55,6 @@ if (isset($_REQUEST['action'])) {
         'addCompta'            => 'compta',
         'updateCompta'         => 'compta',
         'toggleWantsAttestation' => 'compta',
-        'fixComptaSum'           => 'compta',
         'deleteComptaEntry'      => 'compta',
         'importUpload'            => 'import',
         'importApply'             => 'import',

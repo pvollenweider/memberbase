@@ -39,6 +39,13 @@ DML (données) sont, elles, transactionnelles (rollback automatique sur erreur).
 - `0001_email_alt.sql` — colonne `users.email_alt` (v3.5.4). Idempotent
   (`ADD COLUMN IF NOT EXISTS`), donc sans risque même si la colonne existe déjà
   (instances migrées à la main avant l'introduction du runner).
+- `0002_compta_sum_decimal.sql` — `compta.sum` passe de `VARCHAR(64)` à
+  `DECIMAL(10,2)` (fin des montants stockés en texte). La migration **nettoie
+  d'abord** les valeurs : virgules → points, puis toute valeur non numérique ou
+  vide → `0`, avant l'`ALTER`. ⚠️ Ce nettoyage écrase les valeurs non
+  numériques : vérifier la page **Réglages → Intégrité** et corriger les
+  montants douteux **avant** de migrer en prod (et sauvegarder, DDL non
+  annulable). Sur une base déjà propre, la conversion est sans perte.
 
 ---
 

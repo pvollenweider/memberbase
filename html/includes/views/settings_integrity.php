@@ -69,17 +69,6 @@ $hiddenWithMembers = $stmtMembers->fetchAll(PDO::FETCH_OBJ);
 
 // --- Format & cohérence des données ---
 
-// compta.sum non numérique ou vide
-$stmtSumInvalid = $pdo->query("
-    SELECT c.id, c.sum, c.user_id, u.firstname, u.lastname
-    FROM compta c
-    LEFT JOIN users u ON u.id = c.user_id
-    WHERE c.sum NOT REGEXP '^[0-9]+([.][0-9]+)?$'
-    ORDER BY c.id DESC
-    LIMIT 200
-");
-$sumInvalid = $stmtSumInvalid->fetchAll(PDO::FETCH_OBJ);
-
 // compta.date invalide (0 ou dans le futur)
 $stmtDateInvalid = $pdo->query("
     SELECT c.id, c.date, c.user_id, u.firstname, u.lastname, c.libele
@@ -148,7 +137,7 @@ $stmtBirthdayFuture = $pdo->query("
 $birthdayFuture = $stmtBirthdayFuture->fetchAll(PDO::FETCH_OBJ);
 
 $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty($hiddenInMeta) && empty($hiddenWithMembers)
-      && empty($sumInvalid) && empty($dateInvalid) && empty($typeNull)
+      && empty($dateInvalid) && empty($typeNull)
       && empty($emailInvalid) && empty($emailAltInvalid) && empty($sexeInvalid) && empty($birthdayFuture)
       && empty($noName);
 ?>
@@ -387,47 +376,6 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
-        </td>
-      </tr>
-    <?php endforeach ?>
-    </tbody>
-  </table>
-</details>
-<?php endif ?>
-
-<?php if (!empty($sumInvalid)): ?>
-<details class="ca-integrity-section mb-3" open>
-  <summary class="ca-integrity-summary">
-    <i class="fas fa-coins me-1 text-danger" aria-hidden="true"></i>
-    Montants compta non numériques ou vides
-    <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($sumInvalid) ?></span>
-  </summary>
-  <p class="small text-muted mt-2 mb-1">Le champ <code>sum</code> doit être un nombre décimal. Ces entrées ne seront pas comptabilisées correctement.</p>
-  <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
-    <thead><tr><th>Membre</th><th>Valeur</th><th></th></tr></thead>
-    <tbody>
-    <?php foreach ($sumInvalid as $r): ?>
-      <tr>
-        <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname) ?: '#'.(int)$r->user_id, ENT_COMPAT, $charset) ?></td>
-        <td><?php if ($r->sum === '' || $r->sum === null): ?><em class="text-muted">vide</em><?php else: ?><code class="text-danger"><?= htmlentities($r->sum, ENT_COMPAT, $charset) ?></code><?php endif ?></td>
-        <td class="text-end" style="white-space:nowrap">
-          <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline">
-            <input type="hidden" name="action" value="fixComptaSum">
-            <input type="hidden" name="view" value="settings">
-            <input type="hidden" name="tab" value="integrity">
-            <input type="hidden" name="comptaid" value="<?= (int)$r->id ?>">
-            <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:0.75rem">Mettre à 0</button>
-          </form>
-          <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline ms-1"
-                onsubmit="return confirm('Supprimer cette écriture compta ?')">
-            <input type="hidden" name="action" value="deleteComptaEntry">
-            <input type="hidden" name="view" value="settings">
-            <input type="hidden" name="tab" value="integrity">
-            <input type="hidden" name="comptaid" value="<?= (int)$r->id ?>">
-            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem">Supprimer</button>
-          </form>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2 ms-1" style="font-size:0.75rem">Compta</a>
         </td>
       </tr>
     <?php endforeach ?>
