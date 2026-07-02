@@ -129,6 +129,36 @@ function pendingMigrations(PDO $pdo): array
     return array_values(array_filter($all, static fn($v) => !isset($applied[$v])));
 }
 
+/**
+ * Retourne les migrations « en dérive » : appliquées, mais dont le fichier
+ * actuel ne correspond plus au checksum enregistré (fichier modifié après coup).
+ * Robuste : table/colonne absente → tableau vide. Ne casse jamais le rendu.
+ */
+function migrationDrift(PDO $pdo): array
+{
+    $migrationsDir = __DIR__ . '/../../migrations';  // html/migrations
+    $byVersion = [];
+    foreach (glob($migrationsDir . '/*.sql') ?: [] as $f) {
+        $byVersion[basename($f, '.sql')] = $f;
+    }
+    try {
+        $rows = $pdo->query("SELECT version, checksum FROM schema_migrations")->fetchAll(PDO::FETCH_KEY_PAIR);
+    } catch (PDOException $e) {
+        return []; // table ou colonne checksum absente → rien à comparer
+    }
+    $drift = [];
+    foreach ($rows as $version => $stored) {
+        if ($stored === '' || $stored === null) continue;   // checksum jamais enregistré
+        if (!isset($byVersion[$version]))        continue;   // fichier retiré (pas une dérive)
+        $current = @file_get_contents($byVersion[$version]);
+        if ($current !== false && hash('sha256', $current) !== $stored) {
+            $drift[] = $version;
+        }
+    }
+    sort($drift, SORT_STRING);
+    return $drift;
+}
+
 function auditLog(PDO $pdo, string $action, string $detail = '', ?int $subjectUserId = null): void
 {
     $uid      = isset($_SESSION['app_user_id']) ? (int)$_SESSION['app_user_id'] : null;

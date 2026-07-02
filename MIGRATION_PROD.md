@@ -20,6 +20,10 @@ php html/tools/migrate.php             # appliquer les migrations en attente
 ```
 
 - **Rejouable** : relancer le runner est un no-op si rien n'est en attente.
+- **Détection de dérive** : `--status` compare le checksum (SHA-256) de chaque
+  migration appliquée à son fichier actuel et signale `[!] DÉRIVE` si un fichier
+  déjà appliqué a été modifié après coup (à ne jamais faire — créer une nouvelle
+  migration à la place).
 - **Alerte in-app** : tant qu'une migration est en attente, un bandeau
   d'avertissement s'affiche en haut des pages **pour les administrateurs**, avec
   la commande à lancer. Il disparaît une fois les migrations appliquées.
