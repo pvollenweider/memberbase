@@ -447,6 +447,11 @@ Suite E2E Node.js (specs `*.spec.ts` couvrant auth, membres, compta, groupes,
 metagroups, suivi, rôles, import, réglages, API, fusion, etc.). Un `global-setup.ts`
 produit un `storageState` pré-authentifié réutilisé par les specs.
 
+Specs d'invariants issus des refactors #56–#59 : `filter-parity` (parité vue/API des
+filtres virtuels), `route-guards` (matrice rôles × routes, régressions des failles
+corrigées), `dirty-guard` (guard formulaire de `js/app.js`), `mobile-roles` (gardes du
+menu mobile au viewport téléphone).
+
 ### Base de test
 
 `docker-compose.test.yml` surcharge **uniquement** `DB_NAME: members_test` pour le

@@ -1,0 +1,3524 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "ece1d70203f0d7597aee4e7307bd98292669f357",
+  "generatedAt": "2026-07-02T11:03:29.957Z",
+  "files": {
+    ".github/ISSUE_TEMPLATE/bug_report.yml": {
+      "filePath": ".github/ISSUE_TEMPLATE/bug_report.yml",
+      "contentHash": "13829353233f4a372682de94ae28986899597e224ecb8f99634895a3ad61b0d3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    ".github/ISSUE_TEMPLATE/feature_request.yml": {
+      "filePath": ".github/ISSUE_TEMPLATE/feature_request.yml",
+      "contentHash": "dd4806debe1d26a765e845e5e958635bf2e8b4c7e91ffc706acd22ad93850107",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    ".github/pull_request_template.md": {
+      "filePath": ".github/pull_request_template.md",
+      "contentHash": "5837aba051861e100f2eaa763d34569d70ff11ff4010e6cc4e12294c7f322986",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    ".github/workflows/e2e.yml": {
+      "filePath": ".github/workflows/e2e.yml",
+      "contentHash": "781535777767c713c5e6a3fe615220a075924062fc205d0c3a86878fc329e12b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 59,
+      "hasStructuralAnalysis": true
+    },
+    ".impeccable/config.json": {
+      "filePath": ".impeccable/config.json",
+      "contentHash": "1bcb84a71f91b4534b648648e2c1d1a853bc2f9beaee84313468bad0e52bdbb4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": true
+    },
+    ".understand-anything/.understandignore": {
+      "filePath": ".understand-anything/.understandignore",
+      "contentHash": "beb78d0db48105940ad1467258e91620be8a8ed4826762ddfeb61393762f438f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": false
+    },
+    "CHANGELOG.md": {
+      "filePath": "CHANGELOG.md",
+      "contentHash": "4efa24de08c0b30d086e268ae657c813a8b694c35915a2c2adcdc9ebf3811048",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 491,
+      "hasStructuralAnalysis": true
+    },
+    "CLAUDE.md": {
+      "filePath": "CLAUDE.md",
+      "contentHash": "18cf9d230db89c9ee67ea5a427d9b39c360a6b607a9fa7643dcfb1bf44793794",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 86,
+      "hasStructuralAnalysis": true
+    },
+    "CONTRIBUTING.md": {
+      "filePath": "CONTRIBUTING.md",
+      "contentHash": "c01c818b47dcc6cfb0ac19258572f89cfffbad5fca720f36fbe3ad46d1fff363",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "DESIGN.md": {
+      "filePath": "DESIGN.md",
+      "contentHash": "59878fbc049a728cd12c1e8ea527da4a8bf440f1025b03a46638e3c98fc2030b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 194,
+      "hasStructuralAnalysis": true
+    },
+    "Dockerfile": {
+      "filePath": "Dockerfile",
+      "contentHash": "8c457b3426c091eab76b1817ed7c7a0fb52ac5c0b405c33bf5e5e34011e808c5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": true
+    },
+    "MIGRATION_PROD.md": {
+      "filePath": "MIGRATION_PROD.md",
+      "contentHash": "f84165158c71a14b6c979af55e4d121449b362da201277bc068763a837d86f1a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 126,
+      "hasStructuralAnalysis": true
+    },
+    "Makefile": {
+      "filePath": "Makefile",
+      "contentHash": "bd064157a000c70f0e699763a56b016590a3596eaa4035a4e6c61cfa18703480",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "PRODUCT.md": {
+      "filePath": "PRODUCT.md",
+      "contentHash": "15155872dc7a8b66eb912d2ecd65aa75a2134dbf26c95e4f27eae1ba66bb81c2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "cc681cd6574d5c2e5ea81735d68b034e4074205278254058b8dcc99fe3ec493e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 305,
+      "hasStructuralAnalysis": true
+    },
+    "doc/admin.md": {
+      "filePath": "doc/admin.md",
+      "contentHash": "dbf7ccf2604204541e98aa035102b41ccbe3edc124bb7f7f0432c82ffe79a007",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 915,
+      "hasStructuralAnalysis": true
+    },
+    "doc/user.md": {
+      "filePath": "doc/user.md",
+      "contentHash": "29d2a69587d95a49dd1c47d3d942e23958d660b6e79d2c639fd2916e339aad20",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 563,
+      "hasStructuralAnalysis": true
+    },
+    "docker-compose.test.yml": {
+      "filePath": "docker-compose.test.yml",
+      "contentHash": "5dc5f115a731f7c79a62f5b05da2f42afab7efa398bfe73728ac63bcd3bba648",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "docker-compose.yml": {
+      "filePath": "docker-compose.yml",
+      "contentHash": "b9ddd0c3fb26feb0996653583b310e6c62e54791271b762138e14f3e62176403",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 44,
+      "hasStructuralAnalysis": true
+    },
+    "docker/apache.conf": {
+      "filePath": "docker/apache.conf",
+      "contentHash": "a0de999f09e5ea4838cc93388b8458655549c79b050fc6049dbd79d92c612bf3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 91,
+      "hasStructuralAnalysis": false
+    },
+    "html/0F5B592E883E10E5F744B70B861AE02B.txt": {
+      "filePath": "html/0F5B592E883E10E5F744B70B861AE02B.txt",
+      "contentHash": "a49e1d3aecfa6219116fafe2bdc22d8d802331a7033c7fe08f2a32200ec08b4f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": false
+    },
+    "html/api/.htaccess": {
+      "filePath": "html/api/.htaccess",
+      "contentHash": "f27ee9c932432f32a210a7e07ea8036bd8dd5531047b8cbfdc1c3192b8138a0e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": false
+    },
+    "html/api/_bootstrap.php": {
+      "filePath": "html/api/_bootstrap.php",
+      "contentHash": "18d4f44e9d3591ddd241d6315b21d0c6840d0bfb8602382772b7d087dc6e51e3",
+      "functions": [
+        {
+          "name": "apiError",
+          "params": [
+            "$code",
+            "$message"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "apiError"
+      ],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "html/api/compta-types.php": {
+      "filePath": "html/api/compta-types.php",
+      "contentHash": "8e61d80d1a60cd432a22dd9c51cb2df083993a02064e8668d09c670baf8d43a4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "html/api/compta.php": {
+      "filePath": "html/api/compta.php",
+      "contentHash": "02a108c739672d12ed9364ad858d2b57e56f29483f4884b4452cbe04aa252d07",
+      "functions": [
+        {
+          "name": "entryToArray",
+          "params": [
+            "$c"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "requestBody",
+          "params": [],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "applyFields",
+          "params": [
+            "$c",
+            "$body"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "validateTypeId",
+          "params": [
+            "$typeId"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "handleList",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 41
+        },
+        {
+          "name": "handleGet",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "handleCreate",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 43
+        },
+        {
+          "name": "handleUpdate",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "handleDelete",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "entryToArray",
+        "requestBody",
+        "applyFields",
+        "validateTypeId",
+        "handleList",
+        "handleGet",
+        "handleCreate",
+        "handleUpdate",
+        "handleDelete"
+      ],
+      "totalLines": 211,
+      "hasStructuralAnalysis": true
+    },
+    "html/api/groups.php": {
+      "filePath": "html/api/groups.php",
+      "contentHash": "f986425cfb7f3f7aa3c4e791771a732c98e58d7b1d1eae40b2e0fc9187f31a50",
+      "functions": [
+        {
+          "name": "requestBody",
+          "params": [],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "loadGroup",
+          "params": [
+            "$id"
+          ],
+          "returnType": "Team",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "groupToArray",
+          "params": [
+            "$row"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "handleList",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "handleGet",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "handleListMembers",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "handleCreate",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "handleUpdate",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "handleDelete",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "handleAddMember",
+          "params": [
+            "$groupId"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "handleRemoveMember",
+          "params": [
+            "$groupId"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 19
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "requestBody",
+        "loadGroup",
+        "groupToArray",
+        "handleList",
+        "handleGet",
+        "handleListMembers",
+        "handleCreate",
+        "handleUpdate",
+        "handleDelete",
+        "handleAddMember",
+        "handleRemoveMember"
+      ],
+      "totalLines": 276,
+      "hasStructuralAnalysis": true
+    },
+    "html/api/members.php": {
+      "filePath": "html/api/members.php",
+      "contentHash": "6ef0d6514eee7494b3e16c2befcfd373d2c47a4571dc6c6440977d9119f8e522",
+      "functions": [
+        {
+          "name": "memberFieldsForDiff",
+          "params": [
+            "$u"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "memberToArray",
+          "params": [
+            "$u"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "requestBody",
+          "params": [],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "applyFields",
+          "params": [
+            "$user",
+            "$body"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "emitMemberList",
+          "params": [
+            "$rows",
+            "$page",
+            "$limit",
+            "$total",
+            "$includeTypes",
+            "$groupsByUser"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 46
+        },
+        {
+          "name": "handleVirtualFilter",
+          "params": [
+            "$filterId",
+            "$page",
+            "$limit",
+            "$offset",
+            "$includeTypes"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 45
+        },
+        {
+          "name": "handleList",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 111
+        },
+        {
+          "name": "handleGet",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "handleCreate",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "handleUpdate",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "handleDelete",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "handleGetGroups",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 37
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "memberFieldsForDiff",
+        "memberToArray",
+        "requestBody",
+        "applyFields",
+        "emitMemberList",
+        "handleVirtualFilter",
+        "handleList",
+        "handleGet",
+        "handleCreate",
+        "handleUpdate",
+        "handleDelete",
+        "handleGetGroups"
+      ],
+      "totalLines": 451,
+      "hasStructuralAnalysis": true
+    },
+    "html/api/suivi.php": {
+      "filePath": "html/api/suivi.php",
+      "contentHash": "846ea1b7170467b4e6c94309f6181f75a69f4890fdedab9d524eacb45790d242",
+      "functions": [
+        {
+          "name": "entryToArray",
+          "params": [
+            "$p"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "requestBody",
+          "params": [],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "loadEntry",
+          "params": [
+            "$id"
+          ],
+          "returnType": "UserProperty",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "handleList",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "handleGet",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "handleCreate",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 37
+        },
+        {
+          "name": "handleUpdate",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "handleDelete",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "entryToArray",
+        "requestBody",
+        "loadEntry",
+        "handleList",
+        "handleGet",
+        "handleCreate",
+        "handleUpdate",
+        "handleDelete"
+      ],
+      "totalLines": 172,
+      "hasStructuralAnalysis": true
+    },
+    "html/attestation_bulk.php": {
+      "filePath": "html/attestation_bulk.php",
+      "contentHash": "38302d7fe860f685aa99afe4318a7959ddfc2f29ff31ae1bded05770df3515d0",
+      "functions": [
+        {
+          "name": "fdf_escape_name",
+          "params": [
+            "$s"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "fdf_encode_value",
+          "params": [
+            "$s"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "fdf_generate",
+          "params": [
+            "$fields"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "fdf_escape_name",
+        "fdf_encode_value",
+        "fdf_generate"
+      ],
+      "totalLines": 146,
+      "hasStructuralAnalysis": true
+    },
+    "html/attestation_don.php": {
+      "filePath": "html/attestation_don.php",
+      "contentHash": "4fbff6e4f37d9672a398c1bb65e3b5f659fbeb7b54ff815fc8ab452bbe6e8b3c",
+      "functions": [
+        {
+          "name": "fdf_escape_name",
+          "params": [
+            "$s"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "fdf_encode_value",
+          "params": [
+            "$s"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "fdf_generate",
+          "params": [
+            "$fields"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "fdf_escape_name",
+        "fdf_encode_value",
+        "fdf_generate"
+      ],
+      "totalLines": 117,
+      "hasStructuralAnalysis": true
+    },
+    "html/classes/.htaccess": {
+      "filePath": "html/classes/.htaccess",
+      "contentHash": "fa28d421a28ed9b6f4b997d5119c2b8adbacff6e2dd119a179b71230f9664934",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": false
+    },
+    "html/classes/compta_class.php": {
+      "filePath": "html/classes/compta_class.php",
+      "contentHash": "0126c542357d1a2cede51b2766aa230a393a525ee494279ca273ff69ef4aeedb",
+      "functions": [
+        {
+          "name": "__construct",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "lookupCompta",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "getId",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getUserId",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getTypeId",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getDate",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getLibele",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getSum",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getQuittance",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getWantsAttestation",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setUserId",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setTypeId",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setDate",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setlibele",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setSum",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setQuittance",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setWantsAttestation",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "save",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 19
+        },
+        {
+          "name": "remove",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "typesByUser",
+          "params": [
+            "$userIds"
+          ],
+          "returnType": "array",
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "activitySummaryByUser",
+          "params": [
+            "$year"
+          ],
+          "returnType": "array",
+          "exported": false,
+          "lineCount": 22
+        }
+      ],
+      "classes": [
+        {
+          "name": "Compta",
+          "methods": [
+            "__construct",
+            "lookupCompta",
+            "getId",
+            "getUserId",
+            "getTypeId",
+            "getDate",
+            "getLibele",
+            "getSum",
+            "getQuittance",
+            "getWantsAttestation",
+            "setUserId",
+            "setTypeId",
+            "setDate",
+            "setlibele",
+            "setSum",
+            "setQuittance",
+            "setWantsAttestation",
+            "save",
+            "remove",
+            "typesByUser",
+            "activitySummaryByUser"
+          ],
+          "properties": [
+            "id",
+            "userId",
+            "type_id",
+            "date",
+            "libele",
+            "sum",
+            "quittance",
+            "wants_attestation"
+          ],
+          "exported": true,
+          "lineCount": 135
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "Compta"
+      ],
+      "totalLines": 145,
+      "hasStructuralAnalysis": true
+    },
+    "html/classes/member_filter_class.php": {
+      "filePath": "html/classes/member_filter_class.php",
+      "contentHash": "a4aa3c7cb267d304c1bff611bf1ff6201bd5f537efe51e8e851c22e21aa7f975",
+      "functions": [
+        {
+          "name": "isVirtual",
+          "params": [
+            "$teamId"
+          ],
+          "returnType": "bool",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "resolveIds",
+          "params": [
+            "$filterId",
+            "$pdo",
+            "$year",
+            "$appSettings"
+          ],
+          "returnType": "array",
+          "exported": false,
+          "lineCount": 112
+        },
+        {
+          "name": "noCotiMembers",
+          "params": [
+            "$pdo",
+            "$appSettings"
+          ],
+          "returnType": "array",
+          "exported": false,
+          "lineCount": 14
+        }
+      ],
+      "classes": [
+        {
+          "name": "MemberFilter",
+          "methods": [
+            "isVirtual",
+            "resolveIds",
+            "noCotiMembers"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 155
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "MemberFilter"
+      ],
+      "totalLines": 169,
+      "hasStructuralAnalysis": true
+    },
+    "html/classes/metagroup_class.php": {
+      "filePath": "html/classes/metagroup_class.php",
+      "contentHash": "3dd042f490aaf565f0c4610ffe25226f61d082a8e760bfd64b45f7dad6e99724",
+      "functions": [
+        {
+          "name": "__construct",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "lookupMetagroup",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "getId",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getName",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setName",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "save",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "filterList",
+          "params": [],
+          "returnType": "array",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "teamNames",
+          "params": [
+            "$id"
+          ],
+          "returnType": "array",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "teamIds",
+          "params": [
+            "$id"
+          ],
+          "returnType": "array",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "isUsed",
+          "params": [],
+          "returnType": "bool",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "remove",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "Metagroup",
+          "methods": [
+            "__construct",
+            "lookupMetagroup",
+            "getId",
+            "getName",
+            "setName",
+            "save",
+            "filterList",
+            "teamNames",
+            "teamIds",
+            "isUsed",
+            "remove"
+          ],
+          "properties": [
+            "id",
+            "name"
+          ],
+          "exported": true,
+          "lineCount": 98
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "Metagroup"
+      ],
+      "totalLines": 108,
+      "hasStructuralAnalysis": true
+    },
+    "html/classes/property_class.php": {
+      "filePath": "html/classes/property_class.php",
+      "contentHash": "43043e28a91fa6371d7a23f11c86af13048bd7739a25a54734d974b4fd80cd71",
+      "functions": [
+        {
+          "name": "__construct",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "lookupUserProperty",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "getId",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getUserId",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getParameter",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getDate",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getValue",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setUserId",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setParameter",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setDate",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setValue",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "save",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "remove",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        }
+      ],
+      "classes": [
+        {
+          "name": "UserProperty",
+          "methods": [
+            "__construct",
+            "lookupUserProperty",
+            "getId",
+            "getUserId",
+            "getParameter",
+            "getDate",
+            "getValue",
+            "setUserId",
+            "setParameter",
+            "setDate",
+            "setValue",
+            "save",
+            "remove"
+          ],
+          "properties": [
+            "id",
+            "userId",
+            "parameter",
+            "date",
+            "value"
+          ],
+          "exported": true,
+          "lineCount": 59
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "UserProperty"
+      ],
+      "totalLines": 69,
+      "hasStructuralAnalysis": true
+    },
+    "html/classes/team_class.php": {
+      "filePath": "html/classes/team_class.php",
+      "contentHash": "def1067df7305556f2fe81f9b8c8c7dcd0438af2fbd7c457b259b6552843684c",
+      "functions": [
+        {
+          "name": "__construct",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "lookupTeam",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "getId",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getName",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getHidden",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setName",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setHidden",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "save",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "nameById",
+          "params": [
+            "$id"
+          ],
+          "returnType": "?string",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "listForDropdown",
+          "params": [],
+          "returnType": "array",
+          "exported": false,
+          "lineCount": 21
+        },
+        {
+          "name": "isMemberOfMetagroup",
+          "params": [
+            "$metagroupId"
+          ],
+          "returnType": "bool",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "addMetagroupMembership",
+          "params": [
+            "$metagroupId"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "removeMetagroupMembership",
+          "params": [
+            "$metagroupId"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "isUsed",
+          "params": [],
+          "returnType": "bool",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "remove",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "Team",
+          "methods": [
+            "__construct",
+            "lookupTeam",
+            "getId",
+            "getName",
+            "getHidden",
+            "setName",
+            "setHidden",
+            "save",
+            "nameById",
+            "listForDropdown",
+            "isMemberOfMetagroup",
+            "addMetagroupMembership",
+            "removeMetagroupMembership",
+            "isUsed",
+            "remove"
+          ],
+          "properties": [
+            "id",
+            "name",
+            "hidden"
+          ],
+          "exported": true,
+          "lineCount": 123
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "Team"
+      ],
+      "totalLines": 133,
+      "hasStructuralAnalysis": true
+    },
+    "html/classes/user_class.php": {
+      "filePath": "html/classes/user_class.php",
+      "contentHash": "5a142891b1b717ea83a1cc103aa719be2eea41529ad053ff636b46bc1a97aa0b",
+      "functions": [
+        {
+          "name": "__construct",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "hydrateFromRow",
+          "params": [
+            "$row"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 23
+        },
+        {
+          "name": "lookupUserByEmail",
+          "params": [
+            "$email"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "lookupUser",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "getId",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getFirstName",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getLastName",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getSociety",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getSexe",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getTitle",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getAddress",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getNpa",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getTel",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getTelProf",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getPortable",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getFax",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getEmail",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getEmailAlt",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getWeb",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getBirthDay",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getComment",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getCreationDate",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getModificationDate",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setFirstName",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setLastName",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setSociety",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setSexe",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setTitle",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setAddress",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setNpa",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setTel",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setTelProf",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setPortable",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setFax",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setEmail",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setEmailAlt",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setWeb",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setComment",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setCreationDate",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setModificationDate",
+          "params": [
+            "$v"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "setBirthDay",
+          "params": [
+            "$birthDay"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "getProperty",
+          "params": [
+            "$parameter"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "isMemberOfTeam",
+          "params": [
+            "$teamId"
+          ],
+          "returnType": "bool",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "firstComptaDate",
+          "params": [
+            "$sql",
+            "$params"
+          ],
+          "returnType": "int",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "isCotisationPayed",
+          "params": [
+            "$year"
+          ],
+          "returnType": "int",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "hasPayed",
+          "params": [
+            "$year"
+          ],
+          "returnType": "int",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "hasDonated",
+          "params": [
+            "$year"
+          ],
+          "returnType": "int",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "hasAnyEntry",
+          "params": [
+            "$year"
+          ],
+          "returnType": "int",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "hasComptaEntries",
+          "params": [
+            "$year",
+            "$number"
+          ],
+          "returnType": "bool",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "hasComptaEntry",
+          "params": [],
+          "returnType": "bool",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "addMembership",
+          "params": [
+            "$teamId"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "removeMembership",
+          "params": [
+            "$teamId"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "save",
+          "params": [],
+          "returnType": "int",
+          "exported": false,
+          "lineCount": 29
+        },
+        {
+          "name": "remove",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "listWithFilters",
+          "params": [
+            "$opts"
+          ],
+          "returnType": "array",
+          "exported": false,
+          "lineCount": 67
+        }
+      ],
+      "classes": [
+        {
+          "name": "User",
+          "methods": [
+            "__construct",
+            "hydrateFromRow",
+            "lookupUserByEmail",
+            "lookupUser",
+            "getId",
+            "getFirstName",
+            "getLastName",
+            "getSociety",
+            "getSexe",
+            "getTitle",
+            "getAddress",
+            "getNpa",
+            "getTel",
+            "getTelProf",
+            "getPortable",
+            "getFax",
+            "getEmail",
+            "getEmailAlt",
+            "getWeb",
+            "getBirthDay",
+            "getComment",
+            "getCreationDate",
+            "getModificationDate",
+            "setFirstName",
+            "setLastName",
+            "setSociety",
+            "setSexe",
+            "setTitle",
+            "setAddress",
+            "setNpa",
+            "setTel",
+            "setTelProf",
+            "setPortable",
+            "setFax",
+            "setEmail",
+            "setEmailAlt",
+            "setWeb",
+            "setComment",
+            "setCreationDate",
+            "setModificationDate",
+            "setBirthDay",
+            "getProperty",
+            "isMemberOfTeam",
+            "firstComptaDate",
+            "isCotisationPayed",
+            "hasPayed",
+            "hasDonated",
+            "hasAnyEntry",
+            "hasComptaEntries",
+            "hasComptaEntry",
+            "addMembership",
+            "removeMembership",
+            "save",
+            "remove",
+            "listWithFilters"
+          ],
+          "properties": [
+            "id",
+            "firstName",
+            "lastName",
+            "society",
+            "sexe",
+            "title",
+            "address",
+            "npa",
+            "tel",
+            "telProf",
+            "fax",
+            "portable",
+            "email",
+            "emailAlt",
+            "web",
+            "birthDay",
+            "comment",
+            "creationDate",
+            "modificationDate",
+            "status"
+          ],
+          "exported": true,
+          "lineCount": 343
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "User"
+      ],
+      "totalLines": 353,
+      "hasStructuralAnalysis": true
+    },
+    "html/css/BootstrapXL.css": {
+      "filePath": "html/css/BootstrapXL.css",
+      "contentHash": "ced445606ae5534720f4467bea0eb52ccaa7a382a69d545113e6ef561bccb244",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": false
+    },
+    "html/css/custom.css": {
+      "filePath": "html/css/custom.css",
+      "contentHash": "9a1992e0627c3f2360b60d1ec315d08e8bf9f17845853c5644d112e36cf19d94",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 717,
+      "hasStructuralAnalysis": false
+    },
+    "html/css/docs.css": {
+      "filePath": "html/css/docs.css",
+      "contentHash": "344faac1e5ea71076621b8d0f06c574e8c432770009623a116e226c6a7ece116",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1111,
+      "hasStructuralAnalysis": false
+    },
+    "html/css/navbar-fixed-top.css": {
+      "filePath": "html/css/navbar-fixed-top.css",
+      "contentHash": "67ece029f612ec1c9411b6207c34c465fa9edce88f79542bcbaf37553cb794de",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": false
+    },
+    "html/includes/.htaccess": {
+      "filePath": "html/includes/.htaccess",
+      "contentHash": "fa28d421a28ed9b6f4b997d5119c2b8adbacff6e2dd119a179b71230f9664934",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": false
+    },
+    "html/includes/actions/auth.php": {
+      "filePath": "html/includes/actions/auth.php",
+      "contentHash": "befa7fa6da7ab01b4b25aa2b124e96a272d728080dc45dbc5c865e6616328395",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 177,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/actions/compta.php": {
+      "filePath": "html/includes/actions/compta.php",
+      "contentHash": "4dda7475c8afee06f3f895fd553f30e58d40548b4e37651ed254c803f680e656",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 108,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/actions/groups.php": {
+      "filePath": "html/includes/actions/groups.php",
+      "contentHash": "282dd54d34a41a65e274476dee76f0e6d63e0bc9cb8d36af8c3f2c044376f029",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 389,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/actions/members.php": {
+      "filePath": "html/includes/actions/members.php",
+      "contentHash": "4e14855bcd00b3193c006a91b1b192fb3f86432dd96ca1599b8e11f8586b6f80",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 298,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/actions/metagroups.php": {
+      "filePath": "html/includes/actions/metagroups.php",
+      "contentHash": "0a7342b3f4ac9ebeddf836124dbc72fa253e47952158bfa5e4007be7d1ec82dd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 102,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/actions/settings.php": {
+      "filePath": "html/includes/actions/settings.php",
+      "contentHash": "3f749c9b505183a6e7c34188900d33c1c8d904ddbd3c5baab3dc48d1b254e62e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 107,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/actions/suivi.php": {
+      "filePath": "html/includes/actions/suivi.php",
+      "contentHash": "360603f38db1320f466cd0c393d8e5471381d37f1479c7459817b1c9011092ce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/lib/auth.php": {
+      "filePath": "html/includes/lib/auth.php",
+      "contentHash": "096275272802552052a5a49963df8f13e1355184f7ce382aec64130498f88865",
+      "functions": [
+        {
+          "name": "authUser",
+          "params": [],
+          "returnType": "?object",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "isLoggedIn",
+          "params": [],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "isAdmin",
+          "params": [],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "isManager",
+          "params": [],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "canWrite",
+          "params": [],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "canRead",
+          "params": [],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 1
+        },
+        {
+          "name": "requireLogin",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "requirePasswordChange",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "authLogin",
+          "params": [
+            "$pdo",
+            "$username",
+            "$password"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "authLogout",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "authUser",
+        "isLoggedIn",
+        "isAdmin",
+        "isManager",
+        "canWrite",
+        "canRead",
+        "requireLogin",
+        "requirePasswordChange",
+        "authLogin",
+        "authLogout"
+      ],
+      "totalLines": 99,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/lib/bootstrap.php": {
+      "filePath": "html/includes/lib/bootstrap.php",
+      "contentHash": "6ee507fa7f76cec57ca91590f92e13fb2f87a71bb6baa092aab727b45687b0d4",
+      "functions": [
+        {
+          "name": "getMaxVal",
+          "params": [
+            "$pdo",
+            "$parameter"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "updateAndGetMaxVal",
+          "params": [
+            "$parameter"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "formatedDateToTimeStamp",
+          "params": [
+            "$formatedDate"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "timeStampToformatedDate",
+          "params": [
+            "$timestamp"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "unquote",
+          "params": [
+            "$s"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "auditLog",
+          "params": [
+            "$pdo",
+            "$action",
+            "$detail",
+            "$subjectUserId"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "getMaxVal",
+        "updateAndGetMaxVal",
+        "formatedDateToTimeStamp",
+        "timeStampToformatedDate",
+        "unquote",
+        "auditLog"
+      ],
+      "totalLines": 132,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/partials/donor_table.php": {
+      "filePath": "html/includes/partials/donor_table.php",
+      "contentHash": "5066ef5ec000fff98e46693fe5864572e273489d506cda874b106dcec7039bea",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 97,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/partials/menu.php": {
+      "filePath": "html/includes/partials/menu.php",
+      "contentHash": "ad308a145215479c6e64721d0ad5e69e13ef487b650c59f1bc1614566a6bcc09",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 198,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/routing/actions.php": {
+      "filePath": "html/includes/routing/actions.php",
+      "contentHash": "81091d234cb2e4ab470843f16a64acc847ad9282f3bd78d48221676ddb35af05",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/routing/views.php": {
+      "filePath": "html/includes/routing/views.php",
+      "contentHash": "eade1dffdfac51dc631b17ef8b59ffd7d28454362857d42df370aaa0b5453bd9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 97,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/auth_change_password.php": {
+      "filePath": "html/includes/views/auth_change_password.php",
+      "contentHash": "53e9d3b8fead654a5a50c26196ea4a466e9a47f44f7c2d198df933135e0dc5fe",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/compta_delete_confirm.php": {
+      "filePath": "html/includes/views/compta_delete_confirm.php",
+      "contentHash": "be2fcf7542bde54f9a12c3fb32cedf38f7b93157f966f6d0977653ec5ad5fd1f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/compta_delete_do.php": {
+      "filePath": "html/includes/views/compta_delete_do.php",
+      "contentHash": "4c27cc2378e075c46402d5dbdabdb1dfa06f1e96ada95227f286052f61de1f7d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/compta_edit_form.php": {
+      "filePath": "html/includes/views/compta_edit_form.php",
+      "contentHash": "fd3409e70b57671034173fe6c2bd4b4751f60bfef32f6739323f37f0c2bdde21",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 115,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/compta_last_entry.php": {
+      "filePath": "html/includes/views/compta_last_entry.php",
+      "contentHash": "993401e6bbd8e2895cae64b6e69bf59cd56ba34e7201715d94a09f74f6d19c8b",
+      "functions": [
+        {
+          "name": "_lec_type_swatch",
+          "params": [
+            "$color",
+            "$label",
+            "$charset"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "_lec_type_swatch"
+      ],
+      "totalLines": 419,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/compta_list.php": {
+      "filePath": "html/includes/views/compta_list.php",
+      "contentHash": "133b2117c4f13d49bef339554003c75742c57c04a0c36bd791e9d631f14c2396",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 413,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/donors_lapsed.php": {
+      "filePath": "html/includes/views/donors_lapsed.php",
+      "contentHash": "e0d1ba0e0e95b21dfe500ed8371c8d5de4230cd32490103d25c126698a44c92e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 118,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/donors_loyal.php": {
+      "filePath": "html/includes/views/donors_loyal.php",
+      "contentHash": "1710092850bc535a29be6f62bafcdb751a4f447d4157c12257bb9d1231878f57",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 89,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/donors_new.php": {
+      "filePath": "html/includes/views/donors_new.php",
+      "contentHash": "e4df321b4ddf887a7769170b4017c5f29be14dbb862fbf7f1e9bf32dd2159f14",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/donors_summary.php": {
+      "filePath": "html/includes/views/donors_summary.php",
+      "contentHash": "ce1fa702aaaeb019a375acc00e912f1b3954022cccba88a29f43d4a67f7b5516",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 684,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/members_lapsed.php": {
+      "filePath": "html/includes/views/members_lapsed.php",
+      "contentHash": "1699d66ad7b560e3a4b011b6d1ef13d86086d5aaf11a72b45cded737c9aadcae",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 107,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_app_users.php": {
+      "filePath": "html/includes/views/settings_app_users.php",
+      "contentHash": "ccb5afe3bd7d47df98619ee5d667245494b93cefea4ee74cc23373b51f9432d2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 405,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_audit_log.php": {
+      "filePath": "html/includes/views/settings_audit_log.php",
+      "contentHash": "098665a7d18fcf1234c48879afc208fab073613cf592818c2a95012b8f196df9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 183,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_categories.php": {
+      "filePath": "html/includes/views/settings_categories.php",
+      "contentHash": "fd066301a0aec6d5232b3832153ed63a561f2104127e043b5dc7c7e7f215a707",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 111,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_compta_types.php": {
+      "filePath": "html/includes/views/settings_compta_types.php",
+      "contentHash": "2b44fd627d062eaf8b847e02029e3c30780be67c42a77dcd05c14514f5a7173a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 317,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_filter_edit.php": {
+      "filePath": "html/includes/views/settings_filter_edit.php",
+      "contentHash": "e14ce583b71fbc82f705aad690d465a2dde304284c8520c9984996d77e27bc10",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 463,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_filters.php": {
+      "filePath": "html/includes/views/settings_filters.php",
+      "contentHash": "df12ac75bf859312e6f1dd63db71da7dafafbe975a3d4329009676652c616da9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 50,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_general.php": {
+      "filePath": "html/includes/views/settings_general.php",
+      "contentHash": "57e865684c6a54fcc559b744104de1c6ccb38ae253a5e6b97fc75a482115581e",
+      "functions": [
+        {
+          "name": "_settings_nav_item",
+          "params": [
+            "$tab",
+            "$icon",
+            "$label",
+            "$activeTab",
+            "$drillDown",
+            "$self"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 20
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "_settings_nav_item"
+      ],
+      "totalLines": 317,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_group_edit.php": {
+      "filePath": "html/includes/views/settings_group_edit.php",
+      "contentHash": "b89af213405e1dd40667d47d19e81469c1ba346491deb50540d2cf63b551af9a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 517,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_groups.php": {
+      "filePath": "html/includes/views/settings_groups.php",
+      "contentHash": "2105a9d6a3040f2ba8a8b23d9030ffb1f078f13ad30803254def86f9fa9a392e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 429,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_integrity.php": {
+      "filePath": "html/includes/views/settings_integrity.php",
+      "contentHash": "45aafbe6cc21a623432b5c8158259e69053f97f8533299a0b156cc215072b44e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 595,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/suivi_delete_confirm.php": {
+      "filePath": "html/includes/views/suivi_delete_confirm.php",
+      "contentHash": "fddd956e6ff7310e7a3ae2d588cd747b0f95497527435974cfc7b21c05b2428e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/suivi_delete_do.php": {
+      "filePath": "html/includes/views/suivi_delete_do.php",
+      "contentHash": "5bd57e907d5bed8f3d7390b5c38bd1a94506b3e5aa135c321c04d62df30c8ee8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/suivi_edit_form.php": {
+      "filePath": "html/includes/views/suivi_edit_form.php",
+      "contentHash": "bfdff8db0aac60e2bddc7be8047159c35cfcf5b1c3ef0b132bac301d690b0680",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/suivi_last_entry.php": {
+      "filePath": "html/includes/views/suivi_last_entry.php",
+      "contentHash": "456fa162c5795f3b89671782d20617971b1e9ab381eb6be7888b96cafd7ecfce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 89,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/suivi_list.php": {
+      "filePath": "html/includes/views/suivi_list.php",
+      "contentHash": "e809c8672984d9593fa3eb2b359390fe906ac05329fede2309a75b50eff86953",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 80,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/users_add_form.php": {
+      "filePath": "html/includes/views/users_add_form.php",
+      "contentHash": "2b4342cb546b7bab08941a83ce09dd8c3e02ef16a20ee024ad456261fb8e5ce3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 192,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/users_anonymize.php": {
+      "filePath": "html/includes/views/users_anonymize.php",
+      "contentHash": "34502faaf52d1270a461613a0990c7b87534e79865b76c8028e77211443e99f3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/users_deactivate_legacy.php": {
+      "filePath": "html/includes/views/users_deactivate_legacy.php",
+      "contentHash": "4e1c62eaa4f303fa407d20e6c2c05364520cc43f56341b0e815ecc71da88d5dc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/users_delete_confirm.php": {
+      "filePath": "html/includes/views/users_delete_confirm.php",
+      "contentHash": "1a07757a0d3c02052b684d8ba6986886bac410f7953c10959a3a277f73f25618",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 48,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/users_edit_form.php": {
+      "filePath": "html/includes/views/users_edit_form.php",
+      "contentHash": "5d0802aeac0ac9174319b276b1bb811ccf5e3b70ae92f7679265c2e5a81fee41",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 332,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/users_general_data.php": {
+      "filePath": "html/includes/views/users_general_data.php",
+      "contentHash": "f42f98eafa0a5f0c72c28fdcfc608fbefb90bffc891eb0557cf9389255c0113e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 404,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/users_history.php": {
+      "filePath": "html/includes/views/users_history.php",
+      "contentHash": "873a9680fd57fc1df4db21c21d0ecf31793f5c842be9dac06b0c6c4b955cace2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/users_inactive.php": {
+      "filePath": "html/includes/views/users_inactive.php",
+      "contentHash": "a1cdadd1611d201a5ceeef07f2074ceea82603017b9c6942e5851cd7f5fe1abe",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 179,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/users_list.php": {
+      "filePath": "html/includes/views/users_list.php",
+      "contentHash": "7e115add341f18388e3d277d858cec47c168edf93c585963f23e60ec1f928195",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 744,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/users_member_of.php": {
+      "filePath": "html/includes/views/users_member_of.php",
+      "contentHash": "74df84f49cbc25b7de1685e10ccc5fb22468458f9efb1582cf3e907e9569c909",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 260,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/users_merge.php": {
+      "filePath": "html/includes/views/users_merge.php",
+      "contentHash": "81e0b3ae3f65ae5f090a1463ee538a680eb689fd9d319306aa2f315f36c4d2a4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 335,
+      "hasStructuralAnalysis": true
+    },
+    "html/index.php": {
+      "filePath": "html/index.php",
+      "contentHash": "4382f8b7f78527d06540f04a149ae2bde0b9901e3e295dae75f75b398c2cf1b3",
+      "functions": [
+        {
+          "name": "getMicroTime",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "getMicroTime"
+      ],
+      "totalLines": 192,
+      "hasStructuralAnalysis": true
+    },
+    "html/install.php": {
+      "filePath": "html/install.php",
+      "contentHash": "e759f22da0d3d4957c12e8af90b7139c7bd4ed0af85667dd40159e21d0705370",
+      "functions": [
+        {
+          "name": "installerPdo",
+          "params": [],
+          "returnType": "PDO",
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "installerPdo"
+      ],
+      "totalLines": 653,
+      "hasStructuralAnalysis": true
+    },
+    "html/js/app.js": {
+      "filePath": "html/js/app.js",
+      "contentHash": "b51bbc34c9c1b841cfa718983eebaf96dade1c57b4e27124477c1de70e4e2dce",
+      "functions": [
+        {
+          "name": "casaInit",
+          "params": [
+            "root"
+          ],
+          "exported": false,
+          "lineCount": 19
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 164,
+      "hasStructuralAnalysis": true
+    },
+    "html/js/dt_defaults.js": {
+      "filePath": "html/js/dt_defaults.js",
+      "contentHash": "047ee7c70bdc245d5b35f12e0e2c53c255c7317516ab418b34e751e0457a0528",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "html/js/member-general-form.js": {
+      "filePath": "html/js/member-general-form.js",
+      "contentHash": "66616cc9f49a97a469c8eaa69e8fc43740f39ce0243cecacae903e49514cd487",
+      "functions": [
+        {
+          "name": "memberGeneralForm",
+          "params": [],
+          "exported": false,
+          "lineCount": 98
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 109,
+      "hasStructuralAnalysis": true
+    },
+    "html/js/tiptap-editor.js": {
+      "filePath": "html/js/tiptap-editor.js",
+      "contentHash": "8a14405eccc5be562dee4a74f2661663eb4711d5130beaa187cc6d01126eab5c",
+      "functions": [
+        {
+          "name": "initTiptap",
+          "params": [
+            "root"
+          ],
+          "exported": false,
+          "lineCount": 33
+        },
+        {
+          "name": "updateToolbar",
+          "params": [
+            "editor"
+          ],
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "destroyTiptap",
+          "params": [
+            "root"
+          ],
+          "exported": false,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "https://esm.sh/@tiptap/core@2",
+          "specifiers": [
+            "Editor"
+          ]
+        },
+        {
+          "source": "https://esm.sh/@tiptap/starter-kit@2",
+          "specifiers": [
+            "StarterKit"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 67,
+      "hasStructuralAnalysis": true
+    },
+    "html/locales/.htaccess": {
+      "filePath": "html/locales/.htaccess",
+      "contentHash": "fa28d421a28ed9b6f4b997d5119c2b8adbacff6e2dd119a179b71230f9664934",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": false
+    },
+    "html/locales/resources_fr.php": {
+      "filePath": "html/locales/resources_fr.php",
+      "contentHash": "a68ed3e1460f90e603eb5f313dd515426dc8068d7caa8c8d9ef58de56c784f36",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 135,
+      "hasStructuralAnalysis": true
+    },
+    "html/log4php.properties": {
+      "filePath": "html/log4php.properties",
+      "contentHash": "8642cd32a19258edc050fd54aa6f347fd238fd533cd8737d080babba0af21c57",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": false
+    },
+    "html/login.php": {
+      "filePath": "html/login.php",
+      "contentHash": "52fe6bd5f40526c02e098550aee3698f984130829ff2e50c7b0ce3d5ee889c8a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 106,
+      "hasStructuralAnalysis": true
+    },
+    "html/members.iml": {
+      "filePath": "html/members.iml",
+      "contentHash": "cdb97dc8f0a2e5125b0f9f819b2b06ea70305f40405a0a127a1acb91e7696744",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": false
+    },
+    "html/set-password.php": {
+      "filePath": "html/set-password.php",
+      "contentHash": "c77329683b7631d93f8d9961d49af70dd487c733dec7f547afce11163748f950",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 96,
+      "hasStructuralAnalysis": true
+    },
+    "html/tools/fix_encoding.php": {
+      "filePath": "html/tools/fix_encoding.php",
+      "contentHash": "84bd7e3df04d90a3c4e8b5064ce14ec31105a3025ca349143c08822391449137",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 93,
+      "hasStructuralAnalysis": true
+    },
+    "html/tools/guest2010.php": {
+      "filePath": "html/tools/guest2010.php",
+      "contentHash": "5a11acf2da9a188c9b5af984c533336b26efb19cef3d0a197c47ae2e1530c399",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "html/tools/import.php": {
+      "filePath": "html/tools/import.php",
+      "contentHash": "5bbf96607946826a349d836c228215f8814f965378d2aac4043c89f31e1165b8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 73,
+      "hasStructuralAnalysis": true
+    },
+    "package.json": {
+      "filePath": "package.json",
+      "contentHash": "857e402ae3996ea45b35f6aed4cc9059b37c15d45e93d2b6138e942b19e5993b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "playwright.config.ts": {
+      "filePath": "playwright.config.ts",
+      "contentHash": "bcf7cb750ec99e607d8f5d195e4581a9ad24c76d75540d20aac0f46856e3ce4d",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "defineConfig",
+            "devices"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "schema.sql": {
+      "filePath": "schema.sql",
+      "contentHash": "fa506090551d4bdbb20279521f3cb11f05e41bb5f94c01b524292fd67dba42d0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 147,
+      "hasStructuralAnalysis": true
+    },
+    "tests/README.md": {
+      "filePath": "tests/README.md",
+      "contentHash": "38395fb73fb4037bffadd173bc8b2e8a382957d8c2dc77a2e54475c8a7ff8a5a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 84,
+      "hasStructuralAnalysis": true
+    },
+    "tests/api.spec.ts": {
+      "filePath": "tests/api.spec.ts",
+      "contentHash": "2c28df16563d545c55f563f5f1699f511e58b441f5b8472523ea9db9dc331ba3",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 420,
+      "hasStructuralAnalysis": true
+    },
+    "tests/app-users.spec.ts": {
+      "filePath": "tests/app-users.spec.ts",
+      "contentHash": "92418038e1ba79f746375df3f625fc68b1b4b076827fa8f6c713f4201ff0ea4e",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "tests/auth.spec.ts": {
+      "filePath": "tests/auth.spec.ts",
+      "contentHash": "027c45c2707a17b363deb809c348f1631843390acf19e6ebb1644901fb747923",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        },
+        {
+          "source": "./helpers/login",
+          "specifiers": [
+            "login"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "tests/change-password.spec.ts": {
+      "filePath": "tests/change-password.spec.ts",
+      "contentHash": "c13967cc0c8f86902365b04d50ddfc6ba427f2557a90c30d0fb89883a7365a88",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "tests/compta-types.spec.ts": {
+      "filePath": "tests/compta-types.spec.ts",
+      "contentHash": "3e1e065391a2424ffe48206514e54356772086e6b0b889f2ac7282cf91b526d3",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 47,
+      "hasStructuralAnalysis": true
+    },
+    "tests/compta.spec.ts": {
+      "filePath": "tests/compta.spec.ts",
+      "contentHash": "df6d1ac75116536604a003bf82227b4925376390ee2ccf487a5f310ad1ded9bf",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "tests/dirty-guard.spec.ts": {
+      "filePath": "tests/dirty-guard.spec.ts",
+      "contentHash": "6137da57d5d7a5d55eb300809f48049fa66976c8eed35e73961854b3422b9189",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "* as path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "tests/filter-parity.spec.ts": {
+      "filePath": "tests/filter-parity.spec.ts",
+      "contentHash": "ede329894a2d7fa14c51298849d6be2a656fb0820cd916323e80183ed20cdffd",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "* as path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 42,
+      "hasStructuralAnalysis": true
+    },
+    "tests/fixtures/reset-db.sh": {
+      "filePath": "tests/fixtures/reset-db.sh",
+      "contentHash": "81e12216b68bee6e046beddda77a250d35abd41b0cb7f605d7d0ac1a72c77a82",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 40,
+      "hasStructuralAnalysis": true
+    },
+    "tests/fixtures/seed.sql": {
+      "filePath": "tests/fixtures/seed.sql",
+      "contentHash": "fe0af85b5b8bdbbdd0c9724339d43bf11b5a45c58771ec42da66789faaaef8bb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "tests/global-setup.ts": {
+      "filePath": "tests/global-setup.ts",
+      "contentHash": "eb6a0ea024c374a8a617735bfba86b1a382c9f0cfaf115ab2e44f614f6d1414a",
+      "functions": [
+        {
+          "name": "globalSetup",
+          "params": [
+            "config"
+          ],
+          "exported": false,
+          "lineCount": 31
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "chromium",
+            "FullConfig"
+          ]
+        },
+        {
+          "source": "child_process",
+          "specifiers": [
+            "execSync"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "* as path"
+          ]
+        },
+        {
+          "source": "fs",
+          "specifiers": [
+            "* as fs"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "tests/groups.spec.ts": {
+      "filePath": "tests/groups.spec.ts",
+      "contentHash": "f0bbe4b43c459eb54ae53cf25da78cc71e0f6f66db3532998126da3b1234d5b9",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 106,
+      "hasStructuralAnalysis": true
+    },
+    "tests/helpers/login.ts": {
+      "filePath": "tests/helpers/login.ts",
+      "contentHash": "f3ec99a427162db3aa71d6f79a4548e88cd404dbb14316512e9cb16157fd1bc4",
+      "functions": [
+        {
+          "name": "login",
+          "params": [
+            "page",
+            "username",
+            "password"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "Page"
+          ]
+        }
+      ],
+      "exports": [
+        "login"
+      ],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "tests/inactive-members.spec.ts": {
+      "filePath": "tests/inactive-members.spec.ts",
+      "contentHash": "e0c3eeb4f619c7ebd028ad66181e7b78fa02f5c9a9bce765690d9b2d2398544f",
+      "functions": [
+        {
+          "name": "getNewUserId",
+          "params": [
+            "page"
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "tests/members.spec.ts": {
+      "filePath": "tests/members.spec.ts",
+      "contentHash": "8fd2f72ae1f7e18c26095b626103dfe3fea7d3f5fadc626a5a9f79140b0c6627",
+      "functions": [
+        {
+          "name": "getNewUserId",
+          "params": [
+            "page"
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 96,
+      "hasStructuralAnalysis": true
+    },
+    "tests/merge-users.spec.ts": {
+      "filePath": "tests/merge-users.spec.ts",
+      "contentHash": "02c6824469b9486bb5f1a0eaf54b7a80a32befcb18fd8e25fb87271b07d04d8e",
+      "functions": [
+        {
+          "name": "getNewUserId",
+          "params": [
+            "page"
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 97,
+      "hasStructuralAnalysis": true
+    },
+    "tests/metagroups.spec.ts": {
+      "filePath": "tests/metagroups.spec.ts",
+      "contentHash": "f888c1ce15a70e425814f1eb56630551df0ae9b528a54e1dd34597931575671e",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "tests/mobile-roles.spec.ts": {
+      "filePath": "tests/mobile-roles.spec.ts",
+      "contentHash": "77658c907140b1d7d48eb342ac2048ee42d3bd068504d163183c1188956c949c",
+      "functions": [
+        {
+          "name": "stateFile",
+          "params": [
+            "role"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "openMobileAs",
+          "params": [
+            "browser",
+            "role"
+          ],
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Browser"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "* as path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 86,
+      "hasStructuralAnalysis": true
+    },
+    "tests/resume.spec.ts": {
+      "filePath": "tests/resume.spec.ts",
+      "contentHash": "e171e491d1b4bb8e715d0a6d8102b1aa456d45fe1bbe0e997747dd7a5b479e84",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "tests/route-guards.spec.ts": {
+      "filePath": "tests/route-guards.spec.ts",
+      "contentHash": "0856165863fd3bfcc1a9c608f1500365a2cf97d97984e5e80e995acc20c1fd3e",
+      "functions": [
+        {
+          "name": "stateFile",
+          "params": [
+            "role"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "openAs",
+          "params": [
+            "browser",
+            "role"
+          ],
+          "exported": false,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Browser"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "* as path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 115,
+      "hasStructuralAnalysis": true
+    },
+    "tests/settings.spec.ts": {
+      "filePath": "tests/settings.spec.ts",
+      "contentHash": "9185ed291e4811ece8e26c2069ee18a22824a6f107a25f01d0c95619f2e4062d",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "tests/suivi.spec.ts": {
+      "filePath": "tests/suivi.spec.ts",
+      "contentHash": "7d6e2de79d73f73887a08bdfdee97f37b13bc4f1e93f332d3142a733f70cdfe6",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "tests/team-filter.spec.ts": {
+      "filePath": "tests/team-filter.spec.ts",
+      "contentHash": "47b4e48213cac7bd65d88dc35b493a3e7da0549db2b9ec380c2581e1bae1f39c",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
+    "tests/views.spec.ts": {
+      "filePath": "tests/views.spec.ts",
+      "contentHash": "ed5fcfc52aec320dcfb93deba2c7782d4e49c7445eaf50392733986dfac0efd1",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    }
+  }
+}
