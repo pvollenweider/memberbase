@@ -92,6 +92,16 @@ test.describe.serial('members API', () => {
     expect(resp.status()).toBe(422);
   });
 
+  // CSRF hardening (#89): a mutation without Content-Type application/json is
+  // rejected (a cross-site "simple" POST can't set that header without preflight).
+  test('POST /api/members — 415 when body is not application/json', async ({ request }) => {
+    const resp = await request.post('/api/members', {
+      headers: { 'Content-Type': 'text/plain' },
+      data: JSON.stringify({ lastName: 'X', firstName: 'Y' }),
+    });
+    expect(resp.status()).toBe(415);
+  });
+
   test('GET /api/members/{id} — returns created member', async ({ request }) => {
     const resp = await request.get(`/api/members/${createdId}`);
     expect(resp.status()).toBe(200);
