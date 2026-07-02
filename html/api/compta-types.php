@@ -12,6 +12,7 @@ require_once __DIR__ . '/_bootstrap.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     apiError(405, 'Method Not Allowed');
 }
+if (!canRead()) apiError(403, 'Forbidden');
 
 global $comptaTypes;
 
