@@ -94,8 +94,10 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
 
 <div class="d-flex align-items-center justify-content-between mb-3 gap-2 flex-wrap" style="border-bottom:1px solid var(--ca-border,#dee2e6);padding-bottom:0.5rem">
     <div class="d-flex align-items-center gap-1 flex-wrap">
-        <span class="text-muted small fw-semibold me-2 d-none d-sm-inline" style="white-space:nowrap">
-            <?= htmlentities(trim($user->getSociety() . ' ' . $user->getFirstName() . ' ' . $user->getLastName()), ENT_COMPAT, $charset) ?>
+        <?php $_memberLabel = trim($user->getSociety() . ' ' . $user->getFirstName() . ' ' . $user->getLastName());
+              if ($_memberLabel === '') { $_memberLabel = 'Sans nom #' . (int)$user->getId(); } ?>
+        <span class="text-muted small fw-semibold me-2 w-100 w-sm-auto" style="white-space:normal">
+            <?= htmlentities($_memberLabel, ENT_COMPAT, $charset) ?>
         </span>
         <a class="btn btn-sm <?= $view === 'generalData' ? 'btn-primary' : 'btn-outline-secondary' ?>"
            href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;userid=<?= $user->getId() ?>">
