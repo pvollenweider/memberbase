@@ -32,7 +32,7 @@ Les couches proviennent directement du champ `layers` du graphe.
 | 3 | **Routage** | Dispatch GET/POST | `html/includes/routing/views.php`, `html/includes/routing/actions.php` |
 | 4 | **Vues** | Templates PHP inclus dans le layout | `html/includes/views/*`, `html/includes/partials/menu.php`, `html/includes/partials/donor_table.php` |
 | 5 | **Concepts transverses** | Notions applicatives (RBAC, dirty-form, import, segments…) | *(voir §3)* |
-| 6 | **Classes de domaine** | Logique métier active-record | `html/classes/{user,team,compta,metagroup,property}_class.php` |
+| 6 | **Classes de domaine** | Logique métier active-record | `html/classes/{user,team,compta,metagroup,property,member_filter}_class.php` |
 | 7 | **Handlers d'actions (POST)** | Validation + orchestration + audit | `html/includes/actions/*` |
 | 8 | **API REST** | Endpoints JSON `/api/`, gardés par session | `html/api/_bootstrap.php`, `html/api/{members,groups,compta,suivi,compta-types}.php` |
 | 9 | **Outils CLI** | Scripts de maintenance | `html/tools/{fix_encoding,guest2010,import}.php` |
@@ -111,15 +111,26 @@ Partiels : `html/includes/partials/menu.php` · `donor_table.php`
 
 Ces fichiers portent la complexité la plus élevée du graphe. Prévoyez du temps et relisez les tests associés avant d'y toucher.
 
+> Le refactor #55 (issues #56–#59) a réduit plusieurs de ces points : `users_list.php`
+> ne contient plus de SQL (déplacé vers `User::listWithFilters()` et consorts),
+> les filtres virtuels sont centralisés dans `MemberFilter`
+> (`classes/member_filter_class.php`), `index.php` n'a plus de JS inline
+> (→ `js/app.js`, `js/tiptap-editor.js`), et le routage des vues est une table
+> déclarative avec garde par route.
+
 | Complexité | Fichier | Pourquoi c'est délicat |
 |---|---|---|
-| 10 | `html/includes/views/users_list.php` | Liste membres filtrable : DataTables, filtres/segments, dirty-form guard, bulk actions |
-| 10 | `html/includes/views/donors_summary.php` | Tableau de bord donateurs : agrégations, graphiques Chart.js, mode étendu/résumé |
+| 9 | `html/includes/views/donors_summary.php` | Tableau de bord donateurs : agrégations, graphiques Chart.js, mode étendu/résumé |
 | 9 | `html/includes/actions/import.php` | Wizard d'import 3 étapes, doublons, transaction |
 | 9 | `html/includes/views/settings_group_edit.php` | Édition de groupe/segment : appartenances, catégories |
-| 9 | `html/api/members.php` | CRUD membres + pagination + filtres virtuels |
+| 8 | `html/includes/views/users_list.php` | Liste membres filtrable : DataTables, rendu des filtres, bulk actions (le SQL vit dans les classes) |
+| 8 | `html/api/members.php` | CRUD membres + pagination (filtres virtuels délégués à `MemberFilter`) |
 
-À surveiller ensuite (complexité 8) : `html/index.php`, `html/install.php`, `html/includes/actions/{groups,members}.php`, `html/includes/views/{users_edit_form,users_merge,compta_last_entry,compta_list,settings_filter_edit,settings_general,settings_groups,settings_integrity}.php`, `html/api/groups.php`.
+À surveiller ensuite (complexité 8) : `html/install.php`, `html/includes/actions/{groups,members}.php`, `html/includes/views/{users_edit_form,users_merge,compta_last_entry,compta_list,settings_filter_edit,settings_general,settings_groups,settings_integrity}.php`, `html/api/groups.php`.
+
+Tests dédiés à ces zones : `tests/filter-parity.spec.ts` (parité vue/API des filtres),
+`tests/route-guards.spec.ts` (matrice rôles × routes), `tests/dirty-guard.spec.ts`
+(guard formulaire), `tests/mobile-roles.spec.ts` (menu mobile).
 
 ---
 

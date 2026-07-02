@@ -45,13 +45,15 @@ window.location = url;
 
 ### Pourquoi
 
-`index.php` contient un guard dirty-form global qui :
+`html/js/app.js` contient un guard dirty-form global qui :
 1. écoute `change`/`input` sur tous les `SELECT`, `INPUT`, `TEXTAREA` non exclus → set `dirty = true`
 2. intercepte `beforeunload` et `htmx:beforeRequest` si `dirty && !__dirtyOverride` → affiche le popup
 
 Exclusions existantes (dans `markDirty`) :
 - `[data-no-dirty]` sur l'élément ou un ancêtre
-- `.mg-team-cb`, `#includeAttestation`, `.dt-search`, `.modal`, `#bulk-form`
+- `.mg-team-cb`, `#includeAttestation`, `#team-filter-input`, `.dt-search`, `.modal`, `#bulk-form`
+
+Couverture : `tests/dirty-guard.spec.ts`.
 
 ## Redirections après action (htmx)
 

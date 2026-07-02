@@ -169,7 +169,7 @@ curl -b cookies.txt \
 
 ### Filtres virtuels sur `GET /api/members`
 
-Activés en passant une valeur **négative** au paramètre `team`. Ils appliquent des sous-requêtes SQL et supportent la pagination standard (`page`, `limit`) et `types`. Une valeur négative non reconnue retourne `400 Unknown virtual filter`.
+Activés en passant une valeur **négative** au paramètre `team`. La résolution est déléguée à la classe partagée `MemberFilter` (`html/classes/member_filter_class.php`) — la même que celle utilisée par la liste des membres dans l'interface, ce qui garantit des résultats identiques entre la vue et l'API. Pagination standard (`page`, `limit`) et `types` supportés. Une valeur négative non reconnue retourne `400 Unknown virtual filter`.
 
 Constantes définies dans `html/includes/lib/bootstrap.php` :
 
