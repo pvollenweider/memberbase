@@ -586,6 +586,30 @@ tr.position-relative { cursor: pointer; }
     font-size: 0.82rem;
     padding: 0.45rem 0.75rem;
 }
+
+/* Layout fixe : la colonne « Champ » est étroite, les colonnes A et B se
+   partagent le reste à parts égales. Sans ça, du HTML collé dans la Note
+   (emails avec largeurs fixes) élargit la table et pousse la colonne B
+   hors de l'écran. */
+.ca-merge-table { table-layout: fixed; width: 100%; }
+.ca-merge-cell, .ca-merge-cell--same { overflow: hidden; }
+
+/* Le contenu d'une cellule (notamment la Note en HTML riche) est confiné :
+   il ne peut plus déborder ni dépasser la largeur de sa colonne. */
+.ca-merge-cell-value {
+    display: block;
+    max-height: 14rem;
+    overflow: auto;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+.ca-merge-cell-value * { max-width: 100% !important; height: auto !important; }
+.ca-merge-cell-value table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    display: block;
+    overflow-x: auto;
+}
 .ca-merge-same-icon { font-size: 0.65rem; color: var(--ca-border-strong); margin-right: 0.35rem; }
 
 .ca-merge-row--same td { opacity: 0.65; }
