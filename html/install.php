@@ -248,6 +248,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '3') {
             foreach ($statements as $stmt) {
                 $pdo->exec($stmt);
             }
+            // Baseline des migrations : le schéma embarqué ci-dessus est déjà à
+            // jour, donc on marque toutes les migrations existantes comme
+            // appliquées (un fresh install ne doit pas les rejouer).
+            $pdo->exec(
+                "CREATE TABLE IF NOT EXISTS `schema_migrations` (
+                    `version` VARCHAR(255) NOT NULL,
+                    `applied_at` INT(11) NOT NULL DEFAULT 0,
+                    PRIMARY KEY (`version`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+            );
+            $migFiles = glob(__DIR__ . '/../migrations/*.sql') ?: [];
+            if ($migFiles) {
+                $insMig = $pdo->prepare("INSERT IGNORE INTO schema_migrations (version, applied_at) VALUES (?, ?)");
+                foreach ($migFiles as $migFile) {
+                    $insMig->execute([basename($migFile, '.sql'), time()]);
+                }
+            }
             header('Location: install.php?step=4');
             exit;
         } catch (PDOException $e) {

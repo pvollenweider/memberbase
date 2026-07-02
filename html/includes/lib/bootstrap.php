@@ -121,6 +121,35 @@ function unquote(string $s): string
     return str_replace("\u{2019}", "'", $s);
 }
 
+/**
+ * Retourne la liste des migrations en attente (non enregistrées dans
+ * schema_migrations), triée par nom. Vide si la base est à jour.
+ *
+ * Robuste : si la table de suivi n'existe pas encore (instance jamais migrée
+ * avec le runner), toutes les migrations présentes sont considérées en attente.
+ * Toute autre erreur est avalée pour ne jamais casser le rendu d'une page.
+ */
+function pendingMigrations(PDO $pdo): array
+{
+    $migrationsDir = __DIR__ . '/../../../migrations';
+    $files = glob($migrationsDir . '/*.sql') ?: [];
+    if (!$files) {
+        return [];
+    }
+    sort($files, SORT_STRING);
+    $all = array_map(static fn($f) => basename($f, '.sql'), $files);
+
+    try {
+        $applied = $pdo->query("SELECT version FROM schema_migrations")->fetchAll(PDO::FETCH_COLUMN);
+    } catch (PDOException $e) {
+        // Table de suivi absente → aucune migration enregistrée.
+        $applied = [];
+    }
+    $applied = array_flip($applied);
+
+    return array_values(array_filter($all, static fn($v) => !isset($applied[$v])));
+}
+
 function auditLog(PDO $pdo, string $action, string $detail = '', ?int $subjectUserId = null): void
 {
     $uid      = isset($_SESSION['app_user_id']) ? (int)$_SESSION['app_user_id'] : null;

@@ -145,7 +145,26 @@ if ($isHtmx) {
 
 <?php
 include __DIR__ . "/includes/partials/menu.php";
+
+// Bandeau d'alerte : migrations DB en attente (visible admin uniquement).
+$_pendingMigrations = isAdmin() ? pendingMigrations($pdo) : [];
+if ($_pendingMigrations):
 ?>
+<div class="container mt-2">
+    <div class="alert alert-warning d-flex align-items-start gap-2 mb-0" role="alert">
+        <i class="fas fa-triangle-exclamation mt-1 flex-shrink-0" aria-hidden="true"></i>
+        <div>
+            <strong><?= count($_pendingMigrations) ?>
+                migration<?= count($_pendingMigrations) > 1 ? 's' : '' ?> de base de données en attente</strong>
+            (<?= htmlspecialchars(implode(', ', $_pendingMigrations), ENT_QUOTES, $charset) ?>).
+            Appliquez-la<?= count($_pendingMigrations) > 1 ? 's' : '' ?> avec
+            <code>php html/tools/migrate.php</code> (ou <code>make migrate</code>)
+            après avoir sauvegardé la base. Tant que ce n'est pas fait, certaines
+            fonctionnalités peuvent ne pas marcher correctement.
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 <div class="container mt-2">
     <div class="row">
         <div class="col-12" id="main-content">
