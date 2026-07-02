@@ -242,9 +242,12 @@ function canRead(): bool     // role ∈ {admin, manager, user, readonly}
 - `requireLogin()` : redirige vers `login.php` si non connecté.
 - `requirePasswordChange()` : si `force_password_change`, bloque toute vue/action sauf
   `changePassword` et `logout` (redirige vers `?view=changePassword`).
-- Dans `routing/views.php`, chaque vue sensible vérifie le rôle en tête et renvoie un
-  bloc `alert-danger` (« Accès refusé ») en cas de refus : `addUser`→`canWrite`,
-  `importStep1/2/3`→`isManager`, `mergeUsers`→`isManager`, `deleteUser`/`anonymizeUser`→`isAdmin`.
+- `routing/views.php` déclare une **table de routes** (`$UA_VIEW_ROUTES`) associant
+  chaque vue à son fichier et sa garde : `addUser`/`removeCompta`/`deleteComptaConfirm`/
+  `removeSuivi`/`removeSuiviConfirm`→`canWrite`, `importStep1/2/3`/`mergeUsers`→`isManager`,
+  `deleteUser`/`deleteUserConfirm`/`anonymizeUser`→`isAdmin`. Une garde refusée renvoie
+  un bloc `alert-danger` (« Accès refusé ») ; une vue absente de la table renvoie
+  « Vue introuvable ». Ajouter une route force donc une décision de garde explicite.
 - La force brute est déléguée à Fail2Ban (logs Apache), pas au code PHP.
 
 ---
@@ -301,10 +304,14 @@ Dispatch par `match (true)` sur `REQUEST_METHOD` + présence de `id`/`sub` :
 (max 2000), `?types=`. `handleUpdate()` charge l'avant, applique le patch, recharge
 l'après, calcule un diff lisible et l'écrit dans `audit_log` (`updateUser`).
 
-### Filtres virtuels (`handleVirtualFilter`)
+### Filtres virtuels (`MemberFilter`)
 
-Un `?team=` **négatif** déclenche des requêtes métier dédiées. Constantes définies dans
-`bootstrap.php` :
+Un `?team=` **négatif** déclenche des requêtes métier dédiées, résolues par la classe
+partagée `MemberFilter` (`html/classes/member_filter_class.php`) — seule source de
+vérité consommée à la fois par la liste des membres (`users_list.php`) et par l'API
+(`api/members.php`). `MemberFilter::resolveIds()` retourne la map `id => true` des
+membres correspondants ; `MemberFilter::isVirtual()` teste si un ID de segment est
+un filtre virtuel. Constantes définies dans `bootstrap.php` :
 
 | Constante                       | Valeur | Sémantique                                                    |
 |---------------------------------|--------|--------------------------------------------------------------|
@@ -377,15 +384,21 @@ TipTap est le **seul** module chargé depuis un CDN (`esm.sh`) ; tout le reste e
 <meta name="htmx-config" content='{"scrollIntoViewOnBoost": false, "defaultSwapStyle": "innerHTML"}'>
 ```
 
-Après chaque `htmx:afterSwap`, `casaInit()` réinitialise datepickers et `datahref`,
-nettoie les backdrops de modale résiduels et affiche le toast `#casaToast` si le
-fragment contient `#casa-save-ok` ou `#casa-membership-toast`. Avant
-`htmx:beforeHistorySave`, tous les DataTables sont détruits (`.destroy()`) pour éviter
-un conflit de colonnes à la restauration.
+Le JavaScript applicatif vit dans `html/js/app.js` (guard dirty-form, init des
+plugins jQuery, toasts) et `html/js/tiptap-editor.js` (éditeur riche, module ES),
+inclus par `index.php` avec cache-busting `filemtime`. Il n'y a plus de `<script>`
+inline dans `index.php`.
+
+Après chaque `htmx:afterSwap`, `casaInit()` (dans `app.js`) réinitialise datepickers
+et `datahref`, nettoie les backdrops de modale résiduels et affiche le toast
+`#casaToast` si le fragment contient `#casa-save-ok` ou `#casa-membership-toast`.
+Les messages localisés du toast sont lus depuis les attributs `data-msg-*` posés
+par `index.php`. Avant `htmx:beforeHistorySave`, tous les DataTables sont détruits
+(`.destroy()`) pour éviter un conflit de colonnes à la restauration.
 
 ### Guard de formulaire non sauvegardé
 
-Script inline dans `index.php` (fonction `markDirty`) : un flag `dirty` passe à `true`
+Dans `html/js/app.js` (fonction `markDirty`) : un flag `dirty` passe à `true`
 sur tout `change`/`input` d'un `INPUT`/`SELECT`/`TEXTAREA` non exclu. Il intercepte
 `htmx:beforeRequest` pour confirmer avant une navigation GET (les POST — sauvegardes —
 passent), et `beforeunload` pour la navigation hors-htmx. `htmx:afterSwap` remet `dirty`
