@@ -1,10 +1,10 @@
 # Guide utilisateur — MemberBase
 
-Guide pratique pour la gestion quotidienne des membres, segments, comptabilité et suivi.
+Guide pratique pour la gestion quotidienne des membres, segments, comptabilité, suivi et dons.
 
-> **Terminologie (v3.5.4).** L'interface parle de **Segment** (auparavant « groupe ») et
-> de **Segment combiné** (auparavant « métagroupe »). Les captures ou instructions
-> plus anciennes mentionnant « groupe » désignent la même notion.
+> **Terminologie (v3.5.4).** L'interface parle de **Segment** (auparavant « groupe ») et de
+> **Segment combiné** (auparavant « métagroupe » ou « filtre »). Les anciennes captures ou
+> instructions mentionnant « groupe » désignent la même notion.
 
 ---
 
@@ -12,17 +12,18 @@ Guide pratique pour la gestion quotidienne des membres, segments, comptabilité 
 
 1. [Connexion et navigation](#1-connexion-et-navigation)
 2. [Liste des membres](#2-liste-des-membres)
-3. [Ajouter un membre](#3-ajouter-un-membre) · [Importer des contacts](#importer-des-contacts-csv--tsv)
-4. [Fiche membre](#4-fiche-membre)
-5. [Comptabilité (onglet Compta)](#5-comptabilité-onglet-compta)
-6. [Suivi (onglet Suivi)](#6-suivi-onglet-suivi)
-7. [Segments](#7-segments)
-8. [Vues d'activité — Rapports](#8-vues-dactivité--rapports)
+3. [Ajouter un membre](#3-ajouter-un-membre)
+4. [Importer des contacts (CSV / TSV)](#4-importer-des-contacts-csv--tsv)
+5. [Fiche membre](#5-fiche-membre)
+6. [Comptabilité d'un membre (onglet Compta)](#6-comptabilité-dun-membre-onglet-compta)
+7. [Suivi d'un membre (onglet Suivi)](#7-suivi-dun-membre-onglet-suivi)
+8. [Journaux et aperçu des dons](#8-journaux-et-aperçu-des-dons)
 9. [Attestations de dons](#9-attestations-de-dons)
-10. [Réglages](#10-réglages)
-11. [Rôles utilisateurs](#11-rôles-utilisateurs)
-12. [Changer son mot de passe](#12-changer-son-mot-de-passe)
-13. [Déconnexion](#13-déconnexion)
+10. [Segments](#10-segments)
+11. [Réglages](#11-réglages)
+12. [Rôles utilisateurs et matrice des droits](#12-rôles-utilisateurs-et-matrice-des-droits)
+13. [Changer son mot de passe](#13-changer-son-mot-de-passe)
+14. [Déconnexion](#14-déconnexion)
 
 ---
 
@@ -31,40 +32,48 @@ Guide pratique pour la gestion quotidienne des membres, segments, comptabilité 
 ### Se connecter
 
 1. Ouvrir l'adresse de l'application dans le navigateur.
-2. Saisir le nom d'utilisateur et le mot de passe fournis par l'administrateur.
+2. Saisir l'identifiant et le mot de passe fournis par l'administrateur.
 3. Cliquer **Connexion**.
 
-Si c'est la première connexion ou si l'administrateur a réinitialisé le mot de passe, l'application demande immédiatement d'en choisir un nouveau.
+Lors de la première connexion, ou après une réinitialisation par un administrateur,
+l'application demande immédiatement de choisir un nouveau mot de passe. Si vous avez reçu
+un **lien d'invitation**, il vous permet de définir vous-même votre mot de passe.
 
-### Structure de la page
+### La barre de navigation
 
-L'interface est divisée en deux zones :
+En haut de chaque page, la barre bleue contient :
 
-- **Barre de navigation en haut** : champ de recherche rapide, liens vers les sections principales, accès au profil utilisateur (nom en haut à droite).
-- **Zone de contenu centrale** : change selon la section active.
-
-Les sections accessibles depuis la navigation sont :
-
-| Lien | Contenu |
+| Élément | Contenu |
 |---|---|
-| Logo / accueil | Liste des membres |
-| Rapports | Journaux compta et suivi, contributions, donateurs |
-| Groupes | Gestion des groupes et filtres |
-| Réglages (engrenage) | Configuration, types compta, comptes utilisateurs |
+| **Liste** (icône liste) | Liste des membres — page d'accueil |
+| **Compta** (icône pièces) | Journal comptable global (tous membres confondus) |
+| **Suivi** (icône livre) | Journal des notes de suivi (tous membres confondus) |
+| **Aperçu des dons** (icône camembert) | Tableau de bord des dons et contributions |
+| **Engrenage** (à droite) | Réglages — visible uniquement pour les rôles Manager et Admin |
+| **Nom d'utilisateur** (à droite) | Menu : *Mot de passe*, *Déconnexion* |
+| **Chercher** | Recherche rapide globale |
 
-### Navigation sans rechargement de page
+Il n'y a plus de menu « Rapports » ni « Groupes » séparé : les journaux et l'aperçu des dons
+sont directement dans la barre, et la gestion des segments se fait dans les **Réglages**.
 
-L'application utilise htmx : la plupart des actions (navigation entre membres, changement d'onglet, filtres) mettent à jour uniquement la zone de contenu sans recharger la page entière. L'URL dans la barre du navigateur se met quand même à jour, ce qui permet d'utiliser les boutons Précédent / Suivant du navigateur normalement.
+Sur mobile, la barre se réduit à une rangée d'icônes ; la loupe ouvre un champ de recherche
+et l'icône utilisateur regroupe le profil.
 
-### Utilisation sur mobile
+### Navigation sans rechargement (htmx)
 
-Sur un écran étroit, certaines colonnes du tableau de membres sont masquées automatiquement (adresse, NPA, date de création). La navigation principale se replie. Toutes les fonctions restent accessibles, mais l'usage quotidien est prévu pour un écran de bureau.
+La plupart des actions (changement de membre, d'onglet, de filtre) ne rechargent que la zone
+centrale. L'URL du navigateur reste à jour : les boutons Précédent / Suivant fonctionnent
+normalement.
+
+> **Modifications non enregistrées.** Si vous quittez une page contenant des modifications non
+> sauvegardées (édition en cours), un message d'avertissement s'affiche.
 
 ---
 
 ## 2. Liste des membres
 
-La liste des membres est la page principale. Elle affiche par défaut le groupe configuré comme groupe de référence (ex. : Membres 2026).
+La liste des membres est la page d'accueil. Elle affiche par défaut le segment configuré comme
+segment de référence (par exemple « Membre 2026 »).
 
 ### Colonnes affichées
 
@@ -75,474 +84,479 @@ La liste des membres est la page principale. Elle affiche par défaut le groupe 
 | Nom | Nom de famille |
 | Prénom | Prénom |
 | Adresse | Rue et numéro |
-| NPA / Localité | Code postal et ville |
+| NPA | Code postal / localité |
 | Email | Adresse e-mail cliquable |
 | Création | Date d'ajout du profil |
-| Types | Badges colorés indiquant les types de versements enregistrés |
+| Types | Petits badges colorés (3 lettres) indiquant les types de versements enregistrés ; cliquer ouvre l'onglet Compta du membre |
 
-Cliquer sur n'importe quelle ligne ouvre la fiche du membre.
+Cliquer sur une ligne ouvre la fiche du membre. Certaines colonnes sont masquées par défaut
+ou sur petit écran (genre, adresse, NPA, date de création) et peuvent être réaffichées via le
+bouton **Colonnes**.
 
-### Filtrer par groupe ou filtre rapide
+### Filtrer par segment
 
-Le bouton en haut à gauche de la liste affiche le groupe actif. Cliquer dessus ouvre un menu déroulant avec :
+Le bouton en haut à gauche de la liste affiche le segment actif. Cliquer dessus ouvre un menu
+déroulant contenant :
 
-- Un champ de recherche pour filtrer la liste des groupes par nom.
-- Une section **Groupes de groupes** (métagroupes de type filtre) — affiche l'union de plusieurs groupes.
+- Un champ **Filtrer…** pour retrouver un segment par son nom (navigation clavier : flèches +
+  Entrée).
+- Une section **Segments combinés** (union de plusieurs segments), si au moins un existe.
 - Une section **Filtres rapides** :
 
 | Filtre rapide | Membres affichés |
 |---|---|
 | Tout le monde | Tous les membres actifs (hors archivés) |
-| Cotisation AAAA non payée | Membres sans cotisation enregistrée pour l'année en cours |
-| Aucune cotisation ces 3 dernières années | Membres ayant déjà payé une cotisation, mais aucune depuis 3 ans |
+| Aucune cotisation ces 3 dernières années | Membres ayant déjà cotisé, mais pas lors des 3 dernières années (les membres du segment « sans cotisation » sont exclus) |
 | Aucun versement ces 10 dernières années | Membres actifs sans aucune entrée comptable depuis 10 ans |
+| Cotisation AAAA non payée | Membres sans cotisation enregistrée pour l'année en cours |
 | Donateur non institutionnel actif en AAAA-1 | Membres ayant fait au moins un versement non institutionnel l'année précédente |
 
-- Une liste de tous les groupes, regroupés par catégorie. Le badge à droite de chaque groupe indique le nombre de membres.
+- La liste de tous les segments, regroupés par **catégorie**. Le badge à droite de chaque
+  segment indique son nombre de membres.
 
-Pour naviguer au clavier dans ce menu : taper dans le champ de filtre, puis utiliser les flèches haut/bas et Entrée pour aller sur un groupe.
+Une phrase d'explication s'affiche sous le bouton lorsqu'un filtre rapide est actif.
 
 ### Rechercher un membre
 
-- Le champ **Chercher** dans la barre de navigation en haut effectue une recherche globale sur prénom, nom, société, adresse, NPA, email et commentaires. La liste se met à jour sans recharger la page.
-- La zone de recherche intégrée au tableau (DataTables) filtre en temps réel dans les résultats déjà affichés.
+- Le champ **Chercher** de la barre de navigation effectue une recherche globale sur prénom,
+  nom, société, adresse, NPA, e-mail et commentaires. La liste se met à jour automatiquement
+  dès 3 caractères saisis (raccourci clavier : `/` pour placer le curseur dans le champ).
+- Les termes trouvés sont surlignés dans la liste.
 
-Les termes trouvés sont surlignés dans la liste.
+### Trier, exporter, gérer les colonnes
 
-### Trier les colonnes
+- Cliquer un en-tête de colonne pour trier ; un second clic inverse l'ordre.
+- La barre d'outils au-dessus du tableau propose : **Copier**, **Excel**, **PDF**,
+  **Imprimer**, **Colonnes**. Seules les lignes visibles (après filtrage) sont exportées.
 
-Cliquer sur un en-tête de colonne pour trier. Un second clic inverse l'ordre. DataTables conserve le tri même après une recherche.
+### Boutons d'action de la liste
 
-### Exporter et gérer les colonnes
-
-La barre d'outils DataTables (au-dessus du tableau) propose :
-
-| Bouton | Action |
-|---|---|
-| Copier | Copie le contenu du tableau dans le presse-papiers |
-| Excel | Télécharge un fichier .xlsx |
-| PDF | Génère un PDF de la liste affichée |
-| Imprimer | Ouvre la boîte d'impression du navigateur |
-| Colonnes | Affiche / masque des colonnes à la demande |
-
-Seules les lignes visibles (après filtrage) sont exportées.
+| Bouton | Rôle requis | Action |
+|---|---|---|
+| **Importer** (icône import) | Manager / Admin | Assistant d'import de contacts (voir §4) |
+| **Ajouter** (icône personne +) | Utilisateur et plus | Créer un nouveau membre (voir §3) |
 
 ---
 
 ## 3. Ajouter un membre
 
-1. Depuis la liste des membres, cliquer le bouton **Ajouter** (icône personne+) en haut à droite de la liste.
+1. Depuis la liste, cliquer le bouton **Ajouter**.
 2. Remplir le formulaire :
 
 | Champ | Description |
 |---|---|
 | Société | Nom de l'organisation (facultatif) |
-| Genre | Homme / Femme / Monsieur et Madame / — |
-| Titre | Titre honorifique (Dr, Prof., etc.) |
-| Prénom | Prénom |
 | Nom | Nom de famille |
+| Prénom | Prénom |
+| Sexe | Indéterminé / Monsieur et Madame / Madame / Monsieur |
+| Titre | Titre honorifique (Dr, Prof.…) |
 | Adresse | Rue et numéro |
-| NPA / Localité | Code postal et ville (format libre) |
-| Email | Adresse e-mail principale |
-| Privé | Téléphone privé |
-| Prof. | Téléphone professionnel |
-| Portable | Numéro de mobile |
-| Fax | Numéro de fax |
-| Web | URL du site web |
-| Date naissance | Date de naissance |
-| Compétences | Zone de texte libre (supporte le gras, l'italique, les listes) |
+| NPA | Code postal et localité |
+| E-mail | Adresse e-mail principale |
+| **E-mail alt.** | Adresse alternative / historique — *non utilisée pour les envois* |
+| Web | Site web |
+| Tél. prof. / Privé / Portable / Fax | Numéros de téléphone |
+| Date de naissance | Format JJ/MM/AAAA |
+| Compétences / remarques | Zone de texte libre |
 
-3. Cliquer **Ajouter** pour créer le profil.
+3. Si vous avez ouvert le formulaire depuis un segment actif, une case
+   **Ajouter au segment « … »** est proposée en bas.
+4. Cliquer **Ajouter**.
 
-Le nouveau membre apparaît dans la liste. Si un segment était actif dans le filtre au moment de l'ajout, le membre est automatiquement rattaché à ce segment.
-
-### Importer des contacts (CSV / TSV)
-
-Pour créer plusieurs membres d'un coup à partir d'un fichier, utiliser le bouton **Importer** de la barre d'outils de la liste des membres (réservé aux rôles **Manager** et **Admin**). L'assistant se déroule en 3 étapes :
-
-1. **Fichier** — sélectionner un fichier **CSV** ou **TSV** (séparateur virgule, point-virgule ou tabulation ; encodage UTF-8 ou Latin-1). La première ligne doit contenir les en-têtes de colonnes. Limites : 5 MB et 5 000 lignes (au-delà, un avertissement s'affiche et seules les 5 000 premières lignes sont importées).
-2. **Correspondance des colonnes** — associer chaque colonne du fichier à un champ membre (Nom, Prénom, Email, Genre/civilité, Adresse, etc.). Les colonnes courantes sont pré-associées automatiquement d'après leur en-tête. Un aperçu de valeurs (échantillonnées sur les 25 premières lignes) aide à vérifier. La civilité en texte (« Monsieur », « Madame », « Madame et Monsieur ») est convertie automatiquement.
-   - **Ajouter à un segment** : en bas de l'étape, choisir de rattacher les contacts importés à un segment existant, à un nouveau segment (avec catégorie optionnelle), ou — par défaut — à un segment `Import JJ.MM.AAAA HH:MM` créé pour l'occasion.
-3. **Résultats & doublons** — le rapport indique le nombre de contacts créés. Les **doublons** (même email, ou même prénom + nom qu'un membre existant) sont listés : pour chacun, choisir **Ignorer**, **Compléter les champs vides** ou **Écraser**. Les membres existants présents dans le fichier rejoignent aussi le segment choisi.
+Le nouveau membre s'ouvre directement sur sa fiche.
 
 ---
 
-## 4. Fiche membre
+## 4. Importer des contacts (CSV / TSV)
 
-Cliquer sur une ligne de la liste ouvre la fiche membre. Une barre d'onglets en haut de la fiche donne accès aux différentes sections.
+L'import en masse est réservé aux rôles **Manager** et **Admin**. Cliquer le bouton
+**Importer** dans la barre d'outils de la liste. L'assistant se déroule en 3 étapes.
 
-### Onglets disponibles
+### Étape 1 — Fichier
+
+- Sélectionner un fichier **CSV** (séparateur virgule ou point-virgule) ou **TSV**
+  (tabulation).
+- Encodage **UTF-8** ou **Latin-1**. La **première ligne** doit contenir les en-têtes de
+  colonnes.
+- Limites : **5 MB** et **5 000 lignes**. Au-delà, un avertissement s'affiche et seules les
+  5 000 premières lignes sont importées (découper le fichier pour importer le reste).
+
+### Étape 2 — Correspondance des colonnes
+
+- Pour chaque colonne du fichier, choisir le **champ membre** correspondant (Nom, Prénom,
+  Société, Genre/civilité, Titre, E-mail, E-mail alt., téléphones, Adresse, NPA, Web,
+  Naissance, Remarques) ou **— ignorer —**.
+- Les colonnes courantes sont **pré-associées** automatiquement d'après leur en-tête. Une
+  colonne d'**exemples** (échantillon des 25 premières lignes) aide à vérifier. La civilité en
+  texte (« Monsieur », « Madame », « Madame et Monsieur ») est convertie automatiquement.
+- **Ajouter les contacts à un segment** — quatre choix :
+  - **Créer un segment `Import JJ.MM.AAAA HH:MM`** (option par défaut) ;
+  - **Ajouter à un segment existant** ;
+  - **Créer un nouveau segment** (nom + catégorie facultative) ;
+  - **Ne pas ajouter à un segment**.
+- Cliquer **Importer**.
+
+### Étape 3 — Résultats et doublons
+
+- Un bandeau indique le nombre de contacts **créés** et, le cas échéant, le nombre de contacts
+  ajoutés au segment choisi.
+- Les **doublons** (même e-mail, ou même prénom + nom qu'un membre existant) sont listés. Pour
+  chacun, choisir :
+  - **Ignorer** (ne rien modifier) ;
+  - **Compléter les champs vides** (n'écrase pas l'existant) ;
+  - **Écraser** (remplace les valeurs par celles du fichier).
+- Cliquer **Appliquer les choix**, ou **Terminer sans appliquer**.
+
+---
+
+## 5. Fiche membre
+
+Cliquer une ligne de la liste ouvre la fiche. Une barre d'onglets donne accès aux sections.
+
+### Onglets
 
 | Onglet | Contenu |
 |---|---|
-| Données | Données personnelles et groupes d'appartenance |
-| Compta | Historique des versements |
-| Suivi | Notes de contact |
-| Historique | Journal des modifications (admins uniquement) |
+| Données générales | Coordonnées + appartenance aux segments + résumé financier |
+| Compta | Historique des versements (voir §6) |
+| Suivi | Notes de contact (voir §7) |
+| Historique | Journal des modifications de la fiche — **admins uniquement** |
 
-### Activer / archiver un membre
+Le nombre d'entrées est affiché en petit à côté des onglets Compta et Suivi.
 
-Le commutateur **Actif / Archivé** en haut à droite de la fiche permet de basculer l'état du membre.
+### Actif / Archivé
+
+Un commutateur **Actif / Archivé** est affiché en haut à droite (modifiable par les **Managers**
+et **Admins**).
 
 - **Actif** : le membre apparaît dans toutes les listes.
-- **Archivé** : le membre est masqué de toutes les listes de filtrage. Il reste accessible par recherche et depuis son URL directe. Toutes ses données sont conservées. L'archivage peut être annulé à tout moment en réactivant le commutateur.
+- **Archivé** : le profil est retiré de toutes les listes de filtrage (une confirmation est
+  demandée). Il reste accessible par recherche et par son URL directe, et toutes ses données
+  sont conservées. Réversible à tout moment.
 
-Un membre archivé qui n'a pas d'entrées comptables peut être **supprimé définitivement**. Si des entrées comptables existent, seule l'**anonymisation** est proposée : les données personnelles sont effacées mais l'historique financier est conservé.
+Pour un membre **archivé**, un administrateur peut :
 
-### Données générales
+- le **supprimer définitivement** s'il n'a **aucune** entrée comptable ;
+- sinon, uniquement l'**anonymiser** : les données personnelles sont effacées, l'historique
+  financier est conservé.
 
-La zone d'informations s'affiche en **mode lecture** par défaut. Les champs remplis sont visibles, les champs vides sont masqués.
+### Données générales (mode lecture / édition)
 
-**Modifier les données :**
+Par défaut, les données s'affichent en **lecture** ; les champs vides sont masqués. Un lien
+**Google Maps** apparaît sous l'adresse.
 
-1. Cliquer n'importe où dans la zone de données (un encadré apparaît au survol avec la mention « Modifier »).
-2. Le formulaire d'édition s'ouvre à la place de l'affichage.
-3. Modifier les champs souhaités.
-4. Cliquer **Enregistrer** pour sauvegarder, ou **Annuler** pour revenir à l'affichage sans sauvegarder.
+Pour modifier (rôles Utilisateur et plus) : cliquer dans la zone de données (la mention
+*Modifier* apparaît au survol). Le formulaire s'ouvre en place. Il inclut notamment le champ
+**E-mail alt.** (adresse historique / alternative, non utilisée pour les envois) et un éditeur
+de texte enrichi pour les *compétences / remarques* (gras, italique, listes). Cliquer
+**Enregistrer** ou **Annuler**. La date de création et de dernière modification est indiquée en
+bas.
 
-Les modifications sont envoyées immédiatement au serveur. Un message de confirmation apparaît brièvement en cas de succès.
+### Appartenance aux segments
 
-Dans le mode lecture, un lien **Google Maps** s'affiche sous l'adresse pour l'ouvrir directement dans la cartographie.
+La colonne de droite liste les **Segments** du membre, regroupés par catégorie. Les segments
+masqués portent une icône œil barré.
 
-### Appartenance aux groupes
-
-La colonne de droite (sur desktop) affiche les groupes auxquels appartient le membre. Pour ajouter ou retirer un groupe, utiliser les contrôles affichés dans cette zone. Chaque modification est enregistrée immédiatement.
+Pour ajouter ou retirer un segment (rôles **Manager** et **Admin**) : cliquer la croix d'une
+pastille pour retirer, ou déplier **Ajouter un segment** pour en ajouter. Chaque changement est
+enregistré immédiatement (avec possibilité d'annuler via le bandeau). Le bouton **Segments
+masqués** affiche aussi les segments cachés.
 
 ### Résumé financier
 
-Sous les groupes, un encart affiche un résumé rapide des dons et versements :
+Sous les segments, des encarts récapitulent (année en cours, année précédente, total depuis le
+premier versement) :
 
-- Montant de l'année en cours
-- Montant de l'année précédente
-- Total depuis le premier versement
+- **Dons** : versements comptés comme dons ;
+- **Autres versements** : versements de types exclus des dons (avec le détail des types) ;
+- **Total** de tous les versements confondus.
 
-Un encart séparé s'affiche pour les versements de type « autres versements » (non comptés comme dons).
+Un avertissement *Cotisation AAAA non payée* s'affiche si le membre n'a pas cotisé cette année
+(sauf s'il appartient au segment « membres sans cotisation »).
 
 ---
 
-## 5. Comptabilité (onglet Compta)
+## 6. Comptabilité d'un membre (onglet Compta)
 
-L'onglet **Compta** liste tous les versements enregistrés pour un membre.
+L'onglet **Compta** liste tous les versements du membre et propose des graphiques (répartition
+par type et évolution mensuelle / cumulée).
 
-### Ajouter une entrée
+### Ajouter une entrée (rôles Utilisateur et plus)
 
-Le formulaire d'ajout est affiché en haut du tableau :
+Le formulaire est en haut du tableau :
 
-1. **Type** : sélectionner le type de versement dans la liste (cotisation, don, etc.).
-2. **Date** : saisir la date au format JJ/MM/AAAA. La date du jour est pré-remplie.
-3. **Libellé** : texte libre décrivant le versement.
-4. **Somme** : montant en CHF (nombre, ex. : 50 ou 150.00).
-5. **Commentaire** : champ libre (numéro de quittance, référence, note interne).
-6. **Attestation** (icône PDF) : cocher si le donateur souhaite recevoir une attestation de don fiscale.
+1. **Type** — sélectionner le type de versement (cotisation, don…).
+2. **Date** — format JJ/MM/AAAA (date du jour pré-remplie).
+3. **Libellé** — description libre.
+4. **Somme** — montant en CHF (ex. `50` ou `12.50`).
+5. **Quittance** — numéro de quittance / référence.
+6. **Attestation** (case à cocher) — cocher si le donateur souhaite une attestation fiscale.
 7. Cliquer **Ajouter**.
 
-La ligne apparaît immédiatement dans le tableau.
+### Modifier / supprimer
 
-### Modifier une entrée
+Cliquer une ligne pour l'ouvrir en édition. La suppression se fait depuis la page d'édition de
+l'entrée.
 
-Cliquer sur une ligne du tableau pour l'ouvrir en édition. Modifier les champs et sauvegarder.
+### Filtres et outils
 
-### Supprimer une entrée
-
-Depuis la page d'édition d'une entrée, cliquer **Supprimer cette écriture** et confirmer.
-
-### Filtrer par année
-
-Le bouton de sélection d'année (en haut à gauche de l'onglet Compta) filtre les entrées affichées. L'option **Toutes** affiche l'historique complet.
-
-### Afficher uniquement les dons
-
-Le commutateur **Dons uniquement** masque les entrées marquées comme non-don (cotisations, remboursements, ventes, etc.) pour ne voir que les versements comptant comme dons.
-
-### Générer une attestation de don (individuelle)
-
-1. Sélectionner une année dans le filtre d'année (le bouton n'est pas disponible si « Toutes » est sélectionné).
-2. Cliquer le bouton **Attestation** (en haut à droite de l'onglet).
-3. Choisir l'année dans le menu déroulant si vous souhaitez une autre année que celle affichée.
-4. Le PDF s'ouvre dans un nouvel onglet et peut être téléchargé ou imprimé.
-
-L'attestation ne reprend que les versements dont le type n'est pas marqué « exclu des dons » dans les réglages.
-
-### Total
-
-Le pied de tableau affiche le total des entrées affichées.
+- **Année** : filtrer par année, ou **Toutes** pour l'historique complet.
+- **Dons uniquement** : masquer les entrées non-don (ventes, remboursements…). Les entrées
+  non comptées comme don portent la mention « non-don ».
+- **Attestation** (menu) : générer une attestation de don pour l'année choisie (voir §9).
+- Le pied de tableau affiche le **total** des entrées affichées.
 
 ---
 
-## 6. Suivi (onglet Suivi)
+## 7. Suivi d'un membre (onglet Suivi)
 
-L'onglet **Suivi** permet d'enregistrer des notes de contact ou de suivi individuel pour un membre.
+L'onglet **Suivi** enregistre des notes de contact individuelles.
 
-### Ajouter une note
-
-1. Le formulaire d'ajout est affiché en haut du tableau.
-2. **Date** : saisir la date au format JJ/MM/AAAA. La date du jour est pré-remplie.
-3. **Commentaires** : saisir le texte de la note.
-4. Cliquer **Ajouter**.
-
-### Modifier une note
-
-Cliquer sur une ligne du tableau pour l'ouvrir en édition. Modifier et enregistrer.
-
-### Supprimer une note
-
-Cliquer l'icône corbeille à droite de la ligne et confirmer.
-
-Les notes sont affichées de la plus récente à la plus ancienne.
-
----
-
-## 7. Segments
-
-Les segments permettent de découper les membres en sous-ensembles (membres d'une année, comité, partenaires, etc.). *(Anciennement « groupes ».)*
-
-### Accéder à la gestion des segments
-
-Cliquer **Segments** dans la barre de navigation, puis **Réglages** (ou via la roue crantée).
-
-La gestion se trouve dans les onglets **Segments**, **Catégories** et **Segments combinés** de la page Réglages.
-
-### Créer un segment
-
-1. Dans l'onglet **Segments**, saisir le nom du nouveau segment dans le champ en bas de liste.
+1. **Date** (date du jour pré-remplie) et **Commentaires**.
 2. Cliquer **Ajouter**.
 
-### Modifier un segment
-
-1. Cliquer le nom du segment dans la liste.
-2. La page d'édition permet de :
-   - Renommer le segment.
-   - Masquer le segment (il n'apparaît plus dans le menu de filtre de la liste des membres, mais les membres restent rattachés).
-   - Changer la catégorie d'appartenance.
-   - **Voir la liste** des membres de ce segment.
-   - **Importer des membres** depuis un autre segment (copie ponctuelle des membres).
-   - **Importer les cotisants d'une année** : ajoute automatiquement les membres ayant payé une cotisation pour l'année sélectionnée.
-   - **Importer les donateurs d'une année** : avec seuil minimum CHF.
-   - **Transférer et dissoudre** : déplace tous les membres vers un autre segment, puis supprime le segment.
-   - **Supprimer** le segment (uniquement s'il est vide).
-
-### Segments masqués
-
-Un segment masqué n'apparaît pas dans le menu de filtrage de la liste des membres. Il reste visible dans la gestion des segments et dans les fiches membres. Utiliser cette option pour les segments administratifs internes qui ne doivent pas encombrer le menu.
-
-### Catégories de segments
-
-Les catégories servent à organiser visuellement les segments dans le menu de filtrage (sections avec titre). Elles se gèrent dans l'onglet **Catégories** des réglages.
-
-### Segments combinés (filtres)
-
-Un segment combiné regroupe plusieurs segments. Sélectionner ce filtre dans la liste des membres affiche l'union de tous ses segments membres. *(Anciennement « métagroupe ».)*
-
-**Créer un segment combiné :**
-
-1. Dans l'onglet **Segments combinés** des réglages, cliquer **Créer un filtre**.
-2. Nommer le filtre.
-3. Cocher les segments à inclure.
-4. Enregistrer.
-
-Le filtre apparaît ensuite dans le menu déroulant de la liste des membres.
+Cliquer une ligne pour la modifier ; l'icône corbeille supprime la note. Les notes sont
+affichées de la plus récente à la plus ancienne. L'ajout, la modification et la suppression
+sont réservés aux rôles Utilisateur et plus.
 
 ---
 
-## 8. Vues d'activité — Rapports
+## 8. Journaux et aperçu des dons
 
-Accès via le lien **Rapports** dans la barre de navigation. Cette section donne une vue transversale sur l'ensemble des membres.
+Ces vues transversales sont accessibles depuis la barre de navigation.
 
-### Journal compta
+### Compta — journal comptable global
 
-Toutes les dernières entrées comptables, tous membres confondus.
+Toutes les entrées comptables, tous membres confondus.
 
-- Filtrer par **type** (cotisation, don, etc.) avec les boutons-filtres.
-- Filtrer par **année**.
-- Cliquer sur une ligne pour ouvrir directement la fiche compta du membre concerné.
-- Export DataTables disponible (Copier / Excel / PDF / Imprimer).
+- Filtrer par **type** de versement et par **année** (avec options *12 derniers mois* /
+  *24 derniers mois* / *Toutes les années*).
+- Cliquer une ligne ouvre l'onglet Compta du membre concerné.
+- Export DataTables (Copier / Excel / PDF / Imprimer) et graphiques (répartition par type,
+  évolution mensuelle vs cumulée).
 
-### Journal suivi
+### Suivi — journal des notes global
 
-Toutes les dernières notes de suivi, tous membres confondus.
+Toutes les notes de suivi, tous membres confondus, avec les mêmes outils d'export.
 
-- Filtrer par **année**.
-- Cliquer sur une ligne pour ouvrir la fiche du membre.
+### Aperçu des dons
 
-### Contributions
+Tableau de bord des contributions. En haut, des **cartes clés** :
 
-Vue agrégée des versements par donateur pour une année donnée. Fournit des indicateurs clés pour suivre l'évolution des dons.
+- **Contributions AAAA** : total CHF de l'année, avec comparaison à l'année précédente (et,
+  pour l'année en cours, comparaison à la même période l'an dernier + objectif à atteindre).
+- **Donateurs** : nombre de donateurs, avec trois liens cliquables :
+  - **fidèles** — ont donné en AAAA et AAAA-1 ;
+  - **Nouveaux** — première contribution en AAAA ;
+  - **perdus** — ont donné en AAAA-1 mais pas en AAAA.
+- **Membres actifs** : effectif du segment de référence, avec comparaison et lien
+  *membres perdus* (membres non reconduits).
+- Un **camembert** de répartition par type de versement.
 
-**Utiliser les filtres :**
+Filtres et options :
 
-1. **Année** : sélectionner l'année à analyser.
-2. **Seuil minimum CHF** : masquer les donateurs en dessous d'un montant (boutons 1 / 100 / 200 / 500 / 1 000 CHF).
-3. **Dons uniquement** : exclure les versements de types marqués « non-don ».
-4. **Toutes entrées** : inclure tous les types de versements.
-5. **Attestation demandée** : filtrer sur les donateurs ayant coché « Souhaite une attestation ».
+- **Montant minimum** : 1 / 100 / 200 / 500 / 1 000 CHF.
+- **Année** : année précise, *12 / 24 derniers mois*, ou *toutes les années*.
+- **Mode étendu** : inclut **tous** les types de versements (y compris ceux exclus des dons) —
+  les totaux ne reflètent alors plus uniquement les dons ; une colonne *Autres* et un *Total*
+  apparaissent.
+- **Inclure si attestation demandée** : ajoute les personnes ayant coché « souhaite une
+  attestation » même sous le montant minimum.
+- **Attestations AAAA** : génère toutes les attestations de l'année en un seul PDF (voir §9).
 
-**Indicateurs affichés :**
+Le tableau liste les donateurs avec leur statut (membre / don institutionnel), le montant des
+dons et l'indicateur d'attestation. Cliquer une ligne ouvre la compta du membre ; l'icône PDF
+génère son attestation.
 
-- Total CHF pour l'année sélectionnée, avec variation par rapport à l'année précédente.
-- Nombre de donateurs **fidèles** (présents en N et N-1), **nouveaux** (présents en N uniquement), **perdus** (présents en N-1 uniquement) — chaque chiffre est cliquable pour afficher la liste détaillée.
+#### Listes détaillées (donateurs fidèles / nouveaux / perdus, membres perdus)
 
-### Donateurs fidèles
-
-Donateurs ayant contribué à la fois en N et en N-1. Affiche les montants des deux années pour comparaison directe.
-
-### Nouveaux donateurs
-
-Donateurs ayant fait un premier versement en N (aucune trace en N-1).
-
-### Donateurs perdus
-
-Donateurs actifs en N-1 qui n'ont pas contribué en N.
-
-Le bouton **Créer un groupe de relance** exporte cette liste dans un groupe existant ou nouveau, pour faciliter les actions de relance.
-
-### Membres perdus
-
-Membres ayant été actifs (cotisation ou don) en N-1 mais sans aucun versement en N. Différent des « donateurs perdus » : inclut les cotisants.
+Accessibles via les liens des cartes. La vue **Donateurs perdus** propose un bouton
+**Créer segment « Donateurs à relancer AAAA »** qui rassemble ces personnes dans un nouveau
+segment pour faciliter la relance.
 
 ---
 
 ## 9. Attestations de dons
 
-Une attestation de don est un document PDF officiel remis au donateur pour sa déclaration fiscale. Elle reprend les versements de l'année pour un membre donné (hors types exclus des dons).
+Une attestation de don est un PDF officiel remis au donateur pour sa déclaration fiscale. Elle
+reprend les versements de l'année (hors types marqués « exclu des dons »).
 
-### Attestation individuelle depuis la fiche membre
+### Depuis la fiche d'un membre
 
-1. Ouvrir la fiche du membre.
-2. Cliquer sur l'onglet **Compta**.
-3. Sélectionner une année dans le filtre d'année.
-4. Cliquer le bouton **Attestation** (en haut à droite).
-5. Choisir l'année dans le menu déroulant.
-6. Le PDF s'ouvre dans un nouvel onglet.
+1. Ouvrir l'onglet **Compta**, choisir une **année**.
+2. Cliquer le menu **Attestation** et choisir l'année.
+3. Le PDF s'ouvre dans un nouvel onglet.
 
-### Attestation individuelle depuis la vue Contributions
+### Depuis l'aperçu des dons (individuelle)
 
-1. Aller dans **Rapports > Contributions**.
-2. Sélectionner l'année.
-3. Sur la ligne du donateur, cliquer l'icône d'attestation.
-4. Le PDF se télécharge.
+Sur la ligne du donateur, cliquer l'icône **PDF**.
 
-### Attestations en masse (toute l'année)
+### En masse (toute l'année)
 
-Cette fonction génère en une seule opération un PDF groupé contenant les attestations de tous les donateurs ayant coché **Souhaite une attestation** pour l'année sélectionnée.
+1. Dans **Aperçu des dons**, sélectionner l'année.
+2. Cliquer **Attestations AAAA**.
+3. Confirmer : un PDF unique regroupant toutes les attestations est généré (la génération peut
+   prendre plusieurs minutes et se poursuit dans l'onglet ouvert).
 
-1. Aller dans **Rapports > Contributions**.
-2. Sélectionner l'année cible.
-3. Cliquer **Toutes les attestations 20XX**.
-4. Un PDF unique est généré et téléchargé, avec une attestation par donateur.
-
-Seuls les membres dont la case **Souhaite une attestation** a été cochée sur au moins une entrée de l'année sont inclus.
+Seuls les donateurs ayant coché **Souhaite une attestation** sur au moins une entrée de l'année
+sont inclus dans la génération en masse.
 
 ---
 
-## 10. Réglages
+## 10. Segments
 
-Accès via l'icône engrenage dans la barre de navigation. Les onglets visibles dépendent du rôle.
+Les segments découpent les membres en sous-ensembles (membres d'une année, comité, partenaires,
+donateurs à relancer…). Leur gestion se trouve dans les **Réglages** (icône engrenage,
+réservée aux Managers et Admins), onglets **Segments**, **Catégories** et **Segments combinés**.
 
-### Onglet Groupes
+### Créer un segment
 
-Gestion des groupes : création, renommage, masquage, import de membres, suppression. Accessible à tous les utilisateurs avec droits d'écriture.
+Dans l'onglet **Segments**, saisir le nom dans le champ prévu et valider.
 
-### Onglet Catégories
+### Modifier un segment
 
-Gestion des catégories de groupes. Permet d'organiser les groupes en sections dans le menu de filtrage. Accessible à tous les utilisateurs avec droits d'écriture.
+Cliquer le nom d'un segment ouvre sa page d'édition, qui permet de :
 
-### Onglet Métagroupes
+- **Renommer** le segment ;
+- le **Masquer dans les interfaces** (il disparaît du menu de filtrage, mais les membres
+  restent rattachés) ;
+- lui attribuer une **catégorie** ;
+- **Voir la liste** de ses membres ;
+- **Importer des membres d'autres segments** (copie ponctuelle) ;
+- **Importer les cotisants d'une année** (types marqués « cotisation ») ;
+- **Importer les donateurs d'une année** (tous / non-institutionnels / institutionnels, avec
+  montant minimum) ;
+- **Réaffecter ou dissoudre** : transférer tous les membres vers un autre segment puis le
+  supprimer, ou retirer tous les membres et supprimer le segment.
 
-Gestion des filtres de groupes. Voir section [Métagroupes](#métagroupes-filtres). Accessible à tous les utilisateurs avec droits d'écriture.
+> Les imports de membres sont des **copies ponctuelles** : si le segment source évolue ensuite,
+> ce segment n'est pas mis à jour. Pour un regroupement dynamique, utiliser un **segment
+> combiné**.
 
-### Onglet Types compta (managers et admins)
+### Catégories
 
-Définit les types de versements disponibles dans le formulaire compta (cotisation, don, vente, etc.).
+L'onglet **Catégories** organise visuellement les segments en sections (titres) dans le menu de
+filtrage et dans les fiches membres.
 
-Pour chaque type :
+### Segments combinés
 
-- **Nom** : libellé affiché dans le formulaire et les listes.
-- **Couleur** : couleur du badge dans la liste des membres et de la ligne dans l'onglet compta.
-- **Est une cotisation** : si coché, ce type est pris en compte pour les filtres de cotisation.
-- **Exclu des dons** : si coché, les versements de ce type ne sont pas comptabilisés dans les totaux de dons ni dans les attestations.
-- **Institutionnel** : si coché, les versements de ce type sont exclus du filtre « Donateurs non institutionnels ».
+Un **segment combiné** regroupe plusieurs segments : le sélectionner dans la liste affiche
+l'**union** de leurs membres. Depuis l'onglet **Segments combinés**, saisir un nom pour en créer
+un, puis cliquer son nom pour choisir les segments à inclure. Il apparaît ensuite en tête du
+menu de filtrage de la liste des membres.
 
-### Onglet Réglages (admins uniquement)
+---
 
-Paramètres généraux de l'application :
+## 11. Réglages
+
+Accès via l'icône **engrenage** (Managers et Admins). La barre latérale liste les sections ;
+les sections disponibles dépendent du rôle.
+
+| Section | Rôle | Contenu |
+|---|---|---|
+| Segments | Manager / Admin | Gestion des segments (voir §10) |
+| Catégories | Manager / Admin | Catégories de segments |
+| Segments combinés | Manager / Admin | Filtres regroupant plusieurs segments |
+| Types compta | Manager / Admin | Types de versements |
+| Réglages | Admin | Paramètres généraux de l'organisation |
+| Utilisateurs | Admin | Comptes de connexion à l'application |
+| Journal | Admin | Journal d'activité |
+| Intégrité | Admin | Vérification et correction des données |
+| Archivés | Admin | Liste des membres archivés |
+
+### Types compta
+
+Pour chaque type de versement :
+
+- **Nom** et **Couleur** (badge dans la liste et la compta) ;
+- **Est une cotisation** : pris en compte par les filtres de cotisation ;
+- **Exclu des dons** : non comptabilisé dans les totaux de dons ni les attestations ;
+- **Institutionnel** : exclu du filtre « donateurs non institutionnels ».
+
+### Réglages (généraux, Admin)
 
 | Paramètre | Description |
 |---|---|
-| Nom de l'organisation | Utilisé dans les en-têtes des documents générés |
-| Adresse | Adresse de l'organisation |
-| NPA / Ville / Pays | Coordonnées postales |
-| Préfixe des groupes membres | Préfixe pour retrouver les groupes membres des années précédentes (ex. « Membre » pour « Membre 2025 », « Membre 2026 ») |
-| Groupe affiché par défaut | Groupe sélectionné à l'ouverture de la liste. Mettre à jour chaque année |
-| Groupe membres (année de référence) | Groupe utilisé pour les filtres cotisations et le tableau de bord. Mettre à jour chaque année |
-| Groupe membres sans cotisation | Membres actifs exemptés de cotisation (bénévoles, comité). Exclus du filtre « Aucune cotisation ces 3 dernières années » |
+| Nom / Adresse / NPA / Ville / Pays de l'organisation | En-têtes des documents générés |
+| Préfixe des segments membres | Préfixe pour retrouver les segments membres des années (ex. « Membre ») |
+| Segment affiché par défaut | Segment ouvert à l'arrivée sur la liste — **à mettre à jour chaque année** |
+| Segment membres (année de référence) | Utilisé pour les filtres cotisations et l'aperçu des dons — **à mettre à jour chaque année** |
+| Segment membres sans cotisation | Membres actifs exemptés de cotisation (bénévoles, comité…) |
 
-**Important :** mettre à jour les deux paramètres de groupe membres au début de chaque nouvelle année.
+### Utilisateurs (Admin)
 
-### Onglet Utilisateurs (admins uniquement)
+Gestion des comptes de connexion :
 
-Gestion des comptes utilisateurs de l'application :
+- Liste des utilisateurs (identifiant, nom, e-mail, rôle, statut, dernière connexion).
+- **Nouvel utilisateur** : identifiant, nom affiché, e-mail, **rôle** (une **matrice des
+  droits** est consultable via l'icône **?** à côté du champ Rôle — voir §12), et mot de passe
+  temporaire (ou lien d'invitation à envoyer).
+- **Modifier**, **Réinitialiser le mot de passe** (l'utilisateur devra le changer à la
+  prochaine connexion), **Supprimer**, activer / désactiver un compte.
 
-- Voir la liste des utilisateurs avec leur rôle, date de dernière connexion et statut.
-- Créer un nouvel utilisateur : cliquer **Ajouter**, renseigner le nom d'utilisateur, le nom d'affichage, l'email et le rôle.
-- Modifier un utilisateur existant : cliquer sur son nom.
-- Réinitialiser le mot de passe : génère un mot de passe temporaire que l'utilisateur devra changer à sa prochaine connexion.
-- Désactiver / réactiver un compte.
+### Journal (Admin)
 
-### Onglet Journal (admins uniquement)
+Trace les actions effectuées (création, modification, suppression) avec date, utilisateur et
+détail.
 
-Journal d'activité : trace toutes les actions effectuées dans l'application (créations, modifications, suppressions) avec la date, l'utilisateur et le détail.
+### Intégrité (Admin)
 
-### Onglet Intégrité (admins uniquement)
+Détecte et aide à corriger les incohérences : membres en double (même nom ou même e-mail, avec
+bouton **Fusionner**), segments masqués encore assignés à une catégorie / un segment combiné /
+des membres, montants ou dates comptables invalides, entrées sans type, e-mails ou e-mails alt.
+mal formatés, genre hors valeurs, date de naissance dans le futur, membres sans nom ni société.
+Un message « Tout est clean » s'affiche si rien n'est détecté.
 
-Outils de vérification et de correction des données :
+#### Fusionner deux fiches
 
-- Détecter des incohérences dans la base de données.
-- Corriger des problèmes signalés.
+Depuis Intégrité, cliquer **Fusionner** sur un doublon ouvre l'écran de fusion :
 
-### Archivés (admins uniquement)
-
-Lien direct vers la liste des membres archivés. Permet de consulter, réactiver, anonymiser ou supprimer des profils archivés.
+- Pour chaque **champ divergent**, cliquer la valeur à conserver (A ou B).
+- Pour la note, une case **Garder les deux notes** (survivant en premier) permet de tout
+  conserver.
+- Choisir le **profil survivant** (garde son ID) et le sort du **profil source** : *archiver*
+  ou *supprimer*.
+- Les entrées compta et suivi et les appartenances aux segments sont fusionnées
+  automatiquement (dédoublonnées). Confirmer via la fenêtre de résumé.
 
 ---
 
-## 11. Rôles utilisateurs
+## 12. Rôles utilisateurs et matrice des droits
 
-L'application distingue quatre niveaux d'accès :
+L'application distingue quatre rôles : **Lecture seule**, **Utilisateur**, **Manager** et
+**Admin**. La matrice ci-dessous est consultable directement à la création d'un compte (icône
+**?** à côté du champ Rôle dans **Réglages ▸ Utilisateurs**).
 
-| Fonctionnalité | Lecture seule | Utilisateur | Manager | Admin |
+| Droit | Lecture seule | Utilisateur | Manager | Admin |
 |---|:---:|:---:|:---:|:---:|
-| Voir la liste des membres | Oui | Oui | Oui | Oui |
-| Rechercher et filtrer | Oui | Oui | Oui | Oui |
-| Voir la fiche d'un membre | Oui | Oui | Oui | Oui |
-| Voir l'historique compta et suivi | Oui | Oui | Oui | Oui |
-| Modifier un membre (données générales) | Non | Oui | Oui | Oui |
-| Ajouter / modifier / supprimer des entrées compta | Non | Oui | Oui | Oui |
-| Ajouter / modifier / supprimer des notes de suivi | Non | Oui | Oui | Oui |
-| Ajouter un membre | Non | Oui | Oui | Oui |
-| Archiver / réactiver un membre | Non | Oui | Oui | Oui |
-| Gérer les groupes, catégories, métagroupes | Non | Oui | Oui | Oui |
-| Gérer les types compta | Non | Non | Oui | Oui |
-| Accéder aux réglages généraux | Non | Non | Non | Oui |
-| Gérer les comptes utilisateurs | Non | Non | Non | Oui |
-| Consulter le journal d'activité | Non | Non | Non | Oui |
-| Supprimer / anonymiser des membres | Non | Non | Non | Oui |
+| Consulter membres, compta, suivi | ✓ | ✓ | ✓ | ✓ |
+| Créer / modifier membres, compta, suivi | – | ✓ | ✓ | ✓ |
+| Importer des contacts (CSV/TSV) | – | – | ✓ | ✓ |
+| Gérer segments, catégories, paramètres | – | – | ✓ | ✓ |
+| Fusionner / archiver un membre | – | – | ✓ | ✓ |
+| Supprimer / anonymiser un membre | – | – | – | ✓ |
+| Gérer les comptes applicatifs | – | – | – | ✓ |
 
-Le rôle **Lecture seule** permet de consulter toutes les données sans rien modifier.
+La gestion de l'appartenance d'un membre aux segments et l'accès aux Réglages sont donc
+réservés aux Managers et Admins ; un rôle **Utilisateur** peut créer et modifier des membres et
+saisir compta et suivi, mais pas gérer les segments.
 
 ---
 
-## 12. Changer son mot de passe
+## 13. Changer son mot de passe
 
-1. Cliquer sur son nom d'utilisateur en haut à droite de la page.
-2. Cliquer **Mot de passe** dans le menu déroulant.
-3. Saisir le mot de passe actuel.
-4. Saisir le nouveau mot de passe, puis le confirmer.
-5. Cliquer **Sauvegarder**.
+1. Cliquer son **nom d'utilisateur** en haut à droite.
+2. Choisir **Mot de passe**.
+3. Saisir le mot de passe actuel, puis le nouveau mot de passe et sa confirmation.
+4. Enregistrer.
 
-Si le mot de passe a été réinitialisé par un administrateur, l'application demande automatiquement d'en définir un nouveau à la prochaine connexion.
+Si un administrateur a réinitialisé votre mot de passe, l'application impose ce changement à la
+connexion suivante.
 
 ---
 
-## 13. Déconnexion
+## 14. Déconnexion
 
-Cliquer sur son nom d'utilisateur en haut à droite, puis **Déconnexion**.
+Cliquer son **nom d'utilisateur** en haut à droite, puis **Déconnexion**.
+</content>
+</invoke>

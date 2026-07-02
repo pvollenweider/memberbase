@@ -1,37 +1,38 @@
 # Architecture de MemberBase
 
-MemberBase v3.5.4 — application PHP 8.2 de gestion des membres pour ONG.
+MemberBase **v3.5.4** — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.
 
 > **Terminologie.** Depuis la v3.5.4, l'interface parle de **Segment** (au lieu de
-> « groupe ») et de **Segment combiné** (au lieu de « métagroupe »). Ce document et
-> l'API conservent les noms techniques d'origine : table `team`, table `metagroup`,
-> endpoints `/api/groups`. « Segment » (UI) = entité `team` (technique).
+> « groupe ») et de **Segment combiné** (au lieu de « métagroupe »). Ce sont des
+> libellés uniquement : le code et l'API conservent les noms techniques d'origine
+> — table `team`, table `metagroup`, endpoints `/api/groups`. Dans tout ce document,
+> **« Segment » (UI) = entité `team` (technique)** et **« Segment combiné » (UI) =
+> entité `metagroup`**.
 
 ---
 
-## 1. Vue d'ensemble
+## 1. Vue d'ensemble & principes
 
-MemberBase est une application PHP classique sans framework MVC. Elle repose sur
-quatre principes structurants :
+MemberBase est une application PHP procédurale, sans framework MVC, sans namespace,
+sans Composer. Elle repose sur cinq principes structurants :
 
 - **Point d'entrée unique** : `html/index.php` reçoit toutes les requêtes de
-  l'interface web. Les fichiers de vues et les handlers d'actions sont inclus
-  dynamiquement par les routeurs.
-- **Pas d'ORM ni de framework** : PDO paramétré en accès direct, classes de
-  domaine en accès actif (active-record), pas de namespace, pas de Composer.
-- **htmx 2.0 pour la navigation** : `<body hx-boost="true">` intercepte tous les
-  clics de liens et les soumet via XHR. La réponse est swappée dans
-  `#main-content` sans rechargement de page. Le layout complet (menu, scripts,
-  footer) reste en place.
-- **Alpine.js 3 pour les composants réactifs** : utilisé pour les zones de la
-  page qui nécessitent un état local (mode view/edit du formulaire membre,
-  par exemple). Les composants Alpine sont déclarés dans des fichiers JS externes
-  (`html/js/member-general-form.js`) pour rester compatibles avec une CSP `self`.
+  l'interface web. Les fragments de vue et les handlers d'action sont inclus
+  dynamiquement par deux routeurs (`routing/views.php`, `routing/actions.php`).
+- **Pas d'ORM** : accès PDO paramétré, avec des classes de domaine en style
+  *active-record*. La connexion `$pdo` est un global accédé via `global $pdo`.
+- **htmx 2.0 pour la navigation** : `<body hx-boost="true">` transforme liens et
+  formulaires en requêtes XHR ; la réponse (fragment HTML pur, jamais de JSON) est
+  swappée dans `#main-content` sans recharger le layout.
+- **Alpine.js 3 pour l'état local** : composants réactifs déclarés dans des fichiers
+  JS externes (`html/js/member-general-form.js`) pour rester compatibles avec une
+  CSP `self`.
+- **API REST séparée** : le répertoire `html/api/` expose des endpoints JSON
+  machine-to-machine, distincts de l'interface htmx mais partageant la même session.
 
-La réponse à une requête htmx est un fragment HTML pur (pas de JSON, pas de
-template engine dédié). Pour les accès API machine-to-machine, un sous-répertoire
-`html/api/` expose des endpoints REST distincts.
+Garde constante des listings : la colonne `users.status` (`1` = actif, `0` = archivé)
+est filtrée partout via `WHERE users.status = 1`.
 
 ---
 
@@ -39,555 +40,451 @@ template engine dédié). Pour les accès API machine-to-machine, un sous-réper
 
 ```
 Navigateur
-  |
-  |-- GET index.php?view=generalData&id=42
-  |   [HX-Request: true]
-  |
+  |  GET index.php?view=generalData&id=42   [HX-Request: true]
   v
 html/index.php
-  |
-  |-- requireLogin()          <- auth.php: vérifie $_SESSION['app_user_id']
-  |-- requirePasswordChange() <- redirige si force_password_change=1
-  |
-  |-- $isHtmx = true         <- HTTP_HX_REQUEST présent
-  |
-  |-- include routing/actions.php  <- traite $_REQUEST['action'] si présent
-  |-- include routing/views.php    <- dispatche $_REQUEST['view']
-  |       |
-  |       +-- include views/users_edit_form.php
-  |               |
-  |               +-- new User()->lookupUser(42)
-  |               +-- echo fragment HTML (<div>...</div>)
-  |
-  ob_end_flush()
-  exit
-  |
+  |-- define('APP_ENTRY', true); ob_start();
+  |-- require auth.php → requireLogin(), requirePasswordChange()
+  |-- include locales, bootstrap.php, classes/*
+  |-- $isHtmx = !empty($_SERVER['HTTP_HX_REQUEST'])   → true
+  |       include routing/actions.php   (traite ?action= si présent)
+  |       include routing/views.php     (dispatche ?view=)
+  |            └── include views/users_edit_form.php  → echo <div>…</div>
+  |       ob_end_flush(); exit;
   v
-Navigateur
-  htmx swap innerHTML de #main-content
-  htmx pushState url (hx-push-url="true")
+Navigateur : htmx swappe innerHTML de #main-content, pushState (hx-push-url)
 ```
 
-Quand `$isHtmx` est `false` (premier chargement), `index.php` émet le layout
-complet : `<!DOCTYPE html>`, head avec tous les scripts, menu, `#main-content`,
-footer. Le contenu de `#main-content` est rendu au même endroit dans les deux
-chemins.
+Quand `$isHtmx` est `false` (chargement direct/rafraîchissement), `index.php` émet le
+document complet : `<!DOCTYPE html>`, `<head>` avec tous les scripts vendor, menu,
+`#main-content`, toast, footer. Le contenu de `#main-content` est rendu par les mêmes
+deux `include` de routing dans les deux chemins.
 
 ---
 
-## 3. Flux d'une requête POST (soumission de formulaire)
+## 3. Flux d'une requête POST (action)
 
-Le pattern suivi est Post-Redirect-Get (PRG), adapté pour htmx.
+Pattern Post-Redirect-Get adapté à htmx.
 
 ```
 Navigateur
-  |
-  |-- POST index.php
-  |   body: action=updateUser&id=42&firstName=Ana...
-  |   [HX-Request: true]
-  |
+  |  POST index.php  body: action=updateUser&id=42&…   [HX-Request: true]
   v
-html/index.php
-  |
-  |-- requireLogin(), requirePasswordChange()
-  |
-  |-- include routing/actions.php
-  |       |
-  |       +-- $ACTION_MAP['updateUser'] => 'members'
-  |       +-- require includes/actions/members.php
-  |               |
-  |               +-- valide les entrées
-  |               +-- $user->save()
-  |               +-- auditLog(...)
-  |               +-- if ($isHtmx) {
-  |                       header('HX-Location: index.php?view=generalData&id=42');
-  |                       exit;
-  |                   }
-  |                   header('Location: ...'); exit;  // fallback non-htmx
-  |
+html/index.php → include routing/actions.php
+  |-- $ACTION_MAP['updateUser'] = 'members'
+  |-- require includes/actions/members.php
+  |       vérifie le rôle (canWrite/isManager/isAdmin selon l'action)
+  |       valide, $user->save(), auditLog(...)
+  |       if ($isHtmx) { header('HX-Location: …?view=generalData&id=42'); exit; }
+  |       header('Location: …'); exit;   // fallback non-htmx
   v
-Navigateur
-  htmx intercepte HX-Location (pas une vraie redirection HTTP)
-  htmx émet un nouveau GET vers index.php?view=generalData&id=42
-  htmx swap #main-content avec le fragment reçu
-  htmx affiche le toast #casa-save-ok (détecté dans htmx:afterSwap)
+Navigateur : htmx capte HX-Location → nouveau GET → swap #main-content
+             + toast #casaToast si le fragment contient #casa-save-ok
 ```
 
-`HX-Location` est utilisé à la place de l'en-tête `Location` standard car htmx
-intercepte les redirections 302 mais les traite différemment selon la version.
-`HX-Location` déclenche une navigation htmx propre sans rechargement de page.
+`HX-Location` (et non un `302 Location`) est utilisé pour toute réponse à une requête
+htmx, afin que htmx effectue une navigation propre sans rechargement.
 
 ---
 
 ## 4. Couches architecturales
 
-Le graphe de connaissance identifie 14 couches logiques :
+Le knowledge graph (`.understand-anything/knowledge-graph.json` : 192 nœuds, 342 arêtes)
+identifie **13 couches**.
 
-| Couche       | Rôle                                                          | Fichiers représentatifs                       |
-|--------------|---------------------------------------------------------------|-----------------------------------------------|
-| `infra`      | Infrastructure Docker, CI/CD, Makefile                        | `docker-compose.yml`, `.github/workflows/`    |
-| `entry`      | Point d'entrée unique de l'application web                    | `html/index.php`                              |
-| `core-lib`   | PDO, helpers de date, audit log, constantes de filtres, champs d'import | `html/includes/lib/bootstrap.php`, `import_fields.php` |
-| `auth`       | Session PHP, bcrypt, gardes d'accès, 4 rôles                  | `html/includes/lib/auth.php`                  |
-| `routing`    | Dispatch GET (views.php) et POST (actions.php)                | `html/includes/routing/`                      |
-| `domain`     | Classes active-record : User, Team, Compta, Metagroup...      | `html/classes/`                               |
-| `actions`    | Handlers POST procéduraux groupés par domaine                 | `html/includes/actions/`                      |
-| `views`      | Fragments PHP inclus par views.php                            | `html/includes/views/`                        |
-| `api`        | Endpoints REST JSON (machine-to-machine)                      | `html/api/`                                   |
-| `tools`      | Scripts utilitaires CLI (import, fix encoding, guest)         | `html/tools/` (`fix_encoding.php`, etc.)      |
-| `frontend`   | CSS, JS vendor et custom, composants Alpine                   | `html/css/`, `html/js/`                       |
-| `schema`     | DDL MariaDB, idempotent (`CREATE TABLE IF NOT EXISTS`)        | `schema.sql`                                  |
-| `tests`      | Suite Playwright E2E, fixtures, reset DB                      | `tests/`, `tests/reset-db.sh`                 |
-| `docs`       | README, CHANGELOG, DESIGN, CONTRIBUTING, runbooks             | `*.md`                                        |
+| Couche      | Rôle                                                        | Fichiers représentatifs                                   |
+|-------------|------------------------------------------------------------|-----------------------------------------------------------|
+| `entry`     | Points d'entrée & pages racine                             | `html/index.php`, `login.php`, `set-password.php`, `attestation_don.php`, `install.php` |
+| `core-lib`  | PDO/settings, helpers date, audit log, constantes de filtres, champs d'import | `html/includes/lib/bootstrap.php`, `auth.php`, `import_fields.php` |
+| `routing`   | Dispatch GET (`views.php`) et POST (`actions.php` + `$ACTION_MAP`) | `html/includes/routing/`                            |
+| `views`     | Fragments PHP inclus par `views.php`                       | `html/includes/views/`, `includes/partials/`              |
+| `concepts`  | Concepts transverses (dirty-guard, htmx, terminologie…)    | (transversal, pas de fichier unique)                      |
+| `domain`    | Classes active-record                                      | `html/classes/` (User, Team, Compta, Metagroup, UserProperty) |
+| `actions`   | Handlers POST procéduraux groupés par domaine             | `html/includes/actions/`                                  |
+| `api`       | Endpoints REST JSON                                        | `html/api/`                                               |
+| `tools`     | Scripts utilitaires CLI                                    | `html/tools/` (`import.php`, `fix_encoding.php`, `guest2010.php`) |
+| `schema`    | DDL MariaDB idempotent (`CREATE TABLE IF NOT EXISTS`)      | `schema.sql`                                              |
+| `infra`     | Docker, CI/CD, Makefile                                    | `docker-compose*.yml`, `Dockerfile`, `.github/workflows/` |
+| `tests`     | Suite Playwright E2E, fixtures, reset DB                   | `tests/`                                                  |
+| `docs`      | README, CHANGELOG, DESIGN, runbooks                        | `*.md`, `doc/`                                            |
 
-**Assistant d'import CSV/TSV** (v3.5.4) — wizard web en 3 étapes réservé aux
-Manager/Admin : action `includes/actions/import.php` (`importUpload` →
-`importApply` → `importResolveDuplicates`), vues `includes/views/import_step{1,2,3}.php`,
-définition des champs importables dans `includes/lib/import_fields.php`. L'état du
-wizard transite par `$_SESSION['_import_*']` ; la création des contacts et du
-segment cible est enveloppée dans une transaction.
+> Le frontend (CSS/JS vendor) n'est pas une couche du graphe ; il est décrit en
+> §9. Les libellés `auth`/`frontend` de versions antérieures de ce document ne
+> correspondaient pas au graphe réel.
 
 ---
 
 ## 5. Schéma de base de données
 
-### Tables et leur rôle
+Toutes les tables sont **InnoDB / utf8mb4**. Il n'y a **aucune clé étrangère
+déclarée** : l'intégrité référentielle est assurée par le code (`SET foreign_key_checks = 0`
+dans `schema.sql`). Les dates métier sont stockées en **timestamp Unix** (`int(16)`),
+pas en `DATE` SQL ; conversions via `formatedDateToTimeStamp()` / `timeStampToformatedDate()`.
 
-| Table            | Moteur  | Rôle                                                                       |
-|------------------|---------|----------------------------------------------------------------------------|
-| `users`          | InnoDB  | Membres : données personnelles (dont `email_alt`), statut (1=actif, 0=archivé) |
-| `team`           | InnoDB  | Segments (UI) : nom, visibilité (`hidden`)                                 |
-| `user_properties`| InnoDB  | EAV multi-usage : appartenance groupe (`team_N`=true), notes de suivi      |
-| `metagroup`      | InnoDB  | Métagroupes : regroupe plusieurs teams en catégories de filtres            |
-| `compta_type`    | InnoDB  | Types de transaction : libellé, couleur, flags is_cotisation / is_excluded |
-| `compta`         | InnoDB  | Écritures comptables : montant (CHF), date, quittance, lien type           |
-| `maxval`         | InnoDB  | Séquences manuelles pour metagroup_id et user_properties.id (legacy)      |
-| `app_settings`   | InnoDB  | Configuration organisation : clé/valeur (org_name, membre_team, etc.)     |
-| `app_users`      | InnoDB  | Comptes applicatifs : bcrypt, rôle, force_password_change, last_login      |
-| `audit_log`      | InnoDB  | Journal d'activité : qui, quoi, quand, sur quel membre                     |
+| Table             | Rôle                                                                                     | Clé / séquence         |
+|-------------------|------------------------------------------------------------------------------------------|------------------------|
+| `users`           | Membres : identité, coordonnées (dont **`email_alt`**), `sexe` (na/f/m/hf), `status` (1/0), dates Unix | `id` AUTO_INCREMENT    |
+| `team`            | Segments : `name`, `hidden`                                                               | `id` AUTO_INCREMENT    |
+| `user_properties` | EAV : appartenance segment (`parameter='team_<id>'`, `value='true'`) et notes de suivi   | pas de PK, `id` legacy |
+| `metagroup`       | Segments combinés / catégories : `name`, `teamid`, `is_filter`, `sort_order`             | `id` via `maxval`      |
+| `compta_type`     | Types d'écriture : `label`, `color`, `sort_order`, `is_cotisation`, `is_excluded_from_donation`, `is_institutional` | `id` AUTO_INCREMENT |
+| `compta`          | Écritures : `user_id`, `date` (Unix), `libele`, `sum` (varchar, CHF), `quittance`, `type_id`, `wants_attestation` | `id` AUTO_INCREMENT |
+| `maxval`          | Compteur de séquence manuel (clé/valeur)                                                  | PK `parameter`         |
+| `app_settings`    | Configuration organisation (clé/valeur : `org_name`, `membre_team`, `archive_id`, etc.)  | PK `key`               |
+| `app_users`       | Comptes applicatifs : `password_hash` (bcrypt), `role` enum, `force_password_change`, `is_active`, `last_login`, `reset_token`, `token_expires_at`, `email` | `id` AUTO_INCREMENT |
+| `audit_log`       | Journal : `app_user_id`, `username`, `action`, `detail`, `subject_user_id`, `created_at`  | `id` AUTO_INCREMENT    |
 
-### Relations principales (diagramme ASCII)
+### Relations
 
 ```
-app_users ──── (session) ───────────────────────> index.php
-    |                                               |
-    v                                               v
-audit_log <── auditLog() ──────────────────── actions/*
+app_users ── session ──> index.php ── actions/* ── auditLog() ──> audit_log
 
 users (id)
-  |
-  +──────────────────────────> user_properties (user_id)
-  |                              parameter = 'team_N'  --> team (id=N)
-  |                              parameter = 'suivi_*' --> notes libres
-  |
-  +──────────────────────────> compta (user_id)
-                                  |
-                                  +----> compta_type (type_id)
-                                           is_cotisation
-                                           is_excluded_from_donation
-                                           is_institutional
+  ├── user_properties (user_id)
+  │        parameter = 'team_<N>'  → appartenance au segment team(id=N)
+  │        parameter = 'suivi_*'   → notes de suivi (UserProperty)
+  └── compta (user_id) ── type_id ──> compta_type
+                                        (is_cotisation / is_excluded_from_donation / is_institutional)
 
-team (id)
-  |
-  +──> metagroup (teamid) [N lignes par métagroupe : 1 header + N members]
+team (id) ──> metagroup (teamid)   [1 ligne header (teamid NULL) + N lignes membres]
 ```
 
-### Notes importantes sur le modèle
+### Notes sur le modèle
 
-- L'appartenance d'un membre à un groupe n'est **pas** une table de jointure
-  dédiée : elle est stockée dans `user_properties` avec
-  `parameter = 'team_<teamId>'` et `value = 'true'`. Cela permet d'ajouter
-  des métadonnées par appartenance (date d'entrée, etc.) sans changer le schéma.
-
-- Les dates sont stockées en **timestamp Unix** (`int(16)`), pas en `DATE` SQL.
-  Les fonctions `formatedDateToTimeStamp` et `timeStampToformatedDate` font la
-  conversion dans `bootstrap.php`.
-
-- Toutes les tables utilisent **InnoDB** (utf8mb4_unicode_ci). Il n'y a pas de
-  clés étrangères déclarées au niveau SQL ; l'intégrité référentielle est
-  assurée par le code applicatif.
-
-- `maxval` est un compteur de séquence manuel, subsistant pour `metagroup_id`
-  (dont l'`id` est partagé entre ligne header et lignes membres) et
-  `user_properties.id` (colonne cassée à 0 pour 83k lignes, non corrigée).
-  Les nouvelles tables utilisent `AUTO_INCREMENT`.
+- **L'appartenance à un segment n'a pas de table de jointure** : elle vit dans
+  `user_properties` (`parameter = 'team_<teamId>'`, `value = 'true'`).
+- `metagroup.id` est **partagé** entre la ligne header (`teamid IS NULL`, portant
+  `name`) et les lignes membres (`teamid = N`), d'où l'usage de `maxval` plutôt que
+  d'`AUTO_INCREMENT`.
+- `user_properties.id` est une colonne héritée non fiable (nombreuses lignes à `0`) ;
+  l'identité d'une propriété repose sur `user_id` + `parameter`. Le commentaire de
+  `bootstrap.php` mentionne ~83k lignes concernées.
 
 ---
 
 ## 6. Classes de domaine
 
-Toutes les classes se trouvent dans `html/classes/`. Elles suivent le pattern
-**active-record** : chaque instance représente une ligne, et les méthodes
-d'accès à la base sont des membres de la classe. La variable globale `$pdo`
-est accédée via `global $pdo` dans chaque méthode (pas d'injection de
-dépendances). Il n'y a pas de namespace.
+Fichiers dans `html/classes/`, style *active-record*, sans namespace, `global $pdo`.
 
-### User (`user_class.php`) — 51 méthodes
+### `User` (`user_class.php`) — 54 méthodes
 
-Classe centrale. Couvre : chargement (`lookupUser`, `lookupUserByEmail`),
-persistance (`save`, `remove`), getters/setters pour chaque colonne de `users`,
-appartenance groupe (`isMemberOfTeam`, `addMembership`, `removeMembership`),
-et requêtes comptables :
+Classe centrale. Regroupe :
+- **Chargement** : `lookupUser(int $id)`, `lookupUserByEmail(string $email)`,
+  `hydrateFromRow()` (privé).
+- **Getters/setters** pour chaque colonne de `users` (dont `getEmailAlt`/`setEmailAlt`,
+  `setBirthDay` qui parse une date d/m/Y).
+- **Segments** : `getProperty()`, `isMemberOfTeam()`, `addMembership()`, `removeMembership()`.
+- **Persistance** : `save()` (retourne l'id, insert ou update selon présence d'id),
+  `remove()`.
+- **Requêtes comptables par année** (utilisées par les vues donateurs) :
 
 ```php
-// Retourne le timestamp de la première écriture cotisation de l'année,
-// ou -1 si aucune.
-public function isCotisationPayed(int $year): int
-
-// Tout paiement non-cotisation dans l'année
-public function hasPayed(int $year): int
-
-// Don pur (exclut is_excluded_from_donation)
-public function hasDonated(int $year): int
-
-// N'importe quelle écriture comptable dans l'année
-public function hasAnyEntry(int $year): int
+public function isCotisationPayed(int $year): int  // 1re écriture cotisation de l'année, ou -1
+public function hasPayed(int $year): int           // tout paiement non-cotisation
+public function hasDonated(int $year): int         // don pur (exclut is_excluded_from_donation)
+public function hasAnyEntry(int $year): int        // n'importe quelle écriture
+public function hasComptaEntries(int $year, int $number): bool
+public function hasComptaEntry(): bool
 ```
 
-Ces méthodes sont utilisées par les vues de rapport (donors_loyal, donors_new,
-donors_lapsed) pour calculer les badges de statut par membre.
+### `Team` (`team_class.php`)
 
-### Team (`team_class.php`)
+`lookupTeam()`, `save()`, `remove()`, `isUsed()`, et gestion de l'appartenance aux
+segments combinés : `isMemberOfMetagroup()`, `addMetagroupMembership()`,
+`removeMetagroupMembership()`.
 
-Chargement d'un groupe (`lookupTeam`), persistance, liste des membres via
-`user_properties`.
+### `Compta` (`compta_class.php`)
 
-### Compta (`compta_class.php`)
+`lookupCompta()`, `save()`, `remove()`, getters/setters (date, `libele`, `sum`,
+`quittance`, `type_id`, `wants_attestation`).
 
-Écriture comptable : chargement (`lookupCompta`), persistance (`save`, `remove`),
-lecture des champs (date, libellé, montant, quittance, type).
+### `Metagroup` (`metagroup_class.php`)
 
-### Metagroup (`metagroup_class.php`)
+`lookupMetagroup()`, `save()`, `remove()`, `isUsed()`. `id` alloué via `maxval`.
 
-Métagroupe (filtre nommé regroupant plusieurs teams). Chargement et persistance.
-L'`id` d'un métagroupe est partagé entre la ligne header (`teamid IS NULL`) et
-les lignes membres (`teamid = N`), d'où la nécessité de `maxval` plutôt que
-`AUTO_INCREMENT`.
+### `UserProperty` (`property_class.php`)
 
-### UserProperty (`property_class.php`)
-
-Note de suivi (`parameter` commençant par `suivi_`) ou propriété générique
-par membre. Chargement, persistance, suppression.
+Note de suivi ou propriété générique. `lookupUserProperty()`, `save()`, `remove()`,
+getters/setters (`parameter`, `date`, `value`).
 
 ---
 
-## 7. Système d'authentification
+## 7. Authentification & rôles
 
-### Stockage des comptes
+### Comptes (`app_users`, distincte de `users`)
 
-La table `app_users` est entièrement séparée de la table `users` (membres).
-Les comptes applicatifs portent :
-- `password_hash` : bcrypt via `password_hash()` / `password_verify()`
-- `role` : énumération à 4 niveaux
-- `force_password_change` : bloque toute navigation jusqu'au changement
-- `is_active` : soft-disable sans suppression
-- `last_login` : mis à jour à chaque connexion réussie
-- `reset_token` / `token_expires_at` : réinitialisation de mot de passe
+`auth.php` gère session, login (`authLogin`), logout (`authLogout`) et gardes. Le login
+vérifie `is_active = 1`, `password_verify()` contre le hash bcrypt, appelle
+`session_regenerate_id(true)`, alimente `$_SESSION['app_user_*']` et met `last_login = NOW()`.
+Le cookie de session est `HttpOnly`, `SameSite=Lax`, et `Secure` si HTTPS détecté.
 
-### Les 4 rôles
+### Les 4 rôles (enum `app_users.role`)
 
-| Rôle       | Prédicat PHP              | Droits                                                  |
-|------------|---------------------------|--------------------------------------------------------|
-| `readonly` | `canRead()` / `isLoggedIn()` | Lecture seule — toutes les vues et GET API, aucune écriture |
-| `user`     | `canWrite()`              | Lecture + écriture des membres et comptabilité         |
-| `manager`  | `isManager()`             | `user` + gestion des segments, paramètres et **import de contacts** |
-| `admin`    | `isAdmin()`               | `manager` + gestion des comptes applicatifs            |
+Prédicats réels de `auth.php` — chacun autorise les rôles supérieurs :
 
-Les prédicats sont définis dans `auth.php` et appelés inline dans les routeurs
-et les handlers. Les vues qui nécessitent `canWrite()` vérifient le rôle en tête
-de handler et renvoient un bloc `alert-danger` en cas de refus. Depuis la v3.5.4,
-`canRead()` (`admin`/`manager`/`user`/`readonly`) garde les endpoints `GET` de l'API.
-
-### Cycle de session
+| Rôle       | Prédicat vrai pour                          | Droits                                                        |
+|------------|---------------------------------------------|--------------------------------------------------------------|
+| `readonly` | `canRead()`, `isLoggedIn()`                 | Lecture seule : vues et GET API, aucune écriture             |
+| `user`     | `canWrite()`, `canRead()`                   | + écriture des membres, comptabilité, suivi                  |
+| `manager`  | `isManager()`, `canWrite()`, `canRead()`    | + segments, segments combinés, réglages, **import CSV**      |
+| `admin`    | `isAdmin()` (+ tous les précédents)         | + comptes applicatifs, suppression définitive, anonymisation |
 
 ```php
-// auth.php — login
-session_regenerate_id(true);          // évite la fixation de session
-$_SESSION['app_user_id']     = ...;
-$_SESSION['app_user_role']   = ...;
-$_SESSION['force_password_change'] = ...;
-
-// auth.php — guard (appelé en tête de index.php)
-requireLogin();           // redirige vers login.php si pas de session
-requirePasswordChange();  // redirige vers changePassword si flag actif
+function isLoggedIn(): bool  // session app_user_id présent
+function isAdmin(): bool     // role === 'admin'
+function isManager(): bool   // role ∈ {admin, manager}
+function canWrite(): bool    // role ∈ {admin, manager, user}
+function canRead(): bool     // role ∈ {admin, manager, user, readonly}
 ```
 
-Le cookie de session est configuré `HttpOnly`, `SameSite=Lax`, `Secure` si
-HTTPS détecté. La protection contre les attaques de force brute est déléguée
-à **Fail2Ban** côté serveur (analyse des logs Apache), pas au code PHP.
+### Gardes
+
+- `requireLogin()` : redirige vers `login.php` si non connecté.
+- `requirePasswordChange()` : si `force_password_change`, bloque toute vue/action sauf
+  `changePassword` et `logout` (redirige vers `?view=changePassword`).
+- Dans `routing/views.php`, chaque vue sensible vérifie le rôle en tête et renvoie un
+  bloc `alert-danger` (« Accès refusé ») en cas de refus : `addUser`→`canWrite`,
+  `importStep1/2/3`→`isManager`, `mergeUsers`→`isManager`, `deleteUser`/`anonymizeUser`→`isAdmin`.
+- La force brute est déléguée à Fail2Ban (logs Apache), pas au code PHP.
 
 ---
 
-## 8. API REST
+## 8. API REST (`html/api/`)
 
-### Structure
+### Structure et routage
 
-```
-html/api/
-  _bootstrap.php     middleware partagé (JSON headers + auth guard)
-  members.php        CRUD membres
-  compta.php         CRUD écritures comptables
-  compta-types.php   liste des types
-  groups.php         lecture des groupes d'un membre
-  suivi.php          CRUD notes de suivi
-```
+`html/api/.htaccess` réécrit les URL REST vers les scripts (ex. `members/42/groups` →
+`members.php?id=42&sub=groups`). Endpoints :
 
-Le fichier `html/api/.htaccess` configure Apache pour router
-`/api/members/42` vers `members.php?id=42` (RewriteRule).
+| Fichier            | Ressource            | Méthodes                                   |
+|--------------------|----------------------|--------------------------------------------|
+| `members.php`      | `/api/members`       | GET (liste + `{id}` + `{id}/groups`), POST, PUT/PATCH, DELETE |
+| `compta.php`       | `/api/compta`        | GET, POST, PUT/PATCH, DELETE               |
+| `compta-types.php` | `/api/compta-types`  | GET uniquement (sinon 405)                 |
+| `groups.php`       | `/api/groups`        | GET, POST, PUT/PATCH, DELETE, membres      |
+| `suivi.php`        | `/api/suivi`         | GET, POST, PUT/PATCH, DELETE               |
 
 ### Middleware `_bootstrap.php`
 
-```php
-define('APP_ENTRY', true);
-header('Content-Type: application/json; charset=utf-8');
-require_once __DIR__ . '/../includes/lib/bootstrap.php';
-require_once __DIR__ . '/../includes/lib/auth.php';
-if (!isLoggedIn()) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
-    exit;
-}
-```
+Chaque endpoint commence par `require_once '_bootstrap.php'`, qui pose l'en-tête JSON,
+charge `bootstrap.php` + `auth.php`, refuse `401` si `!isLoggedIn()`, et fournit
+`apiError(int, string): never`. **La session PHP est partagée avec l'interface web** :
+pas de JWT ni de clé API.
 
-Chaque endpoint commence par `require_once __DIR__ . '/_bootstrap.php'`. La
-session PHP est donc partagée entre l'interface web et l'API (pas de token JWT
-ni de clé API séparée).
+### Gardes de rôle (défense en profondeur)
 
-Au-delà du guard d'authentification, chaque handler applique un contrôle de rôle :
-les écritures (`POST`/`PUT`/`DELETE`) exigent `canWrite()`, et depuis la v3.5.4 les
-lectures (`GET`) exigent `canRead()` (rôle minimal `readonly`) — défense en
-profondeur sur les endpoints de consultation.
+Au-delà du `401`, chaque handler contrôle le rôle :
 
-### Endpoint `members.php`
+- **Lectures** (GET) : `canRead()` sinon `403`.
+- **Écritures membres/compta/suivi** (POST/PUT/PATCH/DELETE) : `canWrite()` sinon `403`.
+- **Écritures segments** (`groups.php` create/update/delete/add-member/remove-member) :
+  `isManager()` sinon `403`.
+- **Suppression définitive d'un membre** (`DELETE /api/members/{id}?dispose=delete`) :
+  `isAdmin()`. Par défaut (`dispose=deactivate`) le membre est seulement archivé
+  (`status=0`).
 
-Dispatche selon `REQUEST_METHOD` et présence de `$_GET['id']` via `match (true)` :
+### `members.php` en détail
 
-| Méthode          | URL                      | Handler          |
-|------------------|--------------------------|------------------|
-| GET              | /api/members             | `handleList()`   |
-| GET              | /api/members/{id}        | `handleGet()`    |
-| GET              | /api/members/{id}?sub=groups | `handleGetGroups()` |
-| POST             | /api/members             | `handleCreate()` |
-| PUT ou PATCH     | /api/members/{id}        | `handleUpdate()` |
-| DELETE           | /api/members/{id}        | `handleDelete()` |
+Dispatch par `match (true)` sur `REQUEST_METHOD` + présence de `id`/`sub` :
+
+| Méthode      | URL                          | Handler            |
+|--------------|------------------------------|--------------------|
+| GET          | /api/members                 | `handleList()`     |
+| GET          | /api/members/{id}            | `handleGet()`      |
+| GET          | /api/members/{id}/groups     | `handleGetGroups()`|
+| POST         | /api/members                 | `handleCreate()` (201, `lastName` requis) |
+| PUT / PATCH  | /api/members/{id}            | `handleUpdate()`   |
+| DELETE       | /api/members/{id}            | `handleDelete()` (204) |
+| (autre)      | —                            | `apiError(405)`    |
+
+`handleList()` supporte `?search=`, `?team=`, `?metagroup=`, `?page=`, `?limit=`
+(max 2000), `?types=`. `handleUpdate()` charge l'avant, applique le patch, recharge
+l'après, calcule un diff lisible et l'écrit dans `audit_log` (`updateUser`).
 
 ### Filtres virtuels (`handleVirtualFilter`)
 
-Quand `GET /api/members?team=-N` reçoit un `teamId` négatif, il est dirigé vers
-`handleVirtualFilter()` plutôt que vers une requête de jointure classique. Ces
-filtres encodent des règles métier complexes :
+Un `?team=` **négatif** déclenche des requêtes métier dédiées. Constantes définies dans
+`bootstrap.php` :
 
-| Constante                  | Valeur  | Sémantique                                              |
-|----------------------------|---------|---------------------------------------------------------|
-| `FILTER_ALL_EXCEPT_ARCHIVES` | -3    | Tous les membres actifs                                 |
-| `FILTER_UNPAID_COTI_CURRENT` | -4    | Membres sans cotisation cette année                     |
-| `FILTER_UNPAID_COTI_3Y`     | -3333  | Membres qui ont déjà cotisé mais pas depuis 3 ans       |
-| `FILTER_NO_ACTIVITY_10Y`    | -5555  | Membres sans aucune écriture depuis 10 ans              |
-| `FILTER_NON_INSTIT_LAST_YEAR`| -6666 | Membres avec un paiement non-institutionnel l'an passé  |
-
-Ces constantes sont définies dans `bootstrap.php` et partagées entre l'API et
-les vues PHP classiques.
-
-### PATCH et audit log
-
-Le handler `handleUpdate()` charge le membre avant modification, snapshote les
-champs (`memberFieldsForDiff()`), applique le patch, sauvegarde, puis enregistre
-le diff dans `audit_log` :
-
-```php
-$before = memberFieldsForDiff($user);
-applyFields($user, $body);
-$user->save();
-$after  = memberFieldsForDiff($user);
-$diff   = array_filter(...);  // champs modifiés seulement
-auditLog($pdo, 'updateMember', json_encode($diff), $id);
-```
-
-Le composant Alpine `memberGeneralForm` envoie un PATCH avec seulement les
-champs modifiés (comparaison `draft` vs `data`), ce qui rend le diff trivial
-côté serveur.
+| Constante                       | Valeur | Sémantique                                                    |
+|---------------------------------|--------|--------------------------------------------------------------|
+| `FILTER_ALL_EXCEPT_ARCHIVES`    | -3     | Tous les membres actifs                                       |
+| `FILTER_UNPAID_COTI_CURRENT`    | -4     | Membres du segment `membre_team` sans cotisation cette année  |
+| `FILTER_UNPAID_COTI_3Y`         | -3333  | Ont déjà cotisé mais pas depuis 3 ans                        |
+| `FILTER_NO_ACTIVITY_10Y`        | -5555  | Aucune écriture compta depuis 10 ans                        |
+| `FILTER_NON_INSTIT_LAST_YEAR`   | -6666  | Paiement non-institutionnel l'an passé                       |
 
 ---
 
-## 9. Frontend
+## 9. Assistant d'import CSV / TSV
 
-### Bibliothèques (toutes auto-hébergées, zéro CDN)
+Wizard web en 3 étapes réservé aux **Manager/Admin** (`isManager()` gardé côté vue
+*et* côté action).
 
-| Bibliothèque              | Version | Usage                                            |
-|---------------------------|---------|--------------------------------------------------|
-| Bootstrap                 | 5.3.8   | Grille, composants UI, utilitaires               |
-| htmx                      | 2.0.4   | Navigation SPA-like, swaps partiels              |
-| Alpine.js                 | 3.x     | Composants réactifs inline (formulaire membre)   |
-| DataTables + Bootstrap 5  | 1.13.x  | Tableaux triables, filtrables, exportables       |
-| jQuery                    | 3.7.1   | Requis par DataTables et datetimepicker          |
-| Moment.js + bootstrap-datetimepicker | — | Saisie de dates au format d/m/Y      |
-| Chart.js                  | —       | Graphiques de synthèse (vue résumé)              |
-| Font Awesome              | —       | Icônes                                           |
-| TipTap 2 (via esm.sh)     | 2.x     | Éditeur rich text pour le champ commentaire      |
-| Inter                     | —       | Police typographique auto-hébergée               |
+- **Actions** (`includes/actions/import.php`) : `importUpload` → `importApply` →
+  `importResolveDuplicates`, mappées vers le handler `import` dans `$ACTION_MAP`.
+- **Vues** : `includes/views/import_step{1,2,3}.php`.
+- **Source unique des champs importables** : `includes/lib/import_fields.php`
+  (`importFieldLabels()`, `importAllowedFields()`, plus la normalisation de civilité
+  `importNormalizeSexe()` → `na`/`f`/`m`/`hf` et `importFieldValue()`). Champs :
+  lastName, firstName, society, sexe, title, email, emailAlt, tel, telProf, portable,
+  fax, address, npa, web, birthDay, comment.
 
-TipTap est le seul module chargé depuis un CDN externe (`esm.sh`) — tous les
-autres sont dans `html/js/vendor/` et `html/css/vendor/`.
+**Étape 1 (`importUpload`)** : upload, conversion Latin-1 → UTF-8 si nécessaire,
+suppression du BOM, détection du délimiteur (`\t`/`;`/`,`) sur la 1re ligne. Limites :
+**5 Mo** et **5 000 lignes** (troncature signalée à l'étape 2). Les lignes parsées sont
+stockées dans `$_SESSION['_import_*']`.
 
-### htmx — configuration et conventions
+**Étape 2 (`importApply`)** : mapping colonne → champ ; au moins une colonne doit viser
+un champ membre. Détection de doublons par **maps en mémoire préchargées en une seule
+requête** (email, puis prénom+nom) — pas de SELECT par ligne. Création des contacts +
+rattachement au segment cible (`existing`/`new`/`auto` ; segment auto nommé
+`Import JJ.MM.AAAA HH:MM`), le tout dans une **transaction**. Les doublons existants
+rejoignent aussi le segment. **Les lignes parsées sont libérées de la session** dès la
+fin de l'étape (`unset`, anti-bloat).
+
+**Étape 3 (`importResolveDuplicates`)** : résolution par ligne — `ignore`, `fill`
+(compléter les champs vides), ou écrasement. Chaque création/mise à jour/ajout au
+segment est journalisée (`auditLog`).
+
+---
+
+## 10. Frontend
+
+### Bibliothèques (auto-hébergées, sauf TipTap)
+
+| Bibliothèque                 | Version | Usage                                     |
+|------------------------------|---------|-------------------------------------------|
+| Bootstrap                    | 5.3     | Grille, composants, utilitaires           |
+| htmx                         | 2.0.4   | Navigation SPA-like, swaps partiels       |
+| Alpine.js                    | 3.x     | Composants réactifs (formulaire membre)   |
+| DataTables + Bootstrap 5     | 1.13.x  | Tableaux triables/filtrables/exportables  |
+| jQuery                       | 3.7.1   | Requis par DataTables & datetimepicker    |
+| Moment.js + datetimepicker   | —       | Saisie de dates d/m/Y                      |
+| Chart.js                     | —       | Graphiques (vue résumé)                    |
+| pdfmake + jszip              | —       | Exports DataTables (PDF/Excel)            |
+| Font Awesome                 | —       | Icônes                                     |
+| TipTap 2 (via `esm.sh`)      | 2.x     | Éditeur rich-text du champ commentaire     |
+| Inter                        | —       | Police auto-hébergée                       |
+
+TipTap est le **seul** module chargé depuis un CDN (`esm.sh`) ; tout le reste est dans
+`html/js/vendor/` et `html/css/vendor/`.
+
+### htmx — configuration
 
 ```html
 <body hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">
 <meta name="htmx-config" content='{"scrollIntoViewOnBoost": false, "defaultSwapStyle": "innerHTML"}'>
 ```
 
-- `hx-boost` sur `<body>` : tous les liens `<a>` et formulaires sans attribut
-  htmx explicite deviennent des requêtes XHR automatiquement.
-- `hx-target="#main-content"` : la réponse remplace le contenu du `<div
-  id="main-content">` sans toucher au layout.
-- `hx-push-url="true"` : l'URL du navigateur est mise à jour via `history.pushState`.
-
-Gestion des redirections POST : les handlers PHP émettent `header('HX-Location: ...')`
-(pas un 302 standard) pour que htmx effectue une navigation propre sans
-rechargement de page.
+Après chaque `htmx:afterSwap`, `casaInit()` réinitialise datepickers et `datahref`,
+nettoie les backdrops de modale résiduels et affiche le toast `#casaToast` si le
+fragment contient `#casa-save-ok` ou `#casa-membership-toast`. Avant
+`htmx:beforeHistorySave`, tous les DataTables sont détruits (`.destroy()`) pour éviter
+un conflit de colonnes à la restauration.
 
 ### Guard de formulaire non sauvegardé
 
-Un script inline dans `index.php` maintient un flag `dirty` mis à `true` lors de
-tout `change` ou `input` sur un champ de formulaire. Il intercepte `htmx:beforeRequest`
-pour demander confirmation si `dirty` est vrai et que la requête est un GET (navigation).
-Les soumissions POST (verb=post) passent sans confirmation. `htmx:afterSwap` remet
-`dirty` à `false`.
+Script inline dans `index.php` (fonction `markDirty`) : un flag `dirty` passe à `true`
+sur tout `change`/`input` d'un `INPUT`/`SELECT`/`TEXTAREA` non exclu. Il intercepte
+`htmx:beforeRequest` pour confirmer avant une navigation GET (les POST — sauvegardes —
+passent), et `beforeunload` pour la navigation hors-htmx. `htmx:afterSwap` remet `dirty`
+et `window.__dirtyOverride` à `false`.
 
-Les champs exclus du guard (attribut `data-no-dirty` sur le conteneur, ou classes
-spécifiques comme `.mg-team-cb`, `.dt-search`) permettent aux cases de gestion
-de groupe et aux filtres DataTables de ne pas déclencher l'avertissement.
+**Exclusions réelles** : classe `.mg-team-cb`, ids `#includeAttestation` et
+`#team-filter-input`, tout ancêtre `[data-no-dirty]`, `.dt-search`/`.dataTables_filter`,
+`.modal`, `#bulk-form`. Convention projet : setter `window.__dirtyOverride = true` avant
+tout `window.location = …` inline, et poser `data-no-dirty` sur les selects/inputs de
+navigation ou de filtre.
 
-### Alpine.js — composant `memberGeneralForm`
+### Alpine — `memberGeneralForm` (`js/member-general-form.js`)
 
-Fichier : `html/js/member-general-form.js`
-
-Composant chargé avant Alpine (`defer`) en mode `x-data="memberGeneralForm()"`.
-Les données initiales sont passées via des attributs `data-*` sur le noeud racine
-(évite un `fetch` initial et reste compatible CSP `self`).
-
-États : `editing` (toggle view/edit), `saving` (appel PATCH en cours),
-`saved` (feedback après sauvegarde réussie), `error` (message d'erreur).
-
-La méthode `save()` construit un objet `patch` contenant uniquement les champs
-dont la valeur a changé (`draft[k] !== data[k]`), puis envoie un `PATCH` vers
-`/api/members/{id}`. En cas de succès, elle met à jour `this.data` avec la
-réponse du serveur et passe `editing = false`.
-
-### DataTables — configuration partagée (`dt_defaults.js`)
-
-```js
-var CA_DT_DOM     = '<"d-flex ..."<"d-flex gap-2"B>f>rtip';
-var CA_DT_BUTTONS = [{ extend: 'collection', ... }];  // Copier / Excel / PDF / Imprimer
-var CA_DT_LANGUAGE = { info: '_TOTAL_ entrées', ... };
-```
-
-Ces constantes sont incluses dans le `<head>` et réutilisées par chaque vue qui
-initialise un DataTable, ce qui garantit un comportement uniforme (langue FR,
-boutons d'export, layout).
-
-Avant que htmx sauvegarde le DOM dans l'historique (`htmx:beforeHistorySave`),
-tous les DataTables sont détruits (`.destroy()`) pour éviter un conflit de
-colonnes lors de la restauration.
-
-### Spécificité CSS et priorité
-
-Les règles Bootstrap utilisent `!important` sur les utilitaires (`d-flex`, etc.).
-Les classes de visibilité applicatives (`team-hidden`) utilisent également
-`!important` pour garantir qu'un groupe masqué ne réapparaisse pas lors d'un
-recalcul de styles. Le fichier `html/css/custom.css` étend Bootstrap avec des
-variables CSS (`--ca-danger`, `--ca-primary`) et des composants propres à
-l'application.
+Chargé avant Alpine, initialisé via `x-data="memberGeneralForm()"`. Données passées par
+attributs `data-*` (pas de `fetch` initial, compatible CSP `self`). États : `editing`,
+`saving`, `saved`, `error`. `save()` n'envoie que les champs modifiés
+(`draft[k] !== data[k]`) via `PATCH /api/members/{id}`, d'où un diff serveur trivial.
 
 ---
 
-## 10. Génération de documents
+## 11. Génération de documents (attestations PDF)
 
-### Attestations PDF (pdftk)
+Les attestations fiscales de dons sont générées **côté serveur avec `pdftk`** :
 
-Les attestations fiscales de dons utilisent `pdftk` pour remplir un formulaire
-AcroForm PDF prédéfini. Les valeurs sont encodées en **UTF-16 BE** pour garantir
-l'affichage des caractères accentués dans Adobe Reader. La commande est construite
-et exécutée via `exec()` ou `shell_exec()` depuis un handler PHP.
+- `attestation_don.php` — une attestation pour un membre / une année. Construit un **FDF**
+  (Form Data Format), encode chaque valeur en **UTF-16 BE hex** (accents corrects dans
+  Adobe Reader), puis exécute `pdftk … fill_form … output … flatten` via `exec()`.
+  Réponse `Content-Type: application/pdf` en pièce jointe.
+- `attestation_bulk.php` — attestations de tous les donateurs qualifiés d'une année :
+  un PDF par membre (même mécanisme FDF/pdftk), puis fusion en un seul fichier via
+  `pdftk … cat …`.
 
-### Quittances Word (MHTML)
+Le gabarit AcroForm est `html/assets/attestation.pdf`. Ces deux points d'entrée
+appellent `requireLogin()` mais ne sont **pas** des vues htmx (téléchargements directs).
 
-Les quittances sont générées au format **MHTML** (MIME HTML), un format que Word
-sait ouvrir directement. Le contenu est un template HTML avec les données du
-membre et de l'écriture comptable injectées, emballé dans une enveloppe MHTML et
-livré avec le Content-Type `application/vnd.ms-word`.
-
----
-
-## 11. Tests
-
-### Suite Playwright E2E
-
-Les tests se trouvent dans `tests/` et utilisent **Playwright** (Node.js).
-Chaque spec charge un `storageState` pré-authentifié (fichier JSON généré une
-fois lors du setup) pour éviter de rejouer le login à chaque test.
-
-### Base de données de test
-
-Le fichier `docker-compose.test.yml` remplace le nom de base `members` par
-`memberbase_test` et expose MariaDB sur le port 3307 pour éviter les collisions
-avec la stack de développement. Le script `tests/reset-db.sh` réinitialise la
-base à un état connu (import du DDL + fixtures) avant chaque run de la suite.
-
-### CI GitHub Actions
-
-Le workflow `.github/workflows/e2e.yml` :
-1. Lance la stack Docker avec les deux fichiers compose (`base + test`).
-2. Attend que `login.php` réponde (polling curl, 30 tentatives, 3 s d'intervalle).
-3. Exécute `reset-db.sh`.
-4. Lance `npx playwright test` avec `--retries=0`.
-5. En cas d'échec, uploade le rapport HTML Playwright comme artifact (7 jours).
+> Il n'existe pas de génération « quittance Word / MHTML » dans le code : `quittance`
+> est un simple champ texte de la table `compta`.
 
 ---
 
-## 12. Conventions de code
+## 12. Tests & CI
 
-### Vues (fragments PHP)
+### Playwright (`tests/`)
 
-- Pas de classe, pas de namespace.
-- Fichier inclus directement par `views.php`, a accès aux variables définies
-  dans `index.php` (`$pdo`, `$appSettings`, `$GLOBAL`, `$charset`, `$isHtmx`).
-- Toute sortie utilisateur passe par `htmlspecialchars()` ou `htmlentities()`.
-- Pas de logique de redirection dans les vues.
+Suite E2E Node.js (specs `*.spec.ts` couvrant auth, membres, compta, groupes,
+metagroups, suivi, rôles, import, réglages, API, fusion, etc.). Un `global-setup.ts`
+produit un `storageState` pré-authentifié réutilisé par les specs.
+
+### Base de test
+
+`docker-compose.test.yml` surcharge **uniquement** `DB_NAME: members_test` pour le
+service `php` (même image, même port 8080, même MariaDB que la stack de dev — pas de
+port 3307 ni de base « memberbase_test »). `tests/fixtures/reset-db.sh` réinitialise la
+base (DDL + `tests/fixtures/seed.sql`).
+
+### Workflow `.github/workflows/e2e.yml`
+
+1. `docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --build`.
+2. Attend `http://localhost:8080/login.php` (polling curl, 30 tentatives × 3 s).
+3. Node 24, `npm ci`, `npx playwright install chromium --with-deps`.
+4. `chmod` sur `conf/`, puis `bash tests/fixtures/reset-db.sh`.
+5. `npx playwright test --retries=0`.
+6. En cas d'échec : upload du rapport `playwright-report/` (rétention 7 jours).
+
+---
+
+## 13. Conventions de code
+
+### Vues (`includes/views/`)
+- Fragments PHP procéduraux, accès aux variables d'`index.php` (`$pdo`, `$appSettings`,
+  `$GLOBAL`, `$charset`, `$isHtmx`). Sortie utilisateur échappée
+  (`htmlspecialchars` / `htmlentities`). Pas de redirection dans une vue.
 
 ### Handlers d'actions (`includes/actions/`)
+- Scripts procéduraux inclus par `actions.php` via `$ACTION_MAP`. Vérifient le rôle en
+  tête. Appellent `auditLog()` pour toute opération sensible. Terminent par
+  `header('HX-Location: …')` (htmx) ou `header('Location: …')` puis `exit`.
 
-- Scripts procéduraux inclus par `actions.php`.
-- Vérifient le rôle en tête (`canWrite()`, `isManager()`, `isAdmin()`).
-- Accèdent à `$_REQUEST`, `$_POST`, `$_GET`.
-- Appellent `auditLog()` pour toute modification sensible (suppression,
-  anonymisation, changement de mot de passe).
-- Terminent par un `header('HX-Location: ...')` suivi de `exit` (chemin htmx)
-  ou `header('Location: ...')` (fallback).
+### Accès base de données (`bootstrap.php`)
+- PDO paramétré partout, `PDO::ATTR_EMULATE_PREPARES => false`,
+  `PDO::FETCH_OBJ` par défaut, charset `utf8mb4`. Config DB via `conf/db.php`
+  (installation classique) ou variables d'environnement `DB_*` (Docker).
 
-### Accès base de données
-
-- PDO paramétré partout : aucune interpolation de variable dans les requêtes SQL.
-- `PDO::ATTR_EMULATE_PREPARES => false` : les paramètres sont envoyés séparément
-  côté base, ce qui prévient les injections même sur les variantes de charset.
-- `PDO::FETCH_OBJ` par défaut : les résultats sont des objets stdClass.
+### Séquences
+- `AUTO_INCREMENT` natif pour `users`, `team`, `compta`, `compta_type`, `app_users`,
+  `audit_log`. `maxval` (`getMaxVal()` / `updateAndGetMaxVal()`) uniquement pour
+  `metagroup.id` (id partagé header/membres) et l'`id` legacy de `user_properties`.
 
 ### Audit log
-
-La fonction `auditLog()` dans `bootstrap.php` insère une ligne dans `audit_log`
-avec l'identifiant et le nom de l'utilisateur applicatif courant (`$_SESSION`),
-le nom de l'action, un détail libre, et optionnellement l'`id` du membre cible.
-Elle est appelée manuellement dans chaque handler qui modifie des données
-sensibles ; il n'y a pas de hook automatique.
-
-### Identifiants et séquences
-
-- `users.id`, `team.id`, `compta.id`, `app_users.id` : `AUTO_INCREMENT` natif.
-- `metagroup.id`, `user_properties.id` : `maxval` + `getMaxVal()`/`updateAndGetMaxVal()`.
-  La colonne `user_properties.id` est en réalité non utilisée (valeur 0 pour la
-  majorité des lignes) ; seul `user_id` + `parameter` identifie une propriété.
+- `auditLog(PDO $pdo, string $action, string $detail = '', ?int $subjectUserId = null)`
+  insère qui/quoi/quand dans `audit_log` depuis `$_SESSION`. Appel **manuel** dans chaque
+  handler modifiant des données — aucun hook automatique.
 
 ### Internationalisation
+- Un seul fichier de ressources : `html/locales/resources_fr.php` (tableau `$GLOBAL`).
+  Application entièrement en français, sans infrastructure i18n.
 
-Un seul fichier de ressources : `html/locales/resources_fr.php`. L'application
-est entièrement en français, sans infrastructure i18n.
+### Git
+- Commits signés `pvollenweider <pvollenweider@jahia.com>` (auteur *et* committer),
+  sans ligne `Co-Authored-By` (voir `CLAUDE.md`).
+</content>
+</invoke>

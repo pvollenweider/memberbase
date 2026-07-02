@@ -1,187 +1,161 @@
-# memberbase — Guide d'intégration développeur
+# MemberBase — Guide d'accueil développeur
 
-## Vue d'ensemble du projet
+> Version **3.5.4** — dérivé du knowledge graph du projet (`.understand-anything/knowledge-graph.json`, commit `3c152eb`).
 
-**memberbase** est une application web auto-hébergée de gestion des membres et des donateurs, conçue pour les petites associations.
+Bienvenue. Ce guide vous fait entrer dans le code de **MemberBase**, une application PHP 8.2 de gestion des membres pour ONG et petites associations. Il suit l'ossature du graphe de connaissance du projet : ses 13 couches d'architecture et son tour guidé en 8 étapes.
+
+---
+
+## 1. Aperçu du projet
+
+MemberBase est une application web auto-hébergée de gestion des **membres**, des **donateurs** et de la **comptabilité associative**. Terminologie centrale : un **Segment** regroupe des membres (implémenté par les *teams* et *metagroups* en base).
 
 | | |
 |---|---|
-| **Langages** | PHP 8.2, SQL, JavaScript, CSS |
-| **Frameworks** | htmx 2.0.4, Alpine.js, Bootstrap 5.3, DataTables, Playwright |
-| **Base de données** | MariaDB 11 |
-| **Infrastructure** | Docker (Apache + PHP + MariaDB), CI GitHub Actions |
+| **Langages** | PHP, JavaScript, SQL |
+| **Frameworks / libs** | Bootstrap 5, htmx, Alpine.js, DataTables, Playwright |
+| **Base de données** | MariaDB |
+| **Infrastructure** | Docker (PHP/Apache + MariaDB + Adminer), CI GitHub Actions |
 
-L'application suit un pattern **MVC classique en PHP pur** : pas de framework PHP, pas de ORM complexe — juste des classes, du PDO, et du HTML servi par Apache.
+Architecture : **MVC en PHP pur**, sans framework applicatif ni ORM. Un front-controller unique (`html/index.php`), des classes de domaine style *active-record* sur PDO, et du HTML rendu côté serveur, enrichi par htmx et Alpine.
 
 ---
 
-## Architecture en couches
+## 2. Couches d'architecture (13 couches)
 
-### 1. Database / Schema
-*Les 10 tables MariaDB qui structurent toutes les données.*
+Les couches proviennent directement du champ `layers` du graphe.
 
-- `schema.sql` — schéma idempotent (CREATE TABLE IF NOT EXISTS), à appliquer en prod via `MIGRATION_PROD.md`
-- Tables clés : `users`, `team`, `user_properties`, `compta`, `audit_log`, `app_users`
+| # | Couche | Description | Fichiers clés |
+|---|--------|-------------|---------------|
+| 1 | **Point d'entrée & pages racine** | Front-controller et pages autonomes (login, install, attestations) | `html/index.php`, `html/login.php`, `html/install.php`, `html/set-password.php`, `html/attestation_bulk.php`, `html/attestation_don.php`, `html/locales/resources_fr.php` |
+| 2 | **Bibliothèque cœur** | Infrastructure partagée incluse par chaque page | `html/includes/lib/bootstrap.php`, `html/includes/lib/auth.php`, `html/includes/lib/import_fields.php` |
+| 3 | **Routage** | Dispatch GET/POST | `html/includes/routing/views.php`, `html/includes/routing/actions.php` |
+| 4 | **Vues** | Templates PHP inclus dans le layout | `html/includes/views/*`, `html/includes/partials/menu.php`, `html/includes/partials/donor_table.php` |
+| 5 | **Concepts transverses** | Notions applicatives (RBAC, dirty-form, import, segments…) | *(voir §3)* |
+| 6 | **Classes de domaine** | Logique métier active-record | `html/classes/{user,team,compta,metagroup,property}_class.php` |
+| 7 | **Handlers d'actions (POST)** | Validation + orchestration + audit | `html/includes/actions/*` |
+| 8 | **API REST** | Endpoints JSON `/api/`, gardés par session | `html/api/_bootstrap.php`, `html/api/{members,groups,compta,suivi,compta-types}.php` |
+| 9 | **Outils CLI** | Scripts de maintenance | `html/tools/{fix_encoding,guest2010,import}.php` |
+| 10 | **Schéma base de données** | 10 tables MariaDB | `schema.sql` |
+| 11 | **Infrastructure** | Conteneurs et pipeline | `docker-compose.yml`, `docker-compose.test.yml`, `Dockerfile` |
+| 12 | **Tests E2E** | Suite Playwright | `tests/*.spec.ts` |
+| 13 | **Documentation** | Docs projet | `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `DESIGN.md`, `PRODUCT.md`, `MIGRATION_PROD.md`, `doc/*` |
 
-### 2. Domain Classes
-*Les 5 classes PHP qui encapsulent la logique métier et l'accès aux données.*
+---
 
-| Classe | Fichier | Rôle |
+## 3. Concepts clés
+
+- **Routage htmx** — `index.php` reçoit toutes les requêtes web et distingue requête htmx (fragment) et chargement full-page. Les redirections après action utilisent `HX-Location` pour htmx, `Location` sinon (voir `CLAUDE.md`).
+- **Alpine.js — mode view/edit inline** — les fiches basculent entre lecture et édition côté client sans rechargement, Alpine pilotant l'état local.
+- **RBAC / rôles** — dans `html/includes/lib/auth.php` : `authUser`, gardes `canRead` / `canWrite` / `isManager` / `isAdmin`, plus `requireLogin` et `requirePasswordChange`. Sessions PHP + mots de passe bcrypt.
+- **Active-record sans ORM** — 5 classes de domaine (`User`, `Team`, `Compta`, `Metagroup`, `UserProperty`) encapsulent leur accès PDO directement, sans couche de mapping.
+- **Dirty-form guard** — garde globale dans `index.php` qui marque le formulaire « modifié » sur `change`/`input` et intercepte `beforeunload` / `htmx:beforeRequest`. Toujours poser `window.__dirtyOverride = true` avant une navigation JS et `data-no-dirty` sur les selects/inputs de navigation (voir `CLAUDE.md`).
+- **Assistant d'import (nouveauté 3.5.4)** — wizard CSV 3 étapes : `importUpload` → `importApply` → `importResolveDuplicates`. Source unique des champs importables dans `html/includes/lib/import_fields.php` ; détection de doublons par maps en mémoire ; création enveloppée dans une transaction ; possibilité d'ajouter les contacts importés à un **Segment**.
+- **Journal d'audit** — helper `auditLog()` dans `bootstrap.php`, chaque handler POST trace ses écritures dans `audit_log`.
+- **Gestion des Segments** — les Segments s'appuient sur les *teams* et *metagroups* ; le panneau segments de la fiche membre gère l'appartenance.
+- **Fusion de membres (transaction)** — la fusion de doublons est atomique (transaction PDO).
+
+---
+
+## 4. Tour guidé (8 étapes)
+
+Suivez ces étapes dans l'ordre pour prendre le code en main.
+
+1. **Vue d'ensemble & point d'entrée** — `html/index.php` reçoit toutes les requêtes et dispatche via `html/includes/routing/views.php` (GET) et `html/includes/routing/actions.php` (POST). Concept : routage htmx.
+2. **Authentification & rôles (RBAC)** — `html/includes/lib/auth.php` : sessions, bcrypt, gardes `canRead`/`canWrite`/`isManager`/`isAdmin`.
+3. **Cœur applicatif** — `html/includes/lib/bootstrap.php` : connexion PDO, helpers de date, `auditLog`, chargement des réglages.
+4. **Classes de domaine** — `html/classes/user_class.php` (`User`), `team_class.php` (`Team`), `compta_class.php` (`Compta`) — style active-record.
+5. **Handlers d'actions** — traitement des POST par domaine : `html/includes/actions/{members,compta,groups}.php`.
+6. **Import de contacts (nouveauté 3.5.4)** — assistant 3 étapes : `html/includes/actions/import.php`, `html/includes/lib/import_fields.php`, `html/includes/views/import_step2.php`. Mapping, doublons, ajout à un Segment.
+7. **API REST** — endpoints JSON basés sur la session, gardés par rôle : `html/api/members.php`, `html/api/_bootstrap.php` (ex. `GET /api/members`).
+8. **Schéma & tests** — modèle MariaDB (`schema.sql`, table `users`) et suite E2E Playwright (`tests/roles.spec.ts`).
+
+---
+
+## 5. Carte des fichiers par couche
+
+**Point d'entrée & racine**
+`html/index.php` · `html/login.php` · `html/install.php` · `html/set-password.php` · `html/attestation_bulk.php` · `html/attestation_don.php` · `html/locales/resources_fr.php`
+
+**Bibliothèque cœur**
+`html/includes/lib/bootstrap.php` · `html/includes/lib/auth.php` · `html/includes/lib/import_fields.php`
+
+**Routage**
+`html/includes/routing/views.php` · `html/includes/routing/actions.php`
+
+**Classes de domaine**
+`html/classes/user_class.php` (`User`) · `team_class.php` (`Team`) · `compta_class.php` (`Compta`) · `metagroup_class.php` (`Metagroup`) · `property_class.php` (`UserProperty`)
+
+**Handlers d'actions**
+`html/includes/actions/` : `auth.php` · `members.php` · `compta.php` · `groups.php` · `metagroups.php` · `import.php` · `settings.php` · `suivi.php`
+
+**Vues**
+`html/includes/views/` : `users_*` (liste, fiche, ajout, édition, fusion, anonymisation, inactifs, historique, appartenance) · `compta_*` · `suivi_*` · `donors_*` (résumé, nouveaux, fidèles, perdus) · `members_lapsed.php` · `import_step{1,2,3}.php` · `settings_*` (groupes, filtres, catégories, types compta, app users, général, intégrité, audit) · `auth_change_password.php`
+Partiels : `html/includes/partials/menu.php` · `donor_table.php`
+
+**API REST**
+`html/api/_bootstrap.php` · `members.php` · `groups.php` · `compta.php` · `compta-types.php` · `suivi.php` · `.htaccess`
+
+**Outils CLI**
+`html/tools/fix_encoding.php` · `guest2010.php` · `import.php`
+
+**Schéma**
+`schema.sql` — tables `users`, `team`, `user_properties`, `metagroup`, `compta_type`, `compta`, `maxval`, `app_settings`, `app_users`, `audit_log`
+
+**Tests E2E**
+`tests/` : `api`, `app-users`, `auth`, `change-password`, `compta-types`, `compta`, `groups`, `inactive-members`, `members`, `merge-users`, `metagroups`, `resume`, `roles`, `settings`, `suivi`, `views` (`.spec.ts`)
+
+---
+
+## 6. Points de complexité à aborder prudemment
+
+Ces fichiers portent la complexité la plus élevée du graphe. Prévoyez du temps et relisez les tests associés avant d'y toucher.
+
+| Complexité | Fichier | Pourquoi c'est délicat |
 |---|---|---|
-| `User` | `html/classes/user_class.php` | Membre — CRUD complet, adhésions, cotisations |
-| `Team` | `html/classes/team_class.php` | Groupe — gestion des membres et des catégories |
-| `Compta` | `html/classes/compta_class.php` | Écriture comptable — saisie et consultation |
-| `Metagroup` | `html/classes/metagroup_class.php` | Filtre de navigation — groupe de groupes |
-| `UserProperty` | `html/classes/property_class.php` | Attribut membre / note de suivi |
+| 10 | `html/includes/views/users_list.php` | Liste membres filtrable : DataTables, filtres/segments, dirty-form guard, bulk actions |
+| 10 | `html/includes/views/donors_summary.php` | Tableau de bord donateurs : agrégations, graphiques Chart.js, mode étendu/résumé |
+| 9 | `html/includes/actions/import.php` | Wizard d'import 3 étapes, doublons, transaction |
+| 9 | `html/includes/views/settings_group_edit.php` | Édition de groupe/segment : appartenances, catégories |
+| 9 | `html/api/members.php` | CRUD membres + pagination + filtres virtuels |
 
-### 3. Library / Bootstrap
-*Infrastructure partagée incluse par chaque page PHP.*
-
-- `html/includes/lib/bootstrap.php` — connexion PDO, fonctions utilitaires globales (`auditLog`, `getMaxVal`), chargement des types compta et des settings
-- `html/includes/lib/auth.php` — session, rôles (`isAdmin`, `isManager`, `canWrite`), guards (`requireLogin`)
-- `html/locales/resources_fr.php` — toutes les chaînes UI en français
-
-### 4. REST API
-*Endpoints JSON sous `/api/`, consommés par le frontend Alpine.js et les intégrations externes.*
-
-- `html/api/_bootstrap.php` — guard d'auth commun, header JSON, helper `apiError()`
-- `html/api/members.php` — CRUD membres + pagination + filtres virtuels
-- `html/api/groups.php` — CRUD groupes + gestion des adhésions
-- `html/api/compta.php` — CRUD écritures comptables
-- `html/api/suivi.php` — CRUD notes de suivi
-- `html/api/compta-types.php` — lecture seule des types comptables
-
-### 5. Routing
-*Dispatch des requêtes — deux fichiers seulement.*
-
-- `html/index.php` — **front-controller unique** : bootstrap, htmx vs full-page, dirty-form guard
-- `html/includes/routing/actions.php` — route les POST vers le bon handler
-- `html/includes/routing/views.php` — route les GET vers le bon template
-
-### 6. Action Handlers
-*Handlers POST qui valident, orchestrent les classes, et écrivent dans `audit_log`.*
-
-```
-html/includes/actions/
-  auth.php       — connexion, mot de passe, gestion app_users
-  members.php    — add, update, merge, anonymize, deactivate
-  compta.php     — add, update, toggle attestation
-  groups.php     — CRUD groupes, imports, bulk hide/show
-  metagroups.php — CRUD filtres et catégories
-  settings.php   — settings app, types compta
-  suivi.php      — add, update notes de suivi
-```
-
-### 7. View Templates
-*Templates PHP inclus dans le layout principal.*
-
-```
-html/includes/views/
-  users_*        — liste membres, fiche, ajout, fusion, anonymisation…
-  donors_*       — tableau de bord donateurs, nouveaux, fidèles, perdus
-  compta_*       — liste comptable, formulaire, onglet par membre
-  suivi_*        — liste globale, formulaire, édition
-  settings_*     — groupes, filtres, types compta, app users, intégrité, audit
-  auth_*         — changement de mot de passe
-```
-
-### 8. Partials & Standalone
-- `html/includes/partials/menu.php` — barre de navigation principale
-- `html/includes/partials/donor_table.php` — composant DataTables réutilisable pour tous les rapports donateurs
-- `html/login.php`, `html/set-password.php` — pages auth hors session
-- `html/install.php` — assistant d'installation en 5 étapes
-- `html/attestation_bulk.php`, `html/attestation_don.php` — génération PDF via pdftk
-
-### 9. Frontend Assets
-- `html/js/member-general-form.js` — composant Alpine.js pour l'édition inline du profil membre (PUT `/api/members/{id}`)
-- `html/js/dt_defaults.js` — configuration DataTables partagée (DOM, boutons export, langue FR)
-- `html/css/custom.css` — design system Bootstrap 5 avec variables CSS (`--ca-primary`, etc.)
-
-### 10. Infrastructure & CI
-- `docker-compose.yml` — stack locale : PHP/Apache :8080 + MariaDB + Adminer :8082
-- `Makefile` — commandes dev : `make up`, `make db`, `make test`
-- `.github/workflows/e2e.yml` — CI : stack Docker de test + reset DB + Playwright
+À surveiller ensuite (complexité 8) : `html/index.php`, `html/install.php`, `html/includes/actions/{groups,members}.php`, `html/includes/views/{users_edit_form,users_merge,compta_last_entry,compta_list,settings_filter_edit,settings_general,settings_groups,settings_integrity}.php`, `html/api/groups.php`.
 
 ---
 
-## Concepts clés à connaître
+## 7. Premiers pas
 
-### Pattern htmx / dirty-form guard
-Toutes les navigations JS doivent setter `window.__dirtyOverride = true` avant `window.location = ...`, sinon le guard dans `index.php` déclenche un popup "modifications non enregistrées". Les selects de navigation portent `data-no-dirty`.
-
-### HX-Location vs Location
-Pour les redirections après action htmx, utiliser `HX-Location` (pas `Location`) — voir `CLAUDE.md`.
-
-### Rôles utilisateurs
-4 rôles dans `app_users.role` : `admin` > `manager` > `user` > `readonly`. Les guards sont dans `html/includes/lib/auth.php`.
-
-### users.status
-`TINYINT(1)` — 1 = actif, 0 = inactif. **Tous les listings filtrent `AND users.status = 1`** sans exception.
-
-### Séquences manuelles
-`user_properties` et `metagroup` utilisent une table `maxval` comme auto-increment manuel (via `updateAndGetMaxVal()`), pas d'AUTO_INCREMENT SQL.
-
-### Audit log
-Chaque mutation d'importance appelle `auditLog()` — toutes les actions handlers en font usage.
-
----
-
-## Tour guidé (ordre de lecture recommandé)
-
-**Étape 1 — Entry point & flux de requête**
-Lire `html/index.php`. C'est le seul front-controller. Il bootstrappe auth + classes, détermine si c'est une requête htmx ou full-page, puis délègue aux routers.
-
-**Étape 2 — Schéma de base de données**
-Lire `schema.sql`. Les 10 tables sont définies ici. Comprendre `users`, `team`, `user_properties`, `compta`, `audit_log` suffit pour 80% du code.
-
-**Étape 3 — Classes domaine**
-Lire `html/classes/user_class.php` (la plus importante). Puis `team_class.php`. Les autres classes suivent le même pattern.
-
-**Étape 4 — Bootstrap & auth**
-Lire `html/includes/lib/bootstrap.php` puis `html/includes/lib/auth.php`. Ces deux fichiers sont inclus en premier par toutes les pages.
-
-**Étape 5 — API REST**
-Lire `html/api/_bootstrap.php` puis `html/api/members.php`. La structure est identique pour tous les endpoints.
-
-**Étape 6 — Vues principales**
-Lire `html/includes/views/users_list.php` (liste membres) et `html/includes/views/users_general_data.php` (édition inline Alpine.js).
-
-**Étape 7 — Module donateurs & compta**
-Lire `html/includes/views/donors_summary.php` et `html/includes/views/compta_last_entry.php`.
-
-**Étape 8 — Administration**
-Lire `html/includes/views/settings_general.php` et `html/includes/actions/settings.php`.
-
----
-
-## Fichiers les plus complexes (aborder avec soin)
-
-| Complexité | Fichier | Pourquoi |
-|---|---|---|
-| 9/10 | `html/api/members.php` | Pagination, search, 6+ filtres virtuels, CRUD complet |
-| 9/10 | `html/includes/actions/groups.php` | Import cotisants/donateurs, bulk hide/show, fusion de groupes |
-| 9/10 | `html/includes/views/users_edit_form.php` | Onglets, mini-dashboard stats, multiples requêtes SQL |
-| 9/10 | `doc/architecture.md` | Documentation de référence — lire en premier |
-| 8/10 | `html/index.php` | Front-controller + dirty-form guard + gestion htmx |
-| 8/10 | `html/includes/actions/members.php` | Fusion, anonymisation, désactivation, audit diff |
-| 8/10 | `html/install.php` | Wizard 5 étapes, connexion DB, seed données |
-
----
-
-## Démarrage rapide
+### Lancer en local (Docker)
 
 ```bash
-# 1. Lancer la stack
-make up          # http://localhost:8080
-
-# 2. Accéder à la DB (optionnel)
-make db          # Adminer sur http://localhost:8082
-
-# 3. Lancer les tests E2E
-make test
-
-# 4. Voir les logs
-make logs
+make up            # docker compose up -d --build (PHP/Apache + MariaDB + Adminer)
+make logs          # suivre les logs PHP
+make shell         # shell dans le conteneur PHP
+make db            # console MariaDB
+make down          # arrêter
 ```
 
-L'assistant d'installation (`http://localhost:8080/install.php`) crée les tables et le premier compte admin.
+Application : `http://localhost:8080` — Adminer : `http://localhost:8082`.
+Premier lancement : passer par `install.php` pour initialiser le schéma et le premier compte admin.
+
+Importer un dump SQL :
+
+```bash
+make import DUMP=chemin/vers/dump.sql
+```
+
+### Lancer les tests (Playwright E2E)
+
+```bash
+make test              # npx playwright test
+make test-ui           # mode interactif --ui
+make test-reset-db     # réinitialiser la base de test (tests/fixtures/reset-db.sh)
+```
+
+La stack de test utilise `docker-compose.test.yml`. La CI GitHub Actions exécute la suite E2E (`pipeline:e2e`).
+
+---
+
+## Références
+
+`README.md` · `CHANGELOG.md` · `CONTRIBUTING.md` · `DESIGN.md` · `PRODUCT.md` · `MIGRATION_PROD.md` · `CLAUDE.md` · `doc/architecture.md` · `doc/api.md` · `doc/admin.md` · `doc/user.md`

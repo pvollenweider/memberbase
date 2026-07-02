@@ -1,6 +1,6 @@
 # Guide administrateur — MemberBase
 
-Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase. Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
+Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 3.5.4). Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
 
 ---
 
@@ -198,10 +198,11 @@ Si `conf/db.php` est absent, `html/includes/lib/bootstrap.php` utilise les varia
 | Variable | Valeur par défaut | Description |
 |----------|-------------------|-------------|
 | `DB_HOST` | `localhost` | Hôte MariaDB |
-| `DB_PORT` | `3306` | Port MariaDB |
 | `DB_NAME` | `members` | Nom de la base |
 | `DB_USER` | `members` | Utilisateur DB |
 | `DB_PASS` | `members` | Mot de passe DB |
+
+> **Note sur le port** : la connexion runtime (`bootstrap.php`) ne lit **pas** `DB_PORT` (ni la variable d'environnement, ni la constante définie dans `conf/db.php`). Elle se connecte toujours sur le port MySQL par défaut (3306). `DB_PORT` n'est utilisé que par le wizard `install.php` (test de connexion et pré-remplissage du champ). Prévoyez donc MariaDB sur 3306 pour l'exploitation.
 
 ### 3.3 Paramètres applicatifs (table app_settings)
 
@@ -266,6 +267,15 @@ chmod 750 $WEBROOT/conf
 chown -R www-data:www-data $WEBROOT/html
 find $WEBROOT/html -type d -exec chmod 755 {} \;
 find $WEBROOT/html -type f -exec chmod 644 {} \;
+```
+
+### Routes API (mod_rewrite)
+
+Les endpoints REST utilisent des URLs propres (`/api/members/42`). `mod_rewrite` doit être actif (`a2enmod rewrite`) **et** les règles `RewriteRule` déclarées **dans le vhost**, pas via `.htaccess` (l'`AllowOverride` du dossier `api/` bloque les directives Rewrite en `.htaccess`). Le bloc `<Directory .../html/api>` complet avec toutes les `RewriteRule` figure dans [`MIGRATION_PROD.md`](../MIGRATION_PROD.md) (section `feature/api-members`). Vérification :
+
+```bash
+# URL propre → doit retourner 401 (auth requise), pas 404
+curl -s -o /dev/null -w "%{http_code}" https://membres.votre-domaine.ch/api/members/1
 ```
 
 ### pdftk
@@ -347,17 +357,24 @@ services:
       DB_NAME: members_test            # Base séparée, n'écrase pas "members"
 ```
 
-Utilisé avec :
+Le fichier `docker-compose.test.yml` ne contient qu'une seule surcharge : `DB_NAME: members_test` sur le service `php`. Il ne redéfinit ni les ports, ni le service MariaDB. Utilisé avec :
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --build
 ```
 
-La base de test `members_test` est exposée sur le port `3307` de l'hôte (pas `3306`), ce qui évite tout conflit avec la stack de développement.
+Note : aucun des deux fichiers compose n'expose le port MariaDB sur l'hôte (pas de mapping `3306`/`3307`). La base n'est accessible que depuis le réseau Docker interne, ou via Adminer sur `http://localhost:8082`. La base de test `members_test` cohabite avec `members` dans la même instance MariaDB, sans conflit.
 
 ### 5.3 Dockerfile
 
-Image basée sur `php:8.2-apache`. Extensions installées : `pdo`, `pdo_mysql`. Un vhost Apache personnalisé est configuré dans l'image. Les répertoires `logs/` et `conf/` sont créés avec les bonnes permissions pour `www-data`.
+Image basée sur `php:8.2-apache`. Contenu réel du Dockerfile :
+
+- Extensions PHP installées : `pdo`, `pdo_mysql` (via `docker-php-ext-install`).
+- Paquet système `pdftk-java` installé (génération des attestations PDF).
+- Modules Apache activés : `rewrite`, `headers`, `expires`, `deflate`, `brotli` (`a2enmod`).
+- Vhost personnalisé copié depuis `docker/apache.conf` vers `000-default.conf`.
+- Réglage PHP : `error_reporting = E_ALL & ~E_NOTICE` (fichier `conf.d/casa.ini`).
+- Répertoires `/var/www/logs` et `/var/www/conf` créés et attribués à `www-data`.
 
 ### 5.4 Commandes courantes
 
@@ -396,7 +413,7 @@ MemberBase définit quatre rôles, définis dans `html/includes/lib/auth.php` :
 | `manager` | Oui | Oui | Oui | Non |
 | `admin` | Oui | Oui | Oui | Oui |
 
-Fonctions PHP correspondantes : `isLoggedIn()`, `canWrite()`, `isManager()`, `isAdmin()`.
+Fonctions PHP correspondantes (dans `auth.php`) : `isLoggedIn()`, `canRead()` (tous rôles), `canWrite()` (`user`/`manager`/`admin`), `isManager()` (`manager`/`admin`), `isAdmin()` (`admin` seul).
 
 Tout utilisateur connecté peut changer son propre mot de passe (`?view=changePassword`). Seul un `admin` peut réinitialiser le mot de passe d'un autre compte ou le supprimer.
 
@@ -705,7 +722,7 @@ L'outil effectue cinq contrôles en lecture seule sur la base de données :
 
 ### Pipeline GitHub Actions (`.github/workflows/e2e.yml`)
 
-Le workflow se déclenche sur chaque push vers `main` et sur chaque pull request.
+Le workflow (nom : « E2E Tests ») se déclenche sur chaque push vers `main` et sur chaque pull request.
 
 **Étapes du pipeline :**
 
@@ -719,7 +736,7 @@ Le workflow se déclenche sur chaque push vers `main` et sur chaque pull request
 
 3. **Attente de disponibilité** : polling de `http://localhost:8080/login.php` toutes les 3 secondes, jusqu'à 30 tentatives (90 secondes maximum).
 
-4. **Installation Node.js 20** et dépendances npm (`npm ci`).
+4. **Installation Node.js 24** (avec cache npm) et dépendances (`npm ci`).
 
 5. **Installation Playwright** (navigateur Chromium uniquement + dépendances système).
 
