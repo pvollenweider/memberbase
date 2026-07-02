@@ -542,7 +542,7 @@ foreach ($rows as $row):
         default => ''
     };
     ?>
-    <tr class="position-relative<?= ($showAll && $row->has_excluded) ? ' table-warning' : '' ?>" style="cursor:pointer">
+    <tr class="ca-row-link<?= ($showAll && $row->has_excluded) ? ' table-warning' : '' ?>" data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=(int)$row->id?>" style="cursor:pointer">
         <td><?=$society?></td>
         <td><?=$sexe?><span class="hide"><?=$sexe2?></span></td>
         <td><strong><?=$lastName?></strong></td>
@@ -572,9 +572,6 @@ foreach ($rows as $row):
                 <i class="fas fa-file-pdf" aria-hidden="true"></i>
             </a>
             <?php endif ?>
-            <a href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=(int)$row->id?>"
-               class="stretched-link" hx-boost="false"
-               aria-label="Voir compta de <?= htmlspecialchars($lastName . ' ' . $firstName, ENT_QUOTES, $charset) ?>"></a>
         </td>
     </tr>
     <?php
@@ -609,11 +606,13 @@ $(document).ready(function() {
         buttons: [...CA_DT_BUTTONS, CA_DT_COLVIS],
         language: CA_DT_LANGUAGE
     });
-    // iOS Safari doesn't fire clicks on tr::after (stretched-link) inside DataTables wrappers
-    $(document).on('click touchend', '.export tbody tr.position-relative', function(e) {
+    // Clic-ligne fiable via data-href (pattern standard, sans overlay CSS
+    // stretched-link qui, sur mobile Safari, retombait sur la dernière ligne).
+    // Les clics sur un lien/bouton interne (PDF) ne déclenchent pas la navigation.
+    $('.export tbody').off('click.rowlink').on('click.rowlink', 'tr[data-href]', function(e) {
         if ($(e.target).closest('a, button').length) return;
-        var href = $(this).find('.stretched-link').attr('href');
-        if (href) window.location.href = href;
+        window.__dirtyOverride = true;
+        window.location = $(this).data('href');
     });
 });
 </script>
