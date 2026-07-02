@@ -130,10 +130,14 @@ foreach ($pending as $version => $file) {
         fwrite(STDERR, "Lecture impossible : $file\n");
         exit(1);
     }
-    // Découpe en instructions (";" en fin de ligne), en ignorant commentaires et vides.
+    // Strip full-line SQL comments first, THEN split into statements on ";".
+    // (A previous version filtered out any segment starting with "--", which
+    // silently dropped a whole statement when a comment preceded it on the same
+    // segment — e.g. a leading comment above an ALTER.)
+    $sqlNoComments = preg_replace('/^\s*--.*$/m', '', $sql);
     $statements = array_filter(
-        array_map('trim', preg_split('/;\s*\n/', $sql)),
-        static fn($s) => $s !== '' && !preg_match('/^--/', $s)
+        array_map('trim', explode(';', $sqlNoComments)),
+        static fn($s) => $s !== ''
     );
 
     fwrite(STDOUT, "→ $version … ");
