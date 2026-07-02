@@ -1,6 +1,6 @@
 # MemberBase — Guide d'accueil développeur
 
-> Version **3.5.4** — dérivé du knowledge graph du projet (`.understand-anything/knowledge-graph.json`, commit `3c152eb`).
+> Version **3.5.5** — dérivé du knowledge graph du projet (`.understand-anything/knowledge-graph.json`, commit `ece1d70`).
 
 Bienvenue. Ce guide vous fait entrer dans le code de **MemberBase**, une application PHP 8.2 de gestion des membres pour ONG et petites associations. Il suit l'ossature du graphe de connaissance du projet : ses 13 couches d'architecture et son tour guidé en 8 étapes.
 

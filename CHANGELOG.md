@@ -2,6 +2,37 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [3.5.5] — 2026-07-02
+
+### Sécurité
+
+- **Deux routes de mutation étaient accessibles sans vérification de rôle** (accès direct par URL) : `deleteUserConfirm` (désactivation d'un membre) exige désormais **Admin**, `removeSuiviConfirm` (suppression d'une note de suivi) exige désormais **Writer**. Tests de régression dédiés (`tests/route-guards.spec.ts`).
+
+### Nouveautés
+
+- **Matrice des droits** affichée à la création d'un compte applicatif : le rôle choisi montre précisément ce qu'il autorise (#49).
+
+### Corrections
+
+- **Installer (`install.php`)** : fatal error `strict_types declaration must be the very first statement` à chaque accès — le wizard était inutilisable en fresh install.
+- **Installer** : la colonne `users.email_alt` manquait dans le schéma embarqué — toute fresh install produisait une base où la création de membre (dont l'import CSV) plantait (`Unknown column 'email_alt'`). Garde anti-dérive ajoutée : `tests/schema-drift.spec.ts` compare `schema.sql` au schéma de l'installer en CI.
+- **Mobile** : l'identité du membre reste visible sur la fiche (#54) ; clic-ligne de l'aperçu des dons et liens « donateurs perdus » fonctionnels (#53).
+- **Fusion de doublons** : la colonne B restait invisible quand une note contenait du HTML volumineux (#50).
+- **Audit** : la suppression d'un membre journalise ses données non vides (#52).
+- **Liste des membres** : suppression d'un produit cartésien silencieux (`,compta` sans condition de jointure) et d'une requête N+1 sur le filtre « cotisation impayée » — page plus rapide sur les grandes bases.
+
+### Architecture (interne, sans changement fonctionnel)
+
+- **Routeur de vues déclaratif** : table route → [fichier, garde] ; ajouter une vue force une décision de droits explicite (#56).
+- **`MemberFilter`** : les 5 filtres virtuels (cotisations impayées, sans activité 10 ans, etc.) ont désormais une implémentation unique partagée entre la liste des membres et l'API REST — fin des divergences silencieuses vue/API (#57).
+- **`index.php` allégé** (417 → 191 lignes) : tout le JavaScript inline extrait vers `js/app.js` et `js/tiptap-editor.js` (#58).
+- **`users_list.php` sans SQL** (923 → 743 lignes) : requêtes déplacées vers les classes (`User::listWithFilters()`, `Compta::typesByUser()`, …) (#59).
+- **Documentation refondue** (architecture, API, admin, utilisateur, onboarding) (#51, #66).
+
+### Tests
+
+- **+45 tests Playwright** : parité vue/API des filtres virtuels, matrice rôles × routes (avec régressions des failles corrigées), guard de formulaire non sauvegardé, menu mobile par rôle (viewport téléphone), dérive de schéma installer (#65).
+
 ## [3.5.4] — 2026-07-01
 
 ### Nouveautés
