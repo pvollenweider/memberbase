@@ -264,4 +264,89 @@ class User
         $pdo->prepare("DELETE FROM user_properties WHERE user_id=?")->execute([$this->id]);
         $pdo->prepare("DELETE FROM compta WHERE user_id=?")->execute([$this->id]);
     }
+
+    /**
+     * Active member rows for the members list view, filtered by segment,
+     * combined segment (metagroup) or text search. Virtual filters
+     * (negative team IDs) are NOT applied here — the caller restricts rows
+     * via MemberFilter::resolveIds().
+     *
+     * @param array $opts {
+     *     team:         int     segment ID, 0 = all, virtual IDs pass through unfiltered
+     *     metagroup:    int     combined segment ID (0 = none; takes precedence over team)
+     *     searchString: string  text search (applied when action == 'search')
+     *     action:       string  request action ('search' enables the text filter)
+     *     membreTeam:   int     "membre" segment ID (legacy -1234 filter)
+     *     orderColumn:  string  MUST be pre-validated against a whitelist
+     *     orderSort:    string  'ASC' | 'DESC' (pre-validated)
+     * }
+     * @return object[] rows: id, firstname, lastname, society, sexe, address, npa, email, creationDate
+     */
+    public static function listWithFilters(array $opts): array
+    {
+        global $pdo;
+
+        $team        = (int)($opts['team'] ?? 0);
+        $metagroup   = (int)($opts['metagroup'] ?? 0);
+        $orderColumn = $opts['orderColumn'] ?? 'lastname';
+        $orderSort   = $opts['orderSort'] ?? 'ASC';
+
+        $query = "SELECT DISTINCT users.id, users.firstname, users.lastname, users.society,"
+               . " users.sexe, users.address, users.npa, users.email, users.creationDate"
+               . " FROM users";
+        if ($metagroup > 0) {
+            $query .= ",user_properties ";
+        } else {
+            // Virtual filter IDs (resolved via MemberFilter) and team=0 (all members)
+            // do not need a user_properties join
+            if ($team != 0 && $team != -1 && !MemberFilter::isVirtual($team)) {
+                $query .= ",user_properties ";
+            }
+        }
+        $query .= " WHERE 1=1 AND users.status=1 ";
+
+        $queryParams = [];
+        if (($opts['action'] ?? '') === 'search') {
+            $like = '%' . ($opts['searchString'] ?? '') . '%';
+            $query .= " AND (users.firstname LIKE ?"
+                    . " OR users.lastname LIKE ?"
+                    . " OR CONCAT(users.firstname, ' ', users.lastname) LIKE ?"
+                    . " OR CONCAT(users.lastname, ' ', users.firstname) LIKE ?"
+                    . " OR users.society LIKE ?"
+                    . " OR users.npa LIKE ?"
+                    . " OR users.email LIKE ?"
+                    . " OR users.comment LIKE ?"
+                    . " OR users.address LIKE ?)";
+            $queryParams = array_fill(0, 9, $like);
+        }
+
+        if ($metagroup > 0) {
+            $mgTeamIds = Metagroup::teamIds($metagroup);
+            if (count($mgTeamIds) > 0) {
+                $placeholders = implode(',', array_fill(0, count($mgTeamIds), '?'));
+                $query .= " AND users.id=user_properties.user_id AND user_properties.parameter IN ($placeholders)";
+                $queryParams = array_merge($queryParams, array_map(fn($id) => "team_$id", $mgTeamIds));
+            } else {
+                $query .= " AND 1=0"; // metagroup has no teams — return empty
+            }
+        } else if ($team != -1) {
+            if ($team == 0 || MemberFilter::isVirtual($team)) {
+                // team=0 = all active members; virtual filters restrict rows
+                // via the MemberFilter ID set applied by the caller
+            } else if ($team == -1234) {
+                $membreTeam = (int)($opts['membreTeam'] ?? 0);
+                $query .= " AND users.id=user_properties.user_id ";
+                $query .= "AND ( ";
+                $query .= "user_properties.parameter='team_$membreTeam') ";
+            } else {
+                $query .= " AND users.id=user_properties.user_id AND user_properties.parameter='team_$team'";
+            }
+        }
+
+        $query .= " ORDER BY $orderColumn $orderSort";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($queryParams);
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
+    }
 }

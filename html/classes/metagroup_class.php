@@ -46,6 +46,45 @@ class Metagroup
         }
     }
 
+    /**
+     * Named filter metagroups that contain at least one team, for the
+     * members list filter dropdown.
+     *
+     * @return object[] rows: id, name
+     */
+    public static function filterList(): array
+    {
+        global $pdo;
+        return $pdo->query(
+            "SELECT DISTINCT m.id, m.name FROM metagroup m
+             WHERE m.name IS NOT NULL AND m.is_filter = 1
+               AND EXISTS (SELECT 1 FROM metagroup j WHERE j.id=m.id AND j.teamid IS NOT NULL)
+             ORDER BY m.name"
+        )->fetchAll(PDO::FETCH_OBJ);
+    }
+
+    /** Names of the teams belonging to a metagroup, sorted. @return string[] */
+    public static function teamNames(int $id): array
+    {
+        global $pdo;
+        $stmt = $pdo->prepare(
+            "SELECT t.name FROM team t
+             JOIN metagroup j ON j.teamid = t.id
+             WHERE j.id = ? ORDER BY t.name"
+        );
+        $stmt->execute([$id]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    /** IDs of the teams belonging to a metagroup. @return int[] */
+    public static function teamIds(int $id): array
+    {
+        global $pdo;
+        $stmt = $pdo->prepare("SELECT teamid FROM metagroup WHERE id=? AND teamid IS NOT NULL");
+        $stmt->execute([$id]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
     public function isUsed(): bool
     {
         global $pdo;

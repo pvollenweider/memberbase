@@ -49,6 +49,44 @@ class Team
         }
     }
 
+    /** Team name, or null if the team does not exist. */
+    public static function nameById(int $id): ?string
+    {
+        global $pdo;
+        $stmt = $pdo->prepare("SELECT name FROM team WHERE id=?");
+        $stmt->execute([$id]);
+        $name = $stmt->fetchColumn();
+        return $name === false ? null : $name;
+    }
+
+    /**
+     * Visible teams with their category and member count, ordered for the
+     * members list filter dropdown (category sort order, then name).
+     *
+     * @return object[] rows: id, name, cat_name, cat_id, cat_sort, member_count
+     */
+    public static function listForDropdown(): array
+    {
+        global $pdo;
+        return $pdo->query("
+            SELECT t.id, t.name,
+                   COALESCE(cat.name, '') AS cat_name,
+                   COALESCE(cat.id, 0) AS cat_id,
+                   COALESCE(cat.sort_order, 99999) AS cat_sort,
+                   (SELECT COUNT(*) FROM user_properties up WHERE up.parameter = CONCAT('team_', t.id)) AS member_count
+            FROM team t
+            LEFT JOIN (
+                SELECT j.teamid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
+                FROM metagroup j
+                JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
+                WHERE j.teamid IS NOT NULL
+                GROUP BY j.teamid
+            ) cat ON cat.teamid = t.id
+            WHERE t.hidden = 0
+            ORDER BY cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
+        ")->fetchAll(PDO::FETCH_OBJ);
+    }
+
     public function isMemberOfMetagroup(int $metagroupId): bool
     {
         global $pdo;
