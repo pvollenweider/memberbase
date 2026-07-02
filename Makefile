@@ -1,4 +1,4 @@
-.PHONY: up down logs shell db import open test test-ui test-reset-db migrate migrate-status
+.PHONY: up down logs shell db import open test test-ui test-reset-db test-unit migrate migrate-status
 
 open:
 	open http://localhost:8080
@@ -38,3 +38,7 @@ test-ui:
 
 test-reset-db:
 	bash tests/fixtures/reset-db.sh
+
+## PHP unit tests (pure logic) — requires `composer install` once
+test-unit:
+	vendor/bin/phpunit

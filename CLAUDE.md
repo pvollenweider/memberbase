@@ -124,6 +124,15 @@ exit;
 - Détection de doublons : maps en mémoire (email, nom+prénom) préchargées en une requête — ne pas revenir à des SELECT par ligne
 - La création des contacts est enveloppée dans une transaction
 
+## Tests
+
+Deux suites complémentaires :
+
+- **E2E Playwright** (`tests/*.spec.ts`) — parcours navigateur, DB de test + seed. `make test` / `npx playwright test`. CI : `.github/workflows/e2e.yml`.
+- **Unitaires PHPUnit** (`tests/unit/*Test.php`) — logique métier **pure** (sans DB). `make test-unit` (après `composer install`). CI : `.github/workflows/unit.yml` (PHP 8.2).
+
+Les fonctions pures testables vivent dans `html/includes/lib/pure.php` (dates, `unquote`) et `html/includes/lib/import_fields.php` (`importNormalizeSexe`, `importFieldValue`) — **sans effet de bord**, pour être incluables hors du contexte `APP_ENTRY`/PDO. Le bootstrap unitaire (`tests/unit/bootstrap.php`) définit `APP_ENTRY` et n'inclut que ces fichiers. Ne pas y introduire de dépendance à `$pdo` ou à une connexion DB.
+
 ## Migrations DB
 
 Tout changement de schéma = un fichier `migrations/NNNN_description.sql` (racine du dépôt, hors webroot), appliqué par `php html/tools/migrate.php` (ou `make migrate`). État suivi dans la table `schema_migrations`. **Ne plus mettre de SQL manuel dans `MIGRATION_PROD.md`.**

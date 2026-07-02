@@ -1,0 +1,15 @@
+{
+    "name": "pvollenweider/memberbase",
+    "description": "MemberBase — dev-only tooling (PHPUnit unit tests for pure business logic).",
+    "license": "AGPL-3.0-or-later",
+    "type": "project",
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}

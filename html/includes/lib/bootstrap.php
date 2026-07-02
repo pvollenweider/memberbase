@@ -11,6 +11,9 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 date_default_timezone_set("Europe/Zurich");
 
+// Pure helpers (date/string), extracted for unit testing — no side effects.
+require_once __DIR__ . '/pure.php';
+
 // Load DB config from conf/db.php if present (traditional install),
 // otherwise fall back to environment variables (Docker / 12-factor).
 $_confFile = __DIR__ . '/../../../conf/db.php';
@@ -92,33 +95,6 @@ function updateAndGetMaxVal(string $parameter): int
     $value = getMaxVal($pdo, $parameter) + 1;
     $pdo->prepare("UPDATE maxval SET value=? WHERE parameter=?")->execute([$value, $parameter]);
     return $value;
-}
-
-/** Parses a d/m/Y date string (as used in form inputs) to a Unix timestamp. */
-function formatedDateToTimeStamp(?string $formatedDate): int
-{
-    if ($formatedDate) {
-        $d = DateTime::createFromFormat('d/m/Y', $formatedDate);
-        // Reject out-of-range dates (e.g. 32/13/2025) that createFromFormat silently rolls over
-        $errors = DateTime::getLastErrors();
-        if (!$d || ($errors && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))) {
-            return 0;
-        }
-        return $d->getTimestamp();
-    }
-    return 0;
-}
-
-/** Formats a Unix timestamp to a d/m/Y display string for form inputs and tables. */
-function timeStampToformatedDate(?int $timestamp): string
-{
-    return $timestamp ? date("d/m/Y", $timestamp) : "";
-}
-
-/** Replaces typographic apostrophes (') with straight apostrophes (') from user input. */
-function unquote(string $s): string
-{
-    return str_replace("\u{2019}", "'", $s);
 }
 
 /**
