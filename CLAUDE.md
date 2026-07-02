@@ -135,7 +135,7 @@ Les fonctions pures testables vivent dans `html/includes/lib/pure.php` (dates, `
 
 ## Migrations DB
 
-Tout changement de schéma = un fichier `migrations/NNNN_description.sql` (racine du dépôt, hors webroot), appliqué par `php html/tools/migrate.php` (ou `make migrate`). État suivi dans la table `schema_migrations`. **Ne plus mettre de SQL manuel dans `MIGRATION_PROD.md`.**
+Tout changement de schéma = un fichier `html/migrations/NNNN_description.sql` (**sous `html/`** pour être déployé avec l'app — les prods qui ne synchronisent que `html/` l'emportent ; accès HTTP refusé par `html/migrations/.htaccess`), appliqué par `php html/tools/migrate.php` (ou `make migrate`). État suivi dans la table `schema_migrations`. **Ne plus mettre de SQL manuel dans `MIGRATION_PROD.md`.**
 
 - `migrate.php --status` : voir appliquées / en attente.
 - `migrate.php --baseline` : marquer tout comme appliqué sans exécuter (fresh install — géré automatiquement par `install.php`).

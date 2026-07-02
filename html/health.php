@@ -49,7 +49,7 @@ try {
 // table (never migrated) is treated as OK for a plain reachability probe.
 try {
     $applied = $pdo->query('SELECT version FROM schema_migrations')->fetchAll(PDO::FETCH_COLUMN);
-    $files   = glob($repoRoot . '/migrations/*.sql') ?: [];
+    $files   = glob(__DIR__ . '/migrations/*.sql') ?: [];
     $appliedMap = array_flip($applied);
     foreach ($files as $f) {
         if (!isset($appliedMap[basename($f, '.sql')])) {

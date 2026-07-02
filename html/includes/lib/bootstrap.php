@@ -110,7 +110,7 @@ function updateAndGetMaxVal(string $parameter): int
  */
 function pendingMigrations(PDO $pdo): array
 {
-    $migrationsDir = __DIR__ . '/../../../migrations';
+    $migrationsDir = __DIR__ . '/../../migrations';  // html/migrations
     $files = glob($migrationsDir . '/*.sql') ?: [];
     if (!$files) {
         return [];

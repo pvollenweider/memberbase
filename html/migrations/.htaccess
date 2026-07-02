@@ -1,0 +1,10 @@
+# Migration SQL files are applied by the CLI runner (html/tools/migrate.php).
+# They live under the webroot so they ship with the app (deployments that only
+# sync html/), but must NOT be readable over HTTP.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
