@@ -13,6 +13,7 @@
  */
 require_once __DIR__ . '/_bootstrap.php';
 require_once __DIR__ . '/../classes/user_class.php';
+require_once __DIR__ . '/../classes/member_filter_class.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -159,145 +160,46 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
 {
     global $pdo, $appSettings;
 
-    $year         = (int)date('Y');
-    $noCotiTeam   = (int)($appSettings['member_no_coti_team'] ?? 0);
-    $membreTeam   = (int)($appSettings['membre_team'] ?? 0);
+    $year = (int)date('Y');
 
-    $baseSelect = "SELECT DISTINCT users.id, users.firstname, users.lastname, users.society,
+    $baseSelect = "SELECT users.id, users.firstname, users.lastname, users.society,
                           users.email, users.npa, users.address, users.sexe, users.creationDate
                    FROM users";
-    $baseWhere  = "WHERE users.status = 1";
     $orderBy    = "ORDER BY users.lastname ASC, users.firstname ASC";
 
-    switch ($filterId) {
-
-        // All active members (same as no filter)
-        case FILTER_ALL_EXCEPT_ARCHIVES:
-            $countSql = "SELECT COUNT(DISTINCT users.id) FROM users $baseWhere";
-            $sql      = "$baseSelect $baseWhere $orderBy LIMIT ? OFFSET ?";
-            $params   = [];
-            break;
-
-        // Members who ever paid cotisation but not in the last 3 years
-        case FILTER_UNPAID_COTI_3Y:
-            $cutoff = mktime(0, 0, 0, 1, 0, $year - 2);
-            $noCotiExclude = $noCotiTeam > 0
-                ? "AND users.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = 'team_$noCotiTeam')"
-                : '';
-            $countSql = "SELECT COUNT(DISTINCT users.id) FROM users $baseWhere $noCotiExclude
-                         AND users.id IN (
-                             SELECT c.user_id FROM compta c
-                             JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1
-                             GROUP BY c.user_id
-                             HAVING COUNT(*) > 0
-                                AND SUM(CASE WHEN c.date > ? THEN 1 ELSE 0 END) = 0
-                         )";
-            $sql      = "$baseSelect $baseWhere $noCotiExclude
-                         AND users.id IN (
-                             SELECT c.user_id FROM compta c
-                             JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1
-                             GROUP BY c.user_id
-                             HAVING COUNT(*) > 0
-                                AND SUM(CASE WHEN c.date > ? THEN 1 ELSE 0 END) = 0
-                         ) $orderBy LIMIT ? OFFSET ?";
-            $params   = [$cutoff];
-            break;
-
-        // Active members with no compta activity in the last 10 years
-        case FILTER_NO_ACTIVITY_10Y:
-            $from10 = mktime(0, 0, 0, 1, 0, $year - 10);
-            $to10   = mktime(0, 0, 0, 1, 1, $year + 1);
-            $countSql = "SELECT COUNT(DISTINCT users.id) FROM users $baseWhere
-                         AND NOT EXISTS (
-                             SELECT 1 FROM compta
-                             WHERE compta.user_id = users.id
-                               AND compta.date > ? AND compta.date < ?
-                         )";
-            $sql      = "$baseSelect $baseWhere
-                         AND NOT EXISTS (
-                             SELECT 1 FROM compta
-                             WHERE compta.user_id = users.id
-                               AND compta.date > ? AND compta.date < ?
-                         ) $orderBy LIMIT ? OFFSET ?";
-            $params   = [$from10, $to10];
-            break;
-
-        // Members who made a non-institutional payment in the previous year
-        case FILTER_NON_INSTIT_LAST_YEAR:
-            $from6666 = mktime(0, 0, 0, 1, 0, $year - 1);
-            $to6666   = mktime(0, 0, 0, 1, 1, $year);
-            $institIds = array_column(
-                $pdo->query("SELECT id FROM compta_type WHERE is_institutional=1")->fetchAll(PDO::FETCH_OBJ),
-                'id'
-            );
-            $notIn = count($institIds) ? implode(',', array_map('intval', $institIds)) : '0';
-            $countSql = "SELECT COUNT(DISTINCT users.id) FROM users $baseWhere
-                         AND EXISTS (
-                             SELECT 1 FROM compta c
-                             WHERE c.user_id = users.id
-                               AND c.date > ? AND c.date < ?
-                               AND (c.type_id IS NULL OR c.type_id NOT IN ($notIn))
-                         )";
-            $sql      = "$baseSelect $baseWhere
-                         AND EXISTS (
-                             SELECT 1 FROM compta c
-                             WHERE c.user_id = users.id
-                               AND c.date > ? AND c.date < ?
-                               AND (c.type_id IS NULL OR c.type_id NOT IN ($notIn))
-                         ) $orderBy LIMIT ? OFFSET ?";
-            $params   = [$from6666, $to6666];
-            break;
-
-        // Members of the "membre" team who haven't paid cotisation this year
-        case FILTER_UNPAID_COTI_CURRENT:
-            if ($membreTeam <= 0) {
-                echo json_encode(['data' => [], 'meta' => ['page' => $page, 'limit' => $limit, 'total' => 0]],
-                    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                return;
-            }
-            $yearFrom = mktime(0, 0, 0, 1, 0, $year);
-            $yearTo   = mktime(0, 0, 0, 1, 1, $year + 1);
-            $noCotiExclude = $noCotiTeam > 0
-                ? "AND users.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = 'team_$noCotiTeam')"
-                : '';
-            $countSql = "SELECT COUNT(DISTINCT users.id) FROM users
-                         JOIN user_properties up_m ON up_m.user_id = users.id AND up_m.parameter = 'team_$membreTeam'
-                         $baseWhere $noCotiExclude
-                         AND NOT EXISTS (
-                             SELECT 1 FROM compta c
-                             JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1
-                             WHERE c.user_id = users.id
-                               AND c.date > ? AND c.date < ?
-                         )";
-            $sql      = "$baseSelect
-                         JOIN user_properties up_m ON up_m.user_id = users.id AND up_m.parameter = 'team_$membreTeam'
-                         $baseWhere $noCotiExclude
-                         AND NOT EXISTS (
-                             SELECT 1 FROM compta c
-                             JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1
-                             WHERE c.user_id = users.id
-                               AND c.date > ? AND c.date < ?
-                         ) $orderBy LIMIT ? OFFSET ?";
-            $params   = [$yearFrom, $yearTo];
-            break;
-
-        default:
-            apiError(400, 'Unknown virtual filter');
+    // All active members — no ID restriction needed
+    if ($filterId === FILTER_ALL_EXCEPT_ARCHIVES) {
+        $total = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE status = 1")->fetchColumn();
+        $stmt = $pdo->prepare("$baseSelect WHERE users.status = 1 $orderBy LIMIT ? OFFSET ?");
+        $stmt->bindValue(1, $limit,  PDO::PARAM_INT);
+        $stmt->bindValue(2, $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        emitMemberList($stmt->fetchAll(), $page, $limit, $total, $includeTypes);
+        return;
     }
 
-    $stmtCount = $pdo->prepare($countSql);
-    $stmtCount->execute($params);
-    $total = (int)$stmtCount->fetchColumn();
+    if (!in_array($filterId, MemberFilter::RESOLVABLE, true)) {
+        apiError(400, 'Unknown virtual filter');
+    }
 
-    $stmtRows = $pdo->prepare($sql);
+    // Shared filter logic — same source of truth as the members list view
+    $ids = array_keys(MemberFilter::resolveIds($filterId, $pdo, $year, $appSettings));
+    $total = count($ids);
+
+    if ($total === 0) {
+        emitMemberList([], $page, $limit, 0, $includeTypes);
+        return;
+    }
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $pdo->prepare("$baseSelect WHERE users.id IN ($placeholders) $orderBy LIMIT ? OFFSET ?");
     $i = 1;
-    foreach ($params as $val) { $stmtRows->bindValue($i++, $val, PDO::PARAM_INT); }
-    $stmtRows->bindValue($i++, $limit,  PDO::PARAM_INT);
-    $stmtRows->bindValue($i,   $offset, PDO::PARAM_INT);
-    $stmtRows->execute();
-    $rows = $stmtRows->fetchAll();
+    foreach ($ids as $uid) { $stmt->bindValue($i++, $uid, PDO::PARAM_INT); }
+    $stmt->bindValue($i++, $limit,  PDO::PARAM_INT);
+    $stmt->bindValue($i,   $offset, PDO::PARAM_INT);
+    $stmt->execute();
 
-    emitMemberList($rows, $page, $limit, $total, $includeTypes);
+    emitMemberList($stmt->fetchAll(), $page, $limit, $total, $includeTypes);
 }
 
 function handleList(): void

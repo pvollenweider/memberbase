@@ -26,6 +26,7 @@ include "classes/team_class.php";
 include "classes/compta_class.php";
 include "classes/property_class.php";
 include "classes/metagroup_class.php";
+include "classes/member_filter_class.php";
 
 // htmx partial response — skip layout, return only content fragment
 $isHtmx = !empty($_SERVER['HTTP_HX_REQUEST']);
