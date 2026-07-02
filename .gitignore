@@ -14,3 +14,8 @@ node_modules/
 playwright-report/
 test-results/
 tests/.auth/
+
+# PHP (Composer / PHPUnit)
+/vendor/
+composer.lock
+.phpunit.cache/
