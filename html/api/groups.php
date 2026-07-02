@@ -85,6 +85,7 @@ function groupToArray(object $row): array
 function handleList(): void
 {
     global $pdo;
+    if (!canRead()) apiError(403, 'Forbidden');
 
     $stmt = $pdo->query(
         "SELECT t.id, t.name, t.hidden,
@@ -109,6 +110,7 @@ function handleList(): void
 function handleGet(int $id): void
 {
     global $pdo;
+    if (!canRead()) apiError(403, 'Forbidden');
 
     $stmt = $pdo->prepare(
         "SELECT t.id, t.name, t.hidden,
@@ -131,6 +133,7 @@ function handleGet(int $id): void
 function handleListMembers(int $id): void
 {
     global $pdo;
+    if (!canRead()) apiError(403, 'Forbidden');
 
     $stmt = $pdo->prepare("SELECT id FROM team WHERE id=? LIMIT 1");
     $stmt->execute([$id]);
