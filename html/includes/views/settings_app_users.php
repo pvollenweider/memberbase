@@ -174,13 +174,65 @@ if ($__flash):
             <input type="email" class="form-control form-control-sm" id="au_email" name="au_email" maxlength="200">
           </div>
           <div class="mb-3">
-            <label for="au_role" class="form-label">Rôle</label>
+            <label for="au_role" class="form-label">
+              Rôle
+              <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline text-decoration-none"
+                      data-bs-toggle="collapse" data-bs-target="#role-matrix"
+                      aria-expanded="false" aria-controls="role-matrix"
+                      title="Voir la matrice des droits">
+                <i class="fas fa-circle-question" aria-hidden="true"></i>
+                <span class="visually-hidden">Voir la matrice des droits</span>
+              </button>
+            </label>
             <select class="form-select form-select-sm" id="au_role" name="au_role">
               <option value="readonly">Lecture seule</option>
               <option value="user" selected>Utilisateur</option>
               <option value="manager">Manager</option>
               <option value="admin">Admin</option>
             </select>
+            <div class="collapse mt-2" id="role-matrix">
+              <style>
+                .ca-rights-matrix th, .ca-rights-matrix td { padding:.2rem .35rem; border-bottom:1px solid rgba(0,0,0,.08); }
+                .ca-rights-matrix tbody tr:last-child td { border-bottom:0; }
+              </style>
+              <div class="border rounded p-2 bg-light">
+                <table class="ca-rights-matrix table-sm mb-0 align-middle text-center" style="font-size:0.72rem;width:100%;border-collapse:collapse">
+                  <thead>
+                    <tr>
+                      <th class="text-start" style="font-weight:600">Droit</th>
+                      <th>Lecture<br>seule</th>
+                      <th>Utilisa-<br>teur</th>
+                      <th>Manager</th>
+                      <th>Admin</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php
+                    // ✓ = autorisé, – = refusé. Reflète auth.php (canRead/canWrite/isManager/isAdmin)
+                    // et les gardes des actions (import & gestion = manager+ ; suppression/anonymisation & comptes = admin).
+                    $_matrix = [
+                      'Consulter membres, compta, suivi'          => [1,1,1,1],
+                      'Créer / modifier membres, compta, suivi'   => [0,1,1,1],
+                      'Importer des contacts (CSV/TSV)'           => [0,0,1,1],
+                      'Gérer segments, catégories, paramètres'    => [0,0,1,1],
+                      'Fusionner / archiver un membre'            => [0,0,1,1],
+                      'Supprimer / anonymiser un membre'          => [0,0,0,1],
+                      'Gérer les comptes applicatifs'             => [0,0,0,1],
+                    ];
+                    foreach ($_matrix as $_label => $_cells): ?>
+                    <tr>
+                      <td class="text-start"><?= htmlspecialchars($_label, ENT_QUOTES, $charset) ?></td>
+                      <?php foreach ($_cells as $_c): ?>
+                      <td><?= $_c
+                            ? '<i class="fas fa-check text-success" aria-label="oui"></i>'
+                            : '<span class="text-muted" aria-label="non">–</span>' ?></td>
+                      <?php endforeach ?>
+                    </tr>
+                    <?php endforeach ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
           <div class="mb-3">
             <label for="au_password" class="form-label">Mot de passe temporaire</label>
