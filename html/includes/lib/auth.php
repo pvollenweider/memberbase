@@ -35,6 +35,32 @@ function authUser(): ?object
     ];
 }
 
+/**
+ * Returns the per-session CSRF token, generating it on first use.
+ * Distinct from the login form token ('csrf_login').
+ */
+function csrfToken(): string
+{
+    if (empty($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf'];
+}
+
+/**
+ * Validates a submitted CSRF token against the session one, in constant time.
+ * The token is read from the `csrf` POST field or the `X-CSRF-Token` header
+ * (used by htmx / fetch requests).
+ */
+function csrfCheck(): bool
+{
+    if (empty($_SESSION['csrf'])) {
+        return false;
+    }
+    $sent = $_POST['csrf'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+    return is_string($sent) && $sent !== '' && hash_equals($_SESSION['csrf'], $sent);
+}
+
 function isLoggedIn(): bool  { return authUser() !== null; }
 function isAdmin(): bool    { return ($_SESSION['app_user_role'] ?? '') === 'admin'; }
 function isManager(): bool  { return in_array($_SESSION['app_user_role'] ?? '', ['admin', 'manager'], true); }

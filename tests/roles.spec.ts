@@ -51,6 +51,18 @@ async function apiAs(playwright: { request: { newContext: Function } }, role: st
   });
 }
 
+/**
+ * Fetch the session CSRF token exposed in the page <meta> for an authenticated
+ * context. Needed for direct POST /index.php action calls (the CSRF guard runs
+ * before the role guard), so these tests exercise the ROLE guard, not CSRF.
+ */
+async function csrfFor(api: APIRequestContext): Promise<string> {
+  const html = await (await api.get('/index.php')).text();
+  const m = html.match(/name="csrf-token" content="([^"]+)"/);
+  if (!m) throw new Error('CSRF token meta not found');
+  return m[1];
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // UI — navigation bar
 // ─────────────────────────────────────────────────────────────────────────────
@@ -302,7 +314,8 @@ test.describe('Server — members action guards', () => {
   // readonly blocked by top-level canWrite() guard in members.php
   test('readonly: action=updateUser → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'readonly');
-    const r = await api.post('/index.php', { form: { action: 'updateUser', id: String(ACTIVE_MEMBER_ID), firstName: 'Hacked' } });
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'updateUser', id: String(ACTIVE_MEMBER_ID), firstName: 'Hacked' } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
@@ -310,21 +323,24 @@ test.describe('Server — members action guards', () => {
   // user blocked for manager-level actions
   test('user: action=deactivateUser → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'user');
-    const r = await api.post('/index.php', { form: { action: 'deactivateUser', id: String(ACTIVE_MEMBER_ID) } });
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'deactivateUser', id: String(ACTIVE_MEMBER_ID) } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
 
   test('user: action=reactivateUser → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'user');
-    const r = await api.post('/index.php', { form: { action: 'reactivateUser', id: String(ARCHIVED_MEMBER_ID) } });
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'reactivateUser', id: String(ARCHIVED_MEMBER_ID) } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
 
   test('user: action=mergeUsers → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'user');
-    const r = await api.post('/index.php', { form: { action: 'mergeUsers', idA: String(ACTIVE_MEMBER_ID), idB: '2', survivor: 'a', disposal: 'deactivate' } });
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'mergeUsers', idA: String(ACTIVE_MEMBER_ID), idB: '2', survivor: 'a', disposal: 'deactivate' } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
@@ -332,14 +348,16 @@ test.describe('Server — members action guards', () => {
   // user blocked for admin-level actions
   test('user: action=anonymizeUser → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'user');
-    const r = await api.post('/index.php', { form: { action: 'anonymizeUser', id: String(ACTIVE_MEMBER_ID) } });
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'anonymizeUser', id: String(ACTIVE_MEMBER_ID) } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
 
   test('user: action=deleteOrDeactivateUser → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'user');
-    const r = await api.post('/index.php', { form: { action: 'deleteOrDeactivateUser', id: String(ARCHIVED_MEMBER_ID), dispose: 'delete' } });
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'deleteOrDeactivateUser', id: String(ARCHIVED_MEMBER_ID), dispose: 'delete' } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
@@ -347,14 +365,16 @@ test.describe('Server — members action guards', () => {
   // manager blocked for admin-only actions
   test('manager: action=anonymizeUser → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'manager');
-    const r = await api.post('/index.php', { form: { action: 'anonymizeUser', id: String(ACTIVE_MEMBER_ID) } });
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'anonymizeUser', id: String(ACTIVE_MEMBER_ID) } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
 
   test('manager: action=deleteOrDeactivateUser dispose=delete → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'manager');
-    const r = await api.post('/index.php', { form: { action: 'deleteOrDeactivateUser', id: String(ARCHIVED_MEMBER_ID), dispose: 'delete' } });
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'deleteOrDeactivateUser', id: String(ARCHIVED_MEMBER_ID), dispose: 'delete' } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
@@ -362,12 +382,49 @@ test.describe('Server — members action guards', () => {
   // positive: manager CAN deactivate
   test('manager: action=deactivateUser on active member → not 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'manager');
-    const r = await api.post('/index.php', { form: { action: 'deactivateUser', id: '2' } });
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'deactivateUser', id: '2' } });
     expect(r.status()).not.toBe(403);
     await api.dispose();
     // Restore: reactivate via admin
     const admin = await apiAs(playwright, 'admin');
-    await admin.post('/index.php', { form: { action: 'reactivateUser', id: '2' } });
+    const adminCsrf = await csrfFor(admin);
+    await admin.post('/index.php', { form: { csrf: adminCsrf, action: 'reactivateUser', id: '2' } });
+    await admin.dispose();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Server enforcement — CSRF guard on POST actions (#69)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Server — CSRF guard', () => {
+  // Even an admin (allowed by role) is rejected without a valid CSRF token.
+  test('admin: POST action without CSRF token → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'admin');
+    const r = await api.post('/index.php', { form: { action: 'deactivateUser', id: '2' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('admin: POST action with a wrong CSRF token → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'admin');
+    const r = await api.post('/index.php', { form: { csrf: 'not-a-valid-token', action: 'deactivateUser', id: '2' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  // Same action WITH a valid token passes the CSRF guard (then role/logic apply).
+  test('admin: POST action with a valid CSRF token → not 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'admin');
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'deactivateUser', id: '2' } });
+    expect(r.status()).not.toBe(403);
+    await api.dispose();
+    // Restore
+    const admin = await apiAs(playwright, 'admin');
+    const rc = await csrfFor(admin);
+    await admin.post('/index.php', { form: { csrf: rc, action: 'reactivateUser', id: '2' } });
     await admin.dispose();
   });
 });
@@ -379,8 +436,9 @@ test.describe('Server — members action guards', () => {
 test.describe('Server — compta action guards', () => {
   test('readonly: action=addCompta → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'readonly');
+    const csrf = await csrfFor(api);
     const r = await api.post('/index.php', { form: {
-      action: 'addCompta', userid: String(ACTIVE_MEMBER_ID),
+      csrf, action: 'addCompta', userid: String(ACTIVE_MEMBER_ID),
       type_id: '1', date: '01/01/2025', libele: 'Hack', sum: '50',
     }});
     expect(r.status()).toBe(403);
@@ -389,8 +447,9 @@ test.describe('Server — compta action guards', () => {
 
   test('readonly: action=updateCompta → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'readonly');
+    const csrf = await csrfFor(api);
     const r = await api.post('/index.php', { form: {
-      action: 'updateCompta', comptaid: '1', userid: String(ACTIVE_MEMBER_ID),
+      csrf, action: 'updateCompta', comptaid: '1', userid: String(ACTIVE_MEMBER_ID),
       type_id: '1', date: '01/01/2025', libele: 'Hack', sum: '99',
     }});
     expect(r.status()).toBe(403);
@@ -405,8 +464,9 @@ test.describe('Server — compta action guards', () => {
 test.describe('Server — suivi action guards', () => {
   test('readonly: action=addSuivi → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'readonly');
+    const csrf = await csrfFor(api);
     const r = await api.post('/index.php', { form: {
-      action: 'addSuivi', userid: String(ACTIVE_MEMBER_ID),
+      csrf, action: 'addSuivi', userid: String(ACTIVE_MEMBER_ID),
       parameter: 'suivi', date: '01/01/2025', value: 'Hack',
     }});
     expect(r.status()).toBe(403);
@@ -421,14 +481,16 @@ test.describe('Server — suivi action guards', () => {
 test.describe('Server — group action guards', () => {
   test('readonly: action=addMembership → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'readonly');
-    const r = await api.post('/index.php', { form: { action: 'addMembership', id: String(ACTIVE_MEMBER_ID), teamId: '1' } });
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'addMembership', id: String(ACTIVE_MEMBER_ID), teamId: '1' } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
 
   test('user: action=removeMembership → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'user');
-    const r = await api.post('/index.php', { form: { action: 'removeMembership', id: String(ACTIVE_MEMBER_ID), teamId: '1' } });
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'removeMembership', id: String(ACTIVE_MEMBER_ID), teamId: '1' } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
@@ -484,7 +546,8 @@ test.describe('Server — REST API /api/members guards', () => {
     await api.dispose();
     // Restore
     const admin = await apiAs(playwright, 'admin');
-    await admin.post('/index.php', { form: { action: 'reactivateUser', id: '2' } });
+    const rc = await csrfFor(admin);
+    await admin.post('/index.php', { form: { csrf: rc, action: 'reactivateUser', id: '2' } });
     await admin.dispose();
   });
 });

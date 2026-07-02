@@ -44,6 +44,7 @@ if ($isHtmx) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, $charset) ?>">
     <title><?= htmlspecialchars($appSettings['org_name'] ?: 'Gestion des membres', ENT_QUOTES, $charset) ?></title>
     <?php
     function getMicroTime()
