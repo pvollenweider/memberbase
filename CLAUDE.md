@@ -20,6 +20,36 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 PHP 8.2 / MariaDB / Bootstrap 5.3 / htmx 2.0.4 / Alpine.js  
 Docker local : `localhost:8080`
 
+## Conventions de code
+
+### Commentaires en anglais
+
+**Tous les commentaires dans le code (PHP, JS, CSS, SQL) doivent être en anglais**, quelle que soit la langue de l'interface. Les messages de commit et la doc (`CLAUDE.md`, `MIGRATION_PROD.md`, etc.) restent en français.
+
+```php
+// ✅ correct — English comment
+// Load DB config from conf/db.php if present.
+
+// ❌ à éviter — commentaire en français dans le code
+// Charge la config DB depuis conf/db.php si présent.
+```
+
+### Aucun label en dur — tout dans le fichier de locale
+
+**Aucune chaîne visible par l'utilisateur ne doit être codée en dur** dans les vues/actions : titres, boutons, labels de formulaire, messages, en-têtes de colonnes, textes d'alerte, etc. Toujours passer par le fichier de locale `html/locales/resources_fr.php` (exposé via `$GLOBAL[...]`).
+
+```php
+// ✅ correct
+<button><?= htmlspecialchars($GLOBAL['save'], ENT_QUOTES, $charset) ?></button>
+
+// ❌ label en dur
+<button>Enregistrer</button>
+```
+
+- Ajouter la clé dans `html/locales/resources_fr.php` puis la référencer via `$GLOBAL['<clé>']`.
+- Nommer les clés en anglais, de façon descriptive (`save`, `groupModified`, `close`…).
+- Vaut aussi pour les chaînes injectées côté JS (passer par des attributs `data-*` remplis depuis la locale, cf. le toast dans `index.php`).
+
 ## Règle : navigation JS et dirty-form guard
 
 **Toujours setter `window.__dirtyOverride = true` avant tout `window.location = ...` dans le code inline.**
