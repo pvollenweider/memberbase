@@ -11,18 +11,17 @@ import { test, expect } from '@playwright/test';
 import * as path from 'path';
 
 test.describe('Security logging', () => {
-  test('a failed login is recorded (loginFailed)', async ({ browser, page }) => {
-    // Unauthenticated context — attempt a bad password.
-    const ctx = await browser.newContext();
-    const anon = await ctx.newPage();
-    await anon.goto('/login.php');
-    await anon.fill('#username', 'testadmin');
-    await anon.fill('#password', 'definitely-wrong-password');
-    await Promise.all([
-      anon.waitForNavigation({ waitUntil: 'load', timeout: 30_000 }),
-      anon.click('button[type="submit"]'),
-    ]);
-    await ctx.close();
+  test('a failed login is recorded (loginFailed)', async ({ playwright, page }) => {
+    // Fresh (unauthenticated) request context: fetch the login CSRF token, then
+    // POST a wrong password. Avoids driving the login UI in a manual context.
+    const anon = await playwright.request.newContext({ baseURL: 'http://localhost:8080' });
+    const html = await (await anon.get('/login.php')).text();
+    const m = html.match(/name="csrf" value="([^"]+)"/);
+    if (!m) throw new Error('login CSRF token not found');
+    await anon.post('/login.php', {
+      form: { csrf: m[1], username: 'testadmin', password: 'definitely-wrong-password' },
+    });
+    await anon.dispose();
 
     // Admin (default storageState) sees it in the audit log.
     await page.goto('/index.php?view=settings&tab=audit');
