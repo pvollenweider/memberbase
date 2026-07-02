@@ -70,7 +70,8 @@ test.describe.serial('Métagroupes / filtres', () => {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '/index.php';
-        for (const [n, v] of [['action', 'deleteMetagroup'], ['id', id], ['view', 'settings'], ['tab', 'filters']] as [string, string][]) {
+        const csrfTok = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+        for (const [n, v] of [['action', 'deleteMetagroup'], ['id', id], ['view', 'settings'], ['tab', 'filters'], ['csrf', csrfTok]] as [string, string][]) {
           const el = document.createElement('input');
           el.name = n; el.value = v;
           form.appendChild(el);

@@ -37,6 +37,10 @@ test('logout redirects to login page', async ({ page }) => {
     input.name = 'action';
     input.value = 'logout';
     form.appendChild(input);
+    const csrf = document.createElement('input');
+    csrf.name = 'csrf';
+    csrf.value = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+    form.appendChild(csrf);
     document.body.appendChild(form);
     form.submit();
   });

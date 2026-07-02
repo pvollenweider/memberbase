@@ -81,7 +81,8 @@ test.describe.serial('Groups (teams)', () => {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '/index.php';
-        for (const [name, value] of [['action','deleteTeam'],['view','settings'],['tab','groups'],['id',id]] as [string,string][]) {
+        const csrfTok = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+        for (const [name, value] of [['action','deleteTeam'],['view','settings'],['tab','groups'],['id',id],['csrf',csrfTok]] as [string,string][]) {
           const el = document.createElement('input');
           el.name = name; el.value = value;
           form.appendChild(el);
