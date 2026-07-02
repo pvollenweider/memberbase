@@ -2,6 +2,37 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [3.5.6] — 2026-07-02
+
+Release d'**industrialisation** (ticket-cadre #67) : passer de « ça marche » à « installable, migrable, sécurisable sans stress », sans réécriture du noyau.
+
+### Sécurité
+
+- **Protection CSRF sur toutes les actions POST** (#69) : jeton de session vérifié dans le routeur d'actions **avant** dispatch (POST sans jeton valide → `403`). Propagation automatique — en-tête `X-CSRF-Token` sur toutes les requêtes htmx et champ caché estampillé sur tout `<form method="post">` (couvre soumissions natives, uploads multipart et `form.submit()` programmatiques).
+- **En-têtes de sécurité HTTP** (#70) : `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Strict-Transport-Security`, plus une **Content-Security-Policy en `Report-Only`** (à valider avant enforcement). À répliquer dans le vhost HTTPS de prod (cf. `MIGRATION_PROD.md`).
+- **Cohérence des gardes API** (#71) : `GET /api/groups` et `GET /api/compta-types` vérifient désormais `canRead()`, comme les autres lectures.
+
+### Nouveautés
+
+- **Système de migrations de base de données versionnées** (#68) : fichiers `html/migrations/NNNN_*.sql` appliqués par `php html/tools/migrate.php` (ou `make migrate`), état suivi dans la table `schema_migrations`. `--status` / `--baseline`, baseline automatique à l'installation, bandeau d'alerte admin tant qu'une migration est en attente. Plus aucun SQL manuel en prod. Les migrations vivent **sous `html/`** (accès HTTP refusé par `.htaccess`) pour être emportées par les déploiements qui ne synchronisent que `html/`.
+- **Page de santé / observabilité** (#74) : onglet **Réglages → Santé** (Admin) — version, PHP, serveur, état DB, migrations appliquées/en attente, volumétrie et dernière activité. Plus un endpoint `/health.php` non authentifié pour du monitoring externe (JSON `{"status":"ok"|"degraded"}`, sans donnée sensible).
+
+### Modèle de données
+
+- **`compta.sum` passe de `VARCHAR(64)` à `DECIMAL(10,2)`** (#72) : fin des montants financiers stockés en texte. La migration nettoie les valeurs (virgules → points, non numériques → 0) puis convertit la colonne. Suppression des `CAST`/`REGEXP` et du contrôle d'intégrité « montants non numériques » devenus sans objet.
+
+### Tests
+
+- **Suite unitaire PHPUnit** (#73) : logique métier pure (dates, `unquote`, normalisation de civilité d'import) dans `tests/unit/`, exécutée par un **job CI dédié** (PHP 8.2), en complément des tests E2E Playwright. Helpers purs extraits dans `html/includes/lib/pure.php`, sans effet de bord.
+
+### Corrections
+
+- **Runner de migrations** (#68) : un commentaire en tête de fichier faisait silencieusement sauter le statement suivant ; et le `commit()` postérieur à un DDL (auto-committé par MySQL) levait un `ÉCHEC` trompeur alors que la migration était bien appliquée. Corrigés.
+
+### Conventions
+
+- `CLAUDE.md` : commentaires de code en anglais, aucun label en dur (tout dans la locale), sections CSRF / migrations / tests.
+
 ## [3.5.5] — 2026-07-02
 
 ### Sécurité

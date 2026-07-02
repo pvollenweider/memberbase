@@ -1,6 +1,6 @@
 # Référence API MemberBase
 
-API REST interne de l'application MemberBase (version **3.5.4**). Toutes les réponses sont en JSON UTF-8.
+API REST interne de l'application MemberBase (version **3.5.6**). Toutes les réponses sont en JSON UTF-8.
 
 ## Sommaire
 
