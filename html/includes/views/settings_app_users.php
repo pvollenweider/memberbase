@@ -191,8 +191,12 @@ if ($__flash):
               <option value="admin">Admin</option>
             </select>
             <div class="collapse mt-2" id="role-matrix">
+              <style>
+                .ca-rights-matrix th, .ca-rights-matrix td { padding:.2rem .35rem; border-bottom:1px solid rgba(0,0,0,.08); }
+                .ca-rights-matrix tbody tr:last-child td { border-bottom:0; }
+              </style>
               <div class="border rounded p-2 bg-light">
-                <table class="table table-sm mb-0 align-middle text-center" style="font-size:0.72rem">
+                <table class="ca-rights-matrix table-sm mb-0 align-middle text-center" style="font-size:0.72rem;width:100%;border-collapse:collapse">
                   <thead>
                     <tr>
                       <th class="text-start" style="font-weight:600">Droit</th>
