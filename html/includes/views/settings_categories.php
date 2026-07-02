@@ -88,7 +88,7 @@ $allCats = $pdo->query("
     ids.forEach(function(id) { body.append('ids[]', id); });
     fetch(window.location.pathname, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true', 'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : '' },
       body: body.toString()
     });
   }

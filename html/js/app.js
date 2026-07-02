@@ -15,6 +15,46 @@
  */
 
 // ---------------------------------------------------------------------------
+// CSRF token propagation (#69)
+// The token is rendered once in <meta name="csrf-token"> by index.php and
+// stays in the DOM across htmx swaps (the <head> is never replaced).
+// ---------------------------------------------------------------------------
+(function () {
+    function csrfToken() {
+        var m = document.querySelector('meta[name="csrf-token"]');
+        return m ? m.getAttribute('content') : '';
+    }
+    // Exposed for the few inline scripts that POST via raw fetch() to index.php.
+    window.casaCsrfToken = csrfToken;
+
+    // htmx requests (boosted form submits, links, hx-post/put/delete): send header.
+    document.addEventListener('htmx:configRequest', function (e) {
+        var t = csrfToken();
+        if (t) e.detail.headers['X-CSRF-Token'] = t;
+    });
+
+    // Stamp every POST form with a hidden `csrf` field. Done proactively (not on
+    // the submit event) so programmatic form.submit() calls — which do NOT fire
+    // the submit event — still carry the token. Covers native submits
+    // (hx-boost="false", multipart uploads) and is harmless for htmx submits.
+    function stampForms(root) {
+        var t = csrfToken();
+        if (!t) return;
+        (root || document).querySelectorAll('form[method="post" i]').forEach(function (form) {
+            if (form.querySelector('input[name="csrf"]')) return;
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'csrf';
+            input.value = t;
+            form.appendChild(input);
+        });
+    }
+
+    stampForms(document);
+    document.addEventListener('htmx:afterSwap', function (e) { stampForms(e.target); });
+})();
+
+// ---------------------------------------------------------------------------
 // Dirty-form guard
 // ---------------------------------------------------------------------------
 (function () {

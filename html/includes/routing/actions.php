@@ -7,6 +7,15 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 if (isset($_REQUEST['action'])) {
+    // CSRF guard: every state-changing action is a POST and must carry a valid
+    // token (hidden `csrf` field for native forms, `X-CSRF-Token` header for
+    // htmx/fetch). GET actions (navigation) are not gated. See auth.php.
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !csrfCheck()) {
+        http_response_code(403);
+        header('Content-Type: text/plain; charset=UTF-8');
+        exit('Requête refusée (jeton CSRF invalide). Rechargez la page et réessayez.');
+    }
+
     static $ACTION_MAP = [
         'updateUser'           => 'members',
         'addUser'              => 'members',

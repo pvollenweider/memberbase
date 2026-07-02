@@ -85,6 +85,22 @@ Exclusions existantes (dans `markDirty`) :
 
 Couverture : `tests/dirty-guard.spec.ts`.
 
+## Protection CSRF (actions POST)
+
+Toute action POST passant par `includes/routing/actions.php` est vérifiée contre un jeton CSRF de session (`csrfCheck()` dans `auth.php`) **avant** le dispatch : POST sans jeton valide → `403`. Le jeton est exposé une fois dans `<meta name="csrf-token">` (rendu par `index.php`).
+
+La propagation est automatique — **rien à faire pour un formulaire ou un appel htmx classique** :
+- `html/js/app.js` ajoute l'en-tête `X-CSRF-Token` à **toutes** les requêtes htmx (`htmx:configRequest`) ;
+- il « estampille » aussi tout `<form method="post">` avec un champ caché `csrf` (au chargement + après chaque swap htmx), ce qui couvre les soumissions natives (`hx-boost="false"`, upload multipart) et les `form.submit()` programmatiques.
+
+**Seul cas à traiter à la main** : un `fetch()` inline qui POST vers `index.php`. Ajouter l'en-tête :
+
+```js
+headers: { /* … */, 'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : '' }
+```
+
+Ne concerne pas l'API REST `/api/*` (auth session + rôle, JSON only). Couverture : `tests/roles.spec.ts` (describe « Server — CSRF guard »).
+
 ## Redirections après action (htmx)
 
 Utiliser `HX-Location` (pas `Location`) pour les réponses à des requêtes htmx :
