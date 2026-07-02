@@ -1,5 +1,5 @@
 <?php
-define('APP_ENTRY', true);
+declare(strict_types=1);
 /**
  * Web installer — first-run setup wizard.
  *
@@ -16,8 +16,7 @@ define('APP_ENTRY', true);
  * @license AGPL-3.0-or-later
  */
 
-declare(strict_types=1);
-
+define('APP_ENTRY', true);
 define('INSTALL_MODE', true);
 
 $confFile = __DIR__ . '/../conf/db.php';
