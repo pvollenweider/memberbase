@@ -82,6 +82,8 @@ if (!isset($UA_VIEW_ROUTES[$uaRequestedView])) {
 [$uaViewFile, $uaViewGuard, $uaViewOverrides, $uaViewVar] = array_pad($UA_VIEW_ROUTES[$uaRequestedView], 4, null);
 
 if ($uaViewGuard !== null && !$uaViewGuard()) {
+    // Security log: a role guard rejected access to a view.
+    auditLog($pdo, 'accessDenied', "view={$uaRequestedView} guard={$uaViewGuard} role=" . ($_SESSION['app_user_role'] ?? '?'));
     echo '<div class="alert alert-danger"><i class="fas fa-lock me-2" aria-hidden="true"></i>Accès refusé.</div>';
     return;
 }

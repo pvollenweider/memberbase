@@ -49,6 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             exit;
         } else {
+            // Security log: failed login attempt (brute-force signal). Never
+            // logs the password; IP is REMOTE_ADDR (proxy-dependent).
+            auditLog($pdo, 'loginFailed', 'username=' . $username . ' ip=' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
             // Small delay to slow brute force
             usleep(500000);
             $error = 'Identifiant ou mot de passe incorrect.';

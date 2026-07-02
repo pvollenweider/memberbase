@@ -11,6 +11,8 @@ if (isset($_REQUEST['action'])) {
     // token (hidden `csrf` field for native forms, `X-CSRF-Token` header for
     // htmx/fetch). GET actions (navigation) are not gated. See auth.php.
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !csrfCheck()) {
+        // Security log: a POST action was rejected for a missing/invalid token.
+        auditLog($pdo, 'csrfRejected', 'action=' . ($_REQUEST['action'] ?? '?') . ' ip=' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
         http_response_code(403);
         header('Content-Type: text/plain; charset=UTF-8');
         exit('Requête refusée (jeton CSRF invalide). Rechargez la page et réessayez.');

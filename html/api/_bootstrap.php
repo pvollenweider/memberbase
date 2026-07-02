@@ -20,6 +20,14 @@ if (!isLoggedIn()) {
 
 function apiError(int $code, string $message): never
 {
+    // Security log: access denied on the API (role guard). Best-effort — never
+    // let logging break the API response.
+    if ($code === 403) {
+        global $pdo;
+        try {
+            auditLog($pdo, 'accessDenied', 'api ' . ($_SERVER['REQUEST_METHOD'] ?? '?') . ' ' . ($_SERVER['REQUEST_URI'] ?? '?') . ' role=' . ($_SESSION['app_user_role'] ?? '?'));
+        } catch (Throwable) { /* ignore */ }
+    }
     http_response_code($code);
     echo json_encode(['error' => $message]);
     exit;
