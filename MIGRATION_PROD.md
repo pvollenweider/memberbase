@@ -42,6 +42,30 @@ DML (données) sont, elles, transactionnelles (rollback automatique sur erreur).
 
 ---
 
+## En-têtes de sécurité HTTP (#70)
+
+`docker/apache.conf` pose désormais un socle d'en-têtes de sécurité. **Le vhost
+HTTPS de prod est géré à la main** — répliquer le même bloc dans le
+`<VirtualHost *:443>` (dans un `<IfModule mod_headers.c>`) :
+
+```apache
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "DENY"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+Header always set Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline' https://esm.sh; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://esm.sh; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+```
+
+La CSP est en **`Report-Only`** (ne bloque pas). Vérifier la console du
+navigateur : tant qu'il reste des violations légitimes, ne pas passer en
+enforcement. Étapes pour durcir ensuite : self-héberger TipTap (supprime la
+dépendance `esm.sh`), remplacer `'unsafe-inline'` par des nonces, puis renommer
+l'en-tête en `Content-Security-Policy`.
+
+Vérification : `curl -I https://membres.casa-alianza.ch/ | grep -i -E 'x-frame|x-content|referrer|strict-transport|content-security'`.
+
+---
+
 ## Actions manuelles historiques (avant le système de migrations)
 
 > Conservé pour référence. Sur une instance déjà à jour, rien à faire.
