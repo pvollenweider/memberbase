@@ -18,6 +18,9 @@ php html/tools/migrate.php             # appliquer les migrations en attente
 ```
 
 - **Rejouable** : relancer le runner est un no-op si rien n'est en attente.
+- **Alerte in-app** : tant qu'une migration est en attente, un bandeau
+  d'avertissement s'affiche en haut des pages **pour les administrateurs**, avec
+  la commande à lancer. Il disparaît une fois les migrations appliquées.
 - **Fresh install** : le wizard `install.php` pose le schéma complet à jour puis
   « baseline » automatiquement toutes les migrations (elles ne sont pas rejouées).
 - **Nouvelle migration** : ajouter un fichier `migrations/NNNN_xxx.sql` (numéro
