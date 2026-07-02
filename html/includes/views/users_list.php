@@ -293,11 +293,9 @@ $query .= " FROM users";
 if ($metagroup > 0) {
     $query .= ",user_properties ";
 } else {
-    if ($team == FILTER_UNPAID_COTI_CURRENT) {
-        $query .= ",compta ";
-    }
-    // Virtual filter IDs and team=0 (all members) do not need a user_properties join
-    if ($team != 0 && $team != -1 && $team != FILTER_ALL_EXCEPT_ARCHIVES && $team != FILTER_UNPAID_COTI_3Y && $team != FILTER_NO_ACTIVITY_10Y && $team != FILTER_NON_INSTIT_LAST_YEAR) {
+    // Virtual filter IDs (resolved via MemberFilter) and team=0 (all members)
+    // do not need a user_properties join
+    if ($team != 0 && $team != -1 && !MemberFilter::isVirtual((int)$team)) {
         $query .= ",user_properties ";
     }
 }
@@ -334,9 +332,10 @@ if ($metagroup > 0) {
         $query .= " AND 1=0"; // metagroup has no teams — return empty
     }
 } else if ($team != -1) {
-    if ($team == 0 || $team == FILTER_ALL_EXCEPT_ARCHIVES || $team == FILTER_UNPAID_COTI_3Y || $team == FILTER_NO_ACTIVITY_10Y || $team == FILTER_NON_INSTIT_LAST_YEAR) {
-        // team=0 = all active members; virtual filters already handled by WHERE status=1
-    } else if ($team == FILTER_UNPAID_COTI_CURRENT || $team == -1234) {
+    if ($team == 0 || MemberFilter::isVirtual((int)$team)) {
+        // team=0 = all active members; virtual filters restrict rows via
+        // the MemberFilter ID set in the render loop below
+    } else if ($team == -1234) {
         $query .= " AND users.id=user_properties.user_id ";
         $query .= "AND ( ";
         $query .= "user_properties.parameter='team_$membre') ";
@@ -400,53 +399,11 @@ $query .= " ORDER BY $orderColumn $orderSort";
 <tbody>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-// Pre-fetch non-institutional compta for FILTER_NON_INSTIT_LAST_YEAR (avoids N+1 SQL)
-$_nonInstit6666 = [];
-if ($team == FILTER_NON_INSTIT_LAST_YEAR) {
-    $_instit6666Ids = array_column($pdo->query("SELECT id FROM compta_type WHERE is_institutional=1")->fetchAll(PDO::FETCH_OBJ), 'id');
-    $_from6666pre = mktime(0,0,0,1,0,$year-1);
-    $_to6666pre   = mktime(0,0,0,1,1,$year);
-    $_notIn = count($_instit6666Ids) ? implode(',', array_map('intval', $_instit6666Ids)) : '0';
-    $_st6666 = $pdo->query("
-        SELECT user_id
-        FROM compta
-        WHERE date > $_from6666pre AND date < $_to6666pre
-          AND (type_id IS NULL OR type_id NOT IN ($_notIn))
-        GROUP BY user_id
-    ");
-    while ($_r6 = $_st6666->fetchObject()) {
-        $_nonInstit6666[(int)$_r6->user_id] = true;
-    }
-}
-
-// Pre-fetch cotisation history for FILTER_UNPAID_COTI_3Y: ever paid vs. paid in last 3 years
-// Also pre-fetch member_no_coti_team members to exclude them from coti filters
-$_coti3333 = [];
-$_noCotiMembers = [];
-if ($team == FILTER_UNPAID_COTI_3Y || $team == FILTER_UNPAID_COTI_CURRENT) {
-    $_noCotiTeam = (int)($appSettings['member_no_coti_team'] ?? 0);
-    if ($_noCotiTeam > 0) {
-        $_stNoCoti = $pdo->prepare("SELECT user_id FROM user_properties WHERE parameter=?");
-        $_stNoCoti->execute(["team_$_noCotiTeam"]);
-        while ($_rn = $_stNoCoti->fetchObject()) {
-            $_noCotiMembers[(int)$_rn->user_id] = true;
-        }
-    }
-}
-if ($team == FILTER_UNPAID_COTI_3Y) {
-    $_cutoff3333 = mktime(0, 0, 0, 1, 0, $year - 2);
-    $_st3333 = $pdo->query("
-        SELECT
-            c.user_id,
-            COUNT(*) AS ever_coti,
-            SUM(CASE WHEN c.date > $_cutoff3333 THEN 1 ELSE 0 END) AS recent_coti
-        FROM compta c
-        JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1
-        GROUP BY c.user_id
-    ");
-    while ($_r3 = $_st3333->fetchObject()) {
-        $_coti3333[(int)$_r3->user_id] = $_r3;
-    }
+// Virtual filters — matching IDs resolved once via the shared MemberFilter
+// class (same source of truth as /api/members, see issue #57)
+$_virtualIds = null;
+if (in_array((int)$team, MemberFilter::RESOLVABLE, true)) {
+    $_virtualIds = MemberFilter::resolveIds((int)$team, $pdo, (int)$year, $appSettings);
 }
 
 // Pre-fetch compta summary for FILTER_NO_ACTIVITY_10Y to avoid N+1 queries
@@ -517,29 +474,8 @@ foreach ($_allRows as $row) {
             $displayLine = true;
         }
         $displayLine = !$displayLine;
-    } else if ($team == FILTER_UNPAID_COTI_3Y) {
-        $displayLine = false;
-        if (empty($_noCotiMembers[$user->getId()])) {
-            $_u3 = $_coti3333[$user->getId()] ?? null;
-            if ($_u3 && (int)$_u3->ever_coti > 0 && (int)$_u3->recent_coti === 0) {
-                $displayLine = true;
-            }
-        }
-    } else if ($team == FILTER_NO_ACTIVITY_10Y) {
-        $displayLine = true;
-        $_c5 = $_compta5555[$user->getId()] ?? null;
-        if ($_c5 && (int)$_c5->recent_count > 0) {
-            $displayLine = false;
-        }
-    } else if ($team == FILTER_NON_INSTIT_LAST_YEAR) {
-        $displayLine = false;
-        if (!empty($_nonInstit6666[$user->getId()])) {
-            $displayLine = true;
-        }
-    } else if ($team == FILTER_UNPAID_COTI_CURRENT) {
-        if (!empty($_noCotiMembers[$user->getId()]) || $user->isCotisationPayed($year) > -1) {
-            $displayLine = false;
-        }
+    } else if ($_virtualIds !== null) {
+        $displayLine = isset($_virtualIds[(int)$id]);
     }
 
 
