@@ -147,8 +147,14 @@ foreach ($pending as $version => $file) {
         foreach ($statements as $stmt) {
             $pdo->exec($stmt);
         }
+        // A DDL statement (ALTER/CREATE) implicitly commits and ends the
+        // transaction in MySQL/MariaDB, so there may be no active transaction
+        // left here. Record the version and only commit if one is still open —
+        // otherwise commit()/rollBack() would throw "no active transaction".
         $ins->execute([$version, time()]);
-        $pdo->commit();
+        if ($pdo->inTransaction()) {
+            $pdo->commit();
+        }
         fwrite(STDOUT, "OK\n");
         $done++;
     } catch (PDOException $e) {
