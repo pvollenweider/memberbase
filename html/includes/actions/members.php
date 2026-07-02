@@ -206,7 +206,42 @@ if ($_REQUEST['action'] == 'updateUser') {
     $user = new User(); $user->lookupUser($uid);
     $dispose = $_REQUEST['dispose'] ?? 'deactivate';
     if ($dispose === 'delete') {
-        auditLog($pdo, 'deleteUser', 'id=' . $uid . ' | ' . trim($user->firstName . ' ' . $user->lastName));
+        // Suppression irréversible : on trace dans le journal toutes les données
+        // non vides du membre (champs + user_properties) avant de les effacer.
+        $_delParts = [];
+        $_delFields = [
+            'société'    => (string)$user->society,
+            'sexe'       => ($user->sexe !== '' && $user->sexe !== 'na') ? (string)$user->sexe : '',
+            'titre'      => (string)$user->title,
+            'adresse'    => (string)$user->address,
+            'npa'        => (string)$user->npa,
+            'tél'        => (string)$user->tel,
+            'tél. prof'  => (string)$user->telProf,
+            'portable'   => (string)$user->portable,
+            'fax'        => (string)$user->fax,
+            'email'      => (string)$user->email,
+            'email alt'  => (string)$user->emailAlt,
+            'web'        => (string)$user->web,
+            'naissance'  => ((int)$user->birthDay > 0) ? timeStampToformatedDate((int)$user->birthDay) : '',
+            'note'       => trim(strip_tags((string)$user->comment)),
+        ];
+        foreach ($_delFields as $_k => $_v) {
+            $_v = trim((string)$_v);
+            if ($_v === '') continue;
+            if (mb_strlen($_v) > 500) { $_v = mb_substr($_v, 0, 500) . '…'; }
+            $_delParts[] = "{$_k}: {$_v}";
+        }
+        // user_properties non vides (appartenances aux segments, suivi, etc.)
+        $_delProps = $pdo->prepare("SELECT parameter, value FROM user_properties WHERE user_id=? AND TRIM(value) != '' ORDER BY parameter");
+        $_delProps->execute([$uid]);
+        while ($_p = $_delProps->fetchObject()) {
+            $_pv = trim((string)$_p->value);
+            if (mb_strlen($_pv) > 500) { $_pv = mb_substr($_pv, 0, 500) . '…'; }
+            $_delParts[] = "{$_p->parameter}: {$_pv}";
+        }
+        $_delDetail = 'id=' . $uid . ' | ' . trim($user->firstName . ' ' . $user->lastName);
+        if ($_delParts) { $_delDetail .= ' | ' . implode(' ; ', $_delParts); }
+        auditLog($pdo, 'deleteUser', $_delDetail);
         $user->remove();
     } else {
         $pdo->prepare("UPDATE users SET status=0 WHERE id=?")->execute([$uid]);
