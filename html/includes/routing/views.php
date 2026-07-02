@@ -1,211 +1,96 @@
-<?php 
+<?php
+defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * Dispatches include-based sub-views within the application.
+ *
+ * Route table format: view name => [file, guard, requestOverrides, viewVar]
+ *   - file             view file relative to includes/views/
+ *   - guard            auth function name (canWrite / isManager / isAdmin) or null for any logged-in user
+ *   - requestOverrides assoc array merged into $_REQUEST before include (e.g. forcing a settings tab)
+ *   - viewVar          overrides the $view variable consumed by shared views like users_edit_form.php
+ *
+ * A route missing from this table renders a "view not found" warning — a new
+ * view MUST be declared here, which forces the guard decision to be explicit.
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-if (isset($_REQUEST['view'])) {
 
-    if ($_REQUEST['view'] === 'changePassword') {
-        include __DIR__ . "/../views/auth_change_password.php";
-    } else if ($_REQUEST['view'] === 'manageAppUsers') {
-        include __DIR__ . "/../views/settings_app_users.php";
-    } else if ($_REQUEST['view'] == 'addUser') {
-        if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
-        include __DIR__ . "/../views/users_add_form.php";
-    } else if ($_REQUEST['view'] == 'importStep1') {
-        if (!isManager()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
-        include __DIR__ . "/../views/import_step1.php";
-    } else if ($_REQUEST['view'] == 'importStep2') {
-        if (!isManager()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
-        include __DIR__ . "/../views/import_step2.php";
-    } else if ($_REQUEST['view'] == 'importStep3') {
-        if (!isManager()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
-        include __DIR__ . "/../views/import_step3.php";
-    } else if ($_REQUEST['view'] == 'updateUser') {
-        include __DIR__ . "/../views/users_edit_form.php";
-    } else if ($_REQUEST['view'] == 'updateTeam') {
-        $_REQUEST['tab'] = 'groups';
-        include __DIR__ . "/../views/settings_general.php";
-    } else if ($_REQUEST['view'] == 'generalData') {
-        include __DIR__ . "/../views/users_edit_form.php";
-    } else if ($_REQUEST['view'] == 'compta') {
-        include __DIR__ . "/../views/users_edit_form.php";
-    } else if ($_REQUEST['view'] == 'suivi') {
-        include __DIR__ . "/../views/users_edit_form.php";
-    } else if ($_REQUEST['view'] == 'userHistory') {
-        include __DIR__ . "/../views/users_edit_form.php";
-    } else if ($_REQUEST['view'] == 'deleteUser') {
-        if (!isAdmin()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
-        $user = new User();
-        $user->lookupUser((int)$_REQUEST['id']);
-        $userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
-        ?>
-        <div class="d-flex justify-content-center align-items-center" style="min-height:50vh">
-          <div class="card shadow-sm border-0" style="max-width:440px;width:100%">
-            <div class="card-body p-4">
-              <div class="mb-3 text-center" style="font-size:2rem;color:var(--ca-danger)">
-                <i class="fas fa-user-slash" aria-hidden="true"></i>
-              </div>
-              <h5 class="card-title mb-1 text-center"><?= $GLOBAL['deleteOrArchive'] ?>&nbsp;?</h5>
-              <p class="text-muted text-center mb-4" style="font-size:0.85rem">
-                <?= htmlspecialchars($userName, ENT_QUOTES, $charset) ?>
-                <span class="text-muted ms-1" style="font-size:0.78rem">#<?= (int)$user->getId() ?></span>
-              </p>
-              <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
-                <input type="hidden" name="action" value="deleteOrDeactivateUser">
-                <input type="hidden" name="id"     value="<?= (int)$user->getId() ?>">
-                <div class="d-flex flex-column gap-2 mb-4">
-                  <label class="ca-merge-radio" style="cursor:pointer">
-                    <input type="radio" name="dispose" value="deactivate" checked>
-                    <span><i class="fas fa-archive me-1 text-muted" aria-hidden="true"></i><strong><?= $GLOBAL['archive'] ?></strong></span>
-                    <span class="text-muted ms-1" style="font-size:0.78rem">— conserve l'historique, retiré de toutes les vues</span>
-                  </label>
-                  <label class="ca-merge-radio ca-merge-radio--danger" style="cursor:pointer">
-                    <input type="radio" name="dispose" value="delete">
-                    <span><i class="fas fa-trash-can me-1" aria-hidden="true"></i><strong><?= $GLOBAL['deletePermanently'] ?></strong></span>
-                    <span class="text-muted ms-1" style="font-size:0.78rem">— irréversible</span>
-                  </label>
-                </div>
-                <div class="d-flex gap-2 justify-content-end">
-                  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$user->getId() ?>"
-                     class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
-                  <button type="submit" class="btn btn-danger"><?= $GLOBAL['confirm'] ?></button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-        <?php
-    } else if ($_REQUEST['view'] == 'deleteUserConfirm') {
-        // Legacy direct-link confirm — treat as deactivate for safety
-        $user = new User();
-        $user->lookupUser((int)$_REQUEST['id']);
-        $pdo->prepare("UPDATE users SET status=0 WHERE id=?")->execute([(int)$_REQUEST['id']]);
-        auditLog($pdo, 'deactivateUser', "id={$_REQUEST['id']} {$user->firstName} {$user->lastName}");
-        if ($isHtmx) { header('HX-Location: ' . $_SERVER['PHP_SELF']); exit; }
-        header('Location: ' . $_SERVER['PHP_SELF']); exit;
-    } else if ($_REQUEST['view'] === 'auditLog') {
-        include __DIR__ . "/../views/settings_audit_log.php";
-    } else if ($_REQUEST['view'] == 'manageTeam') {
-        // Legacy view — redirect to settings groups tab
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=groups');
-        exit;
-    } else if ($_REQUEST['view'] == 'updateMetagroup') {
-        $_REQUEST['tab'] = 'filters';
-        include __DIR__ . "/../views/settings_general.php";
-    } else if ($_REQUEST['view'] == 'updateCompta') {
-        include __DIR__ . "/../views/compta_edit_form.php";
-    } else if ($_REQUEST['view'] == 'lastEntryCompta') {
-        include __DIR__ . "/../views/compta_last_entry.php";
-    } else if ($_REQUEST['view'] == 'resume') {
-        include __DIR__ . "/../views/donors_summary.php";
-    } else if ($_REQUEST['view'] == 'lapsedDonors') {
-        include __DIR__ . "/../views/donors_lapsed.php";
-    } else if ($_REQUEST['view'] == 'loyalDonors') {
-        include __DIR__ . "/../views/donors_loyal.php";
-    } else if ($_REQUEST['view'] == 'newDonors') {
-        include __DIR__ . "/../views/donors_new.php";
-    } else if ($_REQUEST['view'] == 'lapsedMembers') {
-        include __DIR__ . "/../views/members_lapsed.php";
-    } else if ($_REQUEST['view'] == 'lastEntrySuivi') {
-        include __DIR__ . "/../views/suivi_last_entry.php";
-    } else if ($_REQUEST['view'] == 'removeCompta') {
-        if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
-        $compta = new Compta();
-        $compta->lookupCompta($_REQUEST['comptaid']);
-        ?>
-        <div class="d-flex justify-content-center align-items-center" style="min-height:50vh">
-          <div class="card shadow-sm border-0" style="max-width:420px;width:100%">
-            <div class="card-body p-4 text-center">
-              <div class="mb-3" style="font-size:2rem;color:var(--bs-danger)">
-                <i class="fas fa-trash-can" aria-hidden="true"></i>
-              </div>
-              <h5 class="card-title mb-1"><?= $GLOBAL['deleteEntry'] ?>&nbsp;?</h5>
-              <p class="text-muted mb-3" style="font-size:0.85rem">Cette action est irréversible.</p>
-              <div class="border rounded p-3 mb-4 text-start bg-light" style="font-size:0.875rem">
-                <div class="mb-1"><span class="text-muted">Date&nbsp;:</span> <strong><?=timeStampToformatedDate($compta->date)?></strong></div>
-                <div class="mb-1"><span class="text-muted">Libellé&nbsp;:</span> <strong><?=htmlentities($compta->getLibele(),ENT_COMPAT,$charset)?></strong></div>
-                <div><span class="text-muted">Montant&nbsp;:</span> <strong><?=$compta->sum?> CHF</strong></div>
-              </div>
-              <div class="d-flex gap-2 justify-content-center">
-                <a href="<?=$_SERVER['PHP_SELF']?>?view=updateUser&amp;userid=<?=(int)$_REQUEST['userid']?>" class="btn btn-outline-secondary">
-                  <?= $GLOBAL['cancel'] ?>
-                </a>
-                <a href="<?=$_SERVER['PHP_SELF']?>?view=deleteComptaConfirm&amp;userid=<?=(int)$_REQUEST['userid']?>&comptaid=<?=$compta->getId()?>" class="btn btn-danger">
-                  <?= $GLOBAL['delete'] ?>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-        <?php
-    } else if ($_REQUEST['view'] == 'deleteComptaConfirm') {
-        if (!canWrite()) { http_response_code(403); exit; }
-        $compta = new Compta();
-        $compta->lookupCompta($_REQUEST['comptaid']);
-        $_auDcUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
-        $_auDcUser->execute([(int)$compta->userId]);
-        auditLog($pdo, 'deleteCompta', "compta#={$_REQUEST['comptaid']} | membre: " . ($_auDcUser->fetchColumn() ?: "id={$compta->userId}") . " | {$compta->sum} CHF");
-        $compta->remove();
-        $view = "compta";
-        include __DIR__ . "/../views/users_edit_form.php";
-    } else if ($_REQUEST['view'] == 'manageComptaTypes') {
-        include __DIR__ . "/../views/settings_compta_types.php";
-    } else if ($_REQUEST['view'] == 'settings') {
-        include __DIR__ . "/../views/settings_general.php";
-    } else if ($_REQUEST['view'] == 'updateSuivi') {
-        $view = "suivi";
-        include __DIR__ . "/../views/suivi_edit_form.php";
-    } else if ($_REQUEST['view'] == 'removeSuivi') {
-        if (!canWrite()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
-        $userProperty = new UserProperty();
-        $userProperty->lookupUserProperty($_REQUEST['suiviid']);
-        ?>
-        <div class="d-flex justify-content-center align-items-center" style="min-height:50vh">
-          <div class="card shadow-sm border-0" style="max-width:420px;width:100%">
-            <div class="card-body p-4 text-center">
-              <div class="mb-3" style="font-size:2rem;color:var(--bs-danger)">
-                <i class="fas fa-trash-can" aria-hidden="true"></i>
-              </div>
-              <h5 class="card-title mb-1"><?= $GLOBAL['deleteSuiviEntry'] ?>&nbsp;?</h5>
-              <p class="text-muted mb-3" style="font-size:0.85rem">Cette action est irréversible.</p>
-              <div class="border rounded p-3 mb-4 text-start bg-light" style="font-size:0.875rem">
-                <div class="mb-1"><span class="text-muted">Date&nbsp;:</span> <strong><?= timeStampToformatedDate($userProperty->date) ?></strong></div>
-                <div><span class="text-muted">Contenu&nbsp;:</span> <strong><?= htmlentities($userProperty->getValue(), ENT_COMPAT, $charset) ?></strong></div>
-              </div>
-              <div class="d-flex gap-2 justify-content-center">
-                <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= (int)$_REQUEST['userid'] ?>" class="btn btn-outline-secondary">
-                  <?= $GLOBAL['cancel'] ?>
-                </a>
-                <a href="<?= $_SERVER['PHP_SELF'] ?>?view=removeSuiviConfirm&amp;userid=<?= (int)$_REQUEST['userid'] ?>&amp;suiviid=<?= $userProperty->getId() ?>" class="btn btn-danger">
-                  <?= $GLOBAL['delete'] ?>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-        <?php
-    } else if ($_REQUEST['view'] == 'anonymizeUser') {
-        if (!isAdmin()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
-        include __DIR__ . "/../views/users_anonymize.php";
-    } else if ($_REQUEST['view'] == 'mergeUsers') {
-        if (!isManager()) { echo '<div class="alert alert-danger"><i class="fas fa-lock me-2"></i>Accès refusé.</div>'; return; }
-        include __DIR__ . "/../views/users_merge.php";
-    } else if ($_REQUEST['view'] == 'inactiveUsers') {
-        include __DIR__ . "/../views/users_inactive.php";
-    } else if ($_REQUEST['view'] == 'removeSuiviConfirm') {
-        $userProperty = new UserProperty();
-        $userProperty->lookupUserProperty($_REQUEST['suiviid']);
-        $_auRsUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
-        $_auRsUser->execute([(int)$_REQUEST['userid']]);
-        auditLog($pdo, 'deleteSuivi', "suivi#={$_REQUEST['suiviid']} | membre: " . ($_auRsUser->fetchColumn() ?: "id={$_REQUEST['userid']}") . " | {$userProperty->parameter}: {$userProperty->getValue()}");
-        $userProperty->remove();
-        $view = "suivi";
-        include __DIR__ . "/../views/users_edit_form.php";
-    }
-} else {
-    include __DIR__ . "/../views/users_list.php";
+$UA_VIEW_ROUTES = [
+    // Membres
+    'list'                => ['users_list.php'],
+    'usersList'           => ['users_list.php'], // alias utilisé par le pushState de la recherche AJAX
+    'addUser'             => ['users_add_form.php',        'canWrite'],
+    'updateUser'          => ['users_edit_form.php'],
+    'generalData'         => ['users_edit_form.php'],
+    'compta'              => ['users_edit_form.php'],
+    'suivi'               => ['users_edit_form.php'],
+    'userHistory'         => ['users_edit_form.php'],
+    'deleteUser'          => ['users_delete_confirm.php',  'isAdmin'],
+    'deleteUserConfirm'   => ['users_deactivate_legacy.php', 'isAdmin'],
+    'anonymizeUser'       => ['users_anonymize.php',       'isAdmin'],
+    'mergeUsers'          => ['users_merge.php',           'isManager'],
+    'inactiveUsers'       => ['users_inactive.php'],
+    'lapsedMembers'       => ['members_lapsed.php'],
+
+    // Import CSV (wizard 3 étapes)
+    'importStep1'         => ['import_step1.php',          'isManager'],
+    'importStep2'         => ['import_step2.php',          'isManager'],
+    'importStep3'         => ['import_step3.php',          'isManager'],
+
+    // Comptabilité
+    'updateCompta'        => ['compta_edit_form.php'],
+    'lastEntryCompta'     => ['compta_last_entry.php'],
+    'removeCompta'        => ['compta_delete_confirm.php', 'canWrite'],
+    'deleteComptaConfirm' => ['compta_delete_do.php',      'canWrite'],
+
+    // Donateurs
+    'resume'              => ['donors_summary.php'],
+    'lapsedDonors'        => ['donors_lapsed.php'],
+    'loyalDonors'         => ['donors_loyal.php'],
+    'newDonors'           => ['donors_new.php'],
+
+    // Suivi
+    'updateSuivi'         => ['suivi_edit_form.php',       null, [], 'suivi'],
+    'lastEntrySuivi'      => ['suivi_last_entry.php'],
+    'removeSuivi'         => ['suivi_delete_confirm.php',  'canWrite'],
+    'removeSuiviConfirm'  => ['suivi_delete_do.php',       'canWrite'],
+
+    // Réglages & administration
+    'settings'            => ['settings_general.php'],
+    'updateTeam'          => ['settings_general.php',      null, ['tab' => 'groups']],
+    'updateMetagroup'     => ['settings_general.php',      null, ['tab' => 'filters']],
+    'manageComptaTypes'   => ['settings_compta_types.php'],
+    'manageAppUsers'      => ['settings_app_users.php'],
+    'auditLog'            => ['settings_audit_log.php'],
+    'changePassword'      => ['auth_change_password.php'],
+];
+
+$uaRequestedView = $_REQUEST['view'] ?? 'list';
+
+// Legacy view — redirect to settings groups tab
+if ($uaRequestedView === 'manageTeam') {
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=groups');
+    exit;
 }
-?>
+
+if (!isset($UA_VIEW_ROUTES[$uaRequestedView])) {
+    echo '<div class="alert alert-warning"><i class="fas fa-circle-question me-2" aria-hidden="true"></i>Vue introuvable.</div>';
+    return;
+}
+
+[$uaViewFile, $uaViewGuard, $uaViewOverrides, $uaViewVar] = array_pad($UA_VIEW_ROUTES[$uaRequestedView], 4, null);
+
+if ($uaViewGuard !== null && !$uaViewGuard()) {
+    echo '<div class="alert alert-danger"><i class="fas fa-lock me-2" aria-hidden="true"></i>Accès refusé.</div>';
+    return;
+}
+
+foreach ((array)$uaViewOverrides as $uaKey => $uaValue) {
+    $_REQUEST[$uaKey] = $uaValue;
+}
+if ($uaViewVar !== null) {
+    $view = $uaViewVar;
+}
+
+include __DIR__ . '/../views/' . $uaViewFile;
