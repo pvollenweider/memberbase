@@ -76,9 +76,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                         $_noCotiTeamId3 = (int)($appSettings['member_no_coti_team'] ?? 0);
                         $_noCotiExclusion = '';
                         if ($_noCotiTeamId3 > 0) {
-                            $_noCotiTeamName3 = $pdo->prepare("SELECT name FROM team WHERE id=?");
-                            $_noCotiTeamName3->execute([$_noCotiTeamId3]);
-                            $_noCotiTeamNameStr = $_noCotiTeamName3->fetchColumn();
+                            $_noCotiTeamNameStr = Team::nameById($_noCotiTeamId3);
                             if ($_noCotiTeamNameStr) {
                                 $_noCotiExclusion = ' Les membres du segment <a href="' . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) . '?team=' . $_noCotiTeamId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiTeamNameStr, ENT_QUOTES, $charset) . '</a> sont exclus.';
                             }
@@ -112,8 +110,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                     <div class="dropdown-divider mt-1 mb-0"></div>
 
                     <?php
-                    $stmtMg = $pdo->query("SELECT DISTINCT m.id, m.name FROM metagroup m WHERE m.name IS NOT NULL AND m.is_filter = 1 AND EXISTS (SELECT 1 FROM metagroup j WHERE j.id=m.id AND j.teamid IS NOT NULL) ORDER BY m.name");
-                    $metagroups = $stmtMg->fetchAll(PDO::FETCH_OBJ);
+                    $metagroups = Metagroup::filterList();
                     if (count($metagroups) > 0):
                     ?>
                     <h6 class="dropdown-header" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">Segments combinés</h6>
@@ -142,25 +139,8 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                        href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_NON_INSTIT_LAST_YEAR ?>"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
 
                         <?php
-                        $stmtTeams = $pdo->query("
-                            SELECT t.id, t.name,
-                                   COALESCE(cat.name, '') AS cat_name,
-                                   COALESCE(cat.id, 0) AS cat_id,
-                                   COALESCE(cat.sort_order, 99999) AS cat_sort,
-                                   (SELECT COUNT(*) FROM user_properties up WHERE up.parameter = CONCAT('team_', t.id)) AS member_count
-                            FROM team t
-                            LEFT JOIN (
-                                SELECT j.teamid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
-                                FROM metagroup j
-                                JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-                                WHERE j.teamid IS NOT NULL
-                                GROUP BY j.teamid
-                            ) cat ON cat.teamid = t.id
-                            WHERE t.hidden = 0
-                            ORDER BY cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
-                        ");
                         $prevCatId = -1;
-                        while ($row = $stmtTeams->fetchObject()) {
+                        foreach (Team::listForDropdown() as $row) {
                             $catId = (int)$row->cat_id;
                             if ($catId !== $prevCatId) {
                                 if ($prevCatId !== -1) echo '<div class="dropdown-divider my-0 team-cat-divider" data-cat="' . $catId . '"></div>';
@@ -279,82 +259,10 @@ if (!window._caTeamFilterInit) {
 </style>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-$query = "SELECT DISTINCT ".
-           "users.id," .
-           "users.firstname," .
-           "users.lastname," .
-           "users.society," .
-           "users.sexe," .
-           "users.address," .
-           "users.npa," .
-           "users.email," .
-           "users.creationDate";
-$query .= " FROM users";
-if ($metagroup > 0) {
-    $query .= ",user_properties ";
-} else {
-    // Virtual filter IDs (resolved via MemberFilter) and team=0 (all members)
-    // do not need a user_properties join
-    if ($team != 0 && $team != -1 && !MemberFilter::isVirtual((int)$team)) {
-        $query .= ",user_properties ";
-    }
-}
-$query .= " WHERE 1=1 AND users.status=1 ";
-$action = "";
-
-$queryParams = [];
-if (isset($_REQUEST['action'])) {
-    if ($_REQUEST['action'] == "search") {
-        $action = "search";
-        $like = "%" . $searchString . "%";
-        $query .= " AND (users.firstname LIKE ?";
-        $query .= " OR users.lastname LIKE ?";
-        $query .= " OR CONCAT(users.firstname, ' ', users.lastname) LIKE ?";
-        $query .= " OR CONCAT(users.lastname, ' ', users.firstname) LIKE ?";
-        $query .= " OR users.society LIKE ?";
-        $query .= " OR users.npa LIKE ?";
-        $query .= " OR users.email LIKE ?";
-        $query .= " OR users.comment LIKE ?";
-        $query .= " OR users.address LIKE ?)";
-        $queryParams = array_fill(0, 9, $like);
-    }
-}
-if ($metagroup > 0) {
-    // Fetch all team IDs belonging to this metagroup
-    $stmtMgTeams = $pdo->prepare("SELECT teamid FROM metagroup WHERE id=? AND teamid IS NOT NULL");
-    $stmtMgTeams->execute([$metagroup]);
-    $mgTeamIds = $stmtMgTeams->fetchAll(PDO::FETCH_COLUMN);
-    if (count($mgTeamIds) > 0) {
-        $placeholders = implode(',', array_fill(0, count($mgTeamIds), '?'));
-        $query .= " AND users.id=user_properties.user_id AND user_properties.parameter IN ($placeholders)";
-        $queryParams = array_merge($queryParams, array_map(fn($id) => "team_$id", $mgTeamIds));
-    } else {
-        $query .= " AND 1=0"; // metagroup has no teams — return empty
-    }
-} else if ($team != -1) {
-    if ($team == 0 || MemberFilter::isVirtual((int)$team)) {
-        // team=0 = all active members; virtual filters restrict rows via
-        // the MemberFilter ID set in the render loop below
-    } else if ($team == -1234) {
-        $query .= " AND users.id=user_properties.user_id ";
-        $query .= "AND ( ";
-        $query .= "user_properties.parameter='team_$membre') ";
-    } else {
-        $query .= " AND users.id=user_properties.user_id AND user_properties.parameter='team_$team'";
-    }
-}
-
-$query .= " ORDER BY $orderColumn $orderSort";
-
+$action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
 ?>
 <?php if ($metagroup > 0):
-    $stmtMgNames = $pdo->prepare(
-        "SELECT t.name FROM team t
-         JOIN metagroup j ON j.teamid = t.id
-         WHERE j.id = ? ORDER BY t.name"
-    );
-    $stmtMgNames->execute([$metagroup]);
-    $mgTeamNames = $stmtMgNames->fetchAll(PDO::FETCH_COLUMN);
+    $mgTeamNames = Metagroup::teamNames($metagroup);
     if ($mgTeamNames): ?>
 <p class="text-muted mb-2" style="font-size:0.8rem">
     <i class="fas fa-layer-group me-1" aria-hidden="true"></i>
@@ -406,51 +314,27 @@ if (in_array((int)$team, MemberFilter::RESOLVABLE, true)) {
     $_virtualIds = MemberFilter::resolveIds((int)$team, $pdo, (int)$year, $appSettings);
 }
 
-// Pre-fetch compta summary for FILTER_NO_ACTIVITY_10Y to avoid N+1 queries
+// Pre-fetch compta summary for the FILTER_NO_ACTIVITY_10Y history column
 $_compta5555 = [];
 if ($team == FILTER_NO_ACTIVITY_10Y) {
-    $_from5555 = mktime(0, 0, 0, 1, 0, $year - 10);
-    $_to5555   = mktime(0, 0, 0, 1, 1, $year + 1);
-    $_st5555 = $pdo->query("
-        SELECT c.user_id,
-               COUNT(*) AS total,
-               MAX(c.date) AS last_date,
-               SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 THEN 1 ELSE 0 END) AS coti_count,
-               SUM(CASE WHEN c.date > $_from5555 AND c.date < $_to5555 THEN 1 ELSE 0 END) AS recent_count
-        FROM compta c
-        LEFT JOIN compta_type ct ON ct.id = c.type_id
-        GROUP BY c.user_id
-    ");
-    while ($_r5 = $_st5555->fetchObject()) {
-        $_compta5555[(int)$_r5->user_id] = $_r5;
-    }
+    $_compta5555 = Compta::activitySummaryByUser((int)$year);
 }
 
-#print $query;
-$stmt = $pdo->prepare($query);
-$stmt->execute($queryParams);
-$_allRows = $stmt->fetchAll(PDO::FETCH_OBJ);
+// Fetch — query construction and execution live in User::listWithFilters()
+$_allRows = User::listWithFilters([
+    'team'         => (int)$team,
+    'metagroup'    => $metagroup,
+    'searchString' => $searchString,
+    'action'       => $action,
+    'membreTeam'   => $membre,
+    'orderColumn'  => $orderColumn,
+    'orderSort'    => $orderSort,
+]);
 
 // Pre-fetch compta types — only for users in this result set
-$_userComptaTypes = [];
-if (!empty($_allRows)) {
-    $_resultIds = array_unique(array_map(fn($r) => (int)$r->id, $_allRows));
-    $_inPlaceholders = implode(',', array_fill(0, count($_resultIds), '?'));
-    $_stComptaTypes = $pdo->prepare("
-        SELECT c.user_id, ct.id AS type_id, ct.label, ct.color
-        FROM compta c
-        JOIN compta_type ct ON ct.id = c.type_id
-        WHERE c.user_id IN ($_inPlaceholders)
-        GROUP BY c.user_id, ct.id, ct.label, ct.color
-        ORDER BY ct.sort_order ASC, ct.label ASC
-    ");
-    $_stComptaTypes->execute($_resultIds);
-    while ($_rct = $_stComptaTypes->fetchObject()) {
-        $_uid = (int)$_rct->user_id;
-        if (!isset($_userComptaTypes[$_uid])) $_userComptaTypes[$_uid] = [];
-        $_userComptaTypes[$_uid][] = $_rct;
-    }
-}
+$_userComptaTypes = Compta::typesByUser(
+    array_unique(array_map(fn($r) => (int)$r->id, $_allRows))
+);
 
 $rowCount = 0;
 foreach ($_allRows as $row) {

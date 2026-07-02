@@ -82,4 +82,63 @@ class Compta
         global $pdo;
         $pdo->prepare("DELETE FROM compta WHERE id=?")->execute([$this->id]);
     }
+
+    /**
+     * Distinct accounting entry types per user, for badge display in lists.
+     *
+     * @param int[] $userIds
+     * @return array<int, object[]> user_id => rows (type_id, label, color)
+     */
+    public static function typesByUser(array $userIds): array
+    {
+        global $pdo;
+        if (!$userIds) {
+            return [];
+        }
+        $placeholders = implode(',', array_fill(0, count($userIds), '?'));
+        $stmt = $pdo->prepare("
+            SELECT c.user_id, ct.id AS type_id, ct.label, ct.color
+            FROM compta c
+            JOIN compta_type ct ON ct.id = c.type_id
+            WHERE c.user_id IN ($placeholders)
+            GROUP BY c.user_id, ct.id, ct.label, ct.color
+            ORDER BY ct.sort_order ASC, ct.label ASC
+        ");
+        $stmt->execute(array_values($userIds));
+        $map = [];
+        while ($r = $stmt->fetchObject()) {
+            $map[(int)$r->user_id][] = $r;
+        }
+        return $map;
+    }
+
+    /**
+     * Per-user accounting activity summary (entry count, cotisation count,
+     * last entry date, count within the 10-year window ending at $year).
+     * Used by the FILTER_NO_ACTIVITY_10Y history column.
+     *
+     * @return array<int, object> user_id => row (total, last_date, coti_count, recent_count)
+     */
+    public static function activitySummaryByUser(int $year): array
+    {
+        global $pdo;
+        $from = mktime(0, 0, 0, 1, 0, $year - 10);
+        $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+        $stmt = $pdo->prepare("
+            SELECT c.user_id,
+                   COUNT(*) AS total,
+                   MAX(c.date) AS last_date,
+                   SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 THEN 1 ELSE 0 END) AS coti_count,
+                   SUM(CASE WHEN c.date > ? AND c.date < ? THEN 1 ELSE 0 END) AS recent_count
+            FROM compta c
+            LEFT JOIN compta_type ct ON ct.id = c.type_id
+            GROUP BY c.user_id
+        ");
+        $stmt->execute([$from, $to]);
+        $map = [];
+        while ($r = $stmt->fetchObject()) {
+            $map[(int)$r->user_id] = $r;
+        }
+        return $map;
+    }
 }
