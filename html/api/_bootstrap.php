@@ -24,3 +24,17 @@ function apiError(int $code, string $message): never
     echo json_encode(['error' => $message]);
     exit;
 }
+
+// CSRF hardening for the JSON API (#89). Body-carrying mutations must declare
+// Content-Type: application/json. A browser cannot set that header on a
+// cross-origin "simple" request without a CORS preflight (which this API never
+// grants), so a form/text-plain CSRF POST is rejected while legit JSON clients
+// pass. GET (read) and DELETE (query-param only, already preflighted
+// cross-origin) are not gated.
+$_apiMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if (in_array($_apiMethod, ['POST', 'PUT', 'PATCH'], true)) {
+    $_apiCt = $_SERVER['CONTENT_TYPE'] ?? '';
+    if (stripos($_apiCt, 'application/json') !== 0) {
+        apiError(415, 'Content-Type application/json required');
+    }
+}
