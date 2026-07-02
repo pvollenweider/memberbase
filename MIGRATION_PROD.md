@@ -1,21 +1,47 @@
-# Migration production
+# Migrations base de données
 
-Ce fichier liste les actions manuelles à effectuer sur le serveur de production
-lors du déploiement de chaque branche ou version.
+Depuis la v3.5.6, les changements de schéma passent par un **système de
+migrations versionnées** — plus de SQL manuel en production.
+
+## Workflow
+
+Les migrations sont des fichiers `migrations/NNNN_description.sql` (à la racine
+du dépôt, hors webroot), appliqués dans l'ordre du nom. L'état appliqué est
+suivi dans la table `schema_migrations`.
+
+```bash
+# Déploiement type d'une instance existante
+git pull
+php html/tools/migrate.php --status   # voir ce qui est en attente
+php html/tools/migrate.php             # appliquer les migrations en attente
+# (avec Docker : make migrate)
+```
+
+- **Rejouable** : relancer le runner est un no-op si rien n'est en attente.
+- **Fresh install** : le wizard `install.php` pose le schéma complet à jour puis
+  « baseline » automatiquement toutes les migrations (elles ne sont pas rejouées).
+- **Nouvelle migration** : ajouter un fichier `migrations/NNNN_xxx.sql` (numéro
+  suivant), le committer, il sera appliqué au prochain `migrate.php`.
+
+## ⚠️ Sauvegarde & recovery
+
+MySQL/MariaDB **valide implicitement le DDL** (`CREATE`/`ALTER`) : une migration
+DDL ne peut pas être annulée par un `ROLLBACK`. **Toujours faire une sauvegarde
+avant de migrer en production** (`make db` / `mysqldump`). En cas d'échec en
+cours de DDL, la recovery = restauration depuis la sauvegarde. Les migrations
+DML (données) sont, elles, transactionnelles (rollback automatique sur erreur).
+
+## Historique
+
+- `0001_email_alt.sql` — colonne `users.email_alt` (v3.5.4). Idempotent
+  (`ADD COLUMN IF NOT EXISTS`), donc sans risque même si la colonne existe déjà
+  (instances migrées à la main avant l'introduction du runner).
 
 ---
 
-## v3.5.4 — champ e-mail alternatif
+## Actions manuelles historiques (avant le système de migrations)
 
-Ajouter la colonne `email_alt` sur la table `users` si elle n'existe pas encore :
-
-```sql
-ALTER TABLE users ADD COLUMN email_alt VARCHAR(255) NOT NULL DEFAULT '' AFTER email;
-```
-
-> Colonne non nullable avec défaut vide : aucune donnée existante n'est affectée.
-> Aucune autre migration de schéma n'est requise pour la v3.5.4 (import CSV,
-> ajout à un segment, tests d'intégrité et gardes API sont purement applicatifs).
+> Conservé pour référence. Sur une instance déjà à jour, rien à faire.
 
 ---
 

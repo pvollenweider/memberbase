@@ -78,6 +78,16 @@ exit;
 - Détection de doublons : maps en mémoire (email, nom+prénom) préchargées en une requête — ne pas revenir à des SELECT par ligne
 - La création des contacts est enveloppée dans une transaction
 
+## Migrations DB
+
+Tout changement de schéma = un fichier `migrations/NNNN_description.sql` (racine du dépôt, hors webroot), appliqué par `php html/tools/migrate.php` (ou `make migrate`). État suivi dans la table `schema_migrations`. **Ne plus mettre de SQL manuel dans `MIGRATION_PROD.md`.**
+
+- `migrate.php --status` : voir appliquées / en attente.
+- `migrate.php --baseline` : marquer tout comme appliqué sans exécuter (fresh install — géré automatiquement par `install.php`).
+- Écrire les migrations idempotentes quand possible (`ADD COLUMN IF NOT EXISTS`).
+- ⚠️ Le DDL MySQL est auto-committé (pas de rollback) : sauvegarde avant migration prod.
+- Garde de cohérence : `install.php` embarque le schéma complet à jour ET baseline les migrations (cf. `tests/` garde anti-dérive `schema.sql`↔`install.php`).
+
 ## Colonne `users.status`
 
 `TINYINT(1) NOT NULL DEFAULT 1` — 1 = actif, 0 = inactif.  

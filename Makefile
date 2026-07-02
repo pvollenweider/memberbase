@@ -1,4 +1,4 @@
-.PHONY: up down logs shell db import open test test-ui test-reset-db
+.PHONY: up down logs shell db import open test test-ui test-reset-db migrate migrate-status
 
 open:
 	open http://localhost:8080
@@ -23,6 +23,12 @@ db:
 import:
 	@test -n "$(DUMP)" || (echo "Usage: make import DUMP=path/to/dump.sql" && exit 1)
 	docker compose exec -T mariadb mariadb -umembers -pmembers members < $(DUMP)
+
+migrate:
+	docker compose exec php php tools/migrate.php
+
+migrate-status:
+	docker compose exec php php tools/migrate.php --status
 
 test:
 	npx playwright test
