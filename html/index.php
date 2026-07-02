@@ -138,90 +138,7 @@ if ($isHtmx) {
     </style>
 
     <!-- TipTap rich text editor -->
-    <script type="module">
-        import { Editor } from 'https://esm.sh/@tiptap/core@2';
-        import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2';
-
-        function initTiptap(root) {
-            var el = (root && root.querySelector) ? root.querySelector('#tiptap-comment') : document.getElementById('tiptap-comment');
-            if (!el || el._tt) return;
-            var hidden = document.getElementById('comment');
-            var editor = new Editor({
-                element: el,
-                extensions: [StarterKit],
-                content: hidden ? hidden.value : '',
-                onUpdate: function(_ref) {
-                    if (hidden) hidden.value = _ref.editor.getHTML();
-                },
-                onSelectionUpdate: function(_ref) { updateToolbar(_ref.editor); },
-                onTransaction: function(_ref) { updateToolbar(_ref.editor); },
-            });
-            el._tt = editor;
-
-            // Toolbar button wiring
-            var wrap = el.closest('.tiptap-wrap');
-            if (wrap) {
-                wrap.querySelectorAll('.tt-btn').forEach(function(btn) {
-                    btn.addEventListener('mousedown', function(e) {
-                        e.preventDefault();
-                        var cmd = btn.dataset.tt;
-                        if      (cmd === 'bold')        editor.chain().focus().toggleBold().run();
-                        else if (cmd === 'italic')      editor.chain().focus().toggleItalic().run();
-                        else if (cmd === 'bulletList')  editor.chain().focus().toggleBulletList().run();
-                        else if (cmd === 'orderedList') editor.chain().focus().toggleOrderedList().run();
-                        else if (cmd === 'undo')        editor.chain().focus().undo().run();
-                        else if (cmd === 'redo')        editor.chain().focus().redo().run();
-                    });
-                });
-            }
-        }
-
-        function updateToolbar(editor) {
-            var wrap = document.querySelector('.tiptap-wrap');
-            if (!wrap) return;
-            wrap.querySelectorAll('.tt-btn[data-tt]').forEach(function(btn) {
-                var cmd = btn.dataset.tt;
-                var active = false;
-                if (cmd === 'bold')        active = editor.isActive('bold');
-                else if (cmd === 'italic') active = editor.isActive('italic');
-                else if (cmd === 'bulletList')  active = editor.isActive('bulletList');
-                else if (cmd === 'orderedList') active = editor.isActive('orderedList');
-                btn.classList.toggle('is-active', active);
-            });
-        }
-
-        function destroyTiptap(root) {
-            var el = (root && root.querySelector) ? root.querySelector('#tiptap-comment') : document.getElementById('tiptap-comment');
-            if (el && el._tt) { el._tt.destroy(); el._tt = null; }
-        }
-
-        initTiptap(document);
-        document.addEventListener('htmx:beforeSwap', function(e) { destroyTiptap(e.detail.target); });
-        document.addEventListener('htmx:afterSwap',  function(e) { initTiptap(e.detail.target); });
-    </script>
-
-    <!-- Alpine components (external — CSP 'self' compatible) -->
-    <script src="js/member-general-form.js"></script>
-
-    <script>
-        sfFocus = function () {
-            var sfEls = document.getElementsByTagName("INPUT");
-            for (var i = 0; i < sfEls.length; i++) {
-                sfEls[i].onfocus = function () {
-                    this.className += " sffocus";
-                }
-                sfEls[i].onblur = function () {
-                    this.className = this.className.replace(new RegExp(" sffocus\\b"), "");
-                }
-            }
-        }
-        if (window.attachEvent) window.attachEvent("onload", sfFocus);
-
-        function viewUser(id) {
-            var url = "<?=$_SERVER['PHP_SELF']?>?view=generalData&id=" + id;
-            location = url;
-        }
-    </script>
+    <script type="module" src="js/tiptap-editor.js?v=<?= filemtime(__DIR__ . '/js/tiptap-editor.js') ?>"></script>
 </head>
 
 <body hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">
@@ -243,7 +160,9 @@ include __DIR__ . "/includes/partials/menu.php";
 </div>
 <!-- Toast container -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100" aria-live="polite" aria-atomic="true">
-    <div id="casaToast" class="toast text-bg-success border-0" role="status" aria-live="polite" aria-atomic="true">
+    <div id="casaToast" class="toast text-bg-success border-0" role="status" aria-live="polite" aria-atomic="true"
+         data-msg-saved="<?= htmlspecialchars($GLOBAL['saved'], ENT_QUOTES, $charset) ?>"
+         data-msg-group-modified="<?= htmlspecialchars($GLOBAL['groupModified'], ENT_QUOTES, $charset) ?>">
         <div class="d-flex align-items-center px-3 py-2 gap-2">
             <i class="fas fa-check-circle flex-shrink-0" aria-hidden="true"></i>
             <span id="casaToastMsg" class="flex-grow-1"><?= $GLOBAL['saved'] ?></span>
@@ -263,153 +182,7 @@ include __DIR__ . "/includes/partials/menu.php";
     </div>
 </footer>
 
-<script>
-(function () {
-    var dirty = false;
-
-    function markDirty(e) {
-        var el = e.target;
-        if (!el || !el.closest) return;
-        if (el.classList.contains('mg-team-cb')) return;
-        if (el.id === 'includeAttestation') return;
-        if (el.id === 'team-filter-input') return;
-        if (el.closest('[data-no-dirty]')) return;
-        if (el.closest('.dt-search, .dataTables_filter')) return;
-        if (el.closest('.modal')) return;
-        if (el.closest('#bulk-form')) return;
-        if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
-            dirty = true;
-        }
-    }
-
-    document.addEventListener('change', markDirty);
-    document.addEventListener('input', markDirty);
-    document.addEventListener('submit', function () { dirty = false; });
-
-    // htmx navigation — warn before swap if dirty, but not on form submissions (save = intentional)
-    document.addEventListener('htmx:beforeRequest', function (e) {
-        if (!dirty || window.__dirtyOverride) return;
-        var verb = (e.detail && e.detail.requestConfig && e.detail.requestConfig.verb) || 'get';
-        if (verb === 'post') { dirty = false; return; } // form submit — let it through
-        if (!confirm('Des modifications non sauvegardées seront perdues. Continuer ?')) {
-            e.preventDefault();
-        } else {
-            dirty = false;
-        }
-    });
-
-    // Reset dirty after htmx swap (new content loaded)
-    document.addEventListener('htmx:afterSwap', function () {
-        dirty = false;
-        window.__dirtyOverride = false;
-    });
-
-    // Fallback for non-htmx navigation (browser back, manual URL)
-    window.addEventListener('beforeunload', function (e) {
-        if (!dirty || window.__dirtyOverride) return;
-        e.preventDefault();
-        e.returnValue = 'Des modifications non sauvegardées seront perdues. Continuer ?';
-        return e.returnValue;
-    });
-})();
-
-    $('table').datahref();
-    $(function () {
-        $('.datepicker').datetimepicker({
-            format:'L',
-            locale: 'fr'
-        });
-        $.extend(true, $.fn.datetimepicker.defaults, {
-            icons: {
-                time: 'far fa-clock',
-                date: 'far fa-calendar',
-                up: 'fas fa-arrow-up',
-                down: 'fas fa-arrow-down',
-                previous: 'fas fa-chevron-left',
-                next: 'fas fa-chevron-right',
-                today: 'fas fa-calendar-check',
-                clear: 'far fa-trash-can',
-                close: 'far fa-circle-xmark'
-            }
-        });
-    });
-
-    // Destroy DataTables before htmx snapshots the DOM for history cache
-    // (prevents htmx restoring a DataTables-wrapped DOM that causes column mismatch on re-init)
-    document.addEventListener('htmx:beforeHistorySave', function () {
-        if ($.fn.DataTable) {
-            $.fn.DataTable.tables({ visible: true,  api: true }).destroy();
-            $.fn.DataTable.tables({ visible: false, api: true }).destroy();
-        }
-    });
-
-    // Re-initialize jQuery plugins after every htmx content swap
-    function casaInit(root) {
-        root = root || document;
-
-        // datepicker
-        $(root).find('.datepicker').each(function () {
-            if (!$(this).data('DateTimePicker')) {
-                $(this).datetimepicker({ format: 'L', locale: 'fr' });
-            }
-        });
-
-        // datahref click-to-row (plugin uses namespaced event — safe to call multiple times)
-        if ($(root).find('table').datahref) { $(root).find('table').datahref(); }
-
-        // destroy any orphaned DataTable instances from previous swap
-        if ($.fn.DataTable) {
-            $.fn.DataTable.tables({ visible: true,  api: true }).destroy();
-            $.fn.DataTable.tables({ visible: false, api: true }).destroy();
-        }
-    }
-
-    document.addEventListener('htmx:beforeHistorySave', function () {
-        if ($.fn.DataTable) {
-            $.fn.DataTable.tables({ visible: true,  api: true }).destroy();
-            $.fn.DataTable.tables({ visible: false, api: true }).destroy();
-        }
-    });
-
-    document.addEventListener('htmx:afterSwap', function (e) {
-        // Clean up Bootstrap modal state left behind after htmx content swap
-        document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
-        document.body.classList.remove('modal-open');
-        document.body.style.removeProperty('overflow');
-        document.body.style.removeProperty('padding-right');
-
-        casaInit(e.target);
-        var toastEl = document.getElementById('casaToast');
-        if (!toastEl || !e.target.querySelector) return;
-        var undoEl = document.getElementById('casaToastUndo');
-        var msgEl  = document.getElementById('casaToastMsg');
-
-        if (e.target.querySelector('#casa-save-ok')) {
-            msgEl.textContent = '<?= addslashes($GLOBAL['saved']) ?>';
-            if (undoEl) undoEl.style.display = 'none';
-            bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3000 }).show();
-        }
-
-        var membership = e.target.querySelector('#casa-membership-toast');
-        if (membership) {
-            var msg     = membership.dataset.msg     || '<?= addslashes($GLOBAL['groupModified']) ?>';
-            var undoUrl = membership.dataset.undoUrl || '';
-            msgEl.textContent = msg;
-            if (undoEl) {
-                if (undoUrl) {
-                    undoEl.href = undoUrl;
-                    undoEl.style.display = '';
-                    undoEl.onclick = function () {
-                        bootstrap.Toast.getInstance(toastEl).hide();
-                    };
-                } else {
-                    undoEl.style.display = 'none';
-                }
-            }
-            bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 5000 }).show();
-        }
-    });
-</script>
+<script src="js/app.js?v=<?= filemtime(__DIR__ . '/js/app.js') ?>"></script>
 
 </body>
 </html>
