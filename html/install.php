@@ -258,7 +258,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '3') {
                     PRIMARY KEY (`version`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
             );
-            $migFiles = glob(__DIR__ . '/../migrations/*.sql') ?: [];
+            $migFiles = glob(__DIR__ . '/migrations/*.sql') ?: [];
             if ($migFiles) {
                 $insMig = $pdo->prepare("INSERT IGNORE INTO schema_migrations (version, applied_at) VALUES (?, ?)");
                 foreach ($migFiles as $migFile) {

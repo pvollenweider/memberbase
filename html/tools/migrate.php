@@ -12,8 +12,9 @@ declare(strict_types=1);
  *                                         est déjà à jour)
  *   php html/tools/migrate.php --help
  *
- * Les fichiers de migration vivent dans `migrations/` (racine du dépôt, hors
- * webroot), nommés `NNNN_description.sql` et appliqués dans l'ordre du nom.
+ * Les fichiers de migration vivent dans `html/migrations/` (sous le webroot,
+ * pour être déployés avec l'app ; accès HTTP refusé par un .htaccess), nommés
+ * `NNNN_description.sql` et appliqués dans l'ordre du nom.
  * L'état est suivi dans la table `schema_migrations`.
  *
  * ⚠️ MySQL/MariaDB valide implicitement le DDL (CREATE/ALTER) : une migration
@@ -43,8 +44,8 @@ TXT);
     exit(0);
 }
 
-$repoRoot      = dirname(__DIR__, 2);            // .../repo
-$migrationsDir = $repoRoot . '/migrations';
+$repoRoot      = dirname(__DIR__, 2);            // .../repo (holds conf/ outside webroot)
+$migrationsDir = dirname(__DIR__) . '/migrations'; // html/migrations (ships with the webroot)
 
 // --- Résolution de la config DB (même source que bootstrap.php, sans effets de bord) ---
 $confFile = $repoRoot . '/conf/db.php';
@@ -146,8 +147,14 @@ foreach ($pending as $version => $file) {
         foreach ($statements as $stmt) {
             $pdo->exec($stmt);
         }
+        // A DDL statement (ALTER/CREATE) implicitly commits and ends the
+        // transaction in MySQL/MariaDB, so there may be no active transaction
+        // left here. Record the version and only commit if one is still open —
+        // otherwise commit()/rollBack() would throw "no active transaction".
         $ins->execute([$version, time()]);
-        $pdo->commit();
+        if ($pdo->inTransaction()) {
+            $pdo->commit();
+        }
         fwrite(STDOUT, "OK\n");
         $done++;
     } catch (PDOException $e) {

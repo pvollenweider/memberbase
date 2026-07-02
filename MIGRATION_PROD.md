@@ -5,9 +5,11 @@ migrations versionnées** — plus de SQL manuel en production.
 
 ## Workflow
 
-Les migrations sont des fichiers `migrations/NNNN_description.sql` (à la racine
-du dépôt, hors webroot), appliqués dans l'ordre du nom. L'état appliqué est
-suivi dans la table `schema_migrations`.
+Les migrations sont des fichiers `html/migrations/NNNN_description.sql`
+(**sous `html/`** pour être déployés avec l'app — les instances qui ne
+synchronisent que `html/` les emportent ; l'accès HTTP à ces `.sql` est refusé
+par `html/migrations/.htaccess`), appliqués dans l'ordre du nom. L'état appliqué
+est suivi dans la table `schema_migrations`.
 
 ```bash
 # Déploiement type d'une instance existante
@@ -23,8 +25,8 @@ php html/tools/migrate.php             # appliquer les migrations en attente
   la commande à lancer. Il disparaît une fois les migrations appliquées.
 - **Fresh install** : le wizard `install.php` pose le schéma complet à jour puis
   « baseline » automatiquement toutes les migrations (elles ne sont pas rejouées).
-- **Nouvelle migration** : ajouter un fichier `migrations/NNNN_xxx.sql` (numéro
-  suivant), le committer, il sera appliqué au prochain `migrate.php`.
+- **Nouvelle migration** : ajouter un fichier `html/migrations/NNNN_xxx.sql`
+  (numéro suivant), le committer, il sera appliqué au prochain `migrate.php`.
 
 ## ⚠️ Sauvegarde & recovery
 
