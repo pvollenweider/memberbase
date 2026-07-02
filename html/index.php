@@ -197,7 +197,7 @@ if ($_pendingMigrations):
     <div class="container">
         <small>Process time: [<?= (int)(($end - $start) * 1000) ?>
             ms]. Date: [<?= date("d.m.Y H:i", time()) ?>]<br/>
-            <a href="https://github.com/pvollenweider/memberbase" target="_blank" rel="noopener" class="text-muted">MemberBase v3.5.5</a>
+            <a href="https://github.com/pvollenweider/memberbase" target="_blank" rel="noopener" class="text-muted">MemberBase v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, $charset) ?></a>
         </small>
     </div>
 </footer>

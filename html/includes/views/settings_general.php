@@ -55,6 +55,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
         <option value="#tab-users">Utilisateurs</option>
         <option value="#tab-audit">Journal</option>
         <option value="#tab-integrity">Intégrité</option>
+        <option value="#tab-health">Santé</option>
         <?php endif ?>
       </select>
     </div>
@@ -84,6 +85,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           _settings_nav_item('users',      'fas fa-user-shield', 'Utilisateurs', $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('audit',      'fas fa-clock-rotate-left', 'Journal', $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('integrity',  'fas fa-stethoscope', 'Intégrité',    $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('health',     'fas fa-heart-pulse', 'Santé',        $_navActive, $_settingsDrillDown, $_navSelf);
           ?>
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers"
@@ -235,6 +237,13 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
             <?php include __DIR__ . '/settings_integrity.php'; ?>
             </div>
           </div><!-- #tab-integrity -->
+
+          <!-- Santé / observabilité -->
+          <div class="tab-pane fade<?= $_paneClass('health') ?>" id="tab-health" role="tabpanel" aria-labelledby="tab-health-btn">
+            <div class="mt-1 col-md-10">
+            <?php include __DIR__ . '/settings_health.php'; ?>
+            </div>
+          </div><!-- #tab-health -->
           <?php endif ?>
 
         </div><!-- .tab-content -->
@@ -259,6 +268,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
         'users':      '#tab-users',
         'audit':      '#tab-audit',
         'integrity':  '#tab-integrity',
+        'health':     '#tab-health',
         'teams':      '#tab-groups',
       };
       var targetPane = urlTab && tabMap[urlTab] ? tabMap[urlTab]
