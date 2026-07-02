@@ -39,6 +39,9 @@ test-ui:
 test-reset-db:
 	bash tests/fixtures/reset-db.sh
 
-## PHP unit tests (pure logic) — requires `composer install` once
+## PHP unit tests (pure logic) — runs in throwaway containers (no local PHP/Composer needed)
+## Mounts the repo root (the running php container only mounts html/), installs
+## PHPUnit into vendor/ (gitignored), and runs the suite on PHP 8.2 (prod parity).
 test-unit:
-	vendor/bin/phpunit
+	docker run --rm -v "$(CURDIR)":/app -w /app composer:2 install --no-interaction --no-progress
+	docker run --rm -v "$(CURDIR)":/app -w /app php:8.2-cli vendor/bin/phpunit
