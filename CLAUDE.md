@@ -137,6 +137,8 @@ Les fonctions pures testables vivent dans `html/includes/lib/pure.php` (dates, `
 
 Tout changement de schéma = un fichier `html/migrations/NNNN_description.sql` (**sous `html/`** pour être déployé avec l'app — les prods qui ne synchronisent que `html/` l'emportent ; accès HTTP refusé par `html/migrations/.htaccess`), appliqué par `php html/tools/migrate.php` (ou `make migrate`). État suivi dans la table `schema_migrations`. **Ne plus mettre de SQL manuel dans `MIGRATION_PROD.md`.**
 
+- **Logique partagée** dans `html/includes/lib/migrations.php` (guardless, sans effet de bord) : `mbRunPendingMigrations()`, `mbPendingMigrations()`, `mbDumpDatabase()`… utilisée par le CLI (`tools/migrate.php`) **et** l'admin web.
+- **Sans SSH** : **Réglages → Santé** (admin) permet d'**exporter la base** (`html/export.php`, dump SQL pur, sans `mysqldump`) et d'**appliquer les migrations** en attente (action `applyMigrations`, case « j'ai fait une sauvegarde » obligatoire). Couverture CI : job `upgrade` (le CLI) + `tests/db-maintenance.spec.ts` (export).
 - `migrate.php --status` : voir appliquées / en attente.
 - `migrate.php --baseline` : marquer tout comme appliqué sans exécuter (fresh install — géré automatiquement par `install.php`).
 - **Checksum / dérive** : `schema_migrations.checksum` stocke le SHA-256 de chaque migration appliquée. `migrate.php --status` signale `[!] DÉRIVE` (et sort en code 2) si un fichier déjà appliqué a été modifié ; la page **Réglages → Santé** l'affiche aussi. Corollaire : **ne jamais éditer une migration déjà appliquée** — en créer une nouvelle.

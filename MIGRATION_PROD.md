@@ -19,6 +19,11 @@ php html/tools/migrate.php             # appliquer les migrations en attente
 # (avec Docker : make migrate)
 ```
 
+**Sans accès SSH (cas le plus fréquent)** : l'admin peut tout faire depuis
+**Réglages → Santé** — bouton **« Exporter la base (SQL) »** (dump téléchargeable,
+sans `mysqldump`) puis **« Appliquer les migrations »** (case « j'ai fait une
+sauvegarde » obligatoire). Le lien apparaît aussi dans le bandeau d'alerte.
+
 - **Rejouable** : relancer le runner est un no-op si rien n'est en attente.
 - **Détection de dérive** : `--status` compare le checksum (SHA-256) de chaque
   migration appliquée à son fichier actuel et signale `[!] DÉRIVE` si un fichier
