@@ -66,6 +66,10 @@ $_migOk  = isset($_GET['migOk']) ? (int)$_GET['migOk'] : null;
 $_migErr = $_GET['migErr'] ?? null;
 if ($_migErr === 'backup'): ?>
   <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Cochez « J'ai fait une sauvegarde » avant d'appliquer les migrations.</div>
+<?php elseif ($_migErr === 'noRecentExport'): ?>
+  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Vous devez <strong>exporter la base</strong> depuis ce navigateur dans les 30 dernières minutes avant d'appliquer les migrations.</div>
+<?php elseif ($_migErr === 'locked'): ?>
+  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Une migration est déjà en cours — attendez qu'elle se termine avant de relancer.</div>
 <?php elseif ($_migErr !== null): ?>
   <div class="alert alert-danger py-2" role="alert"><i class="fas fa-circle-xmark me-1" aria-hidden="true"></i>Échec lors de l'application des migrations — consultez le journal d'audit et restaurez depuis votre sauvegarde si besoin.</div>
 <?php elseif ($_migOk !== null): ?>
@@ -179,9 +183,11 @@ if ($_migErr === 'backup'): ?>
       <a class="btn btn-outline-secondary btn-sm" href="export.php" hx-boost="false" download>
         <i class="fas fa-download me-1" aria-hidden="true"></i>Exporter la base (SQL)
       </a>
-      <?php if (!empty($pending)): ?>
-        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex flex-column gap-1"
-              onsubmit="return confirm('Appliquer <?= count($pending) ?> migration(s) ? Assurez-vous d\'avoir exporté la base juste avant.')">
+      <?php if (!empty($pending)):
+        // Check if a DB export was done in the last 30 minutes in this session.
+        $hasRecentExport = isset($_SESSION['last_db_export']) && (time() - (int)$_SESSION['last_db_export']) <= 1800;
+      ?>
+        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex flex-column gap-1">
           <input type="hidden" name="action" value="applyMigrations">
           <input type="hidden" name="view" value="settings">
           <input type="hidden" name="tab" value="health">
@@ -189,7 +195,10 @@ if ($_migErr === 'backup'): ?>
             <input class="form-check-input" type="checkbox" name="confirm_backup" id="confirm_backup" required data-no-dirty>
             <label class="form-check-label small" for="confirm_backup">J'ai fait une sauvegarde</label>
           </div>
-          <button type="submit" class="btn btn-warning btn-sm">
+          <?php if (!$hasRecentExport): ?>
+            <small class="text-warning"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Exportez d'abord la base ci-dessus (requis).</small>
+          <?php endif ?>
+          <button type="submit" class="btn btn-warning btn-sm" <?= !$hasRecentExport ? 'disabled title="Exportez la base avant de migrer"' : '' ?>>
             <i class="fas fa-database me-1" aria-hidden="true"></i>Appliquer <?= count($pending) ?> migration(s)
           </button>
         </form>

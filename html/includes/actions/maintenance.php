@@ -26,8 +26,25 @@ if ($action === 'applyMigrations') {
         $redirect('migErr=backup');
     }
 
-    @set_time_limit(0);
+    // Require a recent export (within 30 minutes) — enforce the backup step, not just the checkbox.
+    $lastExport = (int)($_SESSION['last_db_export'] ?? 0);
+    if ($lastExport === 0 || (time() - $lastExport) > 1800) {
+        $redirect('migErr=noRecentExport');
+    }
+
+    // Exclusive in-process lock: prevent concurrent migration runs (e.g. double-click).
+    $lockFile = sys_get_temp_dir() . '/memberbase_migrate_' . md5(__FILE__) . '.lock';
+    $lock = fopen($lockFile, 'c');
+    if (!$lock || !flock($lock, LOCK_EX | LOCK_NB)) {
+        $redirect('migErr=locked');
+    }
+
+    @set_time_limit(120);
     $res = mbRunPendingMigrations($pdo);
+
+    flock($lock, LOCK_UN);
+    fclose($lock);
+    @unlink($lockFile);
 
     $detail = 'applied: ' . (implode(',', $res['applied']) ?: '(none)');
     if ($res['error']) { $detail .= ' | FAILED ' . $res['failed'] . ': ' . $res['error']; }

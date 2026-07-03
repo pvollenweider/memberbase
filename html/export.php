@@ -30,6 +30,10 @@ header('Content-Disposition: attachment; filename="' . $fname . '"');
 header('Cache-Control: no-store');
 @set_time_limit(0);
 
+// Record export timestamp in session so the migration UI can verify a recent backup was taken.
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+$_SESSION['last_db_export'] = time();
+
 auditLog($pdo, 'dbExport', 'SQL export');
 mbDumpDatabase($pdo);
 exit;
