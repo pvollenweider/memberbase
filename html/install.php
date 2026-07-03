@@ -664,7 +664,7 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
   <?php endif ?>
 
   <p class="text-center text-muted mt-3" style="font-size:.75rem">
-    MemberBase — <a href="https://github.com/pvollenweider/casa-membres" class="text-muted">AGPL-3.0</a>
+    MemberBase — <a href="https://pvollenweider.github.io/memberbase/" class="text-muted">AGPL-3.0</a>
   </p>
 </div>
 </body>
