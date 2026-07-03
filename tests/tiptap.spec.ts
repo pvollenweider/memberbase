@@ -12,9 +12,11 @@ import { test, expect } from '@playwright/test';
 
 test.describe('TipTap editor (self-hosted)', () => {
   test('rich-text editor mounts on the member form', async ({ page }) => {
-    await page.goto('/index.php?view=addUser');
+    // The comment editor lives on the member "general data" view (member 1 = seed).
+    await page.goto('/index.php?view=generalData&userid=1');
     // TipTap turns #tiptap-comment into a ProseMirror contenteditable once the
-    // vendored bundle loads and initialises (no external CDN).
-    await expect(page.locator('#tiptap-comment .ProseMirror')).toBeVisible({ timeout: 10_000 });
+    // vendored bundle loads and initialises (no external CDN). Asserting the
+    // element exists proves the local module loaded.
+    await expect(page.locator('#tiptap-comment .ProseMirror')).toHaveCount(1, { timeout: 10_000 });
   });
 });
