@@ -69,55 +69,26 @@ try {
     exit(1);
 }
 
-// --- Table de suivi ---
-$pdo->exec(
-    "CREATE TABLE IF NOT EXISTS `schema_migrations` (
-        `version`    VARCHAR(255) NOT NULL,
-        `applied_at` INT(11)      NOT NULL DEFAULT 0,
-        `checksum`   CHAR(64)     NOT NULL DEFAULT '',
-        PRIMARY KEY (`version`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
-);
-// Add the checksum column on tables created before it existed (MariaDB).
-try { $pdo->exec("ALTER TABLE `schema_migrations` ADD COLUMN IF NOT EXISTS `checksum` CHAR(64) NOT NULL DEFAULT ''"); }
-catch (PDOException) { /* older MySQL without IF NOT EXISTS: ignore if already present */ }
+// --- Shared runner logic (also used by the web admin) ---
+require_once __DIR__ . '/../includes/lib/migrations.php';
 
-/** SHA-256 of a migration file's raw content, for drift detection. */
-function migrationChecksum(string $file): string
-{
-    $c = @file_get_contents($file);
-    return $c === false ? '' : hash('sha256', $c);
-}
-
-// --- Inventaire ---
-$appliedRows = $pdo->query("SELECT version, checksum FROM schema_migrations")->fetchAll(PDO::FETCH_KEY_PAIR);
-$applied = array_flip(array_keys($appliedRows)); // version => index (presence map)
-
-$files = glob($migrationsDir . '/*.sql') ?: [];
-sort($files, SORT_STRING);
-$all = [];
-foreach ($files as $f) {
-    $all[basename($f, '.sql')] = $f;
-}
-
-$pending = array_filter(
-    $all,
-    static fn($version) => !isset($applied[$version]),
-    ARRAY_FILTER_USE_KEY
-);
+mbEnsureMigrationsTable($pdo);
+$appliedRows = mbAppliedMigrations($pdo); // version => checksum
+$all         = mbAllMigrations();         // version => filepath
+$pending     = mbPendingMigrations($pdo);
 
 // --- Mode --status ---
 if (in_array('--status', $args, true)) {
     fwrite(STDOUT, "Migrations (" . count($all) . " au total) :\n");
     $drift = 0;
     foreach ($all as $version => $file) {
-        if (!isset($applied[$version])) {
+        if (!isset($appliedRows[$version])) {
             fwrite(STDOUT, "  [ ] EN ATTENTE  $version\n");
             continue;
         }
         // Applied: flag drift if the recorded checksum no longer matches the file.
         $stored = $appliedRows[$version] ?? '';
-        if ($stored !== '' && $stored !== migrationChecksum($file)) {
+        if ($stored !== '' && $stored !== mbMigrationChecksum($file)) {
             fwrite(STDOUT, "  [!] DÉRIVE     $version  (le fichier a changé après application)\n");
             $drift++;
         } else {
@@ -134,7 +105,7 @@ if (in_array('--baseline', $args, true)) {
     $ins = $pdo->prepare("INSERT IGNORE INTO schema_migrations (version, applied_at, checksum) VALUES (?, ?, ?)");
     $n = 0;
     foreach ($all as $version => $file) {
-        if (!isset($applied[$version])) { $ins->execute([$version, time(), migrationChecksum($file)]); $n++; }
+        if (!isset($appliedRows[$version])) { $ins->execute([$version, time(), mbMigrationChecksum($file)]); $n++; }
     }
     fwrite(STDOUT, "Baseline : $n migration(s) marquée(s) comme appliquée(s).\n");
     exit(0);
@@ -146,48 +117,12 @@ if (!$pending) {
     exit(0);
 }
 
-$ins = $pdo->prepare("INSERT INTO schema_migrations (version, applied_at, checksum) VALUES (?, ?, ?)");
-$done = 0;
-foreach ($pending as $version => $file) {
-    $sql = file_get_contents($file);
-    if ($sql === false) {
-        fwrite(STDERR, "Lecture impossible : $file\n");
-        exit(1);
-    }
-    $checksum = hash('sha256', $sql);
-    // Strip full-line SQL comments first, THEN split into statements on ";".
-    // (A previous version filtered out any segment starting with "--", which
-    // silently dropped a whole statement when a comment preceded it on the same
-    // segment — e.g. a leading comment above an ALTER.)
-    $sqlNoComments = preg_replace('/^\s*--.*$/m', '', $sql);
-    $statements = array_filter(
-        array_map('trim', explode(';', $sqlNoComments)),
-        static fn($s) => $s !== ''
-    );
-
-    fwrite(STDOUT, "→ $version … ");
-    try {
-        $pdo->beginTransaction();
-        foreach ($statements as $stmt) {
-            $pdo->exec($stmt);
-        }
-        // A DDL statement (ALTER/CREATE) implicitly commits and ends the
-        // transaction in MySQL/MariaDB, so there may be no active transaction
-        // left here. Record the version and only commit if one is still open —
-        // otherwise commit()/rollBack() would throw "no active transaction".
-        $ins->execute([$version, time(), $checksum]);
-        if ($pdo->inTransaction()) {
-            $pdo->commit();
-        }
-        fwrite(STDOUT, "OK\n");
-        $done++;
-    } catch (PDOException $e) {
-        if ($pdo->inTransaction()) { $pdo->rollBack(); }
-        fwrite(STDERR, "ÉCHEC\n  {$e->getMessage()}\n");
-        fwrite(STDERR, "Migration $version non enregistrée. Corrigez puis relancez.\n");
-        fwrite(STDERR, "⚠️ Si la migration contenait du DDL (ALTER/CREATE), il a pu être partiellement validé (MySQL auto-commit le DDL) : vérifiez l'état / restaurez depuis une sauvegarde.\n");
-        exit(1);
-    }
+$res = mbRunPendingMigrations($pdo, static fn(string $m) => fwrite(STDOUT, $m));
+if ($res['error'] !== null) {
+    fwrite(STDERR, "  {$res['error']}\n");
+    fwrite(STDERR, "Migration {$res['failed']} non enregistrée. Corrigez puis relancez.\n");
+    fwrite(STDERR, "⚠️ Si la migration contenait du DDL (ALTER/CREATE), il a pu être partiellement validé (MySQL auto-commit le DDL) : vérifiez l'état / restaurez depuis une sauvegarde.\n");
+    exit(1);
 }
-fwrite(STDOUT, "$done migration(s) appliquée(s).\n");
+fwrite(STDOUT, count($res['applied']) . " migration(s) appliquée(s).\n");
 exit(0);

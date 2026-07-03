@@ -158,8 +158,9 @@ if ($_pendingMigrations):
             <strong><?= count($_pendingMigrations) ?>
                 migration<?= count($_pendingMigrations) > 1 ? 's' : '' ?> de base de données en attente</strong>
             (<?= htmlspecialchars(implode(', ', $_pendingMigrations), ENT_QUOTES, $charset) ?>).
-            Appliquez-la<?= count($_pendingMigrations) > 1 ? 's' : '' ?> avec
-            <code>php html/tools/migrate.php</code> (ou <code>make migrate</code>)
+            Appliquez-la<?= count($_pendingMigrations) > 1 ? 's' : '' ?> depuis
+            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=health">Réglages → Santé</a>
+            (sans SSH), ou en ligne de commande <code>php html/tools/migrate.php</code>,
             après avoir sauvegardé la base. Tant que ce n'est pas fait, certaines
             fonctionnalités peuvent ne pas marcher correctement.
         </div>
