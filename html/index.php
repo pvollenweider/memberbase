@@ -56,70 +56,71 @@ if ($isHtmx) {
     $start = getMicroTime();
     ?>
 
+    <?php $v = APP_VERSION; ?>
     <!-- Inter (self-hosted) -->
-    <link rel="stylesheet" href="css/vendor/inter.css">
+    <link rel="stylesheet" href="css/vendor/inter.css?v=<?= $v ?>">
 
     <!-- Bootstrap 5 -->
-    <link rel="stylesheet" href="css/vendor/bootstrap.min.css">
+    <link rel="stylesheet" href="css/vendor/bootstrap.min.css?v=<?= $v ?>">
 
     <!-- DataTables 1.13.x + Bootstrap 5 -->
-    <link rel="stylesheet" href="css/vendor/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="css/vendor/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" href="css/vendor/dataTables.bootstrap5.min.css?v=<?= $v ?>">
+    <link rel="stylesheet" href="css/vendor/buttons.bootstrap5.min.css?v=<?= $v ?>">
 
     <!-- Datetimepicker -->
-    <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="css/bootstrap-datetimepicker.min.css?v=<?= $v ?>">
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="css/vendor/font-awesome.min.css">
+    <link rel="stylesheet" href="css/vendor/font-awesome.min.css?v=<?= $v ?>">
 
     <!-- Custom -->
-    <link rel="stylesheet" href="css/custom.css">
+    <link rel="stylesheet" href="css/custom.css?v=<?= $v ?>">
 
     <!-- jQuery (required by DataTables, datetimepicker) -->
-    <script src="js/vendor/jquery-3.7.1.min.js"></script>
+    <script src="js/vendor/jquery-3.7.1.min.js?v=<?= $v ?>"></script>
 
     <!-- Bootstrap 5 bundle (includes Popper) -->
-    <script src="js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="js/vendor/bootstrap.bundle.min.js?v=<?= $v ?>"></script>
 
     <!-- Moment.js (required by datetimepicker) -->
-    <script src="js/vendor/moment.min.js"></script>
-    <script src="js/vendor/fr.js"></script>
+    <script src="js/vendor/moment.min.js?v=<?= $v ?>"></script>
+    <script src="js/vendor/fr.js?v=<?= $v ?>"></script>
 
     <!-- Datetimepicker -->
-    <script src="js/vendor/bootstrap-datetimepicker.min.js"></script>
+    <script src="js/vendor/bootstrap-datetimepicker.min.js?v=<?= $v ?>"></script>
 
     <!-- Highlight + datahref -->
-    <script src="js/vendor/jquery.highlight.js"></script>
-    <script src="js/vendor/datahref2.jquery.js"></script>
+    <script src="js/vendor/jquery.highlight.js?v=<?= $v ?>"></script>
+    <script src="js/vendor/datahref2.jquery.js?v=<?= $v ?>"></script>
 
     <!-- DataTables 1.13.x + Bootstrap 5 -->
-    <script src="js/vendor/jquery.dataTables.min.js"></script>
-    <script src="js/vendor/dataTables.bootstrap5.min.js"></script>
+    <script src="js/vendor/jquery.dataTables.min.js?v=<?= $v ?>"></script>
+    <script src="js/vendor/dataTables.bootstrap5.min.js?v=<?= $v ?>"></script>
 
     <!-- DataTables Buttons -->
-    <script src="js/vendor/dataTables.buttons.min.js"></script>
-    <script src="js/vendor/buttons.bootstrap5.min.js"></script>
-    <script src="js/vendor/jszip.min.js"></script>
-    <script src="js/vendor/pdfmake.min.js"></script>
-    <script src="js/vendor/vfs_fonts.js"></script>
-    <script src="js/vendor/buttons.html5.min.js"></script>
-    <script src="js/vendor/buttons.print.min.js"></script>
-    <script src="js/vendor/buttons.colVis.min.js"></script>
+    <script src="js/vendor/dataTables.buttons.min.js?v=<?= $v ?>"></script>
+    <script src="js/vendor/buttons.bootstrap5.min.js?v=<?= $v ?>"></script>
+    <script src="js/vendor/jszip.min.js?v=<?= $v ?>"></script>
+    <script src="js/vendor/pdfmake.min.js?v=<?= $v ?>"></script>
+    <script src="js/vendor/vfs_fonts.js?v=<?= $v ?>"></script>
+    <script src="js/vendor/buttons.html5.min.js?v=<?= $v ?>"></script>
+    <script src="js/vendor/buttons.print.min.js?v=<?= $v ?>"></script>
+    <script src="js/vendor/buttons.colVis.min.js?v=<?= $v ?>"></script>
 
     <!-- DataTables moment sorting plugin -->
-    <script src="js/vendor/datetime-moment.js"></script>
+    <script src="js/vendor/datetime-moment.js?v=<?= $v ?>"></script>
 
     <!-- Shared DataTables defaults -->
-    <script src="js/dt_defaults.js"></script>
+    <script src="js/dt_defaults.js?v=<?= $v ?>"></script>
 
     <!-- Chart.js -->
-    <script src="js/vendor/Chart.bundle.min.js"></script>
+    <script src="js/vendor/Chart.bundle.min.js?v=<?= $v ?>"></script>
 
     <!-- htmx + Alpine.js -->
-    <script src="js/vendor/htmx.min.js"></script>
-    <!-- Alpine components (external — CSP 'self' compatible, loaded before Alpine init) -->
-    <script src="js/member-general-form.js"></script>
-    <script defer src="js/vendor/alpine.min.js"></script>
+    <script src="js/vendor/htmx.min.js?v=<?= $v ?>"></script>
+    <!-- Alpine components (CSP 'self' compatible, loaded before Alpine init) -->
+    <script src="js/member-general-form.js?v=<?= $v ?>"></script>
+    <script defer src="js/vendor/alpine.min.js?v=<?= $v ?>"></script>
     <meta name="htmx-config" content='{"scrollIntoViewOnBoost": false, "defaultSwapStyle": "innerHTML"}'>
 
     <style>
