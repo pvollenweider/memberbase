@@ -2,6 +2,19 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [3.8.0] — 2026-07-03
+
+### Nouveautés
+
+- **Interface multilingue (FR/EN/DE/ES)** : chaque utilisateur choisit sa langue d'interface (carte « Langue » sur la page Mot de passe), stockée sur son compte (`app_users.locale`, défaut français) et appliquée immédiatement. Traductions complètes en anglais, allemand (orthographe suisse) et espagnol ; toute clé manquante retombe automatiquement sur le français.
+- **Externalisation complète des chaînes UI** : les ~650 dernières chaînes codées en dur (messages d'erreur, boutons, titres, aide contextuelle…) sont passées dans le fichier de locale, conformément à la règle « aucun label en dur ».
+
+### Technique
+
+- Nouvelle architecture de locale par bundles PHP (`html/locales/resources_{fr,en,de,es}.php`), chargés par `mbLoadLocale()` — la base française reste la source complète, les autres langues sont des surcharges.
+- Migration `0003_app_users_locale` (colonne `locale` sur `app_users`).
+- `tools/release.sh` / `tools/publish-site.sh` : processus de release allégé (bump/tag/GitHub release + patch du changelog sur le site, sans régénération complète).
+
 ## [3.7.0] — 2026-07-03
 
 ### Nouveautés
