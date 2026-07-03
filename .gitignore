@@ -19,3 +19,6 @@ tests/.auth/
 /vendor/
 composer.lock
 .phpunit.cache/
+
+# /understand intermediate files (final graph is committed)
+.understand-anything/intermediate/
