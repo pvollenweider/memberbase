@@ -46,3 +46,40 @@ if (in_array($_apiMethod, ['POST', 'PUT', 'PATCH'], true)) {
         apiError(415, 'Content-Type application/json required');
     }
 }
+
+// Rate limiting (#92). Fixed-window counter per (user + IP): at most
+// API_RATE_MAX requests per API_RATE_WINDOW seconds → 429. Self-contained (the
+// tracking table is created lazily), and best-effort: any limiter error is
+// swallowed so it can never take the API down. The UI mostly talks to
+// index.php, not /api, so the limit is generous.
+const API_RATE_WINDOW = 60;
+const API_RATE_MAX    = 600;
+try {
+    $pdo->exec(
+        "CREATE TABLE IF NOT EXISTS `api_rate_limit` (
+            `bucket`       VARCHAR(190) NOT NULL,
+            `hits`         INT(11)      NOT NULL DEFAULT 0,
+            `window_start` INT(11)      NOT NULL DEFAULT 0,
+            PRIMARY KEY (`bucket`),
+            KEY `idx_window_start` (`window_start`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+    $_rlId  = 'u' . ($_SESSION['app_user_id'] ?? '0') . ':' . ($_SERVER['REMOTE_ADDR'] ?? '?');
+    $_rlKey = $_rlId . ':' . intdiv(time(), API_RATE_WINDOW);
+    $pdo->prepare(
+        "INSERT INTO api_rate_limit (bucket, hits, window_start) VALUES (?, 1, ?)
+         ON DUPLICATE KEY UPDATE hits = hits + 1"
+    )->execute([$_rlKey, time()]);
+    $_rlStmt = $pdo->prepare("SELECT hits FROM api_rate_limit WHERE bucket = ?");
+    $_rlStmt->execute([$_rlKey]);
+    $_rlHits = (int)$_rlStmt->fetchColumn();
+    // Opportunistic cleanup of stale buckets (~1% of requests).
+    if (random_int(1, 100) === 1) {
+        $pdo->prepare("DELETE FROM api_rate_limit WHERE window_start < ?")
+            ->execute([time() - API_RATE_WINDOW * 5]);
+    }
+    if ($_rlHits > API_RATE_MAX) {
+        header('Retry-After: ' . API_RATE_WINDOW);
+        apiError(429, 'Too Many Requests');
+    }
+} catch (Throwable) { /* never block the API on a limiter failure */ }
