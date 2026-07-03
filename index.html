@@ -459,6 +459,14 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap">
     <h2 id="changelog-h">Dernières versions</h2>
     <article class="release">
+      <h3 class="v">3.7.0 <span class="d">3 juillet 2026</span></h3>
+      <ul>
+        <li><strong>Lien vers la documentation en ligne</strong> : le pied de page de l'application et celui de l'installateur (<code class="inline">install.php</code>) pointent désormais vers le site du projet et la documentation en ligne (https://pvollenweider.github.io/memberbase/) au lieu du dépôt GitHub brut. Nouveau libellé <code class="inline">documentation</code> dans la locale.</li>
+        <li>Site de documentation public GitHub Pages (https://pvollenweider.github.io/memberbase/) : workflow de maintenance documenté dans <code class="inline">CLAUDE.md</code> (régénération du knowledge graph et du site à chaque release).</li>
+        <li>Nettoyage de balises parasites en fin de <code class="inline">doc/user.md</code> et <code class="inline">doc/architecture.md</code>.</li>
+      </ul>
+    </article>
+    <article class="release">
       <h3 class="v">3.6.0 <span class="d">3 juillet 2026</span></h3>
       <ul>
         <li><strong>Maintenance DB sans SSH</strong> — export de la base et application des migrations depuis Réglages → Santé.</li>
@@ -473,14 +481,6 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li><strong>Page de santé</strong> — Réglages → Santé (admin) et endpoint <code class="inline">/health.php</code> pour le monitoring externe.</li>
         <li><strong>Montants en <code class="inline">DECIMAL(10,2)</code></strong> — fin des montants financiers stockés en texte.</li>
         <li><strong>Suite unitaire PHPUnit</strong> en complément des tests E2E Playwright.</li>
-      </ul>
-    </article>
-    <article class="release">
-      <h3 class="v">3.5.5 <span class="d">2 juillet 2026</span></h3>
-      <ul>
-        <li><strong>Sécurité</strong> — deux routes de mutation accessibles sans vérification de rôle sont désormais protégées, avec tests de régression.</li>
-        <li><strong>Matrice des droits</strong> affichée à la création d'un compte utilisateur.</li>
-        <li><strong>Installeur réparé</strong> — fatal error qui rendait le wizard inutilisable en fresh install.</li>
       </ul>
     </article>
     <p class="changelog-more"><a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md">Historique complet des versions</a></p>
