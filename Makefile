@@ -1,4 +1,4 @@
-.PHONY: up down logs shell db import open test test-ui test-reset-db test-unit migrate migrate-status
+.PHONY: up down logs shell db import backup restore open test test-ui test-reset-db test-unit migrate migrate-status
 
 open:
 	open http://localhost:8080
@@ -23,6 +23,17 @@ db:
 import:
 	@test -n "$(DUMP)" || (echo "Usage: make import DUMP=path/to/dump.sql" && exit 1)
 	docker compose exec -T mariadb mariadb -umembers -pmembers members < $(DUMP)
+
+## backup [FILE=dump.sql] — dump the DB (default: timestamped file)
+backup:
+	docker compose exec -T mariadb mariadb-dump -umembers -pmembers --single-transaction --routines --triggers members > $(or $(FILE),backup_$(shell date +%Y%m%d_%H%M%S).sql)
+	@echo "Backup written."
+
+## restore FILE=dump.sql — restore the DB from a dump (destructive)
+restore:
+	@test -n "$(FILE)" || (echo "Usage: make restore FILE=dump.sql" && exit 1)
+	docker compose exec -T mariadb mariadb -umembers -pmembers members < $(FILE)
+	@echo "Restored from $(FILE)."
 
 migrate:
 	docker compose exec php php tools/migrate.php

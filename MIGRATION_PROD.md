@@ -36,9 +36,27 @@ php html/tools/migrate.php             # appliquer les migrations en attente
 
 MySQL/MariaDB **valide implicitement le DDL** (`CREATE`/`ALTER`) : une migration
 DDL ne peut pas être annulée par un `ROLLBACK`. **Toujours faire une sauvegarde
-avant de migrer en production** (`make db` / `mysqldump`). En cas d'échec en
-cours de DDL, la recovery = restauration depuis la sauvegarde. Les migrations
-DML (données) sont, elles, transactionnelles (rollback automatique sur erreur).
+avant de migrer en production**. Les migrations DML (données) sont, elles,
+transactionnelles (rollback automatique sur erreur).
+
+### Sauvegarder / restaurer
+
+Des scripts déployés avec l'app (`html/tools/`, config lue depuis `conf/db.php`
+ou l'env) — leur cycle complet est **testé en CI** (`.github/workflows/backup.yml` :
+seed → dump → drop → restore → vérification) :
+
+```bash
+# Sauvegarde (juste avant une migration)
+bash html/tools/backup.sh backup_avant_migration.sql
+
+# Migration
+php html/tools/migrate.php
+
+# Recovery en cas d'échec DDL : restaurer depuis la sauvegarde
+bash html/tools/restore.sh backup_avant_migration.sql
+```
+
+En local avec Docker : `make backup [FILE=dump.sql]` / `make restore FILE=dump.sql`.
 
 ## Historique
 

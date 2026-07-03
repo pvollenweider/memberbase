@@ -1,0 +1,81 @@
+name: Backup/Restore Test
+
+# Proves the backup + restore cycle is faithful, not just documented:
+# seed a known DB → backup → drop everything → restore → verify data matches.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backup-restore:
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: members
+          MARIADB_USER: members
+          MARIADB_PASSWORD: members
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=15
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_NAME: members
+      DB_USER: members
+      DB_PASS: members
+      MYSQL_PWD: members
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Seed a known database (schema + test seed)
+        run: |
+          mysql -h127.0.0.1 -umembers members < schema.sql
+          mysql -h127.0.0.1 -umembers members < tests/fixtures/seed.sql
+
+      - name: Capture baseline
+        run: |
+          mysql -h127.0.0.1 -umembers members -N -e "SELECT COUNT(*) FROM users"                > /tmp/base_users
+          mysql -h127.0.0.1 -umembers members -N -e "SELECT COUNT(*) FROM compta"               > /tmp/base_compta
+          mysql -h127.0.0.1 -umembers members -N -e "SELECT COALESCE(SUM(sum),0) FROM compta"   > /tmp/base_sum
+          echo "baseline: $(cat /tmp/base_users) users, $(cat /tmp/base_compta) compta, sum=$(cat /tmp/base_sum)"
+
+      - name: Backup
+        run: bash html/tools/backup.sh /tmp/dump.sql
+
+      - name: Simulate data loss (drop every table)
+        run: |
+          for t in $(mysql -h127.0.0.1 -umembers members -N -e "SHOW TABLES"); do
+            mysql -h127.0.0.1 -umembers members -e "SET FOREIGN_KEY_CHECKS=0; DROP TABLE IF EXISTS \`$t\`;"
+          done
+          n=$(mysql -h127.0.0.1 -umembers members -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()")
+          [ "$n" = "0" ] || { echo "FAIL: $n tables remain after drop"; exit 1; }
+
+      - name: Restore
+        run: bash html/tools/restore.sh /tmp/dump.sql
+
+      - name: Verify restored data matches baseline
+        run: |
+          u=$(mysql -h127.0.0.1 -umembers members -N -e "SELECT COUNT(*) FROM users")
+          c=$(mysql -h127.0.0.1 -umembers members -N -e "SELECT COUNT(*) FROM compta")
+          s=$(mysql -h127.0.0.1 -umembers members -N -e "SELECT COALESCE(SUM(sum),0) FROM compta")
+          [ "$u" = "$(cat /tmp/base_users)" ]  || { echo "FAIL: users $u != $(cat /tmp/base_users)"; exit 1; }
+          [ "$c" = "$(cat /tmp/base_compta)" ] || { echo "FAIL: compta $c != $(cat /tmp/base_compta)"; exit 1; }
+          [ "$s" = "$(cat /tmp/base_sum)" ]    || { echo "FAIL: sum $s != $(cat /tmp/base_sum)"; exit 1; }
+          echo "Backup/restore OK ($u users, $c compta, sum=$s)"
