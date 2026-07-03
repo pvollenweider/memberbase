@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentation — MemberBase</title>
+<meta name="description" content="Documentation de MemberBase : guide utilisateur, guide administrateur, API REST et architecture technique.">
+<style>
+:root {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --ink: #17181a;
+  --ink-mid: #3d4045;
+  --ink-muted: #565a60;
+  --rule: #dcdcd8;
+  --rule-strong: #b9b9b4;
+  --red: #c02218;
+  --link-hover: #9a1b12;
+  --code-bg: #1d1e21;
+  --code-ink: #e8e8e4;
+  --inline-code-bg: #ececea;
+  --note-bg: #f1f1ef;
+  --focus: #17181a;
+  --z-header: 10;
+  --z-skip: 20;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141416;
+    --surface: #1c1d20;
+    --ink: #ececea;
+    --ink-mid: #c4c6ca;
+    --ink-muted: #a3a6ac;
+    --rule: #2e2f33;
+    --rule-strong: #4a4b50;
+    --red: #ff6b5e;
+    --link-hover: #ffa298;
+    --code-bg: #0f0f11;
+    --code-ink: #dcdcd8;
+    --inline-code-bg: #26272b;
+    --note-bg: #1f2023;
+    --focus: #ececea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141416;
+  --surface: #1c1d20;
+  --ink: #ececea;
+  --ink-mid: #c4c6ca;
+  --ink-muted: #a3a6ac;
+  --rule: #2e2f33;
+  --rule-strong: #4a4b50;
+  --red: #ff6b5e;
+  --link-hover: #ffa298;
+  --code-bg: #0f0f11;
+  --code-ink: #dcdcd8;
+  --inline-code-bg: #26272b;
+  --note-bg: #1f2023;
+  --focus: #ececea;
+}
+
+* { box-sizing: border-box; margin: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.0625rem/1.7 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+code, pre, kbd { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.15; letter-spacing: -0.015em; }
+a { color: var(--red); text-underline-offset: 3px; }
+a:hover { color: var(--link-hover); }
+a:focus-visible, button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+[id] { scroll-margin-top: 5rem; }
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: var(--z-skip);
+  background: var(--ink); color: var(--bg);
+  padding: .75rem 1.25rem; font-weight: 600; text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+.wrap { max-width: 75rem; margin-inline: auto; padding-inline: clamp(1.25rem, 4vw, 2.5rem); }
+
+/* header */
+header.site {
+  position: sticky; top: 0; z-index: var(--z-header);
+  background: var(--bg); border-bottom: 1px solid var(--rule);
+}
+.site-bar { display: flex; align-items: center; gap: .8rem; padding-block: .8rem; }
+.wordmark {
+  font-weight: 800; font-size: 1.05rem; color: var(--ink);
+  text-decoration: none; display: flex; align-items: center; gap: .55rem;
+}
+.wordmark .dot { width: .7em; height: .7em; background: var(--red); flex: none; }
+.breadcrumb { display: flex; align-items: center; gap: .8rem; min-width: 0; }
+.crumb { color: var(--ink-muted); }
+.crumb-link { color: var(--ink-mid); text-decoration: none; font-weight: 500; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+a.crumb-link:hover { color: var(--ink); text-decoration: underline; }
+@media (max-width: 640px) { .breadcrumb .crumb:last-of-type, .breadcrumb span.crumb-link { display: none; } }
+.theme-toggle {
+  margin-left: auto; background: none; border: 1px solid var(--ink-muted); color: var(--ink);
+  padding: .35rem .7rem; font: inherit; font-size: .85rem; cursor: pointer;
+}
+.theme-toggle:hover { border-color: var(--ink); }
+
+/* layout */
+.doc-grid {
+  display: grid; grid-template-columns: 14rem minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 4rem); align-items: start;
+  padding-block: clamp(1.5rem, 4vw, 3rem) clamp(3rem, 6vw, 5rem);
+}
+.doc-nav { position: sticky; top: 4.5rem; }
+.doc-nav h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .8rem; }
+.doc-nav ul { list-style: none; padding: 0; }
+.doc-nav li + li { margin-top: .15rem; }
+.doc-nav a {
+  display: block; padding: .4rem .6rem; text-decoration: none;
+  color: var(--ink-mid); font-size: .95rem; border-left: 2px solid transparent;
+}
+.doc-nav a:hover { color: var(--ink); background: var(--note-bg); }
+.doc-nav a[aria-current="page"] { color: var(--ink); font-weight: 650; border-left-color: var(--red); }
+.doc-nav .gh-link { margin-top: 1.6rem; font-size: .9rem; }
+@media (max-width: 860px) {
+  .doc-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .doc-nav { position: static; border-bottom: 1px solid var(--rule); padding-bottom: 1.2rem; }
+  .doc-nav ul { display: flex; flex-wrap: wrap; gap: .3rem .8rem; }
+  .doc-nav a { border-left: none; border-bottom: 2px solid transparent; padding: .3rem .2rem; }
+  .doc-nav a[aria-current="page"] { border-bottom-color: var(--red); }
+  .doc-nav .gh-link { display: none; }
+}
+
+/* content */
+.doc-main { max-width: 46rem; min-width: 0; }
+.doc-main > h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1.2rem; }
+
+.toc { border: 1px solid var(--rule-strong); padding: 1.1rem 1.4rem 1.2rem; margin-block: 1.6rem 2.4rem; }
+.toc h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .6rem; }
+.toc ul { list-style: none; padding: 0; columns: 2; column-gap: 2.5rem; font-size: .93rem; }
+.toc li { margin-block: .18rem; break-inside: avoid; }
+.toc a { color: var(--ink-mid); text-decoration: none; }
+.toc a:hover { color: var(--red); text-decoration: underline; }
+@media (max-width: 640px) { .toc ul { columns: 1; } }
+
+.prose > * + * { margin-top: 1rem; }
+.prose h2 {
+  font-size: 1.55rem; font-weight: 750;
+  margin-top: 3rem; padding-top: 1.6rem; border-top: 1px solid var(--rule);
+}
+.prose h3 { font-size: 1.18rem; font-weight: 650; margin-top: 2.2rem; }
+.prose h4 { font-size: 1.02rem; font-weight: 650; margin-top: 1.8rem; }
+.prose p, .prose li { color: var(--ink-mid); }
+.prose li strong, .prose p strong { color: var(--ink); }
+.prose ul, .prose ol { padding-left: 1.4rem; }
+.prose li + li { margin-top: .35rem; }
+.prose li > ul, .prose li > ol { margin-top: .35rem; }
+/* Section separators come from h2 border-top; markdown --- rules would double them. */
+.prose hr { display: none; }
+.prose blockquote {
+  background: var(--note-bg); border: 1px solid var(--rule);
+  padding: .9rem 1.2rem; font-size: .97rem;
+}
+.prose blockquote p { color: var(--ink-mid); }
+.prose img { max-width: 100%; height: auto; }
+
+.anchor {
+  margin-left: .4em; text-decoration: none; color: var(--ink-muted);
+  font-weight: 400; opacity: 0; font-size: .85em;
+}
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { opacity: 1; }
+
+.prose code, .toc code {
+  background: var(--inline-code-bg); padding: .1em .35em;
+  font-size: .86em; border-radius: 2px;
+  overflow-wrap: anywhere;
+}
+.prose pre {
+  background: var(--code-bg); color: var(--code-ink);
+  padding: 1.1rem 1.3rem; overflow-x: auto;
+  font-size: .88rem; line-height: 1.6;
+}
+.prose pre code { background: none; padding: 0; font-size: inherit; border-radius: 0; }
+
+.table-scroll { overflow-x: auto; position: relative; }
+.table-scroll:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.prose table { border-collapse: collapse; font-size: .92rem; min-width: 100%; }
+.prose th, .prose td { text-align: left; padding: .5rem .8rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.prose thead th {
+  font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--ink-muted); font-weight: 650; border-bottom: 1px solid var(--rule-strong);
+}
+.prose td { color: var(--ink-mid); }
+.prose td code, .prose th code { white-space: nowrap; }
+
+/* pager */
+.pager {
+  display: flex; justify-content: space-between; gap: 1rem;
+  margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule-strong);
+}
+.pager-link { display: block; text-decoration: none; font-weight: 650; color: var(--ink); max-width: 45%; }
+.pager-link:hover { color: var(--red); }
+.pager-link .pager-dir { display: block; font-size: .82rem; font-weight: 400; color: var(--ink-muted); margin-bottom: .2rem; }
+.pager-link.next { text-align: right; margin-left: auto; }
+
+/* footer */
+.site-footer { border-top: 1px solid var(--rule); padding-block: 1.8rem; }
+.site-footer p { font-size: .92rem; color: var(--ink-muted); }
+
+.hub { max-width: 46rem; padding-block: clamp(2rem, 5vw, 3.5rem) clamp(3rem, 6vw, 5rem); }
+.hub > h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; }
+.hub > .lede { margin-top: 1rem; color: var(--ink-mid); max-width: 56ch; }
+.hub ul.guides { list-style: none; padding: 0; margin-top: 2.5rem; }
+.hub ul.guides li { border-top: 1px solid var(--rule-strong); padding-block: 1.5rem; }
+.hub ul.guides li:last-child { border-bottom: 1px solid var(--rule-strong); }
+.hub ul.guides h2 { font-size: 1.3rem; font-weight: 700; }
+.hub ul.guides h2 a { text-decoration: none; color: var(--ink); }
+.hub ul.guides h2 a:hover { color: var(--red); text-decoration: underline; }
+.hub .who { margin-top: .3rem; font-size: .9rem; font-weight: 600; color: var(--ink-muted); }
+.hub ul.guides p { color: var(--ink-mid); margin-top: .45rem; max-width: 58ch; font-size: .98rem; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#doc-content">Aller au contenu principal</a>
+
+<header class="site">
+  <div class="wrap site-bar">
+    <nav class="breadcrumb" aria-label="Fil d'Ariane">
+      <a class="wordmark" href="../index.html"><span class="dot" aria-hidden="true"></span>MemberBase</a>
+      <span class="crumb" aria-hidden="true">/</span>
+      <span class="crumb-link" aria-current="page">Documentation</span>
+    </nav>
+    <button type="button" class="theme-toggle" id="theme-toggle">Activer le mode sombre</button>
+  </div>
+</header>
+
+<main id="doc-content" class="wrap hub">
+  <h1>Documentation</h1>
+  <p class="lede">Tout ce qu’il faut pour utiliser, installer et étendre MemberBase. Quatre guides, du quotidien d’un utilisateur jusqu’aux entrailles du code.</p>
+  <ul class="guides">
+      <li>
+        <h2><a href="user.html">Guide utilisateur</a></h2>
+        <p class="who">Pour toute personne qui utilise MemberBase au quotidien.</p>
+        <p>Connexion, liste des membres, fiches, comptabilité et suivi, import de contacts CSV, segments, attestations de dons, exports, rôles et droits.</p>
+      </li>
+      <li>
+        <h2><a href="admin.html">Guide administrateur</a></h2>
+        <p class="who">Pour la personne qui installe et maintient l’application.</p>
+        <p>Prérequis, installation par wizard web ou Docker, déploiement Apache, gestion des comptes, sécurité, sauvegarde, migrations de schéma et logs d’audit.</p>
+      </li>
+      <li>
+        <h2><a href="api.html">API REST</a></h2>
+        <p class="who">Pour intégrer MemberBase à d’autres outils.</p>
+        <p>Endpoints JSON pour membres, segments, comptabilité et suivi : authentification, rôles, paramètres, exemples curl et format des réponses.</p>
+      </li>
+      <li>
+        <h2><a href="architecture.html">Architecture</a></h2>
+        <p class="who">Pour comprendre ou modifier le code.</p>
+        <p>Flux de requête htmx, couches applicatives, classes de domaine, schéma de base de données, frontend, tests et conventions de code.</p>
+      </li>
+  </ul>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p><a href="../index.html">MemberBase</a> — gestion des membres pour associations. Open source, licence <a href="https://github.com/pvollenweider/memberbase/blob/main/LICENSE">AGPL-3.0</a>. <a href="https://github.com/pvollenweider/memberbase">GitHub</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('theme-toggle');
+  var mql = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function currentTheme() {
+    var stored = null;
+    try { stored = localStorage.getItem('mb-theme'); } catch (e) {}
+    if (stored === 'dark' || stored === 'light') return stored;
+    return mql.matches ? 'dark' : 'light';
+  }
+
+  function apply(theme, persist) {
+    root.setAttribute('data-theme', theme);
+    btn.textContent = theme === 'dark' ? 'Activer le mode clair' : 'Activer le mode sombre';
+    if (persist) {
+      try { localStorage.setItem('mb-theme', theme); } catch (e) {}
+    }
+  }
+
+  apply(currentTheme(), false);
+
+  btn.addEventListener('click', function () {
+    apply(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+  });
+
+  mql.addEventListener('change', function () {
+    var stored = null;
+    try { stored = localStorage.getItem('mb-theme'); } catch (e) {}
+    if (!stored) apply(mql.matches ? 'dark' : 'light', false);
+  });
+})();
+</script>
+</body>
+</html>

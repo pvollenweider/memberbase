@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API REST — Documentation MemberBase</title>
+<meta name="description" content="Référence de l'API REST JSON de MemberBase : endpoints, paramètres, exemples curl, rôles et permissions.">
+<style>
+:root {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --ink: #17181a;
+  --ink-mid: #3d4045;
+  --ink-muted: #565a60;
+  --rule: #dcdcd8;
+  --rule-strong: #b9b9b4;
+  --red: #c02218;
+  --link-hover: #9a1b12;
+  --code-bg: #1d1e21;
+  --code-ink: #e8e8e4;
+  --inline-code-bg: #ececea;
+  --note-bg: #f1f1ef;
+  --focus: #17181a;
+  --z-header: 10;
+  --z-skip: 20;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141416;
+    --surface: #1c1d20;
+    --ink: #ececea;
+    --ink-mid: #c4c6ca;
+    --ink-muted: #a3a6ac;
+    --rule: #2e2f33;
+    --rule-strong: #4a4b50;
+    --red: #ff6b5e;
+    --link-hover: #ffa298;
+    --code-bg: #0f0f11;
+    --code-ink: #dcdcd8;
+    --inline-code-bg: #26272b;
+    --note-bg: #1f2023;
+    --focus: #ececea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141416;
+  --surface: #1c1d20;
+  --ink: #ececea;
+  --ink-mid: #c4c6ca;
+  --ink-muted: #a3a6ac;
+  --rule: #2e2f33;
+  --rule-strong: #4a4b50;
+  --red: #ff6b5e;
+  --link-hover: #ffa298;
+  --code-bg: #0f0f11;
+  --code-ink: #dcdcd8;
+  --inline-code-bg: #26272b;
+  --note-bg: #1f2023;
+  --focus: #ececea;
+}
+
+* { box-sizing: border-box; margin: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.0625rem/1.7 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+code, pre, kbd { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.15; letter-spacing: -0.015em; }
+a { color: var(--red); text-underline-offset: 3px; }
+a:hover { color: var(--link-hover); }
+a:focus-visible, button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+[id] { scroll-margin-top: 5rem; }
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: var(--z-skip);
+  background: var(--ink); color: var(--bg);
+  padding: .75rem 1.25rem; font-weight: 600; text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+.wrap { max-width: 75rem; margin-inline: auto; padding-inline: clamp(1.25rem, 4vw, 2.5rem); }
+
+/* header */
+header.site {
+  position: sticky; top: 0; z-index: var(--z-header);
+  background: var(--bg); border-bottom: 1px solid var(--rule);
+}
+.site-bar { display: flex; align-items: center; gap: .8rem; padding-block: .8rem; }
+.wordmark {
+  font-weight: 800; font-size: 1.05rem; color: var(--ink);
+  text-decoration: none; display: flex; align-items: center; gap: .55rem;
+}
+.wordmark .dot { width: .7em; height: .7em; background: var(--red); flex: none; }
+.breadcrumb { display: flex; align-items: center; gap: .8rem; min-width: 0; }
+.crumb { color: var(--ink-muted); }
+.crumb-link { color: var(--ink-mid); text-decoration: none; font-weight: 500; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+a.crumb-link:hover { color: var(--ink); text-decoration: underline; }
+@media (max-width: 640px) { .breadcrumb .crumb:last-of-type, .breadcrumb span.crumb-link { display: none; } }
+.theme-toggle {
+  margin-left: auto; background: none; border: 1px solid var(--ink-muted); color: var(--ink);
+  padding: .35rem .7rem; font: inherit; font-size: .85rem; cursor: pointer;
+}
+.theme-toggle:hover { border-color: var(--ink); }
+
+/* layout */
+.doc-grid {
+  display: grid; grid-template-columns: 14rem minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 4rem); align-items: start;
+  padding-block: clamp(1.5rem, 4vw, 3rem) clamp(3rem, 6vw, 5rem);
+}
+.doc-nav { position: sticky; top: 4.5rem; }
+.doc-nav h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .8rem; }
+.doc-nav ul { list-style: none; padding: 0; }
+.doc-nav li + li { margin-top: .15rem; }
+.doc-nav a {
+  display: block; padding: .4rem .6rem; text-decoration: none;
+  color: var(--ink-mid); font-size: .95rem; border-left: 2px solid transparent;
+}
+.doc-nav a:hover { color: var(--ink); background: var(--note-bg); }
+.doc-nav a[aria-current="page"] { color: var(--ink); font-weight: 650; border-left-color: var(--red); }
+.doc-nav .gh-link { margin-top: 1.6rem; font-size: .9rem; }
+@media (max-width: 860px) {
+  .doc-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .doc-nav { position: static; border-bottom: 1px solid var(--rule); padding-bottom: 1.2rem; }
+  .doc-nav ul { display: flex; flex-wrap: wrap; gap: .3rem .8rem; }
+  .doc-nav a { border-left: none; border-bottom: 2px solid transparent; padding: .3rem .2rem; }
+  .doc-nav a[aria-current="page"] { border-bottom-color: var(--red); }
+  .doc-nav .gh-link { display: none; }
+}
+
+/* content */
+.doc-main { max-width: 46rem; min-width: 0; }
+.doc-main > h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1.2rem; }
+
+.toc { border: 1px solid var(--rule-strong); padding: 1.1rem 1.4rem 1.2rem; margin-block: 1.6rem 2.4rem; }
+.toc h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .6rem; }
+.toc ul { list-style: none; padding: 0; columns: 2; column-gap: 2.5rem; font-size: .93rem; }
+.toc li { margin-block: .18rem; break-inside: avoid; }
+.toc a { color: var(--ink-mid); text-decoration: none; }
+.toc a:hover { color: var(--red); text-decoration: underline; }
+@media (max-width: 640px) { .toc ul { columns: 1; } }
+
+.prose > * + * { margin-top: 1rem; }
+.prose h2 {
+  font-size: 1.55rem; font-weight: 750;
+  margin-top: 3rem; padding-top: 1.6rem; border-top: 1px solid var(--rule);
+}
+.prose h3 { font-size: 1.18rem; font-weight: 650; margin-top: 2.2rem; }
+.prose h4 { font-size: 1.02rem; font-weight: 650; margin-top: 1.8rem; }
+.prose p, .prose li { color: var(--ink-mid); }
+.prose li strong, .prose p strong { color: var(--ink); }
+.prose ul, .prose ol { padding-left: 1.4rem; }
+.prose li + li { margin-top: .35rem; }
+.prose li > ul, .prose li > ol { margin-top: .35rem; }
+/* Section separators come from h2 border-top; markdown --- rules would double them. */
+.prose hr { display: none; }
+.prose blockquote {
+  background: var(--note-bg); border: 1px solid var(--rule);
+  padding: .9rem 1.2rem; font-size: .97rem;
+}
+.prose blockquote p { color: var(--ink-mid); }
+.prose img { max-width: 100%; height: auto; }
+
+.anchor {
+  margin-left: .4em; text-decoration: none; color: var(--ink-muted);
+  font-weight: 400; opacity: 0; font-size: .85em;
+}
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { opacity: 1; }
+
+.prose code, .toc code {
+  background: var(--inline-code-bg); padding: .1em .35em;
+  font-size: .86em; border-radius: 2px;
+  overflow-wrap: anywhere;
+}
+.prose pre {
+  background: var(--code-bg); color: var(--code-ink);
+  padding: 1.1rem 1.3rem; overflow-x: auto;
+  font-size: .88rem; line-height: 1.6;
+}
+.prose pre code { background: none; padding: 0; font-size: inherit; border-radius: 0; }
+
+.table-scroll { overflow-x: auto; position: relative; }
+.table-scroll:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.prose table { border-collapse: collapse; font-size: .92rem; min-width: 100%; }
+.prose th, .prose td { text-align: left; padding: .5rem .8rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.prose thead th {
+  font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--ink-muted); font-weight: 650; border-bottom: 1px solid var(--rule-strong);
+}
+.prose td { color: var(--ink-mid); }
+.prose td code, .prose th code { white-space: nowrap; }
+
+/* pager */
+.pager {
+  display: flex; justify-content: space-between; gap: 1rem;
+  margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule-strong);
+}
+.pager-link { display: block; text-decoration: none; font-weight: 650; color: var(--ink); max-width: 45%; }
+.pager-link:hover { color: var(--red); }
+.pager-link .pager-dir { display: block; font-size: .82rem; font-weight: 400; color: var(--ink-muted); margin-bottom: .2rem; }
+.pager-link.next { text-align: right; margin-left: auto; }
+
+/* footer */
+.site-footer { border-top: 1px solid var(--rule); padding-block: 1.8rem; }
+.site-footer p { font-size: .92rem; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#doc-content">Aller au contenu principal</a>
+
+<header class="site">
+  <div class="wrap site-bar">
+    <nav class="breadcrumb" aria-label="Fil d'Ariane">
+      <a class="wordmark" href="../index.html"><span class="dot" aria-hidden="true"></span>MemberBase</a>
+      <span class="crumb" aria-hidden="true">/</span>
+      <a class="crumb-link" href="./">Documentation</a>
+      <span class="crumb" aria-hidden="true">/</span>
+      <span class="crumb-link" aria-current="page">API REST</span>
+    </nav>
+    <button type="button" class="theme-toggle" id="theme-toggle">Activer le mode sombre</button>
+  </div>
+</header>
+
+<div class="wrap doc-grid">
+  <nav class="doc-nav" aria-label="Guides de documentation">
+    <h2>Guides</h2>
+    <ul>
+          <li><a href="user.html">Guide utilisateur</a></li>
+          <li><a href="admin.html">Guide administrateur</a></li>
+          <li><a href="api.html" aria-current="page">API REST</a></li>
+          <li><a href="architecture.html">Architecture</a></li>
+    </ul>
+    <p class="gh-link"><a href="https://github.com/pvollenweider/memberbase">Projet sur GitHub</a></p>
+  </nav>
+
+  <main id="doc-content" class="doc-main">
+    <h1>API REST</h1>
+    <nav class="toc" aria-labelledby="toc-h">
+      <h2 id="toc-h">Sur cette page</h2>
+      <ul>
+        <li><a href="#authentification">Authentification</a></li>
+        <li><a href="#rôles-et-permissions">Rôles et permissions</a></li>
+        <li><a href="#format-des-réponses">Format des réponses</a></li>
+        <li><a href="#routage-htaccess">Routage (.htaccess)</a></li>
+        <li><a href="#membres">Membres</a></li>
+        <li><a href="#segments-groups">Segments (groups)</a></li>
+        <li><a href="#comptabilité">Comptabilité</a></li>
+        <li><a href="#types-de-compta">Types de compta</a></li>
+        <li><a href="#suivi">Suivi</a></li>
+      </ul>
+    </nav>
+    <div class="prose">
+<p>API REST interne de l&#39;application MemberBase (version <strong>3.5.6</strong>). Toutes les réponses sont en JSON UTF-8.</p>
+<hr>
+<h2 id="authentification">Authentification<a class="anchor" href="#authentification" aria-label="Lien d'ancrage">#</a></h2>
+<p>L&#39;API ne dispose pas de token séparé. Elle repose sur <strong>la session web de l&#39;application</strong> : la requête doit porter le cookie de session obtenu lors d&#39;une connexion via l&#39;interface web (<code>login.php</code>).</p>
+<p>Le garde d&#39;authentification est appliqué en amont de chaque endpoint par <code>html/api/_bootstrap.php</code> : si la session est absente ou expirée (<code>isLoggedIn()</code> faux), <strong>toutes les routes retournent <code>401</code></strong> avant tout traitement.</p>
+<pre><code class="language-bash"># Login via le formulaire web, puis réutilisation du cookie
+curl -c cookies.txt \
+  -X POST https://votre-domaine/login \
+  -d &quot;username=alice&amp;password=secret&quot;
+
+# Toutes les requêtes API suivantes portent ce cookie
+curl -b cookies.txt https://votre-domaine/api/members
+</code></pre>
+<hr>
+<h2 id="rôles-et-permissions">Rôles et permissions<a class="anchor" href="#rôles-et-permissions" aria-label="Lien d'ancrage">#</a></h2>
+<p>Le rôle est porté par la session (<code>$_SESSION[&#39;app_user_role&#39;]</code>). Quatre rôles hiérarchiques sont définis dans <code>html/includes/lib/auth.php</code> :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Rôles et permissions" tabindex="0"><table><thead><tr><th scope="col">Rôle</th><th scope="col" style="text-align:center"><code>canRead()</code></th><th scope="col" style="text-align:center"><code>canWrite()</code></th><th scope="col" style="text-align:center"><code>isManager()</code></th><th scope="col" style="text-align:center"><code>isAdmin()</code></th></tr></thead><tbody><tr><td><code>readonly</code></td><td style="text-align:center">✅</td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td></tr>
+<tr><td><code>user</code></td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td></tr>
+<tr><td><code>manager</code></td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td></tr>
+<tr><td><code>admin</code></td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td><td style="text-align:center">✅</td></tr></tbody></table></div>
+<p>Règles réelles appliquées <strong>par endpoint</strong> (vérifiées dans le code — elles ne sont pas homogènes entre ressources) :</p>
+<ul>
+<li><strong>Membres, Compta, Suivi</strong> : les lectures appellent explicitement <code>canRead()</code> (403 si rôle insuffisant) ; les écritures appellent <code>canWrite()</code>.</li>
+<li><strong>Suppression définitive d&#39;un membre</strong> (<code>DELETE /api/members/{id}?dispose=delete</code>) : <code>isAdmin()</code> requis (403 sinon). La désactivation simple ne requiert que <code>canWrite()</code> implicite (aucun contrôle de rôle explicite au-delà de l&#39;authentification pour la désactivation — voir la note de l&#39;endpoint).</li>
+<li><strong>Segments / groups</strong> : toutes les écritures (création, mise à jour, suppression, ajout/retrait de membre) appellent <code>isManager()</code> (403 sinon). <strong>Les lectures (<code>GET</code>) n&#39;effectuent AUCUN contrôle de rôle</strong> : elles ne requièrent que l&#39;authentification (n&#39;importe quel rôle connecté, y compris <code>readonly</code>).</li>
+<li><strong>Types de compta</strong> (<code>GET /api/compta-types</code>) : <strong>aucun contrôle de rôle</strong> au-delà de l&#39;authentification.</li>
+</ul>
+<p>Un rôle insuffisant retourne <code>403</code> avec <code>{ &quot;error&quot;: &quot;Forbidden&quot; }</code> (ou un message spécifique, ex. <code>&quot;Manager role required&quot;</code>, <code>&quot;Admin role required to permanently delete a member&quot;</code>).</p>
+<blockquote>
+<p><strong>Terminologie.</strong> L&#39;interface parle désormais de <strong>Segment</strong> ; l&#39;API conserve les chemins <code>/api/groups</code> et le vocabulaire « groupe » d&#39;origine (entité SQL <code>team</code>). Dans ce document, « Segment » et « groupe » sont synonymes.</p>
+</blockquote>
+<hr>
+<h2 id="format-des-réponses">Format des réponses<a class="anchor" href="#format-des-réponses" aria-label="Lien d'ancrage">#</a></h2>
+<ul>
+<li><strong>Content-Type</strong> : <code>application/json; charset=utf-8</code></li>
+<li><strong>Envelope succès</strong> : <code>{ &quot;data&quot;: … }</code> (objet ou tableau)</li>
+<li><strong>Envelope liste paginée</strong> : <code>{ &quot;data&quot;: […], &quot;meta&quot;: { &quot;page&quot;: 1, &quot;limit&quot;: 25, &quot;total&quot;: 142 } }</code> (uniquement <code>GET /api/members</code>)</li>
+<li><strong>Envelope liste simple</strong> : <code>{ &quot;data&quot;: […] }</code> (compta, suivi, groups, compta-types, members/{id}/groups, groups/{id}/members)</li>
+<li><strong>Erreur</strong> : <code>{ &quot;error&quot;: &quot;message lisible&quot; }</code></li>
+</ul>
+<p>Encodage JSON : <code>JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES</code>.</p>
+<h3 id="codes-http-utilisés">Codes HTTP utilisés<a class="anchor" href="#codes-http-utilisés" aria-label="Lien d'ancrage">#</a></h3>
+<div class="table-scroll" role="region" aria-label="Tableau — Codes HTTP utilisés" tabindex="0"><table><thead><tr><th scope="col">Code</th><th scope="col">Signification</th></tr></thead><tbody><tr><td><code>200</code></td><td>Succès (GET, PUT/PATCH)</td></tr>
+<tr><td><code>201</code></td><td>Ressource créée (POST)</td></tr>
+<tr><td><code>204</code></td><td>Succès sans corps (DELETE, ajout/retrait de membre de groupe)</td></tr>
+<tr><td><code>400</code></td><td>Paramètre de query manquant / corps JSON invalide / filtre virtuel inconnu</td></tr>
+<tr><td><code>401</code></td><td>Non authentifié (session absente ou expirée)</td></tr>
+<tr><td><code>403</code></td><td>Rôle insuffisant</td></tr>
+<tr><td><code>404</code></td><td>Ressource introuvable</td></tr>
+<tr><td><code>405</code></td><td>Méthode non autorisée</td></tr>
+<tr><td><code>409</code></td><td>Conflit (groupe non vide)</td></tr>
+<tr><td><code>422</code></td><td>Données manquantes ou invalides dans le corps</td></tr>
+<tr><td><code>500</code></td><td>Erreur serveur interne</td></tr></tbody></table></div>
+<hr>
+<h2 id="routage-htaccess">Routage (.htaccess)<a class="anchor" href="#routage-htaccess" aria-label="Lien d'ancrage">#</a></h2>
+<p>Le routage est assuré par <code>html/api/.htaccess</code>. Chemins exposés :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Routage (.htaccess)" tabindex="0"><table><thead><tr><th scope="col">Méthode + chemin</th><th scope="col">Script cible</th></tr></thead><tbody><tr><td><code>/api/members</code></td><td><code>members.php</code></td></tr>
+<tr><td><code>/api/members/{id}</code></td><td><code>members.php?id={id}</code></td></tr>
+<tr><td><code>/api/members/{id}/groups</code></td><td><code>members.php?id={id}&amp;sub=groups</code></td></tr>
+<tr><td><code>/api/compta</code></td><td><code>compta.php</code></td></tr>
+<tr><td><code>/api/compta/{id}</code></td><td><code>compta.php?id={id}</code></td></tr>
+<tr><td><code>/api/compta-types</code></td><td><code>compta-types.php</code></td></tr>
+<tr><td><code>/api/suivi</code></td><td><code>suivi.php</code></td></tr>
+<tr><td><code>/api/suivi/{id}</code></td><td><code>suivi.php?id={id}</code></td></tr>
+<tr><td><code>/api/groups</code></td><td><code>groups.php</code></td></tr>
+<tr><td><code>/api/groups/{id}</code></td><td><code>groups.php?id={id}</code></td></tr>
+<tr><td><code>/api/groups/{id}/members</code></td><td><code>groups.php?id={id}&amp;sub=members</code></td></tr></tbody></table></div>
+<p>Toute combinaison méthode/chemin non prévue par le dispatcher d&#39;un script retourne <code>405 Method Not Allowed</code>.</p>
+<hr>
+<h2 id="membres">Membres<a class="anchor" href="#membres" aria-label="Lien d'ancrage">#</a></h2>
+<p>Ressource : <code>html/api/members.php</code>. Entité SQL : <code>users</code>.</p>
+<h3 id="get-apimembers"><code>GET /api/members</code><a class="anchor" href="#get-apimembers" aria-label="Lien d'ancrage">#</a></h3>
+<p>Liste paginée des membres <strong>actifs</strong> (<code>users.status = 1</code>), triée par <code>lastName ASC, firstName ASC</code>.
+Rôle : <code>canRead()</code>.</p>
+<h4 id="paramètres-de-query">Paramètres de query<a class="anchor" href="#paramètres-de-query" aria-label="Lien d'ancrage">#</a></h4>
+<div class="table-scroll" role="region" aria-label="Tableau — Paramètres de query" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>search</code></td><td>string</td><td>non</td><td>Recherche <code>LIKE %…%</code> sur <code>firstname</code>, <code>lastname</code>, <code>firstname lastname</code>, <code>lastname firstname</code>, <code>society</code>, <code>npa</code>, <code>email</code>, <code>address</code></td></tr>
+<tr><td><code>team</code></td><td>integer</td><td>non</td><td>Filtre par groupe (ID positif). Valeur <strong>négative</strong> = filtre virtuel (voir section dédiée)</td></tr>
+<tr><td><code>metagroup</code></td><td>integer</td><td>non</td><td>Filtre par catégorie de groupes (ID de <code>metagroup</code>). Ajoute le champ <code>groups</code> à chaque membre. Renvoie une liste vide si la catégorie n&#39;a aucun groupe rattaché</td></tr>
+<tr><td><code>page</code></td><td>integer</td><td>non</td><td>Numéro de page, défaut <code>1</code> (borné à ≥ 1)</td></tr>
+<tr><td><code>limit</code></td><td>integer</td><td>non</td><td>Résultats par page, défaut <code>25</code>, borné à <code>[1, 2000]</code></td></tr>
+<tr><td><code>types</code></td><td>any</td><td>non</td><td>Si présent (valeur quelconque, même vide), ajoute le champ <code>types</code> à chaque membre</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-json">{
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: 42,
+      &quot;lastName&quot;: &quot;Dupont&quot;,
+      &quot;firstName&quot;: &quot;Marie&quot;,
+      &quot;society&quot;: null,
+      &quot;email&quot;: &quot;marie.dupont@example.com&quot;,
+      &quot;npa&quot;: &quot;1200&quot;,
+      &quot;address&quot;: &quot;Rue de la Paix 3&quot;,
+      &quot;gender&quot;: &quot;f&quot;,
+      &quot;createdAt&quot;: &quot;2022-03-15T00:00:00+01:00&quot;,
+      &quot;types&quot;: [
+        { &quot;id&quot;: 1, &quot;label&quot;: &quot;Don ordinaire&quot;, &quot;color&quot;: &quot;#4caf50&quot; }
+      ],
+      &quot;groups&quot;: [
+        { &quot;id&quot;: 12, &quot;name&quot;: &quot;Membres actifs&quot; }
+      ]
+    }
+  ],
+  &quot;meta&quot;: { &quot;page&quot;: 1, &quot;limit&quot;: 25, &quot;total&quot;: 142 }
+}
+</code></pre>
+<ul>
+<li><code>types</code> présent uniquement si <code>?types</code> est passé (tableau <code>{id, label, color}</code> ; <code>color</code> est <code>&quot;&quot;</code> si non définie).</li>
+<li><code>groups</code> présent uniquement si <code>?metagroup</code> est passé (tableau <code>{id, name}</code> des groupes de la catégorie auxquels le membre appartient).</li>
+</ul>
+<h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-bash">curl -b cookies.txt \
+  &quot;https://votre-domaine/api/members?search=dupont&amp;limit=10&amp;types=1&quot;
+</code></pre>
+<hr>
+<h3 id="filtres-virtuels-sur-get-apimembers">Filtres virtuels sur <code>GET /api/members</code><a class="anchor" href="#filtres-virtuels-sur-get-apimembers" aria-label="Lien d'ancrage">#</a></h3>
+<p>Activés en passant une valeur <strong>négative</strong> au paramètre <code>team</code>. La résolution est déléguée à la classe partagée <code>MemberFilter</code> (<code>html/classes/member_filter_class.php</code>) — la même que celle utilisée par la liste des membres dans l&#39;interface, ce qui garantit des résultats identiques entre la vue et l&#39;API. Pagination standard (<code>page</code>, <code>limit</code>) et <code>types</code> supportés. Une valeur négative non reconnue retourne <code>400 Unknown virtual filter</code>.</p>
+<p>Constantes définies dans <code>html/includes/lib/bootstrap.php</code> :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Filtres virtuels sur GET /api/members" tabindex="0"><table><thead><tr><th scope="col">Valeur <code>team</code></th><th scope="col">Constante</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>-3</code></td><td><code>FILTER_ALL_EXCEPT_ARCHIVES</code></td><td>Tous les membres actifs (équivalent à l&#39;absence de filtre)</td></tr>
+<tr><td><code>-4</code></td><td><code>FILTER_UNPAID_COTI_CURRENT</code></td><td>Membres du groupe « membre » (paramètre <code>membre_team</code>) sans cotisation payée dans l&#39;année civile en cours. Exclut le groupe « no_coti » (<code>member_no_coti_team</code>) si configuré. Retourne un tableau vide si <code>membre_team</code> n&#39;est pas configuré</td></tr>
+<tr><td><code>-3333</code></td><td><code>FILTER_UNPAID_COTI_3Y</code></td><td>Membres ayant payé au moins une cotisation dans l&#39;historique, mais aucune depuis le début de l&#39;année N-2. Exclut le groupe « no_coti » si configuré</td></tr>
+<tr><td><code>-5555</code></td><td><code>FILTER_NO_ACTIVITY_10Y</code></td><td>Membres actifs sans aucune écriture comptable (<code>compta</code>) dans les 10 dernières années</td></tr>
+<tr><td><code>-6666</code></td><td><code>FILTER_NON_INSTIT_LAST_YEAR</code></td><td>Membres actifs ayant effectué au moins un paiement non-institutionnel (type <code>is_institutional = 0</code>, ou sans type) durant l&#39;année civile précédente</td></tr></tbody></table></div>
+<p>Une cotisation est une écriture dont le type a <code>is_cotisation = 1</code>. La réponse a le même format que <code>GET /api/members</code> (envelope <code>data</code> + <code>meta</code>).</p>
+<pre><code class="language-bash"># Cotisation en retard depuis plus de 3 ans
+curl -b cookies.txt &quot;https://votre-domaine/api/members?team=-3333&amp;limit=50&quot;
+
+# Membres du groupe « membre » sans cotisation cette année
+curl -b cookies.txt &quot;https://votre-domaine/api/members?team=-4&quot;
+</code></pre>
+<hr>
+<h3 id="get-apimembersid"><code>GET /api/members/{id}</code><a class="anchor" href="#get-apimembersid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Fiche complète d&#39;un membre. Rôle : <code>canRead()</code>.</p>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-json">{
+  &quot;data&quot;: {
+    &quot;id&quot;: 42,
+    &quot;lastName&quot;: &quot;Dupont&quot;,
+    &quot;firstName&quot;: &quot;Marie&quot;,
+    &quot;society&quot;: null,
+    &quot;gender&quot;: &quot;f&quot;,
+    &quot;title&quot;: &quot;Mme&quot;,
+    &quot;address&quot;: &quot;Rue de la Paix 3&quot;,
+    &quot;npa&quot;: &quot;1200&quot;,
+    &quot;email&quot;: &quot;marie.dupont@example.com&quot;,
+    &quot;emailAlt&quot;: null,
+    &quot;tel&quot;: &quot;+41 21 000 00 00&quot;,
+    &quot;telProf&quot;: null,
+    &quot;portable&quot;: &quot;+41 79 000 00 00&quot;,
+    &quot;fax&quot;: null,
+    &quot;web&quot;: null,
+    &quot;birthDate&quot;: &quot;1985-06-20&quot;,
+    &quot;comment&quot;: null,
+    &quot;createdAt&quot;: &quot;2022-03-15T00:00:00+01:00&quot;,
+    &quot;updatedAt&quot;: &quot;2024-01-10T14:32:00+01:00&quot;
+  }
+}
+</code></pre>
+<p>Valeurs <code>gender</code> possibles : <code>&quot;m&quot;</code>, <code>&quot;f&quot;</code>, <code>&quot;hf&quot;</code>, <code>&quot;na&quot;</code>. <code>birthDate</code> est <code>YYYY-MM-DD</code> ou <code>null</code>. <code>createdAt</code>/<code>updatedAt</code> sont au format ISO 8601 (<code>date(&#39;c&#39;)</code>) ou <code>null</code>.</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>404</code> — membre introuvable. Note : <code>lookupUser()</code> ne filtre pas sur <code>status</code>, un membre désactivé peut donc être retourné par son id.</li>
+</ul>
+<h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/members/42&quot;
+</code></pre>
+<hr>
+<h3 id="post-apimembers"><code>POST /api/members</code><a class="anchor" href="#post-apimembers" aria-label="Lien d'ancrage">#</a></h3>
+<p>Créer un membre. Rôle : <code>canWrite()</code>.</p>
+<h4 id="corps-de-requête-json">Corps de requête (JSON)<a class="anchor" href="#corps-de-requête-json" aria-label="Lien d'ancrage">#</a></h4>
+<p>Champs de la liste blanche (<code>applyFields</code>). <strong>Seul <code>lastName</code> est obligatoire</strong> (rejet <code>422</code> si vide) ; tous les autres champs sont facultatifs.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Corps de requête (JSON)" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>lastName</code></td><td>string</td><td><strong>oui</strong></td><td>Nom de famille</td></tr>
+<tr><td><code>firstName</code></td><td>string</td><td>non</td><td>Prénom</td></tr>
+<tr><td><code>society</code></td><td>string</td><td>non</td><td>Société / organisation</td></tr>
+<tr><td><code>gender</code></td><td>string</td><td>non</td><td><code>&quot;m&quot;</code>, <code>&quot;f&quot;</code>, <code>&quot;hf&quot;</code> ou <code>&quot;na&quot;</code>. Toute autre valeur est normalisée en <code>&quot;na&quot;</code> (défaut)</td></tr>
+<tr><td><code>title</code></td><td>string</td><td>non</td><td>Civilité</td></tr>
+<tr><td><code>address</code></td><td>string</td><td>non</td><td>Adresse postale</td></tr>
+<tr><td><code>npa</code></td><td>string</td><td>non</td><td>Code postal + localité</td></tr>
+<tr><td><code>email</code></td><td>string</td><td>non</td><td>E-mail</td></tr>
+<tr><td><code>emailAlt</code></td><td>string</td><td>non</td><td>E-mail secondaire</td></tr>
+<tr><td><code>tel</code></td><td>string</td><td>non</td><td>Téléphone fixe</td></tr>
+<tr><td><code>telProf</code></td><td>string</td><td>non</td><td>Téléphone professionnel</td></tr>
+<tr><td><code>portable</code></td><td>string</td><td>non</td><td>Téléphone mobile</td></tr>
+<tr><td><code>fax</code></td><td>string</td><td>non</td><td>Fax</td></tr>
+<tr><td><code>web</code></td><td>string</td><td>non</td><td>URL du site web</td></tr>
+<tr><td><code>birthDate</code></td><td>string</td><td>non</td><td>Date de naissance <code>YYYY-MM-DD</code></td></tr>
+<tr><td><code>comment</code></td><td>string</td><td>non</td><td>Commentaire interne</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p><code>201 Created</code> — objet membre complet (même structure que <code>GET /api/members/{id}</code>).</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>400</code> — corps JSON invalide</li>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>422</code> — <code>lastName</code> manquant/vide</li>
+</ul>
+<h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-bash">curl -b cookies.txt \
+  -X POST &quot;https://votre-domaine/api/members&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;lastName&quot;: &quot;Dupont&quot;, &quot;firstName&quot;: &quot;Marie&quot;, &quot;email&quot;: &quot;marie@example.com&quot;}&#39;
+</code></pre>
+<hr>
+<h3 id="put-apimembersid--patch-apimembersid"><code>PUT /api/members/{id}</code> / <code>PATCH /api/members/{id}</code><a class="anchor" href="#put-apimembersid--patch-apimembersid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Modification partielle : seuls les champs présents dans le corps sont appliqués. Chaque modification est journalisée dans l&#39;audit log (valeur avant → après). Rôle : <code>canWrite()</code>.</p>
+<p>Champs acceptés : identiques à <code>POST</code> (tous facultatifs). <code>birthDate: &quot;&quot;</code> efface la date de naissance.</p>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p>Objet membre complet après modification (structure de <code>GET /api/members/{id}</code>).</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>400</code> — corps JSON invalide</li>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>404</code> — membre introuvable</li>
+</ul>
+<h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-bash">curl -b cookies.txt \
+  -X PATCH &quot;https://votre-domaine/api/members/42&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;email&quot;: &quot;nouveau@example.com&quot;, &quot;portable&quot;: &quot;+41 79 111 11 11&quot;}&#39;
+</code></pre>
+<hr>
+<h3 id="delete-apimembersid"><code>DELETE /api/members/{id}</code><a class="anchor" href="#delete-apimembersid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Par défaut : <strong>désactivation</strong> (<code>UPDATE users SET status = 0</code>). Avec <code>?dispose=delete</code> : <strong>suppression définitive</strong> de l&#39;enregistrement (<code>isAdmin()</code> requis).</p>
+<h4 id="paramètres-de-query">Paramètres de query<a class="anchor" href="#paramètres-de-query" aria-label="Lien d'ancrage">#</a></h4>
+<div class="table-scroll" role="region" aria-label="Tableau — Paramètres de query" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>dispose</code></td><td>string</td><td><code>&quot;delete&quot;</code> : suppression définitive (admin uniquement). Toute autre valeur (ou absente) : désactivation</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p><code>204 No Content</code></p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — <code>dispose=delete</code> demandé sans rôle <code>admin</code></li>
+<li><code>404</code> — membre introuvable</li>
+</ul>
+<blockquote>
+<p>La désactivation (<code>dispose</code> ≠ <code>delete</code>) ne comporte <strong>pas</strong> de contrôle de rôle explicite au-delà de l&#39;authentification dans le code actuel ; seule la suppression définitive vérifie <code>isAdmin()</code>.</p>
+</blockquote>
+<h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-bash"># Désactivation (status=0)
+curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42&quot;
+
+# Suppression définitive (admin)
+curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose=delete&quot;
+</code></pre>
+<hr>
+<h3 id="get-apimembersidgroups"><code>GET /api/members/{id}/groups</code><a class="anchor" href="#get-apimembersidgroups" aria-label="Lien d'ancrage">#</a></h3>
+<p>Groupes (segments) auxquels appartient un membre, triés par catégorie (<code>sort_order</code>, <code>name</code>) puis par nom de groupe. Rôle : <code>canRead()</code>.</p>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-json">{
+  &quot;data&quot;: [
+    { &quot;id&quot;: 7,  &quot;name&quot;: &quot;Conseil&quot;,        &quot;hidden&quot;: false, &quot;categoryId&quot;: 2,    &quot;categoryName&quot;: &quot;Organes&quot; },
+    { &quot;id&quot;: 12, &quot;name&quot;: &quot;Membres actifs&quot;, &quot;hidden&quot;: false, &quot;categoryId&quot;: null, &quot;categoryName&quot;: null }
+  ]
+}
+</code></pre>
+<p><code>categoryId</code>/<code>categoryName</code> sont <code>null</code> si le groupe n&#39;appartient à aucune catégorie non-filtre (<code>metagroup</code> avec <code>is_filter = 0</code>).</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>404</code> — membre introuvable <strong>ou inactif</strong> (contrôle <code>status = 1</code> ici, contrairement à <code>GET /api/members/{id}</code>)</li>
+</ul>
+<h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/members/42/groups&quot;
+</code></pre>
+<hr>
+<h2 id="segments-groups">Segments (groups)<a class="anchor" href="#segments-groups" aria-label="Lien d'ancrage">#</a></h2>
+<p>Ressource : <code>html/api/groups.php</code>. Entité SQL : <code>team</code>. Rappel : « groups » (technique) = « Segment » (UI).</p>
+<blockquote>
+<p><strong>Contrôle d&#39;accès.</strong> Les lectures (<code>GET</code>) ne vérifient <strong>que</strong> l&#39;authentification (aucun <code>canRead()</code>). Toutes les écritures vérifient <code>isManager()</code> → <code>403 &quot;Manager role required&quot;</code> sinon.</p>
+</blockquote>
+<h3 id="get-apigroups"><code>GET /api/groups</code><a class="anchor" href="#get-apigroups" aria-label="Lien d'ancrage">#</a></h3>
+<p>Liste de tous les groupes avec leur nombre de membres actifs, triés par catégorie puis nom.</p>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-json">{
+  &quot;data&quot;: [
+    { &quot;id&quot;: 7,  &quot;name&quot;: &quot;Conseil&quot;,        &quot;hidden&quot;: false, &quot;memberCount&quot;: 8,   &quot;categoryId&quot;: 2,    &quot;categoryName&quot;: &quot;Organes&quot; },
+    { &quot;id&quot;: 12, &quot;name&quot;: &quot;Membres actifs&quot;, &quot;hidden&quot;: false, &quot;memberCount&quot;: 134, &quot;categoryId&quot;: null, &quot;categoryName&quot;: null }
+  ]
+}
+</code></pre>
+<p><code>memberCount</code> ne compte que les membres <code>status = 1</code>.</p>
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/groups&quot;
+</code></pre>
+<hr>
+<h3 id="get-apigroupsid"><code>GET /api/groups/{id}</code><a class="anchor" href="#get-apigroupsid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Détail d&#39;un groupe avec nombre de membres actifs. Même structure d&#39;objet que dans la liste.</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>404</code> — groupe introuvable</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/groups/7&quot;
+</code></pre>
+<hr>
+<h3 id="post-apigroups"><code>POST /api/groups</code><a class="anchor" href="#post-apigroups" aria-label="Lien d'ancrage">#</a></h3>
+<p>Créer un groupe. Rôle : <code>isManager()</code>.</p>
+<h4 id="corps-de-requête-json">Corps de requête (JSON)<a class="anchor" href="#corps-de-requête-json" aria-label="Lien d'ancrage">#</a></h4>
+<div class="table-scroll" role="region" aria-label="Tableau — Corps de requête (JSON)" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>name</code></td><td>string</td><td><strong>oui</strong></td><td>Nom du groupe (rejet <code>422</code> si vide)</td></tr>
+<tr><td><code>hidden</code></td><td>boolean</td><td>non</td><td><code>true</code> pour masquer (défaut <code>false</code>)</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p><code>201 Created</code> — objet groupe (<code>memberCount</code> = 0, <code>categoryId</code>/<code>categoryName</code> = <code>null</code>).</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>422</code> — <code>name</code> manquant/vide</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt \
+  -X POST &quot;https://votre-domaine/api/groups&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;name&quot;: &quot;Nouveaux membres 2025&quot;}&#39;
+</code></pre>
+<hr>
+<h3 id="put-apigroupsid"><code>PUT /api/groups/{id}</code><a class="anchor" href="#put-apigroupsid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Renommer un groupe et/ou basculer sa visibilité. Rôle : <code>isManager()</code>. Seuls les champs présents sont appliqués.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — PUT /api/groups/{id}" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>name</code></td><td>string</td><td>Nouveau nom</td></tr>
+<tr><td><code>hidden</code></td><td>boolean</td><td><code>true</code> pour masquer, <code>false</code> pour afficher</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p>Objet groupe mis à jour.</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>404</code> — groupe introuvable</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt \
+  -X PUT &quot;https://votre-domaine/api/groups/7&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;name&quot;: &quot;Conseil 2025&quot;, &quot;hidden&quot;: false}&#39;
+</code></pre>
+<hr>
+<h3 id="delete-apigroupsid"><code>DELETE /api/groups/{id}</code><a class="anchor" href="#delete-apigroupsid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Supprimer un groupe. Rôle : <code>isManager()</code>. Refusé (<code>409</code>) si le groupe contient encore des membres.</p>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p><code>204 No Content</code></p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>404</code> — groupe introuvable</li>
+<li><code>409</code> — groupe non vide (message : « Group still has members — remove them first or use force=true ». Note : le paramètre <code>force=true</code> évoqué dans le message <strong>n&#39;est pas implémenté</strong> dans le code actuel)</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/groups/7&quot;
+</code></pre>
+<hr>
+<h3 id="get-apigroupsidmembers"><code>GET /api/groups/{id}/members</code><a class="anchor" href="#get-apigroupsidmembers" aria-label="Lien d'ancrage">#</a></h3>
+<p>Membres actifs (<code>status = 1</code>) d&#39;un groupe, triés par <code>lastName, firstName</code>.</p>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-json">{
+  &quot;data&quot;: [
+    { &quot;id&quot;: 42, &quot;lastName&quot;: &quot;Dupont&quot;, &quot;firstName&quot;: &quot;Marie&quot;, &quot;email&quot;: &quot;marie.dupont@example.com&quot;, &quot;npa&quot;: &quot;1200&quot; }
+  ]
+}
+</code></pre>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>404</code> — groupe introuvable</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/groups/7/members&quot;
+</code></pre>
+<hr>
+<h3 id="post-apigroupsidmembers"><code>POST /api/groups/{id}/members</code><a class="anchor" href="#post-apigroupsidmembers" aria-label="Lien d'ancrage">#</a></h3>
+<p>Ajouter un membre à un groupe (<code>INSERT IGNORE</code> — idempotent). Rôle : <code>isManager()</code>.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — POST /api/groups/{id}/members" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>integer</td><td><strong>oui</strong></td><td>Membre à ajouter</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p><code>204 No Content</code></p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>404</code> — groupe introuvable</li>
+<li><code>422</code> — <code>memberId</code> manquant, ou membre inexistant/inactif</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt \
+  -X POST &quot;https://votre-domaine/api/groups/7/members&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;memberId&quot;: 42}&#39;
+</code></pre>
+<hr>
+<h3 id="delete-apigroupsidmembers"><code>DELETE /api/groups/{id}/members</code><a class="anchor" href="#delete-apigroupsidmembers" aria-label="Lien d'ancrage">#</a></h3>
+<p>Retirer un membre d&#39;un groupe. Rôle : <code>isManager()</code>.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — DELETE /api/groups/{id}/members" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>integer</td><td><strong>oui</strong></td><td>Membre à retirer</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p><code>204 No Content</code> (aucune erreur si l&#39;appartenance n&#39;existait pas).</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>422</code> — <code>memberId</code> manquant</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt \
+  -X DELETE &quot;https://votre-domaine/api/groups/7/members&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;memberId&quot;: 42}&#39;
+</code></pre>
+<hr>
+<h2 id="comptabilité">Comptabilité<a class="anchor" href="#comptabilité" aria-label="Lien d'ancrage">#</a></h2>
+<p>Ressource : <code>html/api/compta.php</code>. Entité SQL : <code>compta</code>.</p>
+<h3 id="get-apicompta"><code>GET /api/compta</code><a class="anchor" href="#get-apicompta" aria-label="Lien d'ancrage">#</a></h3>
+<p>Écritures comptables d&#39;un membre, triées par <code>date DESC, id DESC</code>. Rôle : <code>canRead()</code>.</p>
+<h4 id="paramètres-de-query">Paramètres de query<a class="anchor" href="#paramètres-de-query" aria-label="Lien d'ancrage">#</a></h4>
+<div class="table-scroll" role="region" aria-label="Tableau — Paramètres de query" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>integer</td><td><strong>oui</strong></td><td>Membre</td></tr>
+<tr><td><code>year</code></td><td>integer</td><td>non</td><td>Filtre sur l&#39;année civile (<code>date &gt;= 1er janv. de l&#39;année</code> et <code>&lt; 1er janv. de l&#39;année+1</code>)</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-json">{
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: 301,
+      &quot;memberId&quot;: 42,
+      &quot;typeId&quot;: 1,
+      &quot;date&quot;: &quot;2024-05-10&quot;,
+      &quot;label&quot;: &quot;Don printemps 2024&quot;,
+      &quot;amount&quot;: 150.0,
+      &quot;receipt&quot;: &quot;QR-2024-0301&quot;,
+      &quot;wantsAttestation&quot;: true
+    }
+  ]
+}
+</code></pre>
+<p><code>amount</code> est un nombre (float) ou <code>null</code> ; <code>label</code>/<code>receipt</code> sont <code>null</code> si vides.</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>400</code> — <code>memberId</code> manquant</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/compta?memberId=42&amp;year=2024&quot;
+</code></pre>
+<hr>
+<h3 id="get-apicomptaid"><code>GET /api/compta/{id}</code><a class="anchor" href="#get-apicomptaid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Détail d&#39;une écriture. Rôle : <code>canRead()</code>. Même structure qu&#39;un élément de liste.</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>404</code> — écriture introuvable</li>
+</ul>
+<hr>
+<h3 id="post-apicompta"><code>POST /api/compta</code><a class="anchor" href="#post-apicompta" aria-label="Lien d'ancrage">#</a></h3>
+<p>Créer une écriture. Rôle : <code>canWrite()</code>.</p>
+<h4 id="corps-de-requête-json">Corps de requête (JSON)<a class="anchor" href="#corps-de-requête-json" aria-label="Lien d'ancrage">#</a></h4>
+<div class="table-scroll" role="region" aria-label="Tableau — Corps de requête (JSON)" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>integer</td><td><strong>oui</strong></td><td>Membre (doit exister et être actif)</td></tr>
+<tr><td><code>typeId</code></td><td>integer</td><td><strong>oui</strong></td><td>Type comptable (doit exister dans <code>compta_type</code>)</td></tr>
+<tr><td><code>date</code></td><td>string</td><td><strong>oui</strong></td><td>Date <code>YYYY-MM-DD</code> (non vide)</td></tr>
+<tr><td><code>amount</code></td><td>number|string</td><td><strong>oui</strong></td><td>Montant CHF. La virgule décimale est acceptée (<code>&quot;150,50&quot;</code> → <code>150.50</code>)</td></tr>
+<tr><td><code>label</code></td><td>string</td><td>non</td><td>Libellé</td></tr>
+<tr><td><code>receipt</code></td><td>string</td><td>non</td><td>Référence quittance</td></tr>
+<tr><td><code>wantsAttestation</code></td><td>boolean</td><td>non</td><td>Souhait d&#39;attestation de don (défaut <code>false</code>)</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p><code>201 Created</code> — objet écriture.</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>422</code> — champ obligatoire manquant, <code>typeId</code> inconnu (<code>&quot;Unknown typeId: N&quot;</code>), ou membre inexistant/inactif (<code>&quot;Member #N not found&quot;</code>)</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt \
+  -X POST &quot;https://votre-domaine/api/compta&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;memberId&quot;: 42, &quot;typeId&quot;: 1, &quot;date&quot;: &quot;2025-03-15&quot;, &quot;amount&quot;: 200}&#39;
+</code></pre>
+<hr>
+<h3 id="put-apicomptaid"><code>PUT /api/compta/{id}</code><a class="anchor" href="#put-apicomptaid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Modifier une écriture. Rôle : <code>canWrite()</code>. Seuls les champs présents sont appliqués. <strong><code>memberId</code> n&#39;est pas modifiable</strong> (ignoré).</p>
+<h4 id="corps-de-requête-json">Corps de requête (JSON)<a class="anchor" href="#corps-de-requête-json" aria-label="Lien d'ancrage">#</a></h4>
+<p>Champs modifiables : <code>typeId</code>, <code>date</code>, <code>amount</code>, <code>label</code>, <code>receipt</code>, <code>wantsAttestation</code> (tous facultatifs). Si <code>typeId</code> est fourni, il est validé (<code>422</code> si inconnu).</p>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p>Objet écriture mis à jour.</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>404</code> — écriture introuvable</li>
+<li><code>422</code> — <code>typeId</code> inconnu</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt \
+  -X PUT &quot;https://votre-domaine/api/compta/301&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;amount&quot;: 250, &quot;wantsAttestation&quot;: true}&#39;
+</code></pre>
+<hr>
+<h3 id="delete-apicomptaid"><code>DELETE /api/compta/{id}</code><a class="anchor" href="#delete-apicomptaid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Supprimer une écriture. <strong>Rôle : <code>canWrite()</code></strong> (et non <code>admin</code> — divergence corrigée par rapport aux versions antérieures de cette doc).</p>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p><code>204 No Content</code></p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>404</code> — écriture introuvable</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/compta/301&quot;
+</code></pre>
+<hr>
+<h2 id="types-de-compta">Types de compta<a class="anchor" href="#types-de-compta" aria-label="Lien d'ancrage">#</a></h2>
+<p>Ressource : <code>html/api/compta-types.php</code>. Entité SQL : <code>compta_type</code>.</p>
+<h3 id="get-apicompta-types"><code>GET /api/compta-types</code><a class="anchor" href="#get-apicompta-types" aria-label="Lien d'ancrage">#</a></h3>
+<p>Liste de tous les types comptables configurés (source : le tableau global <code>$comptaTypes</code>), triés par <code>sort_order</code> puis <code>label</code>.</p>
+<blockquote>
+<p><strong>Accès</strong> : seule l&#39;authentification est requise (aucun contrôle de rôle). Seul <code>GET</code> est accepté ; toute autre méthode → <code>405</code>.</p>
+</blockquote>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-json">{
+  &quot;data&quot;: [
+    { &quot;id&quot;: 1, &quot;label&quot;: &quot;Don ordinaire&quot;,      &quot;color&quot;: &quot;#4caf50&quot;, &quot;sortOrder&quot;: 10, &quot;isCotisation&quot;: false, &quot;isExcludedFromDonation&quot;: false },
+    { &quot;id&quot;: 2, &quot;label&quot;: &quot;Cotisation annuelle&quot;, &quot;color&quot;: &quot;#2196f3&quot;, &quot;sortOrder&quot;: 20, &quot;isCotisation&quot;: true,  &quot;isExcludedFromDonation&quot;: false }
+  ]
+}
+</code></pre>
+<div class="table-scroll" role="region" aria-label="Tableau — Réponse" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>color</code></td><td>Couleur hexadécimale, ou <code>null</code> si non définie</td></tr>
+<tr><td><code>sortOrder</code></td><td>Ordre d&#39;affichage</td></tr>
+<tr><td><code>isCotisation</code></td><td><code>true</code> si le type est une cotisation (utilisé par les filtres virtuels <code>-4</code> et <code>-3333</code>)</td></tr>
+<tr><td><code>isExcludedFromDonation</code></td><td><code>true</code> si le type est exclu du total des dons</td></tr></tbody></table></div>
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/compta-types&quot;
+</code></pre>
+<hr>
+<h2 id="suivi">Suivi<a class="anchor" href="#suivi" aria-label="Lien d'ancrage">#</a></h2>
+<p>Ressource : <code>html/api/suivi.php</code>. Entité SQL : <code>user_properties</code> avec <code>parameter = &#39;suivi&#39;</code>.</p>
+<h3 id="get-apisuivi"><code>GET /api/suivi</code><a class="anchor" href="#get-apisuivi" aria-label="Lien d'ancrage">#</a></h3>
+<p>Notes de suivi d&#39;un membre, triées par <code>date DESC, id DESC</code>. Rôle : <code>canRead()</code>.</p>
+<h4 id="paramètres-de-query">Paramètres de query<a class="anchor" href="#paramètres-de-query" aria-label="Lien d'ancrage">#</a></h4>
+<div class="table-scroll" role="region" aria-label="Tableau — Paramètres de query" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>integer</td><td><strong>oui</strong></td><td>Membre</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-json">{
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: 88,
+      &quot;memberId&quot;: 42,
+      &quot;date&quot;: &quot;2024-11-03&quot;,
+      &quot;note&quot;: &quot;Appel téléphonique. Confirme renouvellement de la cotisation.&quot;
+    }
+  ]
+}
+</code></pre>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>400</code> — <code>memberId</code> manquant</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/suivi?memberId=42&quot;
+</code></pre>
+<hr>
+<h3 id="get-apisuiviid"><code>GET /api/suivi/{id}</code><a class="anchor" href="#get-apisuiviid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Détail d&#39;une note. Rôle : <code>canRead()</code>. Même structure qu&#39;un élément de liste.</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>404</code> — note introuvable (l&#39;id doit correspondre à une <code>user_properties</code> avec <code>parameter = &#39;suivi&#39;</code>)</li>
+</ul>
+<hr>
+<h3 id="post-apisuivi"><code>POST /api/suivi</code><a class="anchor" href="#post-apisuivi" aria-label="Lien d'ancrage">#</a></h3>
+<p>Créer une note. Rôle : <code>canWrite()</code>.</p>
+<h4 id="corps-de-requête-json">Corps de requête (JSON)<a class="anchor" href="#corps-de-requête-json" aria-label="Lien d'ancrage">#</a></h4>
+<div class="table-scroll" role="region" aria-label="Tableau — Corps de requête (JSON)" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>integer</td><td><strong>oui</strong></td><td>Membre (doit exister et être actif)</td></tr>
+<tr><td><code>date</code></td><td>string</td><td><strong>oui</strong></td><td>Date <code>YYYY-MM-DD</code> (non vide)</td></tr>
+<tr><td><code>note</code></td><td>string</td><td><strong>oui</strong></td><td>Contenu (non vide après trim)</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p><code>201 Created</code> — objet note.</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>422</code> — champ obligatoire manquant/vide, ou membre inexistant/inactif (<code>&quot;Member #N not found&quot;</code>)</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt \
+  -X POST &quot;https://votre-domaine/api/suivi&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;memberId&quot;: 42, &quot;date&quot;: &quot;2025-06-30&quot;, &quot;note&quot;: &quot;Appel téléphonique. Renouvellement confirmé.&quot;}&#39;
+</code></pre>
+<hr>
+<h3 id="put-apisuiviid"><code>PUT /api/suivi/{id}</code><a class="anchor" href="#put-apisuiviid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Modifier une note. Rôle : <code>canWrite()</code>. Seuls <code>date</code> et <code>note</code> (présents) sont appliqués.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — PUT /api/suivi/{id}" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>date</code></td><td>string</td><td>Nouvelle date <code>YYYY-MM-DD</code></td></tr>
+<tr><td><code>note</code></td><td>string</td><td>Nouveau contenu</td></tr></tbody></table></div>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p>Objet note mis à jour.</p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>404</code> — note introuvable</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt \
+  -X PUT &quot;https://votre-domaine/api/suivi/88&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;note&quot;: &quot;Appel téléphonique. Renouvellement confirmé. Attestation demandée.&quot;}&#39;
+</code></pre>
+<hr>
+<h3 id="delete-apisuiviid"><code>DELETE /api/suivi/{id}</code><a class="anchor" href="#delete-apisuiviid" aria-label="Lien d'ancrage">#</a></h3>
+<p>Supprimer une note. Rôle : <code>canWrite()</code>.</p>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<p><code>204 No Content</code></p>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>403</code> — rôle insuffisant</li>
+<li><code>404</code> — note introuvable</li>
+</ul>
+<pre><code class="language-bash">curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/suivi/88&quot;
+</code></pre>
+
+    </div>
+    <nav class="pager" aria-label="Navigation entre les guides">
+      <a class="pager-link prev" href="admin.html"><span class="pager-dir">Guide précédent</span>Guide administrateur</a>
+      <a class="pager-link next" href="architecture.html"><span class="pager-dir">Guide suivant</span>Architecture</a>
+    </nav>
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p><a href="../index.html">MemberBase</a> — gestion des membres pour associations. Open source, licence <a href="https://github.com/pvollenweider/memberbase/blob/main/LICENSE">AGPL-3.0</a>. <a href="https://github.com/pvollenweider/memberbase">GitHub</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('theme-toggle');
+  var mql = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function currentTheme() {
+    var stored = null;
+    try { stored = localStorage.getItem('mb-theme'); } catch (e) {}
+    if (stored === 'dark' || stored === 'light') return stored;
+    return mql.matches ? 'dark' : 'light';
+  }
+
+  function apply(theme, persist) {
+    root.setAttribute('data-theme', theme);
+    btn.textContent = theme === 'dark' ? 'Activer le mode clair' : 'Activer le mode sombre';
+    if (persist) {
+      try { localStorage.setItem('mb-theme', theme); } catch (e) {}
+    }
+  }
+
+  apply(currentTheme(), false);
+
+  btn.addEventListener('click', function () {
+    apply(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+  });
+
+  mql.addEventListener('change', function () {
+    var stored = null;
+    try { stored = localStorage.getItem('mb-theme'); } catch (e) {}
+    if (!stored) apply(mql.matches ? 'dark' : 'light', false);
+  });
+})();
+</script>
+</body>
+</html>

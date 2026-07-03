@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide utilisateur — Documentation MemberBase</title>
+<meta name="description" content="Navigation, membres, comptabilité, segments, exports, rôles — le guide complet de MemberBase pour les utilisateurs.">
+<style>
+:root {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --ink: #17181a;
+  --ink-mid: #3d4045;
+  --ink-muted: #565a60;
+  --rule: #dcdcd8;
+  --rule-strong: #b9b9b4;
+  --red: #c02218;
+  --link-hover: #9a1b12;
+  --code-bg: #1d1e21;
+  --code-ink: #e8e8e4;
+  --inline-code-bg: #ececea;
+  --note-bg: #f1f1ef;
+  --focus: #17181a;
+  --z-header: 10;
+  --z-skip: 20;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141416;
+    --surface: #1c1d20;
+    --ink: #ececea;
+    --ink-mid: #c4c6ca;
+    --ink-muted: #a3a6ac;
+    --rule: #2e2f33;
+    --rule-strong: #4a4b50;
+    --red: #ff6b5e;
+    --link-hover: #ffa298;
+    --code-bg: #0f0f11;
+    --code-ink: #dcdcd8;
+    --inline-code-bg: #26272b;
+    --note-bg: #1f2023;
+    --focus: #ececea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141416;
+  --surface: #1c1d20;
+  --ink: #ececea;
+  --ink-mid: #c4c6ca;
+  --ink-muted: #a3a6ac;
+  --rule: #2e2f33;
+  --rule-strong: #4a4b50;
+  --red: #ff6b5e;
+  --link-hover: #ffa298;
+  --code-bg: #0f0f11;
+  --code-ink: #dcdcd8;
+  --inline-code-bg: #26272b;
+  --note-bg: #1f2023;
+  --focus: #ececea;
+}
+
+* { box-sizing: border-box; margin: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.0625rem/1.7 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+code, pre, kbd { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.15; letter-spacing: -0.015em; }
+a { color: var(--red); text-underline-offset: 3px; }
+a:hover { color: var(--link-hover); }
+a:focus-visible, button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+[id] { scroll-margin-top: 5rem; }
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: var(--z-skip);
+  background: var(--ink); color: var(--bg);
+  padding: .75rem 1.25rem; font-weight: 600; text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+.wrap { max-width: 75rem; margin-inline: auto; padding-inline: clamp(1.25rem, 4vw, 2.5rem); }
+
+/* header */
+header.site {
+  position: sticky; top: 0; z-index: var(--z-header);
+  background: var(--bg); border-bottom: 1px solid var(--rule);
+}
+.site-bar { display: flex; align-items: center; gap: .8rem; padding-block: .8rem; }
+.wordmark {
+  font-weight: 800; font-size: 1.05rem; color: var(--ink);
+  text-decoration: none; display: flex; align-items: center; gap: .55rem;
+}
+.wordmark .dot { width: .7em; height: .7em; background: var(--red); flex: none; }
+.breadcrumb { display: flex; align-items: center; gap: .8rem; min-width: 0; }
+.crumb { color: var(--ink-muted); }
+.crumb-link { color: var(--ink-mid); text-decoration: none; font-weight: 500; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+a.crumb-link:hover { color: var(--ink); text-decoration: underline; }
+@media (max-width: 640px) { .breadcrumb .crumb:last-of-type, .breadcrumb span.crumb-link { display: none; } }
+.theme-toggle {
+  margin-left: auto; background: none; border: 1px solid var(--ink-muted); color: var(--ink);
+  padding: .35rem .7rem; font: inherit; font-size: .85rem; cursor: pointer;
+}
+.theme-toggle:hover { border-color: var(--ink); }
+
+/* layout */
+.doc-grid {
+  display: grid; grid-template-columns: 14rem minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 4rem); align-items: start;
+  padding-block: clamp(1.5rem, 4vw, 3rem) clamp(3rem, 6vw, 5rem);
+}
+.doc-nav { position: sticky; top: 4.5rem; }
+.doc-nav h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .8rem; }
+.doc-nav ul { list-style: none; padding: 0; }
+.doc-nav li + li { margin-top: .15rem; }
+.doc-nav a {
+  display: block; padding: .4rem .6rem; text-decoration: none;
+  color: var(--ink-mid); font-size: .95rem; border-left: 2px solid transparent;
+}
+.doc-nav a:hover { color: var(--ink); background: var(--note-bg); }
+.doc-nav a[aria-current="page"] { color: var(--ink); font-weight: 650; border-left-color: var(--red); }
+.doc-nav .gh-link { margin-top: 1.6rem; font-size: .9rem; }
+@media (max-width: 860px) {
+  .doc-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .doc-nav { position: static; border-bottom: 1px solid var(--rule); padding-bottom: 1.2rem; }
+  .doc-nav ul { display: flex; flex-wrap: wrap; gap: .3rem .8rem; }
+  .doc-nav a { border-left: none; border-bottom: 2px solid transparent; padding: .3rem .2rem; }
+  .doc-nav a[aria-current="page"] { border-bottom-color: var(--red); }
+  .doc-nav .gh-link { display: none; }
+}
+
+/* content */
+.doc-main { max-width: 46rem; min-width: 0; }
+.doc-main > h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1.2rem; }
+
+.toc { border: 1px solid var(--rule-strong); padding: 1.1rem 1.4rem 1.2rem; margin-block: 1.6rem 2.4rem; }
+.toc h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .6rem; }
+.toc ul { list-style: none; padding: 0; columns: 2; column-gap: 2.5rem; font-size: .93rem; }
+.toc li { margin-block: .18rem; break-inside: avoid; }
+.toc a { color: var(--ink-mid); text-decoration: none; }
+.toc a:hover { color: var(--red); text-decoration: underline; }
+@media (max-width: 640px) { .toc ul { columns: 1; } }
+
+.prose > * + * { margin-top: 1rem; }
+.prose h2 {
+  font-size: 1.55rem; font-weight: 750;
+  margin-top: 3rem; padding-top: 1.6rem; border-top: 1px solid var(--rule);
+}
+.prose h3 { font-size: 1.18rem; font-weight: 650; margin-top: 2.2rem; }
+.prose h4 { font-size: 1.02rem; font-weight: 650; margin-top: 1.8rem; }
+.prose p, .prose li { color: var(--ink-mid); }
+.prose li strong, .prose p strong { color: var(--ink); }
+.prose ul, .prose ol { padding-left: 1.4rem; }
+.prose li + li { margin-top: .35rem; }
+.prose li > ul, .prose li > ol { margin-top: .35rem; }
+/* Section separators come from h2 border-top; markdown --- rules would double them. */
+.prose hr { display: none; }
+.prose blockquote {
+  background: var(--note-bg); border: 1px solid var(--rule);
+  padding: .9rem 1.2rem; font-size: .97rem;
+}
+.prose blockquote p { color: var(--ink-mid); }
+.prose img { max-width: 100%; height: auto; }
+
+.anchor {
+  margin-left: .4em; text-decoration: none; color: var(--ink-muted);
+  font-weight: 400; opacity: 0; font-size: .85em;
+}
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { opacity: 1; }
+
+.prose code, .toc code {
+  background: var(--inline-code-bg); padding: .1em .35em;
+  font-size: .86em; border-radius: 2px;
+  overflow-wrap: anywhere;
+}
+.prose pre {
+  background: var(--code-bg); color: var(--code-ink);
+  padding: 1.1rem 1.3rem; overflow-x: auto;
+  font-size: .88rem; line-height: 1.6;
+}
+.prose pre code { background: none; padding: 0; font-size: inherit; border-radius: 0; }
+
+.table-scroll { overflow-x: auto; position: relative; }
+.table-scroll:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.prose table { border-collapse: collapse; font-size: .92rem; min-width: 100%; }
+.prose th, .prose td { text-align: left; padding: .5rem .8rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.prose thead th {
+  font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--ink-muted); font-weight: 650; border-bottom: 1px solid var(--rule-strong);
+}
+.prose td { color: var(--ink-mid); }
+.prose td code, .prose th code { white-space: nowrap; }
+
+/* pager */
+.pager {
+  display: flex; justify-content: space-between; gap: 1rem;
+  margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule-strong);
+}
+.pager-link { display: block; text-decoration: none; font-weight: 650; color: var(--ink); max-width: 45%; }
+.pager-link:hover { color: var(--red); }
+.pager-link .pager-dir { display: block; font-size: .82rem; font-weight: 400; color: var(--ink-muted); margin-bottom: .2rem; }
+.pager-link.next { text-align: right; margin-left: auto; }
+
+/* footer */
+.site-footer { border-top: 1px solid var(--rule); padding-block: 1.8rem; }
+.site-footer p { font-size: .92rem; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#doc-content">Aller au contenu principal</a>
+
+<header class="site">
+  <div class="wrap site-bar">
+    <nav class="breadcrumb" aria-label="Fil d'Ariane">
+      <a class="wordmark" href="../index.html"><span class="dot" aria-hidden="true"></span>MemberBase</a>
+      <span class="crumb" aria-hidden="true">/</span>
+      <a class="crumb-link" href="./">Documentation</a>
+      <span class="crumb" aria-hidden="true">/</span>
+      <span class="crumb-link" aria-current="page">Guide utilisateur</span>
+    </nav>
+    <button type="button" class="theme-toggle" id="theme-toggle">Activer le mode sombre</button>
+  </div>
+</header>
+
+<div class="wrap doc-grid">
+  <nav class="doc-nav" aria-label="Guides de documentation">
+    <h2>Guides</h2>
+    <ul>
+          <li><a href="user.html" aria-current="page">Guide utilisateur</a></li>
+          <li><a href="admin.html">Guide administrateur</a></li>
+          <li><a href="api.html">API REST</a></li>
+          <li><a href="architecture.html">Architecture</a></li>
+    </ul>
+    <p class="gh-link"><a href="https://github.com/pvollenweider/memberbase">Projet sur GitHub</a></p>
+  </nav>
+
+  <main id="doc-content" class="doc-main">
+    <h1>Guide utilisateur</h1>
+    <nav class="toc" aria-labelledby="toc-h">
+      <h2 id="toc-h">Sur cette page</h2>
+      <ul>
+        <li><a href="#1-connexion-et-navigation">1. Connexion et navigation</a></li>
+        <li><a href="#2-liste-des-membres">2. Liste des membres</a></li>
+        <li><a href="#3-ajouter-un-membre">3. Ajouter un membre</a></li>
+        <li><a href="#4-importer-des-contacts-csv--tsv">4. Importer des contacts (CSV / TSV)</a></li>
+        <li><a href="#5-fiche-membre">5. Fiche membre</a></li>
+        <li><a href="#6-comptabilité-dun-membre-onglet-compta">6. Comptabilité d'un membre (onglet Compta)</a></li>
+        <li><a href="#7-suivi-dun-membre-onglet-suivi">7. Suivi d'un membre (onglet Suivi)</a></li>
+        <li><a href="#8-journaux-et-aperçu-des-dons">8. Journaux et aperçu des dons</a></li>
+        <li><a href="#9-attestations-de-dons">9. Attestations de dons</a></li>
+        <li><a href="#10-segments">10. Segments</a></li>
+        <li><a href="#11-réglages">11. Réglages</a></li>
+        <li><a href="#12-rôles-utilisateurs-et-matrice-des-droits">12. Rôles utilisateurs et matrice des droits</a></li>
+        <li><a href="#13-changer-son-mot-de-passe">13. Changer son mot de passe</a></li>
+        <li><a href="#14-déconnexion">14. Déconnexion</a></li>
+      </ul>
+    </nav>
+    <div class="prose">
+<p>Guide pratique pour la gestion quotidienne des membres, segments, comptabilité, suivi et dons.</p>
+<blockquote>
+<p><strong>Terminologie (v3.5.4).</strong> L&#39;interface parle de <strong>Segment</strong> (auparavant « groupe ») et de
+<strong>Segment combiné</strong> (auparavant « métagroupe » ou « filtre »). Les anciennes captures ou
+instructions mentionnant « groupe » désignent la même notion.</p>
+</blockquote>
+<hr>
+<hr>
+<h2 id="1-connexion-et-navigation">1. Connexion et navigation<a class="anchor" href="#1-connexion-et-navigation" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="se-connecter">Se connecter<a class="anchor" href="#se-connecter" aria-label="Lien d'ancrage">#</a></h3>
+<ol>
+<li>Ouvrir l&#39;adresse de l&#39;application dans le navigateur.</li>
+<li>Saisir l&#39;identifiant et le mot de passe fournis par l&#39;administrateur.</li>
+<li>Cliquer <strong>Connexion</strong>.</li>
+</ol>
+<p>Lors de la première connexion, ou après une réinitialisation par un administrateur,
+l&#39;application demande immédiatement de choisir un nouveau mot de passe. Si vous avez reçu
+un <strong>lien d&#39;invitation</strong>, il vous permet de définir vous-même votre mot de passe.</p>
+<h3 id="la-barre-de-navigation">La barre de navigation<a class="anchor" href="#la-barre-de-navigation" aria-label="Lien d'ancrage">#</a></h3>
+<p>En haut de chaque page, la barre bleue contient :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — La barre de navigation" tabindex="0"><table><thead><tr><th scope="col">Élément</th><th scope="col">Contenu</th></tr></thead><tbody><tr><td><strong>Liste</strong> (icône liste)</td><td>Liste des membres — page d&#39;accueil</td></tr>
+<tr><td><strong>Compta</strong> (icône pièces)</td><td>Journal comptable global (tous membres confondus)</td></tr>
+<tr><td><strong>Suivi</strong> (icône livre)</td><td>Journal des notes de suivi (tous membres confondus)</td></tr>
+<tr><td><strong>Aperçu des dons</strong> (icône camembert)</td><td>Tableau de bord des dons et contributions</td></tr>
+<tr><td><strong>Engrenage</strong> (à droite)</td><td>Réglages — visible uniquement pour les rôles Manager et Admin</td></tr>
+<tr><td><strong>Nom d&#39;utilisateur</strong> (à droite)</td><td>Menu : <em>Mot de passe</em>, <em>Déconnexion</em></td></tr>
+<tr><td><strong>Chercher</strong></td><td>Recherche rapide globale</td></tr></tbody></table></div>
+<p>Il n&#39;y a plus de menu « Rapports » ni « Groupes » séparé : les journaux et l&#39;aperçu des dons
+sont directement dans la barre, et la gestion des segments se fait dans les <strong>Réglages</strong>.</p>
+<p>Sur mobile, la barre se réduit à une rangée d&#39;icônes ; la loupe ouvre un champ de recherche
+et l&#39;icône utilisateur regroupe le profil.</p>
+<h3 id="navigation-sans-rechargement-htmx">Navigation sans rechargement (htmx)<a class="anchor" href="#navigation-sans-rechargement-htmx" aria-label="Lien d'ancrage">#</a></h3>
+<p>La plupart des actions (changement de membre, d&#39;onglet, de filtre) ne rechargent que la zone
+centrale. L&#39;URL du navigateur reste à jour : les boutons Précédent / Suivant fonctionnent
+normalement.</p>
+<blockquote>
+<p><strong>Modifications non enregistrées.</strong> Si vous quittez une page contenant des modifications non
+sauvegardées (édition en cours), un message d&#39;avertissement s&#39;affiche.</p>
+</blockquote>
+<hr>
+<h2 id="2-liste-des-membres">2. Liste des membres<a class="anchor" href="#2-liste-des-membres" aria-label="Lien d'ancrage">#</a></h2>
+<p>La liste des membres est la page d&#39;accueil. Elle affiche par défaut le segment configuré comme
+segment de référence (par exemple « Membre 2026 »).</p>
+<h3 id="colonnes-affichées">Colonnes affichées<a class="anchor" href="#colonnes-affichées" aria-label="Lien d'ancrage">#</a></h3>
+<div class="table-scroll" role="region" aria-label="Tableau — Colonnes affichées" tabindex="0"><table><thead><tr><th scope="col">Colonne</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Genre</td><td>Icône homme / femme / couple</td></tr>
+<tr><td>Société</td><td>Nom de l&#39;organisation si applicable</td></tr>
+<tr><td>Nom</td><td>Nom de famille</td></tr>
+<tr><td>Prénom</td><td>Prénom</td></tr>
+<tr><td>Adresse</td><td>Rue et numéro</td></tr>
+<tr><td>NPA</td><td>Code postal / localité</td></tr>
+<tr><td>Email</td><td>Adresse e-mail cliquable</td></tr>
+<tr><td>Création</td><td>Date d&#39;ajout du profil</td></tr>
+<tr><td>Types</td><td>Petits badges colorés (3 lettres) indiquant les types de versements enregistrés ; cliquer ouvre l&#39;onglet Compta du membre</td></tr></tbody></table></div>
+<p>Cliquer sur une ligne ouvre la fiche du membre. Certaines colonnes sont masquées par défaut
+ou sur petit écran (genre, adresse, NPA, date de création) et peuvent être réaffichées via le
+bouton <strong>Colonnes</strong>.</p>
+<h3 id="filtrer-par-segment">Filtrer par segment<a class="anchor" href="#filtrer-par-segment" aria-label="Lien d'ancrage">#</a></h3>
+<p>Le bouton en haut à gauche de la liste affiche le segment actif. Cliquer dessus ouvre un menu
+déroulant contenant :</p>
+<ul>
+<li>Un champ <strong>Filtrer…</strong> pour retrouver un segment par son nom (navigation clavier : flèches +
+Entrée).</li>
+<li>Une section <strong>Segments combinés</strong> (union de plusieurs segments), si au moins un existe.</li>
+<li>Une section <strong>Filtres rapides</strong> :</li>
+</ul>
+<div class="table-scroll" role="region" aria-label="Tableau — Filtrer par segment" tabindex="0"><table><thead><tr><th scope="col">Filtre rapide</th><th scope="col">Membres affichés</th></tr></thead><tbody><tr><td>Tout le monde</td><td>Tous les membres actifs (hors archivés)</td></tr>
+<tr><td>Aucune cotisation ces 3 dernières années</td><td>Membres ayant déjà cotisé, mais pas lors des 3 dernières années (les membres du segment « sans cotisation » sont exclus)</td></tr>
+<tr><td>Aucun versement ces 10 dernières années</td><td>Membres actifs sans aucune entrée comptable depuis 10 ans</td></tr>
+<tr><td>Cotisation AAAA non payée</td><td>Membres sans cotisation enregistrée pour l&#39;année en cours</td></tr>
+<tr><td>Donateur non institutionnel actif en AAAA-1</td><td>Membres ayant fait au moins un versement non institutionnel l&#39;année précédente</td></tr></tbody></table></div>
+<ul>
+<li>La liste de tous les segments, regroupés par <strong>catégorie</strong>. Le badge à droite de chaque
+segment indique son nombre de membres.</li>
+</ul>
+<p>Une phrase d&#39;explication s&#39;affiche sous le bouton lorsqu&#39;un filtre rapide est actif.</p>
+<h3 id="rechercher-un-membre">Rechercher un membre<a class="anchor" href="#rechercher-un-membre" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Le champ <strong>Chercher</strong> de la barre de navigation effectue une recherche globale sur prénom,
+nom, société, adresse, NPA, e-mail et commentaires. La liste se met à jour automatiquement
+dès 3 caractères saisis (raccourci clavier : <code>/</code> pour placer le curseur dans le champ).</li>
+<li>Les termes trouvés sont surlignés dans la liste.</li>
+</ul>
+<h3 id="trier-exporter-gérer-les-colonnes">Trier, exporter, gérer les colonnes<a class="anchor" href="#trier-exporter-gérer-les-colonnes" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Cliquer un en-tête de colonne pour trier ; un second clic inverse l&#39;ordre.</li>
+<li>La barre d&#39;outils au-dessus du tableau propose : <strong>Copier</strong>, <strong>Excel</strong>, <strong>PDF</strong>,
+<strong>Imprimer</strong>, <strong>Colonnes</strong>. Seules les lignes visibles (après filtrage) sont exportées.</li>
+</ul>
+<h3 id="boutons-daction-de-la-liste">Boutons d&#39;action de la liste<a class="anchor" href="#boutons-daction-de-la-liste" aria-label="Lien d'ancrage">#</a></h3>
+<div class="table-scroll" role="region" aria-label="Tableau — Boutons d'action de la liste" tabindex="0"><table><thead><tr><th scope="col">Bouton</th><th scope="col">Rôle requis</th><th scope="col">Action</th></tr></thead><tbody><tr><td><strong>Importer</strong> (icône import)</td><td>Manager / Admin</td><td>Assistant d&#39;import de contacts (voir §4)</td></tr>
+<tr><td><strong>Ajouter</strong> (icône personne +)</td><td>Utilisateur et plus</td><td>Créer un nouveau membre (voir §3)</td></tr></tbody></table></div>
+<hr>
+<h2 id="3-ajouter-un-membre">3. Ajouter un membre<a class="anchor" href="#3-ajouter-un-membre" aria-label="Lien d'ancrage">#</a></h2>
+<ol>
+<li>Depuis la liste, cliquer le bouton <strong>Ajouter</strong>.</li>
+<li>Remplir le formulaire :</li>
+</ol>
+<div class="table-scroll" role="region" aria-label="Tableau — 3. Ajouter un membre" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Société</td><td>Nom de l&#39;organisation (facultatif)</td></tr>
+<tr><td>Nom</td><td>Nom de famille</td></tr>
+<tr><td>Prénom</td><td>Prénom</td></tr>
+<tr><td>Sexe</td><td>Indéterminé / Monsieur et Madame / Madame / Monsieur</td></tr>
+<tr><td>Titre</td><td>Titre honorifique (Dr, Prof.…)</td></tr>
+<tr><td>Adresse</td><td>Rue et numéro</td></tr>
+<tr><td>NPA</td><td>Code postal et localité</td></tr>
+<tr><td>E-mail</td><td>Adresse e-mail principale</td></tr>
+<tr><td><strong>E-mail alt.</strong></td><td>Adresse alternative / historique — <em>non utilisée pour les envois</em></td></tr>
+<tr><td>Web</td><td>Site web</td></tr>
+<tr><td>Tél. prof. / Privé / Portable / Fax</td><td>Numéros de téléphone</td></tr>
+<tr><td>Date de naissance</td><td>Format JJ/MM/AAAA</td></tr>
+<tr><td>Compétences / remarques</td><td>Zone de texte libre</td></tr></tbody></table></div>
+<ol start="3">
+<li>Si vous avez ouvert le formulaire depuis un segment actif, une case
+<strong>Ajouter au segment « … »</strong> est proposée en bas.</li>
+<li>Cliquer <strong>Ajouter</strong>.</li>
+</ol>
+<p>Le nouveau membre s&#39;ouvre directement sur sa fiche.</p>
+<hr>
+<h2 id="4-importer-des-contacts-csv--tsv">4. Importer des contacts (CSV / TSV)<a class="anchor" href="#4-importer-des-contacts-csv--tsv" aria-label="Lien d'ancrage">#</a></h2>
+<p>L&#39;import en masse est réservé aux rôles <strong>Manager</strong> et <strong>Admin</strong>. Cliquer le bouton
+<strong>Importer</strong> dans la barre d&#39;outils de la liste. L&#39;assistant se déroule en 3 étapes.</p>
+<h3 id="étape-1--fichier">Étape 1 — Fichier<a class="anchor" href="#étape-1--fichier" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Sélectionner un fichier <strong>CSV</strong> (séparateur virgule ou point-virgule) ou <strong>TSV</strong>
+(tabulation).</li>
+<li>Encodage <strong>UTF-8</strong> ou <strong>Latin-1</strong>. La <strong>première ligne</strong> doit contenir les en-têtes de
+colonnes.</li>
+<li>Limites : <strong>5 MB</strong> et <strong>5 000 lignes</strong>. Au-delà, un avertissement s&#39;affiche et seules les
+5 000 premières lignes sont importées (découper le fichier pour importer le reste).</li>
+</ul>
+<h3 id="étape-2--correspondance-des-colonnes">Étape 2 — Correspondance des colonnes<a class="anchor" href="#étape-2--correspondance-des-colonnes" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Pour chaque colonne du fichier, choisir le <strong>champ membre</strong> correspondant (Nom, Prénom,
+Société, Genre/civilité, Titre, E-mail, E-mail alt., téléphones, Adresse, NPA, Web,
+Naissance, Remarques) ou <strong>— ignorer —</strong>.</li>
+<li>Les colonnes courantes sont <strong>pré-associées</strong> automatiquement d&#39;après leur en-tête. Une
+colonne d&#39;<strong>exemples</strong> (échantillon des 25 premières lignes) aide à vérifier. La civilité en
+texte (« Monsieur », « Madame », « Madame et Monsieur ») est convertie automatiquement.</li>
+<li><strong>Ajouter les contacts à un segment</strong> — quatre choix :<ul>
+<li><strong>Créer un segment <code>Import JJ.MM.AAAA HH:MM</code></strong> (option par défaut) ;</li>
+<li><strong>Ajouter à un segment existant</strong> ;</li>
+<li><strong>Créer un nouveau segment</strong> (nom + catégorie facultative) ;</li>
+<li><strong>Ne pas ajouter à un segment</strong>.</li>
+</ul>
+</li>
+<li>Cliquer <strong>Importer</strong>.</li>
+</ul>
+<h3 id="étape-3--résultats-et-doublons">Étape 3 — Résultats et doublons<a class="anchor" href="#étape-3--résultats-et-doublons" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Un bandeau indique le nombre de contacts <strong>créés</strong> et, le cas échéant, le nombre de contacts
+ajoutés au segment choisi.</li>
+<li>Les <strong>doublons</strong> (même e-mail, ou même prénom + nom qu&#39;un membre existant) sont listés. Pour
+chacun, choisir :<ul>
+<li><strong>Ignorer</strong> (ne rien modifier) ;</li>
+<li><strong>Compléter les champs vides</strong> (n&#39;écrase pas l&#39;existant) ;</li>
+<li><strong>Écraser</strong> (remplace les valeurs par celles du fichier).</li>
+</ul>
+</li>
+<li>Cliquer <strong>Appliquer les choix</strong>, ou <strong>Terminer sans appliquer</strong>.</li>
+</ul>
+<hr>
+<h2 id="5-fiche-membre">5. Fiche membre<a class="anchor" href="#5-fiche-membre" aria-label="Lien d'ancrage">#</a></h2>
+<p>Cliquer une ligne de la liste ouvre la fiche. Une barre d&#39;onglets donne accès aux sections.</p>
+<h3 id="onglets">Onglets<a class="anchor" href="#onglets" aria-label="Lien d'ancrage">#</a></h3>
+<div class="table-scroll" role="region" aria-label="Tableau — Onglets" tabindex="0"><table><thead><tr><th scope="col">Onglet</th><th scope="col">Contenu</th></tr></thead><tbody><tr><td>Données générales</td><td>Coordonnées + appartenance aux segments + résumé financier</td></tr>
+<tr><td>Compta</td><td>Historique des versements (voir §6)</td></tr>
+<tr><td>Suivi</td><td>Notes de contact (voir §7)</td></tr>
+<tr><td>Historique</td><td>Journal des modifications de la fiche — <strong>admins uniquement</strong></td></tr></tbody></table></div>
+<p>Le nombre d&#39;entrées est affiché en petit à côté des onglets Compta et Suivi.</p>
+<h3 id="actif--archivé">Actif / Archivé<a class="anchor" href="#actif--archivé" aria-label="Lien d'ancrage">#</a></h3>
+<p>Un commutateur <strong>Actif / Archivé</strong> est affiché en haut à droite (modifiable par les <strong>Managers</strong>
+et <strong>Admins</strong>).</p>
+<ul>
+<li><strong>Actif</strong> : le membre apparaît dans toutes les listes.</li>
+<li><strong>Archivé</strong> : le profil est retiré de toutes les listes de filtrage (une confirmation est
+demandée). Il reste accessible par recherche et par son URL directe, et toutes ses données
+sont conservées. Réversible à tout moment.</li>
+</ul>
+<p>Pour un membre <strong>archivé</strong>, un administrateur peut :</p>
+<ul>
+<li>le <strong>supprimer définitivement</strong> s&#39;il n&#39;a <strong>aucune</strong> entrée comptable ;</li>
+<li>sinon, uniquement l&#39;<strong>anonymiser</strong> : les données personnelles sont effacées, l&#39;historique
+financier est conservé.</li>
+</ul>
+<h3 id="données-générales-mode-lecture--édition">Données générales (mode lecture / édition)<a class="anchor" href="#données-générales-mode-lecture--édition" aria-label="Lien d'ancrage">#</a></h3>
+<p>Par défaut, les données s&#39;affichent en <strong>lecture</strong> ; les champs vides sont masqués. Un lien
+<strong>Google Maps</strong> apparaît sous l&#39;adresse.</p>
+<p>Pour modifier (rôles Utilisateur et plus) : cliquer dans la zone de données (la mention
+<em>Modifier</em> apparaît au survol). Le formulaire s&#39;ouvre en place. Il inclut notamment le champ
+<strong>E-mail alt.</strong> (adresse historique / alternative, non utilisée pour les envois) et un éditeur
+de texte enrichi pour les <em>compétences / remarques</em> (gras, italique, listes). Cliquer
+<strong>Enregistrer</strong> ou <strong>Annuler</strong>. La date de création et de dernière modification est indiquée en
+bas.</p>
+<h3 id="appartenance-aux-segments">Appartenance aux segments<a class="anchor" href="#appartenance-aux-segments" aria-label="Lien d'ancrage">#</a></h3>
+<p>La colonne de droite liste les <strong>Segments</strong> du membre, regroupés par catégorie. Les segments
+masqués portent une icône œil barré.</p>
+<p>Pour ajouter ou retirer un segment (rôles <strong>Manager</strong> et <strong>Admin</strong>) : cliquer la croix d&#39;une
+pastille pour retirer, ou déplier <strong>Ajouter un segment</strong> pour en ajouter. Chaque changement est
+enregistré immédiatement (avec possibilité d&#39;annuler via le bandeau). Le bouton <strong>Segments
+masqués</strong> affiche aussi les segments cachés.</p>
+<h3 id="résumé-financier">Résumé financier<a class="anchor" href="#résumé-financier" aria-label="Lien d'ancrage">#</a></h3>
+<p>Sous les segments, des encarts récapitulent (année en cours, année précédente, total depuis le
+premier versement) :</p>
+<ul>
+<li><strong>Dons</strong> : versements comptés comme dons ;</li>
+<li><strong>Autres versements</strong> : versements de types exclus des dons (avec le détail des types) ;</li>
+<li><strong>Total</strong> de tous les versements confondus.</li>
+</ul>
+<p>Un avertissement <em>Cotisation AAAA non payée</em> s&#39;affiche si le membre n&#39;a pas cotisé cette année
+(sauf s&#39;il appartient au segment « membres sans cotisation »).</p>
+<hr>
+<h2 id="6-comptabilité-dun-membre-onglet-compta">6. Comptabilité d&#39;un membre (onglet Compta)<a class="anchor" href="#6-comptabilité-dun-membre-onglet-compta" aria-label="Lien d'ancrage">#</a></h2>
+<p>L&#39;onglet <strong>Compta</strong> liste tous les versements du membre et propose des graphiques (répartition
+par type et évolution mensuelle / cumulée).</p>
+<h3 id="ajouter-une-entrée-rôles-utilisateur-et-plus">Ajouter une entrée (rôles Utilisateur et plus)<a class="anchor" href="#ajouter-une-entrée-rôles-utilisateur-et-plus" aria-label="Lien d'ancrage">#</a></h3>
+<p>Le formulaire est en haut du tableau :</p>
+<ol>
+<li><strong>Type</strong> — sélectionner le type de versement (cotisation, don…).</li>
+<li><strong>Date</strong> — format JJ/MM/AAAA (date du jour pré-remplie).</li>
+<li><strong>Libellé</strong> — description libre.</li>
+<li><strong>Somme</strong> — montant en CHF (ex. <code>50</code> ou <code>12.50</code>).</li>
+<li><strong>Quittance</strong> — numéro de quittance / référence.</li>
+<li><strong>Attestation</strong> (case à cocher) — cocher si le donateur souhaite une attestation fiscale.</li>
+<li>Cliquer <strong>Ajouter</strong>.</li>
+</ol>
+<h3 id="modifier--supprimer">Modifier / supprimer<a class="anchor" href="#modifier--supprimer" aria-label="Lien d'ancrage">#</a></h3>
+<p>Cliquer une ligne pour l&#39;ouvrir en édition. La suppression se fait depuis la page d&#39;édition de
+l&#39;entrée.</p>
+<h3 id="filtres-et-outils">Filtres et outils<a class="anchor" href="#filtres-et-outils" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li><strong>Année</strong> : filtrer par année, ou <strong>Toutes</strong> pour l&#39;historique complet.</li>
+<li><strong>Dons uniquement</strong> : masquer les entrées non-don (ventes, remboursements…). Les entrées
+non comptées comme don portent la mention « non-don ».</li>
+<li><strong>Attestation</strong> (menu) : générer une attestation de don pour l&#39;année choisie (voir §9).</li>
+<li>Le pied de tableau affiche le <strong>total</strong> des entrées affichées.</li>
+</ul>
+<hr>
+<h2 id="7-suivi-dun-membre-onglet-suivi">7. Suivi d&#39;un membre (onglet Suivi)<a class="anchor" href="#7-suivi-dun-membre-onglet-suivi" aria-label="Lien d'ancrage">#</a></h2>
+<p>L&#39;onglet <strong>Suivi</strong> enregistre des notes de contact individuelles.</p>
+<ol>
+<li><strong>Date</strong> (date du jour pré-remplie) et <strong>Commentaires</strong>.</li>
+<li>Cliquer <strong>Ajouter</strong>.</li>
+</ol>
+<p>Cliquer une ligne pour la modifier ; l&#39;icône corbeille supprime la note. Les notes sont
+affichées de la plus récente à la plus ancienne. L&#39;ajout, la modification et la suppression
+sont réservés aux rôles Utilisateur et plus.</p>
+<hr>
+<h2 id="8-journaux-et-aperçu-des-dons">8. Journaux et aperçu des dons<a class="anchor" href="#8-journaux-et-aperçu-des-dons" aria-label="Lien d'ancrage">#</a></h2>
+<p>Ces vues transversales sont accessibles depuis la barre de navigation.</p>
+<h3 id="compta--journal-comptable-global">Compta — journal comptable global<a class="anchor" href="#compta--journal-comptable-global" aria-label="Lien d'ancrage">#</a></h3>
+<p>Toutes les entrées comptables, tous membres confondus.</p>
+<ul>
+<li>Filtrer par <strong>type</strong> de versement et par <strong>année</strong> (avec options <em>12 derniers mois</em> /
+<em>24 derniers mois</em> / <em>Toutes les années</em>).</li>
+<li>Cliquer une ligne ouvre l&#39;onglet Compta du membre concerné.</li>
+<li>Export DataTables (Copier / Excel / PDF / Imprimer) et graphiques (répartition par type,
+évolution mensuelle vs cumulée).</li>
+</ul>
+<h3 id="suivi--journal-des-notes-global">Suivi — journal des notes global<a class="anchor" href="#suivi--journal-des-notes-global" aria-label="Lien d'ancrage">#</a></h3>
+<p>Toutes les notes de suivi, tous membres confondus, avec les mêmes outils d&#39;export.</p>
+<h3 id="aperçu-des-dons">Aperçu des dons<a class="anchor" href="#aperçu-des-dons" aria-label="Lien d'ancrage">#</a></h3>
+<p>Tableau de bord des contributions. En haut, des <strong>cartes clés</strong> :</p>
+<ul>
+<li><strong>Contributions AAAA</strong> : total CHF de l&#39;année, avec comparaison à l&#39;année précédente (et,
+pour l&#39;année en cours, comparaison à la même période l&#39;an dernier + objectif à atteindre).</li>
+<li><strong>Donateurs</strong> : nombre de donateurs, avec trois liens cliquables :<ul>
+<li><strong>fidèles</strong> — ont donné en AAAA et AAAA-1 ;</li>
+<li><strong>Nouveaux</strong> — première contribution en AAAA ;</li>
+<li><strong>perdus</strong> — ont donné en AAAA-1 mais pas en AAAA.</li>
+</ul>
+</li>
+<li><strong>Membres actifs</strong> : effectif du segment de référence, avec comparaison et lien
+<em>membres perdus</em> (membres non reconduits).</li>
+<li>Un <strong>camembert</strong> de répartition par type de versement.</li>
+</ul>
+<p>Filtres et options :</p>
+<ul>
+<li><strong>Montant minimum</strong> : 1 / 100 / 200 / 500 / 1 000 CHF.</li>
+<li><strong>Année</strong> : année précise, <em>12 / 24 derniers mois</em>, ou <em>toutes les années</em>.</li>
+<li><strong>Mode étendu</strong> : inclut <strong>tous</strong> les types de versements (y compris ceux exclus des dons) —
+les totaux ne reflètent alors plus uniquement les dons ; une colonne <em>Autres</em> et un <em>Total</em>
+apparaissent.</li>
+<li><strong>Inclure si attestation demandée</strong> : ajoute les personnes ayant coché « souhaite une
+attestation » même sous le montant minimum.</li>
+<li><strong>Attestations AAAA</strong> : génère toutes les attestations de l&#39;année en un seul PDF (voir §9).</li>
+</ul>
+<p>Le tableau liste les donateurs avec leur statut (membre / don institutionnel), le montant des
+dons et l&#39;indicateur d&#39;attestation. Cliquer une ligne ouvre la compta du membre ; l&#39;icône PDF
+génère son attestation.</p>
+<h4 id="listes-détaillées-donateurs-fidèles--nouveaux--perdus-membres-perdus">Listes détaillées (donateurs fidèles / nouveaux / perdus, membres perdus)<a class="anchor" href="#listes-détaillées-donateurs-fidèles--nouveaux--perdus-membres-perdus" aria-label="Lien d'ancrage">#</a></h4>
+<p>Accessibles via les liens des cartes. La vue <strong>Donateurs perdus</strong> propose un bouton
+<strong>Créer segment « Donateurs à relancer AAAA »</strong> qui rassemble ces personnes dans un nouveau
+segment pour faciliter la relance.</p>
+<hr>
+<h2 id="9-attestations-de-dons">9. Attestations de dons<a class="anchor" href="#9-attestations-de-dons" aria-label="Lien d'ancrage">#</a></h2>
+<p>Une attestation de don est un PDF officiel remis au donateur pour sa déclaration fiscale. Elle
+reprend les versements de l&#39;année (hors types marqués « exclu des dons »).</p>
+<h3 id="depuis-la-fiche-dun-membre">Depuis la fiche d&#39;un membre<a class="anchor" href="#depuis-la-fiche-dun-membre" aria-label="Lien d'ancrage">#</a></h3>
+<ol>
+<li>Ouvrir l&#39;onglet <strong>Compta</strong>, choisir une <strong>année</strong>.</li>
+<li>Cliquer le menu <strong>Attestation</strong> et choisir l&#39;année.</li>
+<li>Le PDF s&#39;ouvre dans un nouvel onglet.</li>
+</ol>
+<h3 id="depuis-laperçu-des-dons-individuelle">Depuis l&#39;aperçu des dons (individuelle)<a class="anchor" href="#depuis-laperçu-des-dons-individuelle" aria-label="Lien d'ancrage">#</a></h3>
+<p>Sur la ligne du donateur, cliquer l&#39;icône <strong>PDF</strong>.</p>
+<h3 id="en-masse-toute-lannée">En masse (toute l&#39;année)<a class="anchor" href="#en-masse-toute-lannée" aria-label="Lien d'ancrage">#</a></h3>
+<ol>
+<li>Dans <strong>Aperçu des dons</strong>, sélectionner l&#39;année.</li>
+<li>Cliquer <strong>Attestations AAAA</strong>.</li>
+<li>Confirmer : un PDF unique regroupant toutes les attestations est généré (la génération peut
+prendre plusieurs minutes et se poursuit dans l&#39;onglet ouvert).</li>
+</ol>
+<p>Seuls les donateurs ayant coché <strong>Souhaite une attestation</strong> sur au moins une entrée de l&#39;année
+sont inclus dans la génération en masse.</p>
+<hr>
+<h2 id="10-segments">10. Segments<a class="anchor" href="#10-segments" aria-label="Lien d'ancrage">#</a></h2>
+<p>Les segments découpent les membres en sous-ensembles (membres d&#39;une année, comité, partenaires,
+donateurs à relancer…). Leur gestion se trouve dans les <strong>Réglages</strong> (icône engrenage,
+réservée aux Managers et Admins), onglets <strong>Segments</strong>, <strong>Catégories</strong> et <strong>Segments combinés</strong>.</p>
+<h3 id="créer-un-segment">Créer un segment<a class="anchor" href="#créer-un-segment" aria-label="Lien d'ancrage">#</a></h3>
+<p>Dans l&#39;onglet <strong>Segments</strong>, saisir le nom dans le champ prévu et valider.</p>
+<h3 id="modifier-un-segment">Modifier un segment<a class="anchor" href="#modifier-un-segment" aria-label="Lien d'ancrage">#</a></h3>
+<p>Cliquer le nom d&#39;un segment ouvre sa page d&#39;édition, qui permet de :</p>
+<ul>
+<li><strong>Renommer</strong> le segment ;</li>
+<li>le <strong>Masquer dans les interfaces</strong> (il disparaît du menu de filtrage, mais les membres
+restent rattachés) ;</li>
+<li>lui attribuer une <strong>catégorie</strong> ;</li>
+<li><strong>Voir la liste</strong> de ses membres ;</li>
+<li><strong>Importer des membres d&#39;autres segments</strong> (copie ponctuelle) ;</li>
+<li><strong>Importer les cotisants d&#39;une année</strong> (types marqués « cotisation ») ;</li>
+<li><strong>Importer les donateurs d&#39;une année</strong> (tous / non-institutionnels / institutionnels, avec
+montant minimum) ;</li>
+<li><strong>Réaffecter ou dissoudre</strong> : transférer tous les membres vers un autre segment puis le
+supprimer, ou retirer tous les membres et supprimer le segment.</li>
+</ul>
+<blockquote>
+<p>Les imports de membres sont des <strong>copies ponctuelles</strong> : si le segment source évolue ensuite,
+ce segment n&#39;est pas mis à jour. Pour un regroupement dynamique, utiliser un <strong>segment
+combiné</strong>.</p>
+</blockquote>
+<h3 id="catégories">Catégories<a class="anchor" href="#catégories" aria-label="Lien d'ancrage">#</a></h3>
+<p>L&#39;onglet <strong>Catégories</strong> organise visuellement les segments en sections (titres) dans le menu de
+filtrage et dans les fiches membres.</p>
+<h3 id="segments-combinés">Segments combinés<a class="anchor" href="#segments-combinés" aria-label="Lien d'ancrage">#</a></h3>
+<p>Un <strong>segment combiné</strong> regroupe plusieurs segments : le sélectionner dans la liste affiche
+l&#39;<strong>union</strong> de leurs membres. Depuis l&#39;onglet <strong>Segments combinés</strong>, saisir un nom pour en créer
+un, puis cliquer son nom pour choisir les segments à inclure. Il apparaît ensuite en tête du
+menu de filtrage de la liste des membres.</p>
+<hr>
+<h2 id="11-réglages">11. Réglages<a class="anchor" href="#11-réglages" aria-label="Lien d'ancrage">#</a></h2>
+<p>Accès via l&#39;icône <strong>engrenage</strong> (Managers et Admins). La barre latérale liste les sections ;
+les sections disponibles dépendent du rôle.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — 11. Réglages" tabindex="0"><table><thead><tr><th scope="col">Section</th><th scope="col">Rôle</th><th scope="col">Contenu</th></tr></thead><tbody><tr><td>Segments</td><td>Manager / Admin</td><td>Gestion des segments (voir §10)</td></tr>
+<tr><td>Catégories</td><td>Manager / Admin</td><td>Catégories de segments</td></tr>
+<tr><td>Segments combinés</td><td>Manager / Admin</td><td>Filtres regroupant plusieurs segments</td></tr>
+<tr><td>Types compta</td><td>Manager / Admin</td><td>Types de versements</td></tr>
+<tr><td>Réglages</td><td>Admin</td><td>Paramètres généraux de l&#39;organisation</td></tr>
+<tr><td>Utilisateurs</td><td>Admin</td><td>Comptes de connexion à l&#39;application</td></tr>
+<tr><td>Journal</td><td>Admin</td><td>Journal d&#39;activité</td></tr>
+<tr><td>Intégrité</td><td>Admin</td><td>Vérification et correction des données</td></tr>
+<tr><td>Archivés</td><td>Admin</td><td>Liste des membres archivés</td></tr></tbody></table></div>
+<h3 id="types-compta">Types compta<a class="anchor" href="#types-compta" aria-label="Lien d'ancrage">#</a></h3>
+<p>Pour chaque type de versement :</p>
+<ul>
+<li><strong>Nom</strong> et <strong>Couleur</strong> (badge dans la liste et la compta) ;</li>
+<li><strong>Est une cotisation</strong> : pris en compte par les filtres de cotisation ;</li>
+<li><strong>Exclu des dons</strong> : non comptabilisé dans les totaux de dons ni les attestations ;</li>
+<li><strong>Institutionnel</strong> : exclu du filtre « donateurs non institutionnels ».</li>
+</ul>
+<h3 id="réglages-généraux-admin">Réglages (généraux, Admin)<a class="anchor" href="#réglages-généraux-admin" aria-label="Lien d'ancrage">#</a></h3>
+<div class="table-scroll" role="region" aria-label="Tableau — Réglages (généraux, Admin)" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Nom / Adresse / NPA / Ville / Pays de l&#39;organisation</td><td>En-têtes des documents générés</td></tr>
+<tr><td>Préfixe des segments membres</td><td>Préfixe pour retrouver les segments membres des années (ex. « Membre »)</td></tr>
+<tr><td>Segment affiché par défaut</td><td>Segment ouvert à l&#39;arrivée sur la liste — <strong>à mettre à jour chaque année</strong></td></tr>
+<tr><td>Segment membres (année de référence)</td><td>Utilisé pour les filtres cotisations et l&#39;aperçu des dons — <strong>à mettre à jour chaque année</strong></td></tr>
+<tr><td>Segment membres sans cotisation</td><td>Membres actifs exemptés de cotisation (bénévoles, comité…)</td></tr></tbody></table></div>
+<h3 id="utilisateurs-admin">Utilisateurs (Admin)<a class="anchor" href="#utilisateurs-admin" aria-label="Lien d'ancrage">#</a></h3>
+<p>Gestion des comptes de connexion :</p>
+<ul>
+<li>Liste des utilisateurs (identifiant, nom, e-mail, rôle, statut, dernière connexion).</li>
+<li><strong>Nouvel utilisateur</strong> : identifiant, nom affiché, e-mail, <strong>rôle</strong> (une <strong>matrice des
+droits</strong> est consultable via l&#39;icône <strong>?</strong> à côté du champ Rôle — voir §12), et mot de passe
+temporaire (ou lien d&#39;invitation à envoyer).</li>
+<li><strong>Modifier</strong>, <strong>Réinitialiser le mot de passe</strong> (l&#39;utilisateur devra le changer à la
+prochaine connexion), <strong>Supprimer</strong>, activer / désactiver un compte.</li>
+</ul>
+<h3 id="journal-admin">Journal (Admin)<a class="anchor" href="#journal-admin" aria-label="Lien d'ancrage">#</a></h3>
+<p>Trace les actions effectuées (création, modification, suppression) avec date, utilisateur et
+détail.</p>
+<h3 id="intégrité-admin">Intégrité (Admin)<a class="anchor" href="#intégrité-admin" aria-label="Lien d'ancrage">#</a></h3>
+<p>Détecte et aide à corriger les incohérences : membres en double (même nom ou même e-mail, avec
+bouton <strong>Fusionner</strong>), segments masqués encore assignés à une catégorie / un segment combiné /
+des membres, montants ou dates comptables invalides, entrées sans type, e-mails ou e-mails alt.
+mal formatés, genre hors valeurs, date de naissance dans le futur, membres sans nom ni société.
+Un message « Tout est clean » s&#39;affiche si rien n&#39;est détecté.</p>
+<h4 id="fusionner-deux-fiches">Fusionner deux fiches<a class="anchor" href="#fusionner-deux-fiches" aria-label="Lien d'ancrage">#</a></h4>
+<p>Depuis Intégrité, cliquer <strong>Fusionner</strong> sur un doublon ouvre l&#39;écran de fusion :</p>
+<ul>
+<li>Pour chaque <strong>champ divergent</strong>, cliquer la valeur à conserver (A ou B).</li>
+<li>Pour la note, une case <strong>Garder les deux notes</strong> (survivant en premier) permet de tout
+conserver.</li>
+<li>Choisir le <strong>profil survivant</strong> (garde son ID) et le sort du <strong>profil source</strong> : <em>archiver</em>
+ou <em>supprimer</em>.</li>
+<li>Les entrées compta et suivi et les appartenances aux segments sont fusionnées
+automatiquement (dédoublonnées). Confirmer via la fenêtre de résumé.</li>
+</ul>
+<hr>
+<h2 id="12-rôles-utilisateurs-et-matrice-des-droits">12. Rôles utilisateurs et matrice des droits<a class="anchor" href="#12-rôles-utilisateurs-et-matrice-des-droits" aria-label="Lien d'ancrage">#</a></h2>
+<p>L&#39;application distingue quatre rôles : <strong>Lecture seule</strong>, <strong>Utilisateur</strong>, <strong>Manager</strong> et
+<strong>Admin</strong>. La matrice ci-dessous est consultable directement à la création d&#39;un compte (icône
+<strong>?</strong> à côté du champ Rôle dans <strong>Réglages ▸ Utilisateurs</strong>).</p>
+<div class="table-scroll" role="region" aria-label="Tableau — 12. Rôles utilisateurs et matrice des droits" tabindex="0"><table><thead><tr><th scope="col">Droit</th><th scope="col" style="text-align:center">Lecture seule</th><th scope="col" style="text-align:center">Utilisateur</th><th scope="col" style="text-align:center">Manager</th><th scope="col" style="text-align:center">Admin</th></tr></thead><tbody><tr><td>Consulter membres, compta, suivi</td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td></tr>
+<tr><td>Créer / modifier membres, compta, suivi</td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td></tr>
+<tr><td>Importer des contacts (CSV/TSV)</td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td></tr>
+<tr><td>Gérer segments, catégories, paramètres</td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td></tr>
+<tr><td>Fusionner / archiver un membre</td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td></tr>
+<tr><td>Supprimer / anonymiser un membre</td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td></tr>
+<tr><td>Gérer les comptes applicatifs</td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td style="text-align:center"><span aria-hidden="true">✓</span><span class="visually-hidden">Oui</span></td></tr></tbody></table></div>
+<p>La gestion de l&#39;appartenance d&#39;un membre aux segments et l&#39;accès aux Réglages sont donc
+réservés aux Managers et Admins ; un rôle <strong>Utilisateur</strong> peut créer et modifier des membres et
+saisir compta et suivi, mais pas gérer les segments.</p>
+<hr>
+<h2 id="13-changer-son-mot-de-passe">13. Changer son mot de passe<a class="anchor" href="#13-changer-son-mot-de-passe" aria-label="Lien d'ancrage">#</a></h2>
+<ol>
+<li>Cliquer son <strong>nom d&#39;utilisateur</strong> en haut à droite.</li>
+<li>Choisir <strong>Mot de passe</strong>.</li>
+<li>Saisir le mot de passe actuel, puis le nouveau mot de passe et sa confirmation.</li>
+<li>Enregistrer.</li>
+</ol>
+<p>Si un administrateur a réinitialisé votre mot de passe, l&#39;application impose ce changement à la
+connexion suivante.</p>
+<hr>
+<h2 id="14-déconnexion">14. Déconnexion<a class="anchor" href="#14-déconnexion" aria-label="Lien d'ancrage">#</a></h2>
+<p>Cliquer son <strong>nom d&#39;utilisateur</strong> en haut à droite, puis <strong>Déconnexion</strong>.</p>
+
+    </div>
+    <nav class="pager" aria-label="Navigation entre les guides">
+      <span></span>
+      <a class="pager-link next" href="admin.html"><span class="pager-dir">Guide suivant</span>Guide administrateur</a>
+    </nav>
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p><a href="../index.html">MemberBase</a> — gestion des membres pour associations. Open source, licence <a href="https://github.com/pvollenweider/memberbase/blob/main/LICENSE">AGPL-3.0</a>. <a href="https://github.com/pvollenweider/memberbase">GitHub</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('theme-toggle');
+  var mql = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function currentTheme() {
+    var stored = null;
+    try { stored = localStorage.getItem('mb-theme'); } catch (e) {}
+    if (stored === 'dark' || stored === 'light') return stored;
+    return mql.matches ? 'dark' : 'light';
+  }
+
+  function apply(theme, persist) {
+    root.setAttribute('data-theme', theme);
+    btn.textContent = theme === 'dark' ? 'Activer le mode clair' : 'Activer le mode sombre';
+    if (persist) {
+      try { localStorage.setItem('mb-theme', theme); } catch (e) {}
+    }
+  }
+
+  apply(currentTheme(), false);
+
+  btn.addEventListener('click', function () {
+    apply(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+  });
+
+  mql.addEventListener('change', function () {
+    var stored = null;
+    try { stored = localStorage.getItem('mb-theme'); } catch (e) {}
+    if (!stored) apply(mql.matches ? 'dark' : 'light', false);
+  });
+})();
+</script>
+</body>
+</html>

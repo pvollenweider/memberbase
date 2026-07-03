@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture — Documentation MemberBase</title>
+<meta name="description" content="Architecture technique de MemberBase : flux de requête, couches, schéma de base de données, conventions de code.">
+<style>
+:root {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --ink: #17181a;
+  --ink-mid: #3d4045;
+  --ink-muted: #565a60;
+  --rule: #dcdcd8;
+  --rule-strong: #b9b9b4;
+  --red: #c02218;
+  --link-hover: #9a1b12;
+  --code-bg: #1d1e21;
+  --code-ink: #e8e8e4;
+  --inline-code-bg: #ececea;
+  --note-bg: #f1f1ef;
+  --focus: #17181a;
+  --z-header: 10;
+  --z-skip: 20;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141416;
+    --surface: #1c1d20;
+    --ink: #ececea;
+    --ink-mid: #c4c6ca;
+    --ink-muted: #a3a6ac;
+    --rule: #2e2f33;
+    --rule-strong: #4a4b50;
+    --red: #ff6b5e;
+    --link-hover: #ffa298;
+    --code-bg: #0f0f11;
+    --code-ink: #dcdcd8;
+    --inline-code-bg: #26272b;
+    --note-bg: #1f2023;
+    --focus: #ececea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141416;
+  --surface: #1c1d20;
+  --ink: #ececea;
+  --ink-mid: #c4c6ca;
+  --ink-muted: #a3a6ac;
+  --rule: #2e2f33;
+  --rule-strong: #4a4b50;
+  --red: #ff6b5e;
+  --link-hover: #ffa298;
+  --code-bg: #0f0f11;
+  --code-ink: #dcdcd8;
+  --inline-code-bg: #26272b;
+  --note-bg: #1f2023;
+  --focus: #ececea;
+}
+
+* { box-sizing: border-box; margin: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.0625rem/1.7 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+code, pre, kbd { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.15; letter-spacing: -0.015em; }
+a { color: var(--red); text-underline-offset: 3px; }
+a:hover { color: var(--link-hover); }
+a:focus-visible, button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+[id] { scroll-margin-top: 5rem; }
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: var(--z-skip);
+  background: var(--ink); color: var(--bg);
+  padding: .75rem 1.25rem; font-weight: 600; text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+.wrap { max-width: 75rem; margin-inline: auto; padding-inline: clamp(1.25rem, 4vw, 2.5rem); }
+
+/* header */
+header.site {
+  position: sticky; top: 0; z-index: var(--z-header);
+  background: var(--bg); border-bottom: 1px solid var(--rule);
+}
+.site-bar { display: flex; align-items: center; gap: .8rem; padding-block: .8rem; }
+.wordmark {
+  font-weight: 800; font-size: 1.05rem; color: var(--ink);
+  text-decoration: none; display: flex; align-items: center; gap: .55rem;
+}
+.wordmark .dot { width: .7em; height: .7em; background: var(--red); flex: none; }
+.breadcrumb { display: flex; align-items: center; gap: .8rem; min-width: 0; }
+.crumb { color: var(--ink-muted); }
+.crumb-link { color: var(--ink-mid); text-decoration: none; font-weight: 500; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+a.crumb-link:hover { color: var(--ink); text-decoration: underline; }
+@media (max-width: 640px) { .breadcrumb .crumb:last-of-type, .breadcrumb span.crumb-link { display: none; } }
+.theme-toggle {
+  margin-left: auto; background: none; border: 1px solid var(--ink-muted); color: var(--ink);
+  padding: .35rem .7rem; font: inherit; font-size: .85rem; cursor: pointer;
+}
+.theme-toggle:hover { border-color: var(--ink); }
+
+/* layout */
+.doc-grid {
+  display: grid; grid-template-columns: 14rem minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 4rem); align-items: start;
+  padding-block: clamp(1.5rem, 4vw, 3rem) clamp(3rem, 6vw, 5rem);
+}
+.doc-nav { position: sticky; top: 4.5rem; }
+.doc-nav h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .8rem; }
+.doc-nav ul { list-style: none; padding: 0; }
+.doc-nav li + li { margin-top: .15rem; }
+.doc-nav a {
+  display: block; padding: .4rem .6rem; text-decoration: none;
+  color: var(--ink-mid); font-size: .95rem; border-left: 2px solid transparent;
+}
+.doc-nav a:hover { color: var(--ink); background: var(--note-bg); }
+.doc-nav a[aria-current="page"] { color: var(--ink); font-weight: 650; border-left-color: var(--red); }
+.doc-nav .gh-link { margin-top: 1.6rem; font-size: .9rem; }
+@media (max-width: 860px) {
+  .doc-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .doc-nav { position: static; border-bottom: 1px solid var(--rule); padding-bottom: 1.2rem; }
+  .doc-nav ul { display: flex; flex-wrap: wrap; gap: .3rem .8rem; }
+  .doc-nav a { border-left: none; border-bottom: 2px solid transparent; padding: .3rem .2rem; }
+  .doc-nav a[aria-current="page"] { border-bottom-color: var(--red); }
+  .doc-nav .gh-link { display: none; }
+}
+
+/* content */
+.doc-main { max-width: 46rem; min-width: 0; }
+.doc-main > h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1.2rem; }
+
+.toc { border: 1px solid var(--rule-strong); padding: 1.1rem 1.4rem 1.2rem; margin-block: 1.6rem 2.4rem; }
+.toc h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .6rem; }
+.toc ul { list-style: none; padding: 0; columns: 2; column-gap: 2.5rem; font-size: .93rem; }
+.toc li { margin-block: .18rem; break-inside: avoid; }
+.toc a { color: var(--ink-mid); text-decoration: none; }
+.toc a:hover { color: var(--red); text-decoration: underline; }
+@media (max-width: 640px) { .toc ul { columns: 1; } }
+
+.prose > * + * { margin-top: 1rem; }
+.prose h2 {
+  font-size: 1.55rem; font-weight: 750;
+  margin-top: 3rem; padding-top: 1.6rem; border-top: 1px solid var(--rule);
+}
+.prose h3 { font-size: 1.18rem; font-weight: 650; margin-top: 2.2rem; }
+.prose h4 { font-size: 1.02rem; font-weight: 650; margin-top: 1.8rem; }
+.prose p, .prose li { color: var(--ink-mid); }
+.prose li strong, .prose p strong { color: var(--ink); }
+.prose ul, .prose ol { padding-left: 1.4rem; }
+.prose li + li { margin-top: .35rem; }
+.prose li > ul, .prose li > ol { margin-top: .35rem; }
+/* Section separators come from h2 border-top; markdown --- rules would double them. */
+.prose hr { display: none; }
+.prose blockquote {
+  background: var(--note-bg); border: 1px solid var(--rule);
+  padding: .9rem 1.2rem; font-size: .97rem;
+}
+.prose blockquote p { color: var(--ink-mid); }
+.prose img { max-width: 100%; height: auto; }
+
+.anchor {
+  margin-left: .4em; text-decoration: none; color: var(--ink-muted);
+  font-weight: 400; opacity: 0; font-size: .85em;
+}
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { opacity: 1; }
+
+.prose code, .toc code {
+  background: var(--inline-code-bg); padding: .1em .35em;
+  font-size: .86em; border-radius: 2px;
+  overflow-wrap: anywhere;
+}
+.prose pre {
+  background: var(--code-bg); color: var(--code-ink);
+  padding: 1.1rem 1.3rem; overflow-x: auto;
+  font-size: .88rem; line-height: 1.6;
+}
+.prose pre code { background: none; padding: 0; font-size: inherit; border-radius: 0; }
+
+.table-scroll { overflow-x: auto; position: relative; }
+.table-scroll:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.prose table { border-collapse: collapse; font-size: .92rem; min-width: 100%; }
+.prose th, .prose td { text-align: left; padding: .5rem .8rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.prose thead th {
+  font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--ink-muted); font-weight: 650; border-bottom: 1px solid var(--rule-strong);
+}
+.prose td { color: var(--ink-mid); }
+.prose td code, .prose th code { white-space: nowrap; }
+
+/* pager */
+.pager {
+  display: flex; justify-content: space-between; gap: 1rem;
+  margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule-strong);
+}
+.pager-link { display: block; text-decoration: none; font-weight: 650; color: var(--ink); max-width: 45%; }
+.pager-link:hover { color: var(--red); }
+.pager-link .pager-dir { display: block; font-size: .82rem; font-weight: 400; color: var(--ink-muted); margin-bottom: .2rem; }
+.pager-link.next { text-align: right; margin-left: auto; }
+
+/* footer */
+.site-footer { border-top: 1px solid var(--rule); padding-block: 1.8rem; }
+.site-footer p { font-size: .92rem; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#doc-content">Aller au contenu principal</a>
+
+<header class="site">
+  <div class="wrap site-bar">
+    <nav class="breadcrumb" aria-label="Fil d'Ariane">
+      <a class="wordmark" href="../index.html"><span class="dot" aria-hidden="true"></span>MemberBase</a>
+      <span class="crumb" aria-hidden="true">/</span>
+      <a class="crumb-link" href="./">Documentation</a>
+      <span class="crumb" aria-hidden="true">/</span>
+      <span class="crumb-link" aria-current="page">Architecture</span>
+    </nav>
+    <button type="button" class="theme-toggle" id="theme-toggle">Activer le mode sombre</button>
+  </div>
+</header>
+
+<div class="wrap doc-grid">
+  <nav class="doc-nav" aria-label="Guides de documentation">
+    <h2>Guides</h2>
+    <ul>
+          <li><a href="user.html">Guide utilisateur</a></li>
+          <li><a href="admin.html">Guide administrateur</a></li>
+          <li><a href="api.html">API REST</a></li>
+          <li><a href="architecture.html" aria-current="page">Architecture</a></li>
+    </ul>
+    <p class="gh-link"><a href="https://github.com/pvollenweider/memberbase">Projet sur GitHub</a></p>
+  </nav>
+
+  <main id="doc-content" class="doc-main">
+    <h1>Architecture</h1>
+    <nav class="toc" aria-labelledby="toc-h">
+      <h2 id="toc-h">Sur cette page</h2>
+      <ul>
+        <li><a href="#1-vue-densemble--principes">1. Vue d'ensemble &amp; principes</a></li>
+        <li><a href="#2-flux-dune-requête-get-navigation-htmx">2. Flux d'une requête GET (navigation htmx)</a></li>
+        <li><a href="#3-flux-dune-requête-post-action">3. Flux d'une requête POST (action)</a></li>
+        <li><a href="#4-couches-architecturales">4. Couches architecturales</a></li>
+        <li><a href="#5-schéma-de-base-de-données">5. Schéma de base de données</a></li>
+        <li><a href="#6-classes-de-domaine">6. Classes de domaine</a></li>
+        <li><a href="#7-authentification--rôles">7. Authentification &amp; rôles</a></li>
+        <li><a href="#8-api-rest-htmlapi">8. API REST (html/api/)</a></li>
+        <li><a href="#9-assistant-dimport-csv--tsv">9. Assistant d'import CSV / TSV</a></li>
+        <li><a href="#10-frontend">10. Frontend</a></li>
+        <li><a href="#11-génération-de-documents-attestations-pdf">11. Génération de documents (attestations PDF)</a></li>
+        <li><a href="#12-tests--ci">12. Tests &amp; CI</a></li>
+        <li><a href="#13-conventions-de-code">13. Conventions de code</a></li>
+      </ul>
+    </nav>
+    <div class="prose">
+<p>MemberBase <strong>v3.5.6</strong> — application PHP 8.2 de gestion des membres pour ONG.
+Licence AGPL-3.0-or-later.</p>
+<blockquote>
+<p><strong>Terminologie.</strong> Depuis la v3.5.4, l&#39;interface parle de <strong>Segment</strong> (au lieu de
+« groupe ») et de <strong>Segment combiné</strong> (au lieu de « métagroupe »). Ce sont des
+libellés uniquement : le code et l&#39;API conservent les noms techniques d&#39;origine
+— table <code>team</code>, table <code>metagroup</code>, endpoints <code>/api/groups</code>. Dans tout ce document,
+<strong>« Segment » (UI) = entité <code>team</code> (technique)</strong> et <strong>« Segment combiné » (UI) =
+entité <code>metagroup</code></strong>.</p>
+</blockquote>
+<hr>
+<h2 id="1-vue-densemble--principes">1. Vue d&#39;ensemble &amp; principes<a class="anchor" href="#1-vue-densemble--principes" aria-label="Lien d'ancrage">#</a></h2>
+<p>MemberBase est une application PHP procédurale, sans framework MVC, sans namespace,
+sans Composer. Elle repose sur cinq principes structurants :</p>
+<ul>
+<li><strong>Point d&#39;entrée unique</strong> : <code>html/index.php</code> reçoit toutes les requêtes de
+l&#39;interface web. Les fragments de vue et les handlers d&#39;action sont inclus
+dynamiquement par deux routeurs (<code>routing/views.php</code>, <code>routing/actions.php</code>).</li>
+<li><strong>Pas d&#39;ORM</strong> : accès PDO paramétré, avec des classes de domaine en style
+<em>active-record</em>. La connexion <code>$pdo</code> est un global accédé via <code>global $pdo</code>.</li>
+<li><strong>htmx 2.0 pour la navigation</strong> : <code>&lt;body hx-boost=&quot;true&quot;&gt;</code> transforme liens et
+formulaires en requêtes XHR ; la réponse (fragment HTML pur, jamais de JSON) est
+swappée dans <code>#main-content</code> sans recharger le layout.</li>
+<li><strong>Alpine.js 3 pour l&#39;état local</strong> : composants réactifs déclarés dans des fichiers
+JS externes (<code>html/js/member-general-form.js</code>) pour rester compatibles avec une
+CSP <code>self</code>.</li>
+<li><strong>API REST séparée</strong> : le répertoire <code>html/api/</code> expose des endpoints JSON
+machine-to-machine, distincts de l&#39;interface htmx mais partageant la même session.</li>
+</ul>
+<p>Garde constante des listings : la colonne <code>users.status</code> (<code>1</code> = actif, <code>0</code> = archivé)
+est filtrée partout via <code>WHERE users.status = 1</code>.</p>
+<hr>
+<h2 id="2-flux-dune-requête-get-navigation-htmx">2. Flux d&#39;une requête GET (navigation htmx)<a class="anchor" href="#2-flux-dune-requête-get-navigation-htmx" aria-label="Lien d'ancrage">#</a></h2>
+<pre><code>Navigateur
+  |  GET index.php?view=generalData&amp;id=42   [HX-Request: true]
+  v
+html/index.php
+  |-- define(&#39;APP_ENTRY&#39;, true); ob_start();
+  |-- require auth.php → requireLogin(), requirePasswordChange()
+  |-- include locales, bootstrap.php, classes/*
+  |-- $isHtmx = !empty($_SERVER[&#39;HTTP_HX_REQUEST&#39;])   → true
+  |       include routing/actions.php   (traite ?action= si présent)
+  |       include routing/views.php     (dispatche ?view=)
+  |            └── include views/users_edit_form.php  → echo &lt;div&gt;…&lt;/div&gt;
+  |       ob_end_flush(); exit;
+  v
+Navigateur : htmx swappe innerHTML de #main-content, pushState (hx-push-url)
+</code></pre>
+<p>Quand <code>$isHtmx</code> est <code>false</code> (chargement direct/rafraîchissement), <code>index.php</code> émet le
+document complet : <code>&lt;!DOCTYPE html&gt;</code>, <code>&lt;head&gt;</code> avec tous les scripts vendor, menu,
+<code>#main-content</code>, toast, footer. Le contenu de <code>#main-content</code> est rendu par les mêmes
+deux <code>include</code> de routing dans les deux chemins.</p>
+<hr>
+<h2 id="3-flux-dune-requête-post-action">3. Flux d&#39;une requête POST (action)<a class="anchor" href="#3-flux-dune-requête-post-action" aria-label="Lien d'ancrage">#</a></h2>
+<p>Pattern Post-Redirect-Get adapté à htmx.</p>
+<pre><code>Navigateur
+  |  POST index.php  body: action=updateUser&amp;id=42&amp;…   [HX-Request: true]
+  v
+html/index.php → include routing/actions.php
+  |-- $ACTION_MAP[&#39;updateUser&#39;] = &#39;members&#39;
+  |-- require includes/actions/members.php
+  |       vérifie le rôle (canWrite/isManager/isAdmin selon l&#39;action)
+  |       valide, $user-&gt;save(), auditLog(...)
+  |       if ($isHtmx) { header(&#39;HX-Location: …?view=generalData&amp;id=42&#39;); exit; }
+  |       header(&#39;Location: …&#39;); exit;   // fallback non-htmx
+  v
+Navigateur : htmx capte HX-Location → nouveau GET → swap #main-content
+             + toast #casaToast si le fragment contient #casa-save-ok
+</code></pre>
+<p><code>HX-Location</code> (et non un <code>302 Location</code>) est utilisé pour toute réponse à une requête
+htmx, afin que htmx effectue une navigation propre sans rechargement.</p>
+<hr>
+<h2 id="4-couches-architecturales">4. Couches architecturales<a class="anchor" href="#4-couches-architecturales" aria-label="Lien d'ancrage">#</a></h2>
+<p>Le knowledge graph (<code>.understand-anything/knowledge-graph.json</code> : 192 nœuds, 342 arêtes)
+identifie <strong>13 couches</strong>.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — 4. Couches architecturales" tabindex="0"><table><thead><tr><th scope="col">Couche</th><th scope="col">Rôle</th><th scope="col">Fichiers représentatifs</th></tr></thead><tbody><tr><td><code>entry</code></td><td>Points d&#39;entrée &amp; pages racine</td><td><code>html/index.php</code>, <code>login.php</code>, <code>set-password.php</code>, <code>attestation_don.php</code>, <code>install.php</code></td></tr>
+<tr><td><code>core-lib</code></td><td>PDO/settings, helpers date, audit log, constantes de filtres, champs d&#39;import</td><td><code>html/includes/lib/bootstrap.php</code>, <code>auth.php</code>, <code>import_fields.php</code></td></tr>
+<tr><td><code>routing</code></td><td>Dispatch GET (<code>views.php</code>) et POST (<code>actions.php</code> + <code>$ACTION_MAP</code>)</td><td><code>html/includes/routing/</code></td></tr>
+<tr><td><code>views</code></td><td>Fragments PHP inclus par <code>views.php</code></td><td><code>html/includes/views/</code>, <code>includes/partials/</code></td></tr>
+<tr><td><code>concepts</code></td><td>Concepts transverses (dirty-guard, htmx, terminologie…)</td><td>(transversal, pas de fichier unique)</td></tr>
+<tr><td><code>domain</code></td><td>Classes active-record</td><td><code>html/classes/</code> (User, Team, Compta, Metagroup, UserProperty)</td></tr>
+<tr><td><code>actions</code></td><td>Handlers POST procéduraux groupés par domaine</td><td><code>html/includes/actions/</code></td></tr>
+<tr><td><code>api</code></td><td>Endpoints REST JSON</td><td><code>html/api/</code></td></tr>
+<tr><td><code>tools</code></td><td>Scripts utilitaires CLI</td><td><code>html/tools/</code> (<code>import.php</code>, <code>fix_encoding.php</code>, <code>guest2010.php</code>)</td></tr>
+<tr><td><code>schema</code></td><td>DDL MariaDB idempotent (<code>CREATE TABLE IF NOT EXISTS</code>)</td><td><code>schema.sql</code></td></tr>
+<tr><td><code>infra</code></td><td>Docker, CI/CD, Makefile</td><td><code>docker-compose*.yml</code>, <code>Dockerfile</code>, <code>.github/workflows/</code></td></tr>
+<tr><td><code>tests</code></td><td>Suite Playwright E2E, fixtures, reset DB</td><td><code>tests/</code></td></tr>
+<tr><td><code>docs</code></td><td>README, CHANGELOG, DESIGN, runbooks</td><td><code>*.md</code>, <code>doc/</code></td></tr></tbody></table></div>
+<blockquote>
+<p>Le frontend (CSS/JS vendor) n&#39;est pas une couche du graphe ; il est décrit en
+§9. Les libellés <code>auth</code>/<code>frontend</code> de versions antérieures de ce document ne
+correspondaient pas au graphe réel.</p>
+</blockquote>
+<hr>
+<h2 id="5-schéma-de-base-de-données">5. Schéma de base de données<a class="anchor" href="#5-schéma-de-base-de-données" aria-label="Lien d'ancrage">#</a></h2>
+<p>Toutes les tables sont <strong>InnoDB / utf8mb4</strong>. Il n&#39;y a <strong>aucune clé étrangère
+déclarée</strong> : l&#39;intégrité référentielle est assurée par le code (<code>SET foreign_key_checks = 0</code>
+dans <code>schema.sql</code>). Les dates métier sont stockées en <strong>timestamp Unix</strong> (<code>int(16)</code>),
+pas en <code>DATE</code> SQL ; conversions via <code>formatedDateToTimeStamp()</code> / <code>timeStampToformatedDate()</code>.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — 5. Schéma de base de données" tabindex="0"><table><thead><tr><th scope="col">Table</th><th scope="col">Rôle</th><th scope="col">Clé / séquence</th></tr></thead><tbody><tr><td><code>users</code></td><td>Membres : identité, coordonnées (dont <strong><code>email_alt</code></strong>), <code>sexe</code> (na/f/m/hf), <code>status</code> (1/0), dates Unix</td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>team</code></td><td>Segments : <code>name</code>, <code>hidden</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>user_properties</code></td><td>EAV : appartenance segment (<code>parameter=&#39;team_&lt;id&gt;&#39;</code>, <code>value=&#39;true&#39;</code>) et notes de suivi</td><td>pas de PK, <code>id</code> legacy</td></tr>
+<tr><td><code>metagroup</code></td><td>Segments combinés / catégories : <code>name</code>, <code>teamid</code>, <code>is_filter</code>, <code>sort_order</code></td><td><code>id</code> via <code>maxval</code></td></tr>
+<tr><td><code>compta_type</code></td><td>Types d&#39;écriture : <code>label</code>, <code>color</code>, <code>sort_order</code>, <code>is_cotisation</code>, <code>is_excluded_from_donation</code>, <code>is_institutional</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>compta</code></td><td>Écritures : <code>user_id</code>, <code>date</code> (Unix), <code>libele</code>, <code>sum</code> (varchar, CHF), <code>quittance</code>, <code>type_id</code>, <code>wants_attestation</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>maxval</code></td><td>Compteur de séquence manuel (clé/valeur)</td><td>PK <code>parameter</code></td></tr>
+<tr><td><code>app_settings</code></td><td>Configuration organisation (clé/valeur : <code>org_name</code>, <code>membre_team</code>, <code>archive_id</code>, etc.)</td><td>PK <code>key</code></td></tr>
+<tr><td><code>app_users</code></td><td>Comptes applicatifs : <code>password_hash</code> (bcrypt), <code>role</code> enum, <code>force_password_change</code>, <code>is_active</code>, <code>last_login</code>, <code>reset_token</code>, <code>token_expires_at</code>, <code>email</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>audit_log</code></td><td>Journal : <code>app_user_id</code>, <code>username</code>, <code>action</code>, <code>detail</code>, <code>subject_user_id</code>, <code>created_at</code></td><td><code>id</code> AUTO_INCREMENT</td></tr></tbody></table></div>
+<h3 id="relations">Relations<a class="anchor" href="#relations" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code>app_users ── session ──&gt; index.php ── actions/* ── auditLog() ──&gt; audit_log
+
+users (id)
+  ├── user_properties (user_id)
+  │        parameter = &#39;team_&lt;N&gt;&#39;  → appartenance au segment team(id=N)
+  │        parameter = &#39;suivi_*&#39;   → notes de suivi (UserProperty)
+  └── compta (user_id) ── type_id ──&gt; compta_type
+                                        (is_cotisation / is_excluded_from_donation / is_institutional)
+
+team (id) ──&gt; metagroup (teamid)   [1 ligne header (teamid NULL) + N lignes membres]
+</code></pre>
+<h3 id="notes-sur-le-modèle">Notes sur le modèle<a class="anchor" href="#notes-sur-le-modèle" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li><strong>L&#39;appartenance à un segment n&#39;a pas de table de jointure</strong> : elle vit dans
+<code>user_properties</code> (<code>parameter = &#39;team_&lt;teamId&gt;&#39;</code>, <code>value = &#39;true&#39;</code>).</li>
+<li><code>metagroup.id</code> est <strong>partagé</strong> entre la ligne header (<code>teamid IS NULL</code>, portant
+<code>name</code>) et les lignes membres (<code>teamid = N</code>), d&#39;où l&#39;usage de <code>maxval</code> plutôt que
+d&#39;<code>AUTO_INCREMENT</code>.</li>
+<li><code>user_properties.id</code> est une colonne héritée non fiable (nombreuses lignes à <code>0</code>) ;
+l&#39;identité d&#39;une propriété repose sur <code>user_id</code> + <code>parameter</code>. Le commentaire de
+<code>bootstrap.php</code> mentionne ~83k lignes concernées.</li>
+</ul>
+<hr>
+<h2 id="6-classes-de-domaine">6. Classes de domaine<a class="anchor" href="#6-classes-de-domaine" aria-label="Lien d'ancrage">#</a></h2>
+<p>Fichiers dans <code>html/classes/</code>, style <em>active-record</em>, sans namespace, <code>global $pdo</code>.</p>
+<h3 id="user-userclassphp--54-méthodes"><code>User</code> (<code>user_class.php</code>) — 54 méthodes<a class="anchor" href="#user-userclassphp--54-méthodes" aria-label="Lien d'ancrage">#</a></h3>
+<p>Classe centrale. Regroupe :</p>
+<ul>
+<li><strong>Chargement</strong> : <code>lookupUser(int $id)</code>, <code>lookupUserByEmail(string $email)</code>,
+<code>hydrateFromRow()</code> (privé).</li>
+<li><strong>Getters/setters</strong> pour chaque colonne de <code>users</code> (dont <code>getEmailAlt</code>/<code>setEmailAlt</code>,
+<code>setBirthDay</code> qui parse une date d/m/Y).</li>
+<li><strong>Segments</strong> : <code>getProperty()</code>, <code>isMemberOfTeam()</code>, <code>addMembership()</code>, <code>removeMembership()</code>.</li>
+<li><strong>Persistance</strong> : <code>save()</code> (retourne l&#39;id, insert ou update selon présence d&#39;id),
+<code>remove()</code>.</li>
+<li><strong>Requêtes comptables par année</strong> (utilisées par les vues donateurs) :</li>
+</ul>
+<pre><code class="language-php">public function isCotisationPayed(int $year): int  // 1re écriture cotisation de l&#39;année, ou -1
+public function hasPayed(int $year): int           // tout paiement non-cotisation
+public function hasDonated(int $year): int         // don pur (exclut is_excluded_from_donation)
+public function hasAnyEntry(int $year): int        // n&#39;importe quelle écriture
+public function hasComptaEntries(int $year, int $number): bool
+public function hasComptaEntry(): bool
+</code></pre>
+<h3 id="team-teamclassphp"><code>Team</code> (<code>team_class.php</code>)<a class="anchor" href="#team-teamclassphp" aria-label="Lien d'ancrage">#</a></h3>
+<p><code>lookupTeam()</code>, <code>save()</code>, <code>remove()</code>, <code>isUsed()</code>, et gestion de l&#39;appartenance aux
+segments combinés : <code>isMemberOfMetagroup()</code>, <code>addMetagroupMembership()</code>,
+<code>removeMetagroupMembership()</code>.</p>
+<h3 id="compta-comptaclassphp"><code>Compta</code> (<code>compta_class.php</code>)<a class="anchor" href="#compta-comptaclassphp" aria-label="Lien d'ancrage">#</a></h3>
+<p><code>lookupCompta()</code>, <code>save()</code>, <code>remove()</code>, getters/setters (date, <code>libele</code>, <code>sum</code>,
+<code>quittance</code>, <code>type_id</code>, <code>wants_attestation</code>).</p>
+<h3 id="metagroup-metagroupclassphp"><code>Metagroup</code> (<code>metagroup_class.php</code>)<a class="anchor" href="#metagroup-metagroupclassphp" aria-label="Lien d'ancrage">#</a></h3>
+<p><code>lookupMetagroup()</code>, <code>save()</code>, <code>remove()</code>, <code>isUsed()</code>. <code>id</code> alloué via <code>maxval</code>.</p>
+<h3 id="userproperty-propertyclassphp"><code>UserProperty</code> (<code>property_class.php</code>)<a class="anchor" href="#userproperty-propertyclassphp" aria-label="Lien d'ancrage">#</a></h3>
+<p>Note de suivi ou propriété générique. <code>lookupUserProperty()</code>, <code>save()</code>, <code>remove()</code>,
+getters/setters (<code>parameter</code>, <code>date</code>, <code>value</code>).</p>
+<hr>
+<h2 id="7-authentification--rôles">7. Authentification &amp; rôles<a class="anchor" href="#7-authentification--rôles" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="comptes-appusers-distincte-de-users">Comptes (<code>app_users</code>, distincte de <code>users</code>)<a class="anchor" href="#comptes-appusers-distincte-de-users" aria-label="Lien d'ancrage">#</a></h3>
+<p><code>auth.php</code> gère session, login (<code>authLogin</code>), logout (<code>authLogout</code>) et gardes. Le login
+vérifie <code>is_active = 1</code>, <code>password_verify()</code> contre le hash bcrypt, appelle
+<code>session_regenerate_id(true)</code>, alimente <code>$_SESSION[&#39;app_user_*&#39;]</code> et met <code>last_login = NOW()</code>.
+Le cookie de session est <code>HttpOnly</code>, <code>SameSite=Lax</code>, et <code>Secure</code> si HTTPS détecté.</p>
+<h3 id="les-4-rôles-enum-appusersrole">Les 4 rôles (enum <code>app_users.role</code>)<a class="anchor" href="#les-4-rôles-enum-appusersrole" aria-label="Lien d'ancrage">#</a></h3>
+<p>Prédicats réels de <code>auth.php</code> — chacun autorise les rôles supérieurs :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Les 4 rôles (enum app_users.role)" tabindex="0"><table><thead><tr><th scope="col">Rôle</th><th scope="col">Prédicat vrai pour</th><th scope="col">Droits</th></tr></thead><tbody><tr><td><code>readonly</code></td><td><code>canRead()</code>, <code>isLoggedIn()</code></td><td>Lecture seule : vues et GET API, aucune écriture</td></tr>
+<tr><td><code>user</code></td><td><code>canWrite()</code>, <code>canRead()</code></td><td>+ écriture des membres, comptabilité, suivi</td></tr>
+<tr><td><code>manager</code></td><td><code>isManager()</code>, <code>canWrite()</code>, <code>canRead()</code></td><td>+ segments, segments combinés, réglages, <strong>import CSV</strong></td></tr>
+<tr><td><code>admin</code></td><td><code>isAdmin()</code> (+ tous les précédents)</td><td>+ comptes applicatifs, suppression définitive, anonymisation</td></tr></tbody></table></div>
+<pre><code class="language-php">function isLoggedIn(): bool  // session app_user_id présent
+function isAdmin(): bool     // role === &#39;admin&#39;
+function isManager(): bool   // role ∈ {admin, manager}
+function canWrite(): bool    // role ∈ {admin, manager, user}
+function canRead(): bool     // role ∈ {admin, manager, user, readonly}
+</code></pre>
+<h3 id="gardes">Gardes<a class="anchor" href="#gardes" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li><code>requireLogin()</code> : redirige vers <code>login.php</code> si non connecté.</li>
+<li><code>requirePasswordChange()</code> : si <code>force_password_change</code>, bloque toute vue/action sauf
+<code>changePassword</code> et <code>logout</code> (redirige vers <code>?view=changePassword</code>).</li>
+<li><code>routing/views.php</code> déclare une <strong>table de routes</strong> (<code>$UA_VIEW_ROUTES</code>) associant
+chaque vue à son fichier et sa garde : <code>addUser</code>/<code>removeCompta</code>/<code>deleteComptaConfirm</code>/
+<code>removeSuivi</code>/<code>removeSuiviConfirm</code>→<code>canWrite</code>, <code>importStep1/2/3</code>/<code>mergeUsers</code>→<code>isManager</code>,
+<code>deleteUser</code>/<code>deleteUserConfirm</code>/<code>anonymizeUser</code>→<code>isAdmin</code>. Une garde refusée renvoie
+un bloc <code>alert-danger</code> (« Accès refusé ») ; une vue absente de la table renvoie
+« Vue introuvable ». Ajouter une route force donc une décision de garde explicite.</li>
+<li>La force brute est déléguée à Fail2Ban (logs Apache), pas au code PHP.</li>
+</ul>
+<hr>
+<h2 id="8-api-rest-htmlapi">8. API REST (<code>html/api/</code>)<a class="anchor" href="#8-api-rest-htmlapi" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="structure-et-routage">Structure et routage<a class="anchor" href="#structure-et-routage" aria-label="Lien d'ancrage">#</a></h3>
+<p><code>html/api/.htaccess</code> réécrit les URL REST vers les scripts (ex. <code>members/42/groups</code> →
+<code>members.php?id=42&amp;sub=groups</code>). Endpoints :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Structure et routage" tabindex="0"><table><thead><tr><th scope="col">Fichier</th><th scope="col">Ressource</th><th scope="col">Méthodes</th></tr></thead><tbody><tr><td><code>members.php</code></td><td><code>/api/members</code></td><td>GET (liste + <code>{id}</code> + <code>{id}/groups</code>), POST, PUT/PATCH, DELETE</td></tr>
+<tr><td><code>compta.php</code></td><td><code>/api/compta</code></td><td>GET, POST, PUT/PATCH, DELETE</td></tr>
+<tr><td><code>compta-types.php</code></td><td><code>/api/compta-types</code></td><td>GET uniquement (sinon 405)</td></tr>
+<tr><td><code>groups.php</code></td><td><code>/api/groups</code></td><td>GET, POST, PUT/PATCH, DELETE, membres</td></tr>
+<tr><td><code>suivi.php</code></td><td><code>/api/suivi</code></td><td>GET, POST, PUT/PATCH, DELETE</td></tr></tbody></table></div>
+<h3 id="middleware-bootstrapphp">Middleware <code>_bootstrap.php</code><a class="anchor" href="#middleware-bootstrapphp" aria-label="Lien d'ancrage">#</a></h3>
+<p>Chaque endpoint commence par <code>require_once &#39;_bootstrap.php&#39;</code>, qui pose l&#39;en-tête JSON,
+charge <code>bootstrap.php</code> + <code>auth.php</code>, refuse <code>401</code> si <code>!isLoggedIn()</code>, et fournit
+<code>apiError(int, string): never</code>. <strong>La session PHP est partagée avec l&#39;interface web</strong> :
+pas de JWT ni de clé API.</p>
+<h3 id="gardes-de-rôle-défense-en-profondeur">Gardes de rôle (défense en profondeur)<a class="anchor" href="#gardes-de-rôle-défense-en-profondeur" aria-label="Lien d'ancrage">#</a></h3>
+<p>Au-delà du <code>401</code>, chaque handler contrôle le rôle :</p>
+<ul>
+<li><strong>Lectures</strong> (GET) : <code>canRead()</code> sinon <code>403</code>.</li>
+<li><strong>Écritures membres/compta/suivi</strong> (POST/PUT/PATCH/DELETE) : <code>canWrite()</code> sinon <code>403</code>.</li>
+<li><strong>Écritures segments</strong> (<code>groups.php</code> create/update/delete/add-member/remove-member) :
+<code>isManager()</code> sinon <code>403</code>.</li>
+<li><strong>Suppression définitive d&#39;un membre</strong> (<code>DELETE /api/members/{id}?dispose=delete</code>) :
+<code>isAdmin()</code>. Par défaut (<code>dispose=deactivate</code>) le membre est seulement archivé
+(<code>status=0</code>).</li>
+</ul>
+<h3 id="membersphp-en-détail"><code>members.php</code> en détail<a class="anchor" href="#membersphp-en-détail" aria-label="Lien d'ancrage">#</a></h3>
+<p>Dispatch par <code>match (true)</code> sur <code>REQUEST_METHOD</code> + présence de <code>id</code>/<code>sub</code> :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — members.php en détail" tabindex="0"><table><thead><tr><th scope="col">Méthode</th><th scope="col">URL</th><th scope="col">Handler</th></tr></thead><tbody><tr><td>GET</td><td>/api/members</td><td><code>handleList()</code></td></tr>
+<tr><td>GET</td><td>/api/members/{id}</td><td><code>handleGet()</code></td></tr>
+<tr><td>GET</td><td>/api/members/{id}/groups</td><td><code>handleGetGroups()</code></td></tr>
+<tr><td>POST</td><td>/api/members</td><td><code>handleCreate()</code> (201, <code>lastName</code> requis)</td></tr>
+<tr><td>PUT / PATCH</td><td>/api/members/{id}</td><td><code>handleUpdate()</code></td></tr>
+<tr><td>DELETE</td><td>/api/members/{id}</td><td><code>handleDelete()</code> (204)</td></tr>
+<tr><td>(autre)</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td><code>apiError(405)</code></td></tr></tbody></table></div>
+<p><code>handleList()</code> supporte <code>?search=</code>, <code>?team=</code>, <code>?metagroup=</code>, <code>?page=</code>, <code>?limit=</code>
+(max 2000), <code>?types=</code>. <code>handleUpdate()</code> charge l&#39;avant, applique le patch, recharge
+l&#39;après, calcule un diff lisible et l&#39;écrit dans <code>audit_log</code> (<code>updateUser</code>).</p>
+<h3 id="filtres-virtuels-memberfilter">Filtres virtuels (<code>MemberFilter</code>)<a class="anchor" href="#filtres-virtuels-memberfilter" aria-label="Lien d'ancrage">#</a></h3>
+<p>Un <code>?team=</code> <strong>négatif</strong> déclenche des requêtes métier dédiées, résolues par la classe
+partagée <code>MemberFilter</code> (<code>html/classes/member_filter_class.php</code>) — seule source de
+vérité consommée à la fois par la liste des membres (<code>users_list.php</code>) et par l&#39;API
+(<code>api/members.php</code>). <code>MemberFilter::resolveIds()</code> retourne la map <code>id =&gt; true</code> des
+membres correspondants ; <code>MemberFilter::isVirtual()</code> teste si un ID de segment est
+un filtre virtuel. Constantes définies dans <code>bootstrap.php</code> :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Filtres virtuels (MemberFilter)" tabindex="0"><table><thead><tr><th scope="col">Constante</th><th scope="col">Valeur</th><th scope="col">Sémantique</th></tr></thead><tbody><tr><td><code>FILTER_ALL_EXCEPT_ARCHIVES</code></td><td>-3</td><td>Tous les membres actifs</td></tr>
+<tr><td><code>FILTER_UNPAID_COTI_CURRENT</code></td><td>-4</td><td>Membres du segment <code>membre_team</code> sans cotisation cette année</td></tr>
+<tr><td><code>FILTER_UNPAID_COTI_3Y</code></td><td>-3333</td><td>Ont déjà cotisé mais pas depuis 3 ans</td></tr>
+<tr><td><code>FILTER_NO_ACTIVITY_10Y</code></td><td>-5555</td><td>Aucune écriture compta depuis 10 ans</td></tr>
+<tr><td><code>FILTER_NON_INSTIT_LAST_YEAR</code></td><td>-6666</td><td>Paiement non-institutionnel l&#39;an passé</td></tr></tbody></table></div>
+<hr>
+<h2 id="9-assistant-dimport-csv--tsv">9. Assistant d&#39;import CSV / TSV<a class="anchor" href="#9-assistant-dimport-csv--tsv" aria-label="Lien d'ancrage">#</a></h2>
+<p>Wizard web en 3 étapes réservé aux <strong>Manager/Admin</strong> (<code>isManager()</code> gardé côté vue
+<em>et</em> côté action).</p>
+<ul>
+<li><strong>Actions</strong> (<code>includes/actions/import.php</code>) : <code>importUpload</code> → <code>importApply</code> →
+<code>importResolveDuplicates</code>, mappées vers le handler <code>import</code> dans <code>$ACTION_MAP</code>.</li>
+<li><strong>Vues</strong> : <code>includes/views/import_step{1,2,3}.php</code>.</li>
+<li><strong>Source unique des champs importables</strong> : <code>includes/lib/import_fields.php</code>
+(<code>importFieldLabels()</code>, <code>importAllowedFields()</code>, plus la normalisation de civilité
+<code>importNormalizeSexe()</code> → <code>na</code>/<code>f</code>/<code>m</code>/<code>hf</code> et <code>importFieldValue()</code>). Champs :
+lastName, firstName, society, sexe, title, email, emailAlt, tel, telProf, portable,
+fax, address, npa, web, birthDay, comment.</li>
+</ul>
+<p><strong>Étape 1 (<code>importUpload</code>)</strong> : upload, conversion Latin-1 → UTF-8 si nécessaire,
+suppression du BOM, détection du délimiteur (<code>\t</code>/<code>;</code>/<code>,</code>) sur la 1re ligne. Limites :
+<strong>5 Mo</strong> et <strong>5 000 lignes</strong> (troncature signalée à l&#39;étape 2). Les lignes parsées sont
+stockées dans <code>$_SESSION[&#39;_import_*&#39;]</code>.</p>
+<p><strong>Étape 2 (<code>importApply</code>)</strong> : mapping colonne → champ ; au moins une colonne doit viser
+un champ membre. Détection de doublons par <strong>maps en mémoire préchargées en une seule
+requête</strong> (email, puis prénom+nom) — pas de SELECT par ligne. Création des contacts +
+rattachement au segment cible (<code>existing</code>/<code>new</code>/<code>auto</code> ; segment auto nommé
+<code>Import JJ.MM.AAAA HH:MM</code>), le tout dans une <strong>transaction</strong>. Les doublons existants
+rejoignent aussi le segment. <strong>Les lignes parsées sont libérées de la session</strong> dès la
+fin de l&#39;étape (<code>unset</code>, anti-bloat).</p>
+<p><strong>Étape 3 (<code>importResolveDuplicates</code>)</strong> : résolution par ligne — <code>ignore</code>, <code>fill</code>
+(compléter les champs vides), ou écrasement. Chaque création/mise à jour/ajout au
+segment est journalisée (<code>auditLog</code>).</p>
+<hr>
+<h2 id="10-frontend">10. Frontend<a class="anchor" href="#10-frontend" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="bibliothèques-auto-hébergées-sauf-tiptap">Bibliothèques (auto-hébergées, sauf TipTap)<a class="anchor" href="#bibliothèques-auto-hébergées-sauf-tiptap" aria-label="Lien d'ancrage">#</a></h3>
+<div class="table-scroll" role="region" aria-label="Tableau — Bibliothèques (auto-hébergées, sauf TipTap)" tabindex="0"><table><thead><tr><th scope="col">Bibliothèque</th><th scope="col">Version</th><th scope="col">Usage</th></tr></thead><tbody><tr><td>Bootstrap</td><td>5.3</td><td>Grille, composants, utilitaires</td></tr>
+<tr><td>htmx</td><td>2.0.4</td><td>Navigation SPA-like, swaps partiels</td></tr>
+<tr><td>Alpine.js</td><td>3.x</td><td>Composants réactifs (formulaire membre)</td></tr>
+<tr><td>DataTables + Bootstrap 5</td><td>1.13.x</td><td>Tableaux triables/filtrables/exportables</td></tr>
+<tr><td>jQuery</td><td>3.7.1</td><td>Requis par DataTables &amp; datetimepicker</td></tr>
+<tr><td>Moment.js + datetimepicker</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td>Saisie de dates d/m/Y</td></tr>
+<tr><td>Chart.js</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td>Graphiques (vue résumé)</td></tr>
+<tr><td>pdfmake + jszip</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td>Exports DataTables (PDF/Excel)</td></tr>
+<tr><td>Font Awesome</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td>Icônes</td></tr>
+<tr><td>TipTap 2 (via <code>esm.sh</code>)</td><td>2.x</td><td>Éditeur rich-text du champ commentaire</td></tr>
+<tr><td>Inter</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td>Police auto-hébergée</td></tr></tbody></table></div>
+<p>TipTap est le <strong>seul</strong> module chargé depuis un CDN (<code>esm.sh</code>) ; tout le reste est dans
+<code>html/js/vendor/</code> et <code>html/css/vendor/</code>.</p>
+<h3 id="htmx--configuration">htmx — configuration<a class="anchor" href="#htmx--configuration" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-html">&lt;body hx-boost=&quot;true&quot; hx-target=&quot;#main-content&quot; hx-swap=&quot;innerHTML&quot; hx-push-url=&quot;true&quot;&gt;
+&lt;meta name=&quot;htmx-config&quot; content=&#39;{&quot;scrollIntoViewOnBoost&quot;: false, &quot;defaultSwapStyle&quot;: &quot;innerHTML&quot;}&#39;&gt;
+</code></pre>
+<p>Le JavaScript applicatif vit dans <code>html/js/app.js</code> (guard dirty-form, init des
+plugins jQuery, toasts) et <code>html/js/tiptap-editor.js</code> (éditeur riche, module ES),
+inclus par <code>index.php</code> avec cache-busting <code>filemtime</code>. Il n&#39;y a plus de <code>&lt;script&gt;</code>
+inline dans <code>index.php</code>.</p>
+<p>Après chaque <code>htmx:afterSwap</code>, <code>casaInit()</code> (dans <code>app.js</code>) réinitialise datepickers
+et <code>datahref</code>, nettoie les backdrops de modale résiduels et affiche le toast
+<code>#casaToast</code> si le fragment contient <code>#casa-save-ok</code> ou <code>#casa-membership-toast</code>.
+Les messages localisés du toast sont lus depuis les attributs <code>data-msg-*</code> posés
+par <code>index.php</code>. Avant <code>htmx:beforeHistorySave</code>, tous les DataTables sont détruits
+(<code>.destroy()</code>) pour éviter un conflit de colonnes à la restauration.</p>
+<h3 id="guard-de-formulaire-non-sauvegardé">Guard de formulaire non sauvegardé<a class="anchor" href="#guard-de-formulaire-non-sauvegardé" aria-label="Lien d'ancrage">#</a></h3>
+<p>Dans <code>html/js/app.js</code> (fonction <code>markDirty</code>) : un flag <code>dirty</code> passe à <code>true</code>
+sur tout <code>change</code>/<code>input</code> d&#39;un <code>INPUT</code>/<code>SELECT</code>/<code>TEXTAREA</code> non exclu. Il intercepte
+<code>htmx:beforeRequest</code> pour confirmer avant une navigation GET (les POST — sauvegardes —
+passent), et <code>beforeunload</code> pour la navigation hors-htmx. <code>htmx:afterSwap</code> remet <code>dirty</code>
+et <code>window.__dirtyOverride</code> à <code>false</code>.</p>
+<p><strong>Exclusions réelles</strong> : classe <code>.mg-team-cb</code>, ids <code>#includeAttestation</code> et
+<code>#team-filter-input</code>, tout ancêtre <code>[data-no-dirty]</code>, <code>.dt-search</code>/<code>.dataTables_filter</code>,
+<code>.modal</code>, <code>#bulk-form</code>. Convention projet : setter <code>window.__dirtyOverride = true</code> avant
+tout <code>window.location = …</code> inline, et poser <code>data-no-dirty</code> sur les selects/inputs de
+navigation ou de filtre.</p>
+<h3 id="alpine--membergeneralform-jsmember-general-formjs">Alpine — <code>memberGeneralForm</code> (<code>js/member-general-form.js</code>)<a class="anchor" href="#alpine--membergeneralform-jsmember-general-formjs" aria-label="Lien d'ancrage">#</a></h3>
+<p>Chargé avant Alpine, initialisé via <code>x-data=&quot;memberGeneralForm()&quot;</code>. Données passées par
+attributs <code>data-*</code> (pas de <code>fetch</code> initial, compatible CSP <code>self</code>). États : <code>editing</code>,
+<code>saving</code>, <code>saved</code>, <code>error</code>. <code>save()</code> n&#39;envoie que les champs modifiés
+(<code>draft[k] !== data[k]</code>) via <code>PATCH /api/members/{id}</code>, d&#39;où un diff serveur trivial.</p>
+<hr>
+<h2 id="11-génération-de-documents-attestations-pdf">11. Génération de documents (attestations PDF)<a class="anchor" href="#11-génération-de-documents-attestations-pdf" aria-label="Lien d'ancrage">#</a></h2>
+<p>Les attestations fiscales de dons sont générées <strong>côté serveur avec <code>pdftk</code></strong> :</p>
+<ul>
+<li><code>attestation_don.php</code> — une attestation pour un membre / une année. Construit un <strong>FDF</strong>
+(Form Data Format), encode chaque valeur en <strong>UTF-16 BE hex</strong> (accents corrects dans
+Adobe Reader), puis exécute <code>pdftk … fill_form … output … flatten</code> via <code>exec()</code>.
+Réponse <code>Content-Type: application/pdf</code> en pièce jointe.</li>
+<li><code>attestation_bulk.php</code> — attestations de tous les donateurs qualifiés d&#39;une année :
+un PDF par membre (même mécanisme FDF/pdftk), puis fusion en un seul fichier via
+<code>pdftk … cat …</code>.</li>
+</ul>
+<p>Le gabarit AcroForm est <code>html/assets/attestation.pdf</code>. Ces deux points d&#39;entrée
+appellent <code>requireLogin()</code> mais ne sont <strong>pas</strong> des vues htmx (téléchargements directs).</p>
+<blockquote>
+<p>Il n&#39;existe pas de génération « quittance Word / MHTML » dans le code : <code>quittance</code>
+est un simple champ texte de la table <code>compta</code>.</p>
+</blockquote>
+<hr>
+<h2 id="12-tests--ci">12. Tests &amp; CI<a class="anchor" href="#12-tests--ci" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="playwright-tests">Playwright (<code>tests/</code>)<a class="anchor" href="#playwright-tests" aria-label="Lien d'ancrage">#</a></h3>
+<p>Suite E2E Node.js (specs <code>*.spec.ts</code> couvrant auth, membres, compta, groupes,
+metagroups, suivi, rôles, import, réglages, API, fusion, etc.). Un <code>global-setup.ts</code>
+produit un <code>storageState</code> pré-authentifié réutilisé par les specs.</p>
+<p>Specs d&#39;invariants issus des refactors #56–#59 : <code>filter-parity</code> (parité vue/API des
+filtres virtuels), <code>route-guards</code> (matrice rôles × routes, régressions des failles
+corrigées), <code>dirty-guard</code> (guard formulaire de <code>js/app.js</code>), <code>mobile-roles</code> (gardes du
+menu mobile au viewport téléphone).</p>
+<h3 id="base-de-test">Base de test<a class="anchor" href="#base-de-test" aria-label="Lien d'ancrage">#</a></h3>
+<p><code>docker-compose.test.yml</code> surcharge <strong>uniquement</strong> <code>DB_NAME: members_test</code> pour le
+service <code>php</code> (même image, même port 8080, même MariaDB que la stack de dev — pas de
+port 3307 ni de base « memberbase_test »). <code>tests/fixtures/reset-db.sh</code> réinitialise la
+base (DDL + <code>tests/fixtures/seed.sql</code>).</p>
+<h3 id="workflow-githubworkflowse2eyml">Workflow <code>.github/workflows/e2e.yml</code><a class="anchor" href="#workflow-githubworkflowse2eyml" aria-label="Lien d'ancrage">#</a></h3>
+<ol>
+<li><code>docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --build</code>.</li>
+<li>Attend <code>http://localhost:8080/login.php</code> (polling curl, 30 tentatives × 3 s).</li>
+<li>Node 24, <code>npm ci</code>, <code>npx playwright install chromium --with-deps</code>.</li>
+<li><code>chmod</code> sur <code>conf/</code>, puis <code>bash tests/fixtures/reset-db.sh</code>.</li>
+<li><code>npx playwright test --retries=0</code>.</li>
+<li>En cas d&#39;échec : upload du rapport <code>playwright-report/</code> (rétention 7 jours).</li>
+</ol>
+<hr>
+<h2 id="13-conventions-de-code">13. Conventions de code<a class="anchor" href="#13-conventions-de-code" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="vues-includesviews">Vues (<code>includes/views/</code>)<a class="anchor" href="#vues-includesviews" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Fragments PHP procéduraux, accès aux variables d&#39;<code>index.php</code> (<code>$pdo</code>, <code>$appSettings</code>,
+<code>$GLOBAL</code>, <code>$charset</code>, <code>$isHtmx</code>). Sortie utilisateur échappée
+(<code>htmlspecialchars</code> / <code>htmlentities</code>). Pas de redirection dans une vue.</li>
+</ul>
+<h3 id="handlers-dactions-includesactions">Handlers d&#39;actions (<code>includes/actions/</code>)<a class="anchor" href="#handlers-dactions-includesactions" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Scripts procéduraux inclus par <code>actions.php</code> via <code>$ACTION_MAP</code>. Vérifient le rôle en
+tête. Appellent <code>auditLog()</code> pour toute opération sensible. Terminent par
+<code>header(&#39;HX-Location: …&#39;)</code> (htmx) ou <code>header(&#39;Location: …&#39;)</code> puis <code>exit</code>.</li>
+</ul>
+<h3 id="accès-base-de-données-bootstrapphp">Accès base de données (<code>bootstrap.php</code>)<a class="anchor" href="#accès-base-de-données-bootstrapphp" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>PDO paramétré partout, <code>PDO::ATTR_EMULATE_PREPARES =&gt; false</code>,
+<code>PDO::FETCH_OBJ</code> par défaut, charset <code>utf8mb4</code>. Config DB via <code>conf/db.php</code>
+(installation classique) ou variables d&#39;environnement <code>DB_*</code> (Docker).</li>
+</ul>
+<h3 id="séquences">Séquences<a class="anchor" href="#séquences" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li><code>AUTO_INCREMENT</code> natif pour <code>users</code>, <code>team</code>, <code>compta</code>, <code>compta_type</code>, <code>app_users</code>,
+<code>audit_log</code>. <code>maxval</code> (<code>getMaxVal()</code> / <code>updateAndGetMaxVal()</code>) uniquement pour
+<code>metagroup.id</code> (id partagé header/membres) et l&#39;<code>id</code> legacy de <code>user_properties</code>.</li>
+</ul>
+<h3 id="audit-log">Audit log<a class="anchor" href="#audit-log" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li><code>auditLog(PDO $pdo, string $action, string $detail = &#39;&#39;, ?int $subjectUserId = null)</code>
+insère qui/quoi/quand dans <code>audit_log</code> depuis <code>$_SESSION</code>. Appel <strong>manuel</strong> dans chaque
+handler modifiant des données — aucun hook automatique.</li>
+</ul>
+<h3 id="internationalisation">Internationalisation<a class="anchor" href="#internationalisation" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Un seul fichier de ressources : <code>html/locales/resources_fr.php</code> (tableau <code>$GLOBAL</code>).
+Application entièrement en français, sans infrastructure i18n.</li>
+</ul>
+<h3 id="git">Git<a class="anchor" href="#git" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Commits signés <code>pvollenweider &lt;pvollenweider@jahia.com&gt;</code> (auteur <em>et</em> committer),
+sans ligne <code>Co-Authored-By</code> (voir <code>CLAUDE.md</code>).</li>
+</ul>
+
+    </div>
+    <nav class="pager" aria-label="Navigation entre les guides">
+      <a class="pager-link prev" href="api.html"><span class="pager-dir">Guide précédent</span>API REST</a>
+      <span></span>
+    </nav>
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p><a href="../index.html">MemberBase</a> — gestion des membres pour associations. Open source, licence <a href="https://github.com/pvollenweider/memberbase/blob/main/LICENSE">AGPL-3.0</a>. <a href="https://github.com/pvollenweider/memberbase">GitHub</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('theme-toggle');
+  var mql = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function currentTheme() {
+    var stored = null;
+    try { stored = localStorage.getItem('mb-theme'); } catch (e) {}
+    if (stored === 'dark' || stored === 'light') return stored;
+    return mql.matches ? 'dark' : 'light';
+  }
+
+  function apply(theme, persist) {
+    root.setAttribute('data-theme', theme);
+    btn.textContent = theme === 'dark' ? 'Activer le mode clair' : 'Activer le mode sombre';
+    if (persist) {
+      try { localStorage.setItem('mb-theme', theme); } catch (e) {}
+    }
+  }
+
+  apply(currentTheme(), false);
+
+  btn.addEventListener('click', function () {
+    apply(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+  });
+
+  mql.addEventListener('change', function () {
+    var stored = null;
+    try { stored = localStorage.getItem('mb-theme'); } catch (e) {}
+    if (!stored) apply(mql.matches ? 'dark' : 'light', false);
+  });
+})();
+</script>
+</body>
+</html>

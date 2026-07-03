@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide administrateur — Documentation MemberBase</title>
+<meta name="description" content="Installation, déploiement Apache et Docker, comptes, sécurité, sauvegarde et mise à jour de MemberBase.">
+<style>
+:root {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --ink: #17181a;
+  --ink-mid: #3d4045;
+  --ink-muted: #565a60;
+  --rule: #dcdcd8;
+  --rule-strong: #b9b9b4;
+  --red: #c02218;
+  --link-hover: #9a1b12;
+  --code-bg: #1d1e21;
+  --code-ink: #e8e8e4;
+  --inline-code-bg: #ececea;
+  --note-bg: #f1f1ef;
+  --focus: #17181a;
+  --z-header: 10;
+  --z-skip: 20;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141416;
+    --surface: #1c1d20;
+    --ink: #ececea;
+    --ink-mid: #c4c6ca;
+    --ink-muted: #a3a6ac;
+    --rule: #2e2f33;
+    --rule-strong: #4a4b50;
+    --red: #ff6b5e;
+    --link-hover: #ffa298;
+    --code-bg: #0f0f11;
+    --code-ink: #dcdcd8;
+    --inline-code-bg: #26272b;
+    --note-bg: #1f2023;
+    --focus: #ececea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141416;
+  --surface: #1c1d20;
+  --ink: #ececea;
+  --ink-mid: #c4c6ca;
+  --ink-muted: #a3a6ac;
+  --rule: #2e2f33;
+  --rule-strong: #4a4b50;
+  --red: #ff6b5e;
+  --link-hover: #ffa298;
+  --code-bg: #0f0f11;
+  --code-ink: #dcdcd8;
+  --inline-code-bg: #26272b;
+  --note-bg: #1f2023;
+  --focus: #ececea;
+}
+
+* { box-sizing: border-box; margin: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.0625rem/1.7 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+code, pre, kbd { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.15; letter-spacing: -0.015em; }
+a { color: var(--red); text-underline-offset: 3px; }
+a:hover { color: var(--link-hover); }
+a:focus-visible, button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+[id] { scroll-margin-top: 5rem; }
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: var(--z-skip);
+  background: var(--ink); color: var(--bg);
+  padding: .75rem 1.25rem; font-weight: 600; text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+.wrap { max-width: 75rem; margin-inline: auto; padding-inline: clamp(1.25rem, 4vw, 2.5rem); }
+
+/* header */
+header.site {
+  position: sticky; top: 0; z-index: var(--z-header);
+  background: var(--bg); border-bottom: 1px solid var(--rule);
+}
+.site-bar { display: flex; align-items: center; gap: .8rem; padding-block: .8rem; }
+.wordmark {
+  font-weight: 800; font-size: 1.05rem; color: var(--ink);
+  text-decoration: none; display: flex; align-items: center; gap: .55rem;
+}
+.wordmark .dot { width: .7em; height: .7em; background: var(--red); flex: none; }
+.breadcrumb { display: flex; align-items: center; gap: .8rem; min-width: 0; }
+.crumb { color: var(--ink-muted); }
+.crumb-link { color: var(--ink-mid); text-decoration: none; font-weight: 500; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+a.crumb-link:hover { color: var(--ink); text-decoration: underline; }
+@media (max-width: 640px) { .breadcrumb .crumb:last-of-type, .breadcrumb span.crumb-link { display: none; } }
+.theme-toggle {
+  margin-left: auto; background: none; border: 1px solid var(--ink-muted); color: var(--ink);
+  padding: .35rem .7rem; font: inherit; font-size: .85rem; cursor: pointer;
+}
+.theme-toggle:hover { border-color: var(--ink); }
+
+/* layout */
+.doc-grid {
+  display: grid; grid-template-columns: 14rem minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 4rem); align-items: start;
+  padding-block: clamp(1.5rem, 4vw, 3rem) clamp(3rem, 6vw, 5rem);
+}
+.doc-nav { position: sticky; top: 4.5rem; }
+.doc-nav h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .8rem; }
+.doc-nav ul { list-style: none; padding: 0; }
+.doc-nav li + li { margin-top: .15rem; }
+.doc-nav a {
+  display: block; padding: .4rem .6rem; text-decoration: none;
+  color: var(--ink-mid); font-size: .95rem; border-left: 2px solid transparent;
+}
+.doc-nav a:hover { color: var(--ink); background: var(--note-bg); }
+.doc-nav a[aria-current="page"] { color: var(--ink); font-weight: 650; border-left-color: var(--red); }
+.doc-nav .gh-link { margin-top: 1.6rem; font-size: .9rem; }
+@media (max-width: 860px) {
+  .doc-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .doc-nav { position: static; border-bottom: 1px solid var(--rule); padding-bottom: 1.2rem; }
+  .doc-nav ul { display: flex; flex-wrap: wrap; gap: .3rem .8rem; }
+  .doc-nav a { border-left: none; border-bottom: 2px solid transparent; padding: .3rem .2rem; }
+  .doc-nav a[aria-current="page"] { border-bottom-color: var(--red); }
+  .doc-nav .gh-link { display: none; }
+}
+
+/* content */
+.doc-main { max-width: 46rem; min-width: 0; }
+.doc-main > h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1.2rem; }
+
+.toc { border: 1px solid var(--rule-strong); padding: 1.1rem 1.4rem 1.2rem; margin-block: 1.6rem 2.4rem; }
+.toc h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .6rem; }
+.toc ul { list-style: none; padding: 0; columns: 2; column-gap: 2.5rem; font-size: .93rem; }
+.toc li { margin-block: .18rem; break-inside: avoid; }
+.toc a { color: var(--ink-mid); text-decoration: none; }
+.toc a:hover { color: var(--red); text-decoration: underline; }
+@media (max-width: 640px) { .toc ul { columns: 1; } }
+
+.prose > * + * { margin-top: 1rem; }
+.prose h2 {
+  font-size: 1.55rem; font-weight: 750;
+  margin-top: 3rem; padding-top: 1.6rem; border-top: 1px solid var(--rule);
+}
+.prose h3 { font-size: 1.18rem; font-weight: 650; margin-top: 2.2rem; }
+.prose h4 { font-size: 1.02rem; font-weight: 650; margin-top: 1.8rem; }
+.prose p, .prose li { color: var(--ink-mid); }
+.prose li strong, .prose p strong { color: var(--ink); }
+.prose ul, .prose ol { padding-left: 1.4rem; }
+.prose li + li { margin-top: .35rem; }
+.prose li > ul, .prose li > ol { margin-top: .35rem; }
+/* Section separators come from h2 border-top; markdown --- rules would double them. */
+.prose hr { display: none; }
+.prose blockquote {
+  background: var(--note-bg); border: 1px solid var(--rule);
+  padding: .9rem 1.2rem; font-size: .97rem;
+}
+.prose blockquote p { color: var(--ink-mid); }
+.prose img { max-width: 100%; height: auto; }
+
+.anchor {
+  margin-left: .4em; text-decoration: none; color: var(--ink-muted);
+  font-weight: 400; opacity: 0; font-size: .85em;
+}
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { opacity: 1; }
+
+.prose code, .toc code {
+  background: var(--inline-code-bg); padding: .1em .35em;
+  font-size: .86em; border-radius: 2px;
+  overflow-wrap: anywhere;
+}
+.prose pre {
+  background: var(--code-bg); color: var(--code-ink);
+  padding: 1.1rem 1.3rem; overflow-x: auto;
+  font-size: .88rem; line-height: 1.6;
+}
+.prose pre code { background: none; padding: 0; font-size: inherit; border-radius: 0; }
+
+.table-scroll { overflow-x: auto; position: relative; }
+.table-scroll:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.prose table { border-collapse: collapse; font-size: .92rem; min-width: 100%; }
+.prose th, .prose td { text-align: left; padding: .5rem .8rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.prose thead th {
+  font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--ink-muted); font-weight: 650; border-bottom: 1px solid var(--rule-strong);
+}
+.prose td { color: var(--ink-mid); }
+.prose td code, .prose th code { white-space: nowrap; }
+
+/* pager */
+.pager {
+  display: flex; justify-content: space-between; gap: 1rem;
+  margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule-strong);
+}
+.pager-link { display: block; text-decoration: none; font-weight: 650; color: var(--ink); max-width: 45%; }
+.pager-link:hover { color: var(--red); }
+.pager-link .pager-dir { display: block; font-size: .82rem; font-weight: 400; color: var(--ink-muted); margin-bottom: .2rem; }
+.pager-link.next { text-align: right; margin-left: auto; }
+
+/* footer */
+.site-footer { border-top: 1px solid var(--rule); padding-block: 1.8rem; }
+.site-footer p { font-size: .92rem; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#doc-content">Aller au contenu principal</a>
+
+<header class="site">
+  <div class="wrap site-bar">
+    <nav class="breadcrumb" aria-label="Fil d'Ariane">
+      <a class="wordmark" href="../index.html"><span class="dot" aria-hidden="true"></span>MemberBase</a>
+      <span class="crumb" aria-hidden="true">/</span>
+      <a class="crumb-link" href="./">Documentation</a>
+      <span class="crumb" aria-hidden="true">/</span>
+      <span class="crumb-link" aria-current="page">Guide administrateur</span>
+    </nav>
+    <button type="button" class="theme-toggle" id="theme-toggle">Activer le mode sombre</button>
+  </div>
+</header>
+
+<div class="wrap doc-grid">
+  <nav class="doc-nav" aria-label="Guides de documentation">
+    <h2>Guides</h2>
+    <ul>
+          <li><a href="user.html">Guide utilisateur</a></li>
+          <li><a href="admin.html" aria-current="page">Guide administrateur</a></li>
+          <li><a href="api.html">API REST</a></li>
+          <li><a href="architecture.html">Architecture</a></li>
+    </ul>
+    <p class="gh-link"><a href="https://github.com/pvollenweider/memberbase">Projet sur GitHub</a></p>
+  </nav>
+
+  <main id="doc-content" class="doc-main">
+    <h1>Guide administrateur</h1>
+    <nav class="toc" aria-labelledby="toc-h">
+      <h2 id="toc-h">Sur cette page</h2>
+      <ul>
+        <li><a href="#1-prérequis">1. Prérequis</a></li>
+        <li><a href="#2-installation">2. Installation</a></li>
+        <li><a href="#3-configuration">3. Configuration</a></li>
+        <li><a href="#4-déploiement-apache-production">4. Déploiement Apache (production)</a></li>
+        <li><a href="#5-docker">5. Docker</a></li>
+        <li><a href="#6-gestion-des-comptes-utilisateurs">6. Gestion des comptes utilisateurs</a></li>
+        <li><a href="#7-sécurité">7. Sécurité</a></li>
+        <li><a href="#8-api-rest">8. API REST</a></li>
+        <li><a href="#9-sauvegarde">9. Sauvegarde</a></li>
+        <li><a href="#10-intégrité-des-données">10. Intégrité des données</a></li>
+        <li><a href="#11-cicd">11. CI/CD</a></li>
+        <li><a href="#12-mise-à-jour-du-schéma">12. Mise à jour du schéma</a></li>
+        <li><a href="#13-logs-daudit">13. Logs d'audit</a></li>
+        <li><a href="#réglages-de-lapplication">Réglages de l'application</a></li>
+        <li><a href="#référence-rapide">Référence rapide</a></li>
+      </ul>
+    </nav>
+    <div class="prose">
+<p>Ce guide s&#39;adresse à l&#39;administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 3.5.6). Il couvre l&#39;installation, la configuration, la sécurité, l&#39;API et la maintenance.</p>
+<hr>
+<hr>
+<h2 id="1-prérequis">1. Prérequis<a class="anchor" href="#1-prérequis" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="logiciels-obligatoires">Logiciels obligatoires<a class="anchor" href="#logiciels-obligatoires" aria-label="Lien d'ancrage">#</a></h3>
+<div class="table-scroll" role="region" aria-label="Tableau — Logiciels obligatoires" tabindex="0"><table><thead><tr><th scope="col">Composant</th><th scope="col">Version minimale</th><th scope="col">Notes</th></tr></thead><tbody><tr><td>PHP</td><td>8.1 (8.2 recommandé)</td><td>Extensions <code>pdo_mysql</code> et <code>mbstring</code> requises</td></tr>
+<tr><td>MariaDB</td><td>10.5</td><td>MySQL 8+ aussi compatible</td></tr>
+<tr><td>Apache</td><td>2.4</td><td>Module <code>mod_rewrite</code> activé</td></tr>
+<tr><td>pdftk-java</td><td>toute version stable</td><td>Génération des attestations PDF AcroForm</td></tr></tbody></table></div>
+<h3 id="installation-des-dépendances-sur-debianubuntu">Installation des dépendances sur Debian/Ubuntu<a class="anchor" href="#installation-des-dépendances-sur-debianubuntu" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash"># PHP et extensions
+apt install php8.2 php8.2-mysql php8.2-mbstring
+
+# pdftk-java (génération PDF)
+apt install pdftk-java
+
+# Activer mod_rewrite
+a2enmod rewrite
+systemctl reload apache2
+</code></pre>
+<h3 id="vérification-rapide">Vérification rapide<a class="anchor" href="#vérification-rapide" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash">php -r &quot;echo PHP_VERSION, &#39; pdo_mysql=&#39;, extension_loaded(&#39;pdo_mysql&#39;) ? &#39;OK&#39; : &#39;MANQUANT&#39;, &#39; mbstring=&#39;, extension_loaded(&#39;mbstring&#39;) ? &#39;OK&#39; : &#39;MANQUANT&#39;, PHP_EOL;&quot;
+pdftk --version
+</code></pre>
+<hr>
+<h2 id="2-installation">2. Installation<a class="anchor" href="#2-installation" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="21-via-le-wizard-web-recommandé-pour-la-production">2.1 Via le wizard web (recommandé pour la production)<a class="anchor" href="#21-via-le-wizard-web-recommandé-pour-la-production" aria-label="Lien d'ancrage">#</a></h3>
+<p>Le wizard <code>install.php</code> guide l&#39;installation en 5 étapes. Il est la seule méthode garantissant un schéma cohérent et un premier compte admin valide.</p>
+<p><strong>Préparation :</strong></p>
+<pre><code class="language-bash"># Cloner le dépôt
+git clone &lt;url-depot&gt; /var/www/votre-domaine
+
+# Pointer Apache sur html/ (voir section 4)
+# S&#39;assurer que conf/ est accessible en écriture par www-data
+mkdir -p /var/www/votre-domaine/conf
+chown www-data:www-data /var/www/votre-domaine/conf
+chmod 750 /var/www/votre-domaine/conf
+</code></pre>
+<p>Puis naviguer sur <code>https://votre-domaine/install.php</code>.</p>
+<p><strong>Étape 1 — Prérequis serveur</strong></p>
+<p>L&#39;installeur vérifie automatiquement :</p>
+<ul>
+<li>PHP &gt;= 8.1</li>
+<li>Extension PDO MySQL</li>
+<li>Extension mbstring</li>
+<li>Répertoire <code>conf/</code> accessible en écriture</li>
+</ul>
+<p>Tous les indicateurs doivent être verts avant de continuer.</p>
+<p><strong>Étape 2 — Connexion à la base de données</strong></p>
+<p>Saisir les paramètres de connexion. L&#39;installeur teste la connexion et, si elle réussit, écrit <code>conf/db.php</code>. Les champs sont préremplis depuis les variables d&#39;environnement si elles sont définies.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — 2.1 Via le wizard web (recommandé pour la production)" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Valeur exemple</th><th scope="col">Notes</th></tr></thead><tbody><tr><td>Hôte</td><td><code>localhost</code></td><td><code>mariadb</code> sous Docker</td></tr>
+<tr><td>Port</td><td><code>3306</code></td><td></td></tr>
+<tr><td>Nom de la base</td><td><code>members</code></td><td>Base à créer au préalable</td></tr>
+<tr><td>Utilisateur</td><td><code>members</code></td><td></td></tr>
+<tr><td>Mot de passe</td><td><code>***</code></td><td></td></tr></tbody></table></div>
+<p><strong>Étape 3 — Initialisation du schéma</strong></p>
+<p>Crée les tables suivantes (toutes avec <code>CREATE TABLE IF NOT EXISTS</code> — idempotent) :</p>
+<p><code>users</code> <code>team</code> <code>user_properties</code> <code>metagroup</code> <code>compta</code> <code>compta_type</code> <code>maxval</code> <code>app_settings</code> <code>app_users</code> <code>audit_log</code></p>
+<p>Un clic suffit. Les tables existantes ne sont pas modifiées.</p>
+<p><strong>Étape 4 — Configuration de l&#39;organisation</strong></p>
+<p>Saisir les informations de l&#39;association (nom, adresse, NPA, ville, pays). Ces données apparaissent dans le titre de l&#39;application et sur les attestations de dons PDF.</p>
+<p>Le wizard crée automatiquement :</p>
+<ul>
+<li>Deux groupes membres : <code>{Préfixe} {année-1}</code> et <code>{Préfixe} {année}</code> (ex. <code>Membre 2024</code> et <code>Membre 2025</code>)</li>
+<li>Une catégorie <code>Membres</code> regroupant ces deux groupes</li>
+<li>Quatre types de compta de base si la table est vide :</li>
+</ul>
+<div class="table-scroll" role="region" aria-label="Tableau — 2.1 Via le wizard web (recommandé pour la production)" tabindex="0"><table><thead><tr><th scope="col">Type</th><th scope="col">Couleur</th><th scope="col">Flags</th></tr></thead><tbody><tr><td>Cotisation</td><td><code>bg-light</code></td><td><code>is_cotisation=1</code>, exclu des dons</td></tr>
+<tr><td>Don</td><td><code>bg-info-subtle</code></td><td></td></tr>
+<tr><td>Evénementiel</td><td><code>bg-primary-subtle</code></td><td>exclu des dons</td></tr>
+<tr><td>Institutionnel</td><td><code>bg-warning-subtle</code></td><td><code>is_institutional=1</code></td></tr></tbody></table></div>
+<p><strong>Étape 5 — Compte administrateur</strong></p>
+<p>Crée le premier compte <code>admin</code>. Règles de validation :</p>
+<ul>
+<li>Identifiant : 2 à 50 caractères, uniquement lettres/chiffres/<code>.</code>/<code>-</code>/<code>_</code></li>
+<li>Mot de passe : 8 caractères minimum</li>
+<li>Le hash est généré en bcrypt via <code>PASSWORD_DEFAULT</code></li>
+<li>Le flag <code>force_password_change</code> est mis à <code>0</code> pour ce compte initial</li>
+</ul>
+<p><strong>Après installation :</strong></p>
+<p>La page <code>install.php</code> est automatiquement bloquée dès qu&#39;un compte admin actif existe en base (redirection vers <code>index.php</code>). Elle reste accessible sur les étapes 4 et 5 si la config DB existe mais sans admin. Supprimer ou protéger le fichier n&#39;est pas obligatoire, mais reste une bonne pratique.</p>
+<h3 id="22-via-docker-développement">2.2 Via Docker (développement)<a class="anchor" href="#22-via-docker-développement" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash">git clone &lt;url-depot&gt; memberbase
+cd memberbase
+
+# Rendre conf/ accessible en écriture par le process PHP dans le conteneur
+chmod 777 conf/
+
+# Démarrer la stack
+docker compose up -d
+
+# Ouvrir le wizard
+open http://localhost:8080/install.php
+# Utiliser &quot;mariadb&quot; comme hôte DB (pas &quot;localhost&quot;)
+</code></pre>
+<p>Voir la section <a href="#5-docker">5 — Docker</a> pour le détail de la stack.</p>
+<h3 id="23-mise-à-jour-dune-instance-existante">2.3 Mise à jour d&#39;une instance existante<a class="anchor" href="#23-mise-à-jour-dune-instance-existante" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash">git pull
+systemctl reload apache2   # si des fichiers PHP ont changé
+</code></pre>
+<p>La plupart des mises à jour mineures ne demandent aucune migration. Certaines versions ajoutent toutefois une colonne : <strong>consulter systématiquement <a href="https://github.com/pvollenweider/memberbase/blob/main/MIGRATION_PROD.md"><code>MIGRATION_PROD.md</code></a></strong>. Par exemple, la <strong>v3.5.4</strong> requiert l&#39;ajout de la colonne <code>email_alt</code> :</p>
+<pre><code class="language-sql">ALTER TABLE users ADD COLUMN email_alt VARCHAR(255) NOT NULL DEFAULT &#39;&#39; AFTER email;
+</code></pre>
+<p>Voir aussi la section <a href="#12-mise-à-jour-du-schéma">12 — Mise à jour du schéma</a> pour les cas exceptionnels.</p>
+<hr>
+<h2 id="3-configuration">3. Configuration<a class="anchor" href="#3-configuration" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="31-confdbphp">3.1 conf/db.php<a class="anchor" href="#31-confdbphp" aria-label="Lien d'ancrage">#</a></h3>
+<p>Fichier écrit par le wizard à l&#39;étape 2. Situé <strong>hors du webroot</strong> (<code>conf/</code> est au niveau de la racine du dépôt, pas dans <code>html/</code>). Ce fichier est gitignored.</p>
+<p>Structure générée :</p>
+<pre><code class="language-php">&lt;?php
+// Generated by installer — 2025-01-15 14:32:00
+define(&#39;DB_HOST&#39;, &#39;localhost&#39;);
+define(&#39;DB_PORT&#39;, 3306);
+define(&#39;DB_NAME&#39;, &#39;members&#39;);
+define(&#39;DB_USER&#39;, &#39;members&#39;);
+define(&#39;DB_PASS&#39;, &#39;secret&#39;);
+</code></pre>
+<p>Ne pas modifier ce fichier manuellement sauf nécessité — utiliser plutôt les variables d&#39;environnement en environnement Docker.</p>
+<h3 id="32-variables-denvironnement-docker--12-factor">3.2 Variables d&#39;environnement (Docker / 12-factor)<a class="anchor" href="#32-variables-denvironnement-docker--12-factor" aria-label="Lien d'ancrage">#</a></h3>
+<p>Si <code>conf/db.php</code> est absent, <code>html/includes/lib/bootstrap.php</code> utilise les variables d&#39;environnement en fallback :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — 3.2 Variables d'environnement (Docker / 12-factor)" tabindex="0"><table><thead><tr><th scope="col">Variable</th><th scope="col">Valeur par défaut</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>DB_HOST</code></td><td><code>localhost</code></td><td>Hôte MariaDB</td></tr>
+<tr><td><code>DB_NAME</code></td><td><code>members</code></td><td>Nom de la base</td></tr>
+<tr><td><code>DB_USER</code></td><td><code>members</code></td><td>Utilisateur DB</td></tr>
+<tr><td><code>DB_PASS</code></td><td><code>members</code></td><td>Mot de passe DB</td></tr></tbody></table></div>
+<blockquote>
+<p><strong>Note sur le port</strong> : la connexion runtime (<code>bootstrap.php</code>) ne lit <strong>pas</strong> <code>DB_PORT</code> (ni la variable d&#39;environnement, ni la constante définie dans <code>conf/db.php</code>). Elle se connecte toujours sur le port MySQL par défaut (3306). <code>DB_PORT</code> n&#39;est utilisé que par le wizard <code>install.php</code> (test de connexion et pré-remplissage du champ). Prévoyez donc MariaDB sur 3306 pour l&#39;exploitation.</p>
+</blockquote>
+<h3 id="33-paramètres-applicatifs-table-appsettings">3.3 Paramètres applicatifs (table app_settings)<a class="anchor" href="#33-paramètres-applicatifs-table-appsettings" aria-label="Lien d'ancrage">#</a></h3>
+<p>Stockés en base, modifiables dans Réglages → Général. Clés principales :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — 3.3 Paramètres applicatifs (table app_settings)" tabindex="0"><table><thead><tr><th scope="col">Clé</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>org_name</code></td><td>Nom de l&#39;association (titre et attestations)</td></tr>
+<tr><td><code>org_address</code></td><td>Adresse (attestations)</td></tr>
+<tr><td><code>org_npa</code></td><td>Code postal (attestations)</td></tr>
+<tr><td><code>org_city</code></td><td>Ville (attestations)</td></tr>
+<tr><td><code>org_country</code></td><td>Pays (attestations)</td></tr>
+<tr><td><code>default_team</code></td><td>ID du groupe affiché par défaut dans la liste membres</td></tr>
+<tr><td><code>membre_team</code></td><td>ID du groupe de référence pour les filtres cotisation</td></tr>
+<tr><td><code>archive_id</code></td><td>ID du groupe archives (exclu des vues par défaut)</td></tr>
+<tr><td><code>membre_team_prefix</code></td><td>Préfixe des groupes membres annuels (ex. <code>Membre</code>)</td></tr></tbody></table></div>
+<p>Modification directe en SQL si nécessaire :</p>
+<pre><code class="language-sql">UPDATE app_settings SET value = &#39;Nouvelle valeur&#39; WHERE `key` = &#39;org_name&#39;;
+</code></pre>
+<hr>
+<h2 id="4-déploiement-apache-production">4. Déploiement Apache (production)<a class="anchor" href="#4-déploiement-apache-production" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="configuration-virtualhost">Configuration VirtualHost<a class="anchor" href="#configuration-virtualhost" aria-label="Lien d'ancrage">#</a></h3>
+<p>Le <code>DocumentRoot</code> doit pointer sur <code>html/</code>, pas sur la racine du dépôt. Le répertoire <code>conf/</code> doit rester hors du webroot.</p>
+<pre><code class="language-apache">&lt;VirtualHost *:443&gt;
+    ServerName membres.votre-domaine.ch
+    DocumentRoot /var/www/membres.votre-domaine.ch/html
+
+    &lt;Directory /var/www/membres.votre-domaine.ch/html&gt;
+        AllowOverride All
+        Require all granted
+    &lt;/Directory&gt;
+
+    # HTTPS — certificat Let&#39;s Encrypt ou autre
+    SSLEngine on
+    SSLCertificateFile    /etc/letsencrypt/live/membres.votre-domaine.ch/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/membres.votre-domaine.ch/privkey.pem
+
+    ErrorLog  /var/log/apache2/membres.votre-domaine.ch-error.log
+    CustomLog /var/log/apache2/membres.votre-domaine.ch-access.log combined
+&lt;/VirtualHost&gt;
+</code></pre>
+<h3 id="permissions">Permissions<a class="anchor" href="#permissions" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash">WEBROOT=/var/www/membres.votre-domaine.ch
+
+# conf/ en écriture pour www-data (l&#39;installeur doit pouvoir écrire conf/db.php)
+chown www-data:www-data $WEBROOT/conf
+chmod 750 $WEBROOT/conf
+
+# html/ en lecture seule pour www-data (sauf assets si upload prévu)
+chown -R www-data:www-data $WEBROOT/html
+find $WEBROOT/html -type d -exec chmod 755 {} \;
+find $WEBROOT/html -type f -exec chmod 644 {} \;
+</code></pre>
+<h3 id="routes-api-modrewrite">Routes API (mod_rewrite)<a class="anchor" href="#routes-api-modrewrite" aria-label="Lien d'ancrage">#</a></h3>
+<p>Les endpoints REST utilisent des URLs propres (<code>/api/members/42</code>). <code>mod_rewrite</code> doit être actif (<code>a2enmod rewrite</code>) <strong>et</strong> les règles <code>RewriteRule</code> déclarées <strong>dans le vhost</strong>, pas via <code>.htaccess</code> (l&#39;<code>AllowOverride</code> du dossier <code>api/</code> bloque les directives Rewrite en <code>.htaccess</code>). Le bloc <code>&lt;Directory .../html/api&gt;</code> complet avec toutes les <code>RewriteRule</code> figure dans <a href="https://github.com/pvollenweider/memberbase/blob/main/MIGRATION_PROD.md"><code>MIGRATION_PROD.md</code></a> (section <code>feature/api-members</code>). Vérification :</p>
+<pre><code class="language-bash"># URL propre → doit retourner 401 (auth requise), pas 404
+curl -s -o /dev/null -w &quot;%{http_code}&quot; https://membres.votre-domaine.ch/api/members/1
+</code></pre>
+<h3 id="pdftk">pdftk<a class="anchor" href="#pdftk" aria-label="Lien d'ancrage">#</a></h3>
+<p>La génération d&#39;attestations PDF appelle <code>pdftk</code> via <code>exec()</code>. Le binaire doit être accessible dans le PATH du process Apache :</p>
+<pre><code class="language-bash">which pdftk          # doit retourner un chemin
+apt install pdftk-java
+</code></pre>
+<h3 id="https">HTTPS<a class="anchor" href="#https" aria-label="Lien d'ancrage">#</a></h3>
+<p>Le cookie de session est émis avec <code>Secure=true</code> uniquement si la requête arrive sur HTTPS. En HTTP, la session ne fonctionne pas. HTTPS est donc obligatoire en production.</p>
+<hr>
+<h2 id="5-docker">5. Docker<a class="anchor" href="#5-docker" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="51-stack-de-développement-docker-composeyml">5.1 Stack de développement (docker-compose.yml)<a class="anchor" href="#51-stack-de-développement-docker-composeyml" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-yaml">services:
+  php:
+    build: .                           # Dockerfile à la racine
+    ports:
+      - &quot;8080:80&quot;                      # App sur http://localhost:8080
+    volumes:
+      - ./html:/var/www/html           # Bind mount — modifications en direct
+      - ./conf:/var/www/conf           # Conf DB partagée avec l&#39;hôte
+      - ./logs:/var/www/logs
+    environment:
+      DB_HOST: mariadb                 # Nom du service Docker, pas &quot;localhost&quot;
+      DB_NAME: members
+      DB_USER: members
+      DB_PASS: members
+    depends_on:
+      mariadb:
+        condition: service_healthy     # Attend que MariaDB réponde avant de démarrer
+
+  mariadb:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: members
+      MARIADB_USER: members
+      MARIADB_PASSWORD: members
+    volumes:
+      - mariadb_data:/var/lib/mysql    # Volume nommé — données persistées
+      - ./docker/initdb:/docker-entrypoint-initdb.d  # Scripts SQL d&#39;init optionnels
+    healthcheck:
+      test: [&quot;CMD&quot;, &quot;mariadb-admin&quot;, &quot;ping&quot;, &quot;-h&quot;, &quot;localhost&quot;, &quot;-umembers&quot;, &quot;-pmembers&quot;]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer
+    ports:
+      - &quot;8082:8080&quot;                    # Interface web DB sur http://localhost:8082
+
+volumes:
+  mariadb_data:
+</code></pre>
+<p>Points importants :</p>
+<ul>
+<li>Le bind mount <code>./html:/var/www/html</code> permet d&#39;éditer les fichiers PHP sans reconstruire l&#39;image.</li>
+<li><code>conf/</code> est également monté — <code>conf/db.php</code> créé par le wizard est visible sur l&#39;hôte.</li>
+<li>L&#39;hôte MariaDB à saisir dans le wizard est <code>mariadb</code> (nom du service), pas <code>localhost</code>.</li>
+</ul>
+<h3 id="52-stack-de-test-docker-composetestyml">5.2 Stack de test (docker-compose.test.yml)<a class="anchor" href="#52-stack-de-test-docker-composetestyml" aria-label="Lien d'ancrage">#</a></h3>
+<p>Override minimal utilisé par la CI :</p>
+<pre><code class="language-yaml">services:
+  php:
+    environment:
+      DB_NAME: members_test            # Base séparée, n&#39;écrase pas &quot;members&quot;
+</code></pre>
+<p>Le fichier <code>docker-compose.test.yml</code> ne contient qu&#39;une seule surcharge : <code>DB_NAME: members_test</code> sur le service <code>php</code>. Il ne redéfinit ni les ports, ni le service MariaDB. Utilisé avec :</p>
+<pre><code class="language-bash">docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --build
+</code></pre>
+<p>Note : aucun des deux fichiers compose n&#39;expose le port MariaDB sur l&#39;hôte (pas de mapping <code>3306</code>/<code>3307</code>). La base n&#39;est accessible que depuis le réseau Docker interne, ou via Adminer sur <code>http://localhost:8082</code>. La base de test <code>members_test</code> cohabite avec <code>members</code> dans la même instance MariaDB, sans conflit.</p>
+<h3 id="53-dockerfile">5.3 Dockerfile<a class="anchor" href="#53-dockerfile" aria-label="Lien d'ancrage">#</a></h3>
+<p>Image basée sur <code>php:8.2-apache</code>. Contenu réel du Dockerfile :</p>
+<ul>
+<li>Extensions PHP installées : <code>pdo</code>, <code>pdo_mysql</code> (via <code>docker-php-ext-install</code>).</li>
+<li>Paquet système <code>pdftk-java</code> installé (génération des attestations PDF).</li>
+<li>Modules Apache activés : <code>rewrite</code>, <code>headers</code>, <code>expires</code>, <code>deflate</code>, <code>brotli</code> (<code>a2enmod</code>).</li>
+<li>Vhost personnalisé copié depuis <code>docker/apache.conf</code> vers <code>000-default.conf</code>.</li>
+<li>Réglage PHP : <code>error_reporting = E_ALL &amp; ~E_NOTICE</code> (fichier <code>conf.d/casa.ini</code>).</li>
+<li>Répertoires <code>/var/www/logs</code> et <code>/var/www/conf</code> créés et attribués à <code>www-data</code>.</li>
+</ul>
+<h3 id="54-commandes-courantes">5.4 Commandes courantes<a class="anchor" href="#54-commandes-courantes" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash"># Démarrer la stack de dev
+docker compose up -d
+
+# Voir les logs PHP/Apache
+docker compose logs -f php
+
+# Accéder au shell PHP
+docker compose exec php bash
+
+# Redémarrer après modification du Dockerfile
+docker compose up -d --build php
+
+# Arrêter et supprimer les conteneurs (données MariaDB conservées dans le volume)
+docker compose down
+
+# Supprimer aussi les volumes (reset complet)
+docker compose down -v
+</code></pre>
+<hr>
+<h2 id="6-gestion-des-comptes-utilisateurs">6. Gestion des comptes utilisateurs<a class="anchor" href="#6-gestion-des-comptes-utilisateurs" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="61-rôles-et-permissions">6.1 Rôles et permissions<a class="anchor" href="#61-rôles-et-permissions" aria-label="Lien d'ancrage">#</a></h3>
+<p>MemberBase définit quatre rôles, définis dans <code>html/includes/lib/auth.php</code> :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — 6.1 Rôles et permissions" tabindex="0"><table><thead><tr><th scope="col">Rôle</th><th scope="col" style="text-align:center">Lecture</th><th scope="col" style="text-align:center">Écriture</th><th scope="col" style="text-align:center">Suppression</th><th scope="col" style="text-align:center">Gestion des comptes</th></tr></thead><tbody><tr><td><code>readonly</code></td><td style="text-align:center">Oui</td><td style="text-align:center">Non</td><td style="text-align:center">Non</td><td style="text-align:center">Non</td></tr>
+<tr><td><code>user</code></td><td style="text-align:center">Oui</td><td style="text-align:center">Oui</td><td style="text-align:center">Non</td><td style="text-align:center">Non</td></tr>
+<tr><td><code>manager</code></td><td style="text-align:center">Oui</td><td style="text-align:center">Oui</td><td style="text-align:center">Oui</td><td style="text-align:center">Non</td></tr>
+<tr><td><code>admin</code></td><td style="text-align:center">Oui</td><td style="text-align:center">Oui</td><td style="text-align:center">Oui</td><td style="text-align:center">Oui</td></tr></tbody></table></div>
+<p>Fonctions PHP correspondantes (dans <code>auth.php</code>) : <code>isLoggedIn()</code>, <code>canRead()</code> (tous rôles), <code>canWrite()</code> (<code>user</code>/<code>manager</code>/<code>admin</code>), <code>isManager()</code> (<code>manager</code>/<code>admin</code>), <code>isAdmin()</code> (<code>admin</code> seul).</p>
+<p>Tout utilisateur connecté peut changer son propre mot de passe (<code>?view=changePassword</code>). Seul un <code>admin</code> peut réinitialiser le mot de passe d&#39;un autre compte ou le supprimer.</p>
+<h3 id="62-accès-à-linterface-de-gestion">6.2 Accès à l&#39;interface de gestion<a class="anchor" href="#62-accès-à-linterface-de-gestion" aria-label="Lien d'ancrage">#</a></h3>
+<p><strong>Réglages → Comptes utilisateurs</strong> (ou <code>?view=settings&amp;section=app_users</code>)</p>
+<p>L&#39;onglet est invisible pour les rôles non-admin.</p>
+<h3 id="63-créer-un-compte">6.3 Créer un compte<a class="anchor" href="#63-créer-un-compte" aria-label="Lien d'ancrage">#</a></h3>
+<ol>
+<li>Cliquer <strong>Nouvel utilisateur</strong></li>
+<li>Remplir :<ul>
+<li><strong>Identifiant</strong> : 2 à 100 caractères, lettres/chiffres/<code>.</code>/<code>-</code>/<code>_</code></li>
+<li><strong>Nom affiché</strong> : optionnel, repris de l&#39;identifiant si vide</li>
+<li><strong>Email</strong> : optionnel</li>
+<li><strong>Rôle</strong> : <code>readonly</code> / <code>user</code> / <code>manager</code> / <code>admin</code></li>
+<li><strong>Mot de passe temporaire</strong> : saisir ou générer aléatoirement via le bouton dé. Laisser vide pour utiliser <code>changeme</code> par défaut</li>
+</ul>
+</li>
+<li>Cliquer <strong>Créer</strong></li>
+</ol>
+<p>Le compte est créé avec <code>force_password_change=1</code>. L&#39;utilisateur sera bloqué sur la page de changement de mot de passe à sa première connexion.</p>
+<p><strong>Option alternative — lien d&#39;invitation :</strong> après création, l&#39;interface peut générer un token valable 7 jours. Copier le lien affiché et l&#39;envoyer à l&#39;utilisateur. Il définira son propre mot de passe sans que vous n&#39;ayez à communiquer un mot de passe temporaire.</p>
+<h3 id="64-modifier-un-compte">6.4 Modifier un compte<a class="anchor" href="#64-modifier-un-compte" aria-label="Lien d'ancrage">#</a></h3>
+<p>Cliquer l&#39;icône crayon sur la ligne du compte concerné. Champs modifiables : nom affiché, email, rôle, statut actif/inactif.</p>
+<p>Un compte <code>is_active=0</code> ne peut plus se connecter mais n&#39;est pas supprimé.</p>
+<h3 id="65-réinitialiser-un-mot-de-passe">6.5 Réinitialiser un mot de passe<a class="anchor" href="#65-réinitialiser-un-mot-de-passe" aria-label="Lien d'ancrage">#</a></h3>
+<ol>
+<li>Cliquer l&#39;icône clé sur la ligne du compte</li>
+<li>Confirmer dans la boîte de dialogue</li>
+<li>Un mot de passe temporaire aléatoire est affiché une seule fois — le noter et le transmettre à l&#39;utilisateur</li>
+<li><code>force_password_change</code> est remis à <code>1</code> : l&#39;utilisateur sera forcé de changer ce mot de passe à la connexion suivante</li>
+</ol>
+<p>Le mot de passe temporaire transite via session flash (<code>$_SESSION[&#39;reset_pw_flash&#39;]</code>), jamais en paramètre URL. Il n&#39;apparaît pas dans les logs Apache.</p>
+<h3 id="66-supprimer-un-compte">6.6 Supprimer un compte<a class="anchor" href="#66-supprimer-un-compte" aria-label="Lien d'ancrage">#</a></h3>
+<p>Cliquer l&#39;icône corbeille → confirmer. Action irréversible. Un admin ne peut pas supprimer son propre compte (le bouton n&#39;est pas affiché sur la ligne <code>vous</code>).</p>
+<h3 id="67-compte-admin-initial">6.7 Compte admin initial<a class="anchor" href="#67-compte-admin-initial" aria-label="Lien d'ancrage">#</a></h3>
+<p>Créé via <code>install.php</code> étape 5. C&#39;est le seul compte pour lequel <code>force_password_change=0</code> est défini à la création. Pour tous les comptes créés ensuite via l&#39;interface, ce flag est <code>1</code>.</p>
+<hr>
+<h2 id="7-sécurité">7. Sécurité<a class="anchor" href="#7-sécurité" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="71-authentification">7.1 Authentification<a class="anchor" href="#71-authentification" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Mots de passe hashés en <strong>bcrypt</strong> (<code>password_hash($password, PASSWORD_DEFAULT)</code> / <code>password_verify()</code>)</li>
+<li>Après login réussi, <code>session_regenerate_id(true)</code> est appelé pour prévenir la fixation de session</li>
+<li>Cookie de session : <code>httponly=true</code>, <code>samesite=Lax</code>, <code>secure=true</code> (HTTPS uniquement)</li>
+<li>Durée de session : <code>lifetime=0</code> (session navigateur — expire à la fermeture de l&#39;onglet)</li>
+</ul>
+<h3 id="72-fail2ban">7.2 Fail2Ban<a class="anchor" href="#72-fail2ban" aria-label="Lien d'ancrage">#</a></h3>
+<p>Jail configurée pour bannir les IPs après 5 tentatives de login échouées en 5 minutes (ban 24 heures).</p>
+<p>Un login échoué retourne HTTP 200 (le formulaire est ré-affiché). Un login réussi retourne HTTP 302. Fail2Ban distingue les deux via ce code de retour.</p>
+<p><strong>Filtre</strong> — créer <code>/etc/fail2ban/filter.d/memberbase-login.conf</code> :</p>
+<pre><code class="language-ini">[Definition]
+failregex = ^&lt;HOST&gt; .* &quot;POST /login\.php HTTP/1\.[01]&quot; 200
+ignoreregex =
+</code></pre>
+<p><strong>Jail</strong> — ajouter dans <code>/etc/fail2ban/jail.local</code> :</p>
+<pre><code class="language-ini">[memberbase-login]
+enabled  = true
+port     = http,https
+filter   = memberbase-login
+logpath  = /var/log/apache2/membres.votre-domaine.ch-access.log
+maxretry = 5
+findtime = 300
+bantime  = 86400
+</code></pre>
+<p>Adapter <code>logpath</code> au nom réel du fichier de log Apache.</p>
+<p><strong>Commandes de gestion :</strong></p>
+<pre><code class="language-bash"># Recharger la configuration après modification
+systemctl reload fail2ban
+
+# Vérifier l&#39;état de la jail
+fail2ban-client status memberbase-login
+
+# Débannir une IP manuellement
+fail2ban-client set memberbase-login unbanip &lt;IP&gt;
+
+# Whitelister des IPs (jamais bannies) — dans jail.local section [DEFAULT]
+# ignoreip = 127.0.0.1/8 ::1 192.168.1.0/24
+
+# Vérifier la whitelist
+fail2ban-client -d | grep ignoreip
+</code></pre>
+<h3 id="73-protection-des-répertoires-sensibles">7.3 Protection des répertoires sensibles<a class="anchor" href="#73-protection-des-répertoires-sensibles" aria-label="Lien d'ancrage">#</a></h3>
+<p>Les répertoires <code>html/includes/</code> et <code>html/api/</code> contiennent des <code>.htaccess</code> qui bloquent l&#39;accès direct. Les fichiers PHP de ces dossiers ne doivent être inclus que par <code>index.php</code> (qui définit la constante <code>APP_ENTRY</code>). Tout accès direct déclenche <code>die(&#39;Direct access not permitted.&#39;)</code>.</p>
+<h3 id="74-audit-log">7.4 Audit log<a class="anchor" href="#74-audit-log" aria-label="Lien d'ancrage">#</a></h3>
+<p>Voir la section <a href="#13-logs-daudit">13 — Logs d&#39;audit</a>.</p>
+<h3 id="75-procédure-en-cas-de-compromission-de-compte">7.5 Procédure en cas de compromission de compte<a class="anchor" href="#75-procédure-en-cas-de-compromission-de-compte" aria-label="Lien d'ancrage">#</a></h3>
+<ol>
+<li>Se connecter avec un autre compte admin</li>
+<li>Réglages → Comptes → réinitialiser le mot de passe du compte compromis</li>
+<li>Si le compte admin unique est compromis, réinitialiser le hash directement en base :</li>
+</ol>
+<pre><code class="language-sql">-- Générer un nouveau hash bcrypt en PHP :
+-- php -r &quot;echo password_hash(&#39;NouveauMotDePasse!&#39;, PASSWORD_DEFAULT);&quot;
+UPDATE app_users
+SET password_hash = &#39;$2y$10$...hash...&#39;, force_password_change = 1
+WHERE username = &#39;admin&#39;;
+</code></pre>
+<hr>
+<h2 id="8-api-rest">8. API REST<a class="anchor" href="#8-api-rest" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="81-activation">8.1 Activation<a class="anchor" href="#81-activation" aria-label="Lien d'ancrage">#</a></h3>
+<p>L&#39;API est toujours disponible. Aucun flag d&#39;activation n&#39;existe. Elle requiert une <strong>authentification de session</strong> active — il n&#39;y a pas d&#39;authentification par token ou clé API. L&#39;utilisateur doit d&#39;abord se connecter via <code>POST /login.php</code>, puis inclure le cookie de session dans les requêtes API.</p>
+<p>Le bootstrap de l&#39;API se trouve dans <code>html/api/_bootstrap.php</code> : il vérifie <code>isLoggedIn()</code> et émet les headers <code>Content-Type: application/json</code> et CORS appropriés.</p>
+<h3 id="82-authentification-par-session-pour-les-appels-curl">8.2 Authentification par session pour les appels curl<a class="anchor" href="#82-authentification-par-session-pour-les-appels-curl" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash"># 1. Se connecter et récupérer le cookie de session
+curl -c cookies.txt -b cookies.txt \
+  -d &quot;username=admin&amp;password=VotreMotDePasse&quot; \
+  https://membres.votre-domaine.ch/login.php
+
+# 2. Utiliser le cookie pour les appels API suivants
+curl -b cookies.txt https://membres.votre-domaine.ch/api/members
+</code></pre>
+<h3 id="83-endpoints-disponibles">8.3 Endpoints disponibles<a class="anchor" href="#83-endpoints-disponibles" aria-label="Lien d'ancrage">#</a></h3>
+<div class="table-scroll" role="region" aria-label="Tableau — 8.3 Endpoints disponibles" tabindex="0"><table><thead><tr><th scope="col">Méthode</th><th scope="col">Endpoint</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>GET</code></td><td><code>/api/members</code></td><td>Liste des membres</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/members/{id}</code></td><td>Fiche membre complète</td></tr>
+<tr><td><code>PATCH</code></td><td><code>/api/members/{id}</code></td><td>Modification partielle (génère un audit log)</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/members/{id}/groups</code></td><td>Groupes du membre</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/groups</code></td><td>Liste des groupes avec comptage membres</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/groups/{id}</code></td><td>Groupe avec ses membres</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/compta</code></td><td>Entrées comptables</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/compta-types</code></td><td>Types de compta configurés</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/suivi</code></td><td>Notes de suivi</td></tr></tbody></table></div>
+<h3 id="84-paramètres-de-filtrage">8.4 Paramètres de filtrage<a class="anchor" href="#84-paramètres-de-filtrage" aria-label="Lien d'ancrage">#</a></h3>
+<p><strong><code>GET /api/members</code></strong></p>
+<div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>group</code></td><td>int</td><td>Filtrer par ID de groupe</td></tr>
+<tr><td><code>metagroup</code></td><td>int</td><td>Filtrer par ID de métagroupe</td></tr>
+<tr><td><code>active</code></td><td>bool</td><td><code>1</code> = membres actifs uniquement</td></tr>
+<tr><td><code>search</code></td><td>string</td><td>Recherche textuelle (nom, prénom, email)</td></tr>
+<tr><td><code>limit</code></td><td>int</td><td>Nombre de résultats (pagination)</td></tr>
+<tr><td><code>offset</code></td><td>int</td><td>Décalage (pagination)</td></tr></tbody></table></div>
+<p><strong><code>GET /api/compta</code></strong></p>
+<div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>member</code></td><td>int</td><td>Filtrer par ID membre</td></tr>
+<tr><td><code>type</code></td><td>int</td><td>Filtrer par ID type compta</td></tr>
+<tr><td><code>year</code></td><td>int</td><td>Filtrer par année</td></tr></tbody></table></div>
+<p><strong><code>GET /api/suivi</code></strong></p>
+<div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>member</code></td><td>int</td><td>Filtrer par ID membre</td></tr>
+<tr><td><code>year</code></td><td>int</td><td>Filtrer par année</td></tr></tbody></table></div>
+<h3 id="85-exemples-curl">8.5 Exemples curl<a class="anchor" href="#85-exemples-curl" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash">BASE=https://membres.votre-domaine.ch
+COOKIES=cookies.txt
+
+# Liste des membres du groupe 3, actifs
+curl -b $COOKIES &quot;$BASE/api/members?group=3&amp;active=1&quot;
+
+# Fiche complète du membre 42
+curl -b $COOKIES &quot;$BASE/api/members/42&quot;
+
+# Modifier le prénom du membre 42
+curl -b $COOKIES -X PATCH \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#39;{&quot;firstname&quot;: &quot;Jean-Pierre&quot;}&#39; \
+  &quot;$BASE/api/members/42&quot;
+
+# Entrées compta du membre 42 pour 2024
+curl -b $COOKIES &quot;$BASE/api/compta?member=42&amp;year=2024&quot;
+
+# Liste des groupes
+curl -b $COOKIES &quot;$BASE/api/groups&quot;
+</code></pre>
+<h3 id="86-format-des-réponses">8.6 Format des réponses<a class="anchor" href="#86-format-des-réponses" aria-label="Lien d'ancrage">#</a></h3>
+<p>Toutes les réponses sont en JSON UTF-8. Les erreurs retournent un objet <code>{&quot;error&quot;: &quot;message descriptif&quot;}</code> avec le code HTTP approprié :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — 8.6 Format des réponses" tabindex="0"><table><thead><tr><th scope="col">Code</th><th scope="col">Situation</th></tr></thead><tbody><tr><td>200</td><td>Succès</td></tr>
+<tr><td>400</td><td>Paramètre invalide ou corps JSON malformé</td></tr>
+<tr><td>401</td><td>Non authentifié</td></tr>
+<tr><td>403</td><td>Authentifié mais rôle insuffisant</td></tr>
+<tr><td>404</td><td>Ressource introuvable</td></tr>
+<tr><td>405</td><td>Méthode HTTP non supportée</td></tr></tbody></table></div>
+<hr>
+<h2 id="9-sauvegarde">9. Sauvegarde<a class="anchor" href="#9-sauvegarde" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="ce-quil-faut-sauvegarder">Ce qu&#39;il faut sauvegarder<a class="anchor" href="#ce-quil-faut-sauvegarder" aria-label="Lien d'ancrage">#</a></h3>
+<div class="table-scroll" role="region" aria-label="Tableau — Ce qu'il faut sauvegarder" tabindex="0"><table><thead><tr><th scope="col">Élément</th><th scope="col">Emplacement</th><th scope="col">Priorité</th></tr></thead><tbody><tr><td>Base de données</td><td>MariaDB</td><td>Critique</td></tr>
+<tr><td>Config DB</td><td><code>conf/db.php</code></td><td>Haute</td></tr>
+<tr><td>Template PDF</td><td><code>html/assets/attestation.pdf</code></td><td>Haute</td></tr>
+<tr><td>Assets personnalisés</td><td><code>html/assets/</code></td><td>Selon usage</td></tr></tbody></table></div>
+<p>Il n&#39;y a pas de fichiers uploadés par les utilisateurs à gérer : MemberBase ne stocke pas de pièces jointes.</p>
+<h3 id="sauvegarde-de-la-base-de-données">Sauvegarde de la base de données<a class="anchor" href="#sauvegarde-de-la-base-de-données" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash"># Dump complet avec compression
+mysqldump -h localhost -u members -p members \
+  | gzip &gt; /var/backups/memberbase/db_$(date +%Y%m%d_%H%M%S).sql.gz
+
+# Planifier via cron (tous les jours à 3h)
+# 0 3 * * * mysqldump -h localhost -u members -pmotdepasse members | gzip &gt; /var/backups/memberbase/db_$(date +\%Y\%m\%d).sql.gz
+</code></pre>
+<h3 id="restauration">Restauration<a class="anchor" href="#restauration" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash">gunzip &lt; backup_20250115.sql.gz | mysql -u members -p members
+</code></pre>
+<h3 id="sauvegarde-de-la-configuration">Sauvegarde de la configuration<a class="anchor" href="#sauvegarde-de-la-configuration" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash">cp /var/www/membres.votre-domaine.ch/conf/db.php /var/backups/memberbase/
+</code></pre>
+<hr>
+<h2 id="10-intégrité-des-données">10. Intégrité des données<a class="anchor" href="#10-intégrité-des-données" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="accès">Accès<a class="anchor" href="#accès" aria-label="Lien d'ancrage">#</a></h3>
+<p><strong>Réglages → Intégrité</strong> (onglet dans la barre latérale des réglages)</p>
+<p>Accessible uniquement aux comptes <code>admin</code> et <code>manager</code>.</p>
+<h3 id="ce-que-loutil-vérifie">Ce que l&#39;outil vérifie<a class="anchor" href="#ce-que-loutil-vérifie" aria-label="Lien d'ancrage">#</a></h3>
+<p>L&#39;outil effectue cinq contrôles en lecture seule sur la base de données :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Ce que l'outil vérifie" tabindex="0"><table><thead><tr><th scope="col">Contrôle</th><th scope="col">Sévérité</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Membres avec même nom</td><td>Danger</td><td>Deux membres actifs avec le même prénom ET nom (insensible à la casse)</td></tr>
+<tr><td>Membres avec même email</td><td>Danger</td><td>Deux membres actifs avec la même adresse email</td></tr>
+<tr><td>Groupes masqués dans une catégorie</td><td>Avertissement</td><td>Un groupe <code>hidden=1</code> est encore assigné à une catégorie</td></tr>
+<tr><td>Groupes masqués dans un métagroupe</td><td>Avertissement</td><td>Un groupe <code>hidden=1</code> est encore référencé dans un métagroupe de filtrage</td></tr>
+<tr><td>Groupes masqués avec des membres</td><td>Avertissement</td><td>Un groupe <code>hidden=1</code> a encore des membres actifs assignés</td></tr></tbody></table></div>
+<h3 id="actions-disponibles">Actions disponibles<a class="anchor" href="#actions-disponibles" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li><strong>Doublons de nom/email</strong> : liens directs vers les fiches membres concernées. Pour deux doublons, un bouton <strong>Fusionner</strong> apparaît (vue <code>mergeUsers</code>).</li>
+<li><strong>Groupes masqués</strong> : lien <strong>Éditer</strong> vers la page de configuration du métagroupe ou de la catégorie pour retirer l&#39;assignation.</li>
+</ul>
+<h3 id="quand-lutiliser">Quand l&#39;utiliser<a class="anchor" href="#quand-lutiliser" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Après une importation de données en masse</li>
+<li>En cas de signalement d&#39;incohérences par les utilisateurs</li>
+<li>Avant une exportation ou un bilan annuel</li>
+<li>Périodiquement, comme contrôle de routine (recommandé : mensuel)</li>
+</ul>
+<hr>
+<h2 id="11-cicd">11. CI/CD<a class="anchor" href="#11-cicd" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="pipeline-github-actions-githubworkflowse2eyml">Pipeline GitHub Actions (<code>.github/workflows/e2e.yml</code>)<a class="anchor" href="#pipeline-github-actions-githubworkflowse2eyml" aria-label="Lien d'ancrage">#</a></h3>
+<p>Le workflow (nom : « E2E Tests ») se déclenche sur chaque push vers <code>main</code> et sur chaque pull request.</p>
+<p><strong>Étapes du pipeline :</strong></p>
+<ol>
+<li><p><strong>Checkout</strong> du code</p>
+</li>
+<li><p><strong>Démarrage de la stack Docker de test</strong></p>
+<pre><code class="language-bash">docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --build
+</code></pre>
+<p>Utilise la base <code>members_test</code> (override via <code>docker-compose.test.yml</code>).</p>
+</li>
+<li><p><strong>Attente de disponibilité</strong> : polling de <code>http://localhost:8080/login.php</code> toutes les 3 secondes, jusqu&#39;à 30 tentatives (90 secondes maximum).</p>
+</li>
+<li><p><strong>Installation Node.js 24</strong> (avec cache npm) et dépendances (<code>npm ci</code>).</p>
+</li>
+<li><p><strong>Installation Playwright</strong> (navigateur Chromium uniquement + dépendances système).</p>
+</li>
+<li><p><strong>Correction des permissions <code>conf/</code></strong> : Docker crée ce répertoire avec <code>www-data</code> comme propriétaire ; le runner GitHub Actions (non-root) doit pouvoir y écrire pour que l&#39;installeur fonctionne.</p>
+</li>
+<li><p><strong>Reset de la base de test</strong> :</p>
+<pre><code class="language-bash">bash tests/fixtures/reset-db.sh
+</code></pre>
+<p>Ce script recharge le schéma et les fixtures dans <code>members_test</code>.</p>
+</li>
+<li><p><strong>Exécution des tests Playwright</strong> sans retry (<code>--retries=0</code> pour obtenir des échecs francs).</p>
+</li>
+<li><p><strong>Artefact en cas d&#39;échec</strong> : le rapport Playwright (<code>playwright-report/</code>) est conservé 7 jours dans GitHub Actions pour investigation.</p>
+</li>
+</ol>
+<h3 id="reproduire-localement">Reproduire localement<a class="anchor" href="#reproduire-localement" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash"># Démarrer la stack de test
+docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --build
+
+# Attendre que l&#39;app réponde
+curl -sf http://localhost:8080/login.php
+
+# Reset DB
+bash tests/fixtures/reset-db.sh
+
+# Lancer les tests
+npx playwright test
+
+# Voir le rapport HTML
+npx playwright show-report
+</code></pre>
+<hr>
+<h2 id="12-mise-à-jour-du-schéma">12. Mise à jour du schéma<a class="anchor" href="#12-mise-à-jour-du-schéma" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="principe-général">Principe général<a class="anchor" href="#principe-général" aria-label="Lien d'ancrage">#</a></h3>
+<p>Toutes les instructions <code>CREATE TABLE</code> dans <code>install.php</code> utilisent <code>CREATE TABLE IF NOT EXISTS</code>. Un <code>git pull</code> suivi d&#39;un rechargement Apache suffit pour les mises à jour courantes — les tables existantes ne sont pas touchées.</p>
+<p>Ce schéma idempotent signifie que re-passer par <code>install.php?step=3</code> sur une instance existante est sans danger : les tables sont ignorées, les données conservées.</p>
+<h3 id="migrations-exceptionnelles">Migrations exceptionnelles<a class="anchor" href="#migrations-exceptionnelles" aria-label="Lien d'ancrage">#</a></h3>
+<p>Les modifications de schéma non rétrocompatibles (ajout de colonne <code>NOT NULL</code> sans valeur par défaut, renommage de table, changement d&#39;index) sont documentées dans <code>MIGRATION_PROD.md</code> à la racine du dépôt.</p>
+<p>Avant toute migration :</p>
+<ol>
+<li>Lire <code>MIGRATION_PROD.md</code> pour la version cible</li>
+<li>Faire un dump de la base (<code>mysqldump</code>)</li>
+<li>Tester la migration sur un environnement de staging</li>
+<li>Appliquer en production dans une fenêtre de maintenance</li>
+</ol>
+<h3 id="vérifier-létat-du-schéma">Vérifier l&#39;état du schéma<a class="anchor" href="#vérifier-létat-du-schéma" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-sql">-- Lister les tables existantes
+SHOW TABLES;
+
+-- Vérifier la structure d&#39;une table
+DESCRIBE app_users;
+
+-- Comparer avec le schéma cible dans install.php
+</code></pre>
+<hr>
+<h2 id="13-logs-daudit">13. Logs d&#39;audit<a class="anchor" href="#13-logs-daudit" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="table-auditlog">Table audit_log<a class="anchor" href="#table-auditlog" aria-label="Lien d'ancrage">#</a></h3>
+<p>Structure :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Table audit_log" tabindex="0"><table><thead><tr><th scope="col">Colonne</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>id</code></td><td>int AUTO_INCREMENT</td><td>Identifiant de l&#39;entrée</td></tr>
+<tr><td><code>created_at</code></td><td>datetime</td><td>Horodatage (timezone Europe/Zurich)</td></tr>
+<tr><td><code>app_user_id</code></td><td>int</td><td>ID du compte applicatif auteur</td></tr>
+<tr><td><code>username</code></td><td>varchar(100)</td><td>Nom d&#39;utilisateur au moment de l&#39;action</td></tr>
+<tr><td><code>action</code></td><td>varchar(100)</td><td>Code de l&#39;action (ex. <code>PATCH /api/members/{id}</code>)</td></tr>
+<tr><td><code>detail</code></td><td>text</td><td>Détail JSON (diff avant/après pour les PATCH)</td></tr>
+<tr><td><code>subject_user_id</code></td><td>int unsigned</td><td>ID du membre concerné</td></tr></tbody></table></div>
+<h3 id="ce-qui-est-tracé">Ce qui est tracé<a class="anchor" href="#ce-qui-est-tracé" aria-label="Lien d'ancrage">#</a></h3>
+<p>La fonction <code>auditLog()</code> dans <code>bootstrap.php</code> est appelée par les endpoints API qui modifient des données :</p>
+<ul>
+<li><strong><code>PATCH /api/members/{id}</code></strong> : enregistre un diff des champs modifiés (valeur avant / valeur après) au format JSON dans la colonne <code>detail</code>.</li>
+</ul>
+<p>Les actions de gestion des comptes (création, suppression, réinitialisation de mot de passe) transitent par les actions POST de l&#39;interface web et ne passent pas par l&#39;API — elles ne génèrent pas d&#39;entrée <code>audit_log</code> à ce stade.</p>
+<h3 id="consulter-les-logs">Consulter les logs<a class="anchor" href="#consulter-les-logs" aria-label="Lien d'ancrage">#</a></h3>
+<p><strong>Via l&#39;interface</strong> : Réglages → Audit Log (onglet visible pour les admins).</p>
+<p><strong>Via SQL :</strong></p>
+<pre><code class="language-sql">-- 50 dernières entrées
+SELECT created_at, username, action, detail, subject_user_id
+FROM audit_log
+ORDER BY created_at DESC
+LIMIT 50;
+
+-- Actions d&#39;un utilisateur précis
+SELECT * FROM audit_log
+WHERE username = &#39;dupont&#39;
+ORDER BY created_at DESC;
+
+-- Modifications d&#39;un membre
+SELECT * FROM audit_log
+WHERE subject_user_id = 42
+ORDER BY created_at DESC;
+</code></pre>
+<h3 id="purge">Purge<a class="anchor" href="#purge" aria-label="Lien d'ancrage">#</a></h3>
+<p>La table <code>audit_log</code> n&#39;est pas purgée automatiquement. Purge manuelle si nécessaire :</p>
+<pre><code class="language-sql">-- Supprimer les entrées de plus de 2 ans
+DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
+</code></pre>
+<hr>
+<h2 id="réglages-de-lapplication">Réglages de l&#39;application<a class="anchor" href="#réglages-de-lapplication" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="général">Général<a class="anchor" href="#général" aria-label="Lien d'ancrage">#</a></h3>
+<p>Accès : <strong>Réglages</strong> → section <strong>Général</strong></p>
+<div class="table-scroll" role="region" aria-label="Tableau — Général" tabindex="0"><table><thead><tr><th scope="col">Réglage</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Groupe par défaut</td><td>Groupe affiché à l&#39;ouverture de la liste membres</td></tr>
+<tr><td>Groupe membres de référence</td><td>Référence pour les filtres cotisation non payée</td></tr>
+<tr><td>Groupe archives</td><td>Exclu des vues &quot;tous sauf archives&quot;</td></tr></tbody></table></div>
+<h3 id="types-de-compta">Types de compta<a class="anchor" href="#types-de-compta" aria-label="Lien d'ancrage">#</a></h3>
+<p>Accès : <strong>Réglages</strong> → section <strong>Types de compta</strong></p>
+<p>Les types définissent les catégories d&#39;entrées financières. Flags disponibles :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Types de compta" tabindex="0"><table><thead><tr><th scope="col">Flag</th><th scope="col">Effet</th></tr></thead><tbody><tr><td><code>is_cotisation</code></td><td>Pris en compte dans les filtres &quot;cotisation non payée&quot; et l&#39;import de cotisants</td></tr>
+<tr><td><code>is_excluded_from_donation</code></td><td>Exclu de la vue Contributions et des attestations de dons</td></tr>
+<tr><td><code>is_institutional</code></td><td>Donateur institutionnel (filtres spécifiques)</td></tr>
+<tr><td>Archivé</td><td>Masqué à la saisie mais visible sur les entrées historiques</td></tr></tbody></table></div>
+<hr>
+<h2 id="référence-rapide">Référence rapide<a class="anchor" href="#référence-rapide" aria-label="Lien d'ancrage">#</a></h2>
+<pre><code class="language-bash"># Vérifier l&#39;état de Fail2Ban
+fail2ban-client status memberbase-login
+
+# Recharger Apache sans coupure
+systemctl reload apache2
+
+# Dump base de données
+mysqldump -u members -p members | gzip &gt; backup.sql.gz
+
+# Logs Apache en temps réel
+tail -f /var/log/apache2/membres.votre-domaine.ch-access.log
+
+# Stack Docker — état des services
+docker compose ps
+
+# Stack Docker — logs en temps réel
+docker compose logs -f
+</code></pre>
+
+    </div>
+    <nav class="pager" aria-label="Navigation entre les guides">
+      <a class="pager-link prev" href="user.html"><span class="pager-dir">Guide précédent</span>Guide utilisateur</a>
+      <a class="pager-link next" href="api.html"><span class="pager-dir">Guide suivant</span>API REST</a>
+    </nav>
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p><a href="../index.html">MemberBase</a> — gestion des membres pour associations. Open source, licence <a href="https://github.com/pvollenweider/memberbase/blob/main/LICENSE">AGPL-3.0</a>. <a href="https://github.com/pvollenweider/memberbase">GitHub</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('theme-toggle');
+  var mql = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function currentTheme() {
+    var stored = null;
+    try { stored = localStorage.getItem('mb-theme'); } catch (e) {}
+    if (stored === 'dark' || stored === 'light') return stored;
+    return mql.matches ? 'dark' : 'light';
+  }
+
+  function apply(theme, persist) {
+    root.setAttribute('data-theme', theme);
+    btn.textContent = theme === 'dark' ? 'Activer le mode clair' : 'Activer le mode sombre';
+    if (persist) {
+      try { localStorage.setItem('mb-theme', theme); } catch (e) {}
+    }
+  }
+
+  apply(currentTheme(), false);
+
+  btn.addEventListener('click', function () {
+    apply(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+  });
+
+  mql.addEventListener('change', function () {
+    var stored = null;
+    try { stored = localStorage.getItem('mb-theme'); } catch (e) {}
+    if (!stored) apply(mql.matches ? 'dark' : 'light', false);
+  });
+})();
+</script>
+</body>
+</html>
