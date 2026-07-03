@@ -26,8 +26,15 @@ DB_NAME="${DB_NAME:-members}"
 OUT="${1:-backup_${DB_NAME}_$(date +%Y%m%d_%H%M%S).sql}"
 
 export MYSQL_PWD="$DB_PASS"
-mysqldump -h"$DB_HOST" -u"$DB_USER" \
-  --single-transaction --routines --triggers --add-drop-table \
-  "$DB_NAME" > "$OUT"
+
+# A MySQL 8 client dumping a MariaDB server queries information_schema.
+# COLUMN_STATISTICS (which MariaDB lacks) and fails — disable it when supported.
+# MariaDB's own mariadb-dump has no such option, so only add it when present.
+DUMP_OPTS="--single-transaction --routines --triggers --add-drop-table"
+if mysqldump --help 2>/dev/null | grep -q -- '--column-statistics'; then
+  DUMP_OPTS="$DUMP_OPTS --column-statistics=0"
+fi
+
+mysqldump -h"$DB_HOST" -u"$DB_USER" $DUMP_OPTS "$DB_NAME" > "$OUT"
 
 echo "Backup written to $OUT ($(wc -c < "$OUT") bytes)"
