@@ -148,23 +148,22 @@ Tout changement de schéma = un fichier `html/migrations/NNNN_description.sql` (
 - ⚠️ Le DDL MySQL est auto-committé (pas de rollback) : sauvegarde avant migration prod.
 - Garde de cohérence : `install.php` embarque le schéma complet à jour ET baseline les migrations (cf. `tests/` garde anti-dérive `schema.sql`↔`install.php`).
 
+## Release
+
+**Processus léger par défaut** (le coût token/temps compte — ne pas lancer de régénérations complètes sans raison) :
+
+1. Écrire l'entrée `## [x.y.z] — YYYY-MM-DD` dans `CHANGELOG.md`.
+2. `make release VERSION=x.y.z` (`tools/release.sh`) : bump `APP_VERSION`, commit, tag `vx.y.z`, push, GitHub release (notes extraites du changelog), puis patch du site (étape 4). Zéro token.
+3. Knowledge graph : `/understand` **sans `--full`** (incrémental — ne ré-analyse que les fichiers modifiés depuis le dernier `gitCommitHash` de `.understand-anything/meta.json`). Réserver `--full` aux refontes structurelles du code.
+4. Site : `make publish-site` (`tools/publish-site.sh` + `tools/site-release.mjs`) insère la dernière entrée du changelog dans `index.html` de `gh-pages` (3 releases visibles). Déjà inclus dans `make release`.
+
+**`/impeccable` uniquement** quand le contenu documentaire a changé substantiellement (nouvelles pages, refonte de `doc/*.md` ou du `README.md`) — pas pour une release courante.
+
 ## Site GitHub Pages
 
 Le site de documentation public est hébergé sur **https://pvollenweider.github.io/memberbase/** (branche `gh-pages`, orpheline, root `/`).
 
-**À maintenir à jour lors de chaque release :**
-- Régénérer le knowledge graph : `/understand --full` (si le `gitCommitHash` dans `.understand-anything/meta.json` diffère de HEAD)
-- Régénérer le site : `/impeccable` (utilise le knowledge graph + `README.md`, `CHANGELOG.md`, `doc/`)
-- Pousser sur `gh-pages` :
-  ```bash
-  git checkout gh-pages
-  # copier les fichiers générés
-  git add . && git commit --author="pvollenweider <pvollenweider@jahia.com>" -m "Deploy site vX.Y.Z"
-  git push origin gh-pages
-  git checkout main
-  ```
-
-Le site doit refléter la version courante (`APP_VERSION`) et le changelog à jour. Ne pas modifier `gh-pages` à la main sans repasser par `/impeccable`.
+Le site doit refléter la version courante (`APP_VERSION`) et le changelog à jour — c'est le rôle de `make publish-site` (cf. section Release). Ne pas modifier `gh-pages` à la main en dehors de ce script ou d'une passe `/impeccable`.
 
 ## Colonne `users.status`
 

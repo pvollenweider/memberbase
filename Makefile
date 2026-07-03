@@ -1,4 +1,14 @@
-.PHONY: up down logs shell db import backup restore open test test-ui test-reset-db test-unit migrate migrate-status
+.PHONY: up down logs shell db import backup restore open test test-ui test-reset-db test-unit migrate migrate-status release publish-site
+
+## release VERSION=x.y.z — bump version, commit, tag, GitHub release, site changelog
+## (CHANGELOG.md must already contain the "## [x.y.z]" entry)
+release:
+	@test -n "$(VERSION)" || (echo "Usage: make release VERSION=x.y.z" && exit 1)
+	bash tools/release.sh $(VERSION)
+
+## publish-site — push the latest CHANGELOG entry to the gh-pages changelog (no full regen)
+publish-site:
+	bash tools/publish-site.sh
 
 open:
 	open http://localhost:8080
