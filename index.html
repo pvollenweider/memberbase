@@ -459,6 +459,16 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap">
     <h2 id="changelog-h">Dernières versions</h2>
     <article class="release">
+      <h3 class="v">3.8.0 <span class="d">3 juillet 2026</span></h3>
+      <ul>
+        <li><strong>Interface multilingue (FR/EN/DE/ES)</strong> : chaque utilisateur choisit sa langue d'interface (carte « Langue » sur la page Mot de passe), stockée sur son compte (<code class="inline">app_users.locale</code>, défaut français) et appliquée immédiatement. Traductions complètes en anglais, allemand (orthographe suisse) et espagnol ; toute clé manquante retombe automatiquement sur le français.</li>
+        <li><strong>Externalisation complète des chaînes UI</strong> : les ~650 dernières chaînes codées en dur (messages d'erreur, boutons, titres, aide contextuelle…) sont passées dans le fichier de locale, conformément à la règle « aucun label en dur ».</li>
+        <li>Nouvelle architecture de locale par bundles PHP (<code class="inline">html/locales/resources_{fr,en,de,es}.php</code>), chargés par <code class="inline">mbLoadLocale()</code> — la base française reste la source complète, les autres langues sont des surcharges.</li>
+        <li>Migration <code class="inline">0003_app_users_locale</code> (colonne <code class="inline">locale</code> sur <code class="inline">app_users</code>).</li>
+        <li><code class="inline">tools/release.sh</code> / <code class="inline">tools/publish-site.sh</code> : processus de release allégé (bump/tag/GitHub release + patch du changelog sur le site, sans régénération complète).</li>
+      </ul>
+    </article>
+    <article class="release">
       <h3 class="v">3.7.0 <span class="d">3 juillet 2026</span></h3>
       <ul>
         <li><strong>Lien vers la documentation en ligne</strong> : le pied de page de l'application et celui de l'installateur (<code class="inline">install.php</code>) pointent désormais vers le site du projet et la documentation en ligne (https://pvollenweider.github.io/memberbase/) au lieu du dépôt GitHub brut. Nouveau libellé <code class="inline">documentation</code> dans la locale.</li>
@@ -471,16 +481,6 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
       <ul>
         <li><strong>Maintenance DB sans SSH</strong> — export de la base et application des migrations depuis Réglages → Santé.</li>
         <li><strong>Cache-busting des assets</strong> — les CSS/JS portent <code class="inline">?v=APP_VERSION</code>, plus de cache navigateur périmé après mise à jour.</li>
-      </ul>
-    </article>
-    <article class="release">
-      <h3 class="v">3.5.6 <span class="d">2 juillet 2026</span></h3>
-      <ul>
-        <li><strong>Protection CSRF</strong> sur toutes les actions POST, propagée automatiquement (htmx et formulaires natifs).</li>
-        <li><strong>Migrations versionnées</strong> — fichiers SQL numérotés, table <code class="inline">schema_migrations</code>, baseline automatique à l'installation.</li>
-        <li><strong>Page de santé</strong> — Réglages → Santé (admin) et endpoint <code class="inline">/health.php</code> pour le monitoring externe.</li>
-        <li><strong>Montants en <code class="inline">DECIMAL(10,2)</code></strong> — fin des montants financiers stockés en texte.</li>
-        <li><strong>Suite unitaire PHPUnit</strong> en complément des tests E2E Playwright.</li>
       </ul>
     </article>
     <p class="changelog-more"><a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md">Historique complet des versions</a></p>
