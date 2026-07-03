@@ -199,7 +199,8 @@ if ($_pendingMigrations):
     <div class="container">
         <small>Process time: [<?= (int)(($end - $start) * 1000) ?>
             ms]. Date: [<?= date("d.m.Y H:i", time()) ?>]<br/>
-            <a href="https://github.com/pvollenweider/memberbase" target="_blank" rel="noopener" class="text-muted">MemberBase v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, $charset) ?></a>
+            <a href="https://pvollenweider.github.io/memberbase/" target="_blank" rel="noopener" class="text-muted">MemberBase v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, $charset) ?></a>
+            &middot; <a href="https://pvollenweider.github.io/memberbase/docs/" target="_blank" rel="noopener" class="text-muted"><?= htmlspecialchars($GLOBAL['documentation'], ENT_QUOTES, $charset) ?></a>
         </small>
     </div>
 </footer>

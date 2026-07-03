@@ -504,5 +504,3 @@ base (DDL + `tests/fixtures/seed.sql`).
 ### Git
 - Commits signés `pvollenweider <pvollenweider@jahia.com>` (auteur *et* committer),
   sans ligne `Co-Authored-By` (voir `CLAUDE.md`).
-</content>
-</invoke>

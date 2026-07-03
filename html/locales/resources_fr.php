@@ -31,6 +31,7 @@ $GLOBAL['confirmMerge']         = "Confirmer la fusion";
 $GLOBAL['confirmAnonymize']     = "Confirmer l'anonymisation";
 $GLOBAL['wantsAttestationLabel']= "Souhaite une attestation de don";
 $GLOBAL['deleteAll']            = "Tout supprimer";
+$GLOBAL['documentation']        = "Documentation";
 $GLOBAL['deletePermanently']    = "Supprimer définitivement";
 $GLOBAL['deleteOrArchive']      = "Supprimer ou archiver ce membre";
 $GLOBAL['deleteEntry']          = "Supprimer cette écriture";

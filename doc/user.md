@@ -558,5 +558,3 @@ connexion suivante.
 ## 14. Déconnexion
 
 Cliquer son **nom d'utilisateur** en haut à droite, puis **Déconnexion**.
-</content>
-</invoke>
