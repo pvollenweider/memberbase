@@ -12,7 +12,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 date_default_timezone_set("Europe/Zurich");
 
 // Single source of truth for the installed application version (footer + health page).
-const APP_VERSION = '3.6.0';
+const APP_VERSION = '3.7.0';
 
 // Pure helpers (date/string), extracted for unit testing — no side effects.
 require_once __DIR__ . '/pure.php';

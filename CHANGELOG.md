@@ -2,6 +2,17 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [3.7.0] — 2026-07-03
+
+### Nouveautés
+
+- **Lien vers la documentation en ligne** : le pied de page de l'application et celui de l'installateur (`install.php`) pointent désormais vers le site du projet et la documentation en ligne (https://pvollenweider.github.io/memberbase/) au lieu du dépôt GitHub brut. Nouveau libellé `documentation` dans la locale.
+
+### Documentation
+
+- Site de documentation public GitHub Pages (https://pvollenweider.github.io/memberbase/) : workflow de maintenance documenté dans `CLAUDE.md` (régénération du knowledge graph et du site à chaque release).
+- Nettoyage de balises parasites en fin de `doc/user.md` et `doc/architecture.md`.
+
 ## [3.6.0] — 2026-07-03
 
 ### Nouveautés
