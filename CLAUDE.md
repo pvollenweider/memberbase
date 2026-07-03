@@ -148,6 +148,24 @@ Tout changement de schéma = un fichier `html/migrations/NNNN_description.sql` (
 - ⚠️ Le DDL MySQL est auto-committé (pas de rollback) : sauvegarde avant migration prod.
 - Garde de cohérence : `install.php` embarque le schéma complet à jour ET baseline les migrations (cf. `tests/` garde anti-dérive `schema.sql`↔`install.php`).
 
+## Site GitHub Pages
+
+Le site de documentation public est hébergé sur **https://pvollenweider.github.io/memberbase/** (branche `gh-pages`, orpheline, root `/`).
+
+**À maintenir à jour lors de chaque release :**
+- Régénérer le knowledge graph : `/understand --full` (si le `gitCommitHash` dans `.understand-anything/meta.json` diffère de HEAD)
+- Régénérer le site : `/impeccable` (utilise le knowledge graph + `README.md`, `CHANGELOG.md`, `doc/`)
+- Pousser sur `gh-pages` :
+  ```bash
+  git checkout gh-pages
+  # copier les fichiers générés
+  git add . && git commit --author="pvollenweider <pvollenweider@jahia.com>" -m "Deploy site vX.Y.Z"
+  git push origin gh-pages
+  git checkout main
+  ```
+
+Le site doit refléter la version courante (`APP_VERSION`) et le changelog à jour. Ne pas modifier `gh-pages` à la main sans repasser par `/impeccable`.
+
 ## Colonne `users.status`
 
 `TINYINT(1) NOT NULL DEFAULT 1` — 1 = actif, 0 = inactif.  
