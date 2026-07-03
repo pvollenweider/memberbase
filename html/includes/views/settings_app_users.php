@@ -6,7 +6,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-if (!isAdmin()) { echo '<div class="alert alert-danger">Accès refusé.</div>'; return; }
+if (!isAdmin()) { echo '<div class="alert alert-danger">' . $GLOBAL['accessDenied'] . '</div>'; return; }
 
 $_auRows = $pdo->query(
     "SELECT id, username, display_name, email, role, is_active, force_password_change, created_at, last_login, reset_token, token_expires_at
@@ -27,9 +27,9 @@ if ($__invFlash):
 <div class="alert alert-success d-flex gap-2 align-items-start py-2 mb-3" style="font-size:0.875rem">
   <i class="fas fa-link mt-1 flex-shrink-0" aria-hidden="true"></i>
   <span>
-    Lien d'invitation pour <strong><?= htmlspecialchars($__invUsername, ENT_QUOTES, $charset) ?></strong> (valable 7 jours) :<br>
+    <?= sprintf($GLOBAL['inviteLinkFor'], '<strong>' . htmlspecialchars($__invUsername, ENT_QUOTES, $charset) . '</strong>') ?><br>
     <code class="user-select-all" style="word-break:break-all"><?= htmlspecialchars($__invLink, ENT_QUOTES, $charset) ?></code>
-    <br><small class="text-muted">Envoyez ce lien à l'utilisateur. Il définira lui-même son mot de passe.</small>
+    <br><small class="text-muted"><?= $GLOBAL['inviteLinkHelp'] ?></small>
   </span>
 </div>
 <?php endif ?>
@@ -46,30 +46,30 @@ if ($__flash):
 <div class="alert alert-success d-flex gap-2 align-items-start py-2 mb-3" style="font-size:0.875rem">
   <i class="fas fa-key mt-1 flex-shrink-0" aria-hidden="true"></i>
   <span>
-    Mot de passe temporaire pour <strong><?= htmlspecialchars($__resetUsername, ENT_QUOTES, $charset) ?></strong> :
+    <?= sprintf($GLOBAL['tempPasswordFor'], '<strong>' . htmlspecialchars($__resetUsername, ENT_QUOTES, $charset) . '</strong>') ?>
     <code class="ms-1 user-select-all"><?= htmlspecialchars($__flash['pw'], ENT_QUOTES, $charset) ?></code>
-    <br><small class="text-muted">Communiquez-le à l'utilisateur. Il devra le changer à la prochaine connexion.</small>
+    <br><small class="text-muted"><?= $GLOBAL['tempPasswordHelp'] ?></small>
   </span>
 </div>
 <?php endif ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    <i class="fas fa-user-shield me-1" aria-hidden="true"></i>Utilisateurs de l'application
+    <i class="fas fa-user-shield me-1" aria-hidden="true"></i><?= $GLOBAL['appUsersTitle'] ?>
   </span>
   <button type="button" class="btn btn-sm btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-create-user">
-    <i class="fas fa-plus me-1" aria-hidden="true"></i>Nouvel utilisateur
+    <i class="fas fa-plus me-1" aria-hidden="true"></i><?= $GLOBAL['newUser'] ?>
   </button>
 </div>
 
 <table class="table table-hover table-sm" style="font-size:0.875rem">
 <thead>
 <tr>
-  <th>Identifiant</th>
-  <th>Nom</th>
-  <th>Email</th>
-  <th>Rôle</th>
-  <th>Statut</th>
-  <th>Dernier login</th>
+  <th><?= $GLOBAL['username'] ?></th>
+  <th><?= $GLOBAL['name'] ?></th>
+  <th><?= $GLOBAL['email'] ?></th>
+  <th><?= $GLOBAL['role'] ?></th>
+  <th><?= $GLOBAL['status'] ?></th>
+  <th><?= $GLOBAL['lastLogin'] ?></th>
   <th></th>
 </tr>
 </thead>
@@ -80,28 +80,28 @@ if ($__flash):
 <tr>
   <td>
     <strong><?= htmlspecialchars($_au->username, ENT_QUOTES, $charset) ?></strong>
-    <?php if ($isSelf): ?><span class="badge bg-secondary ms-1" style="font-size:0.65rem">vous</span><?php endif ?>
+    <?php if ($isSelf): ?><span class="badge bg-secondary ms-1" style="font-size:0.65rem"><?= $GLOBAL['youBadge'] ?></span><?php endif ?>
     <?php if (!empty($_au->reset_token) && strtotime($_au->token_expires_at) > time()): ?>
-      <span class="badge bg-info text-dark ms-1" style="font-size:0.65rem" title="Invitation en attente — lien non encore utilisé"><i class="fas fa-envelope me-1" aria-hidden="true"></i>invitation</span>
+      <span class="badge bg-info text-dark ms-1" style="font-size:0.65rem" title="<?= $GLOBAL['invitePendingTooltip'] ?>"><i class="fas fa-envelope me-1" aria-hidden="true"></i><?= $GLOBAL['inviteBadge'] ?></span>
     <?php elseif ($_au->force_password_change): ?>
-      <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem" title="Doit changer son mot de passe">clé</span>
+      <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem" title="<?= $GLOBAL['mustChangePasswordTooltip'] ?>"><?= $GLOBAL['keyBadge'] ?></span>
     <?php endif ?>
   </td>
   <td><?= htmlspecialchars($_au->display_name ?? '', ENT_QUOTES, $charset) ?></td>
   <td><?= htmlspecialchars($_au->email ?? '', ENT_QUOTES, $charset) ?></td>
   <td>
     <?php match($_au->role) {
-      'admin'    => print('<span class="badge bg-danger"   style="font-size:0.7rem">Admin</span>'),
-      'manager'  => print('<span class="badge bg-warning text-dark" style="font-size:0.7rem">Manager</span>'),
-      'readonly' => print('<span class="badge bg-light text-dark border" style="font-size:0.7rem">Lecture seule</span>'),
-      default    => print('<span class="badge bg-secondary" style="font-size:0.7rem">Utilisateur</span>'),
+      'admin'    => print('<span class="badge bg-danger"   style="font-size:0.7rem">' . $GLOBAL['roleAdmin'] . '</span>'),
+      'manager'  => print('<span class="badge bg-warning text-dark" style="font-size:0.7rem">' . $GLOBAL['roleManager'] . '</span>'),
+      'readonly' => print('<span class="badge bg-light text-dark border" style="font-size:0.7rem">' . $GLOBAL['roleReadonly'] . '</span>'),
+      default    => print('<span class="badge bg-secondary" style="font-size:0.7rem">' . $GLOBAL['user'] . '</span>'),
     } ?>
   </td>
   <td>
     <?php if ($_au->is_active): ?>
-      <span class="text-success" style="font-size:0.8rem"><i class="fas fa-circle" aria-hidden="true"></i> Actif</span>
+      <span class="text-success" style="font-size:0.8rem"><i class="fas fa-circle" aria-hidden="true"></i> <?= $GLOBAL['active'] ?></span>
     <?php else: ?>
-      <span class="text-muted" style="font-size:0.8rem"><i class="far fa-circle" aria-hidden="true"></i> Inactif</span>
+      <span class="text-muted" style="font-size:0.8rem"><i class="far fa-circle" aria-hidden="true"></i> <?= $GLOBAL['inactive'] ?></span>
     <?php endif ?>
   </td>
   <td style="font-size:0.8rem;color:var(--ca-ink-muted)">
@@ -109,7 +109,7 @@ if ($__flash):
   </td>
   <td class="text-end" style="white-space:nowrap">
     <?php if (!$isSelf): ?>
-    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Modifier"
+    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" title="<?= $GLOBAL['edit'] ?>"
             data-bs-toggle="modal" data-bs-target="#modal-edit-app-user"
             data-user-id="<?= (int)$_au->id ?>"
             data-username="<?= htmlspecialchars($_au->username, ENT_QUOTES, $charset) ?>"
@@ -119,7 +119,7 @@ if ($__flash):
             data-is-active="<?= $_au->is_active ? '1' : '0' ?>">
       <i class="fas fa-pen" aria-hidden="true"></i>
     </button>
-    <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" title="Réinitialiser mot de passe"
+    <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" title="<?= $GLOBAL['resetPasswordShort'] ?>"
             data-bs-toggle="modal" data-bs-target="#modal-reset-app-user"
             data-user-id="<?= (int)$_au->id ?>"
             data-username="<?= htmlspecialchars($_au->username, ENT_QUOTES, $charset) ?>">
@@ -132,7 +132,7 @@ if ($__flash):
       <i class="fas fa-trash" aria-hidden="true"></i>
     </button>
     <?php else: ?>
-    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Changer mon mot de passe">
+    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword" class="btn btn-sm btn-outline-secondary py-0 px-2" title="<?= $GLOBAL['changeMyPassword'] ?>">
       <i class="fas fa-key" aria-hidden="true"></i>
     </a>
     <?php endif ?>
@@ -150,7 +150,7 @@ if ($__flash):
         <input type="hidden" name="action" value="createAppUser">
         <div class="modal-header py-2">
           <h6 class="modal-title" id="modal-create-user-title" style="font-size:0.9rem">
-            <i class="fas fa-user-plus me-2" aria-hidden="true"></i>Nouvel utilisateur
+            <i class="fas fa-user-plus me-2" aria-hidden="true"></i><?= $GLOBAL['newUser'] ?>
           </h6>
           <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
         </div>
@@ -161,34 +161,34 @@ if ($__flash):
           </div>
           <?php endif ?>
           <div class="mb-3">
-            <label for="au_username" class="form-label">Identifiant <span class="text-danger">*</span></label>
+            <label for="au_username" class="form-label"><?= $GLOBAL['username'] ?> <span class="text-danger">*</span></label>
             <input type="text" class="form-control form-control-sm" id="au_username" name="au_username"
-                   required maxlength="100" pattern="[a-zA-Z0-9._\-]+" title="Lettres, chiffres, point, tiret, underscore">
+                   required maxlength="100" pattern="[a-zA-Z0-9._\-]+" title="<?= $GLOBAL['usernamePatternHint'] ?>">
           </div>
           <div class="mb-3">
-            <label for="au_display_name" class="form-label">Nom affiché</label>
+            <label for="au_display_name" class="form-label"><?= $GLOBAL['displayName'] ?></label>
             <input type="text" class="form-control form-control-sm" id="au_display_name" name="au_display_name" maxlength="200">
           </div>
           <div class="mb-3">
-            <label for="au_email" class="form-label">Email</label>
+            <label for="au_email" class="form-label"><?= $GLOBAL['email'] ?></label>
             <input type="email" class="form-control form-control-sm" id="au_email" name="au_email" maxlength="200">
           </div>
           <div class="mb-3">
             <label for="au_role" class="form-label">
-              Rôle
+              <?= $GLOBAL['role'] ?>
               <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline text-decoration-none"
                       data-bs-toggle="collapse" data-bs-target="#role-matrix"
                       aria-expanded="false" aria-controls="role-matrix"
-                      title="Voir la matrice des droits">
+                      title="<?= $GLOBAL['viewRightsMatrix'] ?>">
                 <i class="fas fa-circle-question" aria-hidden="true"></i>
-                <span class="visually-hidden">Voir la matrice des droits</span>
+                <span class="visually-hidden"><?= $GLOBAL['viewRightsMatrix'] ?></span>
               </button>
             </label>
             <select class="form-select form-select-sm" id="au_role" name="au_role">
-              <option value="readonly">Lecture seule</option>
-              <option value="user" selected>Utilisateur</option>
-              <option value="manager">Manager</option>
-              <option value="admin">Admin</option>
+              <option value="readonly"><?= $GLOBAL['roleReadonly'] ?></option>
+              <option value="user" selected><?= $GLOBAL['user'] ?></option>
+              <option value="manager"><?= $GLOBAL['roleManager'] ?></option>
+              <option value="admin"><?= $GLOBAL['roleAdmin'] ?></option>
             </select>
             <div class="collapse mt-2" id="role-matrix">
               <style>
@@ -199,11 +199,11 @@ if ($__flash):
                 <table class="ca-rights-matrix table-sm mb-0 align-middle text-center" style="font-size:0.72rem;width:100%;border-collapse:collapse">
                   <thead>
                     <tr>
-                      <th class="text-start" style="font-weight:600">Droit</th>
-                      <th>Lecture<br>seule</th>
-                      <th>Utilisa-<br>teur</th>
-                      <th>Manager</th>
-                      <th>Admin</th>
+                      <th class="text-start" style="font-weight:600"><?= $GLOBAL['rightLabel'] ?></th>
+                      <th><?= $GLOBAL['roleReadonlyWrapped'] ?></th>
+                      <th><?= $GLOBAL['roleUserWrapped'] ?></th>
+                      <th><?= $GLOBAL['roleManager'] ?></th>
+                      <th><?= $GLOBAL['roleAdmin'] ?></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -211,21 +211,21 @@ if ($__flash):
                     // ✓ = autorisé, – = refusé. Reflète auth.php (canRead/canWrite/isManager/isAdmin)
                     // et les gardes des actions (import & gestion = manager+ ; suppression/anonymisation & comptes = admin).
                     $_matrix = [
-                      'Consulter membres, compta, suivi'          => [1,1,1,1],
-                      'Créer / modifier membres, compta, suivi'   => [0,1,1,1],
-                      'Importer des contacts (CSV/TSV)'           => [0,0,1,1],
-                      'Gérer segments, catégories, paramètres'    => [0,0,1,1],
-                      'Fusionner / archiver un membre'            => [0,0,1,1],
-                      'Supprimer / anonymiser un membre'          => [0,0,0,1],
-                      'Gérer les comptes applicatifs'             => [0,0,0,1],
+                      $GLOBAL['rightViewData']         => [1,1,1,1],
+                      $GLOBAL['rightEditData']         => [0,1,1,1],
+                      $GLOBAL['rightImportContacts']   => [0,0,1,1],
+                      $GLOBAL['rightManageSettings']   => [0,0,1,1],
+                      $GLOBAL['rightMergeArchive']     => [0,0,1,1],
+                      $GLOBAL['rightDeleteAnonymize']  => [0,0,0,1],
+                      $GLOBAL['rightManageAccounts']   => [0,0,0,1],
                     ];
                     foreach ($_matrix as $_label => $_cells): ?>
                     <tr>
                       <td class="text-start"><?= htmlspecialchars($_label, ENT_QUOTES, $charset) ?></td>
                       <?php foreach ($_cells as $_c): ?>
                       <td><?= $_c
-                            ? '<i class="fas fa-check text-success" aria-label="oui"></i>'
-                            : '<span class="text-muted" aria-label="non">–</span>' ?></td>
+                            ? '<i class="fas fa-check text-success" aria-label="' . $GLOBAL['yesLower'] . '"></i>'
+                            : '<span class="text-muted" aria-label="' . $GLOBAL['noLower'] . '">–</span>' ?></td>
                       <?php endforeach ?>
                     </tr>
                     <?php endforeach ?>
@@ -235,18 +235,18 @@ if ($__flash):
             </div>
           </div>
           <div class="mb-3">
-            <label for="au_password" class="form-label">Mot de passe temporaire</label>
+            <label for="au_password" class="form-label"><?= $GLOBAL['tempPassword'] ?></label>
             <div class="input-group input-group-sm">
               <input type="text" class="form-control form-control-sm" id="au_password" name="au_password"
                      autocomplete="off" placeholder="changeme">
-              <button type="button" class="btn btn-outline-secondary" id="btn-gen-pw" title="Générer un mot de passe aléatoire">
+              <button type="button" class="btn btn-outline-secondary" id="btn-gen-pw" title="<?= $GLOBAL['generateRandomPassword'] ?>">
                 <i class="fas fa-dice" aria-hidden="true"></i>
               </button>
-              <button type="button" class="btn btn-outline-secondary" id="btn-copy-pw" title="Copier" style="display:none">
+              <button type="button" class="btn btn-outline-secondary" id="btn-copy-pw" title="<?= $GLOBAL['copy'] ?>" style="display:none">
                 <i class="fas fa-copy" aria-hidden="true"></i>
               </button>
             </div>
-            <div class="form-text">Laisser vide pour utiliser <strong>changeme</strong> par défaut. L'utilisateur devra le changer à la première connexion.</div>
+            <div class="form-text"><?= $GLOBAL['tempPasswordDefaultHelp'] ?></div>
           </div>
           <script>
           (function() {
@@ -276,7 +276,7 @@ if ($__flash):
         </div>
         <div class="modal-footer py-2">
           <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
-          <button type="submit" class="btn btn-primary btn-sm">Créer</button>
+          <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['create'] ?></button>
         </div>
       </form>
     </div>
@@ -298,36 +298,36 @@ document.addEventListener('DOMContentLoaded', function() {
         <input type="hidden" name="target_id" id="modal-edit-target-id" value="">
         <div class="modal-header py-2">
           <h6 class="modal-title" id="modal-edit-app-user-label" style="font-size:0.9rem">
-            <i class="fas fa-pen me-2" aria-hidden="true"></i>Modifier <strong id="modal-edit-username"></strong>
+            <i class="fas fa-pen me-2" aria-hidden="true"></i><?= sprintf($GLOBAL['editUserTitle'], '<strong id="modal-edit-username"></strong>') ?>
           </h6>
           <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
         </div>
         <div class="modal-body" style="font-size:0.875rem">
           <div class="mb-3">
-            <label for="modal-edit-display-name" class="form-label">Nom affiché</label>
+            <label for="modal-edit-display-name" class="form-label"><?= $GLOBAL['displayName'] ?></label>
             <input type="text" class="form-control form-control-sm" id="modal-edit-display-name" name="au_display_name" maxlength="200">
           </div>
           <div class="mb-3">
-            <label for="modal-edit-email" class="form-label">Email</label>
+            <label for="modal-edit-email" class="form-label"><?= $GLOBAL['email'] ?></label>
             <input type="email" class="form-control form-control-sm" id="modal-edit-email" name="au_email" maxlength="200">
           </div>
           <div class="mb-3">
-            <label for="modal-edit-role" class="form-label">Rôle</label>
+            <label for="modal-edit-role" class="form-label"><?= $GLOBAL['role'] ?></label>
             <select class="form-select form-select-sm" id="modal-edit-role" name="au_role">
-              <option value="readonly">Lecture seule</option>
-              <option value="user">Utilisateur</option>
-              <option value="manager">Manager</option>
-              <option value="admin">Admin</option>
+              <option value="readonly"><?= $GLOBAL['roleReadonly'] ?></option>
+              <option value="user"><?= $GLOBAL['user'] ?></option>
+              <option value="manager"><?= $GLOBAL['roleManager'] ?></option>
+              <option value="admin"><?= $GLOBAL['roleAdmin'] ?></option>
             </select>
           </div>
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="modal-edit-is-active" name="au_is_active" value="1">
-            <label class="form-check-label" for="modal-edit-is-active">Compte actif</label>
+            <label class="form-check-label" for="modal-edit-is-active"><?= $GLOBAL['accountActive'] ?></label>
           </div>
         </div>
         <div class="modal-footer py-2">
           <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
-          <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
+          <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['saveButton'] ?></button>
         </div>
       </form>
     </div>
@@ -338,11 +338,11 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-reset-app-user-label">Réinitialiser le mot de passe</h5>
+        <h5 class="modal-title" id="modal-reset-app-user-label"><?= $GLOBAL['resetPasswordTitle'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Réinitialiser le mot de passe de «<strong id="modal-reset-username"></strong>»?
+        <?= sprintf($GLOBAL['resetPasswordConfirm'], '<strong id="modal-reset-username"></strong>') ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <input type="hidden" name="action"    value="resetUserPassword">
           <input type="hidden" name="target_id" id="modal-reset-target-id" value="">
           <button type="submit" class="btn btn-warning">
-            <i class="fas fa-key me-1" aria-hidden="true"></i>Réinitialiser
+            <i class="fas fa-key me-1" aria-hidden="true"></i><?= $GLOBAL['reset'] ?>
           </button>
         </form>
       </div>
@@ -362,11 +362,11 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-delete-app-user-label">Supprimer l'utilisateur</h5>
+        <h5 class="modal-title" id="modal-delete-app-user-label"><?= $GLOBAL['deleteUserTitle'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Supprimer l'utilisateur «<strong id="modal-delete-app-username"></strong>»? Cette action est irréversible.
+        <?= sprintf($GLOBAL['deleteUserConfirm'], '<strong id="modal-delete-app-username"></strong>') ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>

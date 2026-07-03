@@ -74,7 +74,7 @@ $typeId = $compta->getTypeId();
         <label for="sum" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end text-sm-end" style="font-size:0.82rem"><?= $GLOBAL['sum'] ?></label>
         <div class="col-8 col-sm-5">
           <input type="text" class="form-control form-control-sm" id="sum" name="sum"
-                 inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" title="Montant numérique (ex: 50 ou 12.50)"
+                 inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" title="<?= $GLOBAL['numericAmountHint'] ?>"
                  value="<?= htmlentities($compta->getSum(), ENT_COMPAT, $charset) ?>">
         </div>
       </div>

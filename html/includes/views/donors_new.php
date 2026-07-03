@@ -40,10 +40,10 @@ $count = count($rows);
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
-    <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Retour à l'aperçu des dons
+    <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToDonationOverview'] ?>
   </a>
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    Nouveaux donateurs <?= $year ?>
+    <?= sprintf($GLOBAL['newDonorsTitle'], $year) ?>
   </span>
   <div class="dropdown ms-1">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -61,7 +61,7 @@ $count = count($rows);
 <div class="alert d-flex align-items-start gap-2 py-2 mb-3" role="status"
      style="font-size:0.85rem;background:rgba(255,193,7,0.12);border:1px solid rgba(255,193,7,0.4);border-radius:6px">
   <i class="fas fa-star mt-1 flex-shrink-0" aria-hidden="true" style="color:var(--bs-warning)"></i>
-  <span><strong><?= $count ?> nouveau<?= $count > 1 ? 'x' : '' ?> donateur<?= $count > 1 ? 's' : '' ?></strong> — ont contribué en <strong><?= $year ?></strong> sans donation en <strong><?= $year-1 ?></strong>.</span>
+  <span><?= sprintf($GLOBAL['newDonorsCount'], $count, $count > 1 ? 'x' : '', $count > 1 ? 's' : '', $year, $year-1) ?></span>
 </div>
 
 <?php
@@ -69,13 +69,13 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $dt_order      = [[6, 'desc']];
 $extra_columns = [
     [
-        'label'  => 'Don ' . $year,
+        'label'  => sprintf($GLOBAL['donYear'], $year),
         'value'  => fn($row) => number_format((float)$row->total_curr, 2, '.', '\''),
         'style'  => 'text-align:right',
         'footer' => array_sum(array_map(fn($r) => (float)$r->total_curr, $rows)),
     ],
     [
-        'label'  => 'Premier don',
+        'label'  => $GLOBAL['firstDonation'],
         'value'  => fn($row) => timeStampToformatedDate($row->first_date),
         'style'  => '',
         'footer' => null,

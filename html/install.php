@@ -19,6 +19,9 @@ declare(strict_types=1);
 define('APP_ENTRY', true);
 define('INSTALL_MODE', true);
 
+// Locale strings — no DB dependency, safe before the schema exists.
+require_once __DIR__ . '/locales/resources_fr.php';
+
 $confFile = __DIR__ . '/../conf/db.php';
 
 // Full schema — embedded so install.php has no external file dependency.
@@ -202,8 +205,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '2') {
     $dbUser = trim($_POST['db_user'] ?? '');
     $dbPass = $_POST['db_pass'] ?? '';
 
-    if (!$dbName) $errors[] = 'Nom de la base de données requis.';
-    if (!$dbUser) $errors[] = 'Utilisateur requis.';
+    if (!$dbName) $errors[] = $GLOBAL['dbNameRequired'];
+    if (!$dbUser) $errors[] = $GLOBAL['dbUserRequired'];
 
     if (!$errors) {
         try {
@@ -222,13 +225,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '2') {
                 var_export($dbPass, true)
             );
             if (file_put_contents($confFile, $confContent) === false) {
-                $errors[] = "Impossible d'écrire <code>" . htmlspecialchars($confFile, ENT_QUOTES, 'UTF-8') . '</code>. Vérifiez les permissions du répertoire <code>conf/</code>.';
+                $errors[] = sprintf($GLOBAL['cannotWriteConf'], htmlspecialchars($confFile, ENT_QUOTES, 'UTF-8'));
             } else {
                 header('Location: install.php?step=3');
                 exit;
             }
         } catch (PDOException $e) {
-            $errors[] = 'Connexion échouée : ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+            $errors[] = sprintf($GLOBAL['connectionFailed'], htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
         }
     }
 }
@@ -270,7 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '3') {
             header('Location: install.php?step=4');
             exit;
         } catch (PDOException $e) {
-            $errors[] = 'Erreur SQL : ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+            $errors[] = sprintf($GLOBAL['sqlError'], htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
         }
     }
 }
@@ -287,7 +290,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
     $orgCountry = trim($_POST['org_country'] ?? 'Suisse');
     $memberPrefix = trim($_POST['membre_team_prefix'] ?? 'Membre');
 
-    if (!$orgName) $errors[] = 'Nom de l\'organisation requis.';
+    if (!$orgName) $errors[] = $GLOBAL['orgNameRequired'];
 
     if (!$errors) {
         try {
@@ -370,7 +373,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
             header('Location: install.php?step=5');
             exit;
         } catch (PDOException $e) {
-            $errors[] = 'Erreur : ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+            $errors[] = sprintf($GLOBAL['genericError'], htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
         }
     }
 }
@@ -386,10 +389,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '5') {
     $password    = $_POST['password'] ?? '';
     $password2   = $_POST['password2'] ?? '';
 
-    if (!$username)            $errors[] = 'Identifiant requis.';
-    if (!preg_match('/^[a-zA-Z0-9._-]{2,50}$/', $username)) $errors[] = 'Identifiant invalide (2–50 car., lettres/chiffres/.-_).';
-    if (strlen($password) < 8) $errors[] = 'Mot de passe trop court (min. 8 caractères).';
-    if ($password !== $password2) $errors[] = 'Les mots de passe ne correspondent pas.';
+    if (!$username)            $errors[] = $GLOBAL['usernameRequired'];
+    if (!preg_match('/^[a-zA-Z0-9._-]{2,50}$/', $username)) $errors[] = $GLOBAL['usernameInvalid'];
+    if (strlen($password) < 8) $errors[] = $GLOBAL['installPasswordTooShort'];
+    if ($password !== $password2) $errors[] = $GLOBAL['installPasswordsMismatch'];
 
     if (!$errors) {
         try {
@@ -402,19 +405,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '5') {
             exit;
         } catch (PDOException $e) {
             $errors[] = str_contains($e->getMessage(), 'Duplicate')
-                ? "L'identifiant «{$username}» est déjà utilisé."
-                : 'Erreur : ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+                ? sprintf($GLOBAL['usernameTakenNamed'], $username)
+                : sprintf($GLOBAL['genericError'], htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
         }
     }
 }
 
 // ---------- Prerequisites ----------
 $prereqs = [
-    ['label' => 'PHP ≥ 8.1',              'ok' => PHP_VERSION_ID >= 80100,         'detail' => 'PHP ' . PHP_VERSION],
-    ['label' => 'Extension PDO MySQL',     'ok' => extension_loaded('pdo_mysql'),   'detail' => extension_loaded('pdo_mysql')   ? 'OK' : 'Manquante'],
-    ['label' => 'Extension mbstring',      'ok' => extension_loaded('mbstring'),    'detail' => extension_loaded('mbstring')    ? 'OK' : 'Manquante'],
-    ['label' => 'Écriture dans conf/',     'ok' => is_writable(dirname($confFile)) || !is_dir(dirname($confFile)),
-                                           'detail' => is_writable(dirname($confFile)) ? 'OK' : (is_dir(dirname($confFile)) ? 'Non accessible en écriture' : 'Répertoire absent')],
+    ['label' => $GLOBAL['prereqPhpVersion'], 'ok' => PHP_VERSION_ID >= 80100,         'detail' => 'PHP ' . PHP_VERSION],
+    ['label' => $GLOBAL['prereqPdoMysql'],   'ok' => extension_loaded('pdo_mysql'),   'detail' => extension_loaded('pdo_mysql')   ? $GLOBAL['statusOk'] : $GLOBAL['statusMissing']],
+    ['label' => $GLOBAL['prereqMbstring'],   'ok' => extension_loaded('mbstring'),    'detail' => extension_loaded('mbstring')    ? $GLOBAL['statusOk'] : $GLOBAL['statusMissing']],
+    ['label' => $GLOBAL['prereqConfWritable'], 'ok' => is_writable(dirname($confFile)) || !is_dir(dirname($confFile)),
+                                           'detail' => is_writable(dirname($confFile)) ? $GLOBAL['statusOk'] : (is_dir(dirname($confFile)) ? $GLOBAL['statusNotWritable'] : $GLOBAL['statusDirMissing'])],
 ];
 $prereqsOk = array_reduce($prereqs, fn($c, $p) => $c && $p['ok'], true);
 
@@ -442,14 +445,14 @@ if (defined('DB_USER')) $prefill['db_user'] = DB_USER;
 elseif (getenv('DB_USER')) $prefill['db_user'] = getenv('DB_USER');
 $prefill = array_map(fn($v) => htmlspecialchars($v, ENT_QUOTES, 'UTF-8'), $prefill);
 
-$steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' => 'Organisation', '5' => 'Compte admin'];
+$steps = ['1' => $GLOBAL['stepPrereqs'], '2' => $GLOBAL['stepDatabase'], '3' => $GLOBAL['stepSchema'], '4' => $GLOBAL['stepOrganisation'], '5' => $GLOBAL['stepAdminAccount']];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Installation — MemberBase</title>
+<title><?= $GLOBAL['installTitle'] ?></title>
 <link rel="stylesheet" href="css/vendor/bootstrap.min.css">
 <style>
   body { background: #f0f4f8; }
@@ -463,7 +466,7 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
 <div class="install-card px-3">
   <div class="text-center mb-4">
     <h1 class="h4 fw-bold">MemberBase</h1>
-    <p class="text-muted small mb-0">Assistant d'installation</p>
+    <p class="text-muted small mb-0"><?= $GLOBAL['installWizardSubtitle'] ?></p>
   </div>
 
   <?php if ($step !== 'done'): ?>
@@ -489,7 +492,7 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
   <?php /* ===== STEP 1 ===== */ if ($step === '1'): ?>
   <div class="card shadow-sm">
     <div class="card-body">
-      <h2 class="h5 mb-3">Prérequis serveur</h2>
+      <h2 class="h5 mb-3"><?= $GLOBAL['prereqsServerTitle'] ?></h2>
       <div class="mb-3">
         <?php foreach ($prereqs as $pr): ?>
         <div class="prereq-row">
@@ -501,10 +504,10 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
         <?php endforeach ?>
       </div>
       <?php if ($prereqsOk): ?>
-        <a href="install.php?step=2" class="btn btn-primary w-100">Continuer</a>
+        <a href="install.php?step=2" class="btn btn-primary w-100"><?= $GLOBAL['continueBtn'] ?></a>
       <?php else: ?>
-        <div class="alert alert-warning small mb-2">Corrigez les prérequis avant de continuer.</div>
-        <button class="btn btn-secondary w-100" disabled>Continuer</button>
+        <div class="alert alert-warning small mb-2"><?= $GLOBAL['fixPrereqsWarning'] ?></div>
+        <button class="btn btn-secondary w-100" disabled><?= $GLOBAL['continueBtn'] ?></button>
       <?php endif ?>
     </div>
   </div>
@@ -512,32 +515,32 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
   <?php /* ===== STEP 2 ===== */ elseif ($step === '2'): ?>
   <div class="card shadow-sm">
     <div class="card-body">
-      <h2 class="h5 mb-1">Connexion à la base de données</h2>
-      <p class="text-muted small mb-3">Les paramètres seront enregistrés dans <code>conf/db.php</code> (hors webroot).</p>
+      <h2 class="h5 mb-1"><?= $GLOBAL['dbConnectionTitle'] ?></h2>
+      <p class="text-muted small mb-3"><?= $GLOBAL['dbConnectionHint'] ?></p>
       <form method="post" action="install.php?step=2">
         <div class="row g-2 mb-2">
           <div class="col-8">
-            <label class="form-label small fw-semibold" for="db_host">Hôte</label>
+            <label class="form-label small fw-semibold" for="db_host"><?= $GLOBAL['hostLabel'] ?></label>
             <input type="text" class="form-control form-control-sm" id="db_host" name="db_host" value="<?= $prefill['db_host'] ?>" required>
           </div>
           <div class="col-4">
-            <label class="form-label small fw-semibold" for="db_port">Port</label>
+            <label class="form-label small fw-semibold" for="db_port"><?= $GLOBAL['portLabel'] ?></label>
             <input type="number" class="form-control form-control-sm" id="db_port" name="db_port" value="<?= $prefill['db_port'] ?>" required>
           </div>
         </div>
         <div class="mb-2">
-          <label class="form-label small fw-semibold" for="db_name">Nom de la base</label>
+          <label class="form-label small fw-semibold" for="db_name"><?= $GLOBAL['dbNameLabel'] ?></label>
           <input type="text" class="form-control form-control-sm" id="db_name" name="db_name" value="<?= $prefill['db_name'] ?>" placeholder="members" required>
         </div>
         <div class="mb-2">
-          <label class="form-label small fw-semibold" for="db_user">Utilisateur</label>
+          <label class="form-label small fw-semibold" for="db_user"><?= $GLOBAL['user'] ?></label>
           <input type="text" class="form-control form-control-sm" id="db_user" name="db_user" value="<?= $prefill['db_user'] ?>" placeholder="members" required autocomplete="username">
         </div>
         <div class="mb-3">
-          <label class="form-label small fw-semibold" for="db_pass">Mot de passe</label>
+          <label class="form-label small fw-semibold" for="db_pass"><?= $GLOBAL['password'] ?></label>
           <input type="password" class="form-control form-control-sm" id="db_pass" name="db_pass" autocomplete="current-password">
         </div>
-        <button type="submit" class="btn btn-primary w-100">Tester la connexion et continuer</button>
+        <button type="submit" class="btn btn-primary w-100"><?= $GLOBAL['testConnectionBtn'] ?></button>
       </form>
     </div>
   </div>
@@ -545,13 +548,13 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
   <?php /* ===== STEP 3 ===== */ elseif ($step === '3'): ?>
   <div class="card shadow-sm">
     <div class="card-body">
-      <h2 class="h5 mb-1">Initialisation du schéma</h2>
-      <p class="text-muted small mb-2">Création des tables depuis <code>schema.sql</code>. Les tables existantes ne sont pas modifiées.</p>
+      <h2 class="h5 mb-1"><?= $GLOBAL['schemaInitTitle'] ?></h2>
+      <p class="text-muted small mb-2"><?= $GLOBAL['schemaInitHint'] ?></p>
       <div class="alert alert-light small mb-3">
-        <strong>Tables créées :</strong> users, team, user_properties, metagroup, compta, compta_type, maxval, app_settings, app_users, audit_log
+        <strong><?= $GLOBAL['tablesCreated'] ?></strong> users, team, user_properties, metagroup, compta, compta_type, maxval, app_settings, app_users, audit_log
       </div>
       <form method="post" action="install.php?step=3">
-        <button type="submit" class="btn btn-primary w-100">Créer les tables</button>
+        <button type="submit" class="btn btn-primary w-100"><?= $GLOBAL['createTablesBtn'] ?></button>
       </form>
     </div>
   </div>
@@ -559,53 +562,53 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
   <?php /* ===== STEP 4 ===== */ elseif ($step === '4'): ?>
   <div class="card shadow-sm">
     <div class="card-body">
-      <h2 class="h5 mb-1">Configuration de l'organisation</h2>
-      <p class="text-muted small mb-3">Ces informations apparaissent dans le titre de l'application et sur les attestations de dons. Un groupe membres pour l'année en cours sera créé automatiquement.</p>
+      <h2 class="h5 mb-1"><?= $GLOBAL['orgConfigTitle'] ?></h2>
+      <p class="text-muted small mb-3"><?= $GLOBAL['orgConfigHint'] ?></p>
       <form method="post" action="install.php?step=4">
         <div class="mb-2">
-          <label class="form-label small fw-semibold" for="org_name">Nom de l'organisation <span class="text-danger">*</span></label>
+          <label class="form-label small fw-semibold" for="org_name"><?= $GLOBAL['orgNameLabel'] ?> <span class="text-danger">*</span></label>
           <input type="text" class="form-control form-control-sm" id="org_name" name="org_name"
-                 value="<?= htmlspecialchars($_POST['org_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required placeholder="Mon association">
+                 value="<?= htmlspecialchars($_POST['org_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required placeholder="<?= $GLOBAL['orgNamePlaceholder'] ?>">
         </div>
         <div class="mb-2">
-          <label class="form-label small fw-semibold" for="org_address">Adresse</label>
+          <label class="form-label small fw-semibold" for="org_address"><?= $GLOBAL['address'] ?></label>
           <input type="text" class="form-control form-control-sm" id="org_address" name="org_address"
                  value="<?= htmlspecialchars($_POST['org_address'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
         </div>
         <div class="row g-2 mb-2">
           <div class="col-4">
-            <label class="form-label small fw-semibold" for="org_npa">NPA</label>
+            <label class="form-label small fw-semibold" for="org_npa"><?= $GLOBAL['npaLabel'] ?></label>
             <input type="text" class="form-control form-control-sm" id="org_npa" name="org_npa"
                    value="<?= htmlspecialchars($_POST['org_npa'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
           </div>
           <div class="col-8">
-            <label class="form-label small fw-semibold" for="org_city">Ville</label>
+            <label class="form-label small fw-semibold" for="org_city"><?= $GLOBAL['city'] ?></label>
             <input type="text" class="form-control form-control-sm" id="org_city" name="org_city"
                    value="<?= htmlspecialchars($_POST['org_city'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
           </div>
         </div>
         <div class="mb-3">
-          <label class="form-label small fw-semibold" for="org_country">Pays</label>
+          <label class="form-label small fw-semibold" for="org_country"><?= $GLOBAL['country'] ?></label>
           <input type="text" class="form-control form-control-sm" id="org_country" name="org_country"
                  value="<?= htmlspecialchars($_POST['org_country'] ?? 'Suisse', ENT_QUOTES, 'UTF-8') ?>">
         </div>
         <hr>
         <div class="mb-3">
-          <label class="form-label small fw-semibold" for="membre_team_prefix">Préfixe des groupes membres</label>
+          <label class="form-label small fw-semibold" for="membre_team_prefix"><?= $GLOBAL['memberPrefixLabel'] ?></label>
           <input type="text" class="form-control form-control-sm" id="membre_team_prefix" name="membre_team_prefix"
                  value="<?= htmlspecialchars($_POST['membre_team_prefix'] ?? 'Membre', ENT_QUOTES, 'UTF-8') ?>" style="max-width:180px">
-          <div class="form-text">Exemple : «Membre» → groupes nommés «Membre 2024», «Membre 2025»…</div>
+          <div class="form-text"><?= $GLOBAL['memberPrefixHint'] ?></div>
         </div>
         <hr>
-        <p class="small fw-semibold mb-1">Types de cotisation / don créés automatiquement</p>
-        <p class="text-muted small mb-2">Si la table <code>compta_type</code> est vide, ces 4 types seront insérés. Modifiables ensuite dans Réglages.</p>
+        <p class="small fw-semibold mb-1"><?= $GLOBAL['seedTypesTitle'] ?></p>
+        <p class="text-muted small mb-2"><?= $GLOBAL['seedTypesHint'] ?></p>
         <div class="seed-type d-flex flex-column gap-1 mb-3 ps-2">
-          <div><span class="badge bg-light text-dark border me-1">Cotisation</span> — cotisation annuelle (is_cotisation=1, exclue des dons)</div>
-          <div><span class="badge bg-info-subtle text-dark border me-1">Don</span> — don général</div>
-          <div><span class="badge bg-primary-subtle text-dark border me-1">Evénementiel</span> — recettes événements (exclues des dons)</div>
-          <div><span class="badge bg-warning-subtle text-dark border me-1">Institutionnel</span> — donateurs institutionnels (is_institutional=1)</div>
+          <div><span class="badge bg-light text-dark border me-1">Cotisation</span> — <?= $GLOBAL['seedCotisationDesc'] ?></div>
+          <div><span class="badge bg-info-subtle text-dark border me-1">Don</span> — <?= $GLOBAL['seedDonDesc'] ?></div>
+          <div><span class="badge bg-primary-subtle text-dark border me-1">Evénementiel</span> — <?= $GLOBAL['seedEventDesc'] ?></div>
+          <div><span class="badge bg-warning-subtle text-dark border me-1">Institutionnel</span> — <?= $GLOBAL['seedInstitDesc'] ?></div>
         </div>
-        <button type="submit" class="btn btn-primary w-100">Enregistrer et continuer</button>
+        <button type="submit" class="btn btn-primary w-100"><?= $GLOBAL['saveAndContinueBtn'] ?></button>
       </form>
     </div>
   </div>
@@ -613,38 +616,38 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
   <?php /* ===== STEP 5 ===== */ elseif ($step === '5'): ?>
   <div class="card shadow-sm">
     <div class="card-body">
-      <h2 class="h5 mb-1">Compte administrateur</h2>
-      <p class="text-muted small mb-3">Premier compte admin — accès complet à l'application.</p>
+      <h2 class="h5 mb-1"><?= $GLOBAL['adminAccountTitle'] ?></h2>
+      <p class="text-muted small mb-3"><?= $GLOBAL['adminAccountHint'] ?></p>
       <form method="post" action="install.php?step=5">
         <div class="mb-2">
-          <label class="form-label small fw-semibold" for="username">Identifiant</label>
+          <label class="form-label small fw-semibold" for="username"><?= $GLOBAL['username'] ?></label>
           <input type="text" class="form-control form-control-sm" id="username" name="username"
                  value="<?= htmlspecialchars($_POST['username'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
                  placeholder="admin" required autocomplete="username" pattern="[a-zA-Z0-9._-]{2,50}">
-          <div class="form-text">2–50 caractères, lettres/chiffres/.-_</div>
+          <div class="form-text"><?= $GLOBAL['usernameFormatHint'] ?></div>
         </div>
         <div class="mb-2">
-          <label class="form-label small fw-semibold" for="display_name">Nom affiché</label>
+          <label class="form-label small fw-semibold" for="display_name"><?= $GLOBAL['displayNameLabel'] ?></label>
           <input type="text" class="form-control form-control-sm" id="display_name" name="display_name"
-                 value="<?= htmlspecialchars($_POST['display_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="Administrateur">
+                 value="<?= htmlspecialchars($_POST['display_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>" placeholder="<?= $GLOBAL['adminDisplayNamePlaceholder'] ?>">
         </div>
         <div class="mb-2">
-          <label class="form-label small fw-semibold" for="email">E-mail <span class="text-muted fw-normal">(optionnel)</span></label>
+          <label class="form-label small fw-semibold" for="email"><?= $GLOBAL['emailLong'] ?> <span class="text-muted fw-normal"><?= $GLOBAL['optionalSuffix'] ?></span></label>
           <input type="email" class="form-control form-control-sm" id="email" name="email"
                  value="<?= htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
         </div>
         <div class="mb-2">
-          <label class="form-label small fw-semibold" for="password">Mot de passe</label>
+          <label class="form-label small fw-semibold" for="password"><?= $GLOBAL['password'] ?></label>
           <input type="password" class="form-control form-control-sm" id="password" name="password"
                  required minlength="8" autocomplete="new-password">
-          <div class="form-text">Minimum 8 caractères.</div>
+          <div class="form-text"><?= $GLOBAL['minPasswordChars'] ?></div>
         </div>
         <div class="mb-3">
-          <label class="form-label small fw-semibold" for="password2">Confirmer le mot de passe</label>
+          <label class="form-label small fw-semibold" for="password2"><?= $GLOBAL['confirmPassword'] ?></label>
           <input type="password" class="form-control form-control-sm" id="password2" name="password2"
                  required autocomplete="new-password">
         </div>
-        <button type="submit" class="btn btn-primary w-100">Créer le compte et terminer</button>
+        <button type="submit" class="btn btn-primary w-100"><?= $GLOBAL['createAccountBtn'] ?></button>
       </form>
     </div>
   </div>
@@ -653,12 +656,12 @@ $steps = ['1' => 'Prérequis', '2' => 'Base de données', '3' => 'Schéma', '4' 
   <div class="card shadow-sm border-success">
     <div class="card-body text-center py-4">
       <div class="display-6 mb-2 text-success">✓</div>
-      <h2 class="h5 mb-1">Installation terminée</h2>
+      <h2 class="h5 mb-1"><?= $GLOBAL['installDoneTitle'] ?></h2>
       <p class="text-muted small mb-3">
-        Base de données initialisée, organisation configurée, compte admin créé.<br>
-        Supprimez <code>install.php</code> une fois connecté.
+        <?= $GLOBAL['installDoneMessage'] ?><br>
+        <?= $GLOBAL['deleteInstallHint'] ?>
       </p>
-      <a href="index.php" class="btn btn-success px-4">Accéder à l'application</a>
+      <a href="index.php" class="btn btn-success px-4"><?= $GLOBAL['goToAppBtn'] ?></a>
     </div>
   </div>
   <?php endif ?>

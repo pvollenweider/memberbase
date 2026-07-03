@@ -36,7 +36,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     </ul>
   </div>
 
-  <div class="form-check form-switch mb-0 ms-2" title="Masquer les entrées non-don (ventes, remboursements…)">
+  <div class="form-check form-switch mb-0 ms-2" title="<?= $GLOBAL['hideNonDonationEntries'] ?>">
     <input class="form-check-input" type="checkbox" role="switch" id="dons-only-toggle"
            <?= $donsOnly ? 'checked' : '' ?>
            data-no-dirty
@@ -47,14 +47,14 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
   <?php if ($year != -2): ?>
   <div class="dropdown ms-auto">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Attestation
+      <i class="fas fa-file-pdf me-1" aria-hidden="true"></i><?= $GLOBAL['attestation'] ?>
     </button>
     <ul class="dropdown-menu dropdown-menu-end">
       <?php for ($i = 0; $i < 10; $i++): $y = $currentYear - $i; ?>
       <li><a class="dropdown-item<?= $year == $y ? ' fw-semibold' : '' ?>"
              href="/attestation_don.php?userid=<?=$user->getId()?>&amp;year=<?=$y?>"
              target="_blank">
-          <?= $y ?><?= $year == $y ? ' (année affichée)' : '' ?>
+          <?= $y ?><?= $year == $y ? ' ' . $GLOBAL['displayedYear'] : '' ?>
       </a></li>
       <?php endfor ?>
     </ul>
@@ -63,7 +63,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
   <?php if ($filterTypeId > 0 && isset($comptaTypes[$filterTypeId])): ?>
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>&amp;year=<?= $year ?>"
      class="ca-filter-btn text-decoration-none" data-no-dirty
-     title="Supprimer le filtre type">
+     title="<?= $GLOBAL['removeTypeFilter'] ?>">
     <?= htmlentities($comptaTypes[$filterTypeId]->label, ENT_COMPAT, $charset) ?> <span aria-hidden="true">×</span>
   </a>
   <?php endif ?>
@@ -103,7 +103,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     </td>
     <td><input type="text" name="libele" class="form-control" maxlength="255"/></td>
     <td><input type="text" name="sum" size="10" class="form-control" maxlength="64"
-             inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" title="Montant numérique (ex: 50 ou 12.50)"/></td>
+             inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" title="<?= $GLOBAL['numericAmountHint'] ?>"/></td>
     <td class="d-none d-sm-table-cell"><input type="text" name="quittance" size="10" class="form-control" maxlength="64"/></td>
     <td class="d-none d-sm-table-cell text-center"><input type="checkbox" name="wants_attestation" value="1" /></td>
     <td><button type="submit" class="btn btn-primary"><?=$GLOBAL['add']?></button></td>
@@ -156,7 +156,7 @@ while ($row = $stmt->fetchObject()) {
         <td>
             <?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>
             <?php if ($row->ct_excl): ?>
-            <span class="ms-1 text-muted" style="font-size:0.65rem;opacity:0.55" title="Non compté comme don"><?= $GLOBAL['nonDonation'] ?></span>
+            <span class="ms-1 text-muted" style="font-size:0.65rem;opacity:0.55" title="<?= $GLOBAL['notCountedAsDonation'] ?>"><?= $GLOBAL['nonDonation'] ?></span>
             <?php endif ?>
         </td>
         <td><?=timeStampToformatedDate($date)?></td>
@@ -238,7 +238,7 @@ $_ctBorder = [
     'ca-indigo-subtle'    => 'rgba(102,16,242,1)',
     'ca-lime-subtle'      => 'rgba(128,189,64,1)',
 ];
-$_frMonths = ['','jan','fév','mar','avr','mai','juin','juil','aoû','sep','oct','nov','déc'];
+$_frMonths = $GLOBAL['monthsShort'];
 $_typeAgg  = [];
 $_periodAgg = []; // period key => amount
 $_stmt2 = $pdo->query($query2);
@@ -294,7 +294,7 @@ $_showTimeline = count($_periodAgg) >= 2;
   <?php if ($_showTimeline): ?>
   <div class="col-md-7">
     <p class="text-muted small fw-semibold mb-2 text-center">
-      <?= $year == -2 ? $GLOBAL['historyByYear'] : 'Mensuel vs cumulé' ?>
+      <?= $year == -2 ? $GLOBAL['historyByYear'] : $GLOBAL['monthlyVsCumulative'] ?>
     </p>
     <div style="position:relative;height:260px">
       <canvas id="timelineChart"></canvas>
@@ -350,7 +350,7 @@ $_showTimeline = count($_periodAgg) >= 2;
             labels: <?= json_encode($_timeLabels) ?>,
             datasets: [
                 {
-                    label: 'Montant <?= $year == -2 ? 'annuel' : 'mensuel' ?>',
+                    label: '<?= $year == -2 ? $GLOBAL['annualAmount'] : $GLOBAL['monthlyAmount'] ?>',
                     type: 'bar',
                     data: <?= json_encode($_timeMonthly) ?>,
                     backgroundColor: 'rgba(13,110,253,0.45)',
@@ -359,7 +359,7 @@ $_showTimeline = count($_periodAgg) >= 2;
                     yAxisID: 'y-bar'
                 },
                 {
-                    label: 'Cumulé',
+                    label: '<?= $GLOBAL['cumulative'] ?>',
                     type: 'line',
                     data: <?= json_encode($_timeCumul) ?>,
                     borderColor: 'rgba(25,135,84,0.9)',

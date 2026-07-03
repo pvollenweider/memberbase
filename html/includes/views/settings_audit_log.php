@@ -6,18 +6,18 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-if (!isAdmin()) { echo '<div class="alert alert-danger">Accès refusé.</div>'; return; } ?>
+if (!isAdmin()) { echo '<div class="alert alert-danger">' . $GLOBAL['accessDenied'] . '</div>'; return; } ?>
 
 <div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="mb-0">Journal d'activité</h2>
+    <h2 class="mb-0"><?= $GLOBAL['activityLog'] ?></h2>
     <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#flushPanel">
-        <i class="fas fa-trash-can me-1"></i>Nettoyer
+        <i class="fas fa-trash-can me-1"></i><?= $GLOBAL['cleanUp'] ?>
     </button>
 </div>
 
 <?php if (isset($_GET['flushed'])): ?>
 <div class="alert alert-success alert-dismissible fade show" role="alert">
-    Journal nettoyé.
+    <?= $GLOBAL['auditLogFlushed'] ?>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="<?= $GLOBAL['close'] ?>"></button>
 </div>
 <?php endif; ?>
@@ -39,14 +39,14 @@ if (!isAdmin()) { echo '<div class="alert alert-danger">Accès refusé.</div>'; 
                 <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex gap-2 align-items-end" data-no-dirty>
                     <input type="hidden" name="action" value="flushAuditLog">
                     <div>
-                        <label for="keep_days" class="form-label mb-1 small">Garder les derniers</label>
+                        <label for="keep_days" class="form-label mb-1 small"><?= $GLOBAL['keepLastLabel'] ?></label>
                         <div class="input-group input-group-sm">
                             <input type="number" id="keep_days" name="keep_days" class="form-control" value="30" min="1" max="3650" style="width:80px">
-                            <span class="input-group-text">jours</span>
+                            <span class="input-group-text"><?= $GLOBAL['days'] ?></span>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-warning btn-sm">
-                        <i class="fas fa-clock me-1"></i>Nettoyer
+                        <i class="fas fa-clock me-1"></i><?= $GLOBAL['cleanUp'] ?>
                     </button>
                 </form>
             </div>
@@ -66,38 +66,38 @@ $auditActions = $pdo->query("SELECT DISTINCT action FROM audit_log ORDER BY acti
 
 <div class="d-flex gap-2 align-items-end flex-wrap mb-3" style="font-size:0.82rem">
   <div>
-    <label for="audit-filter-user" class="form-label mb-1 small">Utilisateur</label>
+    <label for="audit-filter-user" class="form-label mb-1 small"><?= $GLOBAL['user'] ?></label>
     <select id="audit-filter-user" class="form-select form-select-sm" style="min-width:140px">
-      <option value="">— tous —</option>
+      <option value=""><?= $GLOBAL['allMasculineOption'] ?></option>
       <?php foreach ($auditUsers as $u): ?>
       <option value="<?= htmlspecialchars($u) ?>"><?= htmlspecialchars($u) ?></option>
       <?php endforeach ?>
     </select>
   </div>
   <div>
-    <label for="audit-filter-action" class="form-label mb-1 small">Action</label>
+    <label for="audit-filter-action" class="form-label mb-1 small"><?= $GLOBAL['action'] ?></label>
     <select id="audit-filter-action" class="form-select form-select-sm" style="min-width:180px">
-      <option value="">— toutes —</option>
+      <option value=""><?= $GLOBAL['allFeminineOption'] ?></option>
       <?php foreach ($auditActions as $a): ?>
       <option value="<?= htmlspecialchars($a) ?>"><?= htmlspecialchars($a) ?></option>
       <?php endforeach ?>
     </select>
   </div>
   <button type="button" id="audit-filter-reset" class="btn btn-outline-secondary btn-sm mb-0" style="align-self:flex-end">
-    <i class="fas fa-xmark me-1" aria-hidden="true"></i>Réinitialiser
+    <i class="fas fa-xmark me-1" aria-hidden="true"></i><?= $GLOBAL['reset'] ?>
   </button>
   <span class="text-muted ms-auto" style="align-self:flex-end">
-    <?= $total ?> entrée<?= $total > 1 ? 's' : '' ?> au total<?= $total > 2000 ? ' (2000 affichées)' : '' ?>
+    <?= sprintf($GLOBAL['entriesTotalCount'], $total, $total > 1 ? 's' : '') ?><?= $total > 2000 ? ' ' . $GLOBAL['auditLogDisplayCap'] : '' ?>
   </span>
 </div>
 
 <table id="auditLogTable" class="table table-sm table-striped table-hover">
     <thead>
         <tr>
-            <th style="white-space:nowrap">Date</th>
-            <th>Utilisateur</th>
-            <th>Action</th>
-            <th>Détail</th>
+            <th style="white-space:nowrap"><?= $GLOBAL['date'] ?></th>
+            <th><?= $GLOBAL['user'] ?></th>
+            <th><?= $GLOBAL['action'] ?></th>
+            <th><?= $GLOBAL['detail'] ?></th>
         </tr>
     </thead>
     <tbody>
@@ -121,22 +121,22 @@ $(function () {
         buttons: [
             {
                 extend: 'collection',
-                text: 'Exporter <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
+                text: '<?= $GLOBAL['export'] ?> <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
                 className: 'btn btn-dt',
                 buttons: [
-                    { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i>Copier' },
+                    { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i><?= $GLOBAL['copy'] ?>' },
                     { extend: 'csv',   text: '<i class="fas fa-file-csv me-2" aria-hidden="true"></i>CSV', bom: true },
-                    { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i>Excel' },
-                    { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i>Imprimer' }
+                    { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i><?= $GLOBAL['excel'] ?>' },
+                    { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i><?= $GLOBAL['print'] ?>' }
                 ]
             }
         ],
         language: {
-            search: 'Rechercher :',
-            lengthMenu: 'Afficher _MENU_ entrées',
-            info: 'Entrées _START_ à _END_ sur _TOTAL_',
-            infoFiltered: '(filtrées sur _MAX_)',
-            paginate: { previous: 'Précédent', next: 'Suivant' }
+            search: <?= json_encode($GLOBAL['dtSearch']) ?>,
+            lengthMenu: <?= json_encode($GLOBAL['dtLengthMenu']) ?>,
+            info: <?= json_encode($GLOBAL['dtInfo']) ?>,
+            infoFiltered: <?= json_encode($GLOBAL['dtInfoFiltered']) ?>,
+            paginate: { previous: <?= json_encode($GLOBAL['dtPrevious']) ?>, next: <?= json_encode($GLOBAL['dtNext']) ?> }
         }
     });
 
@@ -161,11 +161,11 @@ $(function () {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-flush-all-label">Supprimer tout le journal</h5>
+        <h5 class="modal-title" id="modal-flush-all-label"><?= $GLOBAL['deleteAllAuditLogTitle'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Cette action supprimera <strong>toutes</strong> les entrées du journal. Continuer?
+        <?= $GLOBAL['deleteAllAuditLogConfirm'] ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>

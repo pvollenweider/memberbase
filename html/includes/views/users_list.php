@@ -52,9 +52,9 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
 <?php if (!empty($_GET['import_done'])): ?>
 <div class="alert alert-success py-2 px-3 mb-3" role="alert" style="font-size:0.85rem">
   <i class="fas fa-circle-check me-1" aria-hidden="true"></i>
-  Import terminé.
+  <?= $GLOBAL['importDone'] ?>
   <?php if ((int)($_GET['import_resolved'] ?? 0) > 0): ?>
-    <strong><?= (int)$_GET['import_resolved'] ?></strong> doublon<?= (int)$_GET['import_resolved'] > 1 ? 's' : '' ?> mis à jour.
+    <?= sprintf($GLOBAL['duplicatesUpdated'], (int)$_GET['import_resolved'], (int)$_GET['import_resolved'] > 1 ? 's' : '') ?>
   <?php endif ?>
 </div>
 <?php endif ?>
@@ -78,19 +78,19 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                         if ($_noCotiTeamId3 > 0) {
                             $_noCotiTeamNameStr = Team::nameById($_noCotiTeamId3);
                             if ($_noCotiTeamNameStr) {
-                                $_noCotiExclusion = ' Les membres du segment <a href="' . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) . '?team=' . $_noCotiTeamId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiTeamNameStr, ENT_QUOTES, $charset) . '</a> sont exclus.';
+                                $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) . '?team=' . $_noCotiTeamId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiTeamNameStr, ENT_QUOTES, $charset) . '</a>');
                             }
                         }
-                        $currentFilterDesc = "Profils ayant payé au moins une cotisation dans leur historique, mais aucune lors des 3 dernières années (" . ($year-2) . "–$year)." . $_noCotiExclusion;
+                        $currentFilterDesc = sprintf($GLOBAL['filterDescCotiUnpaid3y'], $year-2, $year) . $_noCotiExclusion;
                     } else if ($team == FILTER_NO_ACTIVITY_10Y) {
                         $currentTeamTitle = $GLOBAL['nothingLast10Years'];
-                        $currentFilterDesc = "Profils actifs sans aucune entrée comptable (cotisation, don ou autre) depuis " . ($year-10) . ".";
+                        $currentFilterDesc = sprintf($GLOBAL['filterDescNoActivity10y'], $year-10);
                     } else if ($team == FILTER_NON_INSTIT_LAST_YEAR) {
                         $currentTeamTitle = $GLOBAL['nonInstitPayedSomethingLastYear'];
-                        $currentFilterDesc = "Profils ayant effectué au moins un versement non institutionnel en " . ($year-1) . " — inclut cotisations, dons et tout autre type non marqué «&nbsp;Institutionnel&nbsp;» dans les types compta.";
+                        $currentFilterDesc = sprintf($GLOBAL['filterDescNonInstitLastYear'], $year-1);
                     } else if ($team == FILTER_UNPAID_COTI_CURRENT) {
                         $currentTeamTitle = $GLOBAL['cotiUnpayed'];
-                        $currentFilterDesc = "Membres dont la cotisation $year n'a pas encore été enregistrée.";
+                        $currentFilterDesc = sprintf($GLOBAL['filterDescCotiUnpaidCurrent'], $year);
                     } else if ($team > 0) {
                         $currentteam = new Team();
                         $currentteam->lookupTeam($team);
@@ -105,7 +105,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="min-width:220px;max-height:80vh;overflow-y:auto;font-size:0.75rem">
 
                     <div class="px-2 pb-1">
-                      <input type="text" id="team-filter-input" class="form-control form-control-sm" placeholder="Filtrer…" autocomplete="off" oninput="filterTeamDropdown(this.value)">
+                      <input type="text" id="team-filter-input" class="form-control form-control-sm" placeholder="<?= $GLOBAL['filterPlaceholder'] ?>" autocomplete="off" oninput="filterTeamDropdown(this.value)">
                     </div>
                     <div class="dropdown-divider mt-1 mb-0"></div>
 
@@ -113,7 +113,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                     $metagroups = Metagroup::filterList();
                     if (count($metagroups) > 0):
                     ?>
-                    <h6 class="dropdown-header" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">Segments combinés</h6>
+                    <h6 class="dropdown-header" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em"><?= $GLOBAL['combinedSegments'] ?></h6>
                     <?php foreach ($metagroups as $mg): ?>
                     <a class="dropdown-item team-filterable <?= ($metagroup === (int)$mg->id) ? 'active' : '' ?>"
                        href="<?= $_SERVER['PHP_SELF'] ?>?metagroup=<?= (int)$mg->id ?>"
@@ -125,7 +125,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                     <?php endif; ?>
 
                     <h6 class="dropdown-header">
-                      <i class="fas fa-bolt me-1" aria-hidden="true"></i>Filtres rapides
+                      <i class="fas fa-bolt me-1" aria-hidden="true"></i><?= $GLOBAL['quickFilters'] ?>
                     </h6>
                     <a class="dropdown-item" style="padding-left:1.5rem"
                        href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_ALL_EXCEPT_ARCHIVES ?>"><?= $GLOBAL['allExceptArchives'] ?></a>
@@ -145,7 +145,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                             if ($catId !== $prevCatId) {
                                 if ($prevCatId !== -1) echo '<div class="dropdown-divider my-0 team-cat-divider" data-cat="' . $catId . '"></div>';
                                 $prevCatId = $catId;
-                                $label = $row->cat_name ?: 'Sans catégorie';
+                                $label = $row->cat_name ?: $GLOBAL['noCategoryLabel'];
                                 echo '<h6 class="dropdown-header team-cat-header" data-cat="' . $catId . '" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">' . htmlentities($label, ENT_COMPAT, $charset) . '</h6>';
                             }
                             ?>
@@ -168,9 +168,9 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
   <?php if (isManager()): ?>
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=importStep1"
      class="ms-auto ca-filter-btn text-decoration-none"
-     title="Importer des contacts">
+     title="<?= $GLOBAL['importContacts'] ?>">
     <i class="fas fa-file-import" aria-hidden="true"></i>
-    <span>Importer</span>
+    <span><?= $GLOBAL['import'] ?></span>
   </a>
   <?php endif ?>
   <?php if (canWrite()): ?>
@@ -298,9 +298,9 @@ $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
     <th class="d-none d-sm-table-cell d-md-table-cell">
             <?=$GLOBAL['creationDate']?>
     </th>
-    <th class="d-none d-sm-table-cell">Types</th>
+    <th class="d-none d-sm-table-cell"><?= $GLOBAL['typesHeader'] ?></th>
     <?php if ($team == FILTER_NO_ACTIVITY_10Y): ?>
-    <th class="d-none d-sm-table-cell" style="font-size:0.75rem;white-space:nowrap">Historique compta</th>
+    <th class="d-none d-sm-table-cell" style="font-size:0.75rem;white-space:nowrap"><?= $GLOBAL['comptaHistory'] ?></th>
     <?php endif ?>
 </tr>
 </thead>
@@ -370,9 +370,9 @@ foreach ($_allRows as $row) {
         $society = $row->society;
         $sexe = $row->sexe;
         if ($sexe == "na") { $sexe = ""; }
-        else if ($sexe == "f") { $sexe = "<i class='fas fa-female s'></i><span class='d-none'>Madame</span>"; }
-        else if ($sexe == "m") { $sexe = "<i class='fas fa-male s'></i><span class='d-none'>Monsieur</span>"; }
-        else if ($sexe == "hf") { $sexe = "<i class='fas fa-male s'></i><i class='fas fa-female s'></i><span class='d-none'>Madame et Monsieur</span>"; }
+        else if ($sexe == "f") { $sexe = "<i class='fas fa-female s'></i><span class='d-none'>" . $GLOBAL['madame'] . "</span>"; }
+        else if ($sexe == "m") { $sexe = "<i class='fas fa-male s'></i><span class='d-none'>" . $GLOBAL['monsieur'] . "</span>"; }
+        else if ($sexe == "hf") { $sexe = "<i class='fas fa-male s'></i><i class='fas fa-female s'></i><span class='d-none'>" . $GLOBAL['fh'] . "</span>"; }
         $address = $row->address;
         $npa = $row->npa;
         $email = $row->email;
@@ -426,10 +426,10 @@ foreach ($_allRows as $row) {
                 $_c5 = $_compta5555[$user->getId()] ?? null; ?>
             <td class="d-none d-sm-table-cell text-muted" style="font-size:0.72rem;line-height:1.3">
                 <?php if ($_c5 && (int)$_c5->total > 0):
-                    $parts = [(int)$_c5->total . ' entr.'];
-                    if ((int)$_c5->coti_count > 0) $parts[] = (int)$_c5->coti_count . ' coti';
+                    $parts = [sprintf($GLOBAL['entriesCountShort'], (int)$_c5->total)];
+                    if ((int)$_c5->coti_count > 0) $parts[] = sprintf($GLOBAL['cotiCountShort'], (int)$_c5->coti_count);
                     echo htmlspecialchars(implode(' · ', $parts));
-                    echo '<br><span style="opacity:0.55">dernier: ' . date('Y', (int)$_c5->last_date) . '</span>';
+                    echo '<br><span style="opacity:0.55">' . sprintf($GLOBAL['lastActivityYear'], date('Y', (int)$_c5->last_date)) . '</span>';
                 else: ?><span style="opacity:0.4">—</span><?php endif ?>
             </td>
             <?php endif ?>
@@ -455,7 +455,7 @@ if ($searchString) {
 
 }
 if ($team == FILTER_UNPAID_COTI_CURRENT) {
-    ?><span style="color:red">manque a gagner de CHF <?=$rowCount*50?> pour <?=$year?> avec les cotis non pay&eacute;es...</span><br/><?php
+    ?><span style="color:red"><?= sprintf($GLOBAL['missedRevenue'], $rowCount*50, $year) ?></span><br/><?php
 }
 ?>
 <script>
@@ -482,7 +482,7 @@ function caInitDT() {
         columnDefs: [
             { targets: [0, 4, 5, 7], visible: false }
         ],
-        language: Object.assign({}, CA_DT_LANGUAGE, { info: '_TOTAL_ profils', infoFiltered: '(filtrés sur _MAX_)' })
+        language: Object.assign({}, CA_DT_LANGUAGE, { info: <?= json_encode($GLOBAL['dtInfoProfiles'], JSON_UNESCAPED_UNICODE) ?>, infoFiltered: <?= json_encode($GLOBAL['dtInfoFilteredMasc'], JSON_UNESCAPED_UNICODE) ?> })
     });
 }
 $(document).ready(caInitDT);
@@ -491,18 +491,18 @@ $(document).ready(caInitDT);
   var BASE_PATH        = <?= json_encode($_SERVER['PHP_SELF']) ?>;
   var SEARCH_AJAX_OK   = <?= $_ajaxSearchOk ? 'true' : 'false' ?>;
   var INITIAL_METAGROUP = <?= (int)$metagroup ?>;
-  var _year = new Date().getFullYear();
+  <?php $_jsYear = (int)date('Y'); // Year values are built server-side so JS reuses the same locale keys ?>
   var FILTER_DESCS = {
-    '-4':    "Membres dont la cotisation " + _year + " n’a pas encore été enregistrée.",
-    '-3333': "Profils ayant payé au moins une cotisation dans leur historique, mais aucune lors des 3 dernières années (" + (_year - 2) + "–" + _year + ").",
-    '-5555': "Profils actifs sans aucune entrée comptable (cotisation, don ou autre) depuis " + (_year - 10) + ".",
-    '-6666': "Profils ayant effectué au moins un versement non institutionnel en " + (_year - 1) + " — inclut cotisations, dons et tout autre type non marqué « Institutionnel » dans les types compta."
+    '-4':    <?= json_encode(sprintf($GLOBAL['filterDescCotiUnpaidCurrent'], $_jsYear), JSON_UNESCAPED_UNICODE) ?>,
+    '-3333': <?= json_encode(sprintf($GLOBAL['filterDescCotiUnpaid3y'], $_jsYear - 2, $_jsYear), JSON_UNESCAPED_UNICODE) ?>,
+    '-5555': <?= json_encode(sprintf($GLOBAL['filterDescNoActivity10y'], $_jsYear - 10), JSON_UNESCAPED_UNICODE) ?>,
+    '-6666': <?= json_encode(sprintf($GLOBAL['filterDescNonInstitLastYear'], $_jsYear - 1), JSON_UNESCAPED_UNICODE) ?>
   };
 
   function sexeIcon(g) {
-    if (g === 'm')  return "<i class='fas fa-male s' aria-hidden='true'></i><span class='d-none'>Monsieur</span>";
-    if (g === 'f')  return "<i class='fas fa-female s' aria-hidden='true'></i><span class='d-none'>Madame</span>";
-    if (g === 'hf') return "<i class='fas fa-male s' aria-hidden='true'></i><i class='fas fa-female s' aria-hidden='true'></i><span class='d-none'>Madame et Monsieur</span>";
+    if (g === 'm')  return "<i class='fas fa-male s' aria-hidden='true'></i><span class='d-none'>" + <?= json_encode($GLOBAL['monsieur'], JSON_UNESCAPED_UNICODE) ?> + "</span>";
+    if (g === 'f')  return "<i class='fas fa-female s' aria-hidden='true'></i><span class='d-none'>" + <?= json_encode($GLOBAL['madame'], JSON_UNESCAPED_UNICODE) ?> + "</span>";
+    if (g === 'hf') return "<i class='fas fa-male s' aria-hidden='true'></i><i class='fas fa-female s' aria-hidden='true'></i><span class='d-none'>" + <?= json_encode($GLOBAL['fh'], JSON_UNESCAPED_UNICODE) ?> + "</span>";
     return '';
   }
 
@@ -568,7 +568,7 @@ $(document).ready(caInitDT);
       var cols = document.querySelectorAll('.export thead tr th').length || 9;
       tbody.innerHTML = '<tr><td colspan="' + cols + '" class="text-center py-4 text-muted">' +
         '<div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>' +
-        'Chargement…</td></tr>';
+        <?= json_encode($GLOBAL['loading'], JSON_UNESCAPED_UNICODE) ?> + '</td></tr>';
     },
     hide: function() { _savedTbody = null; }
   };

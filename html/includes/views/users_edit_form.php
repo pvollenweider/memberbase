@@ -95,13 +95,13 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
 <div class="d-flex align-items-center justify-content-between mb-3 gap-2 flex-wrap" style="border-bottom:1px solid var(--ca-border,#dee2e6);padding-bottom:0.5rem">
     <div class="d-flex align-items-center gap-1 flex-wrap">
         <?php $_memberLabel = trim($user->getSociety() . ' ' . $user->getFirstName() . ' ' . $user->getLastName());
-              if ($_memberLabel === '') { $_memberLabel = 'Sans nom #' . (int)$user->getId(); } ?>
+              if ($_memberLabel === '') { $_memberLabel = sprintf($GLOBAL['noNameId'], (int)$user->getId()); } ?>
         <span class="text-muted small fw-semibold me-2 w-100 w-sm-auto" style="white-space:normal">
             <?= htmlentities($_memberLabel, ENT_COMPAT, $charset) ?>
         </span>
         <a class="btn btn-sm <?= $view === 'generalData' ? 'btn-primary' : 'btn-outline-secondary' ?>"
            href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;userid=<?= $user->getId() ?>">
-            <i class="far fa-id-card me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['generalData'] ?></span><span class="d-sm-none">Fiche</span>
+            <i class="far fa-id-card me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['generalData'] ?></span><span class="d-sm-none"><?= $GLOBAL['memberSheet'] ?></span>
         </a>
         <a class="btn btn-sm <?= $view === 'compta' ? 'btn-primary' : 'btn-outline-secondary' ?>"
            href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>">
@@ -120,7 +120,7 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
         <?php if (isAdmin()): ?>
         <a class="btn btn-sm <?= $view === 'userHistory' ? 'btn-primary' : 'btn-outline-secondary' ?>"
            href="<?= $_SERVER['PHP_SELF'] ?>?view=userHistory&amp;userid=<?= $user->getId() ?>">
-            <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><span class="d-none d-sm-inline">Historique</span><span class="d-sm-none">Hist.</span>
+            <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['history'] ?></span><span class="d-sm-none"><?= $GLOBAL['historyShort'] ?></span>
         </a>
         <?php endif ?>
     </div>
@@ -135,11 +135,11 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
                    onchange="<?= $user->status
                      ? 'this.checked=true;var m=new bootstrap.Modal(document.getElementById(\'deactivate-modal\'));m.show()'
                      : 'document.getElementById(\'status-toggle-form\').submit()' ?>">
-            <label class="form-check-label small" for="status-toggle"><?= $user->status ? 'Actif' : 'Archivé' ?></label>
+            <label class="form-check-label small" for="status-toggle"><?= $user->status ? $GLOBAL['active'] : $GLOBAL['archivedOne'] ?></label>
         </div>
     </form>
     <?php else: ?>
-    <span class="small text-muted"><?= $user->status ? 'Actif' : 'Archivé' ?></span>
+    <span class="small text-muted"><?= $user->status ? $GLOBAL['active'] : $GLOBAL['archivedOne'] ?></span>
     <?php endif ?>
 </div>
 
@@ -153,7 +153,7 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
         </div>
         <h6 class="mb-1" id="deactivate-modal-label"><?= $GLOBAL['archiveMember'] ?>&nbsp;?</h6>
         <p class="text-muted mb-4" style="font-size:0.83rem">
-          Le profil sera retiré de toutes les listes.<br>Désarchivable à tout moment.
+          <?= $GLOBAL['archiveModalBody'] ?>
         </p>
         <div class="d-flex gap-2 justify-content-center">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
@@ -187,7 +187,7 @@ if ($view == "compta") {
     <?php if (!$user->status): ?>
     <div class="ca-inactive-banner alert alert-warning d-flex align-items-center gap-2 mb-3 py-2" role="alert">
       <i class="fas fa-eye-slash" aria-hidden="true"></i>
-      <span>Ce profil est <strong>archivé</strong> — il n'apparaît dans aucune liste.</span>
+      <span><?= $GLOBAL['archivedBanner'] ?></span>
     </div>
     <?php endif ?>
     <div class="position-relative <?= !$user->status ? 'ca-inactive-wrap' : '' ?>">
@@ -230,7 +230,7 @@ if ($view == "compta") {
               <?php if ((int)$_stats->don_count > 0): ?>
               <div class="ca-stats-mini mt-3 p-3 rounded border" style="background:var(--bs-light)">
                 <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">
-                  <i class="fas fa-hand-holding-heart me-1" aria-hidden="true"></i>Dons
+                  <i class="fas fa-hand-holding-heart me-1" aria-hidden="true"></i><?= $GLOBAL['donations'] ?>
                 </div>
                 <div class="d-flex flex-column gap-1">
                   <div class="d-flex justify-content-between align-items-baseline">
@@ -250,7 +250,7 @@ if ($view == "compta") {
                     </span>
                   </div>
                   <div class="d-flex justify-content-between align-items-baseline border-top pt-1 mt-1">
-                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)">Total depuis <?= $_stats->don_first_ts ? date('Y', (int)$_stats->don_first_ts) : '—' ?></span>
+                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)"><?= sprintf($GLOBAL['totalSince'], $_stats->don_first_ts ? date('Y', (int)$_stats->don_first_ts) : '—') ?></span>
                     <span class="fw-semibold" style="font-size:0.85rem">
                       <?= number_format((float)$_stats->total_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
                     </span>
@@ -262,7 +262,7 @@ if ($view == "compta") {
               <?php $_otherTypeLabels = implode(', ', array_map(fn($t) => htmlentities((string)$t->label, ENT_COMPAT, $charset), array_filter($_otherTypes, fn($t) => (int)$t->this_year_count > 0 || (int)$t->last_year_count > 0))); ?>
               <div class="ca-stats-mini mt-2 p-3 rounded border" style="background:var(--bs-light)">
                 <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">
-                  <i class="fas fa-receipt me-1" aria-hidden="true"></i>Autres versements<?php if ($_otherTypeLabels): ?> <span class="fw-normal text-lowercase" style="letter-spacing:0">(<?= $_otherTypeLabels ?>)</span><?php endif ?>
+                  <i class="fas fa-receipt me-1" aria-hidden="true"></i><?= $GLOBAL['otherPayments'] ?><?php if ($_otherTypeLabels): ?> <span class="fw-normal text-lowercase" style="letter-spacing:0">(<?= $_otherTypeLabels ?>)</span><?php endif ?>
                 </div>
                 <div class="d-flex flex-column gap-1">
                   <div class="d-flex justify-content-between align-items-baseline">
@@ -282,7 +282,7 @@ if ($view == "compta") {
                     </span>
                   </div>
                   <div class="d-flex justify-content-between align-items-baseline border-top pt-1 mt-1">
-                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)">Total depuis <?= $_stats->other_first_ts ? date('Y', (int)$_stats->other_first_ts) : '—' ?></span>
+                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)"><?= sprintf($GLOBAL['totalSince'], $_stats->other_first_ts ? date('Y', (int)$_stats->other_first_ts) : '—') ?></span>
                     <span class="fw-semibold" style="font-size:0.85rem">
                       <?= number_format((float)$_stats->other_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
                     </span>
@@ -292,7 +292,7 @@ if ($view == "compta") {
               <?php endif ?>
               <?php if ((int)$_stats->compta_count > 0): ?>
               <div class="mt-2 px-3 py-2 rounded border d-flex justify-content-between align-items-baseline" style="background:var(--bs-light)">
-                <span class="text-muted" style="font-size:0.75rem">Total depuis <?= $_stats->all_first_ts ? date('Y', (int)$_stats->all_first_ts) : '—' ?></span>
+                <span class="text-muted" style="font-size:0.75rem"><?= sprintf($GLOBAL['totalSince'], $_stats->all_first_ts ? date('Y', (int)$_stats->all_first_ts) : '—') ?></span>
                 <span class="fw-semibold" style="font-size:0.85rem">
                   <?= number_format((float)$_stats->all_time_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
                 </span>
@@ -310,7 +310,7 @@ if ($view == "compta") {
           <!-- Has compta → offer anonymize, not delete -->
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=anonymizeUser&amp;id=<?= (int)$user->getId() ?>"
              class="btn btn-outline-danger btn-sm"
-             title="Ce profil a des données comptables — la suppression est impossible. L'anonymisation efface les données personnelles tout en conservant l'historique comptable.">
+             title="<?= $GLOBAL['anonymizeTooltip'] ?>">
             <i class="fas fa-user-secret me-1" aria-hidden="true"></i><?= $GLOBAL['anonymize'] ?>
           </a>
           <?php else: ?>

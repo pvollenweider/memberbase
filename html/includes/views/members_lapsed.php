@@ -35,10 +35,10 @@ $count = count($rows);
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
-    <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Retour à l'aperçu des dons
+    <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToDonationOverview'] ?>
   </a>
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    Membres perdus <?= $year-1 ?> → <?= $year ?>
+    <?= sprintf($GLOBAL['lapsedMembersTitle'], $year-1, $year) ?>
   </span>
 
   <div class="dropdown ms-1">
@@ -56,24 +56,24 @@ $count = count($rows);
 
 <?php if ($prevTeamId <= 0): ?>
 <div class="alert alert-secondary" style="font-size:0.85rem">
-  Aucune équipe «Membre <?= $year-1 ?>» trouvée en base.
+  <?= sprintf($GLOBAL['noMemberTeamFound'], $year-1) ?>
 </div>
 <?php else: ?>
 
 <button type="button" class="btn btn-outline-warning btn-sm mb-3"
         data-bs-toggle="modal" data-bs-target="#modal-create-lapsed-members">
-  <i class="fas fa-users me-1" aria-hidden="true"></i>Créer segment «Membres à relancer <?= $year ?>»
+  <i class="fas fa-users me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['createSegmentLapsedMembers'], $year) ?>
 </button>
 
 <div class="modal fade" id="modal-create-lapsed-members" tabindex="-1" aria-labelledby="modal-create-lapsed-members-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-create-lapsed-members-label">Créer le segment</h5>
+        <h5 class="modal-title" id="modal-create-lapsed-members-label"><?= $GLOBAL['createSegmentTitle'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Créer le segment «Membres à relancer <?= $year ?>» avec <strong><?= $count ?></strong> personne(s)?
+        <?= sprintf($GLOBAL['confirmCreateLapsedMembersSegment'], $year, $count) ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
@@ -83,7 +83,7 @@ $count = count($rows);
           <input type="hidden" name="year"      value="<?= $year ?>">
           <input type="hidden" name="view"      value="lapsedMembers">
           <button type="submit" class="btn btn-warning">
-            <i class="fas fa-users me-1" aria-hidden="true"></i>Créer
+            <i class="fas fa-users me-1" aria-hidden="true"></i><?= $GLOBAL['create'] ?>
           </button>
         </form>
       </div>
@@ -93,7 +93,7 @@ $count = count($rows);
 
 <div class="alert alert-warning d-flex align-items-start gap-2 py-2 mb-3" role="status" style="font-size:0.85rem">
   <i class="fas fa-user-clock mt-1 flex-shrink-0" aria-hidden="true"></i>
-  <span><strong><?= $count ?> membre<?= $count > 1 ? 's' : '' ?></strong> étaient dans «Membre <?= $year-1 ?>» mais pas dans «Membre <?= $year ?>».</span>
+  <span><?= sprintf($GLOBAL['lapsedMembersCount'], $count, $count > 1 ? 's' : '', $year-1, $year) ?></span>
 </div>
 
 <?php

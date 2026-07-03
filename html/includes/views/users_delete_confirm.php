@@ -28,12 +28,12 @@ $userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
           <label class="ca-merge-radio" style="cursor:pointer">
             <input type="radio" name="dispose" value="deactivate" checked>
             <span><i class="fas fa-archive me-1 text-muted" aria-hidden="true"></i><strong><?= $GLOBAL['archive'] ?></strong></span>
-            <span class="text-muted ms-1" style="font-size:0.78rem">— conserve l'historique, retiré de toutes les vues</span>
+            <span class="text-muted ms-1" style="font-size:0.78rem"><?= $GLOBAL['archiveKeepsHistoryHint'] ?></span>
           </label>
           <label class="ca-merge-radio ca-merge-radio--danger" style="cursor:pointer">
             <input type="radio" name="dispose" value="delete">
             <span><i class="fas fa-trash-can me-1" aria-hidden="true"></i><strong><?= $GLOBAL['deletePermanently'] ?></strong></span>
-            <span class="text-muted ms-1" style="font-size:0.78rem">— irréversible</span>
+            <span class="text-muted ms-1" style="font-size:0.78rem"><?= $GLOBAL['irreversibleHint'] ?></span>
           </label>
         </div>
         <div class="d-flex gap-2 justify-content-end">

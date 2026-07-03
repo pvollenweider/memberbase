@@ -22,27 +22,27 @@ $_fieldLabels = importFieldLabels();
   <div class="col-12 col-xl-10">
 
     <p class="form-section-title mb-1">
-      <i class="fas fa-file-import me-1" aria-hidden="true"></i>Importer des contacts
+      <i class="fas fa-file-import me-1" aria-hidden="true"></i><?= $GLOBAL['importContacts'] ?>
     </p>
-    <p class="small text-muted mb-4">Étape 3 sur 3 — Résultats de l'import.</p>
+    <p class="small text-muted mb-4"><?= $GLOBAL['importStep3Subtitle'] ?></p>
 
     <!-- Created summary -->
     <div class="alert <?= $_created > 0 ? 'alert-success' : 'alert-secondary' ?> py-2 px-3 mb-4" style="font-size:0.85rem">
       <i class="fas <?= $_created > 0 ? 'fa-circle-check' : 'fa-circle-info' ?> me-1"></i>
       <?php if ($_created > 0): ?>
-        <strong><?= $_created ?></strong> contact<?= $_created > 1 ? 's' : '' ?> créé<?= $_created > 1 ? 's' : '' ?> avec succès.
+        <?= sprintf($GLOBAL['contactsCreated'], $_created, $_created > 1 ? 's' : '', $_created > 1 ? 's' : '') ?>
       <?php else: ?>
-        Aucun nouveau contact créé.
+        <?= $GLOBAL['noNewContacts'] ?>
       <?php endif ?>
       <?php if (!empty($_duplicates)): ?>
-        &nbsp;·&nbsp;<strong><?= count($_duplicates) ?></strong> doublon<?= count($_duplicates) > 1 ? 's' : '' ?> détecté<?= count($_duplicates) > 1 ? 's' : '' ?> — à traiter ci-dessous.
+        &nbsp;·&nbsp;<?= sprintf($GLOBAL['duplicatesDetectedCount'], count($_duplicates), count($_duplicates) > 1 ? 's' : '', count($_duplicates) > 1 ? 's' : '') ?>
       <?php endif ?>
     </div>
 
     <?php if ($_segment): ?>
     <div class="alert alert-info py-2 px-3 mb-4" style="font-size:0.85rem">
       <i class="fas fa-users me-1" aria-hidden="true"></i>
-      <strong><?= (int)$_segment['added'] ?></strong> contact<?= (int)$_segment['added'] > 1 ? 's' : '' ?> ajouté<?= (int)$_segment['added'] > 1 ? 's' : '' ?> au segment
+      <?= sprintf($GLOBAL['contactsAddedToSegment'], (int)$_segment['added'], (int)$_segment['added'] > 1 ? 's' : '', (int)$_segment['added'] > 1 ? 's' : '') ?>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= (int)$_segment['id'] ?>" class="alert-link"><?= htmlspecialchars($_segment['name'], ENT_QUOTES, $charset) ?></a>.
     </div>
     <?php endif ?>
@@ -51,16 +51,16 @@ $_fieldLabels = importFieldLabels();
     <!-- No duplicates — done -->
     <div class="d-flex gap-2">
       <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-primary btn-sm">
-        <i class="fas fa-list me-1" aria-hidden="true"></i>Voir la liste des membres
+        <i class="fas fa-list me-1" aria-hidden="true"></i><?= $GLOBAL['viewMemberList'] ?>
       </a>
     </div>
     <?php unset($_SESSION['_import_created'], $_SESSION['_import_duplicates'], $_SESSION['_import_segment']); ?>
 
     <?php else: ?>
     <!-- Duplicate resolution form -->
-    <p class="form-section-title mb-1">Doublons détectés</p>
+    <p class="form-section-title mb-1"><?= $GLOBAL['duplicatesDetected'] ?></p>
     <p class="small text-muted mb-3">
-      Pour chaque doublon, choisissez l'action à effectuer sur le contact existant.
+      <?= $GLOBAL['duplicateResolutionHint'] ?>
     </p>
 
     <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
@@ -75,9 +75,9 @@ $_fieldLabels = importFieldLabels();
           <i class="fas fa-user-clock text-warning" aria-hidden="true"></i>
           <strong><?= htmlspecialchars(
               trim(($dup['data']['firstName'] ?? '') . ' ' . ($dup['data']['lastName'] ?? ''))
-              ?: ($dup['data']['society'] ?? 'Sans nom'), ENT_QUOTES, $charset) ?></strong>
+              ?: ($dup['data']['society'] ?? $GLOBAL['noName']), ENT_QUOTES, $charset) ?></strong>
           <span class="text-muted ms-1" style="font-size:0.75rem">
-            doublon de
+            <?= $GLOBAL['duplicateOf'] ?>
             <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$dup['existingId'] ?>" target="_blank"
                class="text-muted">#<?= (int)$dup['existingId'] ?> <?= htmlspecialchars($dup['existingName'], ENT_QUOTES, $charset) ?></a>
           </span>
@@ -93,15 +93,15 @@ $_fieldLabels = importFieldLabels();
           <div class="d-flex gap-3">
             <label class="d-flex align-items-center gap-1" style="cursor:pointer">
               <input type="radio" name="choice[<?= $i ?>]" value="ignore" checked data-no-dirty>
-              <span>Ignorer</span>
+              <span><?= $GLOBAL['ignore'] ?></span>
             </label>
             <label class="d-flex align-items-center gap-1" style="cursor:pointer">
               <input type="radio" name="choice[<?= $i ?>]" value="fill" data-no-dirty>
-              <span>Compléter les champs vides</span>
+              <span><?= $GLOBAL['fillEmptyFields'] ?></span>
             </label>
             <label class="d-flex align-items-center gap-1" style="cursor:pointer">
               <input type="radio" name="choice[<?= $i ?>]" value="overwrite" data-no-dirty>
-              <span class="text-danger">Écraser</span>
+              <span class="text-danger"><?= $GLOBAL['overwrite'] ?></span>
             </label>
           </div>
         </div>
@@ -110,9 +110,9 @@ $_fieldLabels = importFieldLabels();
 
       <div class="d-flex gap-2 mt-3">
         <button type="submit" class="btn btn-primary btn-sm">
-          <i class="fas fa-check me-1" aria-hidden="true"></i>Appliquer les choix
+          <i class="fas fa-check me-1" aria-hidden="true"></i><?= $GLOBAL['applyChoices'] ?>
         </button>
-        <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-outline-secondary btn-sm">Terminer sans appliquer</a>
+        <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['finishWithoutApplying'] ?></a>
       </div>
     </form>
     <?php endif ?>

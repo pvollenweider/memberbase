@@ -49,7 +49,7 @@ foreach ($extra_columns as $_col) {
 ?>
 <tr style="cursor:pointer"
     data-href="<?= $_href ?>"
-    aria-label="Voir toutes les écritures de <?= $_aria ?>">
+    aria-label="<?= sprintf($GLOBAL['viewAllEntriesOf'], $_aria) ?>">
   <td><?= $_society ?></td>
   <td><strong><?= $_lastName ?></strong></td>
   <td><?= $_firstName ?></td>
@@ -65,7 +65,7 @@ foreach ($extra_columns as $_col) {
 <?php if ($_has_footer): ?>
 <tfoot>
 <tr>
-  <td colspan="6" class="text-end text-muted" style="font-size:0.8rem">Total</td>
+  <td colspan="6" class="text-end text-muted" style="font-size:0.8rem"><?= $GLOBAL['total'] ?></td>
   <?php foreach ($extra_columns as $_col): ?>
   <?php if ($_col['footer'] !== null): ?>
   <td style="text-align:right"><strong><?= number_format((float)$_col['footer'], 2, '.', '\'') ?></strong></td>

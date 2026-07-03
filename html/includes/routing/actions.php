@@ -15,7 +15,7 @@ if (isset($_REQUEST['action'])) {
         auditLog($pdo, 'csrfRejected', 'action=' . ($_REQUEST['action'] ?? '?') . ' ip=' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
         http_response_code(403);
         header('Content-Type: text/plain; charset=UTF-8');
-        exit('Requête refusée (jeton CSRF invalide). Rechargez la page et réessayez.');
+        exit($GLOBAL['csrfRejected']);
     }
 
     static $ACTION_MAP = [

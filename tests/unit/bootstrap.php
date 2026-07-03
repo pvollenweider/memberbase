@@ -12,5 +12,9 @@
 define('APP_ENTRY', true);
 
 $lib = __DIR__ . '/../../html/includes/lib';
+// PHPUnit may include this bootstrap inside a function scope: force $GLOBAL
+// into the true global scope so `global $GLOBAL;` works in library functions.
+global $GLOBAL;
+require_once __DIR__ . '/../../html/locales/resources_fr.php'; // $GLOBAL labels (used by importFieldLabels)
 require_once $lib . '/pure.php';           // formatedDateToTimeStamp, timeStampToformatedDate, unquote
 require_once $lib . '/import_fields.php';  // importNormalizeSexe, importFieldValue, importFieldLabels

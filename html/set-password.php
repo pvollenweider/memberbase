@@ -9,6 +9,7 @@ define('APP_ENTRY', true);
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 require_once __DIR__ . '/includes/lib/bootstrap.php';
+require_once __DIR__ . '/locales/resources_fr.php';
 
 $token = trim($_GET['token'] ?? '');
 $error = '';
@@ -16,7 +17,7 @@ $done  = false;
 
 if ($token === '') {
     http_response_code(400);
-    $error = 'Lien invalide.';
+    $error = $GLOBAL['invalidLink'];
 } else {
     $stmt = $pdo->prepare(
         "SELECT id, username, display_name FROM app_users
@@ -26,14 +27,14 @@ if ($token === '') {
     $user = $stmt->fetchObject();
 
     if (!$user) {
-        $error = 'Ce lien est invalide ou a expiré. Demandez un nouvel accès à l\'administrateur.';
+        $error = $GLOBAL['linkExpired'];
     } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pw1 = $_POST['pw1'] ?? '';
         $pw2 = $_POST['pw2'] ?? '';
         if (strlen($pw1) < 8) {
-            $error = 'Le mot de passe doit contenir au moins 8 caractères.';
+            $error = $GLOBAL['passwordTooShort'];
         } elseif ($pw1 !== $pw2) {
-            $error = 'Les deux mots de passe ne correspondent pas.';
+            $error = $GLOBAL['passwordsMismatch'];
         } else {
             $pdo->prepare(
                 "UPDATE app_users SET password_hash=?, force_password_change=0, reset_token=NULL, token_expires_at=NULL WHERE id=?"
@@ -48,45 +49,45 @@ if ($token === '') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Définir mon mot de passe — <?= htmlspecialchars($appSettings['org_name'] ?: 'Gestion des membres', ENT_QUOTES, 'UTF-8') ?></title>
+  <title><?= $GLOBAL['setMyPassword'] ?> — <?= htmlspecialchars($appSettings['org_name'] ?: $GLOBAL['memberManagement'], ENT_QUOTES, 'UTF-8') ?></title>
   <link rel="stylesheet" href="css/vendor/bootstrap.min.css">
   <link rel="stylesheet" href="css/custom.css">
 </head>
 <body class="d-flex align-items-center justify-content-center" style="min-height:100vh;background:var(--ca-ground)">
 <div class="card shadow-sm border-0" style="max-width:400px;width:100%">
   <div class="card-body p-4">
-    <h5 class="mb-4"><?= htmlspecialchars($appSettings['org_name'] ?: 'Gestion des membres', ENT_QUOTES, 'UTF-8') ?> — Définir mon mot de passe</h5>
+    <h5 class="mb-4"><?= htmlspecialchars($appSettings['org_name'] ?: $GLOBAL['memberManagement'], ENT_QUOTES, 'UTF-8') ?> — <?= $GLOBAL['setMyPassword'] ?></h5>
 
     <?php if ($done): ?>
       <div class="alert alert-success">
         <i class="fas fa-check-circle me-2" aria-hidden="true"></i>
-        Mot de passe défini. Vous pouvez maintenant <a href="login.php">vous connecter</a>.
+        <?= $GLOBAL['passwordSetSuccess'] ?>
       </div>
 
     <?php elseif ($error): ?>
       <div class="alert alert-danger"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
       <?php if (!$user ?? true): ?>
-        <a href="login.php" class="btn btn-outline-secondary btn-sm">Retour au login</a>
+        <a href="login.php" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['backToLogin'] ?></a>
       <?php endif ?>
 
     <?php else: ?>
       <p class="text-muted mb-3" style="font-size:0.875rem">
-        Bienvenue <?= htmlspecialchars($user->display_name ?: $user->username, ENT_QUOTES, 'UTF-8') ?>.
-        Choisissez un mot de passe pour activer votre compte.
+        <?= sprintf($GLOBAL['welcomeUser'], htmlspecialchars($user->display_name ?: $user->username, ENT_QUOTES, 'UTF-8')) ?>
+        <?= $GLOBAL['choosePasswordActivate'] ?>
       </p>
       <form method="post" action="set-password.php?token=<?= urlencode($token) ?>">
         <div class="mb-3">
-          <label for="pw1" class="form-label form-label-sm">Mot de passe</label>
+          <label for="pw1" class="form-label form-label-sm"><?= $GLOBAL['password'] ?></label>
           <input type="password" class="form-control form-control-sm" id="pw1" name="pw1"
                  minlength="8" required autofocus autocomplete="new-password">
-          <div class="form-text">8 caractères minimum.</div>
+          <div class="form-text"><?= $GLOBAL['minPasswordHint'] ?></div>
         </div>
         <div class="mb-4">
           <label for="pw2" class="form-label form-label-sm"><?= $GLOBAL['confirmPassword'] ?></label>
           <input type="password" class="form-control form-control-sm" id="pw2" name="pw2"
                  minlength="8" required autocomplete="new-password">
         </div>
-        <button type="submit" class="btn btn-primary btn-sm w-100">Définir le mot de passe</button>
+        <button type="submit" class="btn btn-primary btn-sm w-100"><?= $GLOBAL['setPasswordBtn'] ?></button>
       </form>
     <?php endif ?>
   </div>

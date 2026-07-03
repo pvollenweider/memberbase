@@ -12,23 +12,24 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 function importFieldLabels(): array
 {
+    global $GLOBAL;
     return [
-        'lastName'  => 'Nom de famille',
-        'firstName' => 'Prénom',
-        'society'   => 'Société',
-        'sexe'      => 'Genre / civilité (Monsieur, Madame…)',
-        'title'     => 'Titre',
-        'email'     => 'Email',
-        'emailAlt'  => 'Email alt.',
-        'tel'       => 'Téléphone fixe',
-        'telProf'   => 'Tél. professionnel',
-        'portable'  => 'Mobile',
-        'fax'       => 'Fax',
-        'address'   => 'Adresse',
-        'npa'       => 'NPA / Ville',
-        'web'       => 'Site web',
-        'birthDay'  => 'Date de naissance (JJ/MM/AAAA)',
-        'comment'   => 'Remarques',
+        'lastName'  => $GLOBAL['lastNameFull'],
+        'firstName' => $GLOBAL['firstName'],
+        'society'   => $GLOBAL['society'],
+        'sexe'      => $GLOBAL['genderCivility'],
+        'title'     => $GLOBAL['title'],
+        'email'     => $GLOBAL['email'],
+        'emailAlt'  => $GLOBAL['emailAlt'],
+        'tel'       => $GLOBAL['landlinePhone'],
+        'telProf'   => $GLOBAL['workPhone'],
+        'portable'  => $GLOBAL['mobilePhone'],
+        'fax'       => $GLOBAL['fax'],
+        'address'   => $GLOBAL['address'],
+        'npa'       => $GLOBAL['npaCity'],
+        'web'       => $GLOBAL['website'],
+        'birthDay'  => $GLOBAL['birthDateWithFormat'],
+        'comment'   => $GLOBAL['remarks'],
     ];
 }
 

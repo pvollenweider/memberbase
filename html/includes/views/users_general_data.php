@@ -107,18 +107,18 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
     <?php if ($_showCotiWarn): ?>
     <div class="alert alert-danger py-1 px-2 mb-2 small">
         <i class="fas fa-circle-exclamation me-1" aria-hidden="true"></i>
-        Cotisation <?= date('Y') ?> non payée
+        <?= $GLOBAL['cotiUnpayed'] ?>
     </div>
     <?php endif ?>
 
     <!-- ── VIEW MODE ────────────────────────────────────────────────── -->
     <div x-show="!editing"
          class="ca-view-zone<?= canWrite() ? '' : ' pe-none' ?>"
-         <?= canWrite() ? '@click="startEdit()" title="Cliquer pour modifier"' : '' ?>>
+         <?= canWrite() ? '@click="startEdit()" title="' . $GLOBAL['clickToEdit'] . '"' : '' ?>>
 
         <?php if (canWrite()): ?>
         <span class="ca-edit-hint" aria-hidden="true">
-            <i class="fas fa-pen me-1"></i>Modifier
+            <i class="fas fa-pen me-1"></i><?= $GLOBAL['edit'] ?>
         </span>
         <?php endif ?>
 
@@ -159,7 +159,7 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
                 <div class="mt-1 d-flex gap-2" x-show="data.address">
                     <a :href="'https://www.google.ch/maps/place/' + encodeURIComponent((data.address||'') + ',' + (data.npa||''))"
                        target="_blank" class="text-muted small" @click.stop>
-                        <i class="fas fa-location-dot me-1" aria-hidden="true"></i>Google Maps
+                        <i class="fas fa-location-dot me-1" aria-hidden="true"></i><?= $GLOBAL['googleMaps'] ?>
                     </a>
                 </div>
             </div>
@@ -172,7 +172,7 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
             </div>
 
             <div x-show="data.emailAlt">
-                <div class="ca-field-label"><i class="fas fa-envelope me-1" aria-hidden="true"></i>E-mail alt.</div>
+                <div class="ca-field-label"><i class="fas fa-envelope me-1" aria-hidden="true"></i><?= $GLOBAL['emailAltLong'] ?></div>
                 <div class="ca-field-value" x-text="data.emailAlt"></div>
             </div>
 
@@ -229,8 +229,8 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
 
         <?php if ($_createdAt || $_modifiedAt): ?>
         <div class="mt-3 text-muted small text-end">
-            <?php if ($_createdAt):  ?>Créé : <?= $_createdAt ?><?php endif ?>
-            <?php if ($_modifiedAt): ?>&nbsp;· Modifié : <?= $_modifiedAt ?><?php endif ?>
+            <?php if ($_createdAt):  ?><?= sprintf($GLOBAL['createdAtLabel'], $_createdAt) ?><?php endif ?>
+            <?php if ($_modifiedAt): ?>&nbsp;· <?= sprintf($GLOBAL['modifiedAtLabel'], $_modifiedAt) ?><?php endif ?>
         </div>
         <?php endif ?>
     </div>
@@ -298,11 +298,11 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
         </div>
         <div class="row mb-2">
             <label for="gd-emailAlt" class="col-md-3 col-form-label">
-                <i class="fas fa-envelope me-1" aria-hidden="true"></i>E-mail alt.
+                <i class="fas fa-envelope me-1" aria-hidden="true"></i><?= $GLOBAL['emailAltLong'] ?>
             </label>
             <div class="col-md-9">
                 <input type="email" class="form-control form-control-sm" id="gd-emailAlt" x-model="draft.emailAlt"/>
-                <div class="form-text">Adresse historique / alternative — non utilisée pour les envois</div>
+                <div class="form-text"><?= $GLOBAL['emailAltHint'] ?></div>
             </div>
         </div>
         <div class="row mb-2">
@@ -358,15 +358,15 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
             <label for="tiptap-comment" class="col-md-3 col-form-label"><?= $GLOBAL['compet'] ?></label>
             <div class="col-md-9">
                 <div class="tiptap-wrap border rounded" id="tiptap-wrap-comment">
-                    <div class="tiptap-toolbar d-flex gap-1 px-2 py-1 border-bottom bg-light rounded-top flex-wrap" role="toolbar" aria-label="Formatage">
-                        <button type="button" class="tt-btn" data-tt="bold"        title="Gras (Ctrl+B)"           aria-label="Gras"><i class="fas fa-bold"></i></button>
-                        <button type="button" class="tt-btn" data-tt="italic"      title="Italique (Ctrl+I)"       aria-label="Italique"><i class="fas fa-italic"></i></button>
+                    <div class="tiptap-toolbar d-flex gap-1 px-2 py-1 border-bottom bg-light rounded-top flex-wrap" role="toolbar" aria-label="<?= $GLOBAL['ttFormatting'] ?>">
+                        <button type="button" class="tt-btn" data-tt="bold"        title="<?= $GLOBAL['ttBold'] ?>"           aria-label="<?= $GLOBAL['ttBoldShort'] ?>"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="tt-btn" data-tt="italic"      title="<?= $GLOBAL['ttItalic'] ?>"       aria-label="<?= $GLOBAL['ttItalicShort'] ?>"><i class="fas fa-italic"></i></button>
                         <span class="tt-sep"></span>
-                        <button type="button" class="tt-btn" data-tt="bulletList"  title="Liste à puces"           aria-label="Liste à puces"><i class="fas fa-list-ul"></i></button>
-                        <button type="button" class="tt-btn" data-tt="orderedList" title="Liste numérotée"         aria-label="Liste numérotée"><i class="fas fa-list-ol"></i></button>
+                        <button type="button" class="tt-btn" data-tt="bulletList"  title="<?= $GLOBAL['ttBulletList'] ?>"           aria-label="<?= $GLOBAL['ttBulletList'] ?>"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="tt-btn" data-tt="orderedList" title="<?= $GLOBAL['ttOrderedList'] ?>"         aria-label="<?= $GLOBAL['ttOrderedList'] ?>"><i class="fas fa-list-ol"></i></button>
                         <span class="tt-sep"></span>
-                        <button type="button" class="tt-btn" data-tt="undo"        title="Annuler (Ctrl+Z)"        aria-label="Annuler"><i class="fas fa-rotate-left"></i></button>
-                        <button type="button" class="tt-btn" data-tt="redo"        title="Rétablir (Ctrl+Shift+Z)" aria-label="Rétablir"><i class="fas fa-rotate-right"></i></button>
+                        <button type="button" class="tt-btn" data-tt="undo"        title="<?= $GLOBAL['ttUndo'] ?>"        aria-label="<?= $GLOBAL['cancel'] ?>"><i class="fas fa-rotate-left"></i></button>
+                        <button type="button" class="tt-btn" data-tt="redo"        title="<?= $GLOBAL['ttRedo'] ?>" aria-label="<?= $GLOBAL['ttRedoShort'] ?>"><i class="fas fa-rotate-right"></i></button>
                     </div>
                     <div id="tiptap-comment" class="tiptap-body px-3 py-2"
                          style="min-height:80px;cursor:text"
@@ -384,15 +384,15 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
                 <span x-show="saving" x-cloak>
                     <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
                 </span>
-                Enregistrer
+                <?= $GLOBAL['saveBtn'] ?>
             </button>
             <button type="button" class="btn btn-outline-secondary btn-sm" @click="cancel()" :disabled="saving">
-                Annuler
+                <?= $GLOBAL['cancel'] ?>
             </button>
             <?php if ($_createdAt || $_modifiedAt): ?>
             <span class="text-muted small ms-auto">
-                <?php if ($_createdAt):  ?>Créé : <?= $_createdAt ?><?php endif ?>
-                <?php if ($_modifiedAt): ?>&nbsp;· Modifié : <?= $_modifiedAt ?><?php endif ?>
+                <?php if ($_createdAt):  ?><?= sprintf($GLOBAL['createdAtLabel'], $_createdAt) ?><?php endif ?>
+                <?php if ($_modifiedAt): ?>&nbsp;· <?= sprintf($GLOBAL['modifiedAtLabel'], $_modifiedAt) ?><?php endif ?>
             </span>
             <?php endif ?>
         </div>

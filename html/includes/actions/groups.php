@@ -147,7 +147,7 @@ if ($action == 'deleteTeam') {
         $n = count($ids);
         if (!isset($_SESSION)) session_start();
         $_SESSION['group_toast'] = [
-            'msg'      => $n === 1 ? '1 groupe masqué.' : "$n groupes masqués.",
+            'msg'      => $n === 1 ? $GLOBAL['oneGroupHidden'] : sprintf($GLOBAL['groupsHidden'], $n),
             'undo_ids' => $ids,
             'undo_act' => 'bulkShow',
         ];
@@ -168,7 +168,7 @@ if ($action == 'deleteTeam') {
         $n = count($ids);
         if (!isset($_SESSION)) session_start();
         $_SESSION['group_toast'] = [
-            'msg'      => $n === 1 ? '1 groupe affiché.' : "$n groupes affichés.",
+            'msg'      => $n === 1 ? $GLOBAL['oneGroupShown'] : sprintf($GLOBAL['groupsShown'], $n),
             'undo_ids' => $ids,
             'undo_act' => 'bulkHide',
         ];
@@ -221,17 +221,17 @@ if ($action == 'deleteTeam') {
     $kTo       = mktime(0,0,0,1,1,$yr+1);
 
     if ($groupType === 'donors') {
-        $groupName = "Donateurs à relancer " . $yr . " (" . date("d.m.Y") . ")";
+        $groupName = sprintf($GLOBAL['lapsedDonorsGroupName'], $yr, date("d.m.Y"));
         $stmt = $pdo->prepare("SELECT DISTINCT c.user_id FROM compta c WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($excl) AND c.user_id NOT IN (SELECT DISTINCT user_id FROM compta WHERE date>? AND date<? AND type_id NOT IN ($excl))");
         $stmt->execute([$kFrom1, $kTo1, $kFrom, $kTo]);
     } else {
-        $groupName = "Membres à relancer " . $yr . " (" . date("d.m.Y") . ")";
+        $groupName = sprintf($GLOBAL['lapsedMembersGroupName'], $yr, date("d.m.Y"));
         $membreTeamId  = (int)($appSettings['default_team'] ?? 0);
         $prevTeamStmt  = $pdo->prepare("SELECT id FROM team WHERE name = ?");
         $prevTeamStmt->execute([($appSettings['membre_team_prefix'] ?? 'Membre') . ' ' . ($yr - 1)]);
         $prevTeamId    = (int)$prevTeamStmt->fetchColumn();
         if ($prevTeamId <= 0 || $membreTeamId <= 0) {
-            echo '<script>alert("Impossible de trouver les équipes membres.");history.back();</script>';
+            echo '<script>alert("' . $GLOBAL['memberTeamsNotFound'] . '");history.back();</script>';
             exit;
         }
         $stmt = $pdo->prepare("SELECT user_id FROM user_properties WHERE parameter=? AND value='true' AND user_id NOT IN (SELECT user_id FROM user_properties WHERE parameter=? AND value='true')");
@@ -239,7 +239,7 @@ if ($action == 'deleteTeam') {
     }
     $userIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
     if (empty($userIds)) {
-        echo '<script>alert("Aucun utilisateur à ajouter.");history.back();</script>';
+        echo '<script>alert("' . $GLOBAL['noUsersToAdd'] . '");history.back();</script>';
         exit;
     }
     $team = new Team();
@@ -304,14 +304,14 @@ if ($action == 'deleteTeam') {
     $teamId  = (int)($_REQUEST['id'] ?? 0);
     $newName = trim($_REQUEST['name'] ?? '');
     if ($teamId <= 0 || $newName === '') {
-        echo json_encode(['ok' => false, 'error' => 'Données invalides']);
+        echo json_encode(['ok' => false, 'error' => $GLOBAL['invalidData']]);
         exit;
     }
     $row = $pdo->prepare("SELECT name FROM team WHERE id=?");
     $row->execute([$teamId]);
     $oldName = $row->fetchColumn();
     if ($oldName === false) {
-        echo json_encode(['ok' => false, 'error' => 'Groupe introuvable']);
+        echo json_encode(['ok' => false, 'error' => $GLOBAL['groupNotFound']]);
         exit;
     }
     $pdo->prepare("UPDATE team SET name=? WHERE id=?")->execute([$newName, $teamId]);

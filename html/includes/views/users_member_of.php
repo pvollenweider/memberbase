@@ -13,12 +13,12 @@ $_msUserId  = (int)($_REQUEST['id']     ?? 0);
 if (($_msAction === 'addMembership' || $_msAction === 'removeMembership') && $_msTeamId > 0 && $_msUserId > 0) {
     $_msTeamNameStmt = $pdo->prepare("SELECT name FROM team WHERE id=?");
     $_msTeamNameStmt->execute([$_msTeamId]);
-    $_msTeamName = $_msTeamNameStmt->fetchColumn() ?: "segment #$_msTeamId";
+    $_msTeamName = $_msTeamNameStmt->fetchColumn() ?: sprintf($GLOBAL['segmentNumber'], $_msTeamId);
     if ($_msAction === 'addMembership') {
-        $_msMsg     = 'Ajouté : ' . htmlspecialchars($_msTeamName, ENT_QUOTES, $charset);
+        $_msMsg     = sprintf($GLOBAL['membershipAdded'], htmlspecialchars($_msTeamName, ENT_QUOTES, $charset));
         $_msUndoUrl = $_SERVER['PHP_SELF'] . '?view=generalData&action=removeMembership&id=' . $_msUserId . '&teamId=' . $_msTeamId;
     } else {
-        $_msMsg     = 'Retiré : ' . htmlspecialchars($_msTeamName, ENT_QUOTES, $charset);
+        $_msMsg     = sprintf($GLOBAL['membershipRemoved'], htmlspecialchars($_msTeamName, ENT_QUOTES, $charset));
         $_msUndoUrl = $_SERVER['PHP_SELF'] . '?view=generalData&action=addMembership&id=' . $_msUserId . '&teamId=' . $_msTeamId;
     }
     echo '<div id="casa-membership-toast" hidden data-msg="' . htmlspecialchars($_msMsg, ENT_QUOTES, $charset) . '" data-undo-url="' . htmlspecialchars($_msUndoUrl, ENT_QUOTES, $charset) . '"></div>';
@@ -89,10 +89,10 @@ foreach ($nonMemberTeams as $t) {
 uasort($nonMemberBycat, $_catSortFn);
 ?>
 
-<p class="form-section-title" style="margin-top:0">Segments</p>
+<p class="form-section-title" style="margin-top:0"><?= $GLOBAL['groups'] ?></p>
 
 <?php if (empty($memberTeams)): ?>
-    <p class="text-muted small">Aucun segment.</p>
+    <p class="text-muted small"><?= $GLOBAL['noSegments'] ?></p>
 <?php else: ?>
     <?php foreach ($memberBycat as $group): ?>
         <?php if ($group['cat_name']): ?>
@@ -109,14 +109,14 @@ uasort($nonMemberBycat, $_catSortFn);
                 <?php if (isManager()): ?>
                 <a class="member-pill<?= $isNew ? ' pill-just-added' : '' ?><?= $t->hidden ? ' pill-hidden' : '' ?>"
                    href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=removeMembership&amp;id=<?= $user->id ?>&amp;teamId=<?= $t->id ?>"
-                   title="<?= $t->hidden ? '[Segment masqué] ' : '' ?>Retirer de <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>">
-                    <?php if ($t->hidden): ?><i class="fas fa-eye-slash me-1" aria-label="Segment masqué" style="font-size:0.65rem;opacity:0.6"></i><?php endif ?>
+                   title="<?= ($t->hidden ? $GLOBAL['hiddenSegmentPrefix'] : '') . sprintf($GLOBAL['removeFromSegment'], htmlentities($t->name, ENT_COMPAT, $charset)) ?>">
+                    <?php if ($t->hidden): ?><i class="fas fa-eye-slash me-1" aria-label="<?= $GLOBAL['hiddenSegment'] ?>" style="font-size:0.65rem;opacity:0.6"></i><?php endif ?>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
                     <span class="pill-x" aria-hidden="true">&#x2715;</span>
                 </a>
                 <?php else: ?>
                 <span class="member-pill<?= $t->hidden ? ' pill-hidden' : '' ?>">
-                    <?php if ($t->hidden): ?><i class="fas fa-eye-slash me-1" aria-label="Segment masqué" style="font-size:0.65rem;opacity:0.6"></i><?php endif ?>
+                    <?php if ($t->hidden): ?><i class="fas fa-eye-slash me-1" aria-label="<?= $GLOBAL['hiddenSegment'] ?>" style="font-size:0.65rem;opacity:0.6"></i><?php endif ?>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
                 </span>
                 <?php endif ?>
@@ -151,12 +151,12 @@ uasort($nonMemberBycat, $_catSortFn);
         <?php if (!$viewall): ?>
             <a class="btn btn-outline-secondary btn-sm"
                href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&id=<?= $user->id ?>&viewall=true">
-                <i class="fas fa-eye-slash me-1" aria-hidden="true"></i>Segments masqués
+                <i class="fas fa-eye-slash me-1" aria-hidden="true"></i><?= $GLOBAL['hiddenSegments'] ?>
             </a>
         <?php else: ?>
             <a class="btn btn-outline-secondary btn-sm"
                href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&id=<?= $user->id ?>">
-                <i class="fas fa-eye me-1" aria-hidden="true"></i>Masquer les segments cachés
+                <i class="fas fa-eye me-1" aria-hidden="true"></i><?= $GLOBAL['hideHiddenSegments'] ?>
             </a>
         <?php endif ?>
     </div>
@@ -167,6 +167,8 @@ uasort($nonMemberBycat, $_catSortFn);
 (function () {
   var _userId = <?= (int)$user->getId() ?>;
   var _busy   = false;
+  var ADDED_TPL   = <?= json_encode($GLOBAL['membershipAdded'], JSON_UNESCAPED_UNICODE) ?>;
+  var REMOVED_TPL = <?= json_encode($GLOBAL['membershipRemoved'], JSON_UNESCAPED_UNICODE) ?>;
 
   function _showToast(msg, undoAction, teamId) {
     var toastEl = document.getElementById('casaToast');
@@ -222,7 +224,7 @@ uasort($nonMemberBycat, $_catSortFn);
       _busy = false;
       if (teamName) {
         var undoAct = action === 'add' ? 'remove' : 'add';
-        _showToast(action === 'add' ? 'Ajouté : ' + teamName : 'Retiré : ' + teamName, undoAct, teamId);
+        _showToast((action === 'add' ? ADDED_TPL : REMOVED_TPL).replace('%s', teamName), undoAct, teamId);
       }
     })
     .catch(function (err) { _busy = false; console.error('membership error', err); });

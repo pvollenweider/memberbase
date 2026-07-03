@@ -143,13 +143,13 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 ?>
 
 <p class="form-section-title mb-1">
-  <i class="fas fa-stethoscope me-1" aria-hidden="true"></i>Intégrité
+  <i class="fas fa-stethoscope me-1" aria-hidden="true"></i><?= $GLOBAL['integrity'] ?>
 </p>
-<p class="small text-muted mb-3">Doublons potentiels dans les membres et segments masqués encore assignés.</p>
+<p class="small text-muted mb-3"><?= $GLOBAL['integrityHelp'] ?></p>
 
 <?php if ($allOk): ?>
 <div class="alert alert-success py-2 px-3" role="alert" style="font-size:0.85rem">
-  <i class="fas fa-shield-halved me-1" aria-hidden="true"></i>Tout est clean — aucun problème détecté.
+  <i class="fas fa-shield-halved me-1" aria-hidden="true"></i><?= $GLOBAL['allClean'] ?>
 </div>
 <?php else: ?>
 
@@ -157,14 +157,14 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-user-group me-1 text-danger" aria-hidden="true"></i>
-    Membres avec même nom
+    <?= $GLOBAL['membersSameName'] ?>
     <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dupNames) ?></span>
   </summary>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
-        <th>Prénom / Nom</th>
-        <th style="width:3rem" class="text-center">Fiches</th>
+        <th><?= $GLOBAL['firstLastName'] ?></th>
+        <th style="width:3rem" class="text-center"><?= $GLOBAL['records'] ?></th>
         <th></th>
       </tr>
     </thead>
@@ -183,13 +183,13 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&amp;a=<?= (int)$ids[0] ?>&amp;b=<?= (int)$ids[1] ?>"
              class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem"
              hx-boost="false">
-            <i class="fas fa-code-merge me-1" aria-hidden="true"></i>Fusionner
+            <i class="fas fa-code-merge me-1" aria-hidden="true"></i><?= $GLOBAL['merge'] ?>
           </a>
           <?php elseif (count($ids) > 2): ?>
           <select class="form-select form-select-sm d-inline-block w-auto py-0 border-danger text-danger"
                   style="font-size:0.75rem;cursor:pointer"
                   data-no-dirty onchange="if(this.value){window.__dirtyOverride=true;window.location=this.value;}this.value=''">
-            <option value=""><i class="fas fa-code-merge"></i> Fusionner…</option>
+            <option value=""><i class="fas fa-code-merge"></i> <?= $GLOBAL['mergeEllipsis'] ?></option>
             <?php for ($pi=0;$pi<count($ids);$pi++) for ($pj=$pi+1;$pj<count($ids);$pj++): ?>
             <option value="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&a=<?= (int)$ids[$pi] ?>&b=<?= (int)$ids[$pj] ?>">
               #<?= (int)$ids[$pi] ?> + #<?= (int)$ids[$pj] ?>
@@ -209,14 +209,14 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-envelope me-1 text-danger" aria-hidden="true"></i>
-    Membres avec même email
+    <?= $GLOBAL['membersSameEmail'] ?>
     <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dupEmails) ?></span>
   </summary>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
-        <th>Email</th>
-        <th style="width:3rem" class="text-center">Fiches</th>
+        <th><?= $GLOBAL['email'] ?></th>
+        <th style="width:3rem" class="text-center"><?= $GLOBAL['records'] ?></th>
         <th></th>
       </tr>
     </thead>
@@ -235,13 +235,13 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&amp;a=<?= (int)$ids[0] ?>&amp;b=<?= (int)$ids[1] ?>"
              class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem"
              hx-boost="false">
-            <i class="fas fa-code-merge me-1" aria-hidden="true"></i>Fusionner
+            <i class="fas fa-code-merge me-1" aria-hidden="true"></i><?= $GLOBAL['merge'] ?>
           </a>
           <?php elseif (count($ids) > 2): ?>
           <select class="form-select form-select-sm d-inline-block w-auto py-0 border-danger text-danger"
                   style="font-size:0.75rem;cursor:pointer"
                   data-no-dirty onchange="if(this.value){window.__dirtyOverride=true;window.location=this.value;}this.value=''">
-            <option value="">Fusionner…</option>
+            <option value=""><?= $GLOBAL['mergeEllipsis'] ?></option>
             <?php for ($pi=0;$pi<count($ids);$pi++) for ($pj=$pi+1;$pj<count($ids);$pj++): ?>
             <option value="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&a=<?= (int)$ids[$pi] ?>&b=<?= (int)$ids[$pj] ?>">
               #<?= (int)$ids[$pi] ?> + #<?= (int)$ids[$pj] ?>
@@ -261,14 +261,14 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-tag me-1 text-warning" aria-hidden="true"></i>
-    Segments masqués dans une catégorie
+    <?= $GLOBAL['hiddenSegmentsInCategory'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenInCats) ?></span>
   </summary>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
-        <th>Segment masqué</th>
-        <th>Catégorie</th>
+        <th><?= $GLOBAL['hiddenSegment'] ?></th>
+        <th><?= $GLOBAL['category'] ?></th>
         <th></th>
       </tr>
     </thead>
@@ -282,7 +282,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= htmlentities($row->mg_name, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateMetagroup&amp;id=<?= (int)$row->mg_id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
     <?php endforeach ?>
@@ -295,14 +295,14 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-layer-group me-1 text-warning" aria-hidden="true"></i>
-    Segments masqués dans un segment combiné
+    <?= $GLOBAL['hiddenSegmentsInCombined'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenInMeta) ?></span>
   </summary>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
-        <th>Segment masqué</th>
-        <th>Segment combiné</th>
+        <th><?= $GLOBAL['hiddenSegment'] ?></th>
+        <th><?= $GLOBAL['combinedSegmentSingular'] ?></th>
         <th></th>
       </tr>
     </thead>
@@ -316,7 +316,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= htmlentities($row->mg_name, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateMetagroup&amp;id=<?= (int)$row->mg_id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
     <?php endforeach ?>
@@ -329,14 +329,14 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-users me-1 text-warning" aria-hidden="true"></i>
-    Segments masqués avec des membres
+    <?= $GLOBAL['hiddenSegmentsWithMembers'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenWithMembers) ?></span>
   </summary>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
-        <th>Segment masqué</th>
-        <th>Membres</th>
+        <th><?= $GLOBAL['hiddenSegment'] ?></th>
+        <th><?= $GLOBAL['members'] ?></th>
         <th></th>
       </tr>
     </thead>
@@ -350,7 +350,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= (int)$row->member_count ?></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= (int)$row->team_id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
     <?php endforeach ?>
@@ -363,19 +363,19 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-id-card me-1 text-danger" aria-hidden="true"></i>
-    Membres sans nom de famille ni société
+    <?= $GLOBAL['membersNoNameTitle'] ?>
     <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($noName) ?></span>
   </summary>
-  <p class="small text-muted mt-2 mb-1">Ces membres n'ont ni nom de famille ni société — ils sont difficilement identifiables.</p>
+  <p class="small text-muted mt-2 mb-1"><?= $GLOBAL['membersNoNameHelp'] ?></p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
-    <thead><tr><th>Prénom</th><th></th></tr></thead>
+    <thead><tr><th><?= $GLOBAL['firstName'] ?></th><th></th></tr></thead>
     <tbody>
     <?php foreach ($noName as $r): ?>
       <tr>
         <td><?= htmlentities(trim($r->firstname) ?: '—', ENT_COMPAT, $charset) ?> <span class="text-muted" style="font-size:0.75rem">#<?= (int)$r->id ?></span></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
     <?php endforeach ?>
@@ -388,21 +388,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-calendar-xmark me-1 text-danger" aria-hidden="true"></i>
-    Dates compta invalides
+    <?= $GLOBAL['invalidComptaDates'] ?>
     <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dateInvalid) ?></span>
   </summary>
-  <p class="small text-muted mt-2 mb-1">Entrées avec date à 0 ou dans le futur.</p>
+  <p class="small text-muted mt-2 mb-1"><?= $GLOBAL['invalidComptaDatesHelp'] ?></p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
-    <thead><tr><th>Membre</th><th>Libellé</th><th>Date</th><th></th></tr></thead>
+    <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['libele'] ?></th><th><?= $GLOBAL['date'] ?></th><th></th></tr></thead>
     <tbody>
     <?php foreach ($dateInvalid as $r): ?>
       <tr>
         <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname) ?: '#'.(int)$r->user_id, ENT_COMPAT, $charset) ?></td>
         <td><?= htmlentities($r->libele, ENT_COMPAT, $charset) ?></td>
-        <td><code class="text-danger"><?= $r->date == 0 ? '0 (vide)' : date('d.m.Y', (int)$r->date) ?></code></td>
+        <td><code class="text-danger"><?= $r->date == 0 ? $GLOBAL['zeroEmpty'] : date('d.m.Y', (int)$r->date) ?></code></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Compta</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['compta'] ?></a>
         </td>
       </tr>
     <?php endforeach ?>
@@ -415,12 +415,12 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-tag me-1 text-warning" aria-hidden="true"></i>
-    Entrées compta sans type
+    <?= $GLOBAL['comptaEntriesWithoutType'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($typeNull) ?></span>
   </summary>
-  <p class="small text-muted mt-2 mb-1">Ces entrées ont <code>type_id = NULL</code> — elles n'apparaissent dans aucune ventilation par type.</p>
+  <p class="small text-muted mt-2 mb-1"><?= $GLOBAL['comptaEntriesWithoutTypeHelp'] ?></p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
-    <thead><tr><th>Membre</th><th>Libellé</th><th>Montant</th><th></th></tr></thead>
+    <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['libele'] ?></th><th><?= $GLOBAL['amount'] ?></th><th></th></tr></thead>
     <tbody>
     <?php foreach ($typeNull as $r): ?>
       <tr>
@@ -429,7 +429,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= htmlentities($r->sum, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Compta</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['compta'] ?></a>
         </td>
       </tr>
     <?php endforeach ?>
@@ -442,11 +442,11 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-at me-1 text-warning" aria-hidden="true"></i>
-    Emails mal formatés
+    <?= $GLOBAL['malformedEmails'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($emailInvalid) ?></span>
   </summary>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
-    <thead><tr><th>Membre</th><th>Email</th><th></th></tr></thead>
+    <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['email'] ?></th><th></th></tr></thead>
     <tbody>
     <?php foreach ($emailInvalid as $r): ?>
       <tr>
@@ -454,7 +454,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><code class="text-warning"><?= htmlentities($r->email, ENT_COMPAT, $charset) ?></code></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
     <?php endforeach ?>
@@ -467,11 +467,11 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-at me-1 text-warning" aria-hidden="true"></i>
-    Emails alt. mal formatés
+    <?= $GLOBAL['malformedAltEmails'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($emailAltInvalid) ?></span>
   </summary>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
-    <thead><tr><th>Membre</th><th>Email alt.</th><th></th></tr></thead>
+    <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['emailAlt'] ?></th><th></th></tr></thead>
     <tbody>
     <?php foreach ($emailAltInvalid as $r): ?>
       <tr>
@@ -479,7 +479,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><code class="text-warning"><?= htmlentities($r->email_alt, ENT_COMPAT, $charset) ?></code></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
     <?php endforeach ?>
@@ -492,12 +492,12 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-venus-mars me-1 text-warning" aria-hidden="true"></i>
-    Genre hors valeurs autorisées
+    <?= $GLOBAL['invalidGenderTitle'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($sexeInvalid) ?></span>
   </summary>
-  <p class="small text-muted mt-2 mb-1">Valeurs attendues : <code>na</code>, <code>hf</code>, <code>f</code>, <code>m</code>.</p>
+  <p class="small text-muted mt-2 mb-1"><?= $GLOBAL['expectedGenderValues'] ?></p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
-    <thead><tr><th>Membre</th><th>Valeur</th><th></th></tr></thead>
+    <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['valueLabel'] ?></th><th></th></tr></thead>
     <tbody>
     <?php foreach ($sexeInvalid as $r): ?>
       <tr>
@@ -505,7 +505,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><code class="text-warning"><?= htmlentities($r->sexe, ENT_COMPAT, $charset) ?></code></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
     <?php endforeach ?>
@@ -518,11 +518,11 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <details class="ca-integrity-section mb-3" open>
   <summary class="ca-integrity-summary">
     <i class="fas fa-cake-candles me-1 text-warning" aria-hidden="true"></i>
-    Date de naissance dans le futur
+    <?= $GLOBAL['birthdayInFuture'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($birthdayFuture) ?></span>
   </summary>
   <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
-    <thead><tr><th>Membre</th><th>Date de naissance</th><th></th></tr></thead>
+    <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['birthDateLabel'] ?></th><th></th></tr></thead>
     <tbody>
     <?php foreach ($birthdayFuture as $r): ?>
       <tr>
@@ -530,7 +530,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><code class="text-warning"><?= date('d.m.Y', (int)$r->birthday) ?></code></td>
         <td class="text-end">
           <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
-             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem">Éditer</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
     <?php endforeach ?>

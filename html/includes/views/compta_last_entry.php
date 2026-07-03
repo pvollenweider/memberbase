@@ -50,7 +50,7 @@ if (isset($_REQUEST['addMem'])) {
     $addMem = $_REQUEST['addMem'];
 }
 if ($addMem != -1) {
-    ?>Add membership <?=$addMem?><?php
+    ?><?= $GLOBAL['addMembershipEntry'] ?> <?=$addMem?><?php
 }
 ?>
 
@@ -74,7 +74,7 @@ if ($addMem != -1) {
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <?php if ($activeTypeCt): ?>
         <?= _lec_type_swatch($activeTypeCt->color ?? '', $activeTypeCt->label, $charset) ?>
-      <?php else: ?>Tous les types<?php endif ?>
+      <?php else: ?><?= $GLOBAL['allTypesFull'] ?><?php endif ?>
     </button>
     <ul class="dropdown-menu">
       <li><a class="dropdown-item<?= $filterTypeId === 0 ? ' active' : '' ?>"
@@ -92,8 +92,8 @@ if ($addMem != -1) {
   <?php
   $_yearLabel = match(true) {
       $year === -2 => $GLOBAL['allYear'],
-      $year === -3 => '12 derniers mois',
-      $year === -4 => '24 derniers mois',
+      $year === -3 => $GLOBAL['last12Months'],
+      $year === -4 => $GLOBAL['last24Months'],
       default      => $year,
   };
   ?>
@@ -106,9 +106,9 @@ if ($addMem != -1) {
              href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
       <li><a class="dropdown-item<?= $year === -3 ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-3">12 derniers mois</a></li>
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-3"><?= $GLOBAL['last12Months'] ?></a></li>
       <li><a class="dropdown-item<?= $year === -4 ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-4">24 derniers mois</a></li>
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-4"><?= $GLOBAL['last24Months'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
       <?php
       $currentYear = date("Y");
@@ -262,7 +262,7 @@ while ($row = $stmt->fetchObject()) {
 
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-$_frM = ['','Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+$_frM = $GLOBAL['monthsShortCap'];
 $_monthly  = [];
 $_typeAggL = [];
 $_ctBgL = [
@@ -307,7 +307,7 @@ while ($_r = $_stmt2->fetchObject()) {
     if (!isset($_monthly[$_mk])) $_monthly[$_mk] = ['label' => $_lbl, 'sum' => 0.0];
     $_monthly[$_mk]['sum'] += (float)$_r->sum;
     // Donut
-    $_tl  = $_r->ct_label ?? 'Sans type';
+    $_tl  = $_r->ct_label ?? $GLOBAL['withoutType'];
     $_tc  = $_r->ct_color ?? 'bg-secondary-subtle';
     if (!isset($_typeAggL[$_tl])) $_typeAggL[$_tl] = ['sum' => 0.0, 'color' => $_tc];
     $_typeAggL[$_tl]['sum'] += (float)$_r->sum;
@@ -330,7 +330,7 @@ $_showTimeline = count($_monthly) >= 2;
 
   <?php if (count($_typeAggL) > 0): ?>
   <div class="col-md-4">
-    <p class="text-muted small fw-semibold mb-2 text-center">Répartition par type</p>
+    <p class="text-muted small fw-semibold mb-2 text-center"><?= $GLOBAL['distByType'] ?></p>
     <div style="position:relative;height:300px">
       <canvas id="lecDonut"></canvas>
     </div>
@@ -340,7 +340,7 @@ $_showTimeline = count($_monthly) >= 2;
   <?php if ($_showTimeline): ?>
   <div class="col-md-<?= count($_typeAggL) > 0 ? '8' : '12' ?>">
     <p class="text-muted small fw-semibold mb-2 text-center">
-      <?= $year == -2 ? 'Historique par année' : 'Mensuel vs cumulé' ?>
+      <?= $year == -2 ? $GLOBAL['historyByYear'] : $GLOBAL['monthlyVsCumulative'] ?>
     </p>
     <div style="position:relative;height:300px">
       <canvas id="lecTimeline"></canvas>
@@ -390,8 +390,8 @@ $_showTimeline = count($_monthly) >= 2;
         data: {
             labels: <?= json_encode($_labels) ?>,
             datasets: [
-                { type: 'bar',  label: '<?= $year == -2 ? 'Annuel' : 'Mensuel' ?>', data: <?= json_encode($_monthly_data) ?>, backgroundColor: 'rgba(13,110,253,0.55)', borderColor: 'rgba(13,110,253,1)', borderWidth: 1, yAxisID: 'y1' },
-                { type: 'line', label: 'Cumulé', data: <?= json_encode($_cumul_data) ?>, borderColor: 'rgba(25,135,84,0.9)', backgroundColor: 'rgba(25,135,84,0.08)', borderWidth: 2, pointRadius: 3, fill: true, yAxisID: 'y2' }
+                { type: 'bar',  label: '<?= $year == -2 ? $GLOBAL['annual'] : $GLOBAL['monthly'] ?>', data: <?= json_encode($_monthly_data) ?>, backgroundColor: 'rgba(13,110,253,0.55)', borderColor: 'rgba(13,110,253,1)', borderWidth: 1, yAxisID: 'y1' },
+                { type: 'line', label: '<?= $GLOBAL['cumulative'] ?>', data: <?= json_encode($_cumul_data) ?>, borderColor: 'rgba(25,135,84,0.9)', backgroundColor: 'rgba(25,135,84,0.08)', borderWidth: 2, pointRadius: 3, fill: true, yAxisID: 'y2' }
             ]
         },
         options: {

@@ -7,20 +7,20 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 $colorOptions = [
-    'bg-primary-subtle'   => 'Bleu',
-    'bg-secondary-subtle' => 'Gris',
-    'bg-success-subtle'   => 'Vert',
-    'bg-danger-subtle'    => 'Rouge',
-    'bg-warning-subtle'   => 'Jaune',
-    'bg-info-subtle'      => 'Cyan',
-    'bg-light'            => 'Blanc',
-    'bg-dark-subtle'      => 'Sombre',
-    'ca-orange-subtle'    => 'Orange',
-    'ca-teal-subtle'      => 'Sarcelle',
-    'ca-pink-subtle'      => 'Rose',
-    'ca-purple-subtle'    => 'Violet',
-    'ca-indigo-subtle'    => 'Indigo',
-    'ca-lime-subtle'      => 'Lime',
+    'bg-primary-subtle'   => $GLOBAL['colorBlue'],
+    'bg-secondary-subtle' => $GLOBAL['colorGrey'],
+    'bg-success-subtle'   => $GLOBAL['colorGreen'],
+    'bg-danger-subtle'    => $GLOBAL['colorRed'],
+    'bg-warning-subtle'   => $GLOBAL['colorYellow'],
+    'bg-info-subtle'      => $GLOBAL['colorCyan'],
+    'bg-light'            => $GLOBAL['colorWhite'],
+    'bg-dark-subtle'      => $GLOBAL['colorDark'],
+    'ca-orange-subtle'    => $GLOBAL['colorOrange'],
+    'ca-teal-subtle'      => $GLOBAL['colorTeal'],
+    'ca-pink-subtle'      => $GLOBAL['colorPink'],
+    'ca-purple-subtle'    => $GLOBAL['colorPurple'],
+    'ca-indigo-subtle'    => $GLOBAL['colorIndigo'],
+    'ca-lime-subtle'      => $GLOBAL['colorLime'],
 ];
 
 $types = $pdo->query("
@@ -61,10 +61,10 @@ $types = $pdo->query("
 <?php endif ?>
 
     <div class="d-flex align-items-baseline justify-content-between mb-3">
-      <p class="form-section-title mb-0" style="margin-top:0">Types de compta</p>
+      <p class="form-section-title mb-0" style="margin-top:0"><?= $GLOBAL['comptaTypesTitle'] ?></p>
       <?php if (!$ctEmbedded): ?>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings" class="text-muted small text-decoration-none">
-        <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Réglages
+        <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['settings'] ?>
       </a>
       <?php endif ?>
     </div>
@@ -72,17 +72,17 @@ $types = $pdo->query("
     <!-- Add form -->
     <div class="card mb-4">
       <div class="card-body py-3">
-        <p class="fw-semibold mb-2" style="font-size:0.85rem">Nouveau type</p>
+        <p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['newComptaType'] ?></p>
         <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
           <input type="hidden" name="action" value="addComptaType">
           <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
           <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
           <div>
-            <label class="form-label form-label-sm mb-1" style="font-size:0.8rem">Label</label>
+            <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['labelField'] ?></label>
             <input type="text" name="label" class="form-control form-control-sm" style="width:200px" required>
           </div>
           <div>
-            <label class="form-label form-label-sm mb-1" style="font-size:0.8rem">Couleur</label>
+            <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['color'] ?></label>
             <div class="d-flex gap-1 flex-wrap">
               <?php foreach ($colorOptions as $cls => $name): ?>
               <label title="<?= htmlentities($name, ENT_COMPAT, $charset) ?>">
@@ -103,12 +103,12 @@ $types = $pdo->query("
       <thead>
         <tr>
           <th style="width:24px"></th>
-          <th>Label</th>
-          <th style="width:80px">Couleur</th>
-          <th style="width:80px" class="text-end">Entrées</th>
-          <th style="width:60px" class="text-center" title="Compte comme cotisation">Coti</th>
-          <th style="width:60px" class="text-center" title="Exclu des dons">Excl. don</th>
-          <th style="width:60px" class="text-center" title="Versement institutionnel">Instit.</th>
+          <th><?= $GLOBAL['labelField'] ?></th>
+          <th style="width:80px"><?= $GLOBAL['color'] ?></th>
+          <th style="width:80px" class="text-end"><?= $GLOBAL['entriesColumn'] ?></th>
+          <th style="width:60px" class="text-center" title="<?= $GLOBAL['cotiTooltip'] ?>"><?= $GLOBAL['cotiShort'] ?></th>
+          <th style="width:60px" class="text-center" title="<?= $GLOBAL['exclDonTooltip'] ?>"><?= $GLOBAL['exclDonShort'] ?></th>
+          <th style="width:60px" class="text-center" title="<?= $GLOBAL['institTooltip'] ?>"><?= $GLOBAL['institShort'] ?></th>
           <th style="width:130px"></th>
         </tr>
       </thead>
@@ -137,7 +137,7 @@ $types = $pdo->query("
               <input type="hidden" name="is_institutional" value="<?= $ct->is_institutional ?>">
               <input type="hidden" name="is_cotisation" value="<?= $ct->is_cotisation ? 0 : 1 ?>">
               <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent"
-                      title="<?= $ct->is_cotisation ? 'Oui — cliquer pour désactiver' : 'Non — cliquer pour activer' ?>">
+                      title="<?= $ct->is_cotisation ? $GLOBAL['yesClickToDisable'] : $GLOBAL['noClickToEnable'] ?>">
                 <i class="fas <?= $ct->is_cotisation ? 'fa-check-circle text-success' : 'fa-circle text-muted' ?>"></i>
               </button>
             </form>
@@ -155,7 +155,7 @@ $types = $pdo->query("
               <input type="hidden" name="is_excluded_from_donation" value="<?= $ct->is_excluded_from_donation ? 0 : 1 ?>">
               <input type="hidden" name="is_institutional" value="<?= $ct->is_institutional ?>">
               <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent"
-                      title="<?= $ct->is_excluded_from_donation ? 'Oui — cliquer pour désactiver' : 'Non — cliquer pour activer' ?>">
+                      title="<?= $ct->is_excluded_from_donation ? $GLOBAL['yesClickToDisable'] : $GLOBAL['noClickToEnable'] ?>">
                 <i class="fas <?= $ct->is_excluded_from_donation ? 'fa-check-circle text-warning' : 'fa-circle text-muted' ?>"></i>
               </button>
             </form>
@@ -173,7 +173,7 @@ $types = $pdo->query("
               <input type="hidden" name="is_excluded_from_donation" value="<?= $ct->is_excluded_from_donation ?>">
               <input type="hidden" name="is_institutional" value="<?= $ct->is_institutional ? 0 : 1 ?>">
               <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent"
-                      title="<?= $ct->is_institutional ? 'Oui — cliquer pour désactiver' : 'Non — cliquer pour activer' ?>">
+                      title="<?= $ct->is_institutional ? $GLOBAL['yesClickToDisable'] : $GLOBAL['noClickToEnable'] ?>">
                 <i class="fas <?= $ct->is_institutional ? 'fa-check-circle text-info' : 'fa-circle text-muted' ?>"></i>
               </button>
             </form>
@@ -184,7 +184,7 @@ $types = $pdo->query("
             <?php if ($ct->cnt == 0): ?>
             <button type="button" class="btn btn-outline-danger btn-sm py-0"
                     data-bs-toggle="modal" data-bs-target="#modal-delete-compta-type"
-                    data-href="<?= htmlspecialchars($_SERVER['PHP_SELF'] . '?action=deleteComptaType&id=' . $ct->id . '&returnView=' . urlencode($ctReturnView) . '&returnTab=' . urlencode($ctReturnTab), ENT_QUOTES, $charset) ?>">Suppr.</button>
+                    data-href="<?= htmlspecialchars($_SERVER['PHP_SELF'] . '?action=deleteComptaType&id=' . $ct->id . '&returnView=' . urlencode($ctReturnView) . '&returnTab=' . urlencode($ctReturnTab), ENT_QUOTES, $charset) ?>"><?= $GLOBAL['deleteShort'] ?></button>
             <?php endif ?>
           </td>
         </tr>
@@ -196,12 +196,12 @@ $types = $pdo->query("
           <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="id" value="<?= $ct->id ?>">
               <div>
-                <label class="form-label form-label-sm mb-1" style="font-size:0.8rem">Label</label>
+                <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['labelField'] ?></label>
                 <input type="text" name="label" value="<?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>"
                        class="form-control form-control-sm" style="width:200px" required>
               </div>
               <div>
-                <label class="form-label form-label-sm mb-1" style="font-size:0.8rem">Couleur</label>
+                <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['color'] ?></label>
                 <div class="d-flex gap-1 flex-wrap">
                   <?php foreach ($colorOptions as $cls => $name): ?>
                   <label title="<?= htmlentities($name, ENT_COMPAT, $charset) ?>">
@@ -213,7 +213,7 @@ $types = $pdo->query("
                 </div>
               </div>
               <div>
-                <label class="form-label form-label-sm mb-1" style="font-size:0.8rem">Ordre</label>
+                <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['orderLabel'] ?></label>
                 <input type="number" name="sort_order" value="<?= $ct->sort_order ?>"
                        class="form-control form-control-sm" style="width:70px" min="0">
               </div>
@@ -297,10 +297,10 @@ function toggleEdit(id) {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-delete-compta-type-label">Supprimer ce type</h5>
+        <h5 class="modal-title" id="modal-delete-compta-type-label"><?= $GLOBAL['deleteComptaTypeTitle'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
-      <div class="modal-body">Supprimer ce type de cotisation? Cette action est irréversible.</div>
+      <div class="modal-body"><?= $GLOBAL['deleteComptaTypeConfirm'] ?></div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <a id="modal-delete-compta-type-link" href="#" class="btn btn-danger"><?= $GLOBAL['delete'] ?></a>

@@ -70,6 +70,8 @@ try {
 }
 
 // --- Shared runner logic (also used by the web admin) ---
+// Locale is needed because migrations.php resolves its user-visible strings via $GLOBAL.
+require_once __DIR__ . '/../locales/resources_fr.php';
 require_once __DIR__ . '/../includes/lib/migrations.php';
 
 mbEnsureMigrationsTable($pdo);

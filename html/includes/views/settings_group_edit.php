@@ -99,7 +99,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 <?php if (isset($_REQUEST['imported'])): ?>
 <div class="alert alert-success d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.82rem" role="status">
   <i class="fas fa-check-circle mt-1 flex-shrink-0" aria-hidden="true"></i>
-  <?= $_REQUEST['imported'] === 'cotisants' ? 'Cotisants importés dans le segment.' : 'Donateurs importés dans le segment.' ?>
+  <?= $_REQUEST['imported'] === 'cotisants' ? $GLOBAL['cotisantsImported'] : $GLOBAL['donorsImported'] ?>
 </div>
 <?php endif ?>
 <div class="row justify-content-center mt-4">
@@ -110,7 +110,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
       <div class="d-flex align-items-baseline justify-content-between mb-1">
         <p class="form-section-title mb-0"><?= $GLOBAL['editGroup'] ?></p>
         <a href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= (int)$id ?>" class="small">
-          Voir la liste <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
+          <?= $GLOBAL['viewList'] ?> <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
         </a>
       </div>
       <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
@@ -120,7 +120,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <input type="hidden" name="tab"  value="groups"/>
 
         <div class="row mb-2 align-items-center">
-          <label for="name" class="col-sm-3 col-form-label col-form-label-sm text-sm-end">Nom</label>
+          <label for="name" class="col-sm-3 col-form-label col-form-label-sm text-sm-end"><?= $GLOBAL['name'] ?></label>
           <div class="col-sm-9">
             <input type="text" class="form-control form-control-sm" id="name" name="name"
                    value="<?=htmlentities($team->getName(),ENT_COMPAT,$charset)?>" maxlength="255" required/>
@@ -132,7 +132,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="hidden" name="hidden" value="1"<?= $team->getHidden() ? ' checked' : '' ?>>
               <label class="form-check-label small" for="hidden">
-                <i class="fas fa-eye-slash me-1 text-muted" aria-hidden="true"></i>Masquer dans les interfaces
+                <i class="fas fa-eye-slash me-1 text-muted" aria-hidden="true"></i><?= $GLOBAL['hideInInterfaces'] ?>
               </label>
             </div>
           </div>
@@ -140,10 +140,10 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
         <?php if (count($allCats) > 0): ?>
         <div class="row mb-3 align-items-center">
-          <label for="team_category" class="col-sm-3 col-form-label col-form-label-sm text-sm-end">Catégorie</label>
+          <label for="team_category" class="col-sm-3 col-form-label col-form-label-sm text-sm-end"><?= $GLOBAL['category'] ?></label>
           <div class="col-sm-9">
             <select class="form-select form-select-sm" id="team_category" name="categoryId">
-              <option value="0"<?= $currentCatId === 0 ? ' selected' : '' ?>>— sans catégorie —</option>
+              <option value="0"<?= $currentCatId === 0 ? ' selected' : '' ?>><?= $GLOBAL['noCategoryOptionLower'] ?></option>
               <?php foreach ($allCats as $cat): ?>
               <option value="<?= (int)$cat->id ?>"<?= $currentCatId === (int)$cat->id ? ' selected' : '' ?>>
                 <?= htmlentities($cat->name, ENT_COMPAT, $charset) ?>
@@ -170,7 +170,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <details style="font-size:0.8rem">
           <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem">
             <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
-            Importer des membres d'autres segments
+            <?= $GLOBAL['importMembersFromOtherTeams'] ?>
           </summary>
           <script>
             document.currentScript.closest('details').addEventListener('toggle', function() {
@@ -182,8 +182,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <div class="alert alert-warning d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.78rem;border-radius:6px" role="note">
               <i class="fas fa-copy mt-1 flex-shrink-0" aria-hidden="true"></i>
               <div>
-                <strong>Copie ponctuelle</strong> — l'import copie les membres tels qu'ils sont <em>maintenant</em>. Si le segment source change plus tard, ce segment n'est pas mis à jour.<br>
-                <span class="text-muted">Pour un filtre dynamique, utilise plutôt un segment combiné dans <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=filters">Segments combinés</a>.</span>
+                <?= $GLOBAL['oneTimeCopyImportWarning'] ?><br>
+                <span class="text-muted"><?= sprintf($GLOBAL['dynamicFilterHint'], '<a href="' . $_SERVER['PHP_SELF'] . '?view=settings&amp;tab=filters">' . $GLOBAL['combinedSegments'] . '</a>') ?></span>
               </div>
             </div>
             <div class="d-flex flex-column gap-1 mb-3">
@@ -203,7 +203,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <?php endforeach ?>
             </div>
             <button type="submit" class="btn btn-sm btn-outline-primary">
-              <i class="fas fa-file-import me-1" aria-hidden="true"></i>Importer
+              <i class="fas fa-file-import me-1" aria-hidden="true"></i><?= $GLOBAL['import'] ?>
             </button>
           </div>
         </details>
@@ -219,7 +219,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <details style="font-size:0.8rem">
           <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem">
             <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
-            Importer les cotisants d'une année
+            <?= $GLOBAL['importCotisantsOfYear'] ?>
           </summary>
           <script>
             document.currentScript.closest('details').addEventListener('toggle', function() {
@@ -231,17 +231,17 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <div class="alert alert-warning d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.78rem;border-radius:6px" role="note">
               <i class="fas fa-copy mt-1 flex-shrink-0" aria-hidden="true"></i>
               <div>
-                <strong>Copie ponctuelle</strong> — membres déjà dans ce segment non touchés. Seuls les cotisants absents sont ajoutés.
+                <?= $GLOBAL['oneTimeCopyCotisWarning'] ?>
                 <?php if (!empty($cotisTypeIds)): ?>
-                Types pris en compte: <?= implode(', ', array_map(fn($tid) => '<strong>' . htmlentities($comptaTypes[$tid]->label, ENT_COMPAT, $charset) . '</strong>', $cotisTypeIds)) ?>.
+                <?= sprintf($GLOBAL['typesTakenIntoAccount'], implode(', ', array_map(fn($tid) => '<strong>' . htmlentities($comptaTypes[$tid]->label, ENT_COMPAT, $charset) . '</strong>', $cotisTypeIds))) ?>
                 <?php else: ?>
-                <span class="text-danger"><strong>Aucun type marqué «cotisation» — configure-les dans <a href="<?= $_SERVER['PHP_SELF'] ?>?view=manageComptaTypes">Types compta</a>.</strong></span>
+                <span class="text-danger"><strong><?= sprintf($GLOBAL['noCotisationTypeWarning'], '<a href="' . $_SERVER['PHP_SELF'] . '?view=manageComptaTypes">' . $GLOBAL['comptaTypes'] . '</a>') ?></strong></span>
                 <?php endif ?>
               </div>
             </div>
             <div class="row g-2 align-items-end mb-3">
               <div class="col-auto">
-                <label for="cotis_year" class="form-label form-label-sm mb-1">Année</label>
+                <label for="cotis_year" class="form-label form-label-sm mb-1"><?= $GLOBAL['year'] ?></label>
                 <select class="form-select form-select-sm" id="cotis_year" name="cotis_year" style="width:auto">
                   <?php for ($yi = 0; $yi < 10; $yi++): $dy = $currentYear - $yi;
                     $cnt = $importCountsPerYear[$dy]['cotis'] ?? 0; ?>
@@ -251,7 +251,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               </div>
             </div>
             <button type="submit" class="btn btn-sm btn-outline-primary">
-              <i class="fas fa-file-import me-1" aria-hidden="true"></i>Importer les cotisants
+              <i class="fas fa-file-import me-1" aria-hidden="true"></i><?= $GLOBAL['importCotisantsBtn'] ?>
             </button>
           </div>
         </details>
@@ -266,7 +266,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <details style="font-size:0.8rem">
           <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem">
             <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
-            Importer les donateurs d'une année
+            <?= $GLOBAL['importDonorsOfYear'] ?>
           </summary>
           <script>
             document.currentScript.closest('details').addEventListener('toggle', function() {
@@ -278,21 +278,21 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <div class="alert alert-warning d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.78rem;border-radius:6px" role="note">
               <i class="fas fa-copy mt-1 flex-shrink-0" aria-hidden="true"></i>
               <div>
-                <strong>Copie ponctuelle</strong> — les membres déjà dans ce segment ne sont pas touchés. Seuls les donateurs absents sont ajoutés.
+                <?= $GLOBAL['oneTimeCopyDonorsWarning'] ?>
               </div>
             </div>
             <div class="row g-2 align-items-end mb-3">
               <div class="col-auto">
-                <label for="donor_type" class="form-label form-label-sm mb-1">Type</label>
+                <label for="donor_type" class="form-label form-label-sm mb-1"><?= $GLOBAL['type'] ?></label>
                 <select class="form-select form-select-sm" id="donor_type" name="donor_type" style="width:auto"
                         data-no-dirty onchange="caUpdateDonorCounts(this.closest('form'))">
-                  <option value="all">Tous les donateurs</option>
-                  <option value="non_institutional">Non-institutionnels</option>
-                  <option value="institutional">Institutionnels</option>
+                  <option value="all"><?= $GLOBAL['allDonors'] ?></option>
+                  <option value="non_institutional"><?= $GLOBAL['nonInstitutionals'] ?></option>
+                  <option value="institutional"><?= $GLOBAL['institutionals'] ?></option>
                 </select>
               </div>
               <div class="col-auto">
-                <label for="donor_year" class="form-label form-label-sm mb-1">Année</label>
+                <label for="donor_year" class="form-label form-label-sm mb-1"><?= $GLOBAL['year'] ?></label>
                 <select class="form-select form-select-sm" id="donor_year" name="donor_year" style="width:auto"
                         data-no-dirty onchange="caUpdateDonorCounts(this.closest('form'))">
                   <?php for ($yi = 0; $yi < 10; $yi++): $dy = $currentYear - $yi; ?>
@@ -306,7 +306,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
                 </select>
               </div>
               <div class="col-auto">
-                <label for="donor_minsum" class="form-label form-label-sm mb-1">Min CHF</label>
+                <label for="donor_minsum" class="form-label form-label-sm mb-1"><?= $GLOBAL['minChf'] ?></label>
                 <select class="form-select form-select-sm" id="donor_minsum" name="donor_minsum" style="width:auto">
                   <?php foreach ([1, 100, 200, 500, 1000] as $_ms): ?>
                   <option value="<?= $_ms ?>"><?= $_ms ?></option>
@@ -328,7 +328,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               if (typeEl.value === 'institutional')     cnt = parseInt(opt.dataset.cntInst    || 0);
               else if (typeEl.value === 'non_institutional') cnt = parseInt(opt.dataset.cntNonInst || 0);
               else                                       cnt = parseInt(opt.dataset.cntAll     || 0);
-              badge.textContent = cnt > 0 ? '+' + cnt + ' à importer' : '0 à importer';
+              badge.textContent = cnt > 0 ? <?= json_encode($GLOBAL['toImportCount']) ?>.replace('%d', cnt) : <?= json_encode($GLOBAL['zeroToImport']) ?>;
             }
             document.addEventListener('DOMContentLoaded', function() {
               document.querySelectorAll('form [name="donor_type"]').forEach(function(el) {
@@ -337,7 +337,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             });
             </script>
             <button type="submit" class="btn btn-sm btn-outline-primary">
-              <i class="fas fa-file-import me-1" aria-hidden="true"></i>Importer les donateurs
+              <i class="fas fa-file-import me-1" aria-hidden="true"></i><?= $GLOBAL['importDonorsBtn'] ?>
             </button>
           </div>
         </details>
@@ -349,7 +349,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
       <details>
         <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem;font-size:0.8rem">
           <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
-          Réaffecter ou dissoudre…
+          <?= $GLOBAL['reassignOrDissolve'] ?>
           <?php if ($memberCount > 0): ?>
           <span class="badge rounded-pill" style="font-size:0.6rem;font-weight:500;background:var(--ca-primary-light);color:var(--ca-primary-dark)"><?= $memberCount ?></span>
           <?php endif ?>
@@ -367,7 +367,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <!-- Member list -->
           <div>
             <p class="small text-muted mb-2">
-              <strong><?= $memberCount ?></strong> membre<?= $memberCount > 1 ? 's' : '' ?> appartiennent à ce segment&nbsp;:
+              <?= sprintf($GLOBAL['membersBelongToSegment'], '<strong>' . $memberCount . '</strong>', $memberCount > 1 ? 's' : '') ?>
             </p>
             <ul class="list-unstyled mb-0" style="font-size:0.8rem;max-height:200px;overflow-y:auto;border:1px solid var(--ca-border);border-radius:4px;padding:0.4rem 0.75rem">
               <?php foreach ($members as $m): ?>
@@ -387,14 +387,14 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <!-- Option A: reassign -->
           <?php if (count($otherTeams) > 0): ?>
           <div class="p-3" style="background:var(--ca-ground);border-radius:6px">
-            <p class="small fw-semibold mb-2">Transférer les membres vers un autre segment</p>
+            <p class="small fw-semibold mb-2"><?= $GLOBAL['transferMembersToOtherSegment'] ?></p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post" class="d-flex align-items-center gap-2 flex-wrap" hx-boost="false">
               <input type="hidden" name="action" value="reassignTeam"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$team->getId()?>"/>
               <select name="targetTeamId" class="form-select form-select-sm" style="width:auto" required>
-                <option value="">— choisir le segment —</option>
+                <option value=""><?= $GLOBAL['chooseSegmentOption'] ?></option>
                 <?php foreach ($otherTeams as $t): ?>
                   <?php $cnt = $teamCounts[(int)$t->id] ?? 0; ?>
                   <option value="<?= $t->id ?>"><?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $cnt > 0 ? " ($cnt)" : '' ?></option>
@@ -402,7 +402,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               </select>
               <button type="button" class="btn btn-sm btn-warning"
                       data-bs-toggle="modal" data-bs-target="#modal-reassign-team">
-                Transférer et dissoudre
+                <?= $GLOBAL['transferAndDissolve'] ?>
               </button>
             </form>
           </div>
@@ -410,8 +410,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
           <!-- Option B: force delete -->
           <div class="p-3" style="background:var(--ca-danger-light);border-radius:6px">
-            <p class="small fw-semibold mb-1" style="color:var(--ca-danger)">Retirer tous les membres et supprimer le segment</p>
-            <p class="small text-muted mb-2">Les <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> seront retirés du segment mais leurs comptes resteront intacts.</p>
+            <p class="small fw-semibold mb-1" style="color:var(--ca-danger)"><?= $GLOBAL['removeAllMembersAndDelete'] ?></p>
+            <p class="small text-muted mb-2"><?= sprintf($GLOBAL['membersWillBeRemoved'], $memberCount, $memberCount > 1 ? 's' : '') ?></p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post" hx-boost="false">
               <input type="hidden" name="action" value="deleteTeamForce"/>
               <input type="hidden" name="view" value="settings"/>
@@ -419,7 +419,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <input type="hidden" name="id" value="<?=$team->getId()?>"/>
               <button type="button" class="btn btn-sm btn-danger"
                       data-bs-toggle="modal" data-bs-target="#modal-delete-team-members">
-                <i class="fas fa-trash me-1" aria-hidden="true"></i>Retirer les membres et supprimer
+                <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['removeMembersAndDelete'] ?>
               </button>
             </form>
           </div>
@@ -427,7 +427,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <?php else: ?>
           <!-- No members — simple delete -->
           <div>
-            <p class="small text-muted mb-2">Ce segment n'a aucun membre.</p>
+            <p class="small text-muted mb-2"><?= $GLOBAL['segmentHasNoMembers'] ?></p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post" hx-boost="false">
               <input type="hidden" name="action" value="deleteTeamForce"/>
               <input type="hidden" name="view" value="settings"/>
@@ -453,18 +453,17 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-reassign-team-label">Transférer et dissoudre</h5>
+        <h5 class="modal-title" id="modal-reassign-team-label"><?= $GLOBAL['transferAndDissolve'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Réaffecter <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> et supprimer le segment
-        «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>» ?
+        <?= sprintf($GLOBAL['reassignAndDeleteConfirm'], $memberCount, $memberCount > 1 ? 's' : '', htmlentities($team->getName(), ENT_QUOTES, $charset)) ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <button type="button" class="btn btn-warning"
                 onclick="document.querySelector('form [name=action][value=reassignTeam]').closest('form').submit()">
-          Transférer et dissoudre
+          <?= $GLOBAL['transferAndDissolve'] ?>
         </button>
       </div>
     </div>
@@ -479,14 +478,13 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Supprimer le segment «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>»
-        et retirer ses <?= $memberCount ?> membre<?= $memberCount > 1 ? 's' : '' ?> ?
+        <?= sprintf($GLOBAL['deleteSegmentAndRemoveMembersConfirm'], htmlentities($team->getName(), ENT_QUOTES, $charset), $memberCount, $memberCount > 1 ? 's' : '') ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <button type="button" class="btn btn-danger"
                 onclick="document.querySelector('form [name=action][value=deleteTeamForce]').closest('form').submit()">
-          <i class="fas fa-trash me-1" aria-hidden="true"></i>Retirer les membres et supprimer
+          <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['removeMembersAndDelete'] ?>
         </button>
       </div>
     </div>
@@ -501,7 +499,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Supprimer le segment «<?= htmlentities($team->getName(), ENT_QUOTES, $charset) ?>» ?
+        <?= sprintf($GLOBAL['deleteSegmentConfirm'], htmlentities($team->getName(), ENT_QUOTES, $charset)) ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>

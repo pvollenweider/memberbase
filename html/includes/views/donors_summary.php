@@ -16,11 +16,11 @@ if ($year === -1) { $year = (int)date("Y"); }
 $type = "allTypes";
 
 $membreTeamId = (int)($appSettings['default_team'] ?? 0);
-$membreTeamLabel = 'Actif?';
+$membreTeamLabel = $GLOBAL['activeQuestion'];
 if ($membreTeamId > 0) {
     $r = $pdo->prepare("SELECT name FROM team WHERE id = ?");
     $r->execute([$membreTeamId]);
-    $membreTeamLabel = $r->fetchColumn() ?: 'Actif?';
+    $membreTeamLabel = $r->fetchColumn() ?: $GLOBAL['activeQuestion'];
 }
 ?>
 <?php
@@ -34,7 +34,7 @@ $_yearLabel = match(true) {
 if ($showAll) {
     $_amountLabel = '<i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>' . $GLOBAL['allEntries'];
 } else {
-    $_amountLabel = 'Min. ' . number_format($minSum, 0, '.', '\'') . ' CHF';
+    $_amountLabel = sprintf($GLOBAL['minAmountChf'], number_format($minSum, 0, '.', '\''));
 }
 if ($year != -2) {
     if ($year === -3) {
@@ -139,18 +139,18 @@ if ($year != -2) {
     <?php
       $_kYtdChf  = $_kTotal - $_kTotalYtd1;
       $_kGap     = $_kTotal1 - $_kTotal;  // positive = still below full 2025, negative = already above
-      $_moisNoms = ['','jan','fév','mar','avr','mai','juin','juil','aoû','sep','oct','nov','déc'];
+      $_moisNoms = $GLOBAL['monthsShort'];
       $_mois = $_moisNoms[(int)date('m')];
     ?>
     <div style="font-size:0.78rem;margin-top:0.3rem;opacity:0.85">
       <?php if ($_kYtdChf >= 0): ?>
         <i class="fas fa-arrow-up me-1" aria-hidden="true"></i>+<?= number_format($_kYtdChf, 0, '.', '\'') ?> CHF
         <span style="opacity:0.75">(+<?= number_format($_kYtd, 1) ?>%)</span>
-        vs jan–<?= $_mois ?> <?= $year-1 ?>
+        <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $year-1) ?>
       <?php else: ?>
         <i class="fas fa-arrow-down me-1" aria-hidden="true"></i><?= number_format($_kYtdChf, 0, '.', '\'') ?> CHF
         <span style="opacity:0.75">(<?= number_format($_kYtd, 1) ?>%)</span>
-        vs jan–<?= $_mois ?> <?= $year-1 ?>
+        <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $year-1) ?>
       <?php endif ?>
     </div>
     <?php if ($_kTotal1 > 0): ?>
@@ -160,9 +160,9 @@ if ($year != -2) {
         $_kOverPct     = round(abs($_kGap) / $_kTotal1 * 100);
       ?>
       <?php if ($_kGap > 0): ?>
-        <i class="fas fa-flag-checkered me-1" aria-hidden="true"></i>Il manque <?= number_format($_kGap, 0, '.', '\'') ?> CHF pour atteindre <?= $year-1 ?> (<?= number_format($_kTotal1, 0, '.', '\'') ?>) — <?= $_kProgressPct ?>% atteint
+        <i class="fas fa-flag-checkered me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['gapToTarget'], number_format($_kGap, 0, '.', '\''), $year-1, number_format($_kTotal1, 0, '.', '\''), $_kProgressPct) ?>
       <?php else: ?>
-        <i class="fas fa-trophy me-1" aria-hidden="true"></i>Total <?= $year-1 ?> (<?= number_format($_kTotal1, 0, '.', '\'') ?>) dépassé de +<?= number_format(abs($_kGap), 0, '.', '\'') ?> CHF (+<?= $_kOverPct ?>%)
+        <i class="fas fa-trophy me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['targetExceeded'], $year-1, number_format($_kTotal1, 0, '.', '\''), number_format(abs($_kGap), 0, '.', '\''), $_kOverPct) ?>
       <?php endif ?>
     </div>
     <?php endif ?>
@@ -199,11 +199,11 @@ if ($year != -2) {
     ?>
     <div style="font-size:0.78rem;margin-top:0.3rem;color:var(--ca-ink-muted)">
       <?php if ($_kDonYtdDelta !== null && $_kDonYtdDelta >= 0): ?>
-        <i class="fas fa-arrow-up me-1" aria-hidden="true" style="color:var(--bs-success)"></i>+<?= number_format($_kDonYtdDelta, 1) ?>% vs jan–<?= $_mois ?> <?= $year-1 ?> (<?= $_kDonateursYtd1 ?>)
+        <i class="fas fa-arrow-up me-1" aria-hidden="true" style="color:var(--bs-success)"></i>+<?= number_format($_kDonYtdDelta, 1) ?>% <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $year-1) ?> (<?= $_kDonateursYtd1 ?>)
       <?php elseif ($_kDonYtdDelta !== null): ?>
-        <i class="fas fa-arrow-down me-1" aria-hidden="true" style="color:var(--bs-danger)"></i><?= number_format($_kDonYtdDelta, 1) ?>% vs jan–<?= $_mois ?> <?= $year-1 ?> (<?= $_kDonateursYtd1 ?>)
+        <i class="fas fa-arrow-down me-1" aria-hidden="true" style="color:var(--bs-danger)"></i><?= number_format($_kDonYtdDelta, 1) ?>% <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $year-1) ?> (<?= $_kDonateursYtd1 ?>)
       <?php else: ?>
-        <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i>Même période <?= $year-1 ?>&nbsp;: <?= $_kDonateursYtd1 ?>
+        <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['samePeriodCount'], $year-1, $_kDonateursYtd1) ?>
       <?php endif ?>
     </div>
     <?php elseif ($_kDonDelta !== null): ?>
@@ -217,24 +217,24 @@ if ($year != -2) {
     <?php endif ?>
     <div style="font-size:0.75rem;color:var(--ca-ink-muted);margin-top:0.3rem;display:flex;gap:0.6rem;flex-wrap:wrap">
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=loyalDonors&amp;year=<?= $year ?>"
-         title="Ont aussi donné en <?= $year-1 ?>"
+         title="<?= sprintf($GLOBAL['alsoDonatedIn'], $year-1) ?>"
          style="color:inherit;text-decoration:none"
          onclick="event.stopPropagation()">
-        <i class="fas fa-rotate me-1" aria-hidden="true" style="color:var(--bs-success)"></i><?= $_kRecurrents ?> fidèles
+        <i class="fas fa-rotate me-1" aria-hidden="true" style="color:var(--bs-success)"></i><?= sprintf($GLOBAL['loyalShort'], $_kRecurrents) ?>
       </a>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=newDonors&amp;year=<?= $year ?>"
-         title="Première contribution en <?= $year ?>"
+         title="<?= sprintf($GLOBAL['firstContributionIn'], $year) ?>"
          style="color:inherit;text-decoration:none"
          onclick="event.stopPropagation()">
         <i class="fas fa-star me-1" aria-hidden="true" style="color:var(--bs-warning)"></i><?= $_kNouveaux ?> <?= $GLOBAL['newDonors'] ?>
       </a>
       <?php if ($_kLapsed > 0): ?>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedDonors&amp;year=<?= $year ?>"
-         title="Ont donné en <?= $year-1 ?> mais pas en <?= $year ?>"
+         title="<?= sprintf($GLOBAL['donatedButNotIn'], $year-1, $year) ?>"
          style="color:var(--bs-danger);text-decoration:none"
          hx-boost="false"
          onclick="event.stopPropagation()">
-        <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= $_kLapsed ?> perdus
+        <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['lapsedShort'], $_kLapsed) ?>
       </a>
       <?php endif ?>
     </div>
@@ -255,11 +255,11 @@ if ($year != -2) {
     <?php if (!empty($_kMembresLapsed) && $_kMembresLapsed > 0): ?>
     <div style="font-size:0.75rem;margin-top:0.3rem">
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedMembers&amp;year=<?= $year ?>"
-         title="Membres <?= $year-1 ?> non reconduits en <?= $year ?>"
+         title="<?= sprintf($GLOBAL['membersNotRenewed'], $year-1, $year) ?>"
          style="color:var(--bs-danger);text-decoration:none"
          hx-boost="false"
          onclick="event.stopPropagation()">
-        <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= $_kMembresLapsed ?> perdus
+        <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['lapsedShort'], $_kMembresLapsed) ?>
       </a>
     </div>
     <?php endif ?>
@@ -357,14 +357,14 @@ if ($_showPie) {
   <!-- Montant minimum -->
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle<?= $showAll ? ' active' : '' ?>" type="button"
-            data-bs-toggle="dropdown" aria-expanded="false" aria-label="Montant minimum">
+            data-bs-toggle="dropdown" aria-expanded="false" aria-label="<?= $GLOBAL['minAmountLabel'] ?>">
       <?= $_amountLabel ?>
     </button>
     <ul class="dropdown-menu">
       <?php foreach ([1, 100, 200, 500, 1000] as $_ms): ?>
       <li><a class="dropdown-item<?= (!$showAll && $minSum == $_ms) ? ' active' : '' ?>"
              href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>">
-        Min. <?= number_format($_ms, 0, '.', '\'') ?> CHF
+        <?= sprintf($GLOBAL['minAmountChf'], number_format($_ms, 0, '.', '\'')) ?>
       </a></li>
       <?php endforeach ?>
     </ul>
@@ -373,7 +373,7 @@ if ($_showPie) {
   <!-- Année -->
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-            aria-label="Année">
+            aria-label="<?= $GLOBAL['year'] ?>">
       <i class="fas fa-calendar-days me-1" aria-hidden="true"></i><?= htmlspecialchars($_yearLabel, ENT_QUOTES, $charset) ?>
     </button>
     <ul class="dropdown-menu">
@@ -401,7 +401,7 @@ if ($_showPie) {
   <!-- Mode étendu -->
   <label class="ca-filter-btn d-flex align-items-center gap-1<?= $showAll ? ' active' : '' ?>" style="cursor:pointer;user-select:none" id="extended-mode-label">
     <input type="checkbox" id="extendedMode" data-no-dirty <?= $showAll ? 'checked' : '' ?> style="outline:none;box-shadow:none">
-    <i class="fas fa-triangle-exclamation<?= $showAll ? ' text-warning' : '' ?>" aria-hidden="true"></i> Mode étendu
+    <i class="fas fa-triangle-exclamation<?= $showAll ? ' text-warning' : '' ?>" aria-hidden="true"></i> <?= $GLOBAL['extendedMode'] ?>
   </label>
 
   <!-- Séparateur visuel -->
@@ -410,7 +410,7 @@ if ($_showPie) {
   <!-- Attestations demandées -->
   <label class="ca-filter-btn ca-attest-label d-none d-sm-flex align-items-center gap-1" style="cursor:pointer;user-select:none">
     <input type="checkbox" id="includeAttestation" <?= $includeAttestation ? 'checked' : '' ?> style="outline:none;box-shadow:none">
-    <i class="fas fa-file-pdf" aria-hidden="true"></i> Inclure si attestation demandée
+    <i class="fas fa-file-pdf" aria-hidden="true"></i> <?= $GLOBAL['includeIfAttestationRequested'] ?>
   </label>
   <style>
   .ca-attest-label:focus-visible { outline: none; }
@@ -421,8 +421,8 @@ if ($_showPie) {
           data-bs-toggle="popover"
           data-bs-trigger="hover focus"
           data-bs-placement="top"
-          data-bs-content="Affiche les personnes ayant coché &laquo;souhaite une attestation de don&raquo; même si leur total est inférieur au montant minimum sélectionné."
-          aria-label="Explication du filtre attestations">
+          data-bs-content="<?= $GLOBAL['attestationFilterExplanation'] ?>"
+          aria-label="<?= $GLOBAL['attestationFilterAriaLabel'] ?>">
     <i class="fas fa-circle-info" aria-hidden="true"></i>
   </button>
 
@@ -431,8 +431,8 @@ if ($_showPie) {
   <button type="button" id="btn-bulk-attest"
           class="ca-filter-btn ms-auto d-none d-sm-block"
           data-url="/attestation_bulk.php?year=<?= (int)$year ?>&amp;minSum=<?= (int)$minSum ?>"
-          title="Générer toutes les attestations en un seul PDF">
-    <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Attestations <?= (int)$year ?>
+          title="<?= $GLOBAL['generateAllAttestationsPdf'] ?>">
+    <i class="fas fa-file-pdf me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['attestationsYear'], (int)$year) ?>
   </button>
   <?php endif ?>
 
@@ -445,7 +445,7 @@ if ($_showPie) {
 ?>
 <div class="alert alert-warning d-flex align-items-start gap-2 py-2 mb-3" role="alert" style="font-size:0.85rem">
   <i class="fas fa-triangle-exclamation mt-1 flex-shrink-0" aria-hidden="true"></i>
-  <span><strong>Mode étendu</strong> — tous les types comptables sont inclus<?php if ($excludedLabels): ?>, y compris ceux habituellement exclus des dons : <?= implode(', ', $excludedLabels) ?><?php endif ?>. Les totaux ne reflètent pas uniquement les dons.</span>
+  <span><?= $GLOBAL['extendedModeWarningIntro'] ?><?php if ($excludedLabels): ?><?= sprintf($GLOBAL['extendedModeWarningExcluded'], implode(', ', $excludedLabels)) ?><?php endif ?><?= $GLOBAL['extendedModeWarningOutro'] ?></span>
 </div>
 <?php endif ?>
 <table class="table table-striped table-hover export">
@@ -456,15 +456,15 @@ if ($_showPie) {
     <th><?=$GLOBAL['lastName']?></th>
     <th><?=$GLOBAL['firstName']?></th>
     <th><?=$GLOBAL['email']?></th>
-    <th title="<?= htmlentities($membreTeamLabel, ENT_COMPAT, $charset) ?> / Don institutionnel">Statut</th>
+    <th title="<?= sprintf($GLOBAL['statusTitleInstitutional'], htmlentities($membreTeamLabel, ENT_COMPAT, $charset)) ?>"><?= $GLOBAL['status'] ?></th>
     <th><?=$GLOBAL['address']?></th>
     <th><?=$GLOBAL['npa']?></th>
-    <th style="text-align:right">Dons</th>
+    <th style="text-align:right"><?= $GLOBAL['donations'] ?></th>
     <?php if ($showAll): ?>
-    <th style="text-align:right">Autres</th>
-    <th style="text-align:right">Total</th>
+    <th style="text-align:right"><?= $GLOBAL['others'] ?></th>
+    <th style="text-align:right"><?= $GLOBAL['total'] ?></th>
     <?php endif ?>
-    <th title="Souhaite attestation"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
+    <th title="<?= $GLOBAL['wantsAttestationShort'] ?>"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
     <th></th>
 </tr>
 </thead>
@@ -532,9 +532,9 @@ foreach ($rows as $row):
     $address = htmlentities($row->address ?? '', ENT_COMPAT, $charset);
     $npa = htmlentities($row->npa ?? '', ENT_COMPAT, $charset);
     $isActif  = $row->is_actif        ? "<i class='fas fa-id-card text-success' title='" . htmlspecialchars($membreTeamLabel, ENT_QUOTES, $charset) . "' aria-label='" . htmlspecialchars($membreTeamLabel, ENT_QUOTES, $charset) . "'></i><span class='visually-hidden'>1</span>" : "";
-    $isInstit = $row->has_institutional ? "<i class='fas fa-building ms-1 text-info' title='Don institutionnel' aria-label='Don institutionnel'></i>" : "";
+    $isInstit = $row->has_institutional ? "<i class='fas fa-building ms-1 text-info' title='{$GLOBAL['institutionalDonation']}' aria-label='{$GLOBAL['institutionalDonation']}'></i>" : "";
     $sexeRaw = $row->sexe;
-    $sexe2 = match($sexeRaw) { 'f' => 'Madame', 'm' => 'Monsieur', 'hf' => 'Monsieur et Madame', default => '-' };
+    $sexe2 = match($sexeRaw) { 'f' => $GLOBAL['madame'], 'm' => $GLOBAL['monsieur'], 'hf' => $GLOBAL['hf'], default => '-' };
     $sexe = match($sexeRaw) {
         'f'  => "<i class='fas fa-female s'></i>",
         'm'  => "<i class='fas fa-male s'></i>",
@@ -558,7 +558,7 @@ foreach ($rows as $row):
         <?php endif ?>
         <td class="text-center">
             <?php if ($row->wants_attestation): ?>
-            <i class="fas fa-check text-success" aria-label="Souhaite attestation"></i>
+            <i class="fas fa-check text-success" aria-label="<?= $GLOBAL['wantsAttestationShort'] ?>"></i>
             <?php endif ?>
         </td>
         <td class="text-end" style="white-space:nowrap">
@@ -566,8 +566,8 @@ foreach ($rows as $row):
             <a href="/attestation_don.php?userid=<?=(int)$row->id?>&amp;year=<?=(int)$year?>"
                class="btn btn-sm py-0 px-1 text-muted"
                style="position:relative;z-index:2"
-               title="Attestation de dons <?=(int)$year?>"
-               aria-label="Attestation de dons <?=(int)$year?> pour <?= htmlspecialchars($lastName . ' ' . $firstName, ENT_QUOTES, $charset) ?>"
+               title="<?= sprintf($GLOBAL['attestationOfDonations'], (int)$year) ?>"
+               aria-label="<?= sprintf($GLOBAL['attestationOfDonationsFor'], (int)$year, htmlspecialchars($lastName . ' ' . $firstName, ENT_QUOTES, $charset)) ?>"
                target="_blank">
                 <i class="fas fa-file-pdf" aria-hidden="true"></i>
             </a>
@@ -623,25 +623,25 @@ $(document).ready(function() {
     <div class="modal-content">
       <div class="modal-header py-2">
         <h6 class="modal-title" id="bulk-attest-title" style="font-size:0.9rem">
-          <i class="fas fa-file-pdf me-2 text-danger" aria-hidden="true"></i>Générer les attestations
+          <i class="fas fa-file-pdf me-2 text-danger" aria-hidden="true"></i><?= $GLOBAL['generateAttestations'] ?>
         </h6>
         <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div id="bulk-attest-confirm-body" class="modal-body py-3" style="font-size:0.875rem">
-        <p class="mb-2">Générer un PDF avec les attestations de dons pour <strong id="bulk-attest-count">…</strong> personne(s).</p>
-        <p class="text-muted mb-0" style="font-size:0.8rem">Cette opération peut prendre plusieurs minutes selon le nombre d'entrées.</p>
+        <p class="mb-2"><?= sprintf($GLOBAL['bulkAttestConfirmBody'], '<strong id="bulk-attest-count">…</strong>') ?></p>
+        <p class="text-muted mb-0" style="font-size:0.8rem"><?= $GLOBAL['bulkAttestDuration'] ?></p>
       </div>
       <div id="bulk-attest-progress-body" class="modal-body py-3 d-none" style="font-size:0.875rem">
-        <p class="mb-2">Génération en cours — le PDF s'ouvrira dans un nouvel onglet.</p>
-        <div class="progress mb-2" role="progressbar" aria-label="Progression" style="height:6px">
+        <p class="mb-2"><?= $GLOBAL['bulkAttestInProgress'] ?></p>
+        <div class="progress mb-2" role="progressbar" aria-label="<?= $GLOBAL['progress'] ?>" style="height:6px">
           <div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
         </div>
-        <p class="text-muted mb-0" style="font-size:0.8rem">Vous pouvez fermer cette fenêtre. La génération continue dans l'onglet ouvert.</p>
+        <p class="text-muted mb-0" style="font-size:0.8rem"><?= $GLOBAL['bulkAttestCanClose'] ?></p>
       </div>
       <div class="modal-footer py-2">
         <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <button type="button" id="bulk-attest-go" class="btn btn-danger btn-sm">
-          <i class="fas fa-file-pdf me-1" aria-hidden="true"></i>Générer
+          <i class="fas fa-file-pdf me-1" aria-hidden="true"></i><?= $GLOBAL['generate'] ?>
         </button>
       </div>
     </div>

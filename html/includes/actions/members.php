@@ -174,6 +174,8 @@ if ($_REQUEST['action'] == 'updateUser') {
     $chk = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
     $chk->execute([$uid]);
     if ((int)$chk->fetchColumn() === 0) { return; } // safety: only anonymize if has compta
+    // Stored data marker, intentionally NOT localized: the DB value must stay
+    // stable regardless of the UI language of whoever anonymizes.
     $pdo->prepare("UPDATE users SET
         firstName='Anonymisé', lastName='', society='', sexe='na', title='',
         address='', npa='', tel='', telprof='', portable='', fax='',

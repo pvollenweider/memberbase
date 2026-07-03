@@ -45,7 +45,7 @@ if ($isHtmx) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, $charset) ?>">
-    <title><?= htmlspecialchars($appSettings['org_name'] ?: 'Gestion des membres', ENT_QUOTES, $charset) ?></title>
+    <title><?= htmlspecialchars($appSettings['org_name'] ?: $GLOBAL['memberManagement'], ENT_QUOTES, $charset) ?></title>
     <?php
     function getMicroTime()
     {
@@ -157,13 +157,9 @@ if ($_pendingMigrations):
         <i class="fas fa-triangle-exclamation mt-1 flex-shrink-0" aria-hidden="true"></i>
         <div>
             <strong><?= count($_pendingMigrations) ?>
-                migration<?= count($_pendingMigrations) > 1 ? 's' : '' ?> de base de données en attente</strong>
+                <?= sprintf($GLOBAL['pendingDbMigrationsLabel'], count($_pendingMigrations) > 1 ? 's' : '') ?></strong>
             (<?= htmlspecialchars(implode(', ', $_pendingMigrations), ENT_QUOTES, $charset) ?>).
-            Appliquez-la<?= count($_pendingMigrations) > 1 ? 's' : '' ?> depuis
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=health">Réglages → Santé</a>
-            (sans SSH), ou en ligne de commande <code>php html/tools/migrate.php</code>,
-            après avoir sauvegardé la base. Tant que ce n'est pas fait, certaines
-            fonctionnalités peuvent ne pas marcher correctement.
+            <?= sprintf($GLOBAL['pendingMigrationsBannerBody'], count($_pendingMigrations) > 1 ? 's' : '', $_SERVER['PHP_SELF']) ?>
         </div>
     </div>
 </div>

@@ -59,43 +59,39 @@ try {
 $degraded = !empty($pending) || !empty($drift);
 ?>
 
-<h5 class="mb-3"><i class="fas fa-heart-pulse me-1" aria-hidden="true"></i>Santé du système</h5>
+<h5 class="mb-3"><i class="fas fa-heart-pulse me-1" aria-hidden="true"></i><?= $GLOBAL['systemHealth'] ?></h5>
 
 <?php
 $_migOk  = isset($_GET['migOk']) ? (int)$_GET['migOk'] : null;
 $_migErr = $_GET['migErr'] ?? null;
 if ($_migErr === 'backup'): ?>
-  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Cochez « J'ai fait une sauvegarde » avant d'appliquer les migrations.</div>
+  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['migErrBackup'] ?></div>
 <?php elseif ($_migErr === 'noRecentExport'): ?>
-  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Vous devez <strong>exporter la base</strong> depuis ce navigateur dans les 30 dernières minutes avant d'appliquer les migrations.</div>
+  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['migErrNoRecentExport'] ?></div>
 <?php elseif ($_migErr === 'locked'): ?>
-  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Une migration est déjà en cours — attendez qu'elle se termine avant de relancer.</div>
+  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['migErrLocked'] ?></div>
 <?php elseif ($_migErr !== null): ?>
-  <div class="alert alert-danger py-2" role="alert"><i class="fas fa-circle-xmark me-1" aria-hidden="true"></i>Échec lors de l'application des migrations — consultez le journal d'audit et restaurez depuis votre sauvegarde si besoin.</div>
+  <div class="alert alert-danger py-2" role="alert"><i class="fas fa-circle-xmark me-1" aria-hidden="true"></i><?= $GLOBAL['migErrGeneric'] ?></div>
 <?php elseif ($_migOk !== null): ?>
-  <div class="alert alert-success py-2" role="alert"><i class="fas fa-circle-check me-1" aria-hidden="true"></i><?= (int)$_migOk ?> migration(s) appliquée(s) avec succès.</div>
+  <div class="alert alert-success py-2" role="alert"><i class="fas fa-circle-check me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['migrationsAppliedSuccess'], (int)$_migOk) ?></div>
 <?php endif ?>
 
 <?php if (!empty($drift)): ?>
   <div class="alert alert-danger py-2" role="alert">
     <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>
-    <strong>Dérive de migration :</strong> <?= count($drift) ?> migration(s) appliquée(s)
-    dont le fichier a changé depuis (<?= htmlspecialchars(implode(', ', $drift), ENT_QUOTES, $charset) ?>).
-    Un fichier de migration déjà appliqué ne doit jamais être modifié — vérifiez le dépôt.
+    <strong><?= $GLOBAL['migrationDriftLabel'] ?></strong> <?= sprintf($GLOBAL['migrationDriftBody'], count($drift), htmlspecialchars(implode(', ', $drift), ENT_QUOTES, $charset)) ?>
   </div>
 <?php endif ?>
 
 <?php if (!empty($pending)): ?>
   <div class="alert alert-warning py-2" role="alert">
     <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>
-    <strong>Attention :</strong> <?= count($pending) ?> migration(s) de base de données en attente
-    (<?= htmlspecialchars(implode(', ', $pending), ENT_QUOTES, $charset) ?>).
-    Appliquez-les avec <code>php html/tools/migrate.php</code>.
+    <strong><?= $GLOBAL['warningLabel'] ?></strong> <?= sprintf($GLOBAL['pendingMigrationsBody'], count($pending), htmlspecialchars(implode(', ', $pending), ENT_QUOTES, $charset)) ?>
   </div>
 <?php elseif (empty($drift)): ?>
   <div class="alert alert-success py-2" role="alert">
     <i class="fas fa-circle-check me-1" aria-hidden="true"></i>
-    Système opérationnel — base à jour, aucune migration en attente.
+    <?= $GLOBAL['systemOperational'] ?>
   </div>
 <?php endif ?>
 
@@ -103,13 +99,13 @@ if ($_migErr === 'backup'): ?>
   <div class="col-md-6">
     <div class="card h-100">
       <div class="card-body">
-        <h6 class="card-title text-muted mb-3"><i class="fas fa-cube me-1" aria-hidden="true"></i>Application</h6>
+        <h6 class="card-title text-muted mb-3"><i class="fas fa-cube me-1" aria-hidden="true"></i><?= $GLOBAL['application'] ?></h6>
         <table class="table table-sm mb-0" style="font-size:0.85rem">
           <tbody>
-            <tr><th scope="row" class="fw-normal text-muted">Version</th><td class="text-end"><code>v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, $charset) ?></code></td></tr>
-            <tr><th scope="row" class="fw-normal text-muted">Commit</th><td class="text-end"><?= $gitCommit ? '<code>' . htmlspecialchars($gitCommit, ENT_QUOTES, $charset) . '</code>' : '<span class="text-muted">—</span>' ?></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['version'] ?></th><td class="text-end"><code>v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, $charset) ?></code></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['commit'] ?></th><td class="text-end"><?= $gitCommit ? '<code>' . htmlspecialchars($gitCommit, ENT_QUOTES, $charset) . '</code>' : '<span class="text-muted">—</span>' ?></td></tr>
             <tr><th scope="row" class="fw-normal text-muted">PHP</th><td class="text-end"><code><?= htmlspecialchars(PHP_VERSION, ENT_QUOTES, $charset) ?></code></td></tr>
-            <tr><th scope="row" class="fw-normal text-muted">Serveur</th><td class="text-end small"><?= htmlspecialchars($_SERVER['SERVER_SOFTWARE'] ?? '—', ENT_QUOTES, $charset) ?></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['server'] ?></th><td class="text-end small"><?= htmlspecialchars($_SERVER['SERVER_SOFTWARE'] ?? '—', ENT_QUOTES, $charset) ?></td></tr>
           </tbody>
         </table>
       </div>
@@ -119,13 +115,13 @@ if ($_migErr === 'backup'): ?>
   <div class="col-md-6">
     <div class="card h-100">
       <div class="card-body">
-        <h6 class="card-title text-muted mb-3"><i class="fas fa-database me-1" aria-hidden="true"></i>Base de données</h6>
+        <h6 class="card-title text-muted mb-3"><i class="fas fa-database me-1" aria-hidden="true"></i><?= $GLOBAL['database'] ?></h6>
         <table class="table table-sm mb-0" style="font-size:0.85rem">
           <tbody>
-            <tr><th scope="row" class="fw-normal text-muted">Connexion</th><td class="text-end"><span class="badge text-bg-success">OK</span></td></tr>
-            <tr><th scope="row" class="fw-normal text-muted">Serveur</th><td class="text-end"><code><?= htmlspecialchars((string)($dbServer ?? '—'), ENT_QUOTES, $charset) ?></code></td></tr>
-            <tr><th scope="row" class="fw-normal text-muted">Base</th><td class="text-end"><code><?= htmlspecialchars((string)($dbName ?? '—'), ENT_QUOTES, $charset) ?></code></td></tr>
-            <tr><th scope="row" class="fw-normal text-muted">Tables</th><td class="text-end"><?= $nbTables !== null ? (int)$nbTables : '—' ?></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['connection'] ?></th><td class="text-end"><span class="badge text-bg-success">OK</span></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['server'] ?></th><td class="text-end"><code><?= htmlspecialchars((string)($dbServer ?? '—'), ENT_QUOTES, $charset) ?></code></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['databaseShort'] ?></th><td class="text-end"><code><?= htmlspecialchars((string)($dbName ?? '—'), ENT_QUOTES, $charset) ?></code></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['tables'] ?></th><td class="text-end"><?= $nbTables !== null ? (int)$nbTables : '—' ?></td></tr>
           </tbody>
         </table>
       </div>
@@ -135,13 +131,13 @@ if ($_migErr === 'backup'): ?>
   <div class="col-md-6">
     <div class="card h-100">
       <div class="card-body">
-        <h6 class="card-title text-muted mb-3"><i class="fas fa-code-branch me-1" aria-hidden="true"></i>Migrations</h6>
+        <h6 class="card-title text-muted mb-3"><i class="fas fa-code-branch me-1" aria-hidden="true"></i><?= $GLOBAL['migrations'] ?></h6>
         <table class="table table-sm mb-0" style="font-size:0.85rem">
           <tbody>
-            <tr><th scope="row" class="fw-normal text-muted">Appliquées</th><td class="text-end"><?= $appliedCount !== null ? (int)$appliedCount : '<span class="text-muted">table absente</span>' ?></td></tr>
-            <tr><th scope="row" class="fw-normal text-muted">En attente</th><td class="text-end"><?= empty($pending) ? '<span class="badge text-bg-success">0</span>' : '<span class="badge text-bg-warning">' . count($pending) . '</span>' ?></td></tr>
-            <tr><th scope="row" class="fw-normal text-muted">Dérive (checksum)</th><td class="text-end"><?= empty($drift) ? '<span class="badge text-bg-success">0</span>' : '<span class="badge text-bg-danger">' . count($drift) . '</span>' ?></td></tr>
-            <tr><th scope="row" class="fw-normal text-muted">Dernière</th><td class="text-end small">
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['appliedLabel'] ?></th><td class="text-end"><?= $appliedCount !== null ? (int)$appliedCount : '<span class="text-muted">' . $GLOBAL['tableMissing'] . '</span>' ?></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['pendingLabel'] ?></th><td class="text-end"><?= empty($pending) ? '<span class="badge text-bg-success">0</span>' : '<span class="badge text-bg-warning">' . count($pending) . '</span>' ?></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['driftChecksumLabel'] ?></th><td class="text-end"><?= empty($drift) ? '<span class="badge text-bg-success">0</span>' : '<span class="badge text-bg-danger">' . count($drift) . '</span>' ?></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['lastLabel'] ?></th><td class="text-end small">
               <?php if ($lastMigration): ?>
                 <code><?= htmlspecialchars($lastMigration->version, ENT_QUOTES, $charset) ?></code>
                 <span class="text-muted d-block"><?= $lastMigration->applied_at ? date('d.m.Y H:i', (int)$lastMigration->applied_at) : '' ?></span>
@@ -156,13 +152,13 @@ if ($_migErr === 'backup'): ?>
   <div class="col-md-6">
     <div class="card h-100">
       <div class="card-body">
-        <h6 class="card-title text-muted mb-3"><i class="fas fa-chart-simple me-1" aria-hidden="true"></i>Volumétrie &amp; activité</h6>
+        <h6 class="card-title text-muted mb-3"><i class="fas fa-chart-simple me-1" aria-hidden="true"></i><?= $GLOBAL['volumeActivity'] ?></h6>
         <table class="table table-sm mb-0" style="font-size:0.85rem">
           <tbody>
-            <tr><th scope="row" class="fw-normal text-muted">Membres actifs</th><td class="text-end"><?= $nbMembers !== null ? (int)$nbMembers : '—' ?></td></tr>
-            <tr><th scope="row" class="fw-normal text-muted">Écritures compta</th><td class="text-end"><?= $nbCompta !== null ? (int)$nbCompta : '—' ?></td></tr>
-            <tr><th scope="row" class="fw-normal text-muted">Utilisateurs app</th><td class="text-end"><?= $nbAppUsers !== null ? (int)$nbAppUsers : '—' ?></td></tr>
-            <tr><th scope="row" class="fw-normal text-muted">Dernière action</th><td class="text-end small">
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['activeMembers'] ?></th><td class="text-end"><?= $nbMembers !== null ? (int)$nbMembers : '—' ?></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['comptaEntriesLabel'] ?></th><td class="text-end"><?= $nbCompta !== null ? (int)$nbCompta : '—' ?></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['appUsersShort'] ?></th><td class="text-end"><?= $nbAppUsers !== null ? (int)$nbAppUsers : '—' ?></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted"><?= $GLOBAL['lastAction'] ?></th><td class="text-end small">
               <?php if ($lastAudit): ?>
                 <code><?= htmlspecialchars((string)$lastAudit->action, ENT_QUOTES, $charset) ?></code>
                 <span class="text-muted d-block"><?= htmlspecialchars((string)$lastAudit->created_at, ENT_QUOTES, $charset) ?></span>
@@ -178,10 +174,10 @@ if ($_migErr === 'backup'): ?>
 <!-- Maintenance (admin) : SQL export + apply pending migrations from the UI -->
 <div class="card mt-3">
   <div class="card-body">
-    <h6 class="card-title text-muted mb-3"><i class="fas fa-screwdriver-wrench me-1" aria-hidden="true"></i>Maintenance</h6>
+    <h6 class="card-title text-muted mb-3"><i class="fas fa-screwdriver-wrench me-1" aria-hidden="true"></i><?= $GLOBAL['maintenance'] ?></h6>
     <div class="d-flex flex-wrap gap-3 align-items-start">
       <a class="btn btn-outline-secondary btn-sm" href="export.php" hx-boost="false" download>
-        <i class="fas fa-download me-1" aria-hidden="true"></i>Exporter la base (SQL)
+        <i class="fas fa-download me-1" aria-hidden="true"></i><?= $GLOBAL['exportDbSql'] ?>
       </a>
       <?php if (!empty($pending)):
         // Check if a DB export was done in the last 30 minutes in this session.
@@ -193,27 +189,24 @@ if ($_migErr === 'backup'): ?>
           <input type="hidden" name="tab" value="health">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="confirm_backup" id="confirm_backup" required data-no-dirty>
-            <label class="form-check-label small" for="confirm_backup">J'ai fait une sauvegarde</label>
+            <label class="form-check-label small" for="confirm_backup"><?= $GLOBAL['iHaveBackup'] ?></label>
           </div>
           <?php if (!$hasRecentExport): ?>
-            <small class="text-warning"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>Exportez d'abord la base ci-dessus (requis).</small>
+            <small class="text-warning"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['exportFirstRequired'] ?></small>
           <?php endif ?>
-          <button type="submit" class="btn btn-warning btn-sm" <?= !$hasRecentExport ? 'disabled title="Exportez la base avant de migrer"' : '' ?>>
-            <i class="fas fa-database me-1" aria-hidden="true"></i>Appliquer <?= count($pending) ?> migration(s)
+          <button type="submit" class="btn btn-warning btn-sm" <?= !$hasRecentExport ? 'disabled title="' . $GLOBAL['exportBeforeMigrating'] . '"' : '' ?>>
+            <i class="fas fa-database me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['applyMigrationsCount'], count($pending)) ?>
           </button>
         </form>
       <?php endif ?>
     </div>
     <p class="text-muted small mt-2 mb-0">
-      L'export génère un dump SQL téléchargeable (restaurable via phpMyAdmin ou <code>make restore</code>) — utile
-      sur un hébergement <strong>sans accès SSH</strong>. L'application des migrations exécute le DDL en attente ;
-      <strong>exportez juste avant</strong> (le DDL n'est pas annulable).
+      <?= $GLOBAL['exportHelpParagraph'] ?>
     </p>
   </div>
 </div>
 
 <p class="text-muted small mt-3 mb-0">
   <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
-  Un point de contrôle léger pour du monitoring externe est disponible en <code>/health.php</code>
-  (JSON <code>{"status":"ok"|"degraded"}</code>, sans authentification ni donnée sensible).
+  <?= $GLOBAL['healthEndpointHelp'] ?>
 </p>

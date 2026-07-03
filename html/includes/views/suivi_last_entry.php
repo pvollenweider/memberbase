@@ -44,7 +44,7 @@ $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
         <td>
             <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= (int)$row->id ?>"
                class="stretched-link" hx-boost="false"
-               aria-label="Voir suivi de <?= htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset) ?>"></a>
+               aria-label="<?= sprintf($GLOBAL['viewSuiviOf'], htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset)) ?>"></a>
         </td>
     </tr>
 <?php endforeach ?>
@@ -62,20 +62,20 @@ $(document).ready(function() {
         buttons: [
             {
                 extend: 'collection',
-                text: 'Exporter <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
+                text: '<?= $GLOBAL['export'] ?> <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
                 className: 'btn btn-dt',
                 buttons: [
-                    { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i>Copier' },
-                    { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i>Excel' },
-                    { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i>Imprimer' }
+                    { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i><?= $GLOBAL['copy'] ?>' },
+                    { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i><?= $GLOBAL['excel'] ?>' },
+                    { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i><?= $GLOBAL['print'] ?>' }
                 ]
             }
         ],
         language: {
-            info:           '_START_–_END_ sur _TOTAL_ entrées',
-            infoFiltered:   '(filtrées sur _MAX_)',
+            info:           '<?= $GLOBAL['dtInfoEntries'] ?>',
+            infoFiltered:   '<?= $GLOBAL['dtInfoFiltered'] ?>',
             search:         '',
-            searchPlaceholder: 'Filtrer…',
+            searchPlaceholder: '<?= $GLOBAL['filterPlaceholder'] ?>',
             paginate: {
                 first:    '«',
                 last:     '»',

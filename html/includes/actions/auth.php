@@ -25,15 +25,15 @@ if ($action === 'logout') {
     $errParam    = '';
 
     if (strlen($pwNew) < 8) {
-        $errParam = urlencode('Le mot de passe doit contenir au moins 8 caractères.');
+        $errParam = urlencode($GLOBAL['passwordTooShort']);
     } elseif ($pwNew !== $pwConfirm) {
-        $errParam = urlencode('Les deux mots de passe ne correspondent pas.');
+        $errParam = urlencode($GLOBAL['passwordMismatch']);
     } elseif (!$forced) {
         $row = $pdo->prepare("SELECT password_hash FROM app_users WHERE id = ?");
         $row->execute([$currentUser->id]);
         $hash = $row->fetchColumn();
         if (!$hash || !password_verify($pwCurrent, $hash)) {
-            $errParam = urlencode('Mot de passe actuel incorrect.');
+            $errParam = urlencode($GLOBAL['currentPasswordIncorrect']);
         }
     }
 
@@ -60,7 +60,7 @@ if ($action === 'logout') {
     $errParam      = '';
 
     if (!preg_match('/^[a-zA-Z0-9._\-]+$/', $auUsername)) {
-        $errParam = urlencode('Identifiant invalide (lettres, chiffres, ., -, _ uniquement).');
+        $errParam = urlencode($GLOBAL['invalidUsername']);
     } else {
         try {
             if ($auPasswordRaw === '') {
@@ -84,7 +84,7 @@ if ($action === 'logout') {
             }
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
-                $errParam = urlencode('Cet identifiant est déjà utilisé.');
+                $errParam = urlencode($GLOBAL['usernameTaken']);
             } else {
                 throw $e;
             }
@@ -116,7 +116,7 @@ if ($action === 'logout') {
         $curRole    = $pdo->prepare("SELECT role FROM app_users WHERE id=?");
         $curRole->execute([$targetId]);
         if ($curRole->fetchColumn() === 'admin' && $adminCount <= 1) {
-            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&au_error=' . urlencode('Impossible de rétrograder le dernier administrateur.'));
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&au_error=' . urlencode($GLOBAL['cannotDemoteLastAdmin']));
             exit;
         }
     }
@@ -138,7 +138,7 @@ if ($action === 'logout') {
     $targetRole->execute([$targetId]);
     $role = $targetRole->fetchColumn();
     if ($role === 'admin' && $adminCount <= 1) {
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&au_error=' . urlencode('Impossible de supprimer le dernier administrateur.'));
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&au_error=' . urlencode($GLOBAL['cannotDeleteLastAdmin']));
         exit;
     }
     $deletedUsername = $pdo->prepare("SELECT username FROM app_users WHERE id=?");

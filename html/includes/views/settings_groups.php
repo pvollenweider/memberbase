@@ -65,7 +65,7 @@ if (!empty($_SESSION['group_toast'])) {
   <?php if (count($categories) > 0): ?>
   <div class="mb-2">
     <select name="categoryId" class="form-select form-select-sm" style="max-width:260px">
-      <option value="0">— sans catégorie —</option>
+      <option value="0"><?= $GLOBAL['noCategoryOptionLower'] ?></option>
       <?php foreach ($categories as $cat): ?>
       <option value="<?= (int)$cat->id ?>"><?= htmlentities($cat->name, ENT_COMPAT, $charset) ?></option>
       <?php endforeach ?>
@@ -77,7 +77,7 @@ if (!empty($_SESSION['group_toast'])) {
   <details style="font-size:0.8rem">
     <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem">
       <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
-      Importer les membres d'autres segments
+      <?= $GLOBAL['importMembersFromOtherSegments'] ?>
     </summary>
     <script>
       document.currentScript.closest('details').addEventListener('toggle', function(e) {
@@ -86,7 +86,7 @@ if (!empty($_SESSION['group_toast'])) {
       });
     </script>
     <div class="mt-2 p-3" style="background:var(--ca-ground);border-radius:6px">
-      <p class="text-muted mb-2" style="font-size:0.75rem">Copie ponctuelle — les membres sont copiés tels qu'ils sont maintenant. Pour un filtre dynamique, crée plutôt un segment combiné.</p>
+      <p class="text-muted mb-2" style="font-size:0.75rem"><?= $GLOBAL['importCopyHint'] ?></p>
       <div class="d-flex flex-column gap-1">
         <?php
         function _renderImportCb($t, $teamCounts, $charset) { ?>
@@ -112,7 +112,7 @@ if (!empty($_SESSION['group_toast'])) {
 
         if (!empty($_importNoCat)):
           if (!empty($_importByCat)): ?>
-        <p class="text-muted mb-0 mt-2" style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Sans catégorie</p>
+        <p class="text-muted mb-0 mt-2" style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em"><?= $GLOBAL['noCategoryLabel'] ?></p>
           <?php endif;
           foreach ($_importNoCat as $t): _renderImportCb($t, $teamCounts, $charset); endforeach;
         endif; ?>
@@ -131,22 +131,22 @@ if (!empty($_SESSION['group_toast'])) {
   <div id="bulk-bar" class="d-none mb-2 d-flex align-items-center gap-2 flex-wrap" style="font-size:0.8rem">
     <span id="bulk-count" class="text-muted"></span>
     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="bulkAction('bulkHide')">
-      <i class="fas fa-eye-slash me-1" aria-hidden="true"></i>Masquer
+      <i class="fas fa-eye-slash me-1" aria-hidden="true"></i><?= $GLOBAL['hide'] ?>
     </button>
     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="bulkAction('bulkShow')">
-      <i class="fas fa-eye me-1" aria-hidden="true"></i>Afficher
+      <i class="fas fa-eye me-1" aria-hidden="true"></i><?= $GLOBAL['show'] ?>
     </button>
     <button type="button" class="btn btn-sm btn-outline-primary" onclick="openMetagroupModal()">
-      <i class="fas fa-layer-group me-1" aria-hidden="true"></i>Créer un filtre
+      <i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['createFilter'] ?>
     </button>
-    <button type="button" class="btn btn-sm btn-link text-muted p-0" onclick="clearSelection()">Désélectionner</button>
+    <button type="button" class="btn btn-sm btn-link text-muted p-0" onclick="clearSelection()"><?= $GLOBAL['deselect'] ?></button>
   </div>
 
   <table class="table table-sm table-hover align-middle mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
         <th style="width:1.5rem">
-          <input type="checkbox" class="form-check-input" id="bulk-select-all" title="Tout sélectionner">
+          <input type="checkbox" class="form-check-input" id="bulk-select-all" title="<?= $GLOBAL['selectAll'] ?>">
         </th>
         <th colspan="2"></th>
       </tr>
@@ -186,7 +186,7 @@ while ($row = $stmt->fetchObject()) {
           <button type="button"
                   style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted);background:none;border:none;padding:0;cursor:pointer"
                   onclick="toggleHiddenSection(this)">
-            <i class="fas fa-eye-slash me-1" aria-hidden="true"></i>Masqués
+            <i class="fas fa-eye-slash me-1" aria-hidden="true"></i><?= $GLOBAL['hiddenPlural'] ?>
             <i class="fas fa-chevron-right ms-1" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
           </button>
         </td></tr>
@@ -196,7 +196,7 @@ while ($row = $stmt->fetchObject()) {
     }
     if (!$isHidden && $catId !== $prevCatId) {
         $prevCatId = $catId;
-        $catLabel  = $row->cat_name ?: 'Sans catégorie';
+        $catLabel  = $row->cat_name ?: $GLOBAL['noCategoryLabel'];
         ?>
         <tr><td colspan="3" class="pt-3 pb-1" style="border:none">
           <span style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)">
@@ -226,13 +226,13 @@ while ($row = $stmt->fetchObject()) {
               <input type="text" class="form-control form-control-sm d-inline-block team-rename-input"
                      value="<?= $name ?>" maxlength="255"
                      style="width:auto;max-width:220px;font-size:0.82rem;padding:0.15rem 0.4rem;height:auto"
-                     aria-label="Renommer le segment «<?= $name ?>»"/>
+                     aria-label="<?= sprintf($GLOBAL['renameSegmentAria'], $name) ?>"/>
               <button type="button" class="btn btn-sm btn-success team-rename-save ms-1 px-2 py-0"
-                      aria-label="Enregistrer (Entrée)" style="font-size:0.75rem;line-height:1.6">
+                      aria-label="<?= $GLOBAL['saveEnterAria'] ?>" style="font-size:0.75rem;line-height:1.6">
                 <i class="fas fa-check" aria-hidden="true"></i>
               </button>
               <button type="button" class="btn btn-sm btn-outline-secondary team-rename-cancel px-2 py-0"
-                      aria-label="Annuler (Échap)" style="font-size:0.75rem;line-height:1.6">
+                      aria-label="<?= $GLOBAL['cancelEscapeAria'] ?>" style="font-size:0.75rem;line-height:1.6">
                 <i class="fas fa-xmark" aria-hidden="true"></i>
               </button>
             </span>
@@ -240,11 +240,11 @@ while ($row = $stmt->fetchObject()) {
           <td class="text-end" style="width:4rem;white-space:nowrap">
             <button type="button"
                     class="btn btn-link btn-sm team-rename-btn p-0 me-2 text-muted"
-                    aria-label="Renommer «<?= $name ?>»" style="font-size:0.78rem;line-height:1">
+                    aria-label="<?= sprintf($GLOBAL['renameNameAria'], $name) ?>" style="font-size:0.78rem;line-height:1">
               <i class="fas fa-i-cursor" aria-hidden="true"></i>
             </button>
             <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $id ?>"
-               class="text-decoration-none text-muted" aria-label="Réglages du segment «<?= $name ?>»" style="font-size:0.78rem">
+               class="text-decoration-none text-muted" aria-label="<?= sprintf($GLOBAL['segmentSettingsAria'], $name) ?>" style="font-size:0.78rem">
               <i class="fas fa-gear" aria-hidden="true"></i>
             </a>
           </td>
@@ -269,14 +269,14 @@ function toggleHiddenSection(btn) {
   <div class="modal-dialog modal-sm modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header py-2">
-        <h6 class="modal-title" id="mg-name-modal-label" style="font-size:0.85rem">Nom du filtre</h6>
+        <h6 class="modal-title" id="mg-name-modal-label" style="font-size:0.85rem"><?= $GLOBAL['filterNamePlaceholder'] ?></h6>
         <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body py-2">
-        <input type="text" id="mg-name-input" class="form-control form-control-sm" placeholder="Ex: Donateurs actifs" maxlength="255"/>
+        <input type="text" id="mg-name-input" class="form-control form-control-sm" placeholder="<?= $GLOBAL['filterNameExample'] ?>" maxlength="255"/>
       </div>
       <div class="modal-footer py-2">
-        <button type="button" class="btn btn-primary btn-sm" onclick="submitMetagroup()">Créer</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="submitMetagroup()"><?= $GLOBAL['create'] ?></button>
       </div>
     </div>
   </div>
@@ -293,7 +293,7 @@ function toggleHiddenSection(btn) {
     var checked = document.querySelectorAll('.bulk-cb:checked');
     if (checked.length > 0) {
       bar.classList.remove('d-none');
-      countEl.textContent = checked.length + ' sélectionné' + (checked.length > 1 ? 's' : '');
+      countEl.textContent = <?= json_encode($GLOBAL['selectedCount']) ?>.replace('%d', checked.length).replace('%s', checked.length > 1 ? 's' : '');
     } else {
       bar.classList.add('d-none');
     }
@@ -390,14 +390,14 @@ function toggleHiddenSection(btn) {
         var link = view.querySelector('a');
         link.textContent = data.name;
         input.value = data.name;
-        input.setAttribute('aria-label', 'Renommer le segment «' + data.name + '»');
-        row.querySelector('.team-rename-btn').setAttribute('aria-label', 'Renommer «' + data.name + '»');
+        input.setAttribute('aria-label', <?= json_encode($GLOBAL['renameSegmentAria']) ?>.replace('%s', data.name));
+        row.querySelector('.team-rename-btn').setAttribute('aria-label', <?= json_encode($GLOBAL['renameNameAria']) ?>.replace('%s', data.name));
         cancelRename(row);
-        _renameStatus.textContent = 'Segment renommé en «' + data.name + '».';
+        _renameStatus.textContent = <?= json_encode($GLOBAL['segmentRenamedTo']) ?>.replace('%s', data.name);
       } else {
-        alert(data.error || 'Erreur lors du renommage');
+        alert(data.error || <?= json_encode($GLOBAL['renameError']) ?>);
       }
-    }).catch(function(err) { alert(err && err.message ? err.message : 'Erreur réseau'); });
+    }).catch(function(err) { alert(err && err.message ? err.message : <?= json_encode($GLOBAL['networkError']) ?>); });
   }
 
   function cancelRename(row) {

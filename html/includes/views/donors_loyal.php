@@ -42,10 +42,10 @@ $count = count($rows);
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
-    <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Retour à l'aperçu des dons
+    <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToDonationOverview'] ?>
   </a>
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    Donateurs fidèles <?= $year ?>
+    <?= sprintf($GLOBAL['loyalDonorsTitle'], $year) ?>
   </span>
   <div class="dropdown ms-1">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -63,7 +63,7 @@ $count = count($rows);
 <div class="alert d-flex align-items-start gap-2 py-2 mb-3" role="status"
      style="font-size:0.85rem;background:rgba(25,135,84,0.1);border:1px solid rgba(25,135,84,0.3);border-radius:6px">
   <i class="fas fa-rotate mt-1 flex-shrink-0" aria-hidden="true" style="color:var(--bs-success)"></i>
-  <span><strong><?= $count ?> donateur<?= $count > 1 ? 's' : '' ?> fidèles</strong> — ont contribué à la fois en <strong><?= $year-1 ?></strong> et en <strong><?= $year ?></strong>.</span>
+  <span><?= sprintf($GLOBAL['loyalDonorsCount'], $count, $count > 1 ? 's' : '', $year-1, $year) ?></span>
 </div>
 
 <?php
@@ -71,13 +71,13 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $dt_order      = [[6, 'desc']];
 $extra_columns = [
     [
-        'label'  => 'Don ' . $year,
+        'label'  => sprintf($GLOBAL['donYear'], $year),
         'value'  => fn($row) => number_format((float)$row->total_curr, 2, '.', '\''),
         'style'  => 'text-align:right',
         'footer' => array_sum(array_map(fn($r) => (float)$r->total_curr, $rows)),
     ],
     [
-        'label'  => 'Don ' . ($year - 1),
+        'label'  => sprintf($GLOBAL['donYear'], $year - 1),
         'value'  => fn($row) => number_format((float)$row->total_prev, 2, '.', '\''),
         'style'  => 'text-align:right',
         'footer' => array_sum(array_map(fn($r) => (float)$r->total_prev, $rows)),

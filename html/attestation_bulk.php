@@ -15,6 +15,7 @@ ob_start();
 set_time_limit(120);
 
 include __DIR__ . "/includes/lib/bootstrap.php";
+require_once __DIR__ . '/locales/resources_fr.php';
 include "classes/user_class.php";
 
 $year   = isset($_GET['year'])   ? (int)$_GET['year']   : (int)date('Y');
@@ -42,7 +43,7 @@ $donors = $stmt->fetchAll(PDO::FETCH_OBJ);
 
 if (!$donors) {
     http_response_code(404);
-    die('Aucun donateur trouvé pour ' . $year . ' (min CHF ' . $minSum . ')');
+    die(sprintf($GLOBAL['noDonorsFound'], $year, $minSum));
 }
 
 // ── FDF helpers (same as attestation_don.php) ──────────────────────────────
@@ -86,7 +87,7 @@ foreach ($donors as $row) {
         'Localite 2'         => $npaParts[1]    ?? '',
         'annee1'             => (string)$year,
         'annee2'             => (string)$year,
-        'Case à cocher2'     => 'Oui',
+        'Case à cocher2'     => $GLOBAL['yes'],
         'Somme'              => $total,
         'Lieu'               => $appSettings['org_city']     ?? '',
         'mois'               => date('m'),
@@ -116,7 +117,7 @@ foreach ($donors as $row) {
 
 if (!$tmpFiles) {
     http_response_code(500);
-    echo '<pre>Erreur génération PDFs:' . "\n" . htmlspecialchars(implode("\n", $errors)) . '</pre>';
+    echo '<pre>' . $GLOBAL['pdfGenerationError'] . "\n" . htmlspecialchars(implode("\n", $errors)) . '</pre>';
     exit;
 }
 
@@ -130,7 +131,7 @@ foreach ($tmpFiles as $f) { unlink($f); }
 
 if ($rc !== 0 || !file_exists($mergedPdf) || filesize($mergedPdf) === 0) {
     http_response_code(500);
-    echo '<pre>Erreur merge pdftk:' . "\n" . htmlspecialchars(implode("\n", $out)) . '</pre>';
+    echo '<pre>' . $GLOBAL['pdftkMergeError'] . "\n" . htmlspecialchars(implode("\n", $out)) . '</pre>';
     if (file_exists($mergedPdf)) { unlink($mergedPdf); }
     exit;
 }

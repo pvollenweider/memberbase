@@ -11,7 +11,7 @@ $_muIdB = (int)($_GET['b'] ?? 0);
 
 if ($_muIdA <= 0 || $_muIdB <= 0 || $_muIdA === $_muIdB) { ?>
 <div class="alert alert-danger mt-4" role="alert">
-  <i class="fas fa-triangle-exclamation me-2" aria-hidden="true"></i>Paramètres de fusion invalides.
+  <i class="fas fa-triangle-exclamation me-2" aria-hidden="true"></i><?= $GLOBAL['invalidMergeParams'] ?>
 </div>
 <?php return; }
 
@@ -20,7 +20,7 @@ $_muUserB = new User(); $_muUserB->lookupUser($_muIdB);
 
 if (!$_muUserA->getId() || !$_muUserB->getId()) { ?>
 <div class="alert alert-danger mt-4" role="alert">
-  <i class="fas fa-triangle-exclamation me-2" aria-hidden="true"></i>Membre introuvable.
+  <i class="fas fa-triangle-exclamation me-2" aria-hidden="true"></i><?= $GLOBAL['memberNotFound'] ?>
 </div>
 <?php return; }
 
@@ -37,21 +37,21 @@ $_muSt->execute([$_muIdB]); $groupsB = $_muSt->fetchColumn() ?: '—';
 
 // Field map: key => [label, valueA, valueB]
 $_muFields = [
-    'firstName' => ['Prénom',       (string)$_muUserA->firstName,                               (string)$_muUserB->firstName],
-    'lastName'  => ['Nom',          (string)$_muUserA->lastName,                                (string)$_muUserB->lastName],
-    'society'   => ['Société',      (string)$_muUserA->society,                                 (string)$_muUserB->society],
-    'sexe'      => ['Sexe',         (string)$_muUserA->sexe,                                    (string)$_muUserB->sexe],
-    'title'     => ['Titre',        (string)$_muUserA->title,                                   (string)$_muUserB->title],
-    'address'   => ['Adresse',      (string)$_muUserA->address,                                 (string)$_muUserB->address],
-    'npa'       => ['NPA / Ville',  (string)$_muUserA->npa,                                     (string)$_muUserB->npa],
-    'tel'       => ['Tél.',         (string)$_muUserA->tel,                                     (string)$_muUserB->tel],
-    'telProf'   => ['Tél. prof.',   (string)$_muUserA->telProf,                                 (string)$_muUserB->telProf],
-    'portable'  => ['Portable',     (string)$_muUserA->portable,                                (string)$_muUserB->portable],
-    'fax'       => ['Fax',          (string)$_muUserA->fax,                                     (string)$_muUserB->fax],
-    'email'     => ['Email',        (string)$_muUserA->email,                                   (string)$_muUserB->email],
-    'web'       => ['Web',          (string)$_muUserA->web,                                     (string)$_muUserB->web],
-    'birthDay'  => ['Naissance',    timeStampToformatedDate((int)$_muUserA->birthDay),           timeStampToformatedDate((int)$_muUserB->birthDay)],
-    'comment'   => ['Note',         (string)$_muUserA->comment,                                 (string)$_muUserB->comment],
+    'firstName' => [$GLOBAL['firstName'],   (string)$_muUserA->firstName,                               (string)$_muUserB->firstName],
+    'lastName'  => [$GLOBAL['lastName'],    (string)$_muUserA->lastName,                                (string)$_muUserB->lastName],
+    'society'   => [$GLOBAL['society'],     (string)$_muUserA->society,                                 (string)$_muUserB->society],
+    'sexe'      => [$GLOBAL['sexLabel'],    (string)$_muUserA->sexe,                                    (string)$_muUserB->sexe],
+    'title'     => [$GLOBAL['title'],       (string)$_muUserA->title,                                   (string)$_muUserB->title],
+    'address'   => [$GLOBAL['address'],     (string)$_muUserA->address,                                 (string)$_muUserB->address],
+    'npa'       => [$GLOBAL['npaCity'],     (string)$_muUserA->npa,                                     (string)$_muUserB->npa],
+    'tel'       => [$GLOBAL['telShort'],    (string)$_muUserA->tel,                                     (string)$_muUserB->tel],
+    'telProf'   => [$GLOBAL['telProfShort'],(string)$_muUserA->telProf,                                 (string)$_muUserB->telProf],
+    'portable'  => [$GLOBAL['portable'],    (string)$_muUserA->portable,                                (string)$_muUserB->portable],
+    'fax'       => [$GLOBAL['fax'],         (string)$_muUserA->fax,                                     (string)$_muUserB->fax],
+    'email'     => [$GLOBAL['email'],       (string)$_muUserA->email,                                   (string)$_muUserB->email],
+    'web'       => [$GLOBAL['web'],         (string)$_muUserA->web,                                     (string)$_muUserB->web],
+    'birthDay'  => [$GLOBAL['birthShort'],  timeStampToformatedDate((int)$_muUserA->birthDay),           timeStampToformatedDate((int)$_muUserB->birthDay)],
+    'comment'   => [$GLOBAL['noteLabel'],   (string)$_muUserA->comment,                                 (string)$_muUserB->comment],
 ];
 
 $_muDivergent = [];
@@ -76,21 +76,21 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
 
   <div class="d-flex align-items-center gap-2 mb-4" style="font-size:0.8rem">
     <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=integrity" class="text-muted text-decoration-none">
-      <i class="fas fa-stethoscope me-1" aria-hidden="true"></i>Intégrité
+      <i class="fas fa-stethoscope me-1" aria-hidden="true"></i><?= $GLOBAL['integrity'] ?>
     </a>
     <i class="fas fa-chevron-right text-muted" style="font-size:0.65rem" aria-hidden="true"></i>
-    <span class="text-muted">Fusion membres</span>
+    <span class="text-muted"><?= $GLOBAL['memberMerge'] ?></span>
   </div>
 
   <div class="d-flex align-items-baseline gap-3 mb-1">
-    <h1 class="ca-merge-title">Fusionner deux fiches membres</h1>
+    <h1 class="ca-merge-title"><?= $GLOBAL['mergeTwoMembers'] ?></h1>
   </div>
   <p class="text-muted mb-4" style="font-size:0.85rem">
-    Cliquez la valeur à conserver pour chaque champ divergent.
+    <?= $GLOBAL['mergeInstruction'] ?>
     <?php if (empty($_muDivergent)): ?>
-    <span class="badge text-bg-success ms-1">Toutes les données sont identiques</span>
+    <span class="badge text-bg-success ms-1"><?= $GLOBAL['allDataIdentical'] ?></span>
     <?php else: ?>
-    <span class="badge text-bg-warning ms-1"><?= count($_muDivergent) ?> champ<?= count($_muDivergent) > 1 ? 's' : '' ?> divergent<?= count($_muDivergent) > 1 ? 's' : '' ?></span>
+    <span class="badge text-bg-warning ms-1"><?= sprintf($GLOBAL['divergentFieldsCount'], count($_muDivergent), count($_muDivergent) > 1 ? 's' : '', count($_muDivergent) > 1 ? 's' : '') ?></span>
     <?php endif ?>
   </p>
 
@@ -102,10 +102,10 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
 
     <!-- Field comparison table -->
     <div class="table-responsive mb-4">
-      <table class="ca-merge-table table table-sm align-middle mb-0" aria-label="Comparaison des fiches membres">
+      <table class="ca-merge-table table table-sm align-middle mb-0" aria-label="<?= $GLOBAL['mergeTableAria'] ?>">
         <thead>
           <tr>
-            <th class="ca-merge-th-field" scope="col">Champ</th>
+            <th class="ca-merge-th-field" scope="col"><?= $GLOBAL['fieldLabel'] ?></th>
             <th class="ca-merge-th-profile" scope="col">
               <div class="ca-merge-profile-head">
                 <span class="ca-merge-profile-badge">A</span>
@@ -144,9 +144,9 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
                 @keydown.enter.prevent="<?= $isHtml ? "if(selections['{$key}'] !== 'both') select('{$key}', 'a')" : "select('{$key}', 'a')" ?>"
                 @keydown.space.prevent="<?= $isHtml ? "if(selections['{$key}'] !== 'both') select('{$key}', 'a')" : "select('{$key}', 'a')" ?>"
                 :aria-pressed="selections['<?= $key ?>'] === 'a'"
-                aria-label="Choisir la valeur A pour <?= htmlspecialchars($label, ENT_QUOTES, $charset) ?>">
+                aria-label="<?= sprintf($GLOBAL['chooseValueA'], htmlspecialchars($label, ENT_QUOTES, $charset)) ?>">
               <span class="ca-merge-cell-check" aria-hidden="true"><i class="fas fa-check"></i></span>
-              <span class="ca-merge-cell-value"><?= $vAHtml ?: '<span class="text-muted fst-italic">vide</span>' ?></span>
+              <span class="ca-merge-cell-value"><?= $vAHtml ?: '<span class="text-muted fst-italic">' . $GLOBAL['emptyValue'] . '</span>' ?></span>
             </td>
             <td class="ca-merge-cell ca-merge-cell--b"
                 :class="{'selected': selections['<?= $key ?>'] === 'b' || selections['<?= $key ?>'] === 'both'}"
@@ -156,9 +156,9 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
                 @keydown.enter.prevent="<?= $isHtml ? "if(selections['{$key}'] !== 'both') select('{$key}', 'b')" : "select('{$key}', 'b')" ?>"
                 @keydown.space.prevent="<?= $isHtml ? "if(selections['{$key}'] !== 'both') select('{$key}', 'b')" : "select('{$key}', 'b')" ?>"
                 :aria-pressed="selections['<?= $key ?>'] === 'b'"
-                aria-label="Choisir la valeur B pour <?= htmlspecialchars($label, ENT_QUOTES, $charset) ?>">
+                aria-label="<?= sprintf($GLOBAL['chooseValueB'], htmlspecialchars($label, ENT_QUOTES, $charset)) ?>">
               <span class="ca-merge-cell-check" aria-hidden="true"><i class="fas fa-check"></i></span>
-              <span class="ca-merge-cell-value"><?= $vBHtml ?: '<span class="text-muted fst-italic">vide</span>' ?></span>
+              <span class="ca-merge-cell-value"><?= $vBHtml ?: '<span class="text-muted fst-italic">' . $GLOBAL['emptyValue'] . '</span>' ?></span>
             </td>
 
             <?php if ($isHtml): ?>
@@ -171,7 +171,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
                          :checked="selections['<?= $key ?>'] === 'both'"
                          @change="select('<?= $key ?>', $event.target.checked ? 'both' : 'a')">
                   <label class="form-check-label text-muted" for="merge_both_<?= $key ?>" style="font-size:0.8rem">
-                    Garder les deux notes (survivant en premier)
+                    <?= $GLOBAL['keepBothNotes'] ?>
                   </label>
                 </div>
               </td>
@@ -179,10 +179,10 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
 
             <?php else: ?>
             <td class="ca-merge-cell ca-merge-cell--same">
-              <span><?= $vAHtml ?: '<span class="text-muted fst-italic">vide</span>' ?></span>
+              <span><?= $vAHtml ?: '<span class="text-muted fst-italic">' . $GLOBAL['emptyValue'] . '</span>' ?></span>
             </td>
             <td class="ca-merge-cell ca-merge-cell--same">
-              <span><?= $vBHtml ?: '<span class="text-muted fst-italic">vide</span>' ?></span>
+              <span><?= $vBHtml ?: '<span class="text-muted fst-italic">' . $GLOBAL['emptyValue'] . '</span>' ?></span>
             </td>
             <?php endif ?>
           </tr>
@@ -193,28 +193,28 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
 
     <!-- Stats (read-only) -->
     <div class="ca-merge-stats mb-4">
-      <p class="fw-semibold mb-2" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ca-ink-muted)">Données liées (fusionnées automatiquement)</p>
+      <p class="fw-semibold mb-2" style="font-size:0.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ca-ink-muted)"><?= $GLOBAL['linkedDataAuto'] ?></p>
       <table class="table table-sm mb-0" style="font-size:0.82rem;max-width:560px">
         <thead>
           <tr>
             <th></th>
-            <th class="text-center">Profil A <span class="text-muted">#<?= $_muIdA ?></span></th>
-            <th class="text-center">Profil B <span class="text-muted">#<?= $_muIdB ?></span></th>
+            <th class="text-center"><?= $GLOBAL['profileA'] ?> <span class="text-muted">#<?= $_muIdA ?></span></th>
+            <th class="text-center"><?= $GLOBAL['profileB'] ?> <span class="text-muted">#<?= $_muIdB ?></span></th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Entrées compta</td>
+            <td><?= $GLOBAL['comptaEntries'] ?></td>
             <td class="text-center"><?= $cComptaA ?></td>
             <td class="text-center"><?= $cComptaB ?></td>
           </tr>
           <tr>
-            <td>Entrées suivi</td>
+            <td><?= $GLOBAL['suiviEntries'] ?></td>
             <td class="text-center"><?= $cSuiviA ?></td>
             <td class="text-center"><?= $cSuiviB ?></td>
           </tr>
           <tr>
-            <td>Segments</td>
+            <td><?= $GLOBAL['groups'] ?></td>
             <td class="text-muted" style="font-size:0.78rem"><?= htmlspecialchars($groupsA, ENT_QUOTES, $charset) ?></td>
             <td class="text-muted" style="font-size:0.78rem"><?= htmlspecialchars($groupsB, ENT_QUOTES, $charset) ?></td>
           </tr>
@@ -226,7 +226,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
     <div class="ca-merge-options mb-4">
       <div class="row g-4">
         <div class="col-md-6">
-          <p class="fw-semibold mb-2" style="font-size:0.85rem">Profil survivant (conserve son ID)</p>
+          <p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['survivorProfile'] ?></p>
           <div class="d-flex gap-3">
             <label class="ca-merge-radio" x-bind:class="{'active': survivor === 'a'}">
               <input type="radio" name="survivor" value="a" x-model="survivor" class="visually-hidden">
@@ -241,7 +241,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
           </div>
         </div>
         <div class="col-md-6">
-          <p class="fw-semibold mb-2" style="font-size:0.85rem">Profil source après fusion</p>
+          <p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['sourceProfileAfterMerge'] ?></p>
           <div class="d-flex gap-3">
             <label class="ca-merge-radio" x-bind:class="{'active': disposal === 'hide'}">
               <input type="radio" name="disposal" value="hide" x-model="disposal" class="visually-hidden">
@@ -256,7 +256,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
           </div>
           <p class="text-muted mt-1 mb-0" style="font-size:0.78rem" x-show="disposal === 'delete'">
             <i class="fas fa-triangle-exclamation text-danger me-1" aria-hidden="true"></i>
-            Irréversible — toutes les données du profil source seront effacées.
+            <?= $GLOBAL['mergeDeleteWarning'] ?>
           </p>
         </div>
       </div>
@@ -269,12 +269,12 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
               @click="openConfirm()"
               :aria-disabled="!allResolved"
               :style="!allResolved ? 'opacity:.5;pointer-events:none' : ''">
-        <i class="fas fa-code-merge me-1" aria-hidden="true"></i>Fusionner
+        <i class="fas fa-code-merge me-1" aria-hidden="true"></i><?= $GLOBAL['merge'] ?>
       </button>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=integrity" class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
       <span class="text-muted ms-2" style="font-size:0.82rem" x-show="!allResolved" x-cloak>
         <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
-        Résolvez tous les champs divergents pour continuer.
+        <?= $GLOBAL['resolveAllFields'] ?>
       </span>
     </div>
 
@@ -287,13 +287,13 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
         <i class="fas fa-triangle-exclamation text-danger me-2" aria-hidden="true"></i>
         <?= $GLOBAL['confirmMerge'] ?>
       </h2>
-      <p style="font-size:0.9rem">Cette opération est irréversible. Vérifiez le résumé avant de confirmer.</p>
+      <p style="font-size:0.9rem"><?= $GLOBAL['mergeConfirmIntro'] ?></p>
       <ul class="ca-merge-dialog-summary" style="font-size:0.85rem">
-        <li>Profil survivant : <strong x-text="survivor === 'a' ? '<?= addslashes($_muNameA) ?> #<?= $_muIdA ?>' : '<?= addslashes($_muNameB) ?> #<?= $_muIdB ?>'"></strong></li>
-        <li>Profil source supprimé : <span x-text="disposal === 'delete' ? 'oui (irréversible)' : 'non — archivé uniquement'"></span></li>
-        <li x-show="<?= count($_muDivergent) ?> > 0"><?= count($_muDivergent) ?> champ(s) modifié(s) selon votre sélection.</li>
-        <li>Toutes les entrées compta et suivi du profil source seront rattachées au profil survivant.</li>
-        <li>Les appartenances aux segments seront fusionnées (dédoublonnage automatique).</li>
+        <li><?= $GLOBAL['survivorLabel'] ?> <strong x-text="survivor === 'a' ? '<?= addslashes($_muNameA) ?> #<?= $_muIdA ?>' : '<?= addslashes($_muNameB) ?> #<?= $_muIdB ?>'"></strong></li>
+        <li><?= $GLOBAL['sourceDeletedLabel'] ?> <span x-text="disposal === 'delete' ? '<?= $GLOBAL['yesIrreversible'] ?>' : '<?= $GLOBAL['noArchivedOnly'] ?>'"></span></li>
+        <li x-show="<?= count($_muDivergent) ?> > 0"><?= sprintf($GLOBAL['fieldsModifiedSummary'], count($_muDivergent)) ?></li>
+        <li><?= $GLOBAL['mergeReattachInfo'] ?></li>
+        <li><?= $GLOBAL['mergeSegmentsInfo'] ?></li>
       </ul>
       <div class="d-flex gap-2 justify-content-end mt-4">
         <button type="button" class="btn btn-outline-secondary" @click="closeConfirm()"><?= $GLOBAL['cancel'] ?></button>

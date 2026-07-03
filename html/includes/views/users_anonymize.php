@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $user = new User();
 $user->lookupUser((int)($_REQUEST['id'] ?? 0));
-if (!$user->getId()) { echo '<div class="alert alert-danger">Membre introuvable.</div>'; return; }
+if (!$user->getId()) { echo '<div class="alert alert-danger">' . $GLOBAL['memberNotFound'] . '</div>'; return; }
 
 $_stC = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
 $_stC->execute([$user->getId()]);
@@ -29,14 +29,12 @@ $_userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
 
       <div class="alert alert-info py-2 px-3 mb-4" style="font-size:0.82rem">
         <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
-        Ce profil possède <strong><?= $_comptaCount ?> écriture<?= $_comptaCount > 1 ? 's' : '' ?> comptable<?= $_comptaCount > 1 ? 's' : '' ?></strong>.
-        La suppression définitive est impossible pour des raisons de traçabilité comptable.<br><br>
-        L'anonymisation efface toutes les données personnelles (nom, prénom, adresse, email, téléphone…) tout en conservant l'historique comptable associé à cet identifiant interne.
+        <?= sprintf($GLOBAL['anonymizeComptaCount'], $_comptaCount, $_comptaCount > 1 ? 's' : '', $_comptaCount > 1 ? 's' : '') . "\n        " . $GLOBAL['anonymizeNoDeleteReason'] ?><br><br>
+        <?= $GLOBAL['anonymizeExplanation'] ?>
       </div>
 
       <p class="text-muted mb-4" style="font-size:0.82rem">
-        <strong>Cette opération est irréversible.</strong> Les données suivantes seront effacées&nbsp;:
-        nom, prénom, société, adresse, NPA, email, téléphones, web, date de naissance, note.
+        <?= $GLOBAL['anonymizeIrreversibleIntro'] . "\n        " . $GLOBAL['anonymizeErasedFieldsList'] ?>
       </p>
 
       <div class="d-flex gap-2 justify-content-end">

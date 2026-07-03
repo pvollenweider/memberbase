@@ -75,7 +75,7 @@ if ($uaRequestedView === 'manageTeam') {
 }
 
 if (!isset($UA_VIEW_ROUTES[$uaRequestedView])) {
-    echo '<div class="alert alert-warning"><i class="fas fa-circle-question me-2" aria-hidden="true"></i>Vue introuvable.</div>';
+    echo '<div class="alert alert-warning"><i class="fas fa-circle-question me-2" aria-hidden="true"></i>' . $GLOBAL['viewNotFound'] . '</div>';
     return;
 }
 
@@ -84,7 +84,7 @@ if (!isset($UA_VIEW_ROUTES[$uaRequestedView])) {
 if ($uaViewGuard !== null && !$uaViewGuard()) {
     // Security log: a role guard rejected access to a view.
     auditLog($pdo, 'accessDenied', "view={$uaRequestedView} guard={$uaViewGuard} role=" . ($_SESSION['app_user_role'] ?? '?'));
-    echo '<div class="alert alert-danger"><i class="fas fa-lock me-2" aria-hidden="true"></i>Accès refusé.</div>';
+    echo '<div class="alert alert-danger"><i class="fas fa-lock me-2" aria-hidden="true"></i>' . $GLOBAL['accessDenied'] . '</div>';
     return;
 }
 

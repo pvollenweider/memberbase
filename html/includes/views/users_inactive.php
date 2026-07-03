@@ -20,24 +20,24 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
     <div class="ca-settings-layout">
 
       <!-- Sidebar nav (same as settings_form.php) -->
-      <nav class="ca-settings-nav" aria-label="Sections des réglages">
+      <nav class="ca-settings-nav" aria-label="<?= $GLOBAL['settingsSectionsAria'] ?>">
         <ul role="tablist" aria-orientation="vertical" id="settings-tabs">
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups"
                style="text-decoration:none">
-              <i class="fas fa-users fa-fw" aria-hidden="true"></i>Segments
+              <i class="fas fa-users fa-fw" aria-hidden="true"></i><?= $GLOBAL['groups'] ?>
             </a>
           </li>
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=categories"
                style="text-decoration:none">
-              <i class="fas fa-tag fa-fw" aria-hidden="true"></i>Catégories
+              <i class="fas fa-tag fa-fw" aria-hidden="true"></i><?= $GLOBAL['categories'] ?>
             </a>
           </li>
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=filters"
                style="text-decoration:none">
-              <i class="fas fa-layer-group fa-fw" aria-hidden="true"></i>Segments combinés
+              <i class="fas fa-layer-group fa-fw" aria-hidden="true"></i><?= $GLOBAL['combinedSegments'] ?>
             </a>
           </li>
           <?php if (isAdmin()): ?>
@@ -45,37 +45,37 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=compta"
                style="text-decoration:none">
-              <i class="fas fa-tags fa-fw" aria-hidden="true"></i>Types compta
+              <i class="fas fa-tags fa-fw" aria-hidden="true"></i><?= $GLOBAL['comptaTypes'] ?>
             </a>
           </li>
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=settings"
                style="text-decoration:none">
-              <i class="fas fa-sliders fa-fw" aria-hidden="true"></i>Réglages
+              <i class="fas fa-sliders fa-fw" aria-hidden="true"></i><?= $GLOBAL['settings'] ?>
             </a>
           </li>
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=users"
                style="text-decoration:none">
-              <i class="fas fa-user-shield fa-fw" aria-hidden="true"></i>Utilisateurs
+              <i class="fas fa-user-shield fa-fw" aria-hidden="true"></i><?= $GLOBAL['users'] ?>
             </a>
           </li>
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=audit"
                style="text-decoration:none">
-              <i class="fas fa-clock-rotate-left fa-fw" aria-hidden="true"></i>Journal
+              <i class="fas fa-clock-rotate-left fa-fw" aria-hidden="true"></i><?= $GLOBAL['journal'] ?>
             </a>
           </li>
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=integrity"
                style="text-decoration:none">
-              <i class="fas fa-stethoscope fa-fw" aria-hidden="true"></i>Intégrité
+              <i class="fas fa-stethoscope fa-fw" aria-hidden="true"></i><?= $GLOBAL['integrity'] ?>
             </a>
           </li>
           <li role="presentation">
             <a class="ca-settings-nav-btn ca-settings-nav-btn--active" href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers"
                style="text-decoration:none" aria-current="page">
-              <i class="fas fa-archive fa-fw" aria-hidden="true"></i>Archivés
+              <i class="fas fa-archive fa-fw" aria-hidden="true"></i><?= $GLOBAL['archived'] ?>
             </a>
           </li>
           <?php endif ?>
@@ -86,21 +86,21 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
       <div class="ca-settings-content">
 
         <p class="form-section-title mb-1">
-          <i class="fas fa-archive me-1" aria-hidden="true"></i>Membres archivés
+          <i class="fas fa-archive me-1" aria-hidden="true"></i><?= $GLOBAL['archivedMembers'] ?>
         </p>
-        <p class="small text-muted mb-4">Profils archivés. Ils ne sont plus visibles dans les listes.</p>
+        <p class="small text-muted mb-4"><?= $GLOBAL['archivedMembersHint'] ?></p>
 
         <?php if (empty($inactiveUsers)): ?>
         <div class="alert alert-success py-2 px-3" role="alert" style="font-size:0.85rem">
-          <i class="fas fa-check-circle me-1" aria-hidden="true"></i>Aucun membre archivé.
+          <i class="fas fa-check-circle me-1" aria-hidden="true"></i><?= $GLOBAL['noArchivedMembers'] ?>
         </div>
         <?php else: ?>
         <table class="table table-sm align-middle" style="font-size:0.82rem;max-width:720px">
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Email</th>
-              <th style="width:3rem" class="text-center">ID</th>
+              <th><?= $GLOBAL['name'] ?></th>
+              <th><?= $GLOBAL['email'] ?></th>
+              <th style="width:3rem" class="text-center"><?= $GLOBAL['idLabel'] ?></th>
               <th></th>
             </tr>
           </thead>
@@ -110,7 +110,7 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
               <td>
                 <?php $_uLabel = htmlspecialchars(trim(trim($u->lastName . ' ' . $u->firstName) ?: $u->society), ENT_QUOTES, $charset) ?>
                 <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$u->id ?>" class="text-decoration-none">
-                  <?= $_uLabel ?: '<span class="text-muted fst-italic">Sans nom</span>' ?>
+                  <?= $_uLabel ?: '<span class="text-muted fst-italic">' . $GLOBAL['noName'] . '</span>' ?>
                 </a>
               </td>
               <td class="text-muted"><?= htmlspecialchars((string)$u->email, ENT_QUOTES, $charset) ?: '—' ?></td>
@@ -119,9 +119,9 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
                 <button type="button" class="btn btn-sm btn-outline-success py-0 px-2"
                         style="font-size:0.75rem;white-space:nowrap"
                         data-unarchive-id="<?= (int)$u->id ?>"
-                        data-unarchive-name="<?= $_uLabel ?: 'Sans nom #' . (int)$u->id ?>"
+                        data-unarchive-name="<?= $_uLabel ?: sprintf($GLOBAL['noNameId'], (int)$u->id) ?>"
                         onclick="unarchiveConfirm(this)">
-                  <i class="fas fa-box-open me-1" aria-hidden="true"></i>Désarchiver
+                  <i class="fas fa-box-open me-1" aria-hidden="true"></i><?= $GLOBAL['unarchive'] ?>
                 </button>
               </td>
             </tr>
@@ -140,13 +140,13 @@ $allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, 
               <div class="mb-3" style="font-size:2rem;color:var(--ca-ink-muted)">
                 <i class="fas fa-box-open" aria-hidden="true"></i>
               </div>
-              <h6 class="mb-1" id="unarchive-modal-label">Désarchiver ce membre&nbsp;?</h6>
+              <h6 class="mb-1" id="unarchive-modal-label"><?= $GLOBAL['unarchiveConfirmTitle'] ?></h6>
               <p class="text-muted mb-1" style="font-size:0.83rem" id="unarchive-modal-name"></p>
-              <p class="text-muted mb-4" style="font-size:0.83rem">Le profil réapparaîtra dans toutes les listes.</p>
+              <p class="text-muted mb-4" style="font-size:0.83rem"><?= $GLOBAL['unarchiveModalBody'] ?></p>
               <div class="d-flex gap-2 justify-content-center">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
                 <button type="button" class="btn btn-success" id="unarchive-confirm-btn">
-                  <i class="fas fa-box-open me-1" aria-hidden="true"></i>Désarchiver
+                  <i class="fas fa-box-open me-1" aria-hidden="true"></i><?= $GLOBAL['unarchive'] ?>
                 </button>
               </div>
             </div>

@@ -78,6 +78,7 @@ function mbPendingMigrations(PDO $pdo): array
  */
 function mbRunPendingMigrations(PDO $pdo, ?callable $log = null): array
 {
+    global $GLOBAL;
     mbEnsureMigrationsTable($pdo);
     $pending = mbPendingMigrations($pdo);
     $result = ['applied' => [], 'error' => null, 'failed' => null];
@@ -89,7 +90,7 @@ function mbRunPendingMigrations(PDO $pdo, ?callable $log = null): array
     foreach ($pending as $version => $file) {
         $sql = file_get_contents($file);
         if ($sql === false) {
-            $result['error'] = "Lecture impossible : $file";
+            $result['error'] = sprintf($GLOBAL['migrationReadError'], $file);
             $result['failed'] = $version;
             return $result;
         }
@@ -112,7 +113,7 @@ function mbRunPendingMigrations(PDO $pdo, ?callable $log = null): array
             $result['applied'][] = $version;
         } catch (PDOException $e) {
             if ($pdo->inTransaction()) { $pdo->rollBack(); }
-            if ($log) { $log("ÉCHEC\n"); }
+            if ($log) { $log($GLOBAL['migrationFailed'] . "\n"); }
             $result['error'] = $e->getMessage();
             $result['failed'] = $version;
             return $result;

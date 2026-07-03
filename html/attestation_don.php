@@ -11,6 +11,7 @@ require_once __DIR__ . '/includes/lib/auth.php';
 requireLogin();
 ob_start();
 include __DIR__ . "/includes/lib/bootstrap.php";
+require_once __DIR__ . '/locales/resources_fr.php';
 include "classes/user_class.php";
 
 $userid = isset($_GET['userid']) ? (int)$_GET['userid'] : 0;
@@ -54,7 +55,7 @@ $fields = [
     'Localite 2'         => $localite,
     'annee1'             => (string)$year,
     'annee2'             => (string)$year,
-    'Case à cocher2'     => 'Oui',   // Dons en espèces
+    'Case à cocher2'     => $GLOBAL['yes'],   // Dons en espèces
     'Somme'              => $totalFormatted,
     'Lieu'               => $appSettings['org_city'] ?? '',
     'mois'               => date('m'),
@@ -102,7 +103,7 @@ unlink($tmpFdf);
 
 if ($returnCode !== 0 || !file_exists($tmpPdf) || filesize($tmpPdf) === 0) {
     http_response_code(500);
-    echo '<pre>Erreur pdftk (code ' . $returnCode . "):\n" . htmlspecialchars(implode("\n", $cmdOutput)) . '</pre>';
+    echo '<pre>' . sprintf($GLOBAL['pdftkError'], $returnCode) . "\n" . htmlspecialchars(implode("\n", $cmdOutput)) . '</pre>';
     exit;
 }
 

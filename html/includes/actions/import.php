@@ -125,7 +125,7 @@ if ($_REQUEST['action'] === 'importUpload') {
         if ($segTeamName === '') { $segTeamId = 0; } // stale id → skip
     } elseif ($segMode === 'new' || $segMode === 'auto') {
         $segTeamName = $segMode === 'new' ? trim((string)($_POST['segment_new_name'] ?? '')) : '';
-        if ($segTeamName === '') { $segTeamName = 'Import ' . date('d.m.Y H:i'); }
+        if ($segTeamName === '') { $segTeamName = sprintf($GLOBAL['importSegmentName'], date('d.m.Y H:i')); }
         $team = new Team();
         $team->name = $segTeamName;
         $team->setHidden(0);

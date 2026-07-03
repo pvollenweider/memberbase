@@ -43,19 +43,19 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
 
     <!-- Mobile: select replaces sidebar on small screens -->
     <div class="ca-settings-select-wrap">
-      <select class="form-select form-select-sm" id="settings-select" aria-label="Section des réglages">
-        <option value="#tab-groups">Segments</option>
-        <option value="#tab-categories">Catégories</option>
-        <option value="#tab-filters">Segments combinés</option>
+      <select class="form-select form-select-sm" id="settings-select" aria-label="<?= $GLOBAL['settingsSectionAria'] ?>">
+        <option value="#tab-groups"><?= $GLOBAL['groups'] ?></option>
+        <option value="#tab-categories"><?= $GLOBAL['categories'] ?></option>
+        <option value="#tab-filters"><?= $GLOBAL['combinedSegments'] ?></option>
         <?php if (isManager()): ?>
-        <option value="#tab-compta">Types compta</option>
+        <option value="#tab-compta"><?= $GLOBAL['comptaTypes'] ?></option>
         <?php endif ?>
         <?php if (isAdmin()): ?>
-        <option value="#tab-settings">Réglages</option>
-        <option value="#tab-users">Utilisateurs</option>
-        <option value="#tab-audit">Journal</option>
-        <option value="#tab-integrity">Intégrité</option>
-        <option value="#tab-health">Santé</option>
+        <option value="#tab-settings"><?= $GLOBAL['settings'] ?></option>
+        <option value="#tab-users"><?= $GLOBAL['users'] ?></option>
+        <option value="#tab-audit"><?= $GLOBAL['journal'] ?></option>
+        <option value="#tab-integrity"><?= $GLOBAL['integrity'] ?></option>
+        <option value="#tab-health"><?= $GLOBAL['health'] ?></option>
         <?php endif ?>
       </select>
     </div>
@@ -63,34 +63,34 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
     <div class="ca-settings-layout">
 
       <!-- Sidebar nav -->
-      <nav class="ca-settings-nav" aria-label="Sections des réglages">
+      <nav class="ca-settings-nav" aria-label="<?= $GLOBAL['settingsSectionsAria'] ?>">
         <ul role="tablist" aria-orientation="vertical" id="settings-tabs">
           <?php
           $_navSelf = $_SERVER['PHP_SELF'];
           $_navActive = $_activeTab ?? 'groups';
-          _settings_nav_item('groups',     'fas fa-users',       'Segments',          $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('categories', 'fas fa-tag',         'Catégories',        $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('filters',    'fas fa-layer-group', 'Segments combinés', $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('groups',     'fas fa-users',       $GLOBAL['groups'],           $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('categories', 'fas fa-tag',         $GLOBAL['categories'],       $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('filters',    'fas fa-layer-group', $GLOBAL['combinedSegments'], $_navActive, $_settingsDrillDown, $_navSelf);
           if (isManager()):
           ?>
-          <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true">Gestion</li>
+          <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['management'] ?></li>
           <?php
-          _settings_nav_item('compta',     'fas fa-tags',        'Types compta', $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('compta',     'fas fa-tags',        $GLOBAL['comptaTypes'], $_navActive, $_settingsDrillDown, $_navSelf);
           endif;
           if (isAdmin()):
           ?>
           <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['administration'] ?></li>
           <?php
-          _settings_nav_item('settings',   'fas fa-sliders',     'Réglages',     $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('users',      'fas fa-user-shield', 'Utilisateurs', $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('audit',      'fas fa-clock-rotate-left', 'Journal', $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('integrity',  'fas fa-stethoscope', 'Intégrité',    $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('health',     'fas fa-heart-pulse', 'Santé',        $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('settings',   'fas fa-sliders',     $GLOBAL['settings'],  $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('users',      'fas fa-user-shield', $GLOBAL['users'],     $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('audit',      'fas fa-clock-rotate-left', $GLOBAL['journal'], $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('integrity',  'fas fa-stethoscope', $GLOBAL['integrity'], $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('health',     'fas fa-heart-pulse', $GLOBAL['health'],    $_navActive, $_settingsDrillDown, $_navSelf);
           ?>
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers"
                style="text-decoration:none">
-              <i class="fas fa-archive fa-fw" aria-hidden="true"></i>Archivés
+              <i class="fas fa-archive fa-fw" aria-hidden="true"></i><?= $GLOBAL['archived'] ?>
             </a>
           </li>
           <?php endif ?>
@@ -114,71 +114,71 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                   hx-swap="innerHTML">
               <input type="hidden" name="action" value="saveSettings"/>
               <input type="hidden" name="view" value="settings"/>
-              <p class="form-section-title"><i class="fas fa-building me-1" aria-hidden="true"></i>Organisation</p>
+              <p class="form-section-title"><i class="fas fa-building me-1" aria-hidden="true"></i><?= $GLOBAL['organization'] ?></p>
               <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_name">Nom de l'organisation</label>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_name"><?= $GLOBAL['orgName'] ?></label>
                 <input type="text" name="org_name" id="s_org_name" class="form-control form-control-sm" style="max-width:320px"
                        value="<?= htmlspecialchars($appSettings['org_name'] ?? '', ENT_QUOTES, $charset) ?>">
               </div>
               <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_address">Adresse</label>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_address"><?= $GLOBAL['address'] ?></label>
                 <input type="text" name="org_address" id="s_org_address" class="form-control form-control-sm" style="max-width:320px"
                        value="<?= htmlspecialchars($appSettings['org_address'] ?? '', ENT_QUOTES, $charset) ?>">
               </div>
               <div class="row g-2 mb-3" style="max-width:320px">
                 <div class="col-4">
-                  <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_npa">NPA</label>
+                  <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_npa"><?= $GLOBAL['npaShort'] ?></label>
                   <input type="text" name="org_npa" id="s_org_npa" class="form-control form-control-sm"
                          value="<?= htmlspecialchars($appSettings['org_npa'] ?? '', ENT_QUOTES, $charset) ?>">
                 </div>
                 <div class="col-8">
-                  <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_city">Ville</label>
+                  <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_city"><?= $GLOBAL['city'] ?></label>
                   <input type="text" name="org_city" id="s_org_city" class="form-control form-control-sm"
                          value="<?= htmlspecialchars($appSettings['org_city'] ?? '', ENT_QUOTES, $charset) ?>">
                 </div>
               </div>
               <div class="mb-3">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_country">Pays</label>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_country"><?= $GLOBAL['country'] ?></label>
                 <input type="text" name="org_country" id="s_org_country" class="form-control form-control-sm" style="max-width:320px"
                        value="<?= htmlspecialchars($appSettings['org_country'] ?? '', ENT_QUOTES, $charset) ?>">
               </div>
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team_prefix">Préfixe des segments membres</label>
-                <p class="text-muted mb-2" style="font-size:0.78rem">Préfixe utilisé pour retrouver les segments membres des années précédentes (ex: «Membre» pour les segments «Membre 2025», «Membre 2026»…).</p>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team_prefix"><?= $GLOBAL['memberTeamPrefixLabel'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['memberTeamPrefixHelp'] ?></p>
                 <input type="text" name="membre_team_prefix" id="s_membre_team_prefix" class="form-control form-control-sm" style="max-width:200px"
                        value="<?= htmlspecialchars($appSettings['membre_team_prefix'] ?? 'Membre', ENT_QUOTES, $charset) ?>">
               </div>
-              <p class="form-section-title"><i class="fas fa-sliders me-1" aria-hidden="true"></i>Segments</p>
+              <p class="form-section-title"><i class="fas fa-sliders me-1" aria-hidden="true"></i><?= $GLOBAL['groups'] ?></p>
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_default_team">Segment affiché par défaut</label>
-                <p class="text-muted mb-2" style="font-size:0.78rem">Segment sélectionné à l'ouverture de la liste des membres. Choisir le segment correspondant aux membres de l'année en cours (ex: «Membre 2026»). À mettre à jour chaque année.</p>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_default_team"><?= $GLOBAL['defaultTeamLabel'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['defaultTeamHelp'] ?></p>
                 <select name="default_team" id="s_default_team" class="form-select form-select-sm" style="max-width:320px">
                   <?php foreach ($allTeams as $t): ?>
                   <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['default_team'] === (int)$t->id ? 'selected' : '' ?>>
-                    <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' (masqué)' : '' ?>
+                    <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' ' . $GLOBAL['maskedSuffix'] : '' ?>
                   </option>
                   <?php endforeach ?>
                 </select>
               </div>
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team">Segment membres (année de référence)</label>
-                <p class="text-muted mb-2" style="font-size:0.78rem">Segment membres de l'année en cours (ex: «Membre 2026»). Utilisé pour les filtres cotisations et affiché dans le tableau de bord Contributions avec comparaison à l'année précédente. À mettre à jour chaque année.</p>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team"><?= $GLOBAL['membreTeamLabel'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['membreTeamHelp'] ?></p>
                 <select name="membre_team" id="s_membre_team" class="form-select form-select-sm" style="max-width:320px">
                   <?php foreach ($allTeams as $t): ?>
                   <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['membre_team'] === (int)$t->id ? 'selected' : '' ?>>
-                    <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' (masqué)' : '' ?>
+                    <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' ' . $GLOBAL['maskedSuffix'] : '' ?>
                   </option>
                   <?php endforeach ?>
                 </select>
               </div>
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_member_no_coti_team">Segment membres sans cotisation</label>
-                <p class="text-muted mb-2" style="font-size:0.78rem">Membres considérés comme actifs sans payer de cotisation (bénévoles, comité…). Exclus du filtre «Aucune cotisation ces 3 dernières années». Laisser vide si non applicable.</p>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_member_no_coti_team"><?= $GLOBAL['noCotiTeamLabel'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['noCotiTeamHelp'] ?></p>
                 <select name="member_no_coti_team" id="s_member_no_coti_team" class="form-select form-select-sm" style="max-width:320px">
-                  <option value="0" <?= empty($appSettings['member_no_coti_team']) ? 'selected' : '' ?>>— Aucun —</option>
+                  <option value="0" <?= empty($appSettings['member_no_coti_team']) ? 'selected' : '' ?>><?= $GLOBAL['noneOption'] ?></option>
                   <?php foreach ($allTeams as $t): ?>
                   <option value="<?= (int)$t->id ?>" <?= (int)($appSettings['member_no_coti_team'] ?? 0) === (int)$t->id ? 'selected' : '' ?>>
-                    <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' (masqué)' : '' ?>
+                    <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' ' . $GLOBAL['maskedSuffix'] : '' ?>
                   </option>
                   <?php endforeach ?>
                 </select>
@@ -206,7 +206,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           <!-- Catégories -->
           <div class="tab-pane fade<?= $_paneClass('categories') ?>" id="tab-categories" role="tabpanel" aria-labelledby="tab-categories-btn">
             <div class="mt-1 col-md-9">
-            <p class="form-section-title" style="margin-top:0"><i class="fas fa-tag me-1" aria-hidden="true"></i>Catégories</p>
+            <p class="form-section-title" style="margin-top:0"><i class="fas fa-tag me-1" aria-hidden="true"></i><?= $GLOBAL['categories'] ?></p>
             <?php include __DIR__ . '/settings_categories.php'; ?>
             </div>
           </div><!-- #tab-categories -->
@@ -215,7 +215,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           <div class="tab-pane fade<?= $_paneClass('filters') ?>" id="tab-filters" role="tabpanel" aria-labelledby="tab-filters-btn">
             <div class="mt-1 col-md-9">
             <?php if (($_REQUEST['view'] ?? '') === 'updateMetagroup'): include __DIR__ . '/settings_filter_edit.php'; else: ?>
-            <p class="form-section-title" style="margin-top:0"><i class="fas fa-layer-group me-1" aria-hidden="true"></i>Segments combinés</p>
+            <p class="form-section-title" style="margin-top:0"><i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['combinedSegments'] ?></p>
             <?php include __DIR__ . '/settings_filters.php'; endif; ?>
             </div>
           </div><!-- #tab-filters -->

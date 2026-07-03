@@ -6,7 +6,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-if (!isAdmin()) { echo '<div class="alert alert-danger">Accès refusé.</div>'; return; }
+if (!isAdmin()) { echo '<div class="alert alert-danger">' . $GLOBAL['accessDenied'] . '</div>'; return; }
 $memberId = (int)$user->getId();
 
 $histRows = $pdo->prepare("
@@ -20,22 +20,22 @@ $history = $histRows->fetchAll(PDO::FETCH_OBJ);
 ?>
 
 <p class="form-section-title mb-1">
-  <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i>Historique des modifications
+  <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><?= $GLOBAL['changeHistory'] ?>
 </p>
-<p class="small text-muted mb-3">Toutes les actions enregistrées pour ce membre.</p>
+<p class="small text-muted mb-3"><?= $GLOBAL['changeHistoryHint'] ?></p>
 
 <?php if (empty($history)): ?>
 <div class="alert alert-secondary py-2 px-3" style="font-size:0.85rem">
-  <i class="fas fa-circle-info me-1" aria-hidden="true"></i>Aucune entrée dans le journal pour ce membre.
+  <i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= $GLOBAL['noJournalEntriesForMember'] ?>
 </div>
 <?php else: ?>
 <table id="userHistoryTable" class="table table-sm table-striped table-hover">
   <thead>
     <tr>
-      <th style="white-space:nowrap">Date</th>
-      <th class="d-none d-sm-table-cell">Utilisateur</th>
-      <th>Action</th>
-      <th>Détail</th>
+      <th style="white-space:nowrap"><?= $GLOBAL['date'] ?></th>
+      <th class="d-none d-sm-table-cell"><?= $GLOBAL['user'] ?></th>
+      <th><?= $GLOBAL['action'] ?></th>
+      <th><?= $GLOBAL['detail'] ?></th>
     </tr>
   </thead>
   <tbody>
@@ -57,12 +57,12 @@ $(function () {
         pageLength: 25,
         columnDefs: [{ targets: [1], visible: window.innerWidth >= 576 }],
         language: {
-            search: 'Rechercher :',
-            lengthMenu: 'Afficher _MENU_ entrées',
-            info: 'Entrées _START_ à _END_ sur _TOTAL_',
-            infoFiltered: '(filtrées sur _MAX_)',
-            paginate: { previous: 'Précédent', next: 'Suivant' },
-            emptyTable: 'Aucune entrée.'
+            search: <?= json_encode($GLOBAL['dtSearch'], JSON_UNESCAPED_UNICODE) ?>,
+            lengthMenu: <?= json_encode($GLOBAL['dtLengthMenu'], JSON_UNESCAPED_UNICODE) ?>,
+            info: <?= json_encode($GLOBAL['dtInfo'], JSON_UNESCAPED_UNICODE) ?>,
+            infoFiltered: <?= json_encode($GLOBAL['dtInfoFiltered'], JSON_UNESCAPED_UNICODE) ?>,
+            paginate: { previous: <?= json_encode($GLOBAL['dtPrevious'], JSON_UNESCAPED_UNICODE) ?>, next: <?= json_encode($GLOBAL['dtNext'], JSON_UNESCAPED_UNICODE) ?> },
+            emptyTable: <?= json_encode($GLOBAL['dtEmptyTable'], JSON_UNESCAPED_UNICODE) ?>
         }
     });
 });

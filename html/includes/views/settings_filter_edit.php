@@ -66,9 +66,9 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 <div class="alert alert-success alert-dismissible fade show d-flex align-items-start gap-2" role="alert">
   <i class="fas fa-check-circle mt-1 flex-shrink-0" aria-hidden="true"></i>
   <div>
-    <strong>Segment combiné «<?= htmlspecialchars($mg->name, ENT_QUOTES, 'UTF-8') ?>» créé.</strong>
-    Vous pouvez maintenant assigner des segments ci-dessous, ou
-    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=filters" class="alert-link">retourner à la liste</a>.
+    <strong><?= sprintf($GLOBAL['combinedSegmentCreated'], htmlspecialchars($mg->name, ENT_QUOTES, 'UTF-8')) ?></strong>
+    <?= $GLOBAL['assignSegmentsBelowOr'] ?>
+    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=filters" class="alert-link"><?= $GLOBAL['backToListLink'] ?></a>.
   </div>
   <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="<?= $GLOBAL['close'] ?>"></button>
 </div>
@@ -76,11 +76,11 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 <div class="row justify-content-center mt-4">
   <div class="col-md-6 d-flex flex-column gap-4">
 
-    <?php $_mgBackTab = $isFilter ? 'filters' : 'categories'; $_mgBackLabel = $isFilter ? 'segments combinés' : 'catégories'; ?>
+    <?php $_mgBackTab = $isFilter ? 'filters' : 'categories'; $_mgBackLabel = $isFilter ? $GLOBAL['combinedSegmentsLower'] : $GLOBAL['categoriesLower']; ?>
     <div>
       <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=<?= $_mgBackTab ?>"
          class="btn btn-sm btn-outline-secondary">
-        <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Retour aux <?= $_mgBackLabel ?>
+        <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['backToLabel'], $_mgBackLabel) ?>
       </a>
     </div>
 
@@ -94,7 +94,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <input type="hidden" name="id" value="<?= $mgId ?>"/>
 
         <div class="row mb-3 align-items-center">
-          <label for="mgname" class="col-sm-3 col-form-label col-form-label-sm text-sm-end">Nom</label>
+          <label for="mgname" class="col-sm-3 col-form-label col-form-label-sm text-sm-end"><?= $GLOBAL['name'] ?></label>
           <div class="col-sm-9">
             <input type="text" class="form-control form-control-sm" id="mgname" name="name"
                    value="<?= htmlentities($mg->getName(), ENT_COMPAT, $charset) ?>" maxlength="255" required/>
@@ -116,16 +116,17 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
       <!-- SEGMENT COMBINÉ: all teams grouped by category, checkboxes -->
       <div class="d-flex align-items-baseline justify-content-between mb-1">
-        <p class="form-section-title mb-0">Segments membres</p>
+        <p class="form-section-title mb-0"><?= $GLOBAL['memberSegments'] ?></p>
         <a href="<?= $_SERVER['PHP_SELF'] ?>?metagroup=<?= $mgId ?>" class="small">
-          Voir la liste filtrée <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
+          <?= $GLOBAL['viewFilteredList'] ?> <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
         </a>
       </div>
-      <p class="small text-muted mb-3">Sauvegarde automatique à chaque coche.</p>
+      <p class="small text-muted mb-3"><?= $GLOBAL['autoSaveOnCheck'] ?></p>
 
       <div id="mg-team-list" class="d-flex flex-column gap-1" style="font-size:0.85rem">
         <?php
         function renderTeamCb($t, $memberTeamIds, $charset, $teamCounts) {
+          global $GLOBAL;
           $isHidden = (int)$t->hidden; ?>
         <div class="form-check form-check-sm <?= $isHidden ? 'text-muted' : '' ?>">
           <input class="form-check-input mg-team-cb" type="checkbox"
@@ -135,7 +136,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <label class="form-check-label" for="mgteam_<?= (int)$t->id ?>">
             <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
             <?php if ($isHidden): ?>
-            <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="segment masqué" title="Segment masqué"></i>
+            <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="<?= $GLOBAL['hiddenSegmentLower'] ?>" title="<?= $GLOBAL['hiddenSegment'] ?>"></i>
             <?php endif ?>
             <?php if (isset($teamCounts[(int)$t->id])): ?>
             <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
@@ -152,7 +153,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <?php foreach ($teams as $t): renderTeamCb($t, $memberTeamIds, $charset, $teamCounts); endforeach;
             endforeach;
             if (!empty($uncategorized)): ?>
-          <p class="text-muted mb-0 mt-2" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Sans catégorie</p>
+          <p class="text-muted mb-0 mt-2" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600"><?= $GLOBAL['noCategoryLabel'] ?></p>
           <?php foreach ($uncategorized as $t): renderTeamCb($t, $memberTeamIds, $charset, $teamCounts); endforeach;
             endif;
         else:
@@ -169,13 +170,13 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
       $nonMemberTeams = array_filter($allTeams, fn($t) => !in_array((int)$t->id, $memberTeamIds) && !(int)$t->hidden);
       ?>
 
-      <p class="form-section-title mb-1">Segments dans cette catégorie</p>
+      <p class="form-section-title mb-1"><?= $GLOBAL['segmentsInThisCategory'] ?></p>
 
       <div id="mg-team-list">
         <?php if (empty($memberTeams)): ?>
-        <p class="text-muted small mb-2" id="mg-empty-msg">Aucun segment dans cette catégorie.</p>
+        <p class="text-muted small mb-2" id="mg-empty-msg"><?= $GLOBAL['noSegmentsInCategory'] ?></p>
         <?php else: ?>
-        <p class="text-muted small mb-2" id="mg-empty-msg" style="display:none">Aucun segment dans cette catégorie.</p>
+        <p class="text-muted small mb-2" id="mg-empty-msg" style="display:none"><?= $GLOBAL['noSegmentsInCategory'] ?></p>
         <?php endif ?>
 
         <ul class="list-unstyled mb-0 d-flex flex-column gap-1" id="mg-member-list" style="font-size:0.85rem">
@@ -185,7 +186,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             <span>
               <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
               <?php if ($_mHidden): ?>
-              <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="segment masqué" title="Segment masqué"></i>
+              <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="<?= $GLOBAL['hiddenSegmentLower'] ?>" title="<?= $GLOBAL['hiddenSegment'] ?>"></i>
               <?php endif ?>
               <?php if (isset($teamCounts[(int)$t->id])): ?>
               <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
@@ -193,7 +194,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             </span>
             <button type="button" class="btn btn-sm py-0 px-1 text-muted mg-team-cb mg-remove-btn"
                     data-teamid="<?= (int)$t->id ?>" data-checked="1"
-                    title="Retirer de la catégorie" aria-label="Retirer <?= htmlentities($t->name, ENT_QUOTES, $charset) ?>">
+                    title="<?= $GLOBAL['removeFromCategory'] ?>" aria-label="<?= sprintf($GLOBAL['removeName'], htmlentities($t->name, ENT_QUOTES, $charset)) ?>">
               <i class="fas fa-xmark" style="font-size:0.75rem" aria-hidden="true"></i>
             </button>
             <input type="hidden" class="mg-cat-member" data-teamid="<?= (int)$t->id ?>" value="1"/>
@@ -227,12 +228,13 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <?php
           // Helper to render one add-row
           function renderAddRow($t, $charset, $teamCounts, $currentCatName) {
+              global $GLOBAL;
               $_nmHidden = (int)$t->hidden; ?>
             <li class="d-flex align-items-center justify-content-between gap-2" id="mg-row-<?= (int)$t->id ?>">
               <span class="text-muted">
                 <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
                 <?php if ($_nmHidden): ?>
-                <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="segment masqué" title="Segment masqué"></i>
+                <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="<?= $GLOBAL['hiddenSegmentLower'] ?>" title="<?= $GLOBAL['hiddenSegment'] ?>"></i>
                 <?php endif ?>
                 <?php if (isset($teamCounts[(int)$t->id])): ?>
                 <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
@@ -241,8 +243,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <button type="button" class="btn btn-sm py-0 px-1 text-muted mg-team-cb mg-add-btn"
                       data-teamid="<?= (int)$t->id ?>" data-checked="0"
                       data-dest="<?= $currentCatName ?>"
-                      title="Déplacer dans «<?= $currentCatName ?>»"
-                      aria-label="Déplacer <?= htmlentities($t->name, ENT_QUOTES, $charset) ?> dans <?= $currentCatName ?>">
+                      title="<?= sprintf($GLOBAL['moveToCategory'], $currentCatName) ?>"
+                      aria-label="<?= sprintf($GLOBAL['moveNameToCategory'], htmlentities($t->name, ENT_QUOTES, $charset), $currentCatName) ?>">
                 <i class="fas fa-arrow-right" style="font-size:0.75rem" aria-hidden="true"></i>
               </button>
               <input type="hidden" class="mg-cat-member" data-teamid="<?= (int)$t->id ?>" value="0"/>
@@ -261,7 +263,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <?php endforeach ?>
           <?php if (!empty($_nmNoCat)): ?>
           <div>
-            <p class="text-muted mb-1" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Sans catégorie</p>
+            <p class="text-muted mb-1" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600"><?= $GLOBAL['noCategoryLabel'] ?></p>
             <ul class="list-unstyled mb-0 d-flex flex-column gap-1">
             <?php foreach ($_nmNoCat as $t): renderAddRow($t, $charset, $teamCounts, $_currentCatName); endforeach ?>
             </ul>
@@ -283,7 +285,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <button type="button" id="mg-toast-undo"
                   class="btn btn-sm btn-link text-white text-decoration-underline me-1 flex-shrink-0"
                   style="display:none;font-size:0.78rem;padding:0.1rem 0.4rem"
-                  aria-label="Annuler la dernière action"><?= $GLOBAL['cancel'] ?></button>
+                  aria-label="<?= $GLOBAL['undoLastAction'] ?>"><?= $GLOBAL['cancel'] ?></button>
           <button type="button" class="btn-close btn-close-white me-2 ms-1 flex-shrink-0" data-bs-dismiss="toast" aria-label="<?= $GLOBAL['close'] ?>"></button>
         </div>
       </div>
@@ -333,8 +335,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           body: body.toString()
         }).then(function(r) {
           if (r.ok) { onSuccess(); }
-          else { (onError || function() { showToast('Erreur lors de la sauvegarde', false); })(); }
-        }).catch(function() { showToast('Erreur réseau', false); });
+          else { (onError || function() { showToast(<?= json_encode($GLOBAL['saveError']) ?>, false); })(); }
+        }).catch(function() { showToast(<?= json_encode($GLOBAL['networkError']) ?>, false); });
       }
 
       if (isFilter) {
@@ -351,7 +353,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               var label = document.querySelector('label[for="mgteam_' + cb.dataset.teamid + '"]').textContent.trim();
               showToast((cb.checked ? '✓ ' : '✗ ') + label, true, function() {
                 cb.checked = prevChecked;
-                saveMembers(prevIds, function() { showToast('Action annulée', true, null); });
+                saveMembers(prevIds, function() { showToast(<?= json_encode($GLOBAL['actionUndone']) ?>, true, null); });
               });
             });
           });
@@ -371,8 +373,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             btn.classList.remove('mg-add-btn');
             btn.classList.add('mg-remove-btn');
             btn.dataset.checked = '1';
-            btn.title = 'Retirer de la catégorie';
-            btn.setAttribute('aria-label', 'Retirer ' + span.textContent.trim());
+            btn.title = <?= json_encode($GLOBAL['removeFromCategory']) ?>;
+            btn.setAttribute('aria-label', <?= json_encode($GLOBAL['removeName']) ?>.replace('%s', span.textContent.trim()));
             btn.querySelector('i').className = 'fas fa-xmark';
             btn.removeEventListener('click', btn._addHandler);
             btn.addEventListener('click', btn._removeHandler = function() { moveRow(btn, false); });
@@ -382,8 +384,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
             btn.classList.remove('mg-remove-btn');
             btn.classList.add('mg-add-btn');
             btn.dataset.checked = '0';
-            btn.title = 'Ajouter à la catégorie';
-            btn.setAttribute('aria-label', 'Ajouter ' + span.textContent.trim());
+            btn.title = <?= json_encode($GLOBAL['addToCategory']) ?>;
+            btn.setAttribute('aria-label', <?= json_encode($GLOBAL['addName']) ?>.replace('%s', span.textContent.trim()));
             btn.querySelector('i').className = 'fas fa-plus';
             btn.removeEventListener('click', btn._removeHandler);
             btn.addEventListener('click', btn._addHandler = function() { moveRow(btn, true); });
@@ -405,7 +407,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           saveMembers(memberIds, function() {
             showToast(addMode ? ('→ ' + destName + ' : ' + teamName) : ('✗ ' + teamName), true, function() {
               applyDomMove(btn, !addMode);
-              saveMembers(prevIds, function() { showToast('Action annulée', true, null); });
+              saveMembers(prevIds, function() { showToast(<?= json_encode($GLOBAL['actionUndone']) ?>, true, null); });
             });
           });
         }
@@ -423,7 +425,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
     <!-- Delete -->
     <div>
       <p class="form-section-title" style="color:var(--ca-danger)"><?= $GLOBAL['delete'] ?></p>
-      <p class="small text-muted mb-2">Supprime le segment combiné. Les segments membres ne sont pas affectés.</p>
+      <p class="small text-muted mb-2"><?= $GLOBAL['deleteMetagroupHelp'] ?></p>
       <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" hx-boost="false">
         <input type="hidden" name="action" value="deleteMetagroup"/>
         <input type="hidden" name="view" value="settings"/>
@@ -447,8 +449,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        Supprimer «<?= htmlentities($mg->getName(), ENT_QUOTES, $charset) ?>» ?
-        <p class="small text-muted mt-1 mb-0">Les segments membres ne seront pas supprimés.</p>
+        <?= sprintf($GLOBAL['deleteNameConfirm'], htmlentities($mg->getName(), ENT_QUOTES, $charset)) ?>
+        <p class="small text-muted mt-1 mb-0"><?= $GLOBAL['memberSegmentsNotDeleted'] ?></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>

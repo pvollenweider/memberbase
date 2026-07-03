@@ -20,10 +20,10 @@ $_preview = array_slice($_rows, 0, 25);
 // Segments (teams) and categories for the "add to segment" section
 $_segTeams  = $pdo->query("SELECT id, name FROM team WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 $_segCats   = $pdo->query("SELECT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter = 0 GROUP BY id, name ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
-$_segAutoName = 'Import ' . date('d.m.Y H:i');
+$_segAutoName = sprintf($GLOBAL['importSegmentName'], date('d.m.Y H:i'));
 
 require_once __DIR__ . '/../lib/import_fields.php';
-$_memberFields = ['' => '— ignorer —'] + importFieldLabels();
+$_memberFields = ['' => $GLOBAL['ignoreField']] + importFieldLabels();
 
 // Auto-detect mapping by matching header labels (case-insensitive)
 $_autoMap = [
@@ -50,25 +50,24 @@ $_autoMap = [
   <div class="col-12 col-xl-10">
 
     <p class="form-section-title mb-1">
-      <i class="fas fa-file-import me-1" aria-hidden="true"></i>Importer des contacts
+      <i class="fas fa-file-import me-1" aria-hidden="true"></i><?= $GLOBAL['importContacts'] ?>
     </p>
     <p class="small text-muted mb-4">
-      Étape 2 sur 3 — Associez chaque colonne du fichier à un champ membre.<br>
-      <span class="text-muted"><?= count($_rows) ?> ligne<?= count($_rows) > 1 ? 's' : '' ?> détectée<?= count($_rows) > 1 ? 's' : '' ?>.</span>
+      <?= $GLOBAL['importStep2Subtitle'] ?><br>
+      <span class="text-muted"><?= sprintf($GLOBAL['rowsDetected'], count($_rows), count($_rows) > 1 ? 's' : '', count($_rows) > 1 ? 's' : '') ?></span>
     </p>
 
     <?php if (!empty($_SESSION['_import_truncated'])): ?>
     <div class="alert alert-warning py-2 px-3 mb-3" style="font-size:0.85rem">
       <i class="fas fa-triangle-exclamation me-1"></i>
-      Le fichier dépasse la limite de 5 000 lignes — seules les 5 000 premières seront importées.
-      Les lignes suivantes sont <strong>ignorées</strong>. Découpez le fichier pour importer le reste.
+      <?= $GLOBAL['importTruncatedWarning'] ?>
     </div>
     <?php endif ?>
 
     <?php if (($_GET['err'] ?? '') === 'nomap'): ?>
     <div class="alert alert-danger py-2 px-3 mb-3" style="font-size:0.85rem">
       <i class="fas fa-triangle-exclamation me-1"></i>
-      Aucune colonne n'est associée à un champ membre — sélectionnez au moins un champ.
+      <?= $GLOBAL['importErrNoMapping'] ?>
     </div>
     <?php endif ?>
 
@@ -79,9 +78,9 @@ $_autoMap = [
       <table class="table table-sm align-middle mb-4" style="font-size:0.82rem">
         <thead>
           <tr>
-            <th style="width:22%">Colonne fichier</th>
-            <th style="width:28%">Champ membre</th>
-            <th>Exemples</th>
+            <th style="width:22%"><?= $GLOBAL['fileColumn'] ?></th>
+            <th style="width:28%"><?= $GLOBAL['memberField'] ?></th>
+            <th><?= $GLOBAL['examples'] ?></th>
           </tr>
         </thead>
         <tbody>
@@ -114,17 +113,17 @@ $_autoMap = [
         </tbody>
       </table>
 
-      <p class="form-section-title mt-4">Ajouter les contacts à un segment</p>
+      <p class="form-section-title mt-4"><?= $GLOBAL['addContactsToSegment'] ?></p>
       <div x-data="{ mode: 'auto' }" class="mb-4" style="max-width:560px">
         <div class="form-check">
           <input class="form-check-input" type="radio" name="segment_mode" id="seg-auto" value="auto" x-model="mode" data-no-dirty checked>
           <label class="form-check-label" for="seg-auto" style="font-size:0.85rem">
-            Créer un segment <strong><?= htmlspecialchars($_segAutoName, ENT_QUOTES, $charset) ?></strong>
+            <?= sprintf($GLOBAL['createSegmentNamed'], htmlspecialchars($_segAutoName, ENT_QUOTES, $charset)) ?>
           </label>
         </div>
         <div class="form-check">
           <input class="form-check-input" type="radio" name="segment_mode" id="seg-existing" value="existing" x-model="mode" data-no-dirty <?= empty($_segTeams) ? 'disabled' : '' ?>>
-          <label class="form-check-label" for="seg-existing" style="font-size:0.85rem">Ajouter à un segment existant</label>
+          <label class="form-check-label" for="seg-existing" style="font-size:0.85rem"><?= $GLOBAL['addToExistingSegment'] ?></label>
           <div class="mt-1" x-show="mode === 'existing'" x-cloak>
             <select name="segment_existing_id" class="form-select form-select-sm" data-no-dirty style="max-width:320px">
               <?php foreach ($_segTeams as $_t): ?>
@@ -135,13 +134,13 @@ $_autoMap = [
         </div>
         <div class="form-check">
           <input class="form-check-input" type="radio" name="segment_mode" id="seg-new" value="new" x-model="mode" data-no-dirty>
-          <label class="form-check-label" for="seg-new" style="font-size:0.85rem">Créer un nouveau segment</label>
+          <label class="form-check-label" for="seg-new" style="font-size:0.85rem"><?= $GLOBAL['createNewSegment'] ?></label>
           <div class="mt-1 d-flex flex-column gap-2" x-show="mode === 'new'" x-cloak style="max-width:320px">
             <input type="text" name="segment_new_name" class="form-control form-control-sm" data-no-dirty
-                   placeholder="Nom du segment" maxlength="64">
+                   placeholder="<?= $GLOBAL['teamName'] ?>" maxlength="64">
             <?php if (!empty($_segCats)): ?>
             <select name="segment_new_category" class="form-select form-select-sm" data-no-dirty>
-              <option value="0">— Sans catégorie —</option>
+              <option value="0"><?= $GLOBAL['noCategoryOption'] ?></option>
               <?php foreach ($_segCats as $_c): ?>
               <option value="<?= (int)$_c->id ?>"><?= htmlspecialchars($_c->name, ENT_QUOTES, $charset) ?></option>
               <?php endforeach ?>
@@ -151,16 +150,16 @@ $_autoMap = [
         </div>
         <div class="form-check">
           <input class="form-check-input" type="radio" name="segment_mode" id="seg-none" value="none" x-model="mode" data-no-dirty>
-          <label class="form-check-label" for="seg-none" style="font-size:0.85rem">Ne pas ajouter à un segment</label>
+          <label class="form-check-label" for="seg-none" style="font-size:0.85rem"><?= $GLOBAL['doNotAddToSegment'] ?></label>
         </div>
       </div>
 
       <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary btn-sm">
-          <i class="fas fa-arrow-right me-1" aria-hidden="true"></i>Importer
+          <i class="fas fa-arrow-right me-1" aria-hidden="true"></i><?= $GLOBAL['import'] ?>
         </button>
-        <a href="<?= $_SERVER['PHP_SELF'] ?>?view=importStep1" class="btn btn-outline-secondary btn-sm">Retour</a>
-        <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-outline-secondary btn-sm ms-auto">Annuler</a>
+        <a href="<?= $_SERVER['PHP_SELF'] ?>?view=importStep1" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['back'] ?></a>
+        <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-outline-secondary btn-sm ms-auto"><?= $GLOBAL['cancel'] ?></a>
       </div>
     </form>
 

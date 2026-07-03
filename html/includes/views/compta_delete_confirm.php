@@ -16,11 +16,11 @@ $compta->lookupCompta($_REQUEST['comptaid']);
         <i class="fas fa-trash-can" aria-hidden="true"></i>
       </div>
       <h5 class="card-title mb-1"><?= $GLOBAL['deleteEntry'] ?>&nbsp;?</h5>
-      <p class="text-muted mb-3" style="font-size:0.85rem">Cette action est irréversible.</p>
+      <p class="text-muted mb-3" style="font-size:0.85rem"><?= $GLOBAL['actionIrreversible'] ?></p>
       <div class="border rounded p-3 mb-4 text-start bg-light" style="font-size:0.875rem">
-        <div class="mb-1"><span class="text-muted">Date&nbsp;:</span> <strong><?=timeStampToformatedDate($compta->date)?></strong></div>
-        <div class="mb-1"><span class="text-muted">Libellé&nbsp;:</span> <strong><?=htmlentities($compta->getLibele(),ENT_COMPAT,$charset)?></strong></div>
-        <div><span class="text-muted">Montant&nbsp;:</span> <strong><?=$compta->sum?> CHF</strong></div>
+        <div class="mb-1"><span class="text-muted"><?= $GLOBAL['date'] ?>&nbsp;:</span> <strong><?=timeStampToformatedDate($compta->date)?></strong></div>
+        <div class="mb-1"><span class="text-muted"><?= $GLOBAL['libele'] ?>&nbsp;:</span> <strong><?=htmlentities($compta->getLibele(),ENT_COMPAT,$charset)?></strong></div>
+        <div><span class="text-muted"><?= $GLOBAL['amount'] ?>&nbsp;:</span> <strong><?=$compta->sum?> CHF</strong></div>
       </div>
       <div class="d-flex gap-2 justify-content-center">
         <a href="<?=$_SERVER['PHP_SELF']?>?view=updateUser&amp;userid=<?=(int)$_REQUEST['userid']?>" class="btn btn-outline-secondary">
