@@ -94,37 +94,14 @@ Header always set Content-Security-Policy-Report-Only "default-src 'self'; scrip
 
 La CSP est en **`Report-Only`** (ne bloque pas). Vérifier la console du
 navigateur : tant qu'il reste des violations légitimes, ne pas passer en
-enforcement. Étapes pour durcir ensuite : self-héberger TipTap (supprime la
-dépendance `esm.sh`), remplacer `'unsafe-inline'` par des nonces, puis renommer
-l'en-tête en `Content-Security-Policy`.
+enforcement. Étapes pour durcir ensuite : remplacer `'unsafe-inline'` par des
+nonces, puis renommer l'en-tête en `Content-Security-Policy`.
 
-Vérification : `curl -I https://membres.casa-alianza.ch/ | grep -i -E 'x-frame|x-content|referrer|strict-transport|content-security'`.
-
----
-
-## Actions manuelles historiques (avant le système de migrations)
-
-> Conservé pour référence. Sur une instance déjà à jour, rien à faire.
+Vérification : `curl -I https://votre-domaine/ | grep -i -E 'x-frame|x-content|referrer|strict-transport|content-security'`.
 
 ---
 
-## `feature/api-members` — API JSON + 4 rôles
-
-### 1. Mise à jour du schéma — rôles utilisateurs
-
-La colonne `app_users.role` doit accepter deux nouvelles valeurs (`manager`, `readonly`).
-
-```sql
-ALTER TABLE app_users
-  MODIFY COLUMN role ENUM('admin','manager','user','readonly')
-  NOT NULL DEFAULT 'user';
-```
-
-> Aucune donnée existante n'est affectée : `admin` et `user` restent valides.
-
----
-
-### 2. Configuration Apache — routes API
+## Configuration Apache — routes API
 
 Les endpoints API utilisent des URLs propres (`/api/members/42`).
 `mod_rewrite` doit être actif et les règles déclarées **dans le vhost** (pas via `.htaccess`,
@@ -135,11 +112,10 @@ a2enmod rewrite
 systemctl reload apache2
 ```
 
-Ajouter ce bloc dans le vhost HTTPS (`/etc/apache2/sites-available/membres.casa-alianza.ch.conf`),
-à l'intérieur du `<VirtualHost *:443>` :
+Ajouter ce bloc dans le vhost HTTPS, à l'intérieur du `<VirtualHost *:443>` :
 
 ```apache
-<Directory "/var/www/vhosts/membres.casa-alianza.ch/html/api">
+<Directory "/var/www/vhosts/votre-domaine/html/api">
     Options FollowSymLinks
     AllowOverride None
     Require all granted
@@ -159,56 +135,27 @@ Ajouter ce bloc dans le vhost HTTPS (`/etc/apache2/sites-available/membres.casa-
 </Directory>
 ```
 
-Puis recharger Apache :
+Vérification post-déploiement :
 
 ```bash
-apachectl configtest && systemctl reload apache2
-```
-
----
-
-### 3. Déploiement des fichiers
-
-S'assurer que les nouveaux fichiers sont présents après `git pull` :
-
-```
-html/api/_bootstrap.php
-html/api/.htaccess
-html/api/members.php
-html/api/compta.php
-```
-
----
-
-### 4. Vérification post-déploiement
-
-```bash
-# L'API répond (authentification requise → doit retourner 401, pas 500)
+# Auth required → 401, not 500
 curl -s -o /dev/null -w "%{http_code}" https://votre-domaine/api/members.php
-# → 401
 
-# mod_rewrite actif (URL propre → doit retourner 401, pas 404)
+# mod_rewrite active → 401, not 404
 curl -s -o /dev/null -w "%{http_code}" https://votre-domaine/api/members/1
-# → 401
 ```
 
 ---
 
-### 5. Attribution des rôles
+## Attribution des rôles
 
-Après déploiement, ajuster les rôles des utilisateurs existants si nécessaire
-via l'interface Admin → Paramètres → Utilisateurs, ou via SQL :
+Après déploiement sur une instance existante, ajuster les rôles des utilisateurs
+si nécessaire via **Admin → Réglages → Utilisateurs**, ou via SQL :
 
 ```sql
--- Exemple : passer un utilisateur en manager
+-- Example: promote a user to manager
 UPDATE app_users SET role = 'manager' WHERE username = 'prenom.nom';
 
--- Vérifier la répartition actuelle
+-- Check current role distribution
 SELECT role, COUNT(*) FROM app_users GROUP BY role;
 ```
-
----
-
-## Versions précédentes
-
-Aucune migration requise pour les versions antérieures à `feature/api-members`.
