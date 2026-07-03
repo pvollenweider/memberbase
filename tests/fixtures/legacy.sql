@@ -1,0 +1,40 @@
+-- Legacy database snapshot: the schema/data state BEFORE the versioned
+-- migrations existed (see tests/upgrade). Used by the CI upgrade test to prove
+-- that `migrate.php` converges an old, "dirty" database to the current schema.
+--
+--   * users has NO `email_alt` column   → migration 0001 must add it
+--   * compta.sum is VARCHAR(64)          → migration 0002 must convert to DECIMAL
+--   * a few "dirty" sums (comma, empty, non-numeric) → must be cleaned to 0/dot
+--   * NO schema_migrations table          → migrate.php must create + record it
+
+CREATE TABLE `users` (
+  `id`        int(8)       NOT NULL AUTO_INCREMENT,
+  `lastname`  varchar(255) NOT NULL DEFAULT '',
+  `firstname` varchar(255) NOT NULL DEFAULT '',
+  `email`     varchar(255) NOT NULL DEFAULT '',
+  `status`    tinyint(1)   NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `users` (`id`, `lastname`, `firstname`, `email`) VALUES
+  (1, 'Doe',  'Jane', 'jane@example.org'),
+  (2, 'Roe',  'John', 'john@example.org');
+
+CREATE TABLE `compta` (
+  `id`                int(8)       NOT NULL AUTO_INCREMENT,
+  `user_id`           int(8)       NOT NULL DEFAULT 0,
+  `date`              int(16)      NOT NULL DEFAULT 0,
+  `libele`            varchar(255) NOT NULL DEFAULT '',
+  `sum`               varchar(64)  NOT NULL DEFAULT '',
+  `quittance`         varchar(64)  NOT NULL DEFAULT '',
+  `type_id`           int(11)      DEFAULT NULL,
+  `wants_attestation` tinyint(1)   NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `compta` (`id`, `user_id`, `sum`) VALUES
+  (1, 1, '50'),        -- plain integer      → 50.00
+  (2, 1, '12,50'),     -- comma decimal      → 12.50
+  (3, 1, ''),          -- empty              → 0.00
+  (4, 1, 'abc'),       -- non-numeric        → 0.00
+  (5, 2, '100.00');    -- dotted decimal     → 100.00

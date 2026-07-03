@@ -1,0 +1,64 @@
+name: Upgrade Test
+
+# Proves that running the migration runner on an OLD, dirty database converges
+# it to the current schema (see tests/fixtures/legacy.sql + tests/upgrade).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: members
+          MARIADB_USER: members
+          MARIADB_PASSWORD: members
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=15
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_NAME: members
+      DB_USER: members
+      DB_PASS: members
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql
+          coverage: none
+
+      - name: Load the legacy (pre-migrations) database
+        run: mysql -h127.0.0.1 -umembers -pmembers members < tests/fixtures/legacy.sql
+
+      - name: Run migrations
+        run: php html/tools/migrate.php
+
+      - name: Assert convergence (schema + data + tracking)
+        run: bash tests/upgrade/assert.sh
+
+      - name: Re-run migrations must be a no-op (idempotent)
+        run: |
+          out="$(php html/tools/migrate.php)"
+          echo "$out"
+          echo "$out" | grep -q "aucune migration en attente" \
+            || { echo "FAIL: second migrate run was not a no-op"; exit 1; }
+
+      - name: --status must report no drift (exit 0)
+        run: php html/tools/migrate.php --status
