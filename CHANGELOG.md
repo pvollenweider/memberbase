@@ -2,6 +2,18 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [3.6.0] — 2026-07-03
+
+### Nouveautés
+
+- **Maintenance DB sans SSH** (#104) : l'admin peut depuis **Réglages → Santé** exporter la base (dump SQL téléchargeable, sans `mysqldump`) et appliquer les migrations en attente directement depuis le navigateur (case « j'ai fait une sauvegarde » obligatoire). Couvre 100 % des cas sans accès SSH.
+- **Cache-busting des assets CSS/JS** (#105) : tous les fichiers statiques (vendor + custom) portent désormais `?v=APP_VERSION` dans leur URL. Les navigateurs chargent automatiquement les nouvelles versions après chaque mise à jour — sans vider le cache manuellement.
+
+### Documentation
+
+- `CONTRIBUTING.md` enrichi : stack complète (TipTap, PHPUnit), règles migrations, CSRF, dirty-form guard, tableau des jobs CI.
+- `MIGRATION_PROD.md` consolidé : sections d'actions manuelles obsolètes supprimées, instructions de déploiement généralisées (plus de références à une instance spécifique).
+
 ## [3.5.6] — 2026-07-02
 
 Release d'**industrialisation** (ticket-cadre #67) : passer de « ça marche » à « installable, migrable, sécurisable sans stress », sans réécriture du noyau.
