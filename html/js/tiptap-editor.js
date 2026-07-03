@@ -5,8 +5,9 @@
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-import { Editor } from 'https://esm.sh/@tiptap/core@2';
-import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2';
+// Self-hosted bundle (no external CDN) — see html/js/vendor/README.tiptap.md
+// to rebuild. Removing the esm.sh dependency lets the CSP tighten (#93).
+import { Editor, StarterKit } from './vendor/tiptap.bundle.js';
 
 function initTiptap(root) {
     var el = (root && root.querySelector) ? root.querySelector('#tiptap-comment') : document.getElementById('tiptap-comment');
