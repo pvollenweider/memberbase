@@ -867,4 +867,7 @@ $GLOBAL['pendingMigrationsBannerBody'] = "Appliquez-la%s depuis
             (sans SSH), ou en ligne de commande <code>php html/tools/migrate.php</code>,
             après avoir sauvegardé la base. Tant que ce n'est pas fait, certaines
             fonctionnalités peuvent ne pas marcher correctement.\n";
+$GLOBAL['language']              = "Langue";
+$GLOBAL['interfaceLanguage']     = "Langue de l'interface";
+$GLOBAL['interfaceLanguageHelp'] = "Appliquée à votre compte, sur toutes vos sessions.";
 ?>

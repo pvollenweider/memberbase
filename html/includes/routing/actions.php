@@ -66,6 +66,7 @@ if (isset($_REQUEST['action'])) {
         'updateSuivi'          => 'suivi',
         'logout'               => 'auth',
         'changePassword'       => 'auth',
+        'changeLocale'         => 'auth',
         'createAppUser'        => 'auth',
         'updateAppUser'        => 'auth',
         'deleteAppUser'        => 'auth',

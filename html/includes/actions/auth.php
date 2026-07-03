@@ -16,6 +16,18 @@ if ($action === 'logout') {
     header('Location: login.php');
     exit;
 
+} elseif ($action === 'changeLocale') {
+    // Self-service UI language switch — persisted on the account, applied to
+    // the session immediately.
+    $currentUser = authUser();
+    $newLocale   = mbNormalizeLocale($_POST['locale'] ?? '');
+    $pdo->prepare("UPDATE app_users SET locale = ? WHERE id = ?")
+        ->execute([$newLocale, $currentUser->id]);
+    $_SESSION['app_user_locale'] = $newLocale;
+    auditLog($pdo, 'changeLocale', 'locale=' . $newLocale);
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=changePassword');
+    exit;
+
 } elseif ($action === 'changePassword') {
     $currentUser = authUser();
     $pwNew       = $_POST['pw_new']     ?? '';

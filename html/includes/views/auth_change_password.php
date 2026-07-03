@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_REQUEST['action'] ?? '') === 'ch
     // handled in manage_actions.inc — we won't reach this block directly
 }
 ?>
-<div class="d-flex justify-content-center align-items-start pt-4">
+<div class="d-flex flex-column align-items-center pt-4 gap-3">
   <div class="card shadow-sm border-0" style="max-width:440px;width:100%">
     <div class="card-body p-4">
       <?php if ($_cpForced): ?>
@@ -61,4 +61,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_REQUEST['action'] ?? '') === 'ch
       </form>
     </div>
   </div>
+
+  <?php if (!$_cpForced): ?>
+  <div class="card shadow-sm border-0" style="max-width:440px;width:100%">
+    <div class="card-body p-4">
+      <h5 class="card-title mb-3"><?= $GLOBAL['language'] ?></h5>
+      <?php /* hx-boost off: a locale change must fully reload the page so the
+               <html lang> attribute and every layout string refresh. */ ?>
+      <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" hx-boost="false">
+        <input type="hidden" name="action" value="changeLocale">
+        <div class="mb-3">
+          <label for="locale" class="form-label" style="font-size:0.875rem"><?= $GLOBAL['interfaceLanguage'] ?></label>
+          <select class="form-select" id="locale" name="locale" data-no-dirty>
+            <?php $_cpLocale = $_SESSION['app_user_locale'] ?? 'fr';
+            foreach (mbAvailableLocales() as $_cpCode => $_cpName): ?>
+            <option value="<?= $_cpCode ?>"<?= $_cpCode === $_cpLocale ? ' selected' : '' ?>><?= htmlspecialchars($_cpName, ENT_QUOTES, 'UTF-8') ?></option>
+            <?php endforeach ?>
+          </select>
+          <div class="form-text"><?= $GLOBAL['interfaceLanguageHelp'] ?></div>
+        </div>
+        <button type="submit" class="btn btn-primary"><?= $GLOBAL['saveButton'] ?></button>
+      </form>
+    </div>
+  </div>
+  <?php endif ?>
 </div>

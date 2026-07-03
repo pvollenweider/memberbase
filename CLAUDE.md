@@ -52,6 +52,15 @@ Docker local : `localhost:8080`
 - Nommer les clés en anglais, de façon descriptive (`save`, `groupModified`, `close`…).
 - Vaut aussi pour les chaînes injectées côté JS (passer par des attributs `data-*` remplis depuis la locale, cf. le toast dans `index.php`).
 
+## Internationalisation (i18n)
+
+- **Bundles PHP par langue** dans `html/locales/` : `resources_fr.php` = base complète (défaut), `resources_en/de/es.php` = surcharges chargées **par-dessus** le FR par `mbLoadLocale()` (`html/includes/lib/locale.php`) → toute clé absente d'une traduction retombe sur le français.
+- **Toute nouvelle clé doit être ajoutée dans les 4 fichiers** (le fallback FR évite la casse, mais l'UI resterait en français dans les autres langues).
+- La locale de l'utilisateur vit dans `app_users.locale` (défaut `fr`), copiée dans `$_SESSION['app_user_locale']` au login, modifiable par l'action `changeLocale` (carte « Langue » de la page Mot de passe — formulaire `hx-boost="false"` : un changement de langue doit recharger toute la page pour rafraîchir `<html lang>`). Couverture : `tests/locale.spec.ts`.
+- Pages non authentifiées (`login.php`, `install.php`, `set-password.php`) et attestations PDF : toujours FR (`resources_fr.php` inclus directement).
+- Interpolations : `sprintf` + `%s`/`%d` (`%%` pour un % littéral). Les suffixes de pluriel français (`$n > 1 ? 's' : ''`) sont passés en argument — une traduction peut consommer moins d'arguments (forme neutre « (s) ») ou réordonner avec la syntaxe positionnelle `%1$s`.
+- Chaînes de **données** (valeur DB stable, ex. marqueur `Anonymisé`, seeds `compta_type`) : volontairement **non** localisées.
+
 ## Règle : navigation JS et dirty-form guard
 
 **Toujours setter `window.__dirtyOverride = true` avant tout `window.location = ...` dans le code inline.**

@@ -93,9 +93,11 @@ function requirePasswordChange(): void
 
 function authLogin(PDO $pdo, string $username, string $password): bool
 {
+    // SELECT * so login keeps working on a not-yet-migrated DB (e.g. before
+    // app_users.locale exists) — the admin must be able to log in to reach
+    // the pending-migrations screen.
     $stmt = $pdo->prepare(
-        "SELECT id, username, display_name, password_hash, role, force_password_change
-         FROM app_users WHERE username = ? AND is_active = 1 LIMIT 1"
+        "SELECT * FROM app_users WHERE username = ? AND is_active = 1 LIMIT 1"
     );
     $stmt->execute([trim($username)]);
     $user = $stmt->fetchObject();
@@ -107,6 +109,7 @@ function authLogin(PDO $pdo, string $username, string $password): bool
     $_SESSION['app_user_username']     = $user->username;
     $_SESSION['app_user_display_name'] = $user->display_name ?: $user->username;
     $_SESSION['app_user_role']         = $user->role;
+    $_SESSION['app_user_locale']       = $user->locale ?? 'fr';
     $_SESSION['force_password_change'] = (bool)$user->force_password_change;
     $pdo->prepare("UPDATE app_users SET last_login = NOW() WHERE id = ?")->execute([$user->id]);
     return true;

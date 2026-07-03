@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS `app_users` (
   `email`                 varchar(200) DEFAULT NULL,
   `password_hash`         varchar(255) NOT NULL,
   `role`                  enum('admin','manager','user','readonly') NOT NULL DEFAULT 'user',
+  `locale`                varchar(5)   NOT NULL DEFAULT 'fr',
   `force_password_change` tinyint(1)   NOT NULL DEFAULT 1,
   `is_active`             tinyint(1)   NOT NULL DEFAULT 1,
   `created_at`            timestamp    NOT NULL DEFAULT current_timestamp(),

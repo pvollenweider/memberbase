@@ -19,7 +19,8 @@ requirePasswordChange();
 header("Content-Type: text/html; charset=$charset");
 
 // Load core dependencies before any output (needed for appSettings in page title)
-include "locales/resources_fr.php";
+require_once __DIR__ . "/includes/lib/locale.php";
+mbLoadLocale($_SESSION['app_user_locale'] ?? null);
 include __DIR__ . "/includes/lib/bootstrap.php";
 include "classes/user_class.php";
 include "classes/team_class.php";
@@ -40,7 +41,7 @@ if ($isHtmx) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="<?= htmlspecialchars($GLOBAL['currentLocale'] ?? 'fr', ENT_QUOTES) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
