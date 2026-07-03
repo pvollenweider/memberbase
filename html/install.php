@@ -255,14 +255,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '3') {
                 "CREATE TABLE IF NOT EXISTS `schema_migrations` (
                     `version` VARCHAR(255) NOT NULL,
                     `applied_at` INT(11) NOT NULL DEFAULT 0,
+                    `checksum` CHAR(64) NOT NULL DEFAULT '',
                     PRIMARY KEY (`version`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
             );
             $migFiles = glob(__DIR__ . '/migrations/*.sql') ?: [];
             if ($migFiles) {
-                $insMig = $pdo->prepare("INSERT IGNORE INTO schema_migrations (version, applied_at) VALUES (?, ?)");
+                $insMig = $pdo->prepare("INSERT IGNORE INTO schema_migrations (version, applied_at, checksum) VALUES (?, ?, ?)");
                 foreach ($migFiles as $migFile) {
-                    $insMig->execute([basename($migFile, '.sql'), time()]);
+                    $mc = @file_get_contents($migFile);
+                    $insMig->execute([basename($migFile, '.sql'), time(), $mc === false ? '' : hash('sha256', $mc)]);
                 }
             }
             header('Location: install.php?step=4');

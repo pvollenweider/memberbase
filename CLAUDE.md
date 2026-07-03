@@ -139,6 +139,7 @@ Tout changement de schéma = un fichier `html/migrations/NNNN_description.sql` (
 
 - `migrate.php --status` : voir appliquées / en attente.
 - `migrate.php --baseline` : marquer tout comme appliqué sans exécuter (fresh install — géré automatiquement par `install.php`).
+- **Checksum / dérive** : `schema_migrations.checksum` stocke le SHA-256 de chaque migration appliquée. `migrate.php --status` signale `[!] DÉRIVE` (et sort en code 2) si un fichier déjà appliqué a été modifié ; la page **Réglages → Santé** l'affiche aussi. Corollaire : **ne jamais éditer une migration déjà appliquée** — en créer une nouvelle.
 - Écrire les migrations idempotentes quand possible (`ADD COLUMN IF NOT EXISTS`).
 - ⚠️ Le DDL MySQL est auto-committé (pas de rollback) : sauvegarde avant migration prod.
 - Garde de cohérence : `install.php` embarque le schéma complet à jour ET baseline les migrations (cf. `tests/` garde anti-dérive `schema.sql`↔`install.php`).

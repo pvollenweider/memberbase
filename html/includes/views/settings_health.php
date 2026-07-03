@@ -36,6 +36,7 @@ if (function_exists('shell_exec') && !in_array('shell_exec', array_map('trim', e
 
 // --- Migrations (see #68) ---
 $pending      = pendingMigrations($pdo);
+$drift        = migrationDrift($pdo);
 $appliedCount = $_hScalar($pdo, 'SELECT COUNT(*) FROM schema_migrations');
 $lastMigration = null;
 try {
@@ -55,19 +56,28 @@ try {
 } catch (Throwable) {}
 
 // --- Overall status ---
-$degraded = !empty($pending);
+$degraded = !empty($pending) || !empty($drift);
 ?>
 
 <h5 class="mb-3"><i class="fas fa-heart-pulse me-1" aria-hidden="true"></i>Santé du système</h5>
 
-<?php if ($degraded): ?>
+<?php if (!empty($drift)): ?>
+  <div class="alert alert-danger py-2" role="alert">
+    <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>
+    <strong>Dérive de migration :</strong> <?= count($drift) ?> migration(s) appliquée(s)
+    dont le fichier a changé depuis (<?= htmlspecialchars(implode(', ', $drift), ENT_QUOTES, $charset) ?>).
+    Un fichier de migration déjà appliqué ne doit jamais être modifié — vérifiez le dépôt.
+  </div>
+<?php endif ?>
+
+<?php if (!empty($pending)): ?>
   <div class="alert alert-warning py-2" role="alert">
     <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>
     <strong>Attention :</strong> <?= count($pending) ?> migration(s) de base de données en attente
     (<?= htmlspecialchars(implode(', ', $pending), ENT_QUOTES, $charset) ?>).
     Appliquez-les avec <code>php html/tools/migrate.php</code>.
   </div>
-<?php else: ?>
+<?php elseif (empty($drift)): ?>
   <div class="alert alert-success py-2" role="alert">
     <i class="fas fa-circle-check me-1" aria-hidden="true"></i>
     Système opérationnel — base à jour, aucune migration en attente.
@@ -115,6 +125,7 @@ $degraded = !empty($pending);
           <tbody>
             <tr><th scope="row" class="fw-normal text-muted">Appliquées</th><td class="text-end"><?= $appliedCount !== null ? (int)$appliedCount : '<span class="text-muted">table absente</span>' ?></td></tr>
             <tr><th scope="row" class="fw-normal text-muted">En attente</th><td class="text-end"><?= empty($pending) ? '<span class="badge text-bg-success">0</span>' : '<span class="badge text-bg-warning">' . count($pending) . '</span>' ?></td></tr>
+            <tr><th scope="row" class="fw-normal text-muted">Dérive (checksum)</th><td class="text-end"><?= empty($drift) ? '<span class="badge text-bg-success">0</span>' : '<span class="badge text-bg-danger">' . count($drift) . '</span>' ?></td></tr>
             <tr><th scope="row" class="fw-normal text-muted">Dernière</th><td class="text-end small">
               <?php if ($lastMigration): ?>
                 <code><?= htmlspecialchars($lastMigration->version, ENT_QUOTES, $charset) ?></code>
