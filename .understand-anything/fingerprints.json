@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "ece1d70203f0d7597aee4e7307bd98292669f357",
-  "generatedAt": "2026-07-02T11:03:29.957Z",
+  "gitCommitHash": "e15212ad593f6fadef72681d04c5958dd35f737b",
+  "generatedAt": "2026-07-03T10:33:35.034Z",
   "files": {
     ".github/ISSUE_TEMPLATE/bug_report.yml": {
       "filePath": ".github/ISSUE_TEMPLATE/bug_report.yml",
@@ -33,6 +33,16 @@
       "totalLines": 23,
       "hasStructuralAnalysis": true
     },
+    ".github/workflows/backup.yml": {
+      "filePath": ".github/workflows/backup.yml",
+      "contentHash": "8f6fdd09bfe58d81b6cc8cfa95f664dfcf3b158b8c1cd756ae0b2466548000fa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 82,
+      "hasStructuralAnalysis": true
+    },
     ".github/workflows/e2e.yml": {
       "filePath": ".github/workflows/e2e.yml",
       "contentHash": "781535777767c713c5e6a3fe615220a075924062fc205d0c3a86878fc329e12b",
@@ -41,6 +51,26 @@
       "imports": [],
       "exports": [],
       "totalLines": 59,
+      "hasStructuralAnalysis": true
+    },
+    ".github/workflows/unit.yml": {
+      "filePath": ".github/workflows/unit.yml",
+      "contentHash": "674822cc0c84ba2a3c7fbf6c337c29719a75f08082193a2e86e74d2b28a1f9f9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    ".github/workflows/upgrade.yml": {
+      "filePath": ".github/workflows/upgrade.yml",
+      "contentHash": "042febe5b2b0a0bf585d232f95f340c9c3c6206e6f6907695d8fa0f778ad0455",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
       "hasStructuralAnalysis": true
     },
     ".impeccable/config.json": {
@@ -53,44 +83,54 @@
       "totalLines": 15,
       "hasStructuralAnalysis": true
     },
-    ".understand-anything/.understandignore": {
-      "filePath": ".understand-anything/.understandignore",
-      "contentHash": "beb78d0db48105940ad1467258e91620be8a8ed4826762ddfeb61393762f438f",
+    ".understandignore": {
+      "filePath": ".understandignore",
+      "contentHash": "d558607573bf5798b1484ec14b12390a32ecee4d06e87da22827c62185791c96",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 14,
+      "totalLines": 17,
       "hasStructuralAnalysis": false
     },
     "CHANGELOG.md": {
       "filePath": "CHANGELOG.md",
-      "contentHash": "4efa24de08c0b30d086e268ae657c813a8b694c35915a2c2adcdc9ebf3811048",
+      "contentHash": "7f7f686b38c8fa06d512948fec4aaa2880a2f9e82a8ae21d78c9e01c36e972ca",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 491,
+      "totalLines": 576,
       "hasStructuralAnalysis": true
     },
     "CLAUDE.md": {
       "filePath": "CLAUDE.md",
-      "contentHash": "18cf9d230db89c9ee67ea5a427d9b39c360a6b607a9fa7643dcfb1bf44793794",
+      "contentHash": "7ee1f74187e1be12c6d66b8cc55ca0fe2f5186363aabebe27f152b93db6550b7",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 86,
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
+    "composer.json": {
+      "filePath": "composer.json",
+      "contentHash": "b2b189b291967abeb70be870d762a805e541ee8e0ec9904da3c4df255a9ad236",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
       "hasStructuralAnalysis": true
     },
     "CONTRIBUTING.md": {
       "filePath": "CONTRIBUTING.md",
-      "contentHash": "c01c818b47dcc6cfb0ac19258572f89cfffbad5fca720f36fbe3ad46d1fff363",
+      "contentHash": "fc91f8ad808a65392ce13cb262a591d532d32dc999753b33f157ba78b49d76b2",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 38,
+      "totalLines": 118,
       "hasStructuralAnalysis": true
     },
     "DESIGN.md": {
@@ -103,59 +143,9 @@
       "totalLines": 194,
       "hasStructuralAnalysis": true
     },
-    "Dockerfile": {
-      "filePath": "Dockerfile",
-      "contentHash": "8c457b3426c091eab76b1817ed7c7a0fb52ac5c0b405c33bf5e5e34011e808c5",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 19,
-      "hasStructuralAnalysis": true
-    },
-    "MIGRATION_PROD.md": {
-      "filePath": "MIGRATION_PROD.md",
-      "contentHash": "f84165158c71a14b6c979af55e4d121449b362da201277bc068763a837d86f1a",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 126,
-      "hasStructuralAnalysis": true
-    },
-    "Makefile": {
-      "filePath": "Makefile",
-      "contentHash": "bd064157a000c70f0e699763a56b016590a3596eaa4035a4e6c61cfa18703480",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 35,
-      "hasStructuralAnalysis": true
-    },
-    "PRODUCT.md": {
-      "filePath": "PRODUCT.md",
-      "contentHash": "15155872dc7a8b66eb912d2ecd65aa75a2134dbf26c95e4f27eae1ba66bb81c2",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 45,
-      "hasStructuralAnalysis": true
-    },
-    "README.md": {
-      "filePath": "README.md",
-      "contentHash": "cc681cd6574d5c2e5ea81735d68b034e4074205278254058b8dcc99fe3ec493e",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 305,
-      "hasStructuralAnalysis": true
-    },
     "doc/admin.md": {
       "filePath": "doc/admin.md",
-      "contentHash": "dbf7ccf2604204541e98aa035102b41ccbe3edc124bb7f7f0432c82ffe79a007",
+      "contentHash": "6700db6e29e71d5dae1631ef4ba0abf778ba8c1052ed886a543374c2e0d1bc26",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -163,14 +153,44 @@
       "totalLines": 915,
       "hasStructuralAnalysis": true
     },
-    "doc/user.md": {
-      "filePath": "doc/user.md",
-      "contentHash": "29d2a69587d95a49dd1c47d3d942e23958d660b6e79d2c639fd2916e339aad20",
+    "doc/api.md": {
+      "filePath": "doc/api.md",
+      "contentHash": "02223165b8f740f67c86a4738bf716a624805b29e7e9d57dace981c87ac9487f",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 563,
+      "totalLines": 867,
+      "hasStructuralAnalysis": true
+    },
+    "doc/architecture.md": {
+      "filePath": "doc/architecture.md",
+      "contentHash": "966c486761f8ed8268674bafe84f9b4577081d87a767854940b1d1f9adae25e2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 507,
+      "hasStructuralAnalysis": true
+    },
+    "doc/ONBOARDING.md": {
+      "filePath": "doc/ONBOARDING.md",
+      "contentHash": "3225ce8f4ec7fe60bc0806c96df94288b2c93782037dfcc2428d7c715f227649",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 173,
+      "hasStructuralAnalysis": true
+    },
+    "doc/user.md": {
+      "filePath": "doc/user.md",
+      "contentHash": "675a1a26ed18e52a0c7c5f7dba5b2d6a26832e17c623f72955356acb7ba03b66",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 561,
       "hasStructuralAnalysis": true
     },
     "docker-compose.test.yml": {
@@ -195,13 +215,23 @@
     },
     "docker/apache.conf": {
       "filePath": "docker/apache.conf",
-      "contentHash": "a0de999f09e5ea4838cc93388b8458655549c79b050fc6049dbd79d92c612bf3",
+      "contentHash": "20f654ebbf7407ff192128e797c00542c8752bb1513b55e511badedad00a6b66",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 91,
+      "totalLines": 111,
       "hasStructuralAnalysis": false
+    },
+    "Dockerfile": {
+      "filePath": "Dockerfile",
+      "contentHash": "8c457b3426c091eab76b1817ed7c7a0fb52ac5c0b405c33bf5e5e34011e808c5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": true
     },
     "html/0F5B592E883E10E5F744B70B861AE02B.txt": {
       "filePath": "html/0F5B592E883E10E5F744B70B861AE02B.txt",
@@ -213,6 +243,28 @@
       "totalLines": 3,
       "hasStructuralAnalysis": false
     },
+    "html/api/_bootstrap.php": {
+      "filePath": "html/api/_bootstrap.php",
+      "contentHash": "7c8837516e6fa53c107b246c281559d016bae41320124a6faf4d1ca9615421e0",
+      "functions": [
+        {
+          "name": "apiError",
+          "params": [
+            "$code",
+            "$message"
+          ],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "apiError"
+      ],
+      "totalLines": 86,
+      "hasStructuralAnalysis": true
+    },
     "html/api/.htaccess": {
       "filePath": "html/api/.htaccess",
       "contentHash": "f27ee9c932432f32a210a7e07ea8036bd8dd5531047b8cbfdc1c3192b8138a0e",
@@ -223,36 +275,14 @@
       "totalLines": 15,
       "hasStructuralAnalysis": false
     },
-    "html/api/_bootstrap.php": {
-      "filePath": "html/api/_bootstrap.php",
-      "contentHash": "18d4f44e9d3591ddd241d6315b21d0c6840d0bfb8602382772b7d087dc6e51e3",
-      "functions": [
-        {
-          "name": "apiError",
-          "params": [
-            "$code",
-            "$message"
-          ],
-          "exported": true,
-          "lineCount": 6
-        }
-      ],
-      "classes": [],
-      "imports": [],
-      "exports": [
-        "apiError"
-      ],
-      "totalLines": 27,
-      "hasStructuralAnalysis": true
-    },
     "html/api/compta-types.php": {
       "filePath": "html/api/compta-types.php",
-      "contentHash": "8e61d80d1a60cd432a22dd9c51cb2df083993a02064e8668d09c670baf8d43a4",
+      "contentHash": "0bde0e2f2ca2a5f14c8c5fb865cf5e9a215d2f6ccdd63b146c21217f4b5457f8",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 28,
+      "totalLines": 29,
       "hasStructuralAnalysis": true
     },
     "html/api/compta.php": {
@@ -354,7 +384,7 @@
     },
     "html/api/groups.php": {
       "filePath": "html/api/groups.php",
-      "contentHash": "f986425cfb7f3f7aa3c4e791771a732c98e58d7b1d1eae40b2e0fc9187f31a50",
+      "contentHash": "aab180fd3c124b0ad3a6aa2d703ce7336ada73c8e42fb508ba753ff6171887c2",
       "functions": [
         {
           "name": "requestBody",
@@ -386,7 +416,7 @@
           "params": [],
           "returnType": "void",
           "exported": true,
-          "lineCount": 23
+          "lineCount": 24
         },
         {
           "name": "handleGet",
@@ -395,7 +425,7 @@
           ],
           "returnType": "void",
           "exported": true,
-          "lineCount": 21
+          "lineCount": 22
         },
         {
           "name": "handleListMembers",
@@ -404,7 +434,7 @@
           ],
           "returnType": "void",
           "exported": true,
-          "lineCount": 27
+          "lineCount": 28
         },
         {
           "name": "handleCreate",
@@ -465,7 +495,7 @@
         "handleAddMember",
         "handleRemoveMember"
       ],
-      "totalLines": 276,
+      "totalLines": 279,
       "hasStructuralAnalysis": true
     },
     "html/api/members.php": {
@@ -1998,6 +2028,38 @@
       "totalLines": 15,
       "hasStructuralAnalysis": false
     },
+    "html/export.php": {
+      "filePath": "html/export.php",
+      "contentHash": "fd92779d7d5f5b282738f730100b5eb8fc16d6fb436e6e25e9a6d15c1a8b65c4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    "html/health.php": {
+      "filePath": "html/health.php",
+      "contentHash": "41427764d7535d5370246823e21933ae83cf75092f719f668ef786c00f41ae99",
+      "functions": [
+        {
+          "name": "health_respond",
+          "params": [
+            "$status",
+            "$code"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "health_respond"
+      ],
+      "totalLines": 64,
+      "hasStructuralAnalysis": true
+    },
     "html/includes/.htaccess": {
       "filePath": "html/includes/.htaccess",
       "contentHash": "fa28d421a28ed9b6f4b997d5119c2b8adbacff6e2dd119a179b71230f9664934",
@@ -2020,22 +2082,53 @@
     },
     "html/includes/actions/compta.php": {
       "filePath": "html/includes/actions/compta.php",
-      "contentHash": "4dda7475c8afee06f3f895fd553f30e58d40548b4e37651ed254c803f680e656",
+      "contentHash": "ec610f30a8286c7aee0f64f6ccc5db681911081cb131ccd94038274d889af762",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 108,
+      "totalLines": 97,
       "hasStructuralAnalysis": true
     },
     "html/includes/actions/groups.php": {
       "filePath": "html/includes/actions/groups.php",
-      "contentHash": "282dd54d34a41a65e274476dee76f0e6d63e0bc9cb8d36af8c3f2c044376f029",
+      "contentHash": "3614c6eb2bdab31ff1e2e757015ab017929a3f9a44cbc278e1983766000f02fe",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
       "totalLines": 389,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/actions/import.php": {
+      "filePath": "html/includes/actions/import.php",
+      "contentHash": "6a92bc980cc31054eb77a80bb26303b59981e41b211ace90e1edeb98ada1dbe5",
+      "functions": [
+        {
+          "name": "importRedirect",
+          "params": [
+            "$url"
+          ],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "importRedirect"
+      ],
+      "totalLines": 264,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/actions/maintenance.php": {
+      "filePath": "html/includes/actions/maintenance.php",
+      "contentHash": "1e4733ac86cd4c284997e1fef0681635e18a0dcc3fafd817adb2ccfea8b31218",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
       "hasStructuralAnalysis": true
     },
     "html/includes/actions/members.php": {
@@ -2080,7 +2173,7 @@
     },
     "html/includes/lib/auth.php": {
       "filePath": "html/includes/lib/auth.php",
-      "contentHash": "096275272802552052a5a49963df8f13e1355184f7ce382aec64130498f88865",
+      "contentHash": "1ba3e229a7a1595e57e0dfb7ce594efc9f4a9dcffb367cc69d2cfb2973d9f661",
       "functions": [
         {
           "name": "authUser",
@@ -2088,6 +2181,20 @@
           "returnType": "?object",
           "exported": true,
           "lineCount": 11
+        },
+        {
+          "name": "csrfToken",
+          "params": [],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "csrfCheck",
+          "params": [],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 8
         },
         {
           "name": "isLoggedIn",
@@ -2161,6 +2268,8 @@
       "imports": [],
       "exports": [
         "authUser",
+        "csrfToken",
+        "csrfCheck",
         "isLoggedIn",
         "isAdmin",
         "isManager",
@@ -2171,12 +2280,12 @@
         "authLogin",
         "authLogout"
       ],
-      "totalLines": 99,
+      "totalLines": 125,
       "hasStructuralAnalysis": true
     },
     "html/includes/lib/bootstrap.php": {
       "filePath": "html/includes/lib/bootstrap.php",
-      "contentHash": "6ee507fa7f76cec57ca91590f92e13fb2f87a71bb6baa092aab727b45687b0d4",
+      "contentHash": "d21a3c380732e84c0c6b6c91d1bef18a42b9bd5e4f97b9479e10ccb47124bebd",
       "functions": [
         {
           "name": "getMaxVal",
@@ -2197,6 +2306,191 @@
           "exported": true,
           "lineCount": 7
         },
+        {
+          "name": "pendingMigrations",
+          "params": [
+            "$pdo"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "migrationDrift",
+          "params": [
+            "$pdo"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "auditLog",
+          "params": [
+            "$pdo",
+            "$action",
+            "$detail",
+            "$subjectUserId"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "getMaxVal",
+        "updateAndGetMaxVal",
+        "pendingMigrations",
+        "migrationDrift",
+        "auditLog"
+      ],
+      "totalLines": 170,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/lib/import_fields.php": {
+      "filePath": "html/includes/lib/import_fields.php",
+      "contentHash": "2ab82c00532168605fd17b125b8a6fddc3b8544d59f8023892a0f4e93e9e907c",
+      "functions": [
+        {
+          "name": "importFieldLabels",
+          "params": [],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "importAllowedFields",
+          "params": [],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "importNormalizeSexe",
+          "params": [
+            "$raw"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "importFieldValue",
+          "params": [
+            "$field",
+            "$raw"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "importFieldLabels",
+        "importAllowedFields",
+        "importNormalizeSexe",
+        "importFieldValue"
+      ],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/lib/migrations.php": {
+      "filePath": "html/includes/lib/migrations.php",
+      "contentHash": "6037d0a1a53338a9e2318a8776a115610ae34004112bd529d7059eb3e7369824",
+      "functions": [
+        {
+          "name": "mbMigrationsDir",
+          "params": [],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "mbMigrationChecksum",
+          "params": [
+            "$file"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "mbAllMigrations",
+          "params": [],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "mbAppliedMigrations",
+          "params": [
+            "$pdo"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "mbEnsureMigrationsTable",
+          "params": [
+            "$pdo"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "mbPendingMigrations",
+          "params": [
+            "$pdo"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "mbRunPendingMigrations",
+          "params": [
+            "$pdo",
+            "$log"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 44
+        },
+        {
+          "name": "mbDumpDatabase",
+          "params": [
+            "$pdo"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 20
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "mbMigrationsDir",
+        "mbMigrationChecksum",
+        "mbAllMigrations",
+        "mbAppliedMigrations",
+        "mbEnsureMigrationsTable",
+        "mbPendingMigrations",
+        "mbRunPendingMigrations",
+        "mbDumpDatabase"
+      ],
+      "totalLines": 150,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/lib/pure.php": {
+      "filePath": "html/includes/lib/pure.php",
+      "contentHash": "6f64cce6a8815c564de1525a59f298046646fa48620dabeb9e9b2ec70a381a6f",
+      "functions": [
         {
           "name": "formatedDateToTimeStamp",
           "params": [
@@ -2223,31 +2517,16 @@
           "returnType": "string",
           "exported": true,
           "lineCount": 4
-        },
-        {
-          "name": "auditLog",
-          "params": [
-            "$pdo",
-            "$action",
-            "$detail",
-            "$subjectUserId"
-          ],
-          "returnType": "void",
-          "exported": true,
-          "lineCount": 8
         }
       ],
       "classes": [],
       "imports": [],
       "exports": [
-        "getMaxVal",
-        "updateAndGetMaxVal",
         "formatedDateToTimeStamp",
         "timeStampToformatedDate",
-        "unquote",
-        "auditLog"
+        "unquote"
       ],
-      "totalLines": 132,
+      "totalLines": 40,
       "hasStructuralAnalysis": true
     },
     "html/includes/partials/donor_table.php": {
@@ -2272,22 +2551,22 @@
     },
     "html/includes/routing/actions.php": {
       "filePath": "html/includes/routing/actions.php",
-      "contentHash": "81091d234cb2e4ab470843f16a64acc847ad9282f3bd78d48221676ddb35af05",
+      "contentHash": "35f438e0442e54a75bd271d20298b339636f74071ffdeec961692934e8f4f0ef",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 71,
+      "totalLines": 82,
       "hasStructuralAnalysis": true
     },
     "html/includes/routing/views.php": {
       "filePath": "html/includes/routing/views.php",
-      "contentHash": "eade1dffdfac51dc631b17ef8b59ffd7d28454362857d42df370aaa0b5453bd9",
+      "contentHash": "4c927a136c414a7e10a74f56613213f3c928cd11c86b2c726d98440ccc9ebe1f",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 97,
+      "totalLines": 99,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/auth_change_password.php": {
@@ -2404,6 +2683,36 @@
       "totalLines": 684,
       "hasStructuralAnalysis": true
     },
+    "html/includes/views/import_step1.php": {
+      "filePath": "html/includes/views/import_step1.php",
+      "contentHash": "0e3b3cffee01e2af52595ec33cb18ae446693f4296ca2b89f7e22eafb535a7ba",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 62,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/import_step2.php": {
+      "filePath": "html/includes/views/import_step2.php",
+      "contentHash": "f9c97dfda69d3f0f7618890b60ecb4dd23ef6c7ac082501b5e2ec45fb2f78fd8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 169,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/import_step3.php": {
+      "filePath": "html/includes/views/import_step3.php",
+      "contentHash": "c5ecad0acb6861e9811a4d67721452d95998bd173845aceea29c5abe4fb9be10",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 122,
+      "hasStructuralAnalysis": true
+    },
     "html/includes/views/members_lapsed.php": {
       "filePath": "html/includes/views/members_lapsed.php",
       "contentHash": "1699d66ad7b560e3a4b011b6d1ef13d86086d5aaf11a72b45cded737c9aadcae",
@@ -2436,7 +2745,7 @@
     },
     "html/includes/views/settings_categories.php": {
       "filePath": "html/includes/views/settings_categories.php",
-      "contentHash": "fd066301a0aec6d5232b3832153ed63a561f2104127e043b5dc7c7e7f215a707",
+      "contentHash": "68b60d3a63be50e8c516291e8c557161db62023d471637f4cd2c08331f69feea",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2446,7 +2755,7 @@
     },
     "html/includes/views/settings_compta_types.php": {
       "filePath": "html/includes/views/settings_compta_types.php",
-      "contentHash": "2b44fd627d062eaf8b847e02029e3c30780be67c42a77dcd05c14514f5a7173a",
+      "contentHash": "d38a8f4f5ccd80597b35370c246caad59c860e95a94923d8a279b91f07df9fd6",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2456,7 +2765,7 @@
     },
     "html/includes/views/settings_filter_edit.php": {
       "filePath": "html/includes/views/settings_filter_edit.php",
-      "contentHash": "e14ce583b71fbc82f705aad690d465a2dde304284c8520c9984996d77e27bc10",
+      "contentHash": "9d82c925c47d0755132c7299c097e645a8c5e6b6f977c904c74cf4f164e4ce5e",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2476,7 +2785,7 @@
     },
     "html/includes/views/settings_general.php": {
       "filePath": "html/includes/views/settings_general.php",
-      "contentHash": "57e865684c6a54fcc559b744104de1c6ccb38ae253a5e6b97fc75a482115581e",
+      "contentHash": "79438c682ce0fa7a0703a93a46780d3c15b0fc1ccee4f25d9aa5852eea876ae8",
       "functions": [
         {
           "name": "_settings_nav_item",
@@ -2498,7 +2807,7 @@
       "exports": [
         "_settings_nav_item"
       ],
-      "totalLines": 317,
+      "totalLines": 327,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/settings_group_edit.php": {
@@ -2513,7 +2822,7 @@
     },
     "html/includes/views/settings_groups.php": {
       "filePath": "html/includes/views/settings_groups.php",
-      "contentHash": "2105a9d6a3040f2ba8a8b23d9030ffb1f078f13ad30803254def86f9fa9a392e",
+      "contentHash": "e47d135105a4072d7c11e5cee56e4341a8556bb1350263f3e2f6ca4554a82069",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2521,14 +2830,24 @@
       "totalLines": 429,
       "hasStructuralAnalysis": true
     },
-    "html/includes/views/settings_integrity.php": {
-      "filePath": "html/includes/views/settings_integrity.php",
-      "contentHash": "45aafbe6cc21a623432b5c8158259e69053f97f8533299a0b156cc215072b44e",
+    "html/includes/views/settings_health.php": {
+      "filePath": "html/includes/views/settings_health.php",
+      "contentHash": "0f8d740ddcd06d94a4be3dc12f6779956c309dddd1f2d0bf44f03bf918d609ff",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 595,
+      "totalLines": 211,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_integrity.php": {
+      "filePath": "html/includes/views/settings_integrity.php",
+      "contentHash": "7296d9125054cb007d21e7b3507137feadca263ffbe33bf3ab3411046e11b6b5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 543,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/suivi_delete_confirm.php": {
@@ -2623,7 +2942,7 @@
     },
     "html/includes/views/users_edit_form.php": {
       "filePath": "html/includes/views/users_edit_form.php",
-      "contentHash": "5d0802aeac0ac9174319b276b1bb811ccf5e3b70ae92f7679265c2e5a81fee41",
+      "contentHash": "b540b478fe9e904ade8a953d47951b3feefd46f059ff2423cf3650cae3386f76",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2693,7 +3012,7 @@
     },
     "html/index.php": {
       "filePath": "html/index.php",
-      "contentHash": "4382f8b7f78527d06540f04a149ae2bde0b9901e3e295dae75f75b398c2cf1b3",
+      "contentHash": "d4629251c295b6ff781e547f363287b88adcdf1944b87bd871f208eb29815f65",
       "functions": [
         {
           "name": "getMicroTime",
@@ -2707,12 +3026,12 @@
       "exports": [
         "getMicroTime"
       ],
-      "totalLines": 192,
+      "totalLines": 215,
       "hasStructuralAnalysis": true
     },
     "html/install.php": {
       "filePath": "html/install.php",
-      "contentHash": "e759f22da0d3d4957c12e8af90b7139c7bd4ed0af85667dd40159e21d0705370",
+      "contentHash": "8795b054d98030c2cd05d343aeb86c39bad160bbc7834a7e13d03c1cd2a5755b",
       "functions": [
         {
           "name": "installerPdo",
@@ -2727,12 +3046,12 @@
       "exports": [
         "installerPdo"
       ],
-      "totalLines": 653,
+      "totalLines": 672,
       "hasStructuralAnalysis": true
     },
     "html/js/app.js": {
       "filePath": "html/js/app.js",
-      "contentHash": "b51bbc34c9c1b841cfa718983eebaf96dade1c57b4e27124477c1de70e4e2dce",
+      "contentHash": "c9733935eb9c3d5860f36177e9e0274f1223d4c10ba48231fe8631fb0ceb4ab4",
       "functions": [
         {
           "name": "casaInit",
@@ -2746,7 +3065,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 164,
+      "totalLines": 204,
       "hasStructuralAnalysis": true
     },
     "html/js/dt_defaults.js": {
@@ -2778,7 +3097,7 @@
     },
     "html/js/tiptap-editor.js": {
       "filePath": "html/js/tiptap-editor.js",
-      "contentHash": "8a14405eccc5be562dee4a74f2661663eb4711d5130beaa187cc6d01126eab5c",
+      "contentHash": "bd80b7b8a01453b094664fd0d0a7128a5df2aa6bfee7a24ca99fecb5ae266dd6",
       "functions": [
         {
           "name": "initTiptap",
@@ -2808,20 +3127,15 @@
       "classes": [],
       "imports": [
         {
-          "source": "https://esm.sh/@tiptap/core@2",
+          "source": "./vendor/tiptap.bundle.js",
           "specifiers": [
-            "Editor"
-          ]
-        },
-        {
-          "source": "https://esm.sh/@tiptap/starter-kit@2",
-          "specifiers": [
+            "Editor",
             "StarterKit"
           ]
         }
       ],
       "exports": [],
-      "totalLines": 67,
+      "totalLines": 68,
       "hasStructuralAnalysis": true
     },
     "html/locales/.htaccess": {
@@ -2836,12 +3150,12 @@
     },
     "html/locales/resources_fr.php": {
       "filePath": "html/locales/resources_fr.php",
-      "contentHash": "a68ed3e1460f90e603eb5f313dd515426dc8068d7caa8c8d9ef58de56c784f36",
+      "contentHash": "621902e4dff48f6587ad4c3507f5ab61396025451a9ca5fa5b67d6db0bcd9c02",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 135,
+      "totalLines": 136,
       "hasStructuralAnalysis": true
     },
     "html/log4php.properties": {
@@ -2856,12 +3170,12 @@
     },
     "html/login.php": {
       "filePath": "html/login.php",
-      "contentHash": "52fe6bd5f40526c02e098550aee3698f984130829ff2e50c7b0ce3d5ee889c8a",
+      "contentHash": "979d52a53868f596e93a492a7bff63ec8015916818c32a260d192085d25230ad",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 106,
+      "totalLines": 109,
       "hasStructuralAnalysis": true
     },
     "html/members.iml": {
@@ -2874,6 +3188,36 @@
       "totalLines": 20,
       "hasStructuralAnalysis": false
     },
+    "html/migrations/.htaccess": {
+      "filePath": "html/migrations/.htaccess",
+      "contentHash": "175bfff74206b83b11a518cbdd317eea51fb53df0d384ddbbefc0156e649d992",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": false
+    },
+    "html/migrations/0001_email_alt.sql": {
+      "filePath": "html/migrations/0001_email_alt.sql",
+      "contentHash": "fcca14a52a80cb58a5f3a248b5b8eb204fcb87b92b5926c68498a5f7bf845379",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": true
+    },
+    "html/migrations/0002_compta_sum_decimal.sql": {
+      "filePath": "html/migrations/0002_compta_sum_decimal.sql",
+      "contentHash": "cf74eabe4df051c8244afbd15a942f8ce9580998ea4588de9f099874544eed27",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
     "html/set-password.php": {
       "filePath": "html/set-password.php",
       "contentHash": "c77329683b7631d93f8d9961d49af70dd487c733dec7f547afce11163748f950",
@@ -2882,6 +3226,16 @@
       "imports": [],
       "exports": [],
       "totalLines": 96,
+      "hasStructuralAnalysis": true
+    },
+    "html/tools/backup.sh": {
+      "filePath": "html/tools/backup.sh",
+      "contentHash": "9a89df711b9a791c61071fbbe707dfdf5f530ac04f943f90de952a71674071be",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
       "hasStructuralAnalysis": true
     },
     "html/tools/fix_encoding.php": {
@@ -2914,6 +3268,46 @@
       "totalLines": 73,
       "hasStructuralAnalysis": true
     },
+    "html/tools/migrate.php": {
+      "filePath": "html/tools/migrate.php",
+      "contentHash": "fe21050e43b46faf2409b01ba2d1896e7b734f1c1ef181987d7df9abfdc0e414",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 129,
+      "hasStructuralAnalysis": true
+    },
+    "html/tools/restore.sh": {
+      "filePath": "html/tools/restore.sh",
+      "contentHash": "b9a9170cd879e5fbb39706e265de5eca58507e124abb48c582d3aec1b237e762",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "Makefile": {
+      "filePath": "Makefile",
+      "contentHash": "21aaf9efe93d076d029fd63e674b1dd3ad3c62a4e3dd8b80d8b7e97173e81377",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 59,
+      "hasStructuralAnalysis": true
+    },
+    "MIGRATION_PROD.md": {
+      "filePath": "MIGRATION_PROD.md",
+      "contentHash": "244b37b686cabbfc525175b54985d9ebb773748e0293dafc23b83ddde11ed440",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 162,
+      "hasStructuralAnalysis": true
+    },
     "package.json": {
       "filePath": "package.json",
       "contentHash": "857e402ae3996ea45b35f6aed4cc9059b37c15d45e93d2b6138e942b19e5993b",
@@ -2923,6 +3317,16 @@
       "exports": [],
       "totalLines": 20,
       "hasStructuralAnalysis": true
+    },
+    "phpunit.xml": {
+      "filePath": "phpunit.xml",
+      "contentHash": "3297d4af0c0f8a276b1780139045508893c79cedd63cb4d3e25057f43aa87ba0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": false
     },
     "playwright.config.ts": {
       "filePath": "playwright.config.ts",
@@ -2942,9 +3346,29 @@
       "totalLines": 28,
       "hasStructuralAnalysis": true
     },
+    "PRODUCT.md": {
+      "filePath": "PRODUCT.md",
+      "contentHash": "15155872dc7a8b66eb912d2ecd65aa75a2134dbf26c95e4f27eae1ba66bb81c2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "cc681cd6574d5c2e5ea81735d68b034e4074205278254058b8dcc99fe3ec493e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 305,
+      "hasStructuralAnalysis": true
+    },
     "schema.sql": {
       "filePath": "schema.sql",
-      "contentHash": "fa506090551d4bdbb20279521f3cb11f05e41bb5f94c01b524292fd67dba42d0",
+      "contentHash": "1ee45d02e865242810b8e5dcf3adc0cb268fe0eeb48ef39666f537f61f1c5923",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2952,19 +3376,9 @@
       "totalLines": 147,
       "hasStructuralAnalysis": true
     },
-    "tests/README.md": {
-      "filePath": "tests/README.md",
-      "contentHash": "38395fb73fb4037bffadd173bc8b2e8a382957d8c2dc77a2e54475c8a7ff8a5a",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 84,
-      "hasStructuralAnalysis": true
-    },
     "tests/api.spec.ts": {
       "filePath": "tests/api.spec.ts",
-      "contentHash": "2c28df16563d545c55f563f5f1699f511e58b441f5b8472523ea9db9dc331ba3",
+      "contentHash": "5a3326e39073559e91bb397d211c9f451a1a758b354ab7a57caf3da8218a5152",
       "functions": [],
       "classes": [],
       "imports": [
@@ -2977,12 +3391,12 @@
         }
       ],
       "exports": [],
-      "totalLines": 420,
+      "totalLines": 430,
       "hasStructuralAnalysis": true
     },
     "tests/app-users.spec.ts": {
       "filePath": "tests/app-users.spec.ts",
-      "contentHash": "92418038e1ba79f746375df3f625fc68b1b4b076827fa8f6c713f4201ff0ea4e",
+      "contentHash": "2bd5b52d104a7e5803858a59c22ed0d604269d5d823cc04341a8b32ea6904f36",
       "functions": [],
       "classes": [],
       "imports": [
@@ -2995,12 +3409,12 @@
         }
       ],
       "exports": [],
-      "totalLines": 72,
+      "totalLines": 73,
       "hasStructuralAnalysis": true
     },
     "tests/auth.spec.ts": {
       "filePath": "tests/auth.spec.ts",
-      "contentHash": "027c45c2707a17b363deb809c348f1631843390acf19e6ebb1644901fb747923",
+      "contentHash": "0daa657fa7527f44e994f480fc63df970f069a0749181d7cc7573466183d0931",
       "functions": [],
       "classes": [],
       "imports": [
@@ -3019,7 +3433,7 @@
         }
       ],
       "exports": [],
-      "totalLines": 46,
+      "totalLines": 50,
       "hasStructuralAnalysis": true
     },
     "tests/change-password.spec.ts": {
@@ -3076,6 +3490,30 @@
       "totalLines": 76,
       "hasStructuralAnalysis": true
     },
+    "tests/db-maintenance.spec.ts": {
+      "filePath": "tests/db-maintenance.spec.ts",
+      "contentHash": "771a633bd182bf251fd9b3e6c433fdf7964c4a332db97dd09c9a9a93507475e5",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "* as path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 40,
+      "hasStructuralAnalysis": true
+    },
     "tests/dirty-guard.spec.ts": {
       "filePath": "tests/dirty-guard.spec.ts",
       "contentHash": "6137da57d5d7a5d55eb300809f48049fa66976c8eed35e73961854b3422b9189",
@@ -3122,6 +3560,16 @@
       ],
       "exports": [],
       "totalLines": 42,
+      "hasStructuralAnalysis": true
+    },
+    "tests/fixtures/legacy.sql": {
+      "filePath": "tests/fixtures/legacy.sql",
+      "contentHash": "4059f0bb77f0d9b7b73f5fc20b08cfbd93c34c934d61b7f16ddca4d0ba5e7bd3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
       "hasStructuralAnalysis": true
     },
     "tests/fixtures/reset-db.sh": {
@@ -3191,7 +3639,7 @@
     },
     "tests/groups.spec.ts": {
       "filePath": "tests/groups.spec.ts",
-      "contentHash": "f0bbe4b43c459eb54ae53cf25da78cc71e0f6f66db3532998126da3b1234d5b9",
+      "contentHash": "5dadcc2f7ab79e9a1e3a7ebed43565fa0961c4c5c496281e5812c4a4d65771cf",
       "functions": [],
       "classes": [],
       "imports": [
@@ -3204,7 +3652,25 @@
         }
       ],
       "exports": [],
-      "totalLines": 106,
+      "totalLines": 107,
+      "hasStructuralAnalysis": true
+    },
+    "tests/health.spec.ts": {
+      "filePath": "tests/health.spec.ts",
+      "contentHash": "ea533dc8f846959f07bf2761e8848d9474f24ccbcdbaa9a273aec3ba38d6f32b",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 31,
       "hasStructuralAnalysis": true
     },
     "tests/helpers/login.ts": {
@@ -3326,7 +3792,7 @@
     },
     "tests/metagroups.spec.ts": {
       "filePath": "tests/metagroups.spec.ts",
-      "contentHash": "f888c1ce15a70e425814f1eb56630551df0ae9b528a54e1dd34597931575671e",
+      "contentHash": "18c04c999dda6c9208d226c764e764c0830a383926d11e128f22ab1c514305a2",
       "functions": [],
       "classes": [],
       "imports": [
@@ -3339,7 +3805,7 @@
         }
       ],
       "exports": [],
-      "totalLines": 87,
+      "totalLines": 88,
       "hasStructuralAnalysis": true
     },
     "tests/mobile-roles.spec.ts": {
@@ -3386,6 +3852,71 @@
       "totalLines": 86,
       "hasStructuralAnalysis": true
     },
+    "tests/personas.spec.ts": {
+      "filePath": "tests/personas.spec.ts",
+      "contentHash": "b26173c1b63428ecb92d694b435237bd275007acc55623a7f7ddca5ece3743e8",
+      "functions": [
+        {
+          "name": "stateFile",
+          "params": [
+            "role"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "openAs",
+          "params": [
+            "browser",
+            "role"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "apiAs",
+          "params": [
+            "playwright",
+            "role"
+          ],
+          "returnType": "Promise<APIRequestContext>",
+          "exported": false,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Browser",
+            "APIRequestContext"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "* as path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 108,
+      "hasStructuralAnalysis": true
+    },
+    "tests/README.md": {
+      "filePath": "tests/README.md",
+      "contentHash": "38395fb73fb4037bffadd173bc8b2e8a382957d8c2dc77a2e54475c8a7ff8a5a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 84,
+      "hasStructuralAnalysis": true
+    },
     "tests/resume.spec.ts": {
       "filePath": "tests/resume.spec.ts",
       "contentHash": "e171e491d1b4bb8e715d0a6d8102b1aa456d45fe1bbe0e997747dd7a5b479e84",
@@ -3402,6 +3933,70 @@
       ],
       "exports": [],
       "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "tests/roles.spec.ts": {
+      "filePath": "tests/roles.spec.ts",
+      "contentHash": "2fe137e687c67d687f69cb43ea6669cb3c9aa40189f0be6712e0ac886c097993",
+      "functions": [
+        {
+          "name": "stateFile",
+          "params": [
+            "role"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "openAs",
+          "params": [
+            "browser",
+            "role"
+          ],
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "apiAs",
+          "params": [
+            "playwright",
+            "role"
+          ],
+          "returnType": "Promise<APIRequestContext>",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "csrfFor",
+          "params": [
+            "api"
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Browser",
+            "APIRequestContext"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "* as path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 554,
       "hasStructuralAnalysis": true
     },
     "tests/route-guards.spec.ts": {
@@ -3448,6 +4043,77 @@
       "totalLines": 115,
       "hasStructuralAnalysis": true
     },
+    "tests/schema-drift.spec.ts": {
+      "filePath": "tests/schema-drift.spec.ts",
+      "contentHash": "f3a1c3342926281551aed65635897ef5f88c8f0968bbf4c46f47318dddeb2ace",
+      "functions": [
+        {
+          "name": "parseSchema",
+          "params": [
+            "sql"
+          ],
+          "returnType": "TableColumns",
+          "exported": false,
+          "lineCount": 18
+        },
+        {
+          "name": "loadEmbeddedSchema",
+          "params": [],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        },
+        {
+          "source": "fs",
+          "specifiers": [
+            "* as fs"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "* as path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 79,
+      "hasStructuralAnalysis": true
+    },
+    "tests/security-log.spec.ts": {
+      "filePath": "tests/security-log.spec.ts",
+      "contentHash": "a99e3a5bd1e956b4f3acf2d5c0d0be0f7be0322e114b4b82aeb7862fa30a8745",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "* as path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
     "tests/settings.spec.ts": {
       "filePath": "tests/settings.spec.ts",
       "contentHash": "9185ed291e4811ece8e26c2069ee18a22824a6f107a25f01d0c95619f2e4062d",
@@ -3484,9 +4150,9 @@
       "totalLines": 72,
       "hasStructuralAnalysis": true
     },
-    "tests/team-filter.spec.ts": {
-      "filePath": "tests/team-filter.spec.ts",
-      "contentHash": "47b4e48213cac7bd65d88dc35b493a3e7da0549db2b9ec380c2581e1bae1f39c",
+    "tests/tiptap.spec.ts": {
+      "filePath": "tests/tiptap.spec.ts",
+      "contentHash": "3fc7f9a92953ce4a84fab1d7bb9b77434513ca72170a16ff42f157109dd028f2",
       "functions": [],
       "classes": [],
       "imports": [
@@ -3499,7 +4165,195 @@
         }
       ],
       "exports": [],
-      "totalLines": 174,
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    "tests/unit/bootstrap.php": {
+      "filePath": "tests/unit/bootstrap.php",
+      "contentHash": "d29008628a2e7446e135c31d6aafa7628b51a6474ce8ddce754f4abd2b0c9f83",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "tests/unit/ImportFieldsTest.php": {
+      "filePath": "tests/unit/ImportFieldsTest.php",
+      "contentHash": "3d657271a8ec864b03927e7628c419d89afbe0ed1ea481815b6ae7277a046843",
+      "functions": [
+        {
+          "name": "testNormalizeSexe",
+          "params": [
+            "$raw",
+            "$expected"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "sexeCases",
+          "params": [],
+          "returnType": "array",
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "testImportFieldValueMapsSexe",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "testImportFieldValuePassesThroughOtherFields",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "testAllowedFieldsMatchLabels",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 10
+        }
+      ],
+      "classes": [
+        {
+          "name": "ImportFieldsTest",
+          "methods": [
+            "testNormalizeSexe",
+            "sexeCases",
+            "testImportFieldValueMapsSexe",
+            "testImportFieldValuePassesThroughOtherFields",
+            "testAllowedFieldsMatchLabels"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 49
+        }
+      ],
+      "imports": [
+        {
+          "source": "PHPUnit\\Framework\\TestCase",
+          "specifiers": [
+            "TestCase"
+          ]
+        },
+        {
+          "source": "PHPUnit\\Framework\\Attributes\\DataProvider",
+          "specifiers": [
+            "DataProvider"
+          ]
+        }
+      ],
+      "exports": [
+        "ImportFieldsTest"
+      ],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "tests/unit/PureHelpersTest.php": {
+      "filePath": "tests/unit/PureHelpersTest.php",
+      "contentHash": "96bd26b454ffd32ff8609f69e0171345daf282c94e92bce23df3de686d38dae4",
+      "functions": [
+        {
+          "name": "testValidDateRoundTrips",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "testEmptyAndNullDateReturnZero",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "testOutOfRangeDateIsRejected",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "testMalformedDateIsRejected",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "testTimeStampZeroFormatsEmpty",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "testUnquoteReplacesTypographicApostrophe",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 7
+        }
+      ],
+      "classes": [
+        {
+          "name": "PureHelpersTest",
+          "methods": [
+            "testValidDateRoundTrips",
+            "testEmptyAndNullDateReturnZero",
+            "testOutOfRangeDateIsRejected",
+            "testMalformedDateIsRejected",
+            "testTimeStampZeroFormatsEmpty",
+            "testUnquoteReplacesTypographicApostrophe"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 43
+        }
+      ],
+      "imports": [
+        {
+          "source": "PHPUnit\\Framework\\TestCase",
+          "specifiers": [
+            "TestCase"
+          ]
+        }
+      ],
+      "exports": [
+        "PureHelpersTest"
+      ],
+      "totalLines": 54,
+      "hasStructuralAnalysis": true
+    },
+    "tests/upgrade/assert.sh": {
+      "filePath": "tests/upgrade/assert.sh",
+      "contentHash": "62b8a95487341ed54970e52aad30421f026b20543ec074c04374780ec6c5a4fc",
+      "functions": [
+        {
+          "name": "q",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "fail",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 42,
       "hasStructuralAnalysis": true
     },
     "tests/views.spec.ts": {

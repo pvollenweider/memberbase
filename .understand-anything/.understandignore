@@ -11,3 +11,7 @@ docker/initdb/
 .idea/
 .claude/
 .understand-anything/intermediate/
+html/dbtest.php
+html/dbtest2.php
+docker-compose.override.yml
+tests/team-filter.spec.ts
