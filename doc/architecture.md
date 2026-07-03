@@ -498,8 +498,21 @@ base (DDL + `tests/fixtures/seed.sql`).
   handler modifiant des données — aucun hook automatique.
 
 ### Internationalisation
-- Un seul fichier de ressources : `html/locales/resources_fr.php` (tableau `$GLOBAL`).
-  Application entièrement en français, sans infrastructure i18n.
+- Bundles de ressources PHP par langue dans `html/locales/` : `resources_fr.php`
+  (base complète, source de vérité de toutes les clés) et `resources_en.php` /
+  `resources_de.php` / `resources_es.php` (surcharges). `mbLoadLocale()`
+  (`html/includes/lib/locale.php`) charge d'abord le FR puis, si différent,
+  écrase avec la langue demandée — toute clé absente d'une traduction retombe
+  automatiquement sur le français. Toutes les vues restent en `$GLOBAL['clé']`.
+- Locale par utilisateur : colonne `app_users.locale` (défaut `fr`, migration
+  `0003_app_users_locale`), copiée dans `$_SESSION['app_user_locale']` au
+  login. Changement via l'action `changeLocale` (tous rôles), carte « Langue »
+  sur la page Mot de passe — formulaire `hx-boost="false"` pour forcer un
+  rechargement complet (rafraîchit `<html lang>`, dynamique depuis `$GLOBAL['currentLocale']`).
+- Pages non authentifiées (`login.php`, `install.php`, `set-password.php`) et
+  attestations PDF : toujours FR, chargé directement.
+- Chaînes de données stables (marqueur `Anonymisé`, seeds `compta_type`) :
+  volontairement non localisées.
 
 ### Git
 - Commits signés `pvollenweider <pvollenweider@jahia.com>` (auteur *et* committer),

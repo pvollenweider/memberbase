@@ -417,6 +417,11 @@ Fonctions PHP correspondantes (dans `auth.php`) : `isLoggedIn()`, `canRead()` (t
 
 Tout utilisateur connecté peut changer son propre mot de passe (`?view=changePassword`). Seul un `admin` peut réinitialiser le mot de passe d'un autre compte ou le supprimer.
 
+Sur cette même page, chaque utilisateur choisit aussi la **langue de l'interface** (français,
+anglais, allemand, espagnol) — stockée dans `app_users.locale` (colonne ajoutée par la
+migration `0003_app_users_locale`, défaut `fr`). Le choix est individuel : il n'y a pas de
+réglage global de langue pour l'application.
+
 ### 6.2 Accès à l'interface de gestion
 
 **Réglages → Comptes utilisateurs** (ou `?view=settings&section=app_users`)

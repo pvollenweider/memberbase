@@ -39,6 +39,13 @@ Lors de la première connexion, ou après une réinitialisation par un administr
 l'application demande immédiatement de choisir un nouveau mot de passe. Si vous avez reçu
 un **lien d'invitation**, il vous permet de définir vous-même votre mot de passe.
 
+### Changer la langue de l'interface
+
+Depuis le menu *Nom d'utilisateur → Mot de passe*, une carte **Langue** permet de choisir
+la langue de l'interface : français (par défaut), anglais, allemand ou espagnol. Le choix
+est enregistré sur le compte et s'applique à toutes vos futures connexions, sur n'importe
+quel poste.
+
 ### La barre de navigation
 
 En haut de chaque page, la barre bleue contient :

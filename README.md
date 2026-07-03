@@ -106,6 +106,14 @@ Navigation par barre latérale (desktop) / sélecteur (mobile) avec sections :
 - **Comptes utilisateurs** — gestion des comptes app (admin uniquement) : création, modification de rôle, réinitialisation de mot de passe, suppression
 - **Intégrité** — détection des groupes masqués avec assignations actives
 
+### Interface multilingue
+
+Chaque utilisateur choisit sa langue d'interface — français (défaut), anglais, allemand
+(orthographe suisse) ou espagnol — depuis la page *Mot de passe*. Le choix est enregistré
+sur le compte (`app_users.locale`) et s'applique à toutes les sessions suivantes. Architecture
+en bundles de ressources PHP (`html/locales/resources_{fr,en,de,es}.php`) avec repli
+automatique sur le français pour toute clé non traduite — voir [doc/architecture.md](doc/architecture.md#internationalisation).
+
 ### API REST
 
 Endpoints JSON disponibles sous `/api/` (authentification de session requise) :
