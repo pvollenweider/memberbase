@@ -98,8 +98,10 @@ if ($action == 'saveSettings') {
     exit;
 
 } elseif ($action === 'lindasLookup') {
-    // SPARQL query against ld.admin.ch to retrieve AFC tax exemption status.
-    // Returns JSON: { status, error? }
+    // SPARQL query against ld.admin.ch (Zefix dataset) to verify an IDE and retrieve the legal name.
+    // schema:identifier in this dataset is an IRI (e.g. .../UID/CHE105833663), not a literal — use STRENDS.
+    // Note: AFC tax-exemption status is not published in this dataset; fill it manually.
+    // Returns JSON: { name, ide } on success, or { error: 'invalid_ide'|'not_found'|'unreachable' }
     header('Content-Type: application/json; charset=utf-8');
     $raw = trim($_REQUEST['ide'] ?? '');
     $digits = preg_replace('/[^0-9]/', '', $raw);
@@ -107,16 +109,16 @@ if ($action == 'saveSettings') {
         echo json_encode(['error' => 'invalid_ide']);
         exit;
     }
-    $uid9 = substr($digits, -9);
+    $uid9         = substr($digits, -9);
     $uidFormatted = 'CHE-' . substr($uid9, 0, 3) . '.' . substr($uid9, 3, 3) . '.' . substr($uid9, 6, 3);
-    // SPARQL query for AFC tax exemption data on ld.admin.ch
+    $uidIriSuffix = '/UID/CHE' . $uid9;
     $sparql = <<<SPARQL
 PREFIX schema: <http://schema.org/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-SELECT ?org ?name ?taxExemption WHERE {
-  ?org schema:identifier "{$uidFormatted}" ;
-       schema:name ?name .
-  OPTIONAL { ?org <https://schema.ld.admin.ch/taxExemption> ?taxExemption . }
+SELECT ?legalName WHERE {
+  ?org a <https://schema.ld.admin.ch/ZefixOrganisation> ;
+       schema:identifier ?uid ;
+       schema:legalName ?legalName .
+  FILTER(STRENDS(STR(?uid), "{$uidIriSuffix}"))
 }
 LIMIT 1
 SPARQL;
@@ -139,10 +141,9 @@ SPARQL;
         echo json_encode(['error' => 'not_found']);
         exit;
     }
-    $row    = $data['results']['bindings'][0];
-    $status = $row['taxExemption']['value'] ?? '';
-    $name   = $row['name']['value'] ?? '';
-    echo json_encode(['status' => $status, 'name' => $name, 'ide' => $uidFormatted]);
+    $row  = $data['results']['bindings'][0];
+    $name = $row['legalName']['value'] ?? '';
+    echo json_encode(['name' => $name, 'ide' => $uidFormatted]);
     exit;
 
 } elseif ($action == 'updateComptaTypeOrder') {

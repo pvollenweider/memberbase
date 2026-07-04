@@ -295,9 +295,8 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                   el.innerHTML = '<span class="text-danger">' + (msgs[data.error] || data.error) + '</span>';
                   return;
                 }
-                if (data.status) document.getElementById('s_org_tax_status').value = data.status;
                 el.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>'
-                  + (data.status || <?= json_encode($GLOBAL['lindasNoStatus']) ?>) + '</span>';
+                  + (data.name || data.ide) + '</span>';
               }, lLabels);
             }());
             </script>
