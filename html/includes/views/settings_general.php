@@ -170,12 +170,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                        placeholder="<?= htmlspecialchars($GLOBAL['orgTaxStatusPlaceholder'], ENT_QUOTES, $charset) ?>"
                        value="<?= htmlspecialchars($appSettings['org_tax_status'] ?? '', ENT_QUOTES, $charset) ?>">
               </div>
-              <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_zewo"><?= $GLOBAL['orgZewo'] ?></label>
-                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['orgZewoHelp'] ?></p>
-                <input type="text" name="org_zewo" id="s_org_zewo" class="form-control form-control-sm" style="max-width:200px"
-                       value="<?= htmlspecialchars($appSettings['org_zewo'] ?? '', ENT_QUOTES, $charset) ?>">
-              </div>
+
               <div class="mb-4">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team_prefix"><?= $GLOBAL['memberTeamPrefixLabel'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['memberTeamPrefixHelp'] ?></p>
