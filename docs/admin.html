@@ -557,6 +557,10 @@ docker compose down -v
 <tr><td><code>admin</code></td><td style="text-align:center">Oui</td><td style="text-align:center">Oui</td><td style="text-align:center">Oui</td><td style="text-align:center">Oui</td></tr></tbody></table></div>
 <p>Fonctions PHP correspondantes (dans <code>auth.php</code>) : <code>isLoggedIn()</code>, <code>canRead()</code> (tous rôles), <code>canWrite()</code> (<code>user</code>/<code>manager</code>/<code>admin</code>), <code>isManager()</code> (<code>manager</code>/<code>admin</code>), <code>isAdmin()</code> (<code>admin</code> seul).</p>
 <p>Tout utilisateur connecté peut changer son propre mot de passe (<code>?view=changePassword</code>). Seul un <code>admin</code> peut réinitialiser le mot de passe d&#39;un autre compte ou le supprimer.</p>
+<p>Sur cette même page, chaque utilisateur choisit aussi la <strong>langue de l&#39;interface</strong>
+(français, anglais, allemand, espagnol) — stockée dans <code>app_users.locale</code> (colonne
+ajoutée par la migration <code>0003_app_users_locale</code>, défaut <code>fr</code>). Le choix est
+individuel : il n&#39;y a pas de réglage global de langue pour l&#39;application.</p>
 <h3 id="62-accès-à-linterface-de-gestion">6.2 Accès à l&#39;interface de gestion<a class="anchor" href="#62-accès-à-linterface-de-gestion" aria-label="Lien d'ancrage">#</a></h3>
 <p><strong>Réglages → Comptes utilisateurs</strong> (ou <code>?view=settings&amp;section=app_users</code>)</p>
 <p>L&#39;onglet est invisible pour les rôles non-admin.</p>

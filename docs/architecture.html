@@ -665,8 +665,21 @@ handler modifiant des données — aucun hook automatique.</li>
 </ul>
 <h3 id="internationalisation">Internationalisation<a class="anchor" href="#internationalisation" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
-<li>Un seul fichier de ressources : <code>html/locales/resources_fr.php</code> (tableau <code>$GLOBAL</code>).
-Application entièrement en français, sans infrastructure i18n.</li>
+<li>Bundles de ressources PHP par langue dans <code>html/locales/</code> : <code>resources_fr.php</code>
+(base complète, source de vérité de toutes les clés) et <code>resources_en.php</code> /
+<code>resources_de.php</code> / <code>resources_es.php</code> (surcharges). <code>mbLoadLocale()</code>
+(<code>html/includes/lib/locale.php</code>) charge d'abord le FR puis, si différent, écrase
+avec la langue demandée — toute clé absente d'une traduction retombe automatiquement
+sur le français. Toutes les vues restent en <code>$GLOBAL['clé']</code>.</li>
+<li>Locale par utilisateur : colonne <code>app_users.locale</code> (défaut <code>fr</code>, migration
+<code>0003_app_users_locale</code>), copiée dans <code>$_SESSION['app_user_locale']</code> au login.
+Changement via l'action <code>changeLocale</code> (tous rôles), carte « Langue » sur la page
+Mot de passe — formulaire <code>hx-boost="false"</code> pour forcer un rechargement complet
+(rafraîchit <code>&lt;html lang&gt;</code>, dynamique depuis <code>$GLOBAL['currentLocale']</code>).</li>
+<li>Pages non authentifiées (<code>login.php</code>, <code>install.php</code>, <code>set-password.php</code>) et
+attestations PDF : toujours FR, chargé directement.</li>
+<li>Chaînes de données stables (marqueur <code>Anonymisé</code>, seeds <code>compta_type</code>) :
+volontairement non localisées.</li>
 </ul>
 <h3 id="git">Git<a class="anchor" href="#git" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
