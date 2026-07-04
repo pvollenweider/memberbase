@@ -6,14 +6,14 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// actions: saveSettings, zefixLookup, lindasLookup,
+// actions: saveSettings, zefixLookup,
 //          updateComptaTypeOrder, addComptaType, updateComptaType, deleteComptaType
 
 $action = $_REQUEST['action'];
 
 if ($action === 'saveSettings') {
     if (!isAdmin()) { http_response_code(403); exit; }
-} elseif (in_array($action, ['zefixLookup', 'lindasLookup'], true)) {
+} elseif ($action === 'zefixLookup') {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -95,57 +95,6 @@ if ($action == 'saveSettings') {
     }
     $result['ide'] = $uidFormatted;
     echo json_encode($result);
-    exit;
-
-} elseif ($action === 'lindasLookup') {
-    // SPARQL query against ld.admin.ch (Zefix dataset) to verify an IDE and retrieve the legal name.
-    // schema:identifier in this dataset is an IRI (e.g. .../UID/CHE105833663), not a literal — use STRENDS.
-    // Note: AFC tax-exemption status is not published in this dataset; fill it manually.
-    // Returns JSON: { name, ide } on success, or { error: 'invalid_ide'|'not_found'|'unreachable' }
-    header('Content-Type: application/json; charset=utf-8');
-    $raw = trim($_REQUEST['ide'] ?? '');
-    $digits = preg_replace('/[^0-9]/', '', $raw);
-    if (strlen($digits) < 9) {
-        echo json_encode(['error' => 'invalid_ide']);
-        exit;
-    }
-    $uid9         = substr($digits, -9);
-    $uidFormatted = 'CHE-' . substr($uid9, 0, 3) . '.' . substr($uid9, 3, 3) . '.' . substr($uid9, 6, 3);
-    $uidIriSuffix = '/UID/CHE' . $uid9;
-    $sparql = <<<SPARQL
-PREFIX schema: <http://schema.org/>
-SELECT ?legalName ?description WHERE {
-  ?org a <https://schema.ld.admin.ch/ZefixOrganisation> ;
-       schema:identifier ?uid ;
-       schema:legalName ?legalName .
-  OPTIONAL { ?org schema:description ?description . }
-  FILTER(STRENDS(STR(?uid), "{$uidIriSuffix}"))
-}
-LIMIT 1
-SPARQL;
-    $endpoint = 'https://ld.admin.ch/query';
-    $params   = http_build_query(['query' => $sparql, 'format' => 'application/sparql-results+json']);
-    $ctx = stream_context_create(['http' => [
-        'timeout'       => 30,
-        'ignore_errors' => true,
-        'header'        => "Accept: application/sparql-results+json\r\nContent-Type: application/x-www-form-urlencoded\r\n",
-        'method'        => 'POST',
-        'content'       => $params,
-    ]]);
-    $body = @file_get_contents($endpoint, false, $ctx);
-    if ($body === false || $body === '') {
-        echo json_encode(['error' => 'unreachable']);
-        exit;
-    }
-    $data = json_decode($body, true);
-    if (!$data || empty($data['results']['bindings'])) {
-        echo json_encode(['error' => 'not_found']);
-        exit;
-    }
-    $row         = $data['results']['bindings'][0];
-    $name        = $row['legalName']['value'] ?? '';
-    $description = $row['description']['value'] ?? '';
-    echo json_encode(['name' => $name, 'ide' => $uidFormatted, 'description' => $description]);
     exit;
 
 } elseif ($action == 'updateComptaTypeOrder') {

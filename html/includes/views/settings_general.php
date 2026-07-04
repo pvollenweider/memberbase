@@ -166,18 +166,9 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
               <div class="mb-3">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_tax_status"><?= $GLOBAL['orgTaxStatus'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['orgTaxStatusHelp'] ?></p>
-                <div class="d-flex gap-2 align-items-center flex-wrap" style="max-width:440px">
-                  <input type="text" name="org_tax_status" id="s_org_tax_status" class="form-control form-control-sm" style="max-width:280px"
-                         placeholder="<?= htmlspecialchars($GLOBAL['orgTaxStatusPlaceholder'], ENT_QUOTES, $charset) ?>"
-                         value="<?= htmlspecialchars($appSettings['org_tax_status'] ?? '', ENT_QUOTES, $charset) ?>">
-                  <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-lindas-lookup"
-                          data-action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) ?>"
-                          data-label-checking="<?= htmlspecialchars($GLOBAL['lindasChecking'], ENT_QUOTES, $charset) ?>"
-                          data-label-verify="<?= htmlspecialchars($GLOBAL['lindasVerify'], ENT_QUOTES, $charset) ?>">
-                    <i class="fas fa-database me-1" aria-hidden="true"></i><span><?= $GLOBAL['lindasVerify'] ?></span>
-                  </button>
-                </div>
-                <div id="lindas-result" class="mt-2" style="font-size:0.82rem"></div>
+                <input type="text" name="org_tax_status" id="s_org_tax_status" class="form-control form-control-sm" style="max-width:280px"
+                       placeholder="<?= htmlspecialchars($GLOBAL['orgTaxStatusPlaceholder'], ENT_QUOTES, $charset) ?>"
+                       value="<?= htmlspecialchars($appSettings['org_tax_status'] ?? '', ENT_QUOTES, $charset) ?>">
               </div>
               <div class="mb-4">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_zewo"><?= $GLOBAL['orgZewo'] ?></label>
@@ -282,26 +273,6 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                 if (data.street)   info.push(data.street + (data.npa ? ', ' + data.npa : '') + (data.city ? ' ' + data.city : ''));
                 el.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>' + info.join(' — ') + '</span>';
               }, zLabels);
-
-              var lLabels = {
-                missingIde:   <?= json_encode($GLOBAL['zefixMissingIde']) ?>,
-                networkError: <?= json_encode($GLOBAL['lindasNetworkError']) ?>
-              };
-              doLookup('btn-lindas-lookup', 'lindas-result', 'lindasLookup', 's_org_ide', function (data, el) {
-                if (data.error) {
-                  var msgs = { invalid_ide:  <?= json_encode($GLOBAL['zefixInvalidIde']) ?>,
-                               not_found:    <?= json_encode($GLOBAL['lindasNotFound']) ?>,
-                               unreachable:  <?= json_encode($GLOBAL['lindasUnreachable']) ?> };
-                  el.innerHTML = '<span class="text-danger">' + (msgs[data.error] || data.error) + '</span>';
-                  return;
-                }
-                if (data.description) {
-                  var purposeEl = document.getElementById('s_org_purpose');
-                  if (purposeEl && !purposeEl.value.trim()) purposeEl.value = data.description;
-                }
-                el.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>'
-                  + (data.name || data.ide) + '</span>';
-              }, lLabels);
             }());
             </script>
             <?php endif ?>

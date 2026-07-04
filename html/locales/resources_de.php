@@ -451,12 +451,6 @@ $GLOBAL['zefixInvalidIde'] = "Ungültige UID-Nummer (erwartet: CHE-XXX.XXX.XXX).
 $GLOBAL['zefixNotFound'] = "UID-Nummer nicht im Zefix-Register gefunden.";
 $GLOBAL['zefixUnreachable'] = "Zefix nicht erreichbar. Verbindung prüfen.";
 $GLOBAL['zefixNetworkError'] = "Netzwerkfehler bei der Zefix-Prüfung.";
-$GLOBAL['lindasVerify'] = "Via LINDAS prüfen";
-$GLOBAL['lindasChecking'] = "Prüfung…";
-$GLOBAL['lindasNotFound'] = "Keine Steuerinformationen auf LINDAS für diese UID gefunden.";
-$GLOBAL['lindasUnreachable'] = "LINDAS (ld.admin.ch) nicht erreichbar. Status manuell eingeben.";
-$GLOBAL['lindasNetworkError'] = "Netzwerkfehler bei der LINDAS-Prüfung.";
-$GLOBAL['lindasNoStatus'] = "Kein Befreiungsstatus auf LINDAS veröffentlicht.";
 
 // --- settings_filter_edit ---
 $GLOBAL['combinedSegmentCreated'] = "Kombiniertes Segment „%s“ erstellt.";

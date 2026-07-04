@@ -451,12 +451,6 @@ $GLOBAL['zefixInvalidIde'] = "Numéro IDE invalide (format attendu : CHE-XXX.XXX
 $GLOBAL['zefixNotFound'] = "Numéro IDE introuvable dans le registre Zefix.";
 $GLOBAL['zefixUnreachable'] = "Impossible de contacter Zefix. Vérifiez votre connexion.";
 $GLOBAL['zefixNetworkError'] = "Erreur réseau lors de la vérification Zefix.";
-$GLOBAL['lindasVerify'] = "Vérifier via LINDAS";
-$GLOBAL['lindasChecking'] = "Vérification…";
-$GLOBAL['lindasNotFound'] = "Aucune information fiscale trouvée sur LINDAS pour ce numéro IDE.";
-$GLOBAL['lindasUnreachable'] = "Impossible de contacter LINDAS (ld.admin.ch). Saisissez le statut manuellement.";
-$GLOBAL['lindasNetworkError'] = "Erreur réseau lors de la vérification LINDAS.";
-$GLOBAL['lindasNoStatus'] = "Aucun statut d'exonération publié sur LINDAS.";
 
 // --- settings_filter_edit ---
 $GLOBAL['combinedSegmentCreated'] = "Segment combiné «%s» créé.";
