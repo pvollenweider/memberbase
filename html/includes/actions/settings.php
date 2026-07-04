@@ -126,7 +126,7 @@ SPARQL;
     $endpoint = 'https://ld.admin.ch/query';
     $params   = http_build_query(['query' => $sparql, 'format' => 'application/sparql-results+json']);
     $ctx = stream_context_create(['http' => [
-        'timeout'       => 10,
+        'timeout'       => 30,
         'ignore_errors' => true,
         'header'        => "Accept: application/sparql-results+json\r\nContent-Type: application/x-www-form-urlencoded\r\n",
         'method'        => 'POST',
