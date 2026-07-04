@@ -33,6 +33,11 @@
             }
 
             $(this).off('click.datahref').on('click.datahref', function(e) {
+                    // Let nested links/buttons (e.g. a PDF icon inside a
+                    // clickable row) behave normally instead of being
+                    // hijacked into opening the row's own href.
+                    if ($(e.target).closest('a, button').length) return;
+
                     if(e.metaKey)
                         target = '_blank';
 
