@@ -166,13 +166,13 @@ Tout changement de schéma = un fichier `html/migrations/NNNN_description.sql` (
 3. Knowledge graph : `/understand` **sans `--full`** (incrémental — ne ré-analyse que les fichiers modifiés depuis le dernier `gitCommitHash` de `.understand-anything/meta.json`). Réserver `--full` aux refontes structurelles du code.
 4. Site : `make publish-site` (`tools/publish-site.sh` + `tools/site-release.mjs`) insère la dernière entrée du changelog dans `index.html` de `gh-pages` (3 releases visibles). Déjà inclus dans `make release`.
 
-**`/impeccable` uniquement** quand le contenu documentaire a changé substantiellement (nouvelles pages, refonte de `doc/*.md` ou du `README.md`) — pas pour une release courante.
+**Contenu documentaire changé substantiellement** (nouvelle fonctionnalité, refonte de `doc/*.md` ou du `README.md`) : `make publish-site` ne suffit pas (il ne patch que le changelog). Il faut aussi répercuter le changement dans les pages HTML statiques de `gh-pages` (`index.html`, `docs/architecture.html`, `docs/user.html`, `docs/admin.html`, `docs/api.html`) — **à la main**, en éditant ces fichiers dans un worktree (`git worktree add <tmp> origin/gh-pages --detach`) pour rester cohérent avec le style/markup existant, puis push. **Il n'existe aucun générateur automatique** pour ce site (les pages ont été écrites à la main dans une session ponctuelle, pas de script markdown→HTML committé) — ne pas invoquer `/impeccable` pour ça : ce skill design l'UI de l'app elle-même (via `PRODUCT.md`/`DESIGN.md`), pas le site de doc public.
 
 ## Site GitHub Pages
 
 Le site de documentation public est hébergé sur **https://pvollenweider.github.io/memberbase/** (branche `gh-pages`, orpheline, root `/`).
 
-Le site doit refléter la version courante (`APP_VERSION`) et le changelog à jour — c'est le rôle de `make publish-site` (cf. section Release). Ne pas modifier `gh-pages` à la main en dehors de ce script ou d'une passe `/impeccable`.
+Le site doit refléter la version courante (`APP_VERSION`) et le changelog à jour — c'est le rôle de `make publish-site` (cf. section Release) pour le changelog seul. Pour tout autre contenu, patch manuel décrit ci-dessus. Ne pas modifier `gh-pages` à la main en dehors de ces deux voies (script ou édition ciblée documentée ici).
 
 ## Colonne `users.status`
 
