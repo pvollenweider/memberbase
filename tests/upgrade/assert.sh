@@ -32,9 +32,17 @@ DT="$(q "SELECT DATA_TYPE FROM information_schema.columns WHERE table_schema=DAT
 TOT="$(q "SELECT COALESCE(SUM(sum),0) FROM compta")"
 [ "$TOT" = "162.50" ] || fail "SUM(compta.sum) is '$TOT', expected 162.50"
 
-# 5. Both migrations recorded in schema_migrations, with checksums
+# 5. Migration 0003 added app_users.locale
+[ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='app_users' AND column_name='locale'")" = "1" ] \
+  || fail "app_users.locale column missing (0003 not applied)"
+
+# 6. Migration 0004 widened app_settings.value to TEXT
+DT2="$(q "SELECT DATA_TYPE FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='app_settings' AND column_name='value'")"
+[ "$DT2" = "text" ] || fail "app_settings.value data type is '$DT2', expected 'text' (0004 not applied)"
+
+# 7. All 4 migrations recorded in schema_migrations, with checksums
 N="$(q "SELECT COUNT(*) FROM schema_migrations")"
-[ "$N" = "2" ] || fail "schema_migrations has $N rows, expected 2"
+[ "$N" = "4" ] || fail "schema_migrations has $N rows, expected 4"
 BAD="$(q "SELECT COUNT(*) FROM schema_migrations WHERE checksum='' OR checksum IS NULL")"
 [ "$BAD" = "0" ] || fail "$BAD applied migration(s) missing a checksum"
 
