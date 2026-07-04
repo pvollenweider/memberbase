@@ -229,6 +229,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
               <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['save'] ?></button>
             </form>
             </div>
+            <?php endif ?>
             <?php if (isAdmin()): ?>
             <script>
             (function () {
