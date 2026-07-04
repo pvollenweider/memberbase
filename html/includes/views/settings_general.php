@@ -275,14 +275,15 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                   el.innerHTML = '<span class="text-danger">' + (msgs[data.error] || data.error) + '</span>';
                   return;
                 }
-                if (data.ide)  document.getElementById('s_org_ide').value = data.ide;
-                if (data.name) document.getElementById('s_org_name').value = data.name;
-                if (data.street) document.getElementById('s_org_address').value = data.street;
-                if (data.npa)    document.getElementById('s_org_npa').value  = data.npa;
-                if (data.city)   document.getElementById('s_org_city').value = data.city;
+                if (data.ide)     document.getElementById('s_org_ide').value = data.ide;
+                if (data.name)    document.getElementById('s_org_name').value = data.name;
+                if (data.street)  document.getElementById('s_org_address').value = data.street;
+                if (data.npa)     document.getElementById('s_org_npa').value  = data.npa;
+                if (data.city)    document.getElementById('s_org_city').value = data.city;
+                if (data.country) document.getElementById('s_org_country').value = data.country;
+                if (data.purpose) document.getElementById('s_org_purpose').value = data.purpose;
                 var info = [];
                 if (data.name)     info.push('<strong>' + data.name + '</strong>');
-                if (data.legalForm) info.push(data.legalForm);
                 if (data.street)   info.push(data.street + (data.npa ? ', ' + data.npa : '') + (data.city ? ' ' + data.city : ''));
                 el.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>' + info.join(' — ') + '</span>';
               }, zLabels);

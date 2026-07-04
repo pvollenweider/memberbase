@@ -45,8 +45,12 @@ if ($action == 'saveSettings') {
     exit;
 
 } elseif ($action === 'zefixLookup') {
-    // Proxy call to Zefix REST API to fetch firm info by IDE/UID number.
-    // Returns JSON: { name, address, legalForm, error? }
+    // Proxy call to the Zefix public REST API to fetch firm info by IDE/UID number.
+    // The GET /firm/{uid} endpoint is decommissioned (always returns a generic
+    // 400 API.ERROR.GENERAL, for any input) — the working flow is two calls:
+    //   1. POST /firm/search.json {name: uid, searchType: exact} -> ehraid
+    //   2. GET  /firm/{ehraid}.json                               -> full detail
+    // Returns JSON: { name, street, npa, city, country, purpose, error? }
     header('Content-Type: application/json; charset=utf-8');
     $raw = trim($_REQUEST['ide'] ?? '');
     // Normalize IDE: strip spaces, dashes, dots — keep only digits; then format as CHE-XXX.XXX.XXX
@@ -58,13 +62,32 @@ if ($action == 'saveSettings') {
     // Keep last 9 digits (CHE prefix is 3 letters, UID body is 9 digits)
     $uid9 = substr($digits, -9);
     $uidFormatted = 'CHE-' . substr($uid9, 0, 3) . '.' . substr($uid9, 3, 3) . '.' . substr($uid9, 6, 3);
-    $apiUrl = 'https://www.zefix.ch/ZefixREST/api/v1/firm/' . urlencode($uidFormatted);
-    $ctx = stream_context_create(['http' => [
+
+    $searchCtx = stream_context_create(['http' => [
+        'method'        => 'POST',
+        'timeout'       => 8,
+        'ignore_errors' => true,
+        'header'        => "Content-Type: application/json\r\nAccept: application/json\r\n",
+        'content'       => json_encode(['name' => $uidFormatted, 'searchType' => 'exact']),
+    ]]);
+    $searchBody = @file_get_contents('https://www.zefix.ch/ZefixREST/api/v1/firm/search.json', false, $searchCtx);
+    if ($searchBody === false || $searchBody === '') {
+        echo json_encode(['error' => 'unreachable']);
+        exit;
+    }
+    $searchData = json_decode($searchBody, true);
+    $ehraid = $searchData['list'][0]['ehraid'] ?? null;
+    if (!$ehraid) {
+        echo json_encode(['error' => 'not_found']);
+        exit;
+    }
+
+    $detailCtx = stream_context_create(['http' => [
         'timeout'        => 8,
         'ignore_errors'  => true,
         'header'         => "Accept: application/json\r\n",
     ]]);
-    $body = @file_get_contents($apiUrl, false, $ctx);
+    $body = @file_get_contents('https://www.zefix.ch/ZefixREST/api/v1/firm/' . $ehraid . '.json', false, $detailCtx);
     if ($body === false || $body === '') {
         echo json_encode(['error' => 'unreachable']);
         exit;
@@ -74,24 +97,20 @@ if ($action == 'saveSettings') {
         echo json_encode(['error' => 'not_found']);
         exit;
     }
-    // Extract the most useful fields from Zefix response
+    // Extract the fields the settings form can prefill
     $result = [];
-    // Firm name (main entry)
     if (!empty($data['name'])) {
         $result['name'] = $data['name'];
-    } elseif (!empty($data['legalName'])) {
-        $result['name'] = $data['legalName'];
     }
-    // Address
     if (!empty($data['address'])) {
         $addr = $data['address'];
-        $result['street']   = trim(($addr['street'] ?? '') . ' ' . ($addr['houseNumber'] ?? ''));
-        $result['npa']      = $addr['swissZipCode'] ?? ($addr['zipCode'] ?? '');
-        $result['city']     = $addr['town'] ?? '';
-        $result['country']  = $addr['countryIsoCode'] ?? '';
+        $result['street']  = trim(($addr['street'] ?? '') . ' ' . ($addr['houseNumber'] ?? ''));
+        $result['npa']     = $addr['swissZipCode'] ?? '';
+        $result['city']    = $addr['town'] ?? '';
+        $result['country'] = ($addr['country'] ?? '') === 'CH' ? 'Suisse' : ($addr['country'] ?? '');
     }
-    if (!empty($data['legalForm'])) {
-        $result['legalForm'] = is_array($data['legalForm']) ? ($data['legalForm']['name']['fr'] ?? $data['legalForm']['name']['de'] ?? '') : $data['legalForm'];
+    if (!empty($data['purpose'])) {
+        $result['purpose'] = $data['purpose'];
     }
     $result['ide'] = $uidFormatted;
     echo json_encode($result);
