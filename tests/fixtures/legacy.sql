@@ -38,3 +38,28 @@ INSERT INTO `compta` (`id`, `user_id`, `sum`) VALUES
   (3, 1, ''),          -- empty              → 0.00
   (4, 1, 'abc'),       -- non-numeric        → 0.00
   (5, 2, '100.00');    -- dotted decimal     → 100.00
+
+-- app_users without `locale` column → migration 0003 must add it
+CREATE TABLE `app_users` (
+  `id`                    int(11)      NOT NULL AUTO_INCREMENT,
+  `username`              varchar(100) NOT NULL,
+  `display_name`          varchar(200) DEFAULT NULL,
+  `email`                 varchar(200) DEFAULT NULL,
+  `password_hash`         varchar(255) NOT NULL,
+  `role`                  enum('admin','manager','user','readonly') NOT NULL DEFAULT 'user',
+  `force_password_change` tinyint(1)   NOT NULL DEFAULT 1,
+  `is_active`             tinyint(1)   NOT NULL DEFAULT 1,
+  `created_at`            timestamp    NOT NULL DEFAULT current_timestamp(),
+  `last_login`            timestamp    NULL DEFAULT NULL,
+  `reset_token`           varchar(64)  DEFAULT NULL,
+  `token_expires_at`      datetime     DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- app_settings with value as varchar(255) → migration 0004 must widen to TEXT
+CREATE TABLE `app_settings` (
+  `key`   varchar(64)  NOT NULL,
+  `value` varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
