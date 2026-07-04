@@ -42,9 +42,14 @@ $npaParts = preg_split('/\s+/', trim($npaFull), 2);
 $npa      = $npaParts[0] ?? '';
 $localite = $npaParts[1] ?? '';
 
+// Build institution name with IDE number if configured
+$_orgIde   = trim($appSettings['org_ide']  ?? '');
+$_orgName  = trim($appSettings['org_name'] ?? '');
+$_instName = $_orgIde ? "$_orgName — IDE $_orgIde" : $_orgName;
+
 // AcroForm field values — institution info from app_settings
 $fields = [
-    'Nom de institution' => $appSettings['org_name']    ?? '',
+    'Nom de institution' => $_instName,
     'Adresse'            => $appSettings['org_address']  ?? '',
     'NPA'                => $appSettings['org_npa']      ?? '',
     'Localite'           => $appSettings['org_city']     ?? '',

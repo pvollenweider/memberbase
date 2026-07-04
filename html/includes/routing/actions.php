@@ -50,6 +50,8 @@ if (isset($_REQUEST['action'])) {
         'addMetagroup'         => 'metagroups',
         'updateMetagroup'      => 'metagroups',
         'saveSettings'         => 'settings',
+        'zefixLookup'          => 'settings',
+        'lindasLookup'         => 'settings',
         'applyMigrations'      => 'maintenance',
         'updateComptaTypeOrder'=> 'settings',
         'addComptaType'        => 'settings',

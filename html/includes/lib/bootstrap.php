@@ -65,6 +65,10 @@ $appSettings = array_merge([
     'org_npa'            => '',
     'org_city'           => '',
     'org_country'        => '',
+    'org_ide'            => '',
+    'org_purpose'        => '',
+    'org_tax_status'     => '',
+    'org_zewo'           => '',
     'membre_team_prefix' => 'Membre',
 ], $_settingsRows);
 unset($_settingsRows);

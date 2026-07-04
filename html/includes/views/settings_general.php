@@ -142,6 +142,49 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                 <input type="text" name="org_country" id="s_org_country" class="form-control form-control-sm" style="max-width:320px"
                        value="<?= htmlspecialchars($appSettings['org_country'] ?? '', ENT_QUOTES, $charset) ?>">
               </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_ide"><?= $GLOBAL['orgIde'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['orgIdeHelp'] ?></p>
+                <div class="d-flex gap-2 align-items-center flex-wrap" style="max-width:440px">
+                  <input type="text" name="org_ide" id="s_org_ide" class="form-control form-control-sm" style="max-width:200px"
+                         placeholder="CHE-123.456.789"
+                         value="<?= htmlspecialchars($appSettings['org_ide'] ?? '', ENT_QUOTES, $charset) ?>">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-zefix-lookup"
+                          data-action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) ?>"
+                          data-label-checking="<?= htmlspecialchars($GLOBAL['zefixChecking'], ENT_QUOTES, $charset) ?>"
+                          data-label-verify="<?= htmlspecialchars($GLOBAL['zefixVerify'], ENT_QUOTES, $charset) ?>">
+                    <i class="fas fa-magnifying-glass me-1" aria-hidden="true"></i><span><?= $GLOBAL['zefixVerify'] ?></span>
+                  </button>
+                </div>
+                <div id="zefix-result" class="mt-2" style="font-size:0.82rem"></div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_purpose"><?= $GLOBAL['orgPurpose'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['orgPurposeHelp'] ?></p>
+                <textarea name="org_purpose" id="s_org_purpose" class="form-control form-control-sm" rows="3" style="max-width:420px"><?= htmlspecialchars($appSettings['org_purpose'] ?? '', ENT_QUOTES, $charset) ?></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_tax_status"><?= $GLOBAL['orgTaxStatus'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['orgTaxStatusHelp'] ?></p>
+                <div class="d-flex gap-2 align-items-center flex-wrap" style="max-width:440px">
+                  <input type="text" name="org_tax_status" id="s_org_tax_status" class="form-control form-control-sm" style="max-width:280px"
+                         placeholder="<?= htmlspecialchars($GLOBAL['orgTaxStatusPlaceholder'], ENT_QUOTES, $charset) ?>"
+                         value="<?= htmlspecialchars($appSettings['org_tax_status'] ?? '', ENT_QUOTES, $charset) ?>">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-lindas-lookup"
+                          data-action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) ?>"
+                          data-label-checking="<?= htmlspecialchars($GLOBAL['lindasChecking'], ENT_QUOTES, $charset) ?>"
+                          data-label-verify="<?= htmlspecialchars($GLOBAL['lindasVerify'], ENT_QUOTES, $charset) ?>">
+                    <i class="fas fa-database me-1" aria-hidden="true"></i><span><?= $GLOBAL['lindasVerify'] ?></span>
+                  </button>
+                </div>
+                <div id="lindas-result" class="mt-2" style="font-size:0.82rem"></div>
+              </div>
+              <div class="mb-4">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_zewo"><?= $GLOBAL['orgZewo'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['orgZewoHelp'] ?></p>
+                <input type="text" name="org_zewo" id="s_org_zewo" class="form-control form-control-sm" style="max-width:200px"
+                       value="<?= htmlspecialchars($appSettings['org_zewo'] ?? '', ENT_QUOTES, $charset) ?>">
+              </div>
               <div class="mb-4">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team_prefix"><?= $GLOBAL['memberTeamPrefixLabel'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['memberTeamPrefixHelp'] ?></p>
@@ -186,6 +229,77 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
               <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['save'] ?></button>
             </form>
             </div>
+            <?php if (isAdmin()): ?>
+            <script>
+            (function () {
+              function doLookup(btnId, resultId, actionName, ideFieldId, fillFn, labels) {
+                var btn    = document.getElementById(btnId);
+                var result = document.getElementById(resultId);
+                if (!btn) return;
+                btn.addEventListener('click', function () {
+                  var ide = document.getElementById(ideFieldId).value.trim();
+                  if (!ide) { result.innerHTML = '<span class="text-warning">' + (labels.missingIde || '') + '</span>'; return; }
+                  btn.disabled = true;
+                  btn.querySelector('span').textContent = btn.dataset.labelChecking;
+                  result.innerHTML = '';
+                  var fd = new FormData();
+                  fd.append('action', actionName);
+                  fd.append('ide', ide);
+                  fd.append('csrf', window.casaCsrfToken ? window.casaCsrfToken() : '');
+                  fetch(btn.dataset.action, { method: 'POST', body: fd,
+                    headers: { 'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : '' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) { fillFn(data, result); })
+                    .catch(function () { result.innerHTML = '<span class="text-danger">' + (labels.networkError || '') + '</span>'; })
+                    .finally(function () {
+                      btn.disabled = false;
+                      btn.querySelector('span').textContent = btn.dataset.labelVerify;
+                    });
+                });
+              }
+
+              var zLabels = {
+                missingIde:   <?= json_encode($GLOBAL['zefixMissingIde']) ?>,
+                networkError: <?= json_encode($GLOBAL['zefixNetworkError']) ?>
+              };
+              doLookup('btn-zefix-lookup', 'zefix-result', 'zefixLookup', 's_org_ide', function (data, el) {
+                if (data.error) {
+                  var msgs = { invalid_ide: <?= json_encode($GLOBAL['zefixInvalidIde']) ?>,
+                               not_found:   <?= json_encode($GLOBAL['zefixNotFound']) ?>,
+                               unreachable: <?= json_encode($GLOBAL['zefixUnreachable']) ?> };
+                  el.innerHTML = '<span class="text-danger">' + (msgs[data.error] || data.error) + '</span>';
+                  return;
+                }
+                if (data.ide)  document.getElementById('s_org_ide').value = data.ide;
+                if (data.name) document.getElementById('s_org_name').value = data.name;
+                if (data.street) document.getElementById('s_org_address').value = data.street;
+                if (data.npa)    document.getElementById('s_org_npa').value  = data.npa;
+                if (data.city)   document.getElementById('s_org_city').value = data.city;
+                var info = [];
+                if (data.name)     info.push('<strong>' + data.name + '</strong>');
+                if (data.legalForm) info.push(data.legalForm);
+                if (data.street)   info.push(data.street + (data.npa ? ', ' + data.npa : '') + (data.city ? ' ' + data.city : ''));
+                el.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>' + info.join(' — ') + '</span>';
+              }, zLabels);
+
+              var lLabels = {
+                missingIde:   <?= json_encode($GLOBAL['zefixMissingIde']) ?>,
+                networkError: <?= json_encode($GLOBAL['lindasNetworkError']) ?>
+              };
+              doLookup('btn-lindas-lookup', 'lindas-result', 'lindasLookup', 's_org_ide', function (data, el) {
+                if (data.error) {
+                  var msgs = { invalid_ide:  <?= json_encode($GLOBAL['zefixInvalidIde']) ?>,
+                               not_found:    <?= json_encode($GLOBAL['lindasNotFound']) ?>,
+                               unreachable:  <?= json_encode($GLOBAL['lindasUnreachable']) ?> };
+                  el.innerHTML = '<span class="text-danger">' + (msgs[data.error] || data.error) + '</span>';
+                  return;
+                }
+                if (data.status) document.getElementById('s_org_tax_status').value = data.status;
+                el.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>'
+                  + (data.status || <?= json_encode($GLOBAL['lindasNoStatus']) ?>) + '</span>';
+              }, lLabels);
+            }());
+            </script>
             <?php endif ?>
           </div><!-- #tab-settings -->
 

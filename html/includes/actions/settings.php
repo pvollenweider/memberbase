@@ -6,12 +6,14 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// actions: saveSettings, updateComptaTypeOrder, addComptaType,
-//          updateComptaType, deleteComptaType
+// actions: saveSettings, zefixLookup, lindasLookup,
+//          updateComptaTypeOrder, addComptaType, updateComptaType, deleteComptaType
 
 $action = $_REQUEST['action'];
 
 if ($action === 'saveSettings') {
+    if (!isAdmin()) { http_response_code(403); exit; }
+} elseif (in_array($action, ['zefixLookup', 'lindasLookup'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -21,7 +23,9 @@ if ($action == 'saveSettings') {
     // Integer settings — stored as numeric values
     $intKeys = ['default_team', 'membre_team', 'member_no_coti_team'];
     // String settings — stored as trimmed text
-    $strKeys = ['org_name', 'org_address', 'org_npa', 'org_city', 'org_country', 'membre_team_prefix'];
+    $strKeys = ['org_name', 'org_address', 'org_npa', 'org_city', 'org_country',
+                'org_ide', 'org_purpose', 'org_tax_status', 'org_zewo',
+                'membre_team_prefix'];
     $stmt = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
     foreach ($intKeys as $key) {
         if (isset($_REQUEST[$key])) {
@@ -38,6 +42,107 @@ if ($action == 'saveSettings') {
     } else {
         echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&saved=1') . ');</script>';
     }
+    exit;
+
+} elseif ($action === 'zefixLookup') {
+    // Proxy call to Zefix REST API to fetch firm info by IDE/UID number.
+    // Returns JSON: { name, address, legalForm, error? }
+    header('Content-Type: application/json; charset=utf-8');
+    $raw = trim($_REQUEST['ide'] ?? '');
+    // Normalize IDE: strip spaces, dashes, dots — keep only digits; then format as CHE-XXX.XXX.XXX
+    $digits = preg_replace('/[^0-9]/', '', $raw);
+    if (strlen($digits) < 9) {
+        echo json_encode(['error' => 'invalid_ide']);
+        exit;
+    }
+    // Keep last 9 digits (CHE prefix is 3 letters, UID body is 9 digits)
+    $uid9 = substr($digits, -9);
+    $uidFormatted = 'CHE-' . substr($uid9, 0, 3) . '.' . substr($uid9, 3, 3) . '.' . substr($uid9, 6, 3);
+    $apiUrl = 'https://www.zefix.ch/ZefixREST/api/v1/firm/' . urlencode($uidFormatted);
+    $ctx = stream_context_create(['http' => [
+        'timeout'        => 8,
+        'ignore_errors'  => true,
+        'header'         => "Accept: application/json\r\n",
+    ]]);
+    $body = @file_get_contents($apiUrl, false, $ctx);
+    if ($body === false || $body === '') {
+        echo json_encode(['error' => 'unreachable']);
+        exit;
+    }
+    $data = json_decode($body, true);
+    if (!$data || isset($data['error'])) {
+        echo json_encode(['error' => 'not_found']);
+        exit;
+    }
+    // Extract the most useful fields from Zefix response
+    $result = [];
+    // Firm name (main entry)
+    if (!empty($data['name'])) {
+        $result['name'] = $data['name'];
+    } elseif (!empty($data['legalName'])) {
+        $result['name'] = $data['legalName'];
+    }
+    // Address
+    if (!empty($data['address'])) {
+        $addr = $data['address'];
+        $result['street']   = trim(($addr['street'] ?? '') . ' ' . ($addr['houseNumber'] ?? ''));
+        $result['npa']      = $addr['swissZipCode'] ?? ($addr['zipCode'] ?? '');
+        $result['city']     = $addr['town'] ?? '';
+        $result['country']  = $addr['countryIsoCode'] ?? '';
+    }
+    if (!empty($data['legalForm'])) {
+        $result['legalForm'] = is_array($data['legalForm']) ? ($data['legalForm']['name']['fr'] ?? $data['legalForm']['name']['de'] ?? '') : $data['legalForm'];
+    }
+    $result['ide'] = $uidFormatted;
+    echo json_encode($result);
+    exit;
+
+} elseif ($action === 'lindasLookup') {
+    // SPARQL query against ld.admin.ch to retrieve AFC tax exemption status.
+    // Returns JSON: { status, error? }
+    header('Content-Type: application/json; charset=utf-8');
+    $raw = trim($_REQUEST['ide'] ?? '');
+    $digits = preg_replace('/[^0-9]/', '', $raw);
+    if (strlen($digits) < 9) {
+        echo json_encode(['error' => 'invalid_ide']);
+        exit;
+    }
+    $uid9 = substr($digits, -9);
+    $uidFormatted = 'CHE-' . substr($uid9, 0, 3) . '.' . substr($uid9, 3, 3) . '.' . substr($uid9, 6, 3);
+    // SPARQL query for AFC tax exemption data on ld.admin.ch
+    $sparql = <<<SPARQL
+PREFIX schema: <http://schema.org/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?org ?name ?taxExemption WHERE {
+  ?org schema:identifier "{$uidFormatted}" ;
+       schema:name ?name .
+  OPTIONAL { ?org <https://schema.ld.admin.ch/taxExemption> ?taxExemption . }
+}
+LIMIT 1
+SPARQL;
+    $endpoint = 'https://ld.admin.ch/query';
+    $params   = http_build_query(['query' => $sparql, 'format' => 'application/sparql-results+json']);
+    $ctx = stream_context_create(['http' => [
+        'timeout'       => 10,
+        'ignore_errors' => true,
+        'header'        => "Accept: application/sparql-results+json\r\nContent-Type: application/x-www-form-urlencoded\r\n",
+        'method'        => 'POST',
+        'content'       => $params,
+    ]]);
+    $body = @file_get_contents($endpoint, false, $ctx);
+    if ($body === false || $body === '') {
+        echo json_encode(['error' => 'unreachable']);
+        exit;
+    }
+    $data = json_decode($body, true);
+    if (!$data || empty($data['results']['bindings'])) {
+        echo json_encode(['error' => 'not_found']);
+        exit;
+    }
+    $row    = $data['results']['bindings'][0];
+    $status = $row['taxExemption']['value'] ?? '';
+    $name   = $row['name']['value'] ?? '';
+    echo json_encode(['status' => $status, 'name' => $name, 'ide' => $uidFormatted]);
     exit;
 
 } elseif ($action == 'updateComptaTypeOrder') {

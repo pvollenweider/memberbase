@@ -70,13 +70,18 @@ $tmpDir    = sys_get_temp_dir();
 $tmpFiles  = [];
 $errors    = [];
 
+// Build institution name with IDE number if configured
+$_orgIde   = trim($appSettings['org_ide']  ?? '');
+$_orgName  = trim($appSettings['org_name'] ?? '');
+$_instName = $_orgIde ? "$_orgName — IDE $_orgIde" : $_orgName;
+
 foreach ($donors as $row) {
     $npaFull  = $row->npa ?? '';
     $npaParts = preg_split('/\s+/', trim($npaFull), 2);
     $total    = number_format((float)$row->total, 2, '.', "'");
 
     $fields = [
-        'Nom de institution' => $appSettings['org_name']    ?? '',
+        'Nom de institution' => $_instName,
         'Adresse'            => $appSettings['org_address']  ?? '',
         'NPA'                => $appSettings['org_npa']      ?? '',
         'Localite'           => $appSettings['org_city']     ?? '',
