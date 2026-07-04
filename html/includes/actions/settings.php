@@ -114,10 +114,11 @@ if ($action == 'saveSettings') {
     $uidIriSuffix = '/UID/CHE' . $uid9;
     $sparql = <<<SPARQL
 PREFIX schema: <http://schema.org/>
-SELECT ?legalName WHERE {
+SELECT ?legalName ?description WHERE {
   ?org a <https://schema.ld.admin.ch/ZefixOrganisation> ;
        schema:identifier ?uid ;
        schema:legalName ?legalName .
+  OPTIONAL { ?org schema:description ?description . }
   FILTER(STRENDS(STR(?uid), "{$uidIriSuffix}"))
 }
 LIMIT 1
@@ -141,9 +142,10 @@ SPARQL;
         echo json_encode(['error' => 'not_found']);
         exit;
     }
-    $row  = $data['results']['bindings'][0];
-    $name = $row['legalName']['value'] ?? '';
-    echo json_encode(['name' => $name, 'ide' => $uidFormatted]);
+    $row         = $data['results']['bindings'][0];
+    $name        = $row['legalName']['value'] ?? '';
+    $description = $row['description']['value'] ?? '';
+    echo json_encode(['name' => $name, 'ide' => $uidFormatted, 'description' => $description]);
     exit;
 
 } elseif ($action == 'updateComptaTypeOrder') {

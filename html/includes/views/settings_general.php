@@ -295,6 +295,10 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                   el.innerHTML = '<span class="text-danger">' + (msgs[data.error] || data.error) + '</span>';
                   return;
                 }
+                if (data.description) {
+                  var purposeEl = document.getElementById('s_org_purpose');
+                  if (purposeEl && !purposeEl.value.trim()) purposeEl.value = data.description;
+                }
                 el.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>'
                   + (data.name || data.ide) + '</span>';
               }, lLabels);
