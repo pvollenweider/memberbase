@@ -247,8 +247,12 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                   fd.append('action', actionName);
                   fd.append('ide', ide);
                   fd.append('csrf', window.casaCsrfToken ? window.casaCsrfToken() : '');
+                  // HX-Request: true makes index.php take its no-full-page-render
+                  // branch (see index.php $isHtmx) so the response body is pure
+                  // JSON instead of the full page shell with JSON appended.
                   fetch(btn.dataset.action, { method: 'POST', body: fd,
-                    headers: { 'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : '' } })
+                    headers: { 'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : '',
+                               'HX-Request': 'true' } })
                     .then(function (r) { return r.json(); })
                     .then(function (data) { fillFn(data, result); })
                     .catch(function () { result.innerHTML = '<span class="text-danger">' + (labels.networkError || '') + '</span>'; })
