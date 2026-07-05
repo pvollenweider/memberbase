@@ -287,16 +287,6 @@ if ($_REQUEST['action'] == 'updateUser') {
     $user->comment = unquote($_REQUEST['comment'] ?? '');
     $userid = $user->save();
     auditLog($pdo, 'addUser', "id=$userid | {$user->firstName} {$user->lastName} | email: {$user->email}", (int)$userid);
-    // Send welcome email if enabled and the new member has an email address
-    if (!empty($appSettings['email_welcome_enabled']) && $user->email !== '') {
-        require_once __DIR__ . '/../lib/mailer.php';
-        mbSendTemplate($pdo, $user->email, 'tpl_welcome', [
-            'firstname' => $user->firstName,
-            'lastname'  => $user->lastName,
-            'email'     => $user->email,
-            'org_name'  => $appSettings['org_name'] ?? '',
-        ]);
-    }
     $fromTeam = (int)($_REQUEST['fromTeam'] ?? 0);
     if ($fromTeam > 0 && !empty($_REQUEST['addToFromTeam'])) {
         $chk = $pdo->prepare("SELECT COUNT(*) FROM team WHERE id=?");
@@ -306,4 +296,30 @@ if ($_REQUEST['action'] == 'updateUser') {
             $ins->execute([$userid, 'team_' . $fromTeam]);
         }
     }
+
+} elseif ($_REQUEST['action'] === 'sendWelcomeEmail') {
+    if (!isManager()) { http_response_code(403); exit; }
+    header('Content-Type: application/json; charset=utf-8');
+    $id  = (int)($_REQUEST['id'] ?? 0);
+    if ($id <= 0) { echo json_encode(['ok' => false, 'error' => 'invalid_id']); exit; }
+    $row = $pdo->prepare("SELECT firstname, lastname, email FROM users WHERE id=? AND status=1 LIMIT 1");
+    $row->execute([$id]);
+    $m = $row->fetchObject();
+    if (!$m) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }
+    if ($m->email === '') { echo json_encode(['ok' => false, 'error' => 'no_email']); exit; }
+    require_once __DIR__ . '/../lib/mailer.php';
+    $ok = mbSendTemplate($pdo, $m->email, 'tpl_welcome', [
+        'firstname'     => $m->firstname,
+        'lastname'      => $m->lastname,
+        'email'         => $m->email,
+        'org_name'      => $appSettings['org_name']      ?? '',
+        'org_address'   => $appSettings['org_address']   ?? '',
+        'org_city'      => $appSettings['org_city']      ?? '',
+        'org_country'   => $appSettings['org_country']   ?? '',
+        'org_web'       => $appSettings['org_web']       ?? '',
+        'contact_email' => $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? ''),
+    ]);
+    auditLog($pdo, 'sendWelcomeEmail', "id=$id to={$m->email}");
+    echo json_encode(['ok' => $ok]);
+    exit;
 }

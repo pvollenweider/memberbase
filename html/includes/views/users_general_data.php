@@ -166,8 +166,22 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
 
             <div x-show="data.email">
                 <div class="ca-field-label"><i class="fas fa-envelope me-1" aria-hidden="true"></i><?= $GLOBAL['email'] ?></div>
-                <div class="ca-field-value">
+                <div class="ca-field-value d-flex align-items-center gap-2 flex-wrap">
                     <a :href="'mailto:' + data.email" x-text="data.email" @click.stop></a>
+                    <?php if (isManager()): ?>
+                    <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2"
+                            style="font-size:0.72rem;line-height:1.6"
+                            id="btn-send-welcome"
+                            data-member-id="<?= $_mid ?>"
+                            data-label-sending="<?= htmlspecialchars($GLOBAL['sendWelcomeEmailSending'], ENT_QUOTES, $charset) ?>"
+                            data-msg-ok="<?= htmlspecialchars($GLOBAL['sendWelcomeEmailOk'], ENT_QUOTES, $charset) ?>"
+                            data-msg-fail="<?= htmlspecialchars($GLOBAL['sendWelcomeEmailFail'], ENT_QUOTES, $charset) ?>"
+                            data-msg-no-email="<?= htmlspecialchars($GLOBAL['sendWelcomeEmailNoEmail'], ENT_QUOTES, $charset) ?>"
+                            @click.stop>
+                        <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= htmlspecialchars($GLOBAL['sendWelcomeEmail'], ENT_QUOTES, $charset) ?>
+                    </button>
+                    <span id="welcome-send-result" style="font-size:0.8rem"></span>
+                    <?php endif ?>
                 </div>
             </div>
 
@@ -400,4 +414,43 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
     <?php endif ?>
 
 </div>
+
+<?php if (isManager()): ?>
+<script>
+(function () {
+    var btn = document.getElementById('btn-send-welcome');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        var res = document.getElementById('welcome-send-result');
+        var orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + btn.dataset.labelSending;
+        res.textContent = '';
+        fetch(<?= json_encode($_SERVER['PHP_SELF']) ?>, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : ''
+            },
+            body: 'action=sendWelcomeEmail&id=' + encodeURIComponent(btn.dataset.memberId)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.ok) {
+                res.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>' + btn.dataset.msgOk + '</span>';
+            } else if (data.error === 'no_email') {
+                res.innerHTML = '<span class="text-warning">' + btn.dataset.msgNoEmail + '</span>';
+            } else {
+                res.innerHTML = '<span class="text-danger">' + btn.dataset.msgFail + '</span>';
+            }
+        })
+        .catch(function () {
+            res.innerHTML = '<span class="text-danger">' + btn.dataset.msgFail + '</span>';
+        })
+        .finally(function () { btn.disabled = false; btn.innerHTML = orig; });
+    });
+}());
+</script>
+<?php endif ?>
+
 

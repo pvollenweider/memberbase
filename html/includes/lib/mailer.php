@@ -255,8 +255,8 @@ function mbDefaultTemplates(): array
 {
     return [
         'tpl_welcome' => [
-            'subject'   => 'Bienvenue !',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVotre inscription a bien été enregistrée.\n\nCordialement,\n{{org_name}}",
+            'subject'   => 'Bienvenue — {{org_name}}',
+            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous avons bien enregistré votre adhésion à {{org_name}}.\n\nPour toute question, vous pouvez nous contacter à l'adresse suivante : {{contact_email}}\n\nCordialement,\n{{org_name}}",
         ],
         'tpl_cotisation_reminder' => [
             'subject'   => 'Rappel de cotisation',

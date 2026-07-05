@@ -932,8 +932,15 @@ $GLOBAL['emailTemplates']              = "Plantillas de correo";
 $GLOBAL['emailTemplatesSaved']         = "Plantilla guardada.";
 $GLOBAL['emailTemplateSubject']        = "Asunto";
 $GLOBAL['emailTemplateBody']           = "Cuerpo del mensaje";
-$GLOBAL['emailTemplateHelp']           = "Variables disponibles: {{firstname}}, {{lastname}}, {{email}}, {{org_name}}";
+$GLOBAL['emailTemplateHelp'] = "Variables disponibles: {{firstname}}, {{lastname}}, {{email}}, {{org_name}}, {{contact_email}}, {{org_address}}, {{org_city}}, {{org_web}}";
 $GLOBAL['emailTemplateWelcome']        = "Correo de bienvenida";
 $GLOBAL['emailTemplateCotiReminder']   = "Recordatorio de cuota";
 $GLOBAL['emailTemplateAttestationDon'] = "Certificado de donación";
 $GLOBAL['emailWelcomeEnabled']         = "Enviar un correo de bienvenida al crear un miembro";
+
+// Welcome email manual send
+$GLOBAL['sendWelcomeEmail']        = "Enviar correo de bienvenida";
+$GLOBAL['sendWelcomeEmailSending'] = "Enviando…";
+$GLOBAL['sendWelcomeEmailOk']      = "Correo de bienvenida enviado.";
+$GLOBAL['sendWelcomeEmailFail']    = "Error al enviar.";
+$GLOBAL['sendWelcomeEmailNoEmail'] = "Este miembro no tiene dirección de correo.";

@@ -31,31 +31,9 @@ $tplLabels = [
     'tpl_cotisation_reminder' => $GLOBAL['emailTemplateCotiReminder'],
     'tpl_attestation_don'     => $GLOBAL['emailTemplateAttestationDon'],
 ];
-
-// Welcome email enabled toggle
-$welcomeEnabled = !empty($appSettings['email_welcome_enabled']);
 ?>
 
 <div class="col-md-10">
-
-<!-- Welcome email toggle -->
-<div class="mb-4">
-  <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post"
-        hx-post="<?= $_SERVER['PHP_SELF'] ?>"
-        hx-target="#tpl-save-msg"
-        hx-swap="innerHTML">
-    <input type="hidden" name="action" value="saveEmailTemplateSettings"/>
-    <input type="hidden" name="view"   value="settings"/>
-    <div class="form-check mb-2">
-      <input class="form-check-input" type="checkbox" name="email_welcome_enabled" id="tpl_welcome_enabled"
-             value="1" <?= $welcomeEnabled ? 'checked' : '' ?>
-             onchange="this.form.requestSubmit()">
-      <label class="form-check-label fw-semibold" for="tpl_welcome_enabled" style="font-size:0.85rem">
-        <?= htmlspecialchars($GLOBAL['emailWelcomeEnabled'], ENT_QUOTES, $charset) ?>
-      </label>
-    </div>
-  </form>
-</div>
 
 <div id="tpl-save-msg"></div>
 

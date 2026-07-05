@@ -932,8 +932,15 @@ $GLOBAL['emailTemplates']              = "E-Mail-Vorlagen";
 $GLOBAL['emailTemplatesSaved']         = "Vorlage gespeichert.";
 $GLOBAL['emailTemplateSubject']        = "Betreff";
 $GLOBAL['emailTemplateBody']           = "Nachrichtentext";
-$GLOBAL['emailTemplateHelp']           = "Verfügbare Variablen: {{firstname}}, {{lastname}}, {{email}}, {{org_name}}";
+$GLOBAL['emailTemplateHelp'] = "Verfügbare Variablen: {{firstname}}, {{lastname}}, {{email}}, {{org_name}}, {{contact_email}}, {{org_address}}, {{org_city}}, {{org_web}}";
 $GLOBAL['emailTemplateWelcome']        = "Willkommens-E-Mail";
 $GLOBAL['emailTemplateCotiReminder']   = "Mitgliedschaftserinnerung";
 $GLOBAL['emailTemplateAttestationDon'] = "Spendenquittung";
 $GLOBAL['emailWelcomeEnabled']         = "Willkommens-E-Mail beim Erstellen eines Mitglieds senden";
+
+// Welcome email manual send
+$GLOBAL['sendWelcomeEmail']        = "Willkommens-E-Mail senden";
+$GLOBAL['sendWelcomeEmailSending'] = "Wird gesendet…";
+$GLOBAL['sendWelcomeEmailOk']      = "Willkommens-E-Mail gesendet.";
+$GLOBAL['sendWelcomeEmailFail']    = "Senden fehlgeschlagen.";
+$GLOBAL['sendWelcomeEmailNoEmail'] = "Dieses Mitglied hat keine E-Mail-Adresse.";

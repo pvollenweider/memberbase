@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'saveEmailTemplateSettings'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -228,16 +228,6 @@ if ($action == 'saveSettings') {
         )->execute([$key, $subject, $body]);
         auditLog($pdo, 'saveEmailTemplate', "key=$key");
     }
-    if ($isHtmx) {
-        echo '<div id="casa-save-ok" hidden></div>';
-    } else {
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=email&saved=1') . ');</script>';
-    }
-    exit;
-
-} elseif ($action === 'saveEmailTemplateSettings') {
-    $stmt = $pdo->prepare("INSERT INTO app_settings (`key`,`value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
-    $stmt->execute(['email_welcome_enabled', isset($_REQUEST['email_welcome_enabled']) ? '1' : '0']);
     if ($isHtmx) {
         echo '<div id="casa-save-ok" hidden></div>';
     } else {
