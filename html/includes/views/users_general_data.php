@@ -12,6 +12,11 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $_mid = (int)$user->getId();
 
+// Check whether the welcome email has already been sent to this member
+$_welcomeSentRow = $pdo->prepare("SELECT value FROM user_properties WHERE user_id=? AND parameter='email_welcome_sent' LIMIT 1");
+$_welcomeSentRow->execute([$_mid]);
+$_welcomeSentAt = $_welcomeSentRow->fetchColumn(); // datetime string or false
+
 $_iData = json_encode([
     'lastName'  => (string)$user->getLastName(),
     'firstName' => (string)$user->getFirstName(),
@@ -169,6 +174,11 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
                 <div class="ca-field-value d-flex align-items-center gap-2 flex-wrap">
                     <a :href="'mailto:' + data.email" x-text="data.email" @click.stop></a>
                     <?php if (isManager()): ?>
+                    <?php if ($_welcomeSentAt): ?>
+                    <span class="text-muted" style="font-size:0.75rem">
+                        <i class="fas fa-check me-1" aria-hidden="true"></i><?= htmlspecialchars(sprintf($GLOBAL['sendWelcomeEmailAlreadySent'], $_welcomeSentAt), ENT_QUOTES, $charset) ?>
+                    </span>
+                    <?php else: ?>
                     <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2"
                             style="font-size:0.72rem;line-height:1.6"
                             id="btn-send-welcome"
@@ -177,10 +187,12 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
                             data-msg-ok="<?= htmlspecialchars($GLOBAL['sendWelcomeEmailOk'], ENT_QUOTES, $charset) ?>"
                             data-msg-fail="<?= htmlspecialchars($GLOBAL['sendWelcomeEmailFail'], ENT_QUOTES, $charset) ?>"
                             data-msg-no-email="<?= htmlspecialchars($GLOBAL['sendWelcomeEmailNoEmail'], ENT_QUOTES, $charset) ?>"
+                            data-msg-already-sent="<?= htmlspecialchars($GLOBAL['sendWelcomeEmailAlreadySent'], ENT_QUOTES, $charset) ?>"
                             @click.stop>
                         <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= htmlspecialchars($GLOBAL['sendWelcomeEmail'], ENT_QUOTES, $charset) ?>
                     </button>
                     <span id="welcome-send-result" style="font-size:0.8rem"></span>
+                    <?php endif ?>
                     <?php endif ?>
                 </div>
             </div>
@@ -437,7 +449,11 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
         .then(function (r) { return r.json(); })
         .then(function (data) {
             if (data.ok) {
+                btn.style.display = 'none';
                 res.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>' + btn.dataset.msgOk + '</span>';
+            } else if (data.error === 'already_sent') {
+                btn.style.display = 'none';
+                res.innerHTML = '<span class="text-muted"><i class="fas fa-check me-1"></i>' + btn.dataset.msgAlreadySent + '</span>';
             } else if (data.error === 'no_email') {
                 res.innerHTML = '<span class="text-warning">' + btn.dataset.msgNoEmail + '</span>';
             } else {

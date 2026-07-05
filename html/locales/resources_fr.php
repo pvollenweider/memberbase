@@ -944,3 +944,4 @@ $GLOBAL['sendWelcomeEmailSending'] = "Envoi en cours…";
 $GLOBAL['sendWelcomeEmailOk']      = "Email de bienvenue envoyé.";
 $GLOBAL['sendWelcomeEmailFail']    = "Échec de l'envoi.";
 $GLOBAL['sendWelcomeEmailNoEmail'] = "Ce membre n'a pas d'adresse email.";
+$GLOBAL['sendWelcomeEmailAlreadySent'] = "Email de bienvenue déjà envoyé le %s";

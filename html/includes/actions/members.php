@@ -302,6 +302,13 @@ if ($_REQUEST['action'] == 'updateUser') {
     header('Content-Type: application/json; charset=utf-8');
     $id  = (int)($_REQUEST['id'] ?? 0);
     if ($id <= 0) { echo json_encode(['ok' => false, 'error' => 'invalid_id']); exit; }
+    // Guard: already sent
+    $chkSent = $pdo->prepare("SELECT value FROM user_properties WHERE user_id=? AND parameter='email_welcome_sent' LIMIT 1");
+    $chkSent->execute([$id]);
+    if ($chkSent->fetchColumn() !== false) {
+        echo json_encode(['ok' => false, 'error' => 'already_sent']);
+        exit;
+    }
     $row = $pdo->prepare("SELECT firstname, lastname, email FROM users WHERE id=? AND status=1 LIMIT 1");
     $row->execute([$id]);
     $m = $row->fetchObject();
@@ -319,6 +326,11 @@ if ($_REQUEST['action'] == 'updateUser') {
         'org_web'       => $appSettings['org_web']       ?? '',
         'contact_email' => $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? ''),
     ]);
+    if ($ok) {
+        $pdo->prepare(
+            "INSERT IGNORE INTO user_properties (user_id, parameter, value, date) VALUES (?, 'email_welcome_sent', ?, ?)"
+        )->execute([$id, date('Y-m-d H:i:s'), time()]);
+    }
     auditLog($pdo, 'sendWelcomeEmail', "id=$id to={$m->email}");
     echo json_encode(['ok' => $ok]);
     exit;

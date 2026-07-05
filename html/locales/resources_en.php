@@ -944,3 +944,4 @@ $GLOBAL['sendWelcomeEmailSending'] = "Sending…";
 $GLOBAL['sendWelcomeEmailOk']      = "Welcome email sent.";
 $GLOBAL['sendWelcomeEmailFail']    = "Send failed.";
 $GLOBAL['sendWelcomeEmailNoEmail'] = "This member has no email address.";
+$GLOBAL['sendWelcomeEmailAlreadySent'] = "Welcome email already sent on %s";
