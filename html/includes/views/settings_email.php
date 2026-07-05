@@ -119,6 +119,10 @@ if (!isAdmin()) { ?>
 <div id="smtp-test-result" style="font-size:0.85rem"></div>
 </div>
 
+<hr class="my-4">
+
+<?php include __DIR__ . '/settings_email_log.php'; ?>
+
 <script>
 (function () {
   // Toggle auth fields visibility

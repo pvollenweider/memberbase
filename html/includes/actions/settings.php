@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -134,6 +134,10 @@ if ($action == 'saveSettings') {
     $subject = 'Test SMTP — memberbase';
     $body    = "Ceci est un email de test envoyé depuis memberbase.\nSi vous recevez ce message, la configuration SMTP est correcte.";
     $result  = mbSmtpSend($cfg, $to, $subject, $body);
+    // Log the test send attempt
+    $logStatus = $result['ok'] ? 'sent' : 'error';
+    $logErr    = $result['ok'] ? null : ($result['error'] ?? '');
+    try { $pdo->prepare("INSERT INTO email_log (to_email, subject, status, error_msg) VALUES (?,?,?,?)")->execute([$to, $subject, $logStatus, $logErr]); } catch (\Throwable $e) {}
     echo json_encode($result);
     exit;
 
@@ -199,5 +203,37 @@ if ($action == 'saveSettings') {
     $rtb = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnTab'] ?? 'compta');
     $_ctUrl = $_SERVER['PHP_SELF'] . '?view=' . $rv . '&tab=' . $rtb;
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>'; }
+    exit;
+
+} elseif ($action === 'purgeEmailLog') {
+    header('Content-Type: application/json; charset=utf-8');
+    try {
+        $pdo->exec("DELETE FROM email_log");
+        auditLog($pdo, 'purgeEmailLog', '');
+        echo json_encode(['ok' => true]);
+    } catch (PDOException $e) {
+        echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+
+} elseif ($action === 'resendEmail') {
+    require_once __DIR__ . '/../lib/mailer.php';
+    header('Content-Type: application/json; charset=utf-8');
+    $id  = (int)($_REQUEST['id'] ?? 0);
+    if ($id <= 0) { echo json_encode(['ok' => false, 'error' => 'invalid_id']); exit; }
+    $row = $pdo->prepare("SELECT to_email, subject FROM email_log WHERE id=? LIMIT 1");
+    $row->execute([$id]);
+    $entry = $row->fetchObject();
+    if (!$entry) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }
+    $cfg = $appSettings;
+    $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
+    $result = mbSmtpSend($cfg, $entry->to_email, $entry->subject, '(message original non disponible — renvoi depuis le journal)');
+    if ($result['ok']) {
+        $pdo->prepare("UPDATE email_log SET status='sent', error_msg=NULL WHERE id=?")->execute([$id]);
+        auditLog($pdo, 'resendEmail', "id=$id to={$entry->to_email}");
+    } else {
+        $pdo->prepare("UPDATE email_log SET status='error', error_msg=? WHERE id=?")->execute([$result['error'] ?? '', $id]);
+    }
+    echo json_encode($result);
     exit;
 }

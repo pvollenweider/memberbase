@@ -200,3 +200,49 @@ function mbSmtpGetOrCreateEncKey(PDO $pdo): string
     $pdo->prepare("INSERT INTO app_settings (`key`,`value`) VALUES ('smtp_enc_key',?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)")->execute([$key]);
     return $key;
 }
+
+/**
+ * High-level send helper: reads SMTP config from $appSettings, sends, logs result.
+ *
+ * Uses the global $appSettings array populated by bootstrap.php.
+ * Falls back silently — never throws, never breaks the calling page.
+ *
+ * @param PDO    $pdo
+ * @param string $to        Recipient email address.
+ * @param string $subject
+ * @param string $bodyHtml  HTML body (also used as plain-text fallback if $bodyText is empty).
+ * @param string $bodyText  Optional plain-text body.
+ * @return bool             True if the email was sent successfully.
+ */
+function mbSendMail(PDO $pdo, string $to, string $subject, string $bodyHtml, string $bodyText = ''): bool
+{
+    global $appSettings;
+    try {
+        $cfg = $appSettings;
+        $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
+        // Use plain text body for now (HTML support requires MIME multipart — future enhancement)
+        $body   = $bodyText !== '' ? $bodyText : strip_tags($bodyHtml);
+        $result = mbSmtpSend($cfg, $to, $subject, $body);
+        $status = $result['ok'] ? 'sent' : 'error';
+        $errMsg = $result['ok'] ? null : ($result['error'] ?? 'unknown error');
+        _mbLogEmail($pdo, $to, $subject, $status, $errMsg);
+        return $result['ok'];
+    } catch (\Throwable $e) {
+        _mbLogEmail($pdo, $to, $subject, 'error', $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Insert one row into email_log. Silently ignores failures (e.g. table not yet migrated).
+ */
+function _mbLogEmail(PDO $pdo, string $to, string $subject, string $status, ?string $errorMsg): void
+{
+    try {
+        $pdo->prepare(
+            "INSERT INTO email_log (to_email, subject, status, error_msg) VALUES (?, ?, ?, ?)"
+        )->execute([$to, $subject, $status, $errorMsg]);
+    } catch (\Throwable $e) {
+        // Table may not exist yet (migration pending) — silently ignore
+    }
+}

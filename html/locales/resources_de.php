@@ -909,3 +909,20 @@ $GLOBAL['smtpTesting']         = "Wird gesendet…";
 $GLOBAL['smtpTestOk']          = "E-Mail erfolgreich gesendet.";
 $GLOBAL['smtpTestFail']        = "Senden fehlgeschlagen. Bitte Konfiguration prüfen.";
 $GLOBAL['smtpTestMissingTo']   = "Bitte eine Ziel-E-Mail-Adresse eingeben.";
+
+// Email log journal
+$GLOBAL['emailLog']              = "Versandprotokoll";
+$GLOBAL['emailLogDate']          = "Datum";
+$GLOBAL['emailLogTo']            = "Empfänger";
+$GLOBAL['emailLogSubject']       = "Betreff";
+$GLOBAL['emailLogStatus']        = "Status";
+$GLOBAL['emailLogStatusSent']    = "Gesendet";
+$GLOBAL['emailLogStatusError']   = "Fehler";
+$GLOBAL['emailLogEmpty']         = "Noch keine E-Mails gesendet.";
+$GLOBAL['emailLogPurge']         = "Protokoll leeren";
+$GLOBAL['emailLogPurgeConfirm']  = "Alle Einträge des E-Mail-Protokolls löschen?";
+$GLOBAL['emailLogPurged']        = "Protokoll geleert.";
+$GLOBAL['emailLogResend']        = "Erneut senden";
+$GLOBAL['emailLogResending']     = "Wird erneut gesendet…";
+$GLOBAL['emailLogResendOk']      = "E-Mail erfolgreich erneut gesendet.";
+$GLOBAL['emailLogResendFail']    = "Erneutes Senden fehlgeschlagen.";

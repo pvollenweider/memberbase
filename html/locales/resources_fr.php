@@ -909,3 +909,20 @@ $GLOBAL['smtpTesting']         = "Envoi en cours…";
 $GLOBAL['smtpTestOk']          = "Email envoyé avec succès.";
 $GLOBAL['smtpTestFail']        = "Échec de l'envoi. Vérifiez la configuration.";
 $GLOBAL['smtpTestMissingTo']   = "Veuillez saisir une adresse email de destination.";
+
+// Email log journal
+$GLOBAL['emailLog']              = "Journal des envois";
+$GLOBAL['emailLogDate']          = "Date";
+$GLOBAL['emailLogTo']            = "Destinataire";
+$GLOBAL['emailLogSubject']       = "Sujet";
+$GLOBAL['emailLogStatus']        = "Statut";
+$GLOBAL['emailLogStatusSent']    = "Envoyé";
+$GLOBAL['emailLogStatusError']   = "Erreur";
+$GLOBAL['emailLogEmpty']         = "Aucun email envoyé pour l'instant.";
+$GLOBAL['emailLogPurge']         = "Vider le journal";
+$GLOBAL['emailLogPurgeConfirm']  = "Supprimer tous les entrées du journal des emails ?";
+$GLOBAL['emailLogPurged']        = "Journal vidé.";
+$GLOBAL['emailLogResend']        = "Renvoyer";
+$GLOBAL['emailLogResending']     = "Renvoi en cours…";
+$GLOBAL['emailLogResendOk']      = "Email renvoyé avec succès.";
+$GLOBAL['emailLogResendFail']    = "Échec du renvoi.";

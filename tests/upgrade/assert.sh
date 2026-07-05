@@ -40,9 +40,13 @@ TOT="$(q "SELECT COALESCE(SUM(sum),0) FROM compta")"
 DT2="$(q "SELECT DATA_TYPE FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='app_settings' AND column_name='value'")"
 [ "$DT2" = "text" ] || fail "app_settings.value data type is '$DT2', expected 'text' (0004 not applied)"
 
-# 7. All 4 migrations recorded in schema_migrations, with checksums
+# 7. Migration 0005 created the email_log table
+TBL="$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='email_log'")"
+[ "$TBL" = "1" ] || fail "email_log table missing (0005 not applied)"
+
+# 8. All 5 migrations recorded in schema_migrations, with checksums
 N="$(q "SELECT COUNT(*) FROM schema_migrations")"
-[ "$N" = "4" ] || fail "schema_migrations has $N rows, expected 4"
+[ "$N" = "5" ] || fail "schema_migrations has $N rows, expected 5"
 BAD="$(q "SELECT COUNT(*) FROM schema_migrations WHERE checksum='' OR checksum IS NULL")"
 [ "$BAD" = "0" ] || fail "$BAD applied migration(s) missing a checksum"
 

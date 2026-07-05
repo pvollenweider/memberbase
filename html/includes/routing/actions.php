@@ -53,6 +53,8 @@ if (isset($_REQUEST['action'])) {
         'zefixLookup'          => 'settings',
         'saveSmtp'             => 'settings',
         'sendTestEmail'        => 'settings',
+        'purgeEmailLog'        => 'settings',
+        'resendEmail'          => 'settings',
         'applyMigrations'      => 'maintenance',
         'updateComptaTypeOrder'=> 'settings',
         'addComptaType'        => 'settings',
