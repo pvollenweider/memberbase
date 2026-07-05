@@ -48,9 +48,13 @@ TBL="$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATA
 TBL2="$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='email_templates'")"
 [ "$TBL2" = "1" ] || fail "email_templates table missing (0006 not applied)"
 
-# 9. All 6 migrations recorded in schema_migrations, with checksums
+# 9. Migration 0007 added compta.notified_at
+[ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='compta' AND column_name='notified_at'")" = "1" ] \
+  || fail "compta.notified_at column missing (0007 not applied)"
+
+# 10. All 7 migrations recorded in schema_migrations, with checksums
 N="$(q "SELECT COUNT(*) FROM schema_migrations")"
-[ "$N" = "6" ] || fail "schema_migrations has $N rows, expected 6"
+[ "$N" = "7" ] || fail "schema_migrations has $N rows, expected 7"
 BAD="$(q "SELECT COUNT(*) FROM schema_migrations WHERE checksum='' OR checksum IS NULL")"
 [ "$BAD" = "0" ] || fail "$BAD applied migration(s) missing a checksum"
 
