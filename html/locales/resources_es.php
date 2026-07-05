@@ -945,3 +945,11 @@ $GLOBAL['sendWelcomeEmailOk']      = "Correo de bienvenida enviado.";
 $GLOBAL['sendWelcomeEmailFail']    = "Error al enviar.";
 $GLOBAL['sendWelcomeEmailNoEmail'] = "Este miembro no tiene dirección de correo.";
 $GLOBAL['sendWelcomeEmailAlreadySent'] = "Correo de bienvenida ya enviado el %s";
+
+// Bulk welcome email mark
+$GLOBAL['welcomeEmailBulkTitle']      = "Marcado masivo — correo de bienvenida";
+$GLOBAL['welcomeEmailBulkDesc']       = "%d miembro(s) activo(s) aún no tienen la marca «correo de bienvenida enviado». Márcalos todos como tratados para evitar enviar un correo de bienvenida a miembros existentes.";
+$GLOBAL['welcomeEmailBulkConfirm']    = "Entiendo que estos miembros nunca recibirán el correo de bienvenida automáticamente";
+$GLOBAL['welcomeEmailBulkBtn']        = "Marcar todos como tratados";
+$GLOBAL['welcomeEmailBulkOk']         = "%d miembro(s) marcado(s) como tratados.";
+$GLOBAL['welcomeEmailBulkErrConfirm'] = "Por favor, marque la casilla de confirmación.";

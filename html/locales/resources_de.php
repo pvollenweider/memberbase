@@ -945,3 +945,11 @@ $GLOBAL['sendWelcomeEmailOk']      = "Willkommens-E-Mail gesendet.";
 $GLOBAL['sendWelcomeEmailFail']    = "Senden fehlgeschlagen.";
 $GLOBAL['sendWelcomeEmailNoEmail'] = "Dieses Mitglied hat keine E-Mail-Adresse.";
 $GLOBAL['sendWelcomeEmailAlreadySent'] = "Willkommens-E-Mail bereits gesendet am %s";
+
+// Bulk welcome email mark
+$GLOBAL['welcomeEmailBulkTitle']      = "Massenmarkierung — Willkommens-E-Mail";
+$GLOBAL['welcomeEmailBulkDesc']       = "%d aktive(s) Mitglied(er) haben noch keine Markierung „Willkommens-E-Mail gesendet". Markieren Sie alle als erledigt, um zu verhindern, dass bestehende Mitglieder eine Willkommens-E-Mail erhalten.";
+$GLOBAL['welcomeEmailBulkConfirm']    = "Ich verstehe, dass diese Mitglieder nie automatisch eine Willkommens-E-Mail erhalten werden";
+$GLOBAL['welcomeEmailBulkBtn']        = "Alle als erledigt markieren";
+$GLOBAL['welcomeEmailBulkOk']         = "%d Mitglied(er) als erledigt markiert.";
+$GLOBAL['welcomeEmailBulkErrConfirm'] = "Bitte Bestätigungs-Checkbox ankreuzen.";

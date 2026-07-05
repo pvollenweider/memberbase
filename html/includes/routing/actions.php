@@ -58,6 +58,7 @@ if (isset($_REQUEST['action'])) {
         'resendEmail'               => 'settings',
         'saveEmailTemplate'         => 'settings',
         'applyMigrations'      => 'maintenance',
+        'markAllWelcomeSent'   => 'maintenance',
         'updateComptaTypeOrder'=> 'settings',
         'addComptaType'        => 'settings',
         'updateComptaType'     => 'settings',
