@@ -884,7 +884,7 @@ $GLOBAL['pendingMigrationsBannerBody'] = "Appliquez-la%s depuis
 $GLOBAL['language']              = "Langue";
 $GLOBAL['interfaceLanguage']     = "Langue de l'interface";
 $GLOBAL['interfaceLanguageHelp'] = "Appliquée à votre compte, sur toutes vos sessions.";
-?>
+
 // SMTP settings
 $GLOBAL['smtpSettings']        = "Email";
 $GLOBAL['smtpServer']          = "Serveur SMTP";
