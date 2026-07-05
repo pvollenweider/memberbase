@@ -38,7 +38,13 @@ async function globalSetup(config: FullConfig) {
     await page.fill('#username', username);
     await page.fill('#password', 'TestPassword1!');
     await page.click('button[type="submit"]');
-    await page.waitForURL((url) => !url.pathname.includes('login.php'), { timeout: 10_000 });
+    try {
+      await page.waitForURL((url) => !url.pathname.includes('login.php'), { timeout: 10_000 });
+    } catch (e) {
+      console.error(`Login failed for role "${role}" (${username}). Current URL: ${page.url()}`);
+      console.error('Page content:\n', await page.content());
+      throw e;
+    }
 
     await context.storageState({ path: path.resolve(__dirname, `.auth/${role}.json`) });
     await context.close();
