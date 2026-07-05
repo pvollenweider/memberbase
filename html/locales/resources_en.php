@@ -948,7 +948,7 @@ $GLOBAL['sendWelcomeEmailAlreadySent'] = "Welcome email already sent on %s";
 
 // Bulk welcome email mark
 $GLOBAL['welcomeEmailBulkTitle']      = "Bulk mark — welcome email";
-$GLOBAL['welcomeEmailBulkDesc']       = "%d active member(s) do not yet have the "welcome email sent" flag. Mark them all as handled to prevent sending a welcome email to existing members.";
+$GLOBAL['welcomeEmailBulkDesc']       = "%d active member(s) do not yet have the \"welcome email sent\" flag. Mark them all as handled to prevent sending a welcome email to existing members.";
 $GLOBAL['welcomeEmailBulkConfirm']    = "I understand these members will never receive the welcome email automatically";
 $GLOBAL['welcomeEmailBulkBtn']        = "Mark all as handled";
 $GLOBAL['welcomeEmailBulkOk']         = "%d member(s) marked as handled.";

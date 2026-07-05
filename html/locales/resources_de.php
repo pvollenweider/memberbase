@@ -948,7 +948,7 @@ $GLOBAL['sendWelcomeEmailAlreadySent'] = "Willkommens-E-Mail bereits gesendet am
 
 // Bulk welcome email mark
 $GLOBAL['welcomeEmailBulkTitle']      = "Massenmarkierung — Willkommens-E-Mail";
-$GLOBAL['welcomeEmailBulkDesc']       = "%d aktive(s) Mitglied(er) haben noch keine Markierung „Willkommens-E-Mail gesendet". Markieren Sie alle als erledigt, um zu verhindern, dass bestehende Mitglieder eine Willkommens-E-Mail erhalten.";
+$GLOBAL['welcomeEmailBulkDesc']       = "%d aktive(s) Mitglied(er) haben noch keine Markierung \u{201E}Willkommens-E-Mail gesendet\u{201C}. Markieren Sie alle als erledigt, um zu verhindern, dass bestehende Mitglieder eine Willkommens-E-Mail erhalten.";
 $GLOBAL['welcomeEmailBulkConfirm']    = "Ich verstehe, dass diese Mitglieder nie automatisch eine Willkommens-E-Mail erhalten werden";
 $GLOBAL['welcomeEmailBulkBtn']        = "Alle als erledigt markieren";
 $GLOBAL['welcomeEmailBulkOk']         = "%d Mitglied(er) als erledigt markiert.";
