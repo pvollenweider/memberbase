@@ -220,7 +220,7 @@ if ($action == 'saveSettings') {
     $key     = trim($_REQUEST['tpl_key']     ?? '');
     $subject = trim($_REQUEST['tpl_subject'] ?? '');
     $body    = trim($_REQUEST['tpl_body']    ?? '');
-    $allowed = ['tpl_welcome', 'tpl_cotisation_reminder', 'tpl_attestation_don'];
+    $allowed = ['tpl_welcome', 'tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don'];
     if (in_array($key, $allowed, true) && $subject !== '' && $body !== '') {
         $pdo->prepare(
             "INSERT INTO email_templates (`key`, subject, body_text) VALUES (?,?,?)

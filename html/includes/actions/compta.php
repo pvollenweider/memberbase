@@ -28,6 +28,32 @@ if ($action == 'addCompta') {
     $_auType = $comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}";
     auditLog($pdo, 'addCompta', "membre: " . ($_auUser->fetchColumn() ?: "id={$compta->userId}") . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}", (int)$compta->userId);
 
+    // Optional receipt email — only when the checkbox is checked
+    if (!empty($_REQUEST['send_receipt'])) {
+        require_once __DIR__ . '/../lib/mailer.php';
+        $_rcpUser = new User();
+        $_rcpUser->lookupUser((int)$compta->userId);
+        $_rcpEmail = $_rcpUser->getEmail();
+        if ($_rcpEmail) {
+            $_rcpLibele = trim((string)$compta->libele);
+            $_rcpLibeleLine = $_rcpLibele !== '' ? "  Note    : {$_rcpLibele}\n" : '';
+            mbSendTemplate($pdo, $_rcpEmail, 'tpl_payment_receipt', [
+                'firstname'   => $_rcpUser->getFirstName(),
+                'lastname'    => $_rcpUser->getLastName(),
+                'email'       => $_rcpEmail,
+                'type'        => $comptaTypes[(int)$_REQUEST['type_id']]->label ?? '',
+                'amount'      => number_format((float)$compta->sum, 2, '.', "'"),
+                'entry_date'  => date('d.m.Y', (int)$compta->date),
+                'libele_line' => $_rcpLibeleLine,
+                'org_name'    => $appSettings['org_name']      ?? '',
+                'org_address' => $appSettings['org_address']   ?? '',
+                'org_city'    => $appSettings['org_city']      ?? '',
+                'org_web'     => $appSettings['org_web']       ?? '',
+                'contact_email' => $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? ''),
+            ]);
+        }
+    }
+
 } elseif ($action == 'updateCompta') {
     $_rawSum2 = trim(str_replace(',', '.', $_REQUEST['sum'] ?? ''));
     if (!preg_match('/^[0-9]+(\.[0-9]+)?$/', $_rawSum2)) { http_response_code(422); exit; }

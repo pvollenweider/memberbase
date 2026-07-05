@@ -972,3 +972,10 @@ $GLOBAL['comptaBulkConfirm']         = "Entiendo que estas entradas no se inclui
 $GLOBAL['comptaBulkBtn']             = "Marcar todas como tratadas";
 $GLOBAL['comptaBulkOk']              = "%d entrada(s) marcada(s) como tratadas.";
 $GLOBAL['comptaBulkErrConfirm']      = "Por favor, marque la casilla de confirmación.";
+// Payment receipt email (confirmation on compta entry add)
+$GLOBAL['emailTemplatePaymentReceipt'] = "Confirmación de recepción de pago";
+$GLOBAL['sendReceiptLabel']            = "Enviar confirmación al miembro";
+$GLOBAL['sendReceiptNoEmail']          = "Sin dirección de correo registrada";
+// Zero-sum compta entries toggle
+$GLOBAL['showZeroEntries'] = "%d entrada(s) con importe cero oculta(s) — mostrar";
+$GLOBAL['hideZeroEntries'] = "%d entrada(s) con importe cero mostrada(s) — ocultar";

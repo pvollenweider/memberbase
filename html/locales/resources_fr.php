@@ -972,3 +972,10 @@ $GLOBAL['comptaBulkConfirm']         = "Je comprends que ces entrées ne seront 
 $GLOBAL['comptaBulkBtn']             = "Marquer toutes comme traitées";
 $GLOBAL['comptaBulkOk']              = "%d entrée(s) marquée(s) comme traitées.";
 $GLOBAL['comptaBulkErrConfirm']      = "Veuillez cocher la case de confirmation.";
+// Payment receipt email (confirmation on compta entry add)
+$GLOBAL['emailTemplatePaymentReceipt'] = "Confirmation de réception de paiement";
+$GLOBAL['sendReceiptLabel']            = "Envoyer une confirmation au membre";
+$GLOBAL['sendReceiptNoEmail']          = "Pas d'adresse e-mail enregistrée";
+// Zero-sum compta entries toggle
+$GLOBAL['showZeroEntries'] = "%d versement(s) à CHF 0.00 masqué(s) — afficher";
+$GLOBAL['hideZeroEntries'] = "%d versement(s) à CHF 0.00 affiché(s) — masquer";

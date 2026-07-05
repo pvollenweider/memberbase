@@ -258,6 +258,14 @@ function mbDefaultTemplates(): array
             'subject'   => 'Bienvenue — {{org_name}}',
             'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous avons bien enregistré votre adhésion à {{org_name}}.\n\nPour toute question, vous pouvez nous contacter à l'adresse suivante : {{contact_email}}\n\nCordialement,\n{{org_name}}",
         ],
+        // {{type}}      = label of the compta_type (e.g. "Don libre")
+        // {{amount}}    = formatted amount (e.g. "80.00")
+        // {{entry_date}} = date of the entry (DD.MM.YYYY)
+        // {{libele}}    = free-text note on the entry (may be empty)
+        'tpl_payment_receipt' => [
+            'subject'   => 'Confirmation de réception — {{org_name}}',
+            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous avons bien reçu votre versement et vous en remercions.\n\n  Type    : {{type}}\n  Montant : CHF {{amount}}\n  Date    : {{entry_date}}\n{{libele_line}}\nPour toute question : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+        ],
         'tpl_cotisation_reminder' => [
             'subject'   => 'Rappel de cotisation',
             'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous vous rappelons que votre cotisation est en attente de règlement.\n\nCordialement,\n{{org_name}}",

@@ -19,12 +19,12 @@ if (!isManager()) { ?>
 $_recapOk   = isset($_GET['recapOk'])   ? (int)$_GET['recapOk']   : null;
 $_recapSkip = isset($_GET['recapSkip']) ? (int)$_GET['recapSkip'] : 0;
 
-// Pending stats
+// Pending stats — zero-sum entries are excluded from emails so not counted
 $_pending = $pdo->query(
     "SELECT COUNT(DISTINCT c.user_id) AS members, COUNT(*) AS entries
      FROM compta c
      JOIN users u ON u.id = c.user_id AND u.status = 1
-     WHERE c.notified_at IS NULL"
+     WHERE c.notified_at IS NULL AND c.sum <> 0"
 )->fetchObject();
 
 $_pendingMembers = (int)$_pending->members;

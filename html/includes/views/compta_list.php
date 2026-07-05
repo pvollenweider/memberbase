@@ -85,6 +85,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <th><?=$GLOBAL['sum']?></th>
     <th class="d-none d-sm-table-cell"><?=$GLOBAL['quittance']?></th>
     <th class="d-none d-sm-table-cell" title="<?= $GLOBAL['wantsAttestation'] ?>"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
+    <th class="d-none d-sm-table-cell" title="<?= $GLOBAL['sendReceiptLabel'] ?>"><i class="fas fa-envelope" aria-hidden="true"></i></th>
     <th>&nbsp;</td>
 </tr>
 </thead>
@@ -106,22 +107,38 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
              inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" title="<?= $GLOBAL['numericAmountHint'] ?>"/></td>
     <td class="d-none d-sm-table-cell"><input type="text" name="quittance" size="10" class="form-control" maxlength="64"/></td>
     <td class="d-none d-sm-table-cell text-center"><input type="checkbox" name="wants_attestation" value="1" /></td>
+    <td class="d-none d-sm-table-cell text-center">
+      <?php if ($user->getEmail()): ?>
+      <input type="checkbox" name="send_receipt" value="1" title="<?= $GLOBAL['sendReceiptLabel'] ?>" />
+      <?php else: ?>
+      <span class="text-muted" title="<?= $GLOBAL['sendReceiptNoEmail'] ?>">—</span>
+      <?php endif ?>
+    </td>
     <td><button type="submit" class="btn btn-primary"><?=$GLOBAL['add']?></button></td>
 </tr>
 <?php endif ?>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-$query = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE c.user_id=" . $user->getId() . " ";
+$_showZero = isset($_REQUEST['showZero']);
+$_baseWhere = "FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE c.user_id=" . $user->getId() . " ";
 if ($year != -2) {
-    $query .= " AND c.date > $from AND c.date < $to ";
+    $_baseWhere .= " AND c.date > $from AND c.date < $to ";
 }
 if ($donsOnly) {
-    $query .= " AND COALESCE(ct.is_excluded_from_donation,0) = 0 ";
+    $_baseWhere .= " AND COALESCE(ct.is_excluded_from_donation,0) = 0 ";
 }
 if ($filterTypeId > 0) {
-    $query .= " AND c.type_id = " . $filterTypeId . " ";
+    $_baseWhere .= " AND c.type_id = " . $filterTypeId . " ";
 }
-$query2 = $query;
+// Count zero-sum entries so we can offer a "show all" toggle
+$_zeroCount = (int)$pdo->query("SELECT COUNT(*) " . $_baseWhere . " AND c.sum = 0")->fetchColumn();
+$_selectCols = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl ";
+$query  = $_selectCols . $_baseWhere;
+$query2 = $_selectCols . $_baseWhere;
+if (!$_showZero) {
+    $query  .= " AND c.sum <> 0 ";
+    $query2 .= " AND c.sum <> 0 ";
+}
 $query  .= " ORDER BY c.date DESC";
 $query2 .= " ORDER BY c.date ASC";
 $stmt = $pdo->query($query);
@@ -193,6 +210,26 @@ while ($row = $stmt->fetchObject()) {
 </table>
 </div>
 </form>
+<?php if ($_zeroCount > 0): ?>
+<p class="text-muted small mt-1 mb-0">
+  <?php
+  // Build the toggle URL preserving all current query params except showZero
+  $_qp = $_GET;
+  unset($_qp['showZero']);
+  if ($_showZero) {
+      $GLOBAL['__toggleZeroUrl'] = $_SERVER['PHP_SELF'] . '?' . http_build_query($_qp);
+      $GLOBAL['__toggleZeroLabel'] = sprintf($GLOBAL['hideZeroEntries'], $_zeroCount);
+  } else {
+      $_qp['showZero'] = '1';
+      $GLOBAL['__toggleZeroUrl'] = $_SERVER['PHP_SELF'] . '?' . http_build_query($_qp);
+      $GLOBAL['__toggleZeroLabel'] = sprintf($GLOBAL['showZeroEntries'], $_zeroCount);
+  }
+  ?>
+  <a href="<?= htmlspecialchars($GLOBAL['__toggleZeroUrl'], ENT_QUOTES, $charset) ?>" data-no-dirty>
+    <?= $GLOBAL['__toggleZeroLabel'] ?>
+  </a>
+</p>
+<?php endif ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var tbody = document.querySelector('form[name="addCompta"] tbody');

@@ -972,3 +972,10 @@ $GLOBAL['comptaBulkConfirm']         = "I understand these entries will not be i
 $GLOBAL['comptaBulkBtn']             = "Mark all as handled";
 $GLOBAL['comptaBulkOk']              = "%d entry/entries marked as handled.";
 $GLOBAL['comptaBulkErrConfirm']      = "Please check the confirmation checkbox.";
+// Payment receipt email (confirmation on compta entry add)
+$GLOBAL['emailTemplatePaymentReceipt'] = "Payment receipt confirmation";
+$GLOBAL['sendReceiptLabel']            = "Send a confirmation to the member";
+$GLOBAL['sendReceiptNoEmail']          = "No e-mail address on file";
+// Zero-sum compta entries toggle
+$GLOBAL['showZeroEntries'] = "%d zero-amount entry(ies) hidden — show";
+$GLOBAL['hideZeroEntries'] = "%d zero-amount entry(ies) shown — hide";

@@ -972,3 +972,10 @@ $GLOBAL['comptaBulkConfirm']         = "Ich verstehe, dass diese Eintr\u{00E4}ge
 $GLOBAL['comptaBulkBtn']             = "Alle als erledigt markieren";
 $GLOBAL['comptaBulkOk']              = "%d Eintrag/Eintr\u{00E4}ge als erledigt markiert.";
 $GLOBAL['comptaBulkErrConfirm']      = "Bitte Best\u{00E4}tigungs-Checkbox ankreuzen.";
+// Payment receipt email (confirmation on compta entry add)
+$GLOBAL['emailTemplatePaymentReceipt'] = "Zahlungseingangsbestätigung";
+$GLOBAL['sendReceiptLabel']            = "Best\u{00E4}tigung an Mitglied senden";
+$GLOBAL['sendReceiptNoEmail']          = "Keine E-Mail-Adresse hinterlegt";
+// Zero-sum compta entries toggle
+$GLOBAL['showZeroEntries'] = "%d Eintrag/Eintr\u{00E4}ge mit CHF 0.00 ausgeblendet — anzeigen";
+$GLOBAL['hideZeroEntries'] = "%d Eintrag/Eintr\u{00E4}ge mit CHF 0.00 angezeigt — ausblenden";

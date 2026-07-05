@@ -32,6 +32,7 @@ if ($action === 'sendComptaRecap') {
          FROM compta c
          JOIN users u ON u.id = c.user_id AND u.status = 1
          WHERE c.notified_at IS NULL
+           AND c.sum <> 0
          ORDER BY c.user_id, c.date ASC"
     )->fetchAll(PDO::FETCH_ASSOC);
 
@@ -100,12 +101,15 @@ if ($action === 'sendComptaRecap') {
         // On send failure: leave notified_at NULL so it retries next batch
     }
 
-    // Mark notified entries in one batch UPDATE
+    // Mark notified entries in one batch UPDATE.
+    // Zero-sum entries are excluded from emails but must also be marked to keep
+    // the pending count accurate — mark them unconditionally alongside sent entries.
     if (!empty($notifiedIds)) {
         $ph = implode(',', array_fill(0, count($notifiedIds), '?'));
         $pdo->prepare("UPDATE compta SET notified_at = NOW() WHERE id IN ($ph)")
             ->execute($notifiedIds);
     }
+    $pdo->exec("UPDATE compta SET notified_at = NOW() WHERE notified_at IS NULL AND sum = 0");
 
     $markedCount = count($notifiedIds);
     auditLog($pdo, 'sendComptaRecap', "sent=$sentCount skipped=$skipCount entries_marked=$markedCount");
