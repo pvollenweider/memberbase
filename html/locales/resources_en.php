@@ -953,3 +953,22 @@ $GLOBAL['welcomeEmailBulkConfirm']    = "I understand these members will never r
 $GLOBAL['welcomeEmailBulkBtn']        = "Mark all as handled";
 $GLOBAL['welcomeEmailBulkOk']         = "%d member(s) marked as handled.";
 $GLOBAL['welcomeEmailBulkErrConfirm'] = "Please check the confirmation checkbox.";
+
+// Compta recap batch email
+$GLOBAL['comptaRecapTitle']          = "Accounting recap emails";
+$GLOBAL['comptaRecapPendingMembers'] = "members pending";
+$GLOBAL['comptaRecapPendingEntries'] = "unnotified entries";
+$GLOBAL['comptaRecapLastBatch']      = "last batch";
+$GLOBAL['comptaRecapSendBtn']        = "Send recaps (%d members)";
+$GLOBAL['comptaRecapNoPending']      = "Nothing pending — all members have been notified.";
+$GLOBAL['comptaRecapHelp']           = "One email per member is sent, grouping all entries not yet notified. Entries for members without an email address are marked as handled without sending.";
+$GLOBAL['comptaRecapSentOk']         = "%d member(s) notified successfully.";
+$GLOBAL['comptaRecapSkipped']        = "%d member(s) without email skipped.";
+
+// Bulk compta notified mark (Settings → Health)
+$GLOBAL['comptaBulkTitle']           = "Bulk mark — accounting recaps";
+$GLOBAL['comptaBulkDesc']            = "%d existing compta entry/entries are not yet marked as notified. Mark them to avoid sending historical recaps to members.";
+$GLOBAL['comptaBulkConfirm']         = "I understand these entries will not be included in the next batch";
+$GLOBAL['comptaBulkBtn']             = "Mark all as handled";
+$GLOBAL['comptaBulkOk']              = "%d entry/entries marked as handled.";
+$GLOBAL['comptaBulkErrConfirm']      = "Please check the confirmation checkbox.";

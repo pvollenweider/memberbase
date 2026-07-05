@@ -953,3 +953,22 @@ $GLOBAL['welcomeEmailBulkConfirm']    = "Je comprends que ces membres ne recevro
 $GLOBAL['welcomeEmailBulkBtn']        = "Marquer tous comme traités";
 $GLOBAL['welcomeEmailBulkOk']         = "%d membre(s) marqué(s) comme traités.";
 $GLOBAL['welcomeEmailBulkErrConfirm'] = "Veuillez cocher la case de confirmation.";
+
+// Compta recap batch email
+$GLOBAL['comptaRecapTitle']          = "Récapitulatifs comptables par email";
+$GLOBAL['comptaRecapPendingMembers'] = "membres en attente";
+$GLOBAL['comptaRecapPendingEntries'] = "entrées non notifiées";
+$GLOBAL['comptaRecapLastBatch']      = "dernier envoi";
+$GLOBAL['comptaRecapSendBtn']        = "Envoyer les récapitulatifs (%d membres)";
+$GLOBAL['comptaRecapNoPending']      = "Aucune entrée en attente — tous les membres ont été notifiés.";
+$GLOBAL['comptaRecapHelp']           = "Un email par membre est envoyé, regroupant toutes les entrées non encore notifiées. Les entrées des membres sans adresse email sont marquées comme traitées sans envoi.";
+$GLOBAL['comptaRecapSentOk']         = "%d membre(s) notifié(s) avec succès.";
+$GLOBAL['comptaRecapSkipped']        = "%d membre(s) sans email ignoré(s).";
+
+// Bulk compta notified mark (Settings → Santé)
+$GLOBAL['comptaBulkTitle']           = "Marquage en masse — récapitulatifs comptables";
+$GLOBAL['comptaBulkDesc']            = "%d entrée(s) compta existante(s) ne sont pas encore marquées comme notifiées. Marquez-les pour éviter d'envoyer un récapitulatif historique aux membres.";
+$GLOBAL['comptaBulkConfirm']         = "Je comprends que ces entrées ne seront pas incluses dans le prochain envoi";
+$GLOBAL['comptaBulkBtn']             = "Marquer toutes comme traitées";
+$GLOBAL['comptaBulkOk']              = "%d entrée(s) marquée(s) comme traitées.";
+$GLOBAL['comptaBulkErrConfirm']      = "Veuillez cocher la case de confirmation.";

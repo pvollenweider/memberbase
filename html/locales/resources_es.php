@@ -953,3 +953,22 @@ $GLOBAL['welcomeEmailBulkConfirm']    = "Entiendo que estos miembros nunca recib
 $GLOBAL['welcomeEmailBulkBtn']        = "Marcar todos como tratados";
 $GLOBAL['welcomeEmailBulkOk']         = "%d miembro(s) marcado(s) como tratados.";
 $GLOBAL['welcomeEmailBulkErrConfirm'] = "Por favor, marque la casilla de confirmación.";
+
+// Compta recap batch email
+$GLOBAL['comptaRecapTitle']          = "Resumen contable por correo";
+$GLOBAL['comptaRecapPendingMembers'] = "miembros pendientes";
+$GLOBAL['comptaRecapPendingEntries'] = "entradas sin notificar";
+$GLOBAL['comptaRecapLastBatch']      = "último envío";
+$GLOBAL['comptaRecapSendBtn']        = "Enviar resúmenes (%d miembros)";
+$GLOBAL['comptaRecapNoPending']      = "Sin pendientes — todos los miembros han sido notificados.";
+$GLOBAL['comptaRecapHelp']           = "Se envía un correo por miembro con todas las entradas aún no notificadas.";
+$GLOBAL['comptaRecapSentOk']         = "%d miembro(s) notificado(s) correctamente.";
+$GLOBAL['comptaRecapSkipped']        = "%d miembro(s) sin correo omitido(s).";
+
+// Bulk compta notified mark (Configuración → Salud)
+$GLOBAL['comptaBulkTitle']           = "Marcado masivo — resúmenes contables";
+$GLOBAL['comptaBulkDesc']            = "%d entrada(s) contable(s) aún no marcadas como notificadas.";
+$GLOBAL['comptaBulkConfirm']         = "Entiendo que estas entradas no se incluirán en el próximo envío";
+$GLOBAL['comptaBulkBtn']             = "Marcar todas como tratadas";
+$GLOBAL['comptaBulkOk']              = "%d entrada(s) marcada(s) como tratadas.";
+$GLOBAL['comptaBulkErrConfirm']      = "Por favor, marque la casilla de confirmación.";

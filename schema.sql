@@ -90,11 +90,13 @@ CREATE TABLE IF NOT EXISTS `compta` (
   `quittance`         varchar(64)  NOT NULL DEFAULT '',
   `type_id`           int(11)      DEFAULT NULL,
   `wants_attestation` tinyint(1)   NOT NULL DEFAULT 0,
+  `notified_at`       datetime     DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id`   (`user_id`),
   KEY `user_id_2` (`user_id`, `date`),
-  KEY `idx_type_id` (`type_id`),
-  KEY `idx_date`    (`date`)
+  KEY `idx_type_id`      (`type_id`),
+  KEY `idx_date`         (`date`),
+  KEY `idx_notified_at`  (`notified_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Auto-increment helper

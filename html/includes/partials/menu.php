@@ -83,6 +83,11 @@ if (isset ($_REQUEST["searchString"])) {
                 <li class="nav-item<?= $view == 'lastEntryCompta' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta"><i class="fas fa-coins me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?></a>
                 </li>
+                <?php if (isManager()): ?>
+                <li class="nav-item<?= $view == 'comptaRecap' ? ' active' : '' ?>">
+                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=comptaRecap"><i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapTitle'] ?></a>
+                </li>
+                <?php endif ?>
                 <li class="nav-item<?= $view == 'lastEntrySuivi' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi"><i class="fas fa-book-open me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?></a>
                 </li>

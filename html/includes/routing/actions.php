@@ -63,6 +63,8 @@ if (isset($_REQUEST['action'])) {
         'addComptaType'        => 'settings',
         'updateComptaType'     => 'settings',
         'deleteComptaType'     => 'settings',
+        'sendComptaRecap'       => 'compta_recap',
+        'markAllComptaNotified' => 'compta_recap',
         'addCompta'            => 'compta',
         'updateCompta'         => 'compta',
         'toggleWantsAttestation' => 'compta',

@@ -953,3 +953,22 @@ $GLOBAL['welcomeEmailBulkConfirm']    = "Ich verstehe, dass diese Mitglieder nie
 $GLOBAL['welcomeEmailBulkBtn']        = "Alle als erledigt markieren";
 $GLOBAL['welcomeEmailBulkOk']         = "%d Mitglied(er) als erledigt markiert.";
 $GLOBAL['welcomeEmailBulkErrConfirm'] = "Bitte Bestätigungs-Checkbox ankreuzen.";
+
+// Compta recap batch email
+$GLOBAL['comptaRecapTitle']          = "Buchhaltungs-Recap per E-Mail";
+$GLOBAL['comptaRecapPendingMembers'] = "Mitglieder ausstehend";
+$GLOBAL['comptaRecapPendingEntries'] = "nicht benachrichtigte Eintr\u{00E4}ge";
+$GLOBAL['comptaRecapLastBatch']      = "letzter Versand";
+$GLOBAL['comptaRecapSendBtn']        = "Recaps senden (%d Mitglieder)";
+$GLOBAL['comptaRecapNoPending']      = "Nichts ausstehend \u{2014} alle Mitglieder wurden benachrichtigt.";
+$GLOBAL['comptaRecapHelp']           = "Pro Mitglied wird eine E-Mail gesendet, die alle noch nicht gemeldeten Eintr\u{00E4}ge zusammenfasst.";
+$GLOBAL['comptaRecapSentOk']         = "%d Mitglied(er) erfolgreich benachrichtigt.";
+$GLOBAL['comptaRecapSkipped']        = "%d Mitglied(er) ohne E-Mail \u{00FC}bersprungen.";
+
+// Bulk compta notified mark (Einstellungen → Gesundheit)
+$GLOBAL['comptaBulkTitle']           = "Massenmarkierung \u{2014} Buchhaltungs-Recaps";
+$GLOBAL['comptaBulkDesc']            = "%d vorhandene Buchhaltungseintr\u{00E4}ge sind noch nicht als benachrichtigt markiert.";
+$GLOBAL['comptaBulkConfirm']         = "Ich verstehe, dass diese Eintr\u{00E4}ge nicht in den n\u{00E4}chsten Versand aufgenommen werden";
+$GLOBAL['comptaBulkBtn']             = "Alle als erledigt markieren";
+$GLOBAL['comptaBulkOk']              = "%d Eintrag/Eintr\u{00E4}ge als erledigt markiert.";
+$GLOBAL['comptaBulkErrConfirm']      = "Bitte Best\u{00E4}tigungs-Checkbox ankreuzen.";

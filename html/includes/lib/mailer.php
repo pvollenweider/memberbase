@@ -266,6 +266,14 @@ function mbDefaultTemplates(): array
             'subject'   => 'Attestation de don',
             'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVeuillez trouver ci-joint votre attestation de don.\n\nCordialement,\n{{org_name}}",
         ],
+        // {{entries}} = plain-text block, one line per entry (date · label · amount)
+        // {{total}}   = formatted sum of included entries
+        // {{send_date}} = date of the batch send (DD mois YYYY)
+        // Future: this template will be triggerable via scheduled tasks (issue #117)
+        'tpl_compta_recap' => [
+            'subject'   => 'Récapitulatif de vos versements — {{org_name}}',
+            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVoici les derniers versements enregistrés à votre nom, reçus au {{send_date}} :\n\n{{entries}}\nTotal : CHF {{total}}\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+        ],
     ];
 }
 
