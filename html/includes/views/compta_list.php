@@ -106,10 +106,16 @@ $_cotiTypeIds = array_values(array_map('intval',
     </td>
     <td>
         <input type="text" name="date" id="date" class="form-control datepicker" maxlength="30" value="<?=date("d/m/Y")?>" />
-        <input type="number" name="cotisation_year" id="ca-coti-year"
-               class="form-control form-control-sm mt-1" style="display:none;width:90px"
-               min="2000" max="2099" value="<?= (int)date('Y') ?>"
-               title="<?= $GLOBAL['cotisationYearLabel'] ?>">
+        <select name="cotisation_year" id="ca-coti-year"
+                class="form-control form-control-sm mt-1" style="display:none;width:90px"
+                title="<?= $GLOBAL['cotisationYearLabel'] ?>">
+            <?php
+            $_cyNow = (int)date('Y');
+            for ($_cy = $_cyNow + 1; $_cy >= $_cyNow - 10; $_cy--):
+            ?>
+            <option value="<?= $_cy ?>"<?= $_cy === $_cyNow ? ' selected' : '' ?>><?= $_cy ?></option>
+            <?php endfor ?>
+        </select>
     </td>
     <td><input type="text" name="libele" class="form-control" maxlength="255"/></td>
     <td><input type="text" name="sum" size="10" class="form-control" maxlength="64"
