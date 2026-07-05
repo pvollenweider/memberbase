@@ -979,3 +979,5 @@ $GLOBAL['sendReceiptNoEmail']          = "Pas d'adresse e-mail enregistrée";
 // Zero-sum compta entries toggle
 $GLOBAL['showZeroEntries'] = "%d versement(s) à CHF 0.00 masqué(s) — afficher";
 $GLOBAL['hideZeroEntries'] = "%d versement(s) à CHF 0.00 affiché(s) — masquer";
+// Cotisation year field
+$GLOBAL['cotisationYearLabel'] = "Année de cotisation";

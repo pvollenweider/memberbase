@@ -979,3 +979,5 @@ $GLOBAL['sendReceiptNoEmail']          = "No e-mail address on file";
 // Zero-sum compta entries toggle
 $GLOBAL['showZeroEntries'] = "%d zero-amount entry(ies) hidden — show";
 $GLOBAL['hideZeroEntries'] = "%d zero-amount entry(ies) shown — hide";
+// Cotisation year field
+$GLOBAL['cotisationYearLabel'] = "Membership year";

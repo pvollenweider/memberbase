@@ -89,10 +89,16 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <th>&nbsp;</td>
 </tr>
 </thead>
+<?php
+// JSON map of cotisation type IDs for JS visibility toggle
+$_cotiTypeIds = array_values(array_map('intval',
+    array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1))
+));
+?>
 <?php if (canWrite()): ?>
 <tr>
     <td>
-        <select name="type_id" class="form-control">
+        <select name="type_id" id="ca-add-type" class="form-control">
             <?php foreach ($comptaTypes as $ct): ?>
             <option value="<?= (int)$ct->id ?>"><?= htmlentities($ct->label, ENT_COMPAT, $charset) ?></option>
             <?php endforeach ?>
@@ -100,7 +106,10 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     </td>
     <td>
         <input type="text" name="date" id="date" class="form-control datepicker" maxlength="30" value="<?=date("d/m/Y")?>" />
-
+        <input type="number" name="cotisation_year" id="ca-coti-year"
+               class="form-control form-control-sm mt-1" style="display:none;width:90px"
+               min="2000" max="2099" value="<?= (int)date('Y') ?>"
+               title="<?= $GLOBAL['cotisationYearLabel'] ?>">
     </td>
     <td><input type="text" name="libele" class="form-control" maxlength="255"/></td>
     <td><input type="text" name="sum" size="10" class="form-control" maxlength="64"
@@ -132,7 +141,7 @@ if ($filterTypeId > 0) {
 }
 // Count zero-sum entries so we can offer a "show all" toggle
 $_zeroCount = (int)$pdo->query("SELECT COUNT(*) " . $_baseWhere . " AND c.sum = 0")->fetchColumn();
-$_selectCols = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl ";
+$_selectCols = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, c.cotisation_year, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl, COALESCE(ct.is_cotisation,0) AS ct_coti ";
 $query  = $_selectCols . $_baseWhere;
 $query2 = $_selectCols . $_baseWhere;
 if (!$_showZero) {
@@ -172,6 +181,14 @@ while ($row = $stmt->fetchObject()) {
      <tr <?= canWrite() ? 'class="ca-row-link" data-href="' . $_SERVER['PHP_SELF'] . '?view=updateCompta&comptaid=' . (int)$id . '&userid=' . (int)$user->getId() . '" style="cursor:pointer;' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' : 'style="' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' ?>>
         <td>
             <?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>
+            <?php if ($row->ct_coti && $row->cotisation_year): ?>
+            <?php $_payYear = $row->date ? (int)date('Y', (int)$row->date) : 0; ?>
+            <?php if ((int)$row->cotisation_year !== $_payYear): ?>
+            <span class="badge bg-secondary ms-1" style="font-size:0.7rem" title="<?= $GLOBAL['cotisationYearLabel'] ?>"><?= (int)$row->cotisation_year ?></span>
+            <?php else: ?>
+            <span class="text-muted ms-1" style="font-size:0.72rem"><?= (int)$row->cotisation_year ?></span>
+            <?php endif ?>
+            <?php endif ?>
             <?php if ($row->ct_excl): ?>
             <span class="ms-1 text-muted" style="font-size:0.65rem;opacity:0.55" title="<?= $GLOBAL['notCountedAsDonation'] ?>"><?= $GLOBAL['nonDonation'] ?></span>
             <?php endif ?>
@@ -232,6 +249,7 @@ while ($row = $stmt->fetchObject()) {
 <?php endif ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Row click navigation
     var tbody = document.querySelector('form[name="addCompta"] tbody');
     if (tbody) tbody.addEventListener('click', function(e) {
         var tr = e.target.closest('tr.ca-row-link');
@@ -239,6 +257,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.closest('a, button')) return;
         window.location.href = tr.dataset.href;
     });
+
+    // Show cotisation_year field only for cotisation types
+    var cotiIds = <?= json_encode($_cotiTypeIds) ?>;
+    var typeSelect = document.getElementById('ca-add-type');
+    var cotiYearField = document.getElementById('ca-coti-year');
+    function toggleCotiYear() {
+        if (!typeSelect || !cotiYearField) return;
+        var isCoti = cotiIds.indexOf(parseInt(typeSelect.value, 10)) !== -1;
+        cotiYearField.style.display = isCoti ? '' : 'none';
+        cotiYearField.name = isCoti ? 'cotisation_year' : '';
+    }
+    if (typeSelect) {
+        typeSelect.addEventListener('change', toggleCotiYear);
+        toggleCotiYear();
+    }
 });
 </script>
 <?php

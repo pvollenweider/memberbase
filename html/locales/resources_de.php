@@ -979,3 +979,5 @@ $GLOBAL['sendReceiptNoEmail']          = "Keine E-Mail-Adresse hinterlegt";
 // Zero-sum compta entries toggle
 $GLOBAL['showZeroEntries'] = "%d Eintrag/Eintr\u{00E4}ge mit CHF 0.00 ausgeblendet — anzeigen";
 $GLOBAL['hideZeroEntries'] = "%d Eintrag/Eintr\u{00E4}ge mit CHF 0.00 angezeigt — ausblenden";
+// Cotisation year field
+$GLOBAL['cotisationYearLabel'] = "Mitgliedschaftsjahr";

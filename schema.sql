@@ -91,12 +91,14 @@ CREATE TABLE IF NOT EXISTS `compta` (
   `type_id`           int(11)      DEFAULT NULL,
   `wants_attestation` tinyint(1)   NOT NULL DEFAULT 0,
   `notified_at`       datetime     DEFAULT NULL,
+  `cotisation_year`   smallint(4)  DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id`   (`user_id`),
   KEY `user_id_2` (`user_id`, `date`),
-  KEY `idx_type_id`      (`type_id`),
-  KEY `idx_date`         (`date`),
-  KEY `idx_notified_at`  (`notified_at`)
+  KEY `idx_type_id`        (`type_id`),
+  KEY `idx_date`           (`date`),
+  KEY `idx_notified_at`    (`notified_at`),
+  KEY `idx_cotisation_year` (`cotisation_year`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Auto-increment helper

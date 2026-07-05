@@ -44,7 +44,7 @@ class MemberFilter
             // Ever paid a cotisation, but none in the last 3 years.
             // Members of the "no coti" segment are excluded.
             case FILTER_UNPAID_COTI_3Y: {
-                $cutoff = mktime(0, 0, 0, 1, 0, $year - 2);
+                $cutoffYear = $year - 2;
                 $noCoti = self::noCotiMembers($pdo, $appSettings);
                 $ids = [];
                 $st = $pdo->prepare("
@@ -54,9 +54,9 @@ class MemberFilter
                     JOIN users u ON u.id = c.user_id AND u.status = 1
                     GROUP BY c.user_id
                     HAVING COUNT(*) > 0
-                       AND SUM(CASE WHEN c.date > ? THEN 1 ELSE 0 END) = 0
+                       AND SUM(CASE WHEN COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) >= ? THEN 1 ELSE 0 END) = 0
                 ");
-                $st->execute([$cutoff]);
+                $st->execute([$cutoffYear]);
                 while ($r = $st->fetchObject()) {
                     $uid = (int)$r->user_id;
                     if (empty($noCoti[$uid])) {
@@ -132,10 +132,12 @@ class MemberFilter
                           SELECT 1 FROM compta c
                           JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1
                           WHERE c.user_id = u.id
-                            AND c.date > ? AND c.date < ?
+                            AND (
+                                COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
+                            )
                       )
                 ");
-                $st->execute(["team_$membreTeam", $from, $to]);
+                $st->execute(["team_$membreTeam", $year]);
                 while ($r = $st->fetchObject()) {
                     $uid = (int)$r->id;
                     if (empty($noCoti[$uid])) {

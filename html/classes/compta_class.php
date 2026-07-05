@@ -17,6 +17,7 @@ class Compta
     public $sum;
     public $quittance;
     public $wants_attestation = 0;
+    public $cotisation_year   = null;
 
     public function __construct()
     {
@@ -25,7 +26,7 @@ class Compta
     public function lookupCompta(int $id): void
     {
         global $pdo;
-        $stmt = $pdo->prepare("SELECT id,user_id,type_id,date,libele,sum,quittance,wants_attestation FROM compta WHERE id=?");
+        $stmt = $pdo->prepare("SELECT id,user_id,type_id,date,libele,sum,quittance,wants_attestation,cotisation_year FROM compta WHERE id=?");
         $stmt->execute([$id]);
         $row = $stmt->fetchObject();
         if ($row) {
@@ -37,6 +38,7 @@ class Compta
             $this->sum               = $row->sum;
             $this->quittance         = $row->quittance;
             $this->wants_attestation = (int)$row->wants_attestation;
+            $this->cotisation_year   = $row->cotisation_year !== null ? (int)$row->cotisation_year : null;
         }
     }
 
@@ -48,6 +50,7 @@ class Compta
     public function getSum()       { return $this->sum; }
     public function getQuittance()        { return $this->quittance; }
     public function getWantsAttestation() { return $this->wants_attestation; }
+    public function getCotisationYear()   { return $this->cotisation_year; }
 
     public function setUserId($v)    { $this->userId = $v; }
     public function setTypeId($v)    { $this->type_id = (int)$v; }
@@ -56,23 +59,24 @@ class Compta
     public function setSum($v)       { $this->sum = $v; }
     public function setQuittance($v)       { $this->quittance = $v; }
     public function setWantsAttestation($v){ $this->wants_attestation = $v ? 1 : 0; }
+    public function setCotisationYear($v)  { $this->cotisation_year = ($v !== null && $v !== '') ? (int)$v : null; }
 
     public function save(): void
     {
         global $pdo;
         if ($this->id) {
             $pdo->prepare(
-                "UPDATE compta SET user_id=?,type_id=?,date=?,libele=?,sum=?,quittance=?,wants_attestation=? WHERE id=?"
+                "UPDATE compta SET user_id=?,type_id=?,date=?,libele=?,sum=?,quittance=?,wants_attestation=?,cotisation_year=? WHERE id=?"
             )->execute([
                 $this->userId, $this->type_id, $this->date, $this->libele,
-                $this->sum, $this->quittance, $this->wants_attestation, $this->id,
+                $this->sum, $this->quittance, $this->wants_attestation, $this->cotisation_year, $this->id,
             ]);
         } else {
             $pdo->prepare(
-                "INSERT INTO compta (user_id,type_id,date,libele,sum,quittance,wants_attestation) VALUES (?,?,?,?,?,?,?)"
+                "INSERT INTO compta (user_id,type_id,date,libele,sum,quittance,wants_attestation,cotisation_year) VALUES (?,?,?,?,?,?,?,?)"
             )->execute([
                 $this->userId, $this->type_id, $this->date,
-                $this->libele, $this->sum, $this->quittance, $this->wants_attestation,
+                $this->libele, $this->sum, $this->quittance, $this->wants_attestation, $this->cotisation_year,
             ]);
         }
     }
