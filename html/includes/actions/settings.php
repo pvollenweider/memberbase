@@ -6,14 +6,12 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// actions: saveSettings, zefixLookup,
+// actions: saveSettings, zefixLookup, saveSmtp, sendTestEmail,
 //          updateComptaTypeOrder, addComptaType, updateComptaType, deleteComptaType
 
 $action = $_REQUEST['action'];
 
-if ($action === 'saveSettings') {
-    if (!isAdmin()) { http_response_code(403); exit; }
-} elseif ($action === 'zefixLookup') {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -94,6 +92,48 @@ if ($action == 'saveSettings') {
         $result['legalForm'] = is_array($data['legalForm']) ? ($data['legalForm']['name']['fr'] ?? $data['legalForm']['name']['de'] ?? '') : $data['legalForm'];
     }
     $result['ide'] = $uidFormatted;
+    echo json_encode($result);
+    exit;
+
+} elseif ($action === 'saveSmtp') {
+    require_once __DIR__ . '/../lib/mailer.php';
+    $encKey = mbSmtpGetOrCreateEncKey($pdo);
+    $strKeys = ['smtp_host', 'smtp_encryption', 'smtp_user', 'smtp_from_email', 'smtp_from_name', 'smtp_reply_to'];
+    $stmt = $pdo->prepare("INSERT INTO app_settings (`key`,`value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
+    foreach ($strKeys as $key) {
+        if (isset($_REQUEST[$key])) {
+            $stmt->execute([$key, trim((string)$_REQUEST[$key])]);
+        }
+    }
+    $stmt->execute(['smtp_port', (int)($_REQUEST['smtp_port'] ?? 587)]);
+    $stmt->execute(['smtp_auth', isset($_REQUEST['smtp_auth']) ? '1' : '0']);
+    // Only update password if a new one was submitted
+    if (isset($_REQUEST['smtp_password']) && $_REQUEST['smtp_password'] !== '') {
+        $encrypted = mbSmtpEncryptPassword(trim($_REQUEST['smtp_password']), $encKey);
+        $stmt->execute(['smtp_password', $encrypted]);
+    }
+    if ($isHtmx) {
+        echo '<div id="casa-save-ok" hidden></div>';
+    } else {
+        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=email&saved=1') . ');</script>';
+    }
+    exit;
+
+} elseif ($action === 'sendTestEmail') {
+    require_once __DIR__ . '/../lib/mailer.php';
+    header('Content-Type: application/json; charset=utf-8');
+    $to = trim($_REQUEST['to'] ?? '');
+    if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['ok' => false, 'error' => 'invalid_email']);
+        exit;
+    }
+    // Re-fetch fresh settings (request may arrive before bootstrap appSettings populated)
+    $rows = $pdo->query("SELECT `key`,`value` FROM app_settings")->fetchAll(PDO::FETCH_KEY_PAIR);
+    $cfg  = array_merge($appSettings, $rows);
+    $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
+    $subject = 'Test SMTP — memberbase';
+    $body    = "Ceci est un email de test envoyé depuis memberbase.\nSi vous recevez ce message, la configuration SMTP est correcte.";
+    $result  = mbSmtpSend($cfg, $to, $subject, $body);
     echo json_encode($result);
     exit;
 

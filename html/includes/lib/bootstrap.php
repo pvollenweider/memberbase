@@ -69,6 +69,16 @@ $appSettings = array_merge([
     'org_purpose'        => '',
     'org_tax_status'     => '',
     'membre_team_prefix' => 'Membre',
+    // SMTP — all defaults empty; smtp_enc_key generated on first save
+    'smtp_host'       => '',
+    'smtp_port'       => '587',
+    'smtp_encryption' => 'starttls',
+    'smtp_auth'       => '0',
+    'smtp_user'       => '',
+    'smtp_password'   => '',
+    'smtp_from_email' => '',
+    'smtp_from_name'  => '',
+    'smtp_reply_to'   => '',
 ], $_settingsRows);
 unset($_settingsRows);
 

@@ -885,3 +885,28 @@ $GLOBAL['language']              = "Sprache";
 $GLOBAL['interfaceLanguage']     = "Sprache der Oberfläche";
 $GLOBAL['interfaceLanguageHelp'] = "Gilt für Ihr Konto, in allen Ihren Sitzungen.";
 ?>
+
+// SMTP settings
+$GLOBAL['smtpSettings']        = "E-Mail";
+$GLOBAL['smtpServer']          = "SMTP-Server";
+$GLOBAL['smtpHost']            = "SMTP-Host";
+$GLOBAL['smtpPort']            = "Port";
+$GLOBAL['smtpEncryption']      = "Verschlüsselung";
+$GLOBAL['smtpEncNone']         = "Keine";
+$GLOBAL['smtpAuth']            = "Authentifizierung erforderlich";
+$GLOBAL['smtpUser']            = "Benutzername";
+$GLOBAL['smtpPassword']        = "Passwort";
+$GLOBAL['smtpPasswordSet']     = "Passwort gespeichert";
+$GLOBAL['smtpPasswordHelp']    = "Leer lassen, um das aktuelle Passwort beizubehalten.";
+$GLOBAL['smtpSender']          = "Absender";
+$GLOBAL['smtpFromName']        = "Absendername";
+$GLOBAL['smtpFromEmail']       = "Absenderadresse";
+$GLOBAL['smtpReplyTo']         = "Antwortadresse (Reply-To)";
+$GLOBAL['smtpReplyToHelp']     = "Optional. Wenn leer, gehen Antworten an die Absenderadresse.";
+$GLOBAL['smtpTest']            = "Konfiguration testen";
+$GLOBAL['smtpTestTo']          = "Test-E-Mail senden an";
+$GLOBAL['smtpTestSend']        = "Senden";
+$GLOBAL['smtpTesting']         = "Wird gesendet…";
+$GLOBAL['smtpTestOk']          = "E-Mail erfolgreich gesendet.";
+$GLOBAL['smtpTestFail']        = "Senden fehlgeschlagen. Bitte Konfiguration prüfen.";
+$GLOBAL['smtpTestMissingTo']   = "Bitte eine Ziel-E-Mail-Adresse eingeben.";

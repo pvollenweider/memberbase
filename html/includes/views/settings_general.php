@@ -52,6 +52,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
         <?php endif ?>
         <?php if (isAdmin()): ?>
         <option value="#tab-settings"><?= $GLOBAL['settings'] ?></option>
+        <option value="#tab-email"><?= $GLOBAL['smtpSettings'] ?></option>
         <option value="#tab-users"><?= $GLOBAL['users'] ?></option>
         <option value="#tab-audit"><?= $GLOBAL['journal'] ?></option>
         <option value="#tab-integrity"><?= $GLOBAL['integrity'] ?></option>
@@ -81,8 +82,9 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           ?>
           <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['administration'] ?></li>
           <?php
-          _settings_nav_item('settings',   'fas fa-sliders',     $GLOBAL['settings'],  $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('users',      'fas fa-user-shield', $GLOBAL['users'],     $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('settings',   'fas fa-sliders',     $GLOBAL['settings'],     $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('email',      'fas fa-envelope',    $GLOBAL['smtpSettings'], $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('users',      'fas fa-user-shield', $GLOBAL['users'],        $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('audit',      'fas fa-clock-rotate-left', $GLOBAL['journal'], $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('integrity',  'fas fa-stethoscope', $GLOBAL['integrity'], $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('health',     'fas fa-heart-pulse', $GLOBAL['health'],    $_navActive, $_settingsDrillDown, $_navSelf);
@@ -305,6 +307,11 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           </div><!-- #tab-filters -->
 
           <?php if (isAdmin()): ?>
+          <!-- Email / SMTP -->
+          <div class="tab-pane fade<?= $_paneClass('email') ?>" id="tab-email" role="tabpanel" aria-labelledby="tab-email-btn">
+            <?php include __DIR__ . '/settings_email.php'; ?>
+          </div><!-- #tab-email -->
+
           <!-- Utilisateurs app -->
           <div class="tab-pane fade<?= $_paneClass('users') ?>" id="tab-users" role="tabpanel" aria-labelledby="tab-users-btn">
             <?php include __DIR__ . '/settings_app_users.php'; ?>
@@ -345,6 +352,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
       var urlTab = <?= json_encode($_activeTab) ?>;
       var tabMap = {
         'settings':   '#tab-settings',
+        'email':      '#tab-email',
         'compta':     '#tab-compta',
         'groups':     '#tab-groups',
         'categories': '#tab-categories',
