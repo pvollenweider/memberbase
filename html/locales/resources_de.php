@@ -926,3 +926,14 @@ $GLOBAL['emailLogResend']        = "Erneut senden";
 $GLOBAL['emailLogResending']     = "Wird erneut gesendet…";
 $GLOBAL['emailLogResendOk']      = "E-Mail erfolgreich erneut gesendet.";
 $GLOBAL['emailLogResendFail']    = "Erneutes Senden fehlgeschlagen.";
+
+// Email templates
+$GLOBAL['emailTemplates']              = "E-Mail-Vorlagen";
+$GLOBAL['emailTemplatesSaved']         = "Vorlage gespeichert.";
+$GLOBAL['emailTemplateSubject']        = "Betreff";
+$GLOBAL['emailTemplateBody']           = "Nachrichtentext";
+$GLOBAL['emailTemplateHelp']           = "Verfügbare Variablen: {{firstname}}, {{lastname}}, {{email}}, {{org_name}}";
+$GLOBAL['emailTemplateWelcome']        = "Willkommens-E-Mail";
+$GLOBAL['emailTemplateCotiReminder']   = "Mitgliedschaftserinnerung";
+$GLOBAL['emailTemplateAttestationDon'] = "Spendenquittung";
+$GLOBAL['emailWelcomeEnabled']         = "Willkommens-E-Mail beim Erstellen eines Mitglieds senden";

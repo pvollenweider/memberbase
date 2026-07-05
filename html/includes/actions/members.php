@@ -287,6 +287,16 @@ if ($_REQUEST['action'] == 'updateUser') {
     $user->comment = unquote($_REQUEST['comment'] ?? '');
     $userid = $user->save();
     auditLog($pdo, 'addUser', "id=$userid | {$user->firstName} {$user->lastName} | email: {$user->email}", (int)$userid);
+    // Send welcome email if enabled and the new member has an email address
+    if (!empty($appSettings['email_welcome_enabled']) && $user->email !== '') {
+        require_once __DIR__ . '/../lib/mailer.php';
+        mbSendTemplate($pdo, $user->email, 'tpl_welcome', [
+            'firstname' => $user->firstName,
+            'lastname'  => $user->lastName,
+            'email'     => $user->email,
+            'org_name'  => $appSettings['org_name'] ?? '',
+        ]);
+    }
     $fromTeam = (int)($_REQUEST['fromTeam'] ?? 0);
     if ($fromTeam > 0 && !empty($_REQUEST['addToFromTeam'])) {
         $chk = $pdo->prepare("SELECT COUNT(*) FROM team WHERE id=?");

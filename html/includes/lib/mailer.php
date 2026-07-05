@@ -246,3 +246,81 @@ function _mbLogEmail(PDO $pdo, string $to, string $subject, string $status, ?str
         // Table may not exist yet (migration pending) — silently ignore
     }
 }
+
+/**
+ * Built-in fallback templates used when the DB table is empty or not yet migrated.
+ * Keys match email_templates.key values.
+ */
+function mbDefaultTemplates(): array
+{
+    return [
+        'tpl_welcome' => [
+            'subject'   => 'Bienvenue !',
+            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVotre inscription a bien été enregistrée.\n\nCordialement,\n{{org_name}}",
+        ],
+        'tpl_cotisation_reminder' => [
+            'subject'   => 'Rappel de cotisation',
+            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous vous rappelons que votre cotisation est en attente de règlement.\n\nCordialement,\n{{org_name}}",
+        ],
+        'tpl_attestation_don' => [
+            'subject'   => 'Attestation de don',
+            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVeuillez trouver ci-joint votre attestation de don.\n\nCordialement,\n{{org_name}}",
+        ],
+    ];
+}
+
+/**
+ * Load an email template from the DB, falling back to the built-in default.
+ *
+ * @param PDO    $pdo
+ * @param string $key  Template key (e.g. 'tpl_welcome')
+ * @return object      Object with ->subject and ->body_text properties
+ */
+function mbGetTemplate(PDO $pdo, string $key): object
+{
+    try {
+        $row = $pdo->prepare("SELECT subject, body_text FROM email_templates WHERE `key`=? LIMIT 1");
+        $row->execute([$key]);
+        $tpl = $row->fetchObject();
+        if ($tpl && $tpl->body_text !== '') return $tpl;
+    } catch (\Throwable $e) {
+        // Table may not exist yet
+    }
+    $defaults = mbDefaultTemplates();
+    if (isset($defaults[$key])) {
+        return (object)$defaults[$key];
+    }
+    return (object)['subject' => '', 'body_text' => ''];
+}
+
+/**
+ * Replace {{placeholder}} tokens in a template string.
+ *
+ * @param string $tpl   Template string with {{key}} placeholders
+ * @param array  $vars  Associative array of key => value replacements
+ * @return string
+ */
+function mbRenderTemplate(string $tpl, array $vars): string
+{
+    foreach ($vars as $k => $v) {
+        $tpl = str_replace('{{' . $k . '}}', (string)$v, $tpl);
+    }
+    return $tpl;
+}
+
+/**
+ * Load a template, render it with $vars, and send via mbSendMail.
+ *
+ * @param PDO    $pdo
+ * @param string $to      Recipient email address
+ * @param string $tplKey  Template key (e.g. 'tpl_welcome')
+ * @param array  $vars    Placeholder values
+ * @return bool
+ */
+function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars): bool
+{
+    $tpl     = mbGetTemplate($pdo, $tplKey);
+    $subject = mbRenderTemplate($tpl->subject, $vars);
+    $body    = mbRenderTemplate($tpl->body_text, $vars);
+    return mbSendMail($pdo, $to, $subject, $body);
+}

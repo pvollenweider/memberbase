@@ -926,3 +926,14 @@ $GLOBAL['emailLogResend']        = "Renvoyer";
 $GLOBAL['emailLogResending']     = "Renvoi en cours…";
 $GLOBAL['emailLogResendOk']      = "Email renvoyé avec succès.";
 $GLOBAL['emailLogResendFail']    = "Échec du renvoi.";
+
+// Email templates
+$GLOBAL['emailTemplates']              = "Modèles d'email";
+$GLOBAL['emailTemplatesSaved']         = "Modèle enregistré.";
+$GLOBAL['emailTemplateSubject']        = "Sujet";
+$GLOBAL['emailTemplateBody']           = "Corps du message";
+$GLOBAL['emailTemplateHelp']           = "Variables disponibles : {{firstname}}, {{lastname}}, {{email}}, {{org_name}}";
+$GLOBAL['emailTemplateWelcome']        = "Email de bienvenue";
+$GLOBAL['emailTemplateCotiReminder']   = "Rappel de cotisation";
+$GLOBAL['emailTemplateAttestationDon'] = "Attestation de don";
+$GLOBAL['emailWelcomeEnabled']         = "Envoyer un email de bienvenue lors de la création d'un membre";

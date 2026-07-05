@@ -926,3 +926,14 @@ $GLOBAL['emailLogResend']        = "Resend";
 $GLOBAL['emailLogResending']     = "Resending…";
 $GLOBAL['emailLogResendOk']      = "Email resent successfully.";
 $GLOBAL['emailLogResendFail']    = "Resend failed.";
+
+// Email templates
+$GLOBAL['emailTemplates']              = "Email templates";
+$GLOBAL['emailTemplatesSaved']         = "Template saved.";
+$GLOBAL['emailTemplateSubject']        = "Subject";
+$GLOBAL['emailTemplateBody']           = "Body";
+$GLOBAL['emailTemplateHelp']           = "Available variables: {{firstname}}, {{lastname}}, {{email}}, {{org_name}}";
+$GLOBAL['emailTemplateWelcome']        = "Welcome email";
+$GLOBAL['emailTemplateCotiReminder']   = "Membership reminder";
+$GLOBAL['emailTemplateAttestationDon'] = "Donation certificate";
+$GLOBAL['emailWelcomeEnabled']         = "Send a welcome email when a member is created";

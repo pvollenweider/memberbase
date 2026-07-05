@@ -926,3 +926,14 @@ $GLOBAL['emailLogResend']        = "Reenviar";
 $GLOBAL['emailLogResending']     = "Reenviando…";
 $GLOBAL['emailLogResendOk']      = "Correo reenviado con éxito.";
 $GLOBAL['emailLogResendFail']    = "Error al reenviar.";
+
+// Email templates
+$GLOBAL['emailTemplates']              = "Plantillas de correo";
+$GLOBAL['emailTemplatesSaved']         = "Plantilla guardada.";
+$GLOBAL['emailTemplateSubject']        = "Asunto";
+$GLOBAL['emailTemplateBody']           = "Cuerpo del mensaje";
+$GLOBAL['emailTemplateHelp']           = "Variables disponibles: {{firstname}}, {{lastname}}, {{email}}, {{org_name}}";
+$GLOBAL['emailTemplateWelcome']        = "Correo de bienvenida";
+$GLOBAL['emailTemplateCotiReminder']   = "Recordatorio de cuota";
+$GLOBAL['emailTemplateAttestationDon'] = "Certificado de donación";
+$GLOBAL['emailWelcomeEnabled']         = "Enviar un correo de bienvenida al crear un miembro";

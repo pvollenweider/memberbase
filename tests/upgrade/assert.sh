@@ -44,9 +44,13 @@ DT2="$(q "SELECT DATA_TYPE FROM information_schema.columns WHERE table_schema=DA
 TBL="$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='email_log'")"
 [ "$TBL" = "1" ] || fail "email_log table missing (0005 not applied)"
 
-# 8. All 5 migrations recorded in schema_migrations, with checksums
+# 8. Migration 0006 created the email_templates table
+TBL2="$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='email_templates'")"
+[ "$TBL2" = "1" ] || fail "email_templates table missing (0006 not applied)"
+
+# 9. All 6 migrations recorded in schema_migrations, with checksums
 N="$(q "SELECT COUNT(*) FROM schema_migrations")"
-[ "$N" = "5" ] || fail "schema_migrations has $N rows, expected 5"
+[ "$N" = "6" ] || fail "schema_migrations has $N rows, expected 6"
 BAD="$(q "SELECT COUNT(*) FROM schema_migrations WHERE checksum='' OR checksum IS NULL")"
 [ "$BAD" = "0" ] || fail "$BAD applied migration(s) missing a checksum"
 

@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'saveEmailTemplateSettings'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -213,6 +213,35 @@ if ($action == 'saveSettings') {
         echo json_encode(['ok' => true]);
     } catch (PDOException $e) {
         echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+
+} elseif ($action === 'saveEmailTemplate') {
+    $key     = trim($_REQUEST['tpl_key']     ?? '');
+    $subject = trim($_REQUEST['tpl_subject'] ?? '');
+    $body    = trim($_REQUEST['tpl_body']    ?? '');
+    $allowed = ['tpl_welcome', 'tpl_cotisation_reminder', 'tpl_attestation_don'];
+    if (in_array($key, $allowed, true) && $subject !== '' && $body !== '') {
+        $pdo->prepare(
+            "INSERT INTO email_templates (`key`, subject, body_text) VALUES (?,?,?)
+             ON DUPLICATE KEY UPDATE subject=VALUES(subject), body_text=VALUES(body_text)"
+        )->execute([$key, $subject, $body]);
+        auditLog($pdo, 'saveEmailTemplate', "key=$key");
+    }
+    if ($isHtmx) {
+        echo '<div id="casa-save-ok" hidden></div>';
+    } else {
+        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=email&saved=1') . ');</script>';
+    }
+    exit;
+
+} elseif ($action === 'saveEmailTemplateSettings') {
+    $stmt = $pdo->prepare("INSERT INTO app_settings (`key`,`value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
+    $stmt->execute(['email_welcome_enabled', isset($_REQUEST['email_welcome_enabled']) ? '1' : '0']);
+    if ($isHtmx) {
+        echo '<div id="casa-save-ok" hidden></div>';
+    } else {
+        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=email&saved=1') . ');</script>';
     }
     exit;
 

@@ -123,6 +123,11 @@ if (!isAdmin()) { ?>
 
 <?php include __DIR__ . '/settings_email_log.php'; ?>
 
+<hr class="my-4">
+
+<p class="form-section-title"><i class="fas fa-file-alt me-1" aria-hidden="true"></i><?= $GLOBAL['emailTemplates'] ?></p>
+<?php include __DIR__ . '/settings_email_templates.php'; ?>
+
 <script>
 (function () {
   // Toggle auth fields visibility
