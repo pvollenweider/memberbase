@@ -56,9 +56,9 @@ TBL2="$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DAT
 [ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='compta' AND column_name='cotisation_year'")" = "1" ] \
   || fail "compta.cotisation_year column missing (0008 not applied)"
 
-# 11. Migration 0009 backfilled cotisation_year — no cotisation row should remain NULL
-NULL_COTI="$(q "SELECT COUNT(*) FROM compta c JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1 WHERE c.cotisation_year IS NULL AND c.date > 0")"
-[ "$NULL_COTI" = "0" ] || fail "$NULL_COTI cotisation row(s) still have cotisation_year NULL after backfill (0009 not applied)"
+# 11. Migration 0009 backfilled cotisation_year — no row with a date should remain NULL
+NULL_COTI="$(q "SELECT COUNT(*) FROM compta WHERE cotisation_year IS NULL AND date > 0")"
+[ "$NULL_COTI" = "0" ] || fail "$NULL_COTI compta row(s) still have cotisation_year NULL after backfill (0009 not applied)"
 
 # 12. All 9 migrations recorded in schema_migrations, with checksums
 N="$(q "SELECT COUNT(*) FROM schema_migrations")"
