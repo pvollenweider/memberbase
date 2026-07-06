@@ -51,4 +51,36 @@ if ($action === 'applyMigrations') {
     auditLog($pdo, 'applyMigrations', $detail);
 
     $redirect($res['error'] ? 'migErr=1' : 'migOk=' . count($res['applied']));
+
+} elseif ($action === 'markAllWelcomeSent') {
+    if (!isAdmin()) { http_response_code(403); exit; }
+
+    $isHtmx = isset($_SERVER['HTTP_HX_REQUEST']);
+    $redirect = static function (string $q) use ($isHtmx): void {
+        $url = $_SERVER['PHP_SELF'] . '?view=settings&tab=health&' . $q;
+        if ($isHtmx) { header('HX-Location: ' . $url); } else { header('Location: ' . $url); }
+        exit;
+    };
+
+    if (empty($_REQUEST['confirm_bulk'])) {
+        $redirect('bulkWelcomeErr=noConfirm');
+    }
+
+    // Insert flag for all active members who don't already have it
+    $now  = date('Y-m-d H:i:s');
+    $ts   = time();
+    $pdo->prepare(
+        "INSERT IGNORE INTO user_properties (user_id, parameter, value, date)
+         SELECT id, 'email_welcome_sent', ?, ? FROM users
+         WHERE status = 1
+           AND id NOT IN (
+               SELECT user_id FROM user_properties WHERE parameter = 'email_welcome_sent'
+           )"
+    )->execute([$now, $ts]);
+
+    $n = (int)$pdo->query(
+        "SELECT COUNT(*) FROM user_properties WHERE parameter = 'email_welcome_sent'"
+    )->fetchColumn();
+    auditLog($pdo, 'markAllWelcomeSent', "marked $n members");
+    $redirect('bulkWelcomeOk=' . $n);
 }

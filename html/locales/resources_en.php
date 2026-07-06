@@ -442,8 +442,6 @@ $GLOBAL['orgPurposeHelp'] = "Excerpt from the articles of association describing
 $GLOBAL['orgTaxStatus'] = "Tax exemption status";
 $GLOBAL['orgTaxStatusHelp'] = "E.g. «Tax-exempt AFC-GE since 2018». Use the LINDAS button to retrieve automatically from the federal register, or enter manually.";
 $GLOBAL['orgTaxStatusPlaceholder'] = "E.g. Tax-exempt AFC-GE since 2018";
-$GLOBAL['orgZewo'] = "ZEWO number";
-$GLOBAL['orgZewoHelp'] = "ZEWO certification number (optional). Shown on attestations if provided.";
 $GLOBAL['zefixVerify'] = "Verify via Zefix";
 $GLOBAL['zefixChecking'] = "Checking…";
 $GLOBAL['zefixMissingIde'] = "Please enter an IDE number first.";
@@ -451,12 +449,6 @@ $GLOBAL['zefixInvalidIde'] = "Invalid IDE number (expected format: CHE-XXX.XXX.X
 $GLOBAL['zefixNotFound'] = "IDE number not found in the Zefix register.";
 $GLOBAL['zefixUnreachable'] = "Unable to reach Zefix. Check your connection.";
 $GLOBAL['zefixNetworkError'] = "Network error while checking Zefix.";
-$GLOBAL['lindasVerify'] = "Verify via LINDAS";
-$GLOBAL['lindasChecking'] = "Checking…";
-$GLOBAL['lindasNotFound'] = "No tax information found on LINDAS for this IDE number.";
-$GLOBAL['lindasUnreachable'] = "Unable to reach LINDAS (ld.admin.ch). Enter the status manually.";
-$GLOBAL['lindasNetworkError'] = "Network error while checking LINDAS.";
-$GLOBAL['lindasNoStatus'] = "No exemption status published on LINDAS.";
 
 // --- settings_filter_edit ---
 $GLOBAL['combinedSegmentCreated'] = "Combined segment “%s” created.";
@@ -892,4 +884,100 @@ $GLOBAL['pendingMigrationsBannerBody'] = "Apply them from
 $GLOBAL['language']              = "Language";
 $GLOBAL['interfaceLanguage']     = "Interface language";
 $GLOBAL['interfaceLanguageHelp'] = "Applied to your account, across all your sessions.";
-?>
+
+// SMTP settings
+$GLOBAL['smtpSettings']        = "Email";
+$GLOBAL['smtpServer']          = "SMTP Server";
+$GLOBAL['smtpHost']            = "SMTP Host";
+$GLOBAL['smtpPort']            = "Port";
+$GLOBAL['smtpEncryption']      = "Encryption";
+$GLOBAL['smtpEncNone']         = "None";
+$GLOBAL['smtpAuth']            = "Authentication required";
+$GLOBAL['smtpUser']            = "Username";
+$GLOBAL['smtpPassword']        = "Password";
+$GLOBAL['smtpPasswordSet']     = "Password saved";
+$GLOBAL['smtpPasswordHelp']    = "Leave blank to keep the current password.";
+$GLOBAL['smtpSender']          = "Sender";
+$GLOBAL['smtpFromName']        = "Sender name";
+$GLOBAL['smtpFromEmail']       = "Sender email";
+$GLOBAL['smtpReplyTo']         = "Reply-To address";
+$GLOBAL['smtpReplyToHelp']     = "Optional. If empty, replies go to the sender address.";
+$GLOBAL['smtpTest']            = "Test configuration";
+$GLOBAL['smtpTestTo']          = "Send a test email to";
+$GLOBAL['smtpTestSend']        = "Send";
+$GLOBAL['smtpTesting']         = "Sending…";
+$GLOBAL['smtpTestOk']          = "Email sent successfully.";
+$GLOBAL['smtpTestFail']        = "Send failed. Please check your configuration.";
+$GLOBAL['smtpTestMissingTo']   = "Please enter a destination email address.";
+
+// Email log journal
+$GLOBAL['emailLog']              = "Send log";
+$GLOBAL['emailLogDate']          = "Date";
+$GLOBAL['emailLogTo']            = "Recipient";
+$GLOBAL['emailLogSubject']       = "Subject";
+$GLOBAL['emailLogStatus']        = "Status";
+$GLOBAL['emailLogStatusSent']    = "Sent";
+$GLOBAL['emailLogStatusError']   = "Error";
+$GLOBAL['emailLogEmpty']         = "No emails sent yet.";
+$GLOBAL['emailLogPurge']         = "Clear log";
+$GLOBAL['emailLogPurgeConfirm']  = "Delete all email log entries?";
+$GLOBAL['emailLogPurged']        = "Log cleared.";
+$GLOBAL['emailLogResend']        = "Resend";
+$GLOBAL['emailLogResending']     = "Resending…";
+$GLOBAL['emailLogResendOk']      = "Email resent successfully.";
+$GLOBAL['emailLogResendFail']    = "Resend failed.";
+
+// Email templates
+$GLOBAL['emailTemplates']              = "Email templates";
+$GLOBAL['emailTemplatesSaved']         = "Template saved.";
+$GLOBAL['emailTemplateSubject']        = "Subject";
+$GLOBAL['emailTemplateBody']           = "Body";
+$GLOBAL['emailTemplateHelp'] = "Available variables: {{firstname}}, {{lastname}}, {{email}}, {{org_name}}, {{contact_email}}, {{org_address}}, {{org_city}}, {{org_web}}";
+$GLOBAL['emailTemplateWelcome']        = "Welcome email";
+$GLOBAL['emailTemplateCotiReminder']   = "Membership reminder";
+$GLOBAL['emailTemplateAttestationDon'] = "Donation certificate";
+$GLOBAL['emailWelcomeEnabled']         = "Send a welcome email when a member is created";
+
+// Welcome email manual send
+$GLOBAL['sendWelcomeEmail']        = "Send welcome email";
+$GLOBAL['sendWelcomeEmailSending'] = "Sending…";
+$GLOBAL['sendWelcomeEmailOk']      = "Welcome email sent.";
+$GLOBAL['sendWelcomeEmailFail']    = "Send failed.";
+$GLOBAL['sendWelcomeEmailNoEmail'] = "This member has no email address.";
+$GLOBAL['sendWelcomeEmailAlreadySent'] = "Welcome email already sent on %s";
+
+// Bulk welcome email mark
+$GLOBAL['welcomeEmailBulkTitle']      = "Bulk mark — welcome email";
+$GLOBAL['welcomeEmailBulkDesc']       = "%d active member(s) do not yet have the \"welcome email sent\" flag. Mark them all as handled to prevent sending a welcome email to existing members.";
+$GLOBAL['welcomeEmailBulkConfirm']    = "I understand these members will never receive the welcome email automatically";
+$GLOBAL['welcomeEmailBulkBtn']        = "Mark all as handled";
+$GLOBAL['welcomeEmailBulkOk']         = "%d member(s) marked as handled.";
+$GLOBAL['welcomeEmailBulkErrConfirm'] = "Please check the confirmation checkbox.";
+
+// Compta recap batch email
+$GLOBAL['comptaRecapTitle']          = "Accounting recap emails";
+$GLOBAL['comptaRecapPendingMembers'] = "members pending";
+$GLOBAL['comptaRecapPendingEntries'] = "unnotified entries";
+$GLOBAL['comptaRecapLastBatch']      = "last batch";
+$GLOBAL['comptaRecapSendBtn']        = "Send recaps (%d members)";
+$GLOBAL['comptaRecapNoPending']      = "Nothing pending — all members have been notified.";
+$GLOBAL['comptaRecapHelp']           = "One email per member is sent, grouping all entries not yet notified. Entries for members without an email address are marked as handled without sending.";
+$GLOBAL['comptaRecapSentOk']         = "%d member(s) notified successfully.";
+$GLOBAL['comptaRecapSkipped']        = "%d member(s) without email skipped.";
+
+// Bulk compta notified mark (Settings → Health)
+$GLOBAL['comptaBulkTitle']           = "Bulk mark — accounting recaps";
+$GLOBAL['comptaBulkDesc']            = "%d existing compta entry/entries are not yet marked as notified. Mark them to avoid sending historical recaps to members.";
+$GLOBAL['comptaBulkConfirm']         = "I understand these entries will not be included in the next batch";
+$GLOBAL['comptaBulkBtn']             = "Mark all as handled";
+$GLOBAL['comptaBulkOk']              = "%d entry/entries marked as handled.";
+$GLOBAL['comptaBulkErrConfirm']      = "Please check the confirmation checkbox.";
+// Payment receipt email (confirmation on compta entry add)
+$GLOBAL['emailTemplatePaymentReceipt'] = "Payment receipt confirmation";
+$GLOBAL['sendReceiptLabel']            = "Send a confirmation to the member";
+$GLOBAL['sendReceiptNoEmail']          = "No e-mail address on file";
+// Zero-sum compta entries toggle
+$GLOBAL['showZeroEntries'] = "%d zero-amount entry(ies) hidden — show";
+$GLOBAL['hideZeroEntries'] = "%d zero-amount entry(ies) shown — hide";
+// Cotisation year field
+$GLOBAL['cotisationYearLabel'] = "Membership year";

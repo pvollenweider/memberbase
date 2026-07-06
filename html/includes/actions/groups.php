@@ -81,17 +81,15 @@ if ($action == 'deleteTeam') {
     $year   = isset($_REQUEST['cotis_year']) ? (int)$_REQUEST['cotis_year'] : (int)date('Y');
     $cotisTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
     if ($teamId > 0 && $year >= 2000 && $year <= 2100 && !empty($cotisTypeIds)) {
-        $from        = mktime(0, 0, 0, 1, 0, $year);
-        $to          = mktime(0, 0, 0, 1, 1, $year + 1);
         $placeholders = implode(',', array_fill(0, count($cotisTypeIds), '?'));
-        $params       = array_merge(["team_$teamId"], $cotisTypeIds, [$from, $to, "team_$teamId"]);
+        $params       = array_merge(["team_$teamId"], $cotisTypeIds, [$year, "team_$teamId"]);
         $pdo->prepare("
             INSERT INTO user_properties (user_id, parameter, value)
             SELECT u.id, ?, 'true'
             FROM users u
             JOIN compta c ON c.user_id = u.id
             WHERE c.type_id IN ($placeholders)
-              AND c.date > ? AND c.date < ?
+              AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
               AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
             GROUP BY u.id
         ")->execute($params);

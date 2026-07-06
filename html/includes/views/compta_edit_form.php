@@ -20,6 +20,10 @@ $comptaid = $_REQUEST['comptaid'];
 $compta = new Compta();
 $compta->lookupCompta($comptaid);
 $typeId = $compta->getTypeId();
+$_isCotiType = isset($comptaTypes[(int)$typeId]) && (int)$comptaTypes[(int)$typeId]->is_cotisation === 1;
+$_cotiTypeIdsEdit = array_values(array_map('intval',
+    array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1))
+));
 ?>
 
 <div class="row justify-content-center mt-3">
@@ -87,6 +91,21 @@ $typeId = $compta->getTypeId();
         </div>
       </div>
 
+      <div id="ca-coti-year-row" class="row mb-2 align-items-center"<?= $_isCotiType ? '' : ' style="display:none"' ?>>
+        <label for="cotisation_year" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end text-sm-end" style="font-size:0.82rem"><?= $GLOBAL['cotisationYearLabel'] ?></label>
+        <div class="col-4 col-sm-3">
+          <?php
+          $_ceSelYear = $compta->getCotisationYear() ?? (int)date('Y', (int)$compta->getDate());
+          $_ceNow = (int)date('Y');
+          ?>
+          <select class="form-control form-control-sm" id="cotisation_year" name="cotisation_year">
+            <?php for ($_cey = $_ceNow + 1; $_cey >= $_ceNow - 10; $_cey--): ?>
+            <option value="<?= $_cey ?>"<?= $_cey === (int)$_ceSelYear ? ' selected' : '' ?>><?= $_cey ?></option>
+            <?php endfor ?>
+          </select>
+        </div>
+      </div>
+
       <div class="row mb-3 align-items-center">
         <div class="col-8 offset-4 col-sm-9 offset-sm-3">
           <div class="form-check">
@@ -112,3 +131,21 @@ $typeId = $compta->getTypeId();
     </form>
   </div>
 </div>
+<script>
+(function() {
+    var cotiIds = <?= json_encode($_cotiTypeIdsEdit) ?>;
+    var typeSelect = document.getElementById('type_id');
+    var cotiRow = document.getElementById('ca-coti-year-row');
+    var cotiInput = document.getElementById('cotisation_year');
+    function toggleCotiYear() {
+        if (!typeSelect || !cotiRow) return;
+        var isCoti = cotiIds.indexOf(parseInt(typeSelect.value, 10)) !== -1;
+        cotiRow.style.display = isCoti ? '' : 'none';
+        if (cotiInput) cotiInput.name = isCoti ? 'cotisation_year' : '';
+    }
+    if (typeSelect) {
+        typeSelect.addEventListener('change', toggleCotiYear);
+        toggleCotiYear();
+    }
+})();
+</script>

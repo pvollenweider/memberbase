@@ -85,13 +85,20 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <th><?=$GLOBAL['sum']?></th>
     <th class="d-none d-sm-table-cell"><?=$GLOBAL['quittance']?></th>
     <th class="d-none d-sm-table-cell" title="<?= $GLOBAL['wantsAttestation'] ?>"><i class="fas fa-file-pdf" aria-hidden="true"></i></th>
+    <th class="d-none d-sm-table-cell" title="<?= $GLOBAL['sendReceiptLabel'] ?>"><i class="fas fa-envelope" aria-hidden="true"></i></th>
     <th>&nbsp;</td>
 </tr>
 </thead>
+<?php
+// JSON map of cotisation type IDs for JS visibility toggle
+$_cotiTypeIds = array_values(array_map('intval',
+    array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1))
+));
+?>
 <?php if (canWrite()): ?>
 <tr>
     <td>
-        <select name="type_id" class="form-control">
+        <select name="type_id" id="ca-add-type" class="form-control">
             <?php foreach ($comptaTypes as $ct): ?>
             <option value="<?= (int)$ct->id ?>"><?= htmlentities($ct->label, ENT_COMPAT, $charset) ?></option>
             <?php endforeach ?>
@@ -99,29 +106,54 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     </td>
     <td>
         <input type="text" name="date" id="date" class="form-control datepicker" maxlength="30" value="<?=date("d/m/Y")?>" />
-
+        <select name="cotisation_year" id="ca-coti-year"
+                class="form-control form-control-sm mt-1" style="display:none;width:90px"
+                title="<?= $GLOBAL['cotisationYearLabel'] ?>">
+            <?php
+            $_cyNow = (int)date('Y');
+            for ($_cy = $_cyNow + 1; $_cy >= $_cyNow - 10; $_cy--):
+            ?>
+            <option value="<?= $_cy ?>"<?= $_cy === $_cyNow ? ' selected' : '' ?>><?= $_cy ?></option>
+            <?php endfor ?>
+        </select>
     </td>
     <td><input type="text" name="libele" class="form-control" maxlength="255"/></td>
     <td><input type="text" name="sum" size="10" class="form-control" maxlength="64"
              inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" title="<?= $GLOBAL['numericAmountHint'] ?>"/></td>
     <td class="d-none d-sm-table-cell"><input type="text" name="quittance" size="10" class="form-control" maxlength="64"/></td>
     <td class="d-none d-sm-table-cell text-center"><input type="checkbox" name="wants_attestation" value="1" /></td>
+    <td class="d-none d-sm-table-cell text-center">
+      <?php if ($user->getEmail()): ?>
+      <input type="checkbox" name="send_receipt" value="1" title="<?= $GLOBAL['sendReceiptLabel'] ?>" />
+      <?php else: ?>
+      <span class="text-muted" title="<?= $GLOBAL['sendReceiptNoEmail'] ?>">—</span>
+      <?php endif ?>
+    </td>
     <td><button type="submit" class="btn btn-primary"><?=$GLOBAL['add']?></button></td>
 </tr>
 <?php endif ?>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-$query = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE c.user_id=" . $user->getId() . " ";
+$_showZero = isset($_REQUEST['showZero']);
+$_baseWhere = "FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE c.user_id=" . $user->getId() . " ";
 if ($year != -2) {
-    $query .= " AND c.date > $from AND c.date < $to ";
+    $_baseWhere .= " AND c.date > $from AND c.date < $to ";
 }
 if ($donsOnly) {
-    $query .= " AND COALESCE(ct.is_excluded_from_donation,0) = 0 ";
+    $_baseWhere .= " AND COALESCE(ct.is_excluded_from_donation,0) = 0 ";
 }
 if ($filterTypeId > 0) {
-    $query .= " AND c.type_id = " . $filterTypeId . " ";
+    $_baseWhere .= " AND c.type_id = " . $filterTypeId . " ";
 }
-$query2 = $query;
+// Count zero-sum entries so we can offer a "show all" toggle
+$_zeroCount = (int)$pdo->query("SELECT COUNT(*) " . $_baseWhere . " AND c.sum = 0")->fetchColumn();
+$_selectCols = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, c.cotisation_year, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl, COALESCE(ct.is_cotisation,0) AS ct_coti ";
+$query  = $_selectCols . $_baseWhere;
+$query2 = $_selectCols . $_baseWhere;
+if (!$_showZero) {
+    $query  .= " AND c.sum <> 0 ";
+    $query2 .= " AND c.sum <> 0 ";
+}
 $query  .= " ORDER BY c.date DESC";
 $query2 .= " ORDER BY c.date ASC";
 $stmt = $pdo->query($query);
@@ -155,6 +187,14 @@ while ($row = $stmt->fetchObject()) {
      <tr <?= canWrite() ? 'class="ca-row-link" data-href="' . $_SERVER['PHP_SELF'] . '?view=updateCompta&comptaid=' . (int)$id . '&userid=' . (int)$user->getId() . '" style="cursor:pointer;' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' : 'style="' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' ?>>
         <td>
             <?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>
+            <?php if ($row->ct_coti && $row->cotisation_year): ?>
+            <?php $_payYear = $row->date ? (int)date('Y', (int)$row->date) : 0; ?>
+            <?php if ((int)$row->cotisation_year !== $_payYear): ?>
+            <span class="badge bg-secondary ms-1" style="font-size:0.7rem" title="<?= $GLOBAL['cotisationYearLabel'] ?>"><?= (int)$row->cotisation_year ?></span>
+            <?php else: ?>
+            <span class="text-muted ms-1" style="font-size:0.72rem"><?= (int)$row->cotisation_year ?></span>
+            <?php endif ?>
+            <?php endif ?>
             <?php if ($row->ct_excl): ?>
             <span class="ms-1 text-muted" style="font-size:0.65rem;opacity:0.55" title="<?= $GLOBAL['notCountedAsDonation'] ?>"><?= $GLOBAL['nonDonation'] ?></span>
             <?php endif ?>
@@ -193,8 +233,29 @@ while ($row = $stmt->fetchObject()) {
 </table>
 </div>
 </form>
+<?php if ($_zeroCount > 0): ?>
+<p class="text-muted small mt-1 mb-0">
+  <?php
+  // Build the toggle URL preserving all current query params except showZero
+  $_qp = $_GET;
+  unset($_qp['showZero']);
+  if ($_showZero) {
+      $GLOBAL['__toggleZeroUrl'] = $_SERVER['PHP_SELF'] . '?' . http_build_query($_qp);
+      $GLOBAL['__toggleZeroLabel'] = sprintf($GLOBAL['hideZeroEntries'], $_zeroCount);
+  } else {
+      $_qp['showZero'] = '1';
+      $GLOBAL['__toggleZeroUrl'] = $_SERVER['PHP_SELF'] . '?' . http_build_query($_qp);
+      $GLOBAL['__toggleZeroLabel'] = sprintf($GLOBAL['showZeroEntries'], $_zeroCount);
+  }
+  ?>
+  <a href="<?= htmlspecialchars($GLOBAL['__toggleZeroUrl'], ENT_QUOTES, $charset) ?>" data-no-dirty>
+    <?= $GLOBAL['__toggleZeroLabel'] ?>
+  </a>
+</p>
+<?php endif ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Row click navigation
     var tbody = document.querySelector('form[name="addCompta"] tbody');
     if (tbody) tbody.addEventListener('click', function(e) {
         var tr = e.target.closest('tr.ca-row-link');
@@ -202,6 +263,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.closest('a, button')) return;
         window.location.href = tr.dataset.href;
     });
+
+    // Show cotisation_year field only for cotisation types
+    var cotiIds = <?= json_encode($_cotiTypeIds) ?>;
+    var typeSelect = document.getElementById('ca-add-type');
+    var cotiYearField = document.getElementById('ca-coti-year');
+    function toggleCotiYear() {
+        if (!typeSelect || !cotiYearField) return;
+        var isCoti = cotiIds.indexOf(parseInt(typeSelect.value, 10)) !== -1;
+        cotiYearField.style.display = isCoti ? '' : 'none';
+        cotiYearField.name = isCoti ? 'cotisation_year' : '';
+    }
+    if (typeSelect) {
+        typeSelect.addEventListener('change', toggleCotiYear);
+        toggleCotiYear();
+    }
 });
 </script>
 <?php

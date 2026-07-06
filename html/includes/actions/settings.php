@@ -6,14 +6,12 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// actions: saveSettings, zefixLookup, lindasLookup,
+// actions: saveSettings, zefixLookup, saveSmtp, sendTestEmail,
 //          updateComptaTypeOrder, addComptaType, updateComptaType, deleteComptaType
 
 $action = $_REQUEST['action'];
 
-if ($action === 'saveSettings') {
-    if (!isAdmin()) { http_response_code(403); exit; }
-} elseif (in_array($action, ['zefixLookup', 'lindasLookup'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -24,7 +22,7 @@ if ($action == 'saveSettings') {
     $intKeys = ['default_team', 'membre_team', 'member_no_coti_team'];
     // String settings — stored as trimmed text
     $strKeys = ['org_name', 'org_address', 'org_npa', 'org_city', 'org_country',
-                'org_ide', 'org_purpose', 'org_tax_status', 'org_zewo',
+                'org_ide', 'org_purpose', 'org_tax_status',
                 'membre_team_prefix'];
     $stmt = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
     foreach ($intKeys as $key) {
@@ -116,52 +114,50 @@ if ($action == 'saveSettings') {
     echo json_encode($result);
     exit;
 
-} elseif ($action === 'lindasLookup') {
-    // SPARQL query against ld.admin.ch to retrieve AFC tax exemption status.
-    // Returns JSON: { status, error? }
+} elseif ($action === 'saveSmtp') {
+    require_once __DIR__ . '/../lib/mailer.php';
+    $encKey = mbSmtpGetOrCreateEncKey($pdo);
+    $strKeys = ['smtp_host', 'smtp_encryption', 'smtp_user', 'smtp_from_email', 'smtp_from_name', 'smtp_reply_to'];
+    $stmt = $pdo->prepare("INSERT INTO app_settings (`key`,`value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
+    foreach ($strKeys as $key) {
+        if (isset($_REQUEST[$key])) {
+            $stmt->execute([$key, trim((string)$_REQUEST[$key])]);
+        }
+    }
+    $stmt->execute(['smtp_port', (int)($_REQUEST['smtp_port'] ?? 587)]);
+    $stmt->execute(['smtp_auth', isset($_REQUEST['smtp_auth']) ? '1' : '0']);
+    // Only update password if a new one was submitted
+    if (isset($_REQUEST['smtp_password']) && $_REQUEST['smtp_password'] !== '') {
+        $encrypted = mbSmtpEncryptPassword(trim($_REQUEST['smtp_password']), $encKey);
+        $stmt->execute(['smtp_password', $encrypted]);
+    }
+    if ($isHtmx) {
+        echo '<div id="casa-save-ok" hidden></div>';
+    } else {
+        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=email&saved=1') . ');</script>';
+    }
+    exit;
+
+} elseif ($action === 'sendTestEmail') {
+    require_once __DIR__ . '/../lib/mailer.php';
     header('Content-Type: application/json; charset=utf-8');
-    $raw = trim($_REQUEST['ide'] ?? '');
-    $digits = preg_replace('/[^0-9]/', '', $raw);
-    if (strlen($digits) < 9) {
-        echo json_encode(['error' => 'invalid_ide']);
+    $to = trim($_REQUEST['to'] ?? '');
+    if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['ok' => false, 'error' => 'invalid_email']);
         exit;
     }
-    $uid9 = substr($digits, -9);
-    $uidFormatted = 'CHE-' . substr($uid9, 0, 3) . '.' . substr($uid9, 3, 3) . '.' . substr($uid9, 6, 3);
-    // SPARQL query for AFC tax exemption data on ld.admin.ch
-    $sparql = <<<SPARQL
-PREFIX schema: <http://schema.org/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-SELECT ?org ?name ?taxExemption WHERE {
-  ?org schema:identifier "{$uidFormatted}" ;
-       schema:name ?name .
-  OPTIONAL { ?org <https://schema.ld.admin.ch/taxExemption> ?taxExemption . }
-}
-LIMIT 1
-SPARQL;
-    $endpoint = 'https://ld.admin.ch/query';
-    $params   = http_build_query(['query' => $sparql, 'format' => 'application/sparql-results+json']);
-    $ctx = stream_context_create(['http' => [
-        'timeout'       => 10,
-        'ignore_errors' => true,
-        'header'        => "Accept: application/sparql-results+json\r\nContent-Type: application/x-www-form-urlencoded\r\n",
-        'method'        => 'POST',
-        'content'       => $params,
-    ]]);
-    $body = @file_get_contents($endpoint, false, $ctx);
-    if ($body === false || $body === '') {
-        echo json_encode(['error' => 'unreachable']);
-        exit;
-    }
-    $data = json_decode($body, true);
-    if (!$data || empty($data['results']['bindings'])) {
-        echo json_encode(['error' => 'not_found']);
-        exit;
-    }
-    $row    = $data['results']['bindings'][0];
-    $status = $row['taxExemption']['value'] ?? '';
-    $name   = $row['name']['value'] ?? '';
-    echo json_encode(['status' => $status, 'name' => $name, 'ide' => $uidFormatted]);
+    // Re-fetch fresh settings (request may arrive before bootstrap appSettings populated)
+    $rows = $pdo->query("SELECT `key`,`value` FROM app_settings")->fetchAll(PDO::FETCH_KEY_PAIR);
+    $cfg  = array_merge($appSettings, $rows);
+    $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
+    $subject = 'Test SMTP — memberbase';
+    $body    = "Ceci est un email de test envoyé depuis memberbase.\nSi vous recevez ce message, la configuration SMTP est correcte.";
+    $result  = mbSmtpSend($cfg, $to, $subject, $body);
+    // Log the test send attempt
+    $logStatus = $result['ok'] ? 'sent' : 'error';
+    $logErr    = $result['ok'] ? null : ($result['error'] ?? '');
+    try { $pdo->prepare("INSERT INTO email_log (to_email, subject, status, error_msg) VALUES (?,?,?,?)")->execute([$to, $subject, $logStatus, $logErr]); } catch (\Throwable $e) {}
+    echo json_encode($result);
     exit;
 
 } elseif ($action == 'updateComptaTypeOrder') {
@@ -226,5 +222,56 @@ SPARQL;
     $rtb = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnTab'] ?? 'compta');
     $_ctUrl = $_SERVER['PHP_SELF'] . '?view=' . $rv . '&tab=' . $rtb;
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>'; }
+    exit;
+
+} elseif ($action === 'purgeEmailLog') {
+    header('Content-Type: application/json; charset=utf-8');
+    try {
+        $pdo->exec("DELETE FROM email_log");
+        auditLog($pdo, 'purgeEmailLog', '');
+        echo json_encode(['ok' => true]);
+    } catch (PDOException $e) {
+        echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+
+} elseif ($action === 'saveEmailTemplate') {
+    $key     = trim($_REQUEST['tpl_key']     ?? '');
+    $subject = trim($_REQUEST['tpl_subject'] ?? '');
+    $body    = trim($_REQUEST['tpl_body']    ?? '');
+    $allowed = ['tpl_welcome', 'tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don'];
+    if (in_array($key, $allowed, true) && $subject !== '' && $body !== '') {
+        $pdo->prepare(
+            "INSERT INTO email_templates (`key`, subject, body_text) VALUES (?,?,?)
+             ON DUPLICATE KEY UPDATE subject=VALUES(subject), body_text=VALUES(body_text)"
+        )->execute([$key, $subject, $body]);
+        auditLog($pdo, 'saveEmailTemplate', "key=$key");
+    }
+    if ($isHtmx) {
+        echo '<div id="casa-save-ok" hidden></div>';
+    } else {
+        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=email&saved=1') . ');</script>';
+    }
+    exit;
+
+} elseif ($action === 'resendEmail') {
+    require_once __DIR__ . '/../lib/mailer.php';
+    header('Content-Type: application/json; charset=utf-8');
+    $id  = (int)($_REQUEST['id'] ?? 0);
+    if ($id <= 0) { echo json_encode(['ok' => false, 'error' => 'invalid_id']); exit; }
+    $row = $pdo->prepare("SELECT to_email, subject FROM email_log WHERE id=? LIMIT 1");
+    $row->execute([$id]);
+    $entry = $row->fetchObject();
+    if (!$entry) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }
+    $cfg = $appSettings;
+    $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
+    $result = mbSmtpSend($cfg, $entry->to_email, $entry->subject, '(message original non disponible — renvoi depuis le journal)');
+    if ($result['ok']) {
+        $pdo->prepare("UPDATE email_log SET status='sent', error_msg=NULL WHERE id=?")->execute([$id]);
+        auditLog($pdo, 'resendEmail', "id=$id to={$entry->to_email}");
+    } else {
+        $pdo->prepare("UPDATE email_log SET status='error', error_msg=? WHERE id=?")->execute([$result['error'] ?? '', $id]);
+    }
+    echo json_encode($result);
     exit;
 }

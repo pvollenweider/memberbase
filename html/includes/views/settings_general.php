@@ -52,6 +52,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
         <?php endif ?>
         <?php if (isAdmin()): ?>
         <option value="#tab-settings"><?= $GLOBAL['settings'] ?></option>
+        <option value="#tab-email"><?= $GLOBAL['smtpSettings'] ?></option>
         <option value="#tab-users"><?= $GLOBAL['users'] ?></option>
         <option value="#tab-audit"><?= $GLOBAL['journal'] ?></option>
         <option value="#tab-integrity"><?= $GLOBAL['integrity'] ?></option>
@@ -81,8 +82,9 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           ?>
           <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['administration'] ?></li>
           <?php
-          _settings_nav_item('settings',   'fas fa-sliders',     $GLOBAL['settings'],  $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('users',      'fas fa-user-shield', $GLOBAL['users'],     $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('settings',   'fas fa-sliders',     $GLOBAL['settings'],     $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('email',      'fas fa-envelope',    $GLOBAL['smtpSettings'], $_navActive, $_settingsDrillDown, $_navSelf);
+          _settings_nav_item('users',      'fas fa-user-shield', $GLOBAL['users'],        $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('audit',      'fas fa-clock-rotate-left', $GLOBAL['journal'], $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('integrity',  'fas fa-stethoscope', $GLOBAL['integrity'], $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('health',     'fas fa-heart-pulse', $GLOBAL['health'],    $_navActive, $_settingsDrillDown, $_navSelf);
@@ -166,25 +168,11 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
               <div class="mb-3">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_tax_status"><?= $GLOBAL['orgTaxStatus'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['orgTaxStatusHelp'] ?></p>
-                <div class="d-flex gap-2 align-items-center flex-wrap" style="max-width:440px">
-                  <input type="text" name="org_tax_status" id="s_org_tax_status" class="form-control form-control-sm" style="max-width:280px"
-                         placeholder="<?= htmlspecialchars($GLOBAL['orgTaxStatusPlaceholder'], ENT_QUOTES, $charset) ?>"
-                         value="<?= htmlspecialchars($appSettings['org_tax_status'] ?? '', ENT_QUOTES, $charset) ?>">
-                  <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-lindas-lookup"
-                          data-action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) ?>"
-                          data-label-checking="<?= htmlspecialchars($GLOBAL['lindasChecking'], ENT_QUOTES, $charset) ?>"
-                          data-label-verify="<?= htmlspecialchars($GLOBAL['lindasVerify'], ENT_QUOTES, $charset) ?>">
-                    <i class="fas fa-database me-1" aria-hidden="true"></i><span><?= $GLOBAL['lindasVerify'] ?></span>
-                  </button>
-                </div>
-                <div id="lindas-result" class="mt-2" style="font-size:0.82rem"></div>
+                <input type="text" name="org_tax_status" id="s_org_tax_status" class="form-control form-control-sm" style="max-width:280px"
+                       placeholder="<?= htmlspecialchars($GLOBAL['orgTaxStatusPlaceholder'], ENT_QUOTES, $charset) ?>"
+                       value="<?= htmlspecialchars($appSettings['org_tax_status'] ?? '', ENT_QUOTES, $charset) ?>">
               </div>
-              <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_zewo"><?= $GLOBAL['orgZewo'] ?></label>
-                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['orgZewoHelp'] ?></p>
-                <input type="text" name="org_zewo" id="s_org_zewo" class="form-control form-control-sm" style="max-width:200px"
-                       value="<?= htmlspecialchars($appSettings['org_zewo'] ?? '', ENT_QUOTES, $charset) ?>">
-              </div>
+
               <div class="mb-4">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team_prefix"><?= $GLOBAL['memberTeamPrefixLabel'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['memberTeamPrefixHelp'] ?></p>
@@ -287,23 +275,6 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                 if (data.street)   info.push(data.street + (data.npa ? ', ' + data.npa : '') + (data.city ? ' ' + data.city : ''));
                 el.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>' + info.join(' — ') + '</span>';
               }, zLabels);
-
-              var lLabels = {
-                missingIde:   <?= json_encode($GLOBAL['zefixMissingIde']) ?>,
-                networkError: <?= json_encode($GLOBAL['lindasNetworkError']) ?>
-              };
-              doLookup('btn-lindas-lookup', 'lindas-result', 'lindasLookup', 's_org_ide', function (data, el) {
-                if (data.error) {
-                  var msgs = { invalid_ide:  <?= json_encode($GLOBAL['zefixInvalidIde']) ?>,
-                               not_found:    <?= json_encode($GLOBAL['lindasNotFound']) ?>,
-                               unreachable:  <?= json_encode($GLOBAL['lindasUnreachable']) ?> };
-                  el.innerHTML = '<span class="text-danger">' + (msgs[data.error] || data.error) + '</span>';
-                  return;
-                }
-                if (data.status) document.getElementById('s_org_tax_status').value = data.status;
-                el.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>'
-                  + (data.status || <?= json_encode($GLOBAL['lindasNoStatus']) ?>) + '</span>';
-              }, lLabels);
             }());
             </script>
             <?php endif ?>
@@ -341,6 +312,11 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           </div><!-- #tab-filters -->
 
           <?php if (isAdmin()): ?>
+          <!-- Email / SMTP -->
+          <div class="tab-pane fade<?= $_paneClass('email') ?>" id="tab-email" role="tabpanel" aria-labelledby="tab-email-btn">
+            <?php include __DIR__ . '/settings_email.php'; ?>
+          </div><!-- #tab-email -->
+
           <!-- Utilisateurs app -->
           <div class="tab-pane fade<?= $_paneClass('users') ?>" id="tab-users" role="tabpanel" aria-labelledby="tab-users-btn">
             <?php include __DIR__ . '/settings_app_users.php'; ?>
@@ -381,6 +357,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
       var urlTab = <?= json_encode($_activeTab) ?>;
       var tabMap = {
         'settings':   '#tab-settings',
+        'email':      '#tab-email',
         'compta':     '#tab-compta',
         'groups':     '#tab-groups',
         'categories': '#tab-categories',

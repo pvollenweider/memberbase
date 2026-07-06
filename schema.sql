@@ -90,11 +90,15 @@ CREATE TABLE IF NOT EXISTS `compta` (
   `quittance`         varchar(64)  NOT NULL DEFAULT '',
   `type_id`           int(11)      DEFAULT NULL,
   `wants_attestation` tinyint(1)   NOT NULL DEFAULT 0,
+  `notified_at`       datetime     DEFAULT NULL,
+  `cotisation_year`   smallint(4)  DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id`   (`user_id`),
   KEY `user_id_2` (`user_id`, `date`),
-  KEY `idx_type_id` (`type_id`),
-  KEY `idx_date`    (`date`)
+  KEY `idx_type_id`        (`type_id`),
+  KEY `idx_date`           (`date`),
+  KEY `idx_notified_at`    (`notified_at`),
+  KEY `idx_cotisation_year` (`cotisation_year`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Auto-increment helper
@@ -143,5 +147,27 @@ CREATE TABLE IF NOT EXISTS `audit_log` (
   KEY `idx_created_at`   (`created_at`),
   KEY `idx_subject_user` (`subject_user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+-- Configurable email templates
+CREATE TABLE IF NOT EXISTS `email_templates` (
+  `key`        varchar(64)  NOT NULL,
+  `subject`    varchar(500) NOT NULL DEFAULT '',
+  `body_text`  text         NOT NULL,
+  `updated_at` datetime     NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Email send log
+CREATE TABLE IF NOT EXISTS `email_log` (
+  `id`         int(11)      NOT NULL AUTO_INCREMENT,
+  `created_at` datetime     NOT NULL DEFAULT current_timestamp(),
+  `to_email`   varchar(255) NOT NULL DEFAULT '',
+  `subject`    varchar(500) NOT NULL DEFAULT '',
+  `status`     enum('sent','error') NOT NULL DEFAULT 'sent',
+  `error_msg`  text         DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_status`     (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET foreign_key_checks = 1;

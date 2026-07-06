@@ -41,6 +41,7 @@ $UA_VIEW_ROUTES = [
     // Comptabilité
     'updateCompta'        => ['compta_edit_form.php'],
     'lastEntryCompta'     => ['compta_last_entry.php'],
+    'comptaRecap'         => ['compta_recap.php',         'isManager'],
     'removeCompta'        => ['compta_delete_confirm.php', 'canWrite'],
     'deleteComptaConfirm' => ['compta_delete_do.php',      'canWrite'],
 

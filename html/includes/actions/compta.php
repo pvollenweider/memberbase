@@ -22,11 +22,39 @@ if ($action == 'addCompta') {
     $compta->libele = unquote($_REQUEST['libele']);
     $compta->sum = $_rawSum;
     $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);
+    $compta->setCotisationYear($_REQUEST['cotisation_year'] ?? null);
     $compta->save();
     $_auUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
     $_auUser->execute([(int)$compta->userId]);
     $_auType = $comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}";
-    auditLog($pdo, 'addCompta', "membre: " . ($_auUser->fetchColumn() ?: "id={$compta->userId}") . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}", (int)$compta->userId);
+    $_auCotiYear = $compta->cotisation_year ? " | année coti: {$compta->cotisation_year}" : '';
+    auditLog($pdo, 'addCompta', "membre: " . ($_auUser->fetchColumn() ?: "id={$compta->userId}") . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}{$_auCotiYear}", (int)$compta->userId);
+
+    // Optional receipt email — only when the checkbox is checked
+    if (!empty($_REQUEST['send_receipt'])) {
+        require_once __DIR__ . '/../lib/mailer.php';
+        $_rcpUser = new User();
+        $_rcpUser->lookupUser((int)$compta->userId);
+        $_rcpEmail = $_rcpUser->getEmail();
+        if ($_rcpEmail) {
+            $_rcpLibele = trim((string)$compta->libele);
+            $_rcpLibeleLine = $_rcpLibele !== '' ? "  Note    : {$_rcpLibele}\n" : '';
+            mbSendTemplate($pdo, $_rcpEmail, 'tpl_payment_receipt', [
+                'firstname'   => $_rcpUser->getFirstName(),
+                'lastname'    => $_rcpUser->getLastName(),
+                'email'       => $_rcpEmail,
+                'type'        => $comptaTypes[(int)$_REQUEST['type_id']]->label ?? '',
+                'amount'      => number_format((float)$compta->sum, 2, '.', "'"),
+                'entry_date'  => date('d.m.Y', (int)$compta->date),
+                'libele_line' => $_rcpLibeleLine,
+                'org_name'    => $appSettings['org_name']      ?? '',
+                'org_address' => $appSettings['org_address']   ?? '',
+                'org_city'    => $appSettings['org_city']      ?? '',
+                'org_web'     => $appSettings['org_web']       ?? '',
+                'contact_email' => $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? ''),
+            ]);
+        }
+    }
 
 } elseif ($action == 'updateCompta') {
     $_rawSum2 = trim(str_replace(',', '.', $_REQUEST['sum'] ?? ''));
@@ -34,12 +62,13 @@ if ($action == 'addCompta') {
     $compta = new Compta();
     $compta->lookupCompta((int)$_REQUEST['comptaid']);
     $_auBefore2 = [
-        'type'        => ($comptaTypes[(int)$compta->type_id]->label ?? "type={$compta->type_id}"),
-        'date'        => timeStampToformatedDate((int)$compta->date),
-        'libele'      => (string)$compta->libele,
-        'sum'         => number_format((float)$compta->sum, 2, '.', ''),
-        'quittance'   => (string)$compta->quittance,
-        'attestation' => $compta->wants_attestation ? 'oui' : 'non',
+        'type'           => ($comptaTypes[(int)$compta->type_id]->label ?? "type={$compta->type_id}"),
+        'date'           => timeStampToformatedDate((int)$compta->date),
+        'libele'         => (string)$compta->libele,
+        'sum'            => number_format((float)$compta->sum, 2, '.', ''),
+        'quittance'      => (string)$compta->quittance,
+        'attestation'    => $compta->wants_attestation ? 'oui' : 'non',
+        'cotisation_year'=> (string)($compta->cotisation_year ?? ''),
     ];
     $mydate = $_REQUEST['date'];
     $date = formatedDateToTimeStamp($mydate);
@@ -49,13 +78,15 @@ if ($action == 'addCompta') {
     $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);
     $compta->setTypeId((int)$_REQUEST['type_id']);
     $compta->setWantsAttestation(isset($_REQUEST['wants_attestation']));
+    $compta->setCotisationYear($_REQUEST['cotisation_year'] ?? null);
     $_auAfter2 = [
-        'type'        => ($comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}"),
-        'date'        => $mydate,
-        'libele'      => (string)$compta->libele,
-        'sum'         => number_format((float)$compta->sum, 2, '.', ''),
-        'quittance'   => (string)$compta->quittance,
-        'attestation' => isset($_REQUEST['wants_attestation']) ? 'oui' : 'non',
+        'type'           => ($comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}"),
+        'date'           => $mydate,
+        'libele'         => (string)$compta->libele,
+        'sum'            => number_format((float)$compta->sum, 2, '.', ''),
+        'quittance'      => (string)$compta->quittance,
+        'attestation'    => isset($_REQUEST['wants_attestation']) ? 'oui' : 'non',
+        'cotisation_year'=> (string)($compta->cotisation_year ?? ''),
     ];
     $compta->save();
     $_auUser2 = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
