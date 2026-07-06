@@ -22,6 +22,7 @@ $sub    = $_GET['sub'] ?? null;
 match (true) {
     $method === 'GET'    && $id === null                      => handleList(),
     $method === 'GET'    && $id !== null && $sub === 'groups' => handleGetGroups($id),
+    $method === 'GET'    && $id !== null && $sub === 'compta' => handleGetCompta($id),
     $method === 'GET'    && $id !== null                      => handleGet($id),
     $method === 'POST'   && $id === null                      => handleCreate(),
     ($method === 'PUT' || $method === 'PATCH') && $id !== null => handleUpdate($id),
@@ -444,6 +445,47 @@ function handleGetGroups(int $id): void
         'hidden'       => (bool)$r->hidden,
         'categoryId'   => ($r->cat_id)   ? (int)$r->cat_id   : null,
         'categoryName' => ($r->cat_name) ? $r->cat_name       : null,
+    ], $stmt->fetchAll());
+
+    echo json_encode(['data' => $data], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function handleGetCompta(int $id): void
+{
+    global $pdo;
+    if (!canRead()) apiError(403, 'Forbidden');
+
+    $chk = $pdo->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $chk->execute([$id]);
+    if (!$chk->fetchColumn()) apiError(404, 'Member not found');
+
+    $stmt = $pdo->prepare(
+        "SELECT c.id, c.date, c.libele, c.sum, c.quittance,
+                c.wants_attestation, c.notified_at, c.cotisation_year,
+                ct.id AS type_id, ct.label AS type_label, ct.color AS type_color,
+                COALESCE(ct.is_cotisation, 0) AS is_cotisation
+         FROM compta c
+         LEFT JOIN compta_type ct ON ct.id = c.type_id
+         WHERE c.user_id = ?
+         ORDER BY c.date DESC, c.id DESC"
+    );
+    $stmt->execute([$id]);
+
+    $data = array_map(fn($r) => [
+        'id'              => (int)$r->id,
+        'date'            => $r->date ? date('Y-m-d', (int)$r->date) : null,
+        'label'           => $r->libele ?: null,
+        'amount'          => $r->sum !== null ? (float)$r->sum : null,
+        'quittance'       => $r->quittance ?: null,
+        'wantsAttestation'=> (bool)$r->wants_attestation,
+        'notifiedAt'      => $r->notified_at ?: null,
+        'cotisationYear'  => $r->cotisation_year !== null ? (int)$r->cotisation_year : null,
+        'type'            => $r->type_id ? [
+            'id'            => (int)$r->type_id,
+            'label'         => $r->type_label,
+            'color'         => $r->type_color ?: null,
+            'isCotisation'  => (bool)$r->is_cotisation,
+        ] : null,
     ], $stmt->fetchAll());
 
     echo json_encode(['data' => $data], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
