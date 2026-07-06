@@ -27,10 +27,12 @@ if ($action === 'sendComptaRecap') {
 
     // Load all unnotified compta entries joined with their member
     $rows = $pdo->query(
-        "SELECT c.id, c.user_id, c.date, c.libele, c.sum,
+        "SELECT c.id, c.user_id, c.date, c.libele, c.sum, c.cotisation_year,
+                COALESCE(ct.is_cotisation, 0) AS ct_coti,
                 u.firstname, u.lastname, u.email
          FROM compta c
          JOIN users u ON u.id = c.user_id AND u.status = 1
+         LEFT JOIN compta_type ct ON ct.id = c.type_id
          WHERE c.notified_at IS NULL
            AND c.sum <> 0
          ORDER BY c.user_id, c.date ASC"
@@ -75,7 +77,15 @@ if ($action === 'sendComptaRecap') {
             $d      = $e['date'] ? date('d.m.Y', (int)$e['date']) : '—';
             $label  = $e['libele'] !== '' ? $e['libele'] : '—';
             $amount = number_format((float)$e['sum'], 2, '.', "'");
-            $lines[] = $d . '  ' . $label . '  CHF ' . $amount;
+            $line   = $d . '  ' . $label . '  CHF ' . $amount;
+            // Append cotisation year when it differs from the payment year
+            if ($e['ct_coti'] && $e['cotisation_year']) {
+                $payYear = $e['date'] ? (int)date('Y', (int)$e['date']) : 0;
+                if ((int)$e['cotisation_year'] !== $payYear) {
+                    $line .= '  (cotisation ' . (int)$e['cotisation_year'] . ')';
+                }
+            }
+            $lines[] = $line;
             $total = number_format(array_sum(array_column($entries, 'sum')), 2, '.', "'");
         }
         $entriesBlock = implode("\n", $lines);

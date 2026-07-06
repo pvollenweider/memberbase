@@ -59,7 +59,21 @@ class Compta
     public function setSum($v)       { $this->sum = $v; }
     public function setQuittance($v)       { $this->quittance = $v; }
     public function setWantsAttestation($v){ $this->wants_attestation = $v ? 1 : 0; }
-    public function setCotisationYear($v)  { $this->cotisation_year = ($v !== null && $v !== '') ? (int)$v : null; }
+    public function setCotisationYear($v): void
+    {
+        if ($v === null || $v === '') {
+            $this->cotisation_year = null;
+            return;
+        }
+        $year = (int)$v;
+        $now  = (int)date('Y');
+        // Accept year-1 through year+1 relative to current year, at most 50 years back.
+        if ($year < $now - 50 || $year > $now + 1) {
+            $this->cotisation_year = null;
+            return;
+        }
+        $this->cotisation_year = $year;
+    }
 
     public function save(): void
     {
