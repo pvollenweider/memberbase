@@ -134,7 +134,7 @@ $prevTeamId = 1; // non-zero so the table renders
                 data-label-sending="<?= htmlspecialchars($GLOBAL['sendCotiRemindersSending'], ENT_QUOTES, $charset) ?>"
                 data-msg-ok="<?= htmlspecialchars($GLOBAL['sendCotiRemindersOk'], ENT_QUOTES, $charset) ?>"
                 data-msg-fail="<?= htmlspecialchars($GLOBAL['sendCotiRemindersFail'], ENT_QUOTES, $charset) ?>">
-          <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['send'] ?>
+          <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['smtpTestSend'] ?>
         </button>
       </div>
     </div>
