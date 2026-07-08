@@ -68,23 +68,41 @@ if ($action === 'sendComptaRecap') {
             continue;
         }
 
-        // Build plain-text entry block
-        $lines = [];
-        $total = '0.00';
+        // Build plain-text and HTML entry blocks
+        $lines    = [];
+        $htmlRows = '';
+        $total    = '0.00';
+        $odd      = true;
         foreach ($entries as $e) {
             $d      = $e['date'] ? date('d.m.Y', (int)$e['date']) : '—';
-            $label  = $e['libele'] !== '' ? $e['libele'] : '—';
+            $label  = $e['libele'] !== '' ? htmlspecialchars($e['libele'], ENT_QUOTES, 'UTF-8') : '—';
             $amount = number_format((float)$e['sum'], 2, '.', "'");
-            $lines[] = $d . '  ' . $label . '  CHF ' . $amount;
+            $lines[]  = $d . '  ' . ($e['libele'] !== '' ? $e['libele'] : '—') . '  CHF ' . $amount;
+            $bg       = $odd ? '#f7fafd' : '#ffffff';
+            $htmlRows .= '<tr style="background:' . $bg . '">'
+                       . '<td style="border:1px solid #dde3ea;padding:8px;font-size:14px">' . $d . '</td>'
+                       . '<td style="border:1px solid #dde3ea;padding:8px;font-size:14px">' . $label . '</td>'
+                       . '<td style="border:1px solid #dde3ea;padding:8px;font-size:14px;text-align:right">CHF ' . $amount . '</td>'
+                       . '</tr>';
+            $odd = !$odd;
             $total = number_format(array_sum(array_column($entries, 'sum')), 2, '.', "'");
         }
         $entriesBlock = implode("\n", $lines);
+        $entriesHtml  = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0;font-size:14px">'
+                      . '<tr style="background:#1a5276;color:#ffffff">'
+                      . '<th style="border:1px solid #154360;padding:8px;font-weight:600;text-align:left">Date</th>'
+                      . '<th style="border:1px solid #154360;padding:8px;font-weight:600;text-align:left">Description</th>'
+                      . '<th style="border:1px solid #154360;padding:8px;font-weight:600;text-align:right">Montant</th>'
+                      . '</tr>'
+                      . $htmlRows
+                      . '</table>';
 
         $ok = mbSendTemplate($pdo, $first['email'], 'tpl_compta_recap', [
             'firstname'     => $first['firstname'],
             'lastname'      => $first['lastname'],
             'email'         => $first['email'],
             'entries'       => $entriesBlock,
+            'entries_html'  => $entriesHtml,
             'total'         => $total,
             'send_date'     => $sendDate,
             'org_name'      => $appSettings['org_name']      ?? '',

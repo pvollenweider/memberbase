@@ -9,16 +9,18 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 
 /**
- * Send an email via SMTP.
+ * Send an email via SMTP, with optional HTML body (multipart/alternative).
  *
- * @param array  $cfg  Keys: host, port, encryption (none|starttls|ssl), auth (0|1),
- *                     username, password, from_email, from_name, reply_to.
+ * @param array  $cfg      Keys: smtp_host, smtp_port, smtp_encryption, smtp_auth,
+ *                         smtp_user, smtp_password, smtp_enc_key, smtp_from_email,
+ *                         smtp_from_name, smtp_reply_to.
  * @param string $to
  * @param string $subject
- * @param string $body   Plain-text body.
+ * @param string $bodyText Plain-text body.
+ * @param string $bodyHtml Optional HTML body; when provided, sends multipart/alternative.
  * @return array{ok:bool,error:string,debug:string}
  */
-function mbSmtpSend(array $cfg, string $to, string $subject, string $body): array
+function mbSmtpSend(array $cfg, string $to, string $subject, string $bodyText, string $bodyHtml = ''): array
 {
     $host       = $cfg['smtp_host']       ?? '';
     $port       = (int)($cfg['smtp_port'] ?? 587);
@@ -145,7 +147,7 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
         $resp = $cmd('DATA');
         if ($code($resp) !== 354) throw new RuntimeException("DATA: $resp");
 
-        $date    = date('r');
+        $date           = date('r');
         $subjectEncoded = '=?UTF-8?B?' . base64_encode($subject) . '?=';
         $fromEncoded    = $fromName !== ''
             ? '=?UTF-8?B?' . base64_encode($fromName) . '?= <' . $fromEmail . '>'
@@ -157,13 +159,27 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
         if ($replyTo !== '') $headers .= "Reply-To: $replyTo\r\n";
         $headers .= "Subject: $subjectEncoded\r\n";
         $headers .= "MIME-Version: 1.0\r\n";
-        $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-        $headers .= "Content-Transfer-Encoding: base64\r\n";
 
-        $bodyEncoded = chunk_split(base64_encode($body));
+        if ($bodyHtml !== '') {
+            $boundary = '----=_Part_' . md5(uniqid('', true));
+            $headers .= "Content-Type: multipart/alternative; boundary=\"$boundary\"\r\n";
+            $bodyPart  = "--$boundary\r\n";
+            $bodyPart .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            $bodyPart .= "Content-Transfer-Encoding: base64\r\n\r\n";
+            $bodyPart .= chunk_split(base64_encode($bodyText));
+            $bodyPart .= "--$boundary\r\n";
+            $bodyPart .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $bodyPart .= "Content-Transfer-Encoding: base64\r\n\r\n";
+            $bodyPart .= chunk_split(base64_encode($bodyHtml));
+            $bodyPart .= "--$boundary--\r\n";
+            $message = $headers . "\r\n" . $bodyPart;
+        } else {
+            $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            $headers .= "Content-Transfer-Encoding: base64\r\n";
+            $message = $headers . "\r\n" . chunk_split(base64_encode($bodyText));
+        }
 
         // Dot-stuff: lines starting with '.' must be doubled
-        $message = $headers . "\r\n" . $bodyEncoded;
         $message = preg_replace('/^\./', '..', $message);
 
         $log[] = '> [message headers + body]';
@@ -238,11 +254,10 @@ function mbSendMail(PDO $pdo, string $to, string $subject, string $bodyHtml, str
 {
     global $appSettings;
     try {
-        $cfg = $appSettings;
+        $cfg  = $appSettings;
         $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
-        // Use plain text body for now (HTML support requires MIME multipart — future enhancement)
-        $body   = $bodyText !== '' ? $bodyText : strip_tags($bodyHtml);
-        $result = mbSmtpSend($cfg, $to, $subject, $body);
+        $text   = $bodyText !== '' ? $bodyText : strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $bodyHtml));
+        $result = mbSmtpSend($cfg, $to, $subject, $text, $bodyHtml);
         $status = $result['ok'] ? 'sent' : 'error';
         $errMsg = $result['ok'] ? null : ($result['error'] ?? 'unknown error');
         _mbLogEmail($pdo, $to, $subject, $status, $errMsg);
@@ -273,34 +288,101 @@ function _mbLogEmail(PDO $pdo, string $to, string $subject, string $status, ?str
  */
 function mbDefaultTemplates(): array
 {
+    // Shared inline CSS for HTML emails (table-based, safe for Outlook/Gmail/Apple Mail)
+    $htmlWrap = static function(string $bodyContent, string $orgName): string {
+        return '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . htmlspecialchars($orgName, ENT_QUOTES, 'UTF-8') . '</title></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Helvetica,Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:24px 0">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:6px;overflow:hidden;max-width:600px;width:100%">
+  <!-- Header -->
+  <tr><td style="background:#1a5276;padding:24px 32px">
+    <p style="margin:0;color:#ffffff;font-size:20px;font-weight:bold">' . htmlspecialchars($orgName, ENT_QUOTES, 'UTF-8') . '</p>
+  </td></tr>
+  <!-- Body -->
+  <tr><td style="padding:32px 32px 24px;color:#222222;font-size:15px;line-height:1.6">
+' . $bodyContent . '
+  </td></tr>
+  <!-- Footer -->
+  <tr><td style="background:#f0f0f0;padding:16px 32px;color:#888888;font-size:12px;border-top:1px solid #e0e0e0">
+    ' . htmlspecialchars($orgName, ENT_QUOTES, 'UTF-8') . ' · Ce message vous a été envoyé automatiquement, merci de ne pas y répondre directement.
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>';
+    };
+
     return [
         'tpl_welcome' => [
             'subject'   => 'Bienvenue — {{org_name}}',
             'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous avons bien enregistré votre adhésion à {{org_name}}.\n\nPour toute question, vous pouvez nous contacter à l'adresse suivante : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_html' => $htmlWrap(
+                '<p>Bonjour <strong>{{firstname}} {{lastname}}</strong>,</p>
+<p>Nous avons bien enregistré votre adhésion à <strong>{{org_name}}</strong> et vous en remercions.</p>
+<p>Pour toute question, n\'hésitez pas à nous contacter : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
+<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
-        // {{type}}      = label of the compta_type (e.g. "Don libre")
-        // {{amount}}    = formatted amount (e.g. "80.00")
+        // {{type}}       = label of the compta_type (e.g. "Don libre")
+        // {{amount}}     = formatted amount (e.g. "80.00")
         // {{entry_date}} = date of the entry (DD.MM.YYYY)
-        // {{libele}}    = free-text note on the entry (may be empty)
+        // {{libele}}     = free-text note on the entry (may be empty)
         'tpl_payment_receipt' => [
             'subject'   => 'Confirmation de réception — {{org_name}}',
             'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous avons bien reçu votre versement et vous en remercions.\n\n  Type    : {{type}}\n  Montant : CHF {{amount}}\n  Date    : {{entry_date}}\n{{libele_line}}\nPour toute question : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_html' => $htmlWrap(
+                '<p>Bonjour <strong>{{firstname}} {{lastname}}</strong>,</p>
+<p>Nous avons bien reçu votre versement et vous en remercions chaleureusement.</p>
+<table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin:16px 0;font-size:14px">
+  <tr style="background:#f0f4f8"><td style="border:1px solid #dde3ea;width:40%"><strong>Type</strong></td><td style="border:1px solid #dde3ea">{{type}}</td></tr>
+  <tr><td style="border:1px solid #dde3ea"><strong>Montant</strong></td><td style="border:1px solid #dde3ea">CHF {{amount}}</td></tr>
+  <tr style="background:#f0f4f8"><td style="border:1px solid #dde3ea"><strong>Date</strong></td><td style="border:1px solid #dde3ea">{{entry_date}}</td></tr>
+  {{libele_row}}
+</table>
+<p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
+<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
         'tpl_cotisation_reminder' => [
             'subject'   => 'Rappel de cotisation',
             'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous vous rappelons que votre cotisation est en attente de règlement.\n\nCordialement,\n{{org_name}}",
+            'body_html' => $htmlWrap(
+                '<p>Bonjour <strong>{{firstname}} {{lastname}}</strong>,</p>
+<p>Nous vous rappelons que votre cotisation à <strong>{{org_name}}</strong> est en attente de règlement.</p>
+<p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
+<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
         'tpl_attestation_don' => [
             'subject'   => 'Attestation de don',
             'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVeuillez trouver ci-joint votre attestation de don.\n\nCordialement,\n{{org_name}}",
+            'body_html' => $htmlWrap(
+                '<p>Bonjour <strong>{{firstname}} {{lastname}}</strong>,</p>
+<p>Veuillez trouver ci-joint votre attestation de don pour l\'année fiscale écoulée.</p>
+<p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
+<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
-        // {{entries}} = plain-text block, one line per entry (date · label · amount)
-        // {{total}}   = formatted sum of included entries
-        // {{send_date}} = date of the batch send (DD mois YYYY)
-        // Future: this template will be triggerable via scheduled tasks (issue #117)
+        // {{entries}}      = plain-text block, one line per entry (date · label · amount)
+        // {{entries_html}} = HTML <table> of entries (built by the action)
+        // {{total}}        = formatted sum of included entries
+        // {{send_date}}    = date of the batch send (DD mois YYYY)
         'tpl_compta_recap' => [
             'subject'   => 'Récapitulatif de vos versements — {{org_name}}',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVoici les derniers versements enregistrés à votre nom, reçus au {{send_date}} :\n\n{{entries}}\nTotal : CHF {{total}}\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVoici les derniers versements enregistrés à votre nom, reçus au {{send_date}} :\n\n{{entries}}\nTotal : CHF {{total}}\n\nUne attestation de don vous sera envoyée en début d'année prochaine pour votre déclaration fiscale.\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_html' => $htmlWrap(
+                '<p>Bonjour <strong>{{firstname}} {{lastname}}</strong>,</p>
+<p>Voici le récapitulatif de vos versements enregistrés à votre nom, reçus au <strong>{{send_date}}</strong> :</p>
+{{entries_html}}
+<table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin-top:0;font-size:14px">
+  <tr style="background:#1a5276;color:#ffffff">
+    <td colspan="3" style="border:1px solid #154360;text-align:right"><strong>Total : CHF {{total}}</strong></td>
+  </tr>
+</table>
+<p style="margin-top:20px;padding:14px 16px;background:#eaf4fb;border-left:4px solid #1a5276;font-size:14px;color:#1a5276">
+  <strong>Attestation de don :</strong> Un document officiel vous sera envoyé en début d\'année prochaine pour votre déclaration fiscale cantonale et fédérale.
+</p>
+<p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
+<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
     ];
 }
@@ -315,18 +397,22 @@ function mbDefaultTemplates(): array
 function mbGetTemplate(PDO $pdo, string $key): object
 {
     try {
-        $row = $pdo->prepare("SELECT subject, body_text FROM email_templates WHERE `key`=? LIMIT 1");
+        $row = $pdo->prepare("SELECT subject, body_text, body_html FROM email_templates WHERE `key`=? LIMIT 1");
         $row->execute([$key]);
         $tpl = $row->fetchObject();
-        if ($tpl && $tpl->body_text !== '') return $tpl;
+        if ($tpl && $tpl->body_text !== '') {
+            // If body_html column doesn't exist yet, set empty string
+            if (!isset($tpl->body_html)) $tpl->body_html = '';
+            return $tpl;
+        }
     } catch (\Throwable $e) {
-        // Table may not exist yet
+        // Table may not exist yet or body_html column not migrated
     }
     $defaults = mbDefaultTemplates();
     if (isset($defaults[$key])) {
         return (object)$defaults[$key];
     }
-    return (object)['subject' => '', 'body_text' => ''];
+    return (object)['subject' => '', 'body_text' => '', 'body_html' => ''];
 }
 
 /**
@@ -355,8 +441,9 @@ function mbRenderTemplate(string $tpl, array $vars): string
  */
 function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars): bool
 {
-    $tpl     = mbGetTemplate($pdo, $tplKey);
-    $subject = mbRenderTemplate($tpl->subject, $vars);
-    $body    = mbRenderTemplate($tpl->body_text, $vars);
-    return mbSendMail($pdo, $to, $subject, $body);
+    $tpl      = mbGetTemplate($pdo, $tplKey);
+    $subject  = mbRenderTemplate($tpl->subject,   $vars);
+    $bodyText = mbRenderTemplate($tpl->body_text, $vars);
+    $bodyHtml = isset($tpl->body_html) ? mbRenderTemplate($tpl->body_html, $vars) : '';
+    return mbSendMail($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText);
 }

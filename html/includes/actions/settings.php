@@ -236,15 +236,24 @@ if ($action == 'saveSettings') {
     exit;
 
 } elseif ($action === 'saveEmailTemplate') {
-    $key     = trim($_REQUEST['tpl_key']     ?? '');
-    $subject = trim($_REQUEST['tpl_subject'] ?? '');
-    $body    = trim($_REQUEST['tpl_body']    ?? '');
-    $allowed = ['tpl_welcome', 'tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don'];
+    $key      = trim($_REQUEST['tpl_key']       ?? '');
+    $subject  = trim($_REQUEST['tpl_subject']   ?? '');
+    $body     = trim($_REQUEST['tpl_body']      ?? '');
+    $bodyHtml = trim($_REQUEST['tpl_body_html'] ?? '');
+    $allowed  = ['tpl_welcome', 'tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don'];
     if (in_array($key, $allowed, true) && $subject !== '' && $body !== '') {
-        $pdo->prepare(
-            "INSERT INTO email_templates (`key`, subject, body_text) VALUES (?,?,?)
-             ON DUPLICATE KEY UPDATE subject=VALUES(subject), body_text=VALUES(body_text)"
-        )->execute([$key, $subject, $body]);
+        try {
+            $pdo->prepare(
+                "INSERT INTO email_templates (`key`, subject, body_text, body_html) VALUES (?,?,?,?)
+                 ON DUPLICATE KEY UPDATE subject=VALUES(subject), body_text=VALUES(body_text), body_html=VALUES(body_html)"
+            )->execute([$key, $subject, $body, $bodyHtml]);
+        } catch (\PDOException $e) {
+            // body_html column may not exist yet (migration pending) — fall back
+            $pdo->prepare(
+                "INSERT INTO email_templates (`key`, subject, body_text) VALUES (?,?,?)
+                 ON DUPLICATE KEY UPDATE subject=VALUES(subject), body_text=VALUES(body_text)"
+            )->execute([$key, $subject, $body]);
+        }
         auditLog($pdo, 'saveEmailTemplate', "key=$key");
     }
     if ($isHtmx) {
