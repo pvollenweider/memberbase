@@ -66,6 +66,7 @@ $_migOk  = isset($_GET['migOk']) ? (int)$_GET['migOk'] : null;
 $_migErr = $_GET['migErr'] ?? null;
 $_bulkComptaOk   = isset($_GET['bulkComptaOk'])   ? (int)$_GET['bulkComptaOk']   : null;
 $_bulkComptaErr  = $_GET['bulkComptaErr'] ?? null;
+?>
 <?php if ($_bulkComptaOk !== null): ?>
   <div class="alert alert-success py-2" role="alert"><i class="fas fa-circle-check me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['comptaBulkOk'], $_bulkComptaOk) ?></div>
 <?php elseif ($_bulkComptaErr !== null): ?>

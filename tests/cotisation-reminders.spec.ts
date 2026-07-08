@@ -49,19 +49,22 @@ test.describe('Lapsed members view', () => {
     await page.waitForLoadState('load');
 
     // Two lapsed members: Carol (id=4, has email) and Dave (id=5, no email)
-    await expect(page.locator('.alert-warning')).toContainText('2 membre');
+    await expect(page.locator('[role="status"].alert-warning')).toContainText('2 membre');
   });
 
-  test('send button is visible for manager', async ({ page }) => {
+  test('send button is present for manager (inside confirmation modal)', async ({ page }) => {
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
-    await expect(page.locator('#btn-send-coti-reminders')).toBeVisible();
+    // The button lives inside the confirmation modal; check it exists in the DOM
+    await expect(page.locator('#btn-send-coti-reminders')).toBeAttached();
+    // The modal trigger button must be visible
+    await expect(page.locator('[data-bs-target="#modal-send-coti-reminders"]')).toBeVisible();
   });
 
   test('year selector changes the list', async ({ page }) => {
     // No lapsed members for 2025 (nobody paid 2024 in our seed)
     await page.goto(`/index.php?view=lapsedMembers&year=2025`);
     await page.waitForLoadState('load');
-    await expect(page.locator('.alert-warning')).toContainText('0 membre');
+    await expect(page.locator('[role="status"].alert-warning')).toContainText('0 membre');
   });
 });
 
@@ -144,6 +147,7 @@ test.describe('Send cotisation reminders', () => {
 test.describe('Settings — membership URL', () => {
   test('membership URL field is present in settings', async ({ page }) => {
     await page.goto('/index.php?view=settings&tab=general');
+    await page.locator('#s_membership_url').scrollIntoViewIfNeeded();
     await expect(page.locator('#s_membership_url')).toBeVisible();
     // Pre-filled from seed
     await expect(page.locator('#s_membership_url')).toHaveValue('https://www.memberbase.test/devenir-membre');
