@@ -117,14 +117,15 @@ test.describe('Send cotisation reminders', () => {
     await purgeMailpit(request);
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
-    // Inject force=1 so the anti-duplicate guard is bypassed (prior test already sent to Carol).
-    await page.route('**/index.php', async (route) => {
-      const req = route.request();
-      if (req.method() === 'POST') {
-        const body = req.postData() ?? '';
-        return route.continue({ postData: body.includes('sendCotisationReminders') ? body + '&force=1' : body });
-      }
-      return route.continue();
+    // Patch window.fetch to append force=1 so the anti-duplicate guard is bypassed.
+    await page.evaluate(() => {
+      const orig = window.fetch.bind(window);
+      (window as any).fetch = (url: RequestInfo, opts?: RequestInit) => {
+        if (typeof opts?.body === 'string' && opts.body.includes('sendCotisationReminders')) {
+          opts = { ...opts, body: opts.body + '&force=1' };
+        }
+        return orig(url, opts);
+      };
     });
     await openReminderModal(page);
     await page.locator('#btn-send-coti-reminders').click({ force: true });
@@ -138,13 +139,14 @@ test.describe('Send cotisation reminders', () => {
     await purgeMailpit(request);
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
-    await page.route('**/index.php', async (route) => {
-      const req = route.request();
-      if (req.method() === 'POST') {
-        const body = req.postData() ?? '';
-        return route.continue({ postData: body.includes('sendCotisationReminders') ? body + '&force=1' : body });
-      }
-      return route.continue();
+    await page.evaluate(() => {
+      const orig = window.fetch.bind(window);
+      (window as any).fetch = (url: RequestInfo, opts?: RequestInit) => {
+        if (typeof opts?.body === 'string' && opts.body.includes('sendCotisationReminders')) {
+          opts = { ...opts, body: opts.body + '&force=1' };
+        }
+        return orig(url, opts);
+      };
     });
     await openReminderModal(page);
     await page.locator('#btn-send-coti-reminders').click({ force: true });
@@ -163,13 +165,14 @@ test.describe('Send cotisation reminders', () => {
     await purgeMailpit(request);
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
-    await page.route('**/index.php', async (route) => {
-      const req = route.request();
-      if (req.method() === 'POST') {
-        const body = req.postData() ?? '';
-        return route.continue({ postData: body.includes('sendCotisationReminders') ? body + '&force=1' : body });
-      }
-      return route.continue();
+    await page.evaluate(() => {
+      const orig = window.fetch.bind(window);
+      (window as any).fetch = (url: RequestInfo, opts?: RequestInit) => {
+        if (typeof opts?.body === 'string' && opts.body.includes('sendCotisationReminders')) {
+          opts = { ...opts, body: opts.body + '&force=1' };
+        }
+        return orig(url, opts);
+      };
     });
     await openReminderModal(page);
     await page.locator('#btn-send-coti-reminders').click({ force: true });
