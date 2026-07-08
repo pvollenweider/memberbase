@@ -51,11 +51,19 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
     $ctx = stream_context_create(['ssl' => [
         'verify_peer'       => false,
         'verify_peer_name'  => false,
+        'allow_self_signed' => true,
     ]]);
+    error_clear_last();
     $sock = @stream_socket_client($address, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $ctx);
     if ($sock === false) {
-        $log[] = "Connection failed: $errstr ($errno)";
-        return ['ok' => false, 'error' => "Connection failed: $errstr ($errno)", 'debug' => implode("\n", $log)];
+        // $errstr is often empty on SSL errors — fall back to error_get_last()
+        if ($errstr === '' || $errstr === '0') {
+            $last = error_get_last();
+            $errstr = $last['message'] ?? 'unknown error';
+        }
+        $msg = "Connection failed: $errstr" . ($errno ? " ($errno)" : '');
+        $log[] = $msg;
+        return ['ok' => false, 'error' => $msg, 'debug' => implode("\n", $log)];
     }
     $log[] = "Connected.";
     stream_set_timeout($sock, $timeout);
