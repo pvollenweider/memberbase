@@ -40,7 +40,7 @@ function _recapLoadEntries(PDO $pdo, ?int $filterUserId = null, int $year = 0, b
     $where = implode(' AND ', $conditions);
     $stmt  = $pdo->prepare(
         "SELECT c.id, c.user_id, c.date, c.libele, c.sum,
-                u.firstname, u.lastname, u.email,
+                u.firstname, u.lastname, u.society, u.email,
                 COALESCE(ct.label, '') AS type_label
          FROM compta c
          JOIN users u ON u.id = c.user_id AND u.status = 1
@@ -100,23 +100,32 @@ function _recapBuildVars(array $entries, array $appSettings, array $GLOBAL): arr
                  . '</tr>' . $htmlRows . '</table>';
 
     $contactEmail = $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? '');
-    $first = $entries[0];
+    $first        = $entries[0];
+    $salutation   = mbBuildSalutation(
+        $first['firstname'] ?? '',
+        $first['lastname']  ?? '',
+        $first['society']   ?? ''
+    );
+    $displayNameLine = $salutation['display_name'] !== ''
+        ? ' au nom de ' . $salutation['display_name']
+        : '';
 
-    $vars = [
-        'firstname'    => $first['firstname'],
-        'lastname'     => $first['lastname'],
-        'email'        => $first['email'],
-        'entries'      => implode("\n", $lines),
-        'entries_html' => $entriesHtml,
-        'total'        => $total,
-        'send_date'    => $sendDate,
-        'since_line'   => '', // filled by caller
-        'org_name'     => $appSettings['org_name']      ?? '',
-        'org_address'  => $appSettings['org_address']   ?? '',
-        'org_city'     => $appSettings['org_city']      ?? '',
-        'org_web'      => $appSettings['org_web']       ?? '',
-        'contact_email'=> $contactEmail,
-    ];
+    $vars = array_merge($salutation, [
+        'firstname'         => $first['firstname'],
+        'lastname'          => $first['lastname'],
+        'email'             => $first['email'],
+        'display_name_line' => $displayNameLine,
+        'entries'           => implode("\n", $lines),
+        'entries_html'      => $entriesHtml,
+        'total'             => $total,
+        'send_date'         => $sendDate,
+        'since_line'        => '', // filled by caller
+        'org_name'          => $appSettings['org_name']      ?? '',
+        'org_address'       => $appSettings['org_address']   ?? '',
+        'org_city'          => $appSettings['org_city']      ?? '',
+        'org_web'           => $appSettings['org_web']       ?? '',
+        'contact_email'     => $contactEmail,
+    ]);
     return [$vars, $ids, $total];
 }
 

@@ -309,13 +309,15 @@ if ($_REQUEST['action'] == 'updateUser') {
         echo json_encode(['ok' => false, 'error' => 'already_sent']);
         exit;
     }
-    $row = $pdo->prepare("SELECT firstname, lastname, email FROM users WHERE id=? AND status=1 LIMIT 1");
+    $row = $pdo->prepare("SELECT firstname, lastname, society, email FROM users WHERE id=? AND status=1 LIMIT 1");
     $row->execute([$id]);
     $m = $row->fetchObject();
     if (!$m) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }
     if ($m->email === '') { echo json_encode(['ok' => false, 'error' => 'no_email']); exit; }
     require_once __DIR__ . '/../lib/mailer.php';
-    $ok = mbSendTemplate($pdo, $m->email, 'tpl_welcome', [
+    $ok = mbSendTemplate($pdo, $m->email, 'tpl_welcome', array_merge(
+        mbBuildSalutation($m->firstname, $m->lastname, $m->society ?? ''),
+    [
         'firstname'     => $m->firstname,
         'lastname'      => $m->lastname,
         'email'         => $m->email,
@@ -325,7 +327,7 @@ if ($_REQUEST['action'] == 'updateUser') {
         'org_country'   => $appSettings['org_country']   ?? '',
         'org_web'       => $appSettings['org_web']       ?? '',
         'contact_email' => $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? ''),
-    ]);
+    ]));
     if ($ok) {
         $pdo->prepare(
             "INSERT IGNORE INTO user_properties (user_id, parameter, value, date) VALUES (?, 'email_welcome_sent', ?, ?)"

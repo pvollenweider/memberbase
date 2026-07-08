@@ -342,9 +342,9 @@ function mbDefaultTemplates(): array
     return [
         'tpl_welcome' => [
             'subject'   => 'Bienvenue — {{org_name}}',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous avons bien enregistré votre adhésion à {{org_name}}.\n\nPour toute question, vous pouvez nous contacter à l'adresse suivante : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nNous avons bien enregistré votre adhésion à {{org_name}}.\n\nPour toute question, vous pouvez nous contacter à l'adresse suivante : {{contact_email}}\n\nCordialement,\n{{org_name}}",
             'body_html' => $htmlWrap(
-                '<p>Bonjour <strong>{{firstname}} {{lastname}}</strong>,</p>
+                '<p>{{greeting}}</p>
 <p>Nous avons bien enregistré votre adhésion à <strong>{{org_name}}</strong> et vous en remercions.</p>
 <p>Pour toute question, n\'hésitez pas à nous contacter : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
 <p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
@@ -355,10 +355,10 @@ function mbDefaultTemplates(): array
         // {{libele}}     = free-text note on the entry (may be empty)
         'tpl_payment_receipt' => [
             'subject'   => 'Confirmation de réception — {{org_name}}',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous avons bien reçu votre versement et vous en remercions.\n\n  Type    : {{type}}\n  Montant : CHF {{amount}}\n  Date    : {{entry_date}}\n{{libele_line}}\nPour toute question : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nNous avons bien reçu votre versement{{society_line}} et vous en remercions.\n\n  Type    : {{type}}\n  Montant : CHF {{amount}}\n  Date    : {{entry_date}}\n{{libele_line}}\nPour toute question : {{contact_email}}\n\nCordialement,\n{{org_name}}",
             'body_html' => $htmlWrap(
-                '<p>Bonjour <strong>{{firstname}} {{lastname}}</strong>,</p>
-<p>Nous avons bien reçu votre versement et vous en remercions chaleureusement.</p>
+                '<p>{{greeting}}</p>
+<p>Nous avons bien reçu votre versement{{society_line}} et vous en remercions chaleureusement.</p>
 <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin:16px 0;font-size:14px">
   <tr style="background:#f0f4f8"><td style="border:1px solid #dde3ea;width:40%"><strong>Type</strong></td><td style="border:1px solid #dde3ea">{{type}}</td></tr>
   <tr><td style="border:1px solid #dde3ea"><strong>Montant</strong></td><td style="border:1px solid #dde3ea">CHF {{amount}}</td></tr>
@@ -370,18 +370,18 @@ function mbDefaultTemplates(): array
         ],
         'tpl_cotisation_reminder' => [
             'subject'   => 'Rappel de cotisation',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous vous rappelons que votre cotisation est en attente de règlement.\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nNous vous rappelons que votre cotisation est en attente de règlement.\n\nCordialement,\n{{org_name}}",
             'body_html' => $htmlWrap(
-                '<p>Bonjour <strong>{{firstname}} {{lastname}}</strong>,</p>
+                '<p>{{greeting}}</p>
 <p>Nous vous rappelons que votre cotisation à <strong>{{org_name}}</strong> est en attente de règlement.</p>
 <p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
 <p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
         'tpl_attestation_don' => [
             'subject'   => 'Attestation de don',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVeuillez trouver ci-joint votre attestation de don.\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nVeuillez trouver ci-joint votre attestation de don.\n\nCordialement,\n{{org_name}}",
             'body_html' => $htmlWrap(
-                '<p>Bonjour <strong>{{firstname}} {{lastname}}</strong>,</p>
+                '<p>{{greeting}}</p>
 <p>Veuillez trouver ci-joint votre attestation de don pour l\'année fiscale écoulée.</p>
 <p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
 <p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
@@ -393,10 +393,10 @@ function mbDefaultTemplates(): array
         // {{since_line}}   = "depuis votre dernier récapitulatif du DD.MM.YYYY" or "depuis votre adhésion"
         'tpl_compta_recap' => [
             'subject'   => 'Récapitulatif de vos versements — {{org_name}}',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVoici le récapitulatif de vos versements enregistrés à votre nom ({{since_line}}) :\n\n{{entries}}\nTotal : CHF {{total}}\n\nUne attestation de don vous sera envoyée en début d'année prochaine pour votre déclaration fiscale.\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nVoici le récapitulatif de vos versements enregistrés{{display_name_line}} ({{since_line}}) :\n\n{{entries}}\nTotal : CHF {{total}}\n\nUne attestation de don vous sera envoyée en début d'année prochaine pour votre déclaration fiscale.\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
             'body_html' => $htmlWrap(
-                '<p>Bonjour <strong>{{firstname}} {{lastname}}</strong>,</p>
-<p>Voici le récapitulatif de vos versements (<em>{{since_line}}</em>) :</p>
+                '<p>{{greeting}}</p>
+<p>Voici le récapitulatif de vos versements enregistrés{{display_name_line}} (<em>{{since_line}}</em>) :</p>
 {{entries_html}}
 <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin-top:0;font-size:14px">
   <tr style="background:#1a5276;color:#ffffff">
@@ -438,6 +438,38 @@ function mbGetTemplate(PDO $pdo, string $key): object
         return (object)$defaults[$key];
     }
     return (object)['subject' => '', 'body_text' => '', 'body_html' => ''];
+}
+
+/**
+ * Build greeting and display-name vars for email templates.
+ *
+ * Handles the case where a contact has no first/last name but only a society.
+ * Returns an array ready to be merged into template vars:
+ *   display_name   — best available name (firstname+lastname, else society, else "")
+ *   society        — raw society field
+ *   greeting       — HTML greeting paragraph inner content, e.g.
+ *                    "Bonjour <strong>Jean Dupont</strong>,"  or  "Bonjour,"
+ *   greeting_text  — plain-text greeting line, e.g. "Bonjour Jean Dupont,"
+ */
+function mbBuildSalutation(string $firstname, string $lastname, string $society): array
+{
+    $fn          = trim($firstname);
+    $ln          = trim($lastname);
+    $soc         = trim($society);
+    $personName  = trim("$fn $ln");
+    $displayName = $personName !== '' ? $personName : $soc;
+
+    $greeting     = $displayName !== ''
+        ? 'Bonjour <strong>' . htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') . '</strong>,'
+        : 'Bonjour,';
+    $greetingText = $displayName !== '' ? "Bonjour $displayName," : 'Bonjour,';
+
+    return [
+        'display_name'  => $displayName,
+        'society'       => $soc,
+        'greeting'      => $greeting,
+        'greeting_text' => $greetingText,
+    ];
 }
 
 /**

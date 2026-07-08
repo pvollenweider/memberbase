@@ -39,20 +39,24 @@ if ($action == 'addCompta') {
         if ($_rcpEmail) {
             $_rcpLibele = trim((string)$compta->libele);
             $_rcpLibeleLine = $_rcpLibele !== '' ? "  Note    : {$_rcpLibele}\n" : '';
-            mbSendTemplate($pdo, $_rcpEmail, 'tpl_payment_receipt', [
-                'firstname'   => $_rcpUser->getFirstName(),
-                'lastname'    => $_rcpUser->getLastName(),
-                'email'       => $_rcpEmail,
-                'type'        => $comptaTypes[(int)$_REQUEST['type_id']]->label ?? '',
-                'amount'      => number_format((float)$compta->sum, 2, '.', "'"),
-                'entry_date'  => date('d.m.Y', (int)$compta->date),
-                'libele_line' => $_rcpLibeleLine,
-                'org_name'    => $appSettings['org_name']      ?? '',
-                'org_address' => $appSettings['org_address']   ?? '',
-                'org_city'    => $appSettings['org_city']      ?? '',
-                'org_web'     => $appSettings['org_web']       ?? '',
+            $_rcpSoc = trim($_rcpUser->getSociety());
+            mbSendTemplate($pdo, $_rcpEmail, 'tpl_payment_receipt', array_merge(
+                mbBuildSalutation($_rcpUser->getFirstName(), $_rcpUser->getLastName(), $_rcpSoc),
+            [
+                'firstname'    => $_rcpUser->getFirstName(),
+                'lastname'     => $_rcpUser->getLastName(),
+                'email'        => $_rcpEmail,
+                'society_line' => $_rcpSoc !== '' ? " de $_rcpSoc" : '',
+                'type'         => $comptaTypes[(int)$_REQUEST['type_id']]->label ?? '',
+                'amount'       => number_format((float)$compta->sum, 2, '.', "'"),
+                'entry_date'   => date('d.m.Y', (int)$compta->date),
+                'libele_line'  => $_rcpLibeleLine,
+                'org_name'     => $appSettings['org_name']      ?? '',
+                'org_address'  => $appSettings['org_address']   ?? '',
+                'org_city'     => $appSettings['org_city']      ?? '',
+                'org_web'      => $appSettings['org_web']       ?? '',
                 'contact_email' => $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? ''),
-            ]);
+            ]));
         }
     }
 
