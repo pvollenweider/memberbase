@@ -995,6 +995,8 @@ $GLOBAL['comptaRecapExtended']       = "Modo extendido (mostrar también los env
 $GLOBAL['comptaRecapAlreadySent']    = "Ya notificados (%d miembros)";
 $GLOBAL['comptaRecapSentOn']         = "Notificado el %s";
 $GLOBAL['comptaRecapForceAll']       = "Forzar envío (todas las entradas del año, incluso ya enviadas)";
+$GLOBAL['comptaRecapScopeNew']       = "Nuevas entradas";
+$GLOBAL['comptaRecapScopeAll']       = "Todas las entradas";
 $GLOBAL['comptaRecapSendUserBtn']    = "Enviar un resumen";
 
 // Bulk compta notified mark (Configuración → Salud)

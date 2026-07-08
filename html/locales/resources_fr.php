@@ -995,6 +995,8 @@ $GLOBAL['comptaRecapAlreadySent']    = "Déjà notifiés (%d membres)";
 $GLOBAL['comptaRecapSentOn']         = "Notifié le %s";
 $GLOBAL['comptaRecapNoEmailSection'] = "Membres sans adresse email (%d)";
 $GLOBAL['comptaRecapForceAll']       = "Forcer l'envoi (toutes les entrées de l'année, même déjà envoyées)";
+$GLOBAL['comptaRecapScopeNew']       = "Nouvelles entrées";
+$GLOBAL['comptaRecapScopeAll']       = "Toutes les entrées";
 $GLOBAL['comptaRecapSendUserBtn']    = "Envoyer un récapitulatif";
 
 // Bulk compta notified mark (Settings → Santé)

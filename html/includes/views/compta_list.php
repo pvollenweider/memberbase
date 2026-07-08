@@ -322,11 +322,11 @@ if (document.readyState === 'loading') {
               <?php endfor ?>
             </ul>
           </div>
-          <div class="form-check mb-0">
-            <input class="form-check-input" type="checkbox" id="recap-force-toggle" value="1">
-            <label class="form-check-label small" for="recap-force-toggle">
-              <?= $GLOBAL['comptaRecapForceAll'] ?>
-            </label>
+          <div class="btn-group btn-group-sm" role="group" aria-label="<?= htmlspecialchars($GLOBAL['comptaRecapScopeNew'], ENT_QUOTES, $charset) ?>">
+            <input type="radio" class="btn-check" name="recap-scope" id="recap-scope-new" value="new" checked data-no-dirty>
+            <label class="btn btn-outline-secondary" for="recap-scope-new"><?= $GLOBAL['comptaRecapScopeNew'] ?></label>
+            <input type="radio" class="btn-check" name="recap-scope" id="recap-scope-all" value="all" data-no-dirty>
+            <label class="btn btn-outline-secondary" for="recap-scope-all"><?= $GLOBAL['comptaRecapScopeAll'] ?></label>
           </div>
           <button type="button" class="btn btn-outline-primary btn-sm" id="btn-recap-user-preview">
             <i class="fas fa-eye me-1" aria-hidden="true"></i><?= $GLOBAL['preview'] ?? 'Prévisualiser' ?>
@@ -358,6 +358,11 @@ if (document.readyState === 'loading') {
   var baseUrl    = <?= json_encode($_SERVER['PHP_SELF']) ?>;
   var userId     = <?= (int)$user->getId() ?>;
   var recapYear  = <?= (int)date('Y') ?>;
+  var currentYear = recapYear;
+
+  function isForceScope() {
+    return document.getElementById('recap-scope-all').checked;
+  }
 
   // Year picker
   document.querySelectorAll('.recap-user-year-item').forEach(function (a) {
@@ -367,9 +372,14 @@ if (document.readyState === 'loading') {
       document.getElementById('recap-user-year-btn').textContent = this.dataset.year;
       document.querySelectorAll('.recap-user-year-item').forEach(function (el) { el.classList.remove('active'); });
       this.classList.add('active');
+      // Auto-switch scope: past year → all entries
+      if (recapYear < currentYear) {
+        document.getElementById('recap-scope-all').checked = true;
+      }
       // Reset preview
-      document.getElementById('recap-user-frame').style.display  = 'none';
+      document.getElementById('recap-user-frame').style.display   = 'none';
       document.getElementById('recap-user-subject').style.display = 'none';
+      document.getElementById('recap-user-empty').style.display   = 'none';
       document.getElementById('btn-recap-user-send').disabled     = true;
     });
   });
@@ -381,7 +391,7 @@ if (document.readyState === 'loading') {
   }
 
   document.getElementById('btn-recap-user-preview').addEventListener('click', function () {
-    var force = document.getElementById('recap-force-toggle').checked ? '1' : '';
+    var force = isForceScope() ? '1' : '';
     showRecapUserLoading(true);
     document.getElementById('recap-user-error').style.display   = 'none';
     document.getElementById('recap-user-empty').style.display   = 'none';
@@ -402,10 +412,9 @@ if (document.readyState === 'loading') {
       showRecapUserLoading(false);
       if (!data.ok) {
         if (data.error === 'no_entries') {
-          var forceToggle = document.getElementById('recap-force-toggle');
-          if (!forceToggle.checked) {
-            // No pending entries — auto-enable force and retry to show already-sent
-            forceToggle.checked = true;
+          if (!isForceScope()) {
+            // No pending entries — auto-switch to "all" scope and retry
+            document.getElementById('recap-scope-all').checked = true;
             document.getElementById('btn-recap-user-preview').click();
             return;
           }
@@ -440,7 +449,7 @@ if (document.readyState === 'loading') {
   });
 
   document.getElementById('btn-recap-user-send').addEventListener('click', function () {
-    var force = document.getElementById('recap-force-toggle').checked ? '1' : '';
+    var force = isForceScope() ? '1' : '';
     var btn   = this;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span><?= addslashes($GLOBAL['sending'] ?? 'Envoi…') ?>';
