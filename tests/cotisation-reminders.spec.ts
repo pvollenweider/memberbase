@@ -139,7 +139,7 @@ test.describe('Send cotisation reminders', () => {
     expect(body).toContain(String(YEAR));
     expect(body).toContain('MemberBase Test');
     expect(body).toContain('www.memberbase.test/devenir-membre');
-    expect(body).toContain('sauf erreur');
+    expect(body).toContain('Sauf erreur');
   });
 
   test('email is logged in email_log for the member', async ({ page, request }) => {
