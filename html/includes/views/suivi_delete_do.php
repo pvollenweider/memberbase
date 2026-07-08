@@ -8,9 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $userProperty = new UserProperty();
 $userProperty->lookupUserProperty($_REQUEST['suiviid']);
-$_auRsUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
-$_auRsUser->execute([(int)$_REQUEST['userid']]);
-auditLog($pdo, 'deleteSuivi', "suivi#={$_REQUEST['suiviid']} | membre: " . ($_auRsUser->fetchColumn() ?: "id={$_REQUEST['userid']}") . " | {$userProperty->parameter}: {$userProperty->getValue()}");
+auditLog($pdo, 'deleteSuivi', "suivi#={$_REQUEST['suiviid']} | membre: " . User::getMemberName((int)$_REQUEST['userid']) . " | {$userProperty->parameter}: {$userProperty->getValue()}");
 $userProperty->remove();
 $view = "suivi";
 include __DIR__ . "/users_edit_form.php";

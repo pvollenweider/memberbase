@@ -9,33 +9,8 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year <= 0) { $year = (int)date("Y"); }
 
-$kFrom  = mktime(0, 0, 0, 1, 0, $year);
-$kTo    = mktime(0, 0, 0, 1, 1, $year + 1);
-$kFrom1 = mktime(0, 0, 0, 1, 0, $year - 1);
-$kTo1   = mktime(0, 0, 0, 1, 1, $year);
-
-$excl = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
-
-// Donors in year-1 who did NOT donate in year
-$sql = "
-    SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
-           SUM(c.sum) AS total_prev,
-           MAX(c.date) AS last_date
-    FROM users u
-    JOIN compta c ON u.id = c.user_id
-    WHERE u.status=1 AND c.date > ? AND c.date < ?
-      AND c.type_id NOT IN ($excl)
-      AND u.id NOT IN (
-          SELECT DISTINCT user_id FROM compta
-          WHERE date > ? AND date < ?
-            AND type_id NOT IN ($excl)
-      )
-    GROUP BY u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email
-    ORDER BY total_prev DESC, u.lastname, u.firstname
-";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$kFrom1, $kTo1, $kFrom, $kTo]);
-$rows = $stmt->fetchAll(PDO::FETCH_OBJ);
+require_once __DIR__ . '/../lib/donor.php';
+$rows  = mbGetLapsedDonors($pdo, $year);
 $count = count($rows);
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">

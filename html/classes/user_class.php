@@ -207,6 +207,17 @@ class User
         return $stmt->fetchObject() !== false;
     }
 
+    /**
+     * Return "Firstname Lastname" for audit log labels, or "id=N" fallback.
+     * Avoids repeating the same SELECT CONCAT(...) pattern in callers.
+     */
+    public static function getMemberName(int $id): string
+    {
+        $stmt = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
+        $stmt->execute([$id]);
+        return $stmt->fetchColumn() ?: "id=$id";
+    }
+
     public function addMembership(int $teamId): void
     {
         db()->prepare("INSERT IGNORE INTO user_properties (user_id,parameter,value) VALUES (?,?,?)")

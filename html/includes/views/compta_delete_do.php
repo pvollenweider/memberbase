@@ -8,9 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $compta = new Compta();
 $compta->lookupCompta($_REQUEST['comptaid']);
-$_auDcUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
-$_auDcUser->execute([(int)$compta->userId]);
-auditLog($pdo, 'deleteCompta', "compta#={$_REQUEST['comptaid']} | membre: " . ($_auDcUser->fetchColumn() ?: "id={$compta->userId}") . " | {$compta->sum} CHF");
+auditLog($pdo, 'deleteCompta', "compta#={$_REQUEST['comptaid']} | membre: " . User::getMemberName((int)$compta->userId) . " | {$compta->sum} CHF");
 $compta->remove();
 $view = "compta";
 include __DIR__ . "/users_edit_form.php";

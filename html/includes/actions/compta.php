@@ -24,11 +24,9 @@ if ($action == 'addCompta') {
     $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);
     $compta->setCotisationYear($_REQUEST['cotisation_year'] ?? null);
     $compta->save();
-    $_auUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
-    $_auUser->execute([(int)$compta->userId]);
     $_auType = $comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}";
-    $_auCotiYear = $compta->cotisation_year ? " | année coti: {$compta->cotisation_year}" : '';
-    auditLog($pdo, 'addCompta', "membre: " . ($_auUser->fetchColumn() ?: "id={$compta->userId}") . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}{$_auCotiYear}", (int)$compta->userId);
+    $_auCotiYear = $compta->cotisation_year ? " | annee coti: {$compta->cotisation_year}" : '';
+    auditLog($pdo, 'addCompta', "membre: " . User::getMemberName((int)$compta->userId) . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}{$_auCotiYear}", (int)$compta->userId);
 
     // Optional receipt email — only when the checkbox is checked
     if (!empty($_REQUEST['send_receipt'])) {
@@ -93,15 +91,13 @@ if ($action == 'addCompta') {
         'cotisation_year'=> (string)($compta->cotisation_year ?? ''),
     ];
     $compta->save();
-    $_auUser2 = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
-    $_auUser2->execute([(int)$compta->userId]);
     $_auDiffs2 = [];
     foreach ($_auBefore2 as $_f => $_v) {
         if ($_v !== $_auAfter2[$_f]) {
-            $_auDiffs2[] = "{$_f}: «{$_v}» → «{$_auAfter2[$_f]}»";
+            $_auDiffs2[] = "{$_f}: [{$_v}] -> [{$_auAfter2[$_f]}]";
         }
     }
-    $auDetail2 = "compta#={$_REQUEST['comptaid']} | membre: " . ($_auUser2->fetchColumn() ?: "id={$compta->userId}");
+    $auDetail2 = "compta#={$_REQUEST['comptaid']} | membre: " . User::getMemberName((int)$compta->userId);
     if ($_auDiffs2) { $auDetail2 .= ' | ' . implode(' ; ', $_auDiffs2); }
     else            { $auDetail2 .= ' | (aucune modification)'; }
     auditLog($pdo, 'updateCompta', $auDetail2, (int)$compta->userId);

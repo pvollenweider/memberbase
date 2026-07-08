@@ -10,59 +10,16 @@ $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year <= 0) { $year = (int)date("Y"); }
 
 // Members who paid a cotisation for year-1 but not for year (by cotisation_year).
-$cotiTypeIds  = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
-$_noCotiTeam  = (int)($appSettings['member_no_coti_team'] ?? 0);
-$rows = [];
-if (!empty($cotiTypeIds)) {
-    $ph = implode(',', array_fill(0, count($cotiTypeIds), '?'));
-    // Exclude members belonging to the no-cotisation team if configured.
-    $noCotiClause = $_noCotiTeam > 0
-        ? "AND NOT EXISTS (SELECT 1 FROM user_properties WHERE user_id=u.id AND parameter='team_$_noCotiTeam' AND value='true')"
-        : '';
-    $stmt = $pdo->prepare("
-        SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email
-        FROM users u
-        WHERE u.status = 1
-          $noCotiClause
-          AND EXISTS (
-              SELECT 1 FROM compta c
-              WHERE c.user_id = u.id AND c.type_id IN ($ph)
-                AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
-          )
-          AND NOT EXISTS (
-              SELECT 1 FROM compta c
-              WHERE c.user_id = u.id AND c.type_id IN ($ph)
-                AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
-          )
-        ORDER BY u.lastname, u.firstname, u.society
-    ");
-    $params = array_merge(
-        array_values($cotiTypeIds), [$year - 1],
-        array_values($cotiTypeIds), [$year]
-    );
-    $stmt->execute($params);
-    $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
-}
+require_once __DIR__ . '/../lib/cotisation.php';
+$cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
+$_noCotiTeam = (int)($appSettings['member_no_coti_team'] ?? 0);
+$rows        = mbGetLapsedMembers($pdo, $year, $cotiTypeIds, $_noCotiTeam);
 
 // Map: user_id → last reminder sent_at (this year) from email_log.
 $reminderSentMap = [];
 if (!empty($rows)) {
-    $rowIds = array_map(fn($r) => (int)$r->id, $rows);
-    $phIds  = implode(',', array_fill(0, count($rowIds), '?'));
-    try {
-        $rStmt = $pdo->prepare(
-            "SELECT user_id, MAX(created_at) AS sent_at
-             FROM email_log
-             WHERE tpl_key = 'tpl_cotisation_reminder'
-               AND YEAR(created_at) = ?
-               AND user_id IN ($phIds)
-             GROUP BY user_id"
-        );
-        $rStmt->execute(array_merge([$year], $rowIds));
-        foreach ($rStmt->fetchAll(PDO::FETCH_OBJ) as $r) {
-            $reminderSentMap[(int)$r->user_id] = $r->sent_at;
-        }
-    } catch (\Throwable) {}
+    $rowIds          = array_map(fn($r) => (int)$r->id, $rows);
+    $reminderSentMap = mbGetAlreadyRemindedIds($pdo, $year, $rowIds);
 }
 
 $count       = count($rows);
