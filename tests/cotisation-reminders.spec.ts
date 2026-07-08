@@ -125,7 +125,7 @@ test.describe('Send cotisation reminders', () => {
       document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
     );
     await page.context().request.post('/index.php', {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf, 'HX-Request': 'true' },
       data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
 
@@ -142,7 +142,7 @@ test.describe('Send cotisation reminders', () => {
       document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
     );
     await page.context().request.post('/index.php', {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf, 'HX-Request': 'true' },
       data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
 
@@ -164,7 +164,7 @@ test.describe('Send cotisation reminders', () => {
       document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
     );
     await page.context().request.post('/index.php', {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf, 'HX-Request': 'true' },
       data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
 
