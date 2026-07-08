@@ -183,7 +183,7 @@ if ($_pendingMembers > 0) {
 
 <script>
 (function () {
-  var csrfToken = window.casaCsrfToken ? window.casaCsrfToken() : '';
+  function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
   var baseUrl   = <?= json_encode($_SERVER['PHP_SELF']) ?>;
   var currentUserId = null;
 
@@ -203,7 +203,7 @@ if ($_pendingMembers > 0) {
 
     fetch(baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrfToken, 'HX-Request': 'true' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
       body: 'action=previewComptaRecap&view=comptaRecap&user_id=' + encodeURIComponent(userId)
     })
     .then(function (r) { return r.json(); })
@@ -257,7 +257,7 @@ if ($_pendingMembers > 0) {
 
     fetch(baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrfToken, 'HX-Request': 'true' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
       body: 'action=sendComptaRecapOne&view=comptaRecap&user_id=' + encodeURIComponent(currentUserId)
     })
     .then(function (r) { return r.json(); })
