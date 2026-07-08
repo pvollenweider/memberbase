@@ -84,6 +84,8 @@ test.describe('Lapsed members view', () => {
 // ─── send cotisation reminders action ───────────────────────────────────────
 
 test.describe('Send cotisation reminders', () => {
+  test.describe.configure({ mode: 'serial' });
+
   test('sends emails to lapsed members with address, skips those without', async ({ page, request }) => {
     await purgeMailpit(request);
 
@@ -122,7 +124,7 @@ test.describe('Send cotisation reminders', () => {
     const csrf = await page.evaluate(() =>
       document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
     );
-    await page.request.post('/index.php', {
+    await page.context().request.post('/index.php', {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
       data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
@@ -139,7 +141,7 @@ test.describe('Send cotisation reminders', () => {
     const csrf = await page.evaluate(() =>
       document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
     );
-    await page.request.post('/index.php', {
+    await page.context().request.post('/index.php', {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
       data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
@@ -161,7 +163,7 @@ test.describe('Send cotisation reminders', () => {
     const csrf = await page.evaluate(() =>
       document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
     );
-    await page.request.post('/index.php', {
+    await page.context().request.post('/index.php', {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
       data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
