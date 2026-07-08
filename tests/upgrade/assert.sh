@@ -60,9 +60,23 @@ TBL2="$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DAT
 NULL_COTI="$(q "SELECT COUNT(*) FROM compta WHERE cotisation_year IS NULL AND date > 0")"
 [ "$NULL_COTI" = "0" ] || fail "$NULL_COTI compta row(s) still have cotisation_year NULL after backfill (0009 not applied)"
 
-# 12. All 9 migrations recorded in schema_migrations, with checksums
+# 12. Migration 0010 added email_templates.body_html
+[ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='email_templates' AND column_name='body_html'")" = "1" ] \
+  || fail "email_templates.body_html column missing (0010 not applied)"
+
+# 13. Migration 0011 added email_log.user_id/body_text/body_html
+[ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='email_log' AND column_name='user_id'")" = "1" ] \
+  || fail "email_log.user_id column missing (0011 not applied)"
+[ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='email_log' AND column_name='body_html'")" = "1" ] \
+  || fail "email_log.body_html column missing (0011 not applied)"
+
+# 14. Migration 0012 added email_log.tpl_key
+[ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='email_log' AND column_name='tpl_key'")" = "1" ] \
+  || fail "email_log.tpl_key column missing (0012 not applied)"
+
+# 15. All 12 migrations recorded in schema_migrations, with checksums
 N="$(q "SELECT COUNT(*) FROM schema_migrations")"
-[ "$N" = "9" ] || fail "schema_migrations has $N rows, expected 9"
+[ "$N" = "12" ] || fail "schema_migrations has $N rows, expected 12"
 BAD="$(q "SELECT COUNT(*) FROM schema_migrations WHERE checksum='' OR checksum IS NULL")"
 [ "$BAD" = "0" ] || fail "$BAD applied migration(s) missing a checksum"
 
