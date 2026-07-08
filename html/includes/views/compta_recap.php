@@ -255,7 +255,8 @@ if ($_extended) {
       <tr class="recap-row" style="cursor:pointer"
           data-userid="<?= (int)$_sr->user_id ?>"
           data-name="<?= htmlspecialchars(trim($_sr->firstname . ' ' . $_sr->lastname), ENT_QUOTES, $charset) ?>"
-          data-email="<?= htmlspecialchars($_sr->email, ENT_QUOTES, $charset) ?>">
+          data-email="<?= htmlspecialchars($_sr->email, ENT_QUOTES, $charset) ?>"
+          data-force="1">
         <td class="text-nowrap"><?= htmlspecialchars(trim($_sr->lastname . ' ' . $_sr->firstname), ENT_QUOTES, $charset) ?></td>
         <td><?= htmlspecialchars($_sr->email, ENT_QUOTES, $charset) ?></td>
         <td class="text-center"><?= (int)$_sr->nb_entries ?></td>
@@ -308,10 +309,12 @@ if ($_extended) {
   function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
   var baseUrl       = <?= json_encode($_SERVER['PHP_SELF']) ?>;
   var recapYear     = <?= (int)$_year ?>;
-  var currentUserId = null;
+  var currentUserId   = null;
+  var currentForce    = false;
 
-  function openPreview(userId, name, email) {
+  function openPreview(userId, name, email, force) {
     currentUserId = userId;
+    currentForce  = !!force;
 
     document.getElementById('recap-modal-loading').style.display = '';
     document.getElementById('recap-modal-error').style.display   = 'none';
@@ -329,6 +332,7 @@ if ($_extended) {
       body: 'action=previewComptaRecap&view=comptaRecap&csrf=' + encodeURIComponent(getCsrf())
           + '&user_id=' + encodeURIComponent(userId)
           + '&year=' + encodeURIComponent(recapYear)
+          + (force ? '&force=1' : '')
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {
@@ -362,7 +366,7 @@ if ($_extended) {
 
   document.querySelectorAll('.recap-row').forEach(function (tr) {
     tr.addEventListener('click', function () {
-      openPreview(tr.dataset.userid, tr.dataset.name, tr.dataset.email);
+      openPreview(tr.dataset.userid, tr.dataset.name, tr.dataset.email, tr.dataset.force === '1');
     });
   });
 
