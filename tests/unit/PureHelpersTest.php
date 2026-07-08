@@ -50,4 +50,109 @@ final class PureHelpersTest extends TestCase
         $this->assertSame("déjà l'a", unquote("déjà l'a"));
         $this->assertSame('', unquote(''));
     }
+
+    // ── mbBuildSalutation ─────────────────────────────────────────────────────
+
+    public function testSalutationWithFullName(): void
+    {
+        $r = mbBuildSalutation('Jean', 'Dupont', '');
+        $this->assertSame('Jean Dupont', $r['display_name']);
+        $this->assertSame('', $r['society']);
+        $this->assertStringContainsString('Jean Dupont', $r['greeting']);
+        $this->assertSame('Bonjour Jean Dupont,', $r['greeting_text']);
+    }
+
+    public function testSalutationSocietyOnlyFallback(): void
+    {
+        $r = mbBuildSalutation('', '', 'ACME SA');
+        $this->assertSame('ACME SA', $r['display_name']);
+        $this->assertSame('ACME SA', $r['society']);
+        // No person name → generic greeting (no society name in greeting).
+        $this->assertSame('Bonjour,', $r['greeting_text']);
+        $this->assertStringNotContainsString('ACME', $r['greeting_text']);
+    }
+
+    public function testSalutationPersonNameTakesPrecedence(): void
+    {
+        $r = mbBuildSalutation('Marie', 'Curie', 'Lab SA');
+        $this->assertSame('Marie Curie', $r['display_name']);
+        $this->assertStringContainsString('Marie Curie', $r['greeting']);
+    }
+
+    public function testSalutationAllEmpty(): void
+    {
+        $r = mbBuildSalutation('', '', '');
+        $this->assertSame('', $r['display_name']);
+        $this->assertSame('Bonjour,', $r['greeting_text']);
+    }
+
+    public function testSalutationGreetingHtmlEscapes(): void
+    {
+        $r = mbBuildSalutation('Jean', 'D<oe>', '');
+        $this->assertStringContainsString('D&lt;oe&gt;', $r['greeting']);
+    }
+
+    // ── mbRenderTemplate ─────────────────────────────────────────────────────
+
+    public function testRenderTemplateReplacesTokens(): void
+    {
+        $out = mbRenderTemplate('Hello {{name}}, year {{year}}.', ['name' => 'Alice', 'year' => '2025']);
+        $this->assertSame('Hello Alice, year 2025.', $out);
+    }
+
+    public function testRenderTemplateUnknownTokensLeftIntact(): void
+    {
+        $out = mbRenderTemplate('Hello {{name}}!', ['other' => 'x']);
+        $this->assertSame('Hello {{name}}!', $out);
+    }
+
+    public function testRenderTemplateEmptyVars(): void
+    {
+        $out = mbRenderTemplate('No tokens here.', []);
+        $this->assertSame('No tokens here.', $out);
+    }
+
+    // ── mbBuildCotiReminderVars ───────────────────────────────────────────────
+
+    private function fakeMember(string $first = 'Jean', string $last = 'Dupont', string $society = '', string $email = 'j@example.com'): object
+    {
+        return (object)['firstname' => $first, 'lastname' => $last, 'society' => $society, 'email' => $email];
+    }
+
+    public function testCotiReminderVarsContainsExpectedKeys(): void
+    {
+        $settings = ['org_name' => 'MonOrg', 'org_city' => 'Genève', 'smtp_reply_to' => 'reply@org.ch'];
+        $vars = mbBuildCotiReminderVars($this->fakeMember(), 2025, $settings);
+
+        foreach (['display_name', 'greeting', 'greeting_text', 'firstname', 'lastname', 'email',
+                  'year', 'org_name', 'org_city', 'contact_email', 'membership_url', 'membership_url_block'] as $key) {
+            $this->assertArrayHasKey($key, $vars, "Missing key: $key");
+        }
+        $this->assertSame('2025', $vars['year']);
+        $this->assertSame('MonOrg', $vars['org_name']);
+        $this->assertSame('reply@org.ch', $vars['contact_email']);
+    }
+
+    public function testCotiReminderVarsMembershipUrlBlock(): void
+    {
+        $settings = ['membership_url' => 'https://example.com/join'];
+        $vars = mbBuildCotiReminderVars($this->fakeMember(), 2025, $settings);
+
+        $this->assertStringContainsString('https://example.com/join', $vars['membership_url_block']);
+        $this->assertStringContainsString('<a ', $vars['membership_url_block']);
+    }
+
+    public function testCotiReminderVarsMembershipUrlEmptyBlock(): void
+    {
+        $vars = mbBuildCotiReminderVars($this->fakeMember(), 2025, []);
+        $this->assertSame('', $vars['membership_url_block']);
+        $this->assertSame('', $vars['membership_url']);
+    }
+
+    public function testCotiReminderVarsContactEmailFallsBackToFromEmail(): void
+    {
+        $settings = ['smtp_from_email' => 'from@org.ch'];
+        $vars = mbBuildCotiReminderVars($this->fakeMember(), 2025, $settings);
+        $this->assertSame('from@org.ch', $vars['contact_email']);
+    }
 }

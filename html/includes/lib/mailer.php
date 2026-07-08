@@ -445,53 +445,8 @@ function mbGetTemplate(PDO $pdo, string $key): object
     return (object)['subject' => '', 'body_text' => '', 'body_html' => ''];
 }
 
-/**
- * Build greeting and display-name vars for email templates.
- *
- * Handles the case where a contact has no first/last name but only a society.
- * Returns an array ready to be merged into template vars:
- *   display_name   — best available name (firstname+lastname, else society, else "")
- *   society        — raw society field
- *   greeting       — HTML greeting paragraph inner content, e.g.
- *                    "Bonjour <strong>Jean Dupont</strong>,"  or  "Bonjour,"
- *   greeting_text  — plain-text greeting line, e.g. "Bonjour Jean Dupont,"
- */
-function mbBuildSalutation(string $firstname, string $lastname, string $society): array
-{
-    $fn          = trim($firstname);
-    $ln          = trim($lastname);
-    $soc         = trim($society);
-    $personName  = trim("$fn $ln");
-    $displayName = $personName !== '' ? $personName : $soc;
-
-    // Greeting uses person name only — no society fallback (avoids "Bonjour Entreprise SA,")
-    $greeting     = $personName !== ''
-        ? 'Bonjour <strong>' . htmlspecialchars($personName, ENT_QUOTES, 'UTF-8') . '</strong>,'
-        : 'Bonjour,';
-    $greetingText = $personName !== '' ? "Bonjour $personName," : 'Bonjour,';
-
-    return [
-        'display_name'  => $displayName,
-        'society'       => $soc,
-        'greeting'      => $greeting,
-        'greeting_text' => $greetingText,
-    ];
-}
-
-/**
- * Replace {{placeholder}} tokens in a template string.
- *
- * @param string $tpl   Template string with {{key}} placeholders
- * @param array  $vars  Associative array of key => value replacements
- * @return string
- */
-function mbRenderTemplate(string $tpl, array $vars): string
-{
-    foreach ($vars as $k => $v) {
-        $tpl = str_replace('{{' . $k . '}}', (string)$v, $tpl);
-    }
-    return $tpl;
-}
+// mbBuildSalutation() and mbRenderTemplate() live in pure.php (no side effects, unit-testable).
+// pure.php is loaded by bootstrap.php before mailer.php is ever required.
 
 /**
  * Load a template, render it with $vars, and send via mbSendMail.
