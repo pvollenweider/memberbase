@@ -255,10 +255,15 @@ if ($_welcomeUntouched > 0):
 <?php endif ?>
 
 <?php
-// Count compta entries not yet included in any recap batch
-$_comptaUntouched = (int)$pdo->query(
-    "SELECT COUNT(*) FROM compta WHERE notified_at IS NULL"
-)->fetchColumn();
+// Count compta entries not yet included in any recap batch.
+// Guard against missing column (migration 0007 not yet applied).
+try {
+    $_comptaUntouched = (int)$pdo->query(
+        "SELECT COUNT(*) FROM compta WHERE notified_at IS NULL"
+    )->fetchColumn();
+} catch (PDOException $e) {
+    $_comptaUntouched = 0;
+}
 if ($_comptaUntouched > 0):
 ?>
 <div class="card mt-3 border-warning-subtle">
