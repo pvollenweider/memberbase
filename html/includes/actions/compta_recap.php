@@ -122,8 +122,10 @@ function _recapBuildVars(array $entries, array $appSettings, array $GLOBAL): arr
         $first['lastname']  ?? '',
         $first['society']   ?? ''
     );
-    $displayNameLine = $salutation['display_name'] !== ''
-        ? ' au nom de ' . $salutation['display_name']
+    // Show "au nom de X" only for society-only contacts (no personal name)
+    $personName      = trim(($first['firstname'] ?? '') . ' ' . ($first['lastname'] ?? ''));
+    $displayNameLine = ($personName === '' && $salutation['society'] !== '')
+        ? ' au nom de ' . $salutation['society']
         : '';
 
     $vars = array_merge($salutation, [
