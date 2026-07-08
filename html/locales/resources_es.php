@@ -983,6 +983,7 @@ $GLOBAL['comptaRecapHelp']           = "Se envía un correo por miembro con toda
 $GLOBAL['comptaRecapSentOk']         = "%d miembro(s) notificado(s) correctamente.";
 $GLOBAL['comptaRecapSkipped']        = "%d miembro(s) sin correo omitido(s).";
 $GLOBAL['comptaRecapSinceLastBatch'] = "desde su último resumen del %s";
+$GLOBAL['comptaRecapSinceYear']      = "en %d";
 $GLOBAL['comptaRecapSinceFirst']     = "desde su adhesión";
 $GLOBAL['comptaRecapPreviewHint']    = "Haga clic en una fila para previsualizar el correo antes de enviarlo.";
 $GLOBAL['comptaRecapModalTitle']     = "Vista previa del correo";

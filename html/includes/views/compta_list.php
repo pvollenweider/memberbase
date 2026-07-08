@@ -333,7 +333,7 @@ if (document.readyState === 'loading') {
           </button>
         </div>
         <!-- Preview area -->
-        <div id="recap-user-loading" class="d-flex align-items-center justify-content-center py-5" style="display:none!important"></div>
+        <div id="recap-user-loading" style="display:none;align-items:center;justify-content:center;padding:3rem 0"></div>
         <div id="recap-user-error" class="alert alert-danger m-3" style="display:none"></div>
         <div id="recap-user-empty" class="alert alert-info m-3" style="display:none">
           <i class="fas fa-circle-info me-1" aria-hidden="true"></i>

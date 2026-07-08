@@ -58,6 +58,22 @@ function _recapLoadEntries(PDO $pdo, ?int $filterUserId = null, int $year = 0, b
 }
 
 /**
+ * Build the since_line string for recap templates.
+ * When a specific past year is requested (or force mode), say "en YYYY" instead of
+ * "depuis votre dernier récapitulatif du JJ.MM.AAAA" to avoid confusion.
+ */
+function _recapSinceLine(PDO $pdo, array $GLOBAL, int $year, bool $force): string
+{
+    if ($force || $year !== (int)date('Y')) {
+        return sprintf($GLOBAL['comptaRecapSinceYear'], $year);
+    }
+    $lastBatchRaw = $pdo->query("SELECT MAX(notified_at) FROM compta WHERE notified_at IS NOT NULL")->fetchColumn();
+    return $lastBatchRaw
+        ? sprintf($GLOBAL['comptaRecapSinceLastBatch'], date('d.m.Y', strtotime($lastBatchRaw)))
+        : $GLOBAL['comptaRecapSinceFirst'];
+}
+
+/**
  * Build the template variable array and rendered entry blocks for one member.
  * Returns [vars array, entry ids array].
  */
@@ -193,10 +209,7 @@ if ($action === 'sendComptaRecap') {
     if (empty($byMember)) { echo json_encode(['ok' => false, 'error' => 'no_entries']); exit; }
     $entries = reset($byMember);
 
-    $lastBatchRaw = $pdo->query("SELECT MAX(notified_at) FROM compta WHERE notified_at IS NOT NULL")->fetchColumn();
-    $sinceLine    = $lastBatchRaw
-        ? sprintf($GLOBAL['comptaRecapSinceLastBatch'], date('d.m.Y', strtotime($lastBatchRaw)))
-        : $GLOBAL['comptaRecapSinceFirst'];
+    $sinceLine = _recapSinceLine($pdo, $GLOBAL, $recapYear, $force);
 
     [$vars, , ] = _recapBuildVars($entries, $appSettings, $GLOBAL);
     $vars['since_line'] = $sinceLine;
@@ -226,10 +239,7 @@ if ($action === 'sendComptaRecap') {
         exit;
     }
 
-    $lastBatchRaw = $pdo->query("SELECT MAX(notified_at) FROM compta WHERE notified_at IS NOT NULL")->fetchColumn();
-    $sinceLine    = $lastBatchRaw
-        ? sprintf($GLOBAL['comptaRecapSinceLastBatch'], date('d.m.Y', strtotime($lastBatchRaw)))
-        : $GLOBAL['comptaRecapSinceFirst'];
+    $sinceLine = _recapSinceLine($pdo, $GLOBAL, $recapYear, $force);
 
     [$vars, $ids, $total] = _recapBuildVars($entries, $appSettings, $GLOBAL);
     $vars['since_line'] = $sinceLine;
