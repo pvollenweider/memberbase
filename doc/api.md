@@ -1,6 +1,6 @@
 # Référence API MemberBase
 
-API REST interne de l'application MemberBase (version **3.5.6**). Toutes les réponses sont en JSON UTF-8.
+API REST interne de l'application MemberBase (version **4.0.0**). Toutes les réponses sont en JSON UTF-8.
 
 ## Sommaire
 
@@ -95,6 +95,7 @@ Le routage est assuré par `html/api/.htaccess`. Chemins exposés :
 | `/api/members` | `members.php` |
 | `/api/members/{id}` | `members.php?id={id}` |
 | `/api/members/{id}/groups` | `members.php?id={id}&sub=groups` |
+| `/api/members/{id}?sub=compta` | `members.php?id={id}&sub=compta` (pas de clean-URL dédiée) |
 | `/api/compta` | `compta.php` |
 | `/api/compta/{id}` | `compta.php?id={id}` |
 | `/api/compta-types` | `compta-types.php` |
@@ -372,6 +373,48 @@ Groupes (segments) auxquels appartient un membre, triés par catégorie (`sort_o
 
 ```bash
 curl -b cookies.txt "https://votre-domaine/api/members/42/groups"
+```
+
+---
+
+### `GET /api/members/{id}?sub=compta`
+
+Écritures comptables d'un membre, triées par date décroissante (`date DESC, id DESC`). Rôle : `canRead()`.
+
+> Pas de route clean-URL dédiée dans `html/api/.htaccess` (contrairement à `sub=groups` → `/members/{id}/groups`) : seule la forme en query string fonctionne.
+
+#### Réponse
+
+```json
+{
+  "data": [
+    {
+      "id": 231,
+      "date": "2026-01-15",
+      "label": "Cotisation 2026",
+      "amount": 50.0,
+      "quittance": null,
+      "wantsAttestation": false,
+      "notifiedAt": null,
+      "cotisationYear": 2026,
+      "type": { "id": 3, "label": "Cotisation", "color": "#4caf50", "isCotisation": true }
+    }
+  ]
+}
+```
+
+- `notifiedAt` : date d'envoi du récapitulatif email incluant cette entrée (`null` = pas encore notifiée), voir [Récapitulatifs comptables](admin.md#) dans le guide administrateur.
+- `cotisationYear` : année de cotisation couverte par l'entrée quand elle diffère de l'année de paiement (ex. cotisation 2027 payée en décembre 2026), sinon `null` — dans ce cas l'année effective est celle du champ `date`.
+- `type` est `null` si l'entrée n'a pas de type associé.
+
+#### Erreurs
+
+- `404` — membre introuvable ou inactif (`status = 1`)
+
+#### Exemple curl
+
+```bash
+curl -b cookies.txt "https://votre-domaine/api/members/42?sub=compta"
 ```
 
 ---

@@ -1,6 +1,6 @@
 # Architecture de MemberBase
 
-MemberBase **v3.5.6** — application PHP 8.2 de gestion des membres pour ONG.
+MemberBase **v4.0.0** — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.
 
 > **Terminologie.** Depuis la v3.5.4, l'interface parle de **Segment** (au lieu de
@@ -128,11 +128,14 @@ pas en `DATE` SQL ; conversions via `formatedDateToTimeStamp()` / `timeStampTofo
 | `user_properties` | EAV : appartenance segment (`parameter='team_<id>'`, `value='true'`) et notes de suivi   | pas de PK, `id` legacy |
 | `metagroup`       | Segments combinés / catégories : `name`, `teamid`, `is_filter`, `sort_order`             | `id` via `maxval`      |
 | `compta_type`     | Types d'écriture : `label`, `color`, `sort_order`, `is_cotisation`, `is_excluded_from_donation`, `is_institutional` | `id` AUTO_INCREMENT |
-| `compta`          | Écritures : `user_id`, `date` (Unix), `libele`, `sum` (varchar, CHF), `quittance`, `type_id`, `wants_attestation` | `id` AUTO_INCREMENT |
+| `compta`          | Écritures : `user_id`, `date` (Unix), `libele`, `sum` (**decimal(10,2)**, CHF), `quittance`, `type_id`, `wants_attestation`, **`notified_at`** (dernier envoi du récapitulatif email, `NULL` = non notifiée), **`cotisation_year`** (année de cotisation si différente de l'année de paiement) | `id` AUTO_INCREMENT |
 | `maxval`          | Compteur de séquence manuel (clé/valeur)                                                  | PK `parameter`         |
-| `app_settings`    | Configuration organisation (clé/valeur : `org_name`, `membre_team`, `archive_id`, etc.)  | PK `key`               |
-| `app_users`       | Comptes applicatifs : `password_hash` (bcrypt), `role` enum, `force_password_change`, `is_active`, `last_login`, `reset_token`, `token_expires_at`, `email` | `id` AUTO_INCREMENT |
+| `app_settings`    | Configuration organisation (clé/valeur : `org_name`, `membre_team`, `archive_id`, `org_ide`, `org_purpose`, `org_tax_status`, `smtp_*`, etc. — `value` en `TEXT` depuis la migration 0004 pour les champs multi-lignes) | PK `key`               |
+| `app_users`       | Comptes applicatifs : `password_hash` (bcrypt), `role` enum, **`locale`** (langue d'interface, défaut `fr`), `force_password_change`, `is_active`, `last_login`, `reset_token`, `token_expires_at`, `email` | `id` AUTO_INCREMENT |
 | `audit_log`       | Journal : `app_user_id`, `username`, `action`, `detail`, `subject_user_id`, `created_at`  | `id` AUTO_INCREMENT    |
+| `email_templates` | Templates éditables (clé `tpl_*`) : `subject`, `body_text`, `body_html`, `updated_at`     | PK `key`                |
+| `email_log`       | Historique des envois : `user_id`, `tpl_key`, `to_email`, `subject`, `status` (sent/error), `error_msg`, `body_text`, `body_html`, `created_at` | `id` AUTO_INCREMENT |
+| `schema_migrations` | Suivi des migrations appliquées : `version`, `applied_at`, `checksum` (SHA-256, détection de dérive) | PK `version`          |
 
 ### Relations
 
@@ -196,7 +199,11 @@ segments combinés : `isMemberOfMetagroup()`, `addMetagroupMembership()`,
 ### `Compta` (`compta_class.php`)
 
 `lookupCompta()`, `save()`, `remove()`, getters/setters (date, `libele`, `sum`,
-`quittance`, `type_id`, `wants_attestation`).
+`quittance`, `type_id`, `wants_attestation`, `notified_at`, `cotisation_year`).
+
+`setCotisationYear()` valide la valeur côté serveur : rejette (met `null`) toute
+année hors de la plage `[année courante - 50, année courante + 1]`, et coerce
+les chaînes numériques en entier. Testé dans `tests/unit/ComptaYearTest.php`.
 
 ### `Metagroup` (`metagroup_class.php`)
 
@@ -517,3 +524,68 @@ base (DDL + `tests/fixtures/seed.sql`).
 ### Git
 - Commits signés `pvollenweider <pvollenweider@jahia.com>` (auteur *et* committer),
   sans ligne `Co-Authored-By` (voir `CLAUDE.md`).
+
+---
+
+## 14. Emails et notifications
+
+### `html/includes/lib/mailer.php` — client SMTP pur PHP
+
+Pas de dépendance externe (pas de PHPMailer/Symfony Mailer). Fonctions principales :
+
+```php
+mbSmtpSend(array $cfg, string $to, string $subject, string $bodyText, string $bodyHtml = ''): array
+// Client bas niveau : plain / STARTTLS / SSL-TLS, AUTH LOGIN/PLAIN ou sans auth.
+// Retourne ['ok' => bool, 'error' => string, 'debug' => string] (jamais d'exception).
+
+mbSendMail(PDO $pdo, string $to, string $subject, string $bodyHtml, string $bodyText = ''): bool
+// Helper haut niveau : lit la config SMTP depuis $appSettings, envoie, journalise
+// dans email_log via _mbLogEmail(). Échec silencieux — ne casse jamais l'action appelante.
+
+mbGetTemplate(PDO $pdo, string $key): object       // DB → repli sur mbDefaultTemplates()
+mbRenderTemplate(string $tpl, array $vars): string  // remplace {{placeholder}}
+mbSendTemplate(PDO $pdo, string $to, string $key, array $vars, ?int $userId = null)
+// Charge le template, rend sujet/corps, envoie, journalise (avec user_id pour le lier
+// à l'historique du membre).
+
+mbBuildSalutation(string $firstname, string $lastname, string $society): array
+// Gère le cas société-seule (pas de prénom/nom) : greeting, display_name, etc.
+
+mbSmtpEncryptPassword() / mbSmtpDecryptPassword() / mbSmtpGetOrCreateEncKey()
+// Le mot de passe SMTP est chiffré au repos dans app_settings avec une clé
+// générée automatiquement par installation.
+```
+
+Mot de passe SMTP et secrets ne transitent jamais en clair dans les logs (`mbSmtpSend` ne journalise pas les identifiants dans `debug`).
+
+### Handlers d'action
+
+| Fichier | Rôle |
+|---|---|
+| `includes/actions/settings.php` | `saveSmtp`, `sendTestEmail`, `saveEmailTemplate`, `purgeEmailLog`, `resendEmail`, `zefixLookup` |
+| `includes/actions/compta_recap.php` | `sendComptaRecap`, `sendComptaRecapOne`, `previewComptaRecap` (JSON, rendu HTML réel du template pour la modale), `markAllComptaNotified` |
+| `includes/actions/cotisation_reminder.php` | `sendCotisationReminders`, `sendCotisationReminderOne` |
+
+`compta_recap.php` factorise le chargement des entrées et la construction des
+variables de template dans des fonctions privées (`_recapLoadEntries()`,
+`_recapBuildVars()`, `_recapSinceLine()`) partagées entre l'envoi réel et
+l'aperçu JSON — garantit que la prévisualisation correspond exactement à
+l'email effectivement envoyé.
+
+### Anti-doublon des rappels
+
+`cotisation_reminder.php` interroge `email_log` (`tpl_key = 'tpl_cotisation_reminder'`,
+filtré par année) avant d'envoyer, pour ne pas relancer deux fois le même
+membre la même année sans forçage explicite.
+
+### Zefix (registre du commerce suisse)
+
+`zefixLookup` (action `settings.php`) interroge l'API REST publique de Zefix
+en deux temps (l'ancien endpoint `GET /firm/{uid}` est décommissionné) :
+1. `POST https://www.zefix.ch/ZefixREST/api/v1/firm/search.json` (recherche exacte par IDE) → `ehraid`
+2. `GET https://www.zefix.ch/ZefixREST/api/v1/firm/{ehraid}.json` → nom, adresse, but statutaire
+
+Préremplit `org_name`, `org_address`, `org_npa`, `org_city`, `org_country`,
+`org_purpose` depuis le formulaire Réglages → Général. Le champ `org_tax_status`
+(statut d'exonération fiscale) reste en saisie manuelle — aucun registre fédéral
+n'est interrogé automatiquement pour cette donnée.

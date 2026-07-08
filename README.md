@@ -89,6 +89,16 @@ Avec le temps, l'application a été refactorisée pour devenir aussi génériqu
 - Remplissage via `pdftk` côté serveur, encodage UTF-16 BE pour les caractères accentués
 - Les données d'institution (nom, adresse, NPA) sont préconfigurées
 
+### Emails et communications
+
+- **Configuration SMTP** propre à l'installation (Réglages → Email) : client SMTP pur PHP sans dépendance externe, chiffrement (aucun/STARTTLS/SSL-TLS), authentification, envoi de test avec message d'erreur détaillé
+- **Templates d'email configurables** (objet + corps texte + HTML, variables `{{placeholder}}`) : rappel de cotisation, récapitulatif comptable, attestation de don
+- **Récapitulatifs comptables groupés** (`comptaRecap`) : un email par membre récapitulant ses entrées non notifiées, aperçu avant envoi (rendu HTML réel), envoi individuel ou en masse, filtre par année, mode étendu (renvoi des membres déjà notifiés)
+- **Rappels de cotisation impayée** : envoi manuel depuis la vue Membres perdus, individuel ou en masse, anti-doublon par année
+- **Journal des emails** (Réglages → Email → Journal) : historique paginé, statut envoyé/erreur, renvoi d'une entrée en erreur, purge
+- **Année de cotisation** (`cotisation_year`) sur les entrées compta : distingue l'année de paiement de l'année de cotisation couverte (ex. cotisation N+1 payée en décembre N), reflétée dans les emails de récapitulatif
+- **Vérification IDE via Zefix** : préremplissage automatique du nom/adresse/but statutaire de l'organisation depuis le registre du commerce suisse
+
 ### Export et impression
 
 - Export DataTables: Copier, Excel, PDF, Imprimer sur toutes les vues tabulaires
@@ -103,8 +113,10 @@ Navigation par barre latérale (desktop) / sélecteur (mobile) avec sections :
 - **Catégories** — réordonnement par glisser-déposer
 - **Filtres** — métagroupes de filtrage, avec undo sur les modifications d'appartenance
 - **Types de compta** — UI complète : ajout, édition inline, toggle flags, réordonnement
+- **Email** — configuration SMTP, templates, journal des envois (voir [Emails et communications](#emails-et-communications))
 - **Comptes utilisateurs** — gestion des comptes app (admin uniquement) : création, modification de rôle, réinitialisation de mot de passe, suppression
 - **Intégrité** — détection des groupes masqués avec assignations actives
+- **Santé** — export de base de données, application des migrations en attente, détection de dérive de schéma (sans accès SSH)
 
 ### Interface multilingue
 
@@ -126,6 +138,7 @@ Endpoints JSON disponibles sous `/api/` (authentification de session requise) :
 | `PUT` / `PATCH` | `/api/members/{id}` | Modifier un membre (champs individuels, audit log diff) |
 | `DELETE` | `/api/members/{id}` | Désactiver (`status=0`) ou supprimer (`?dispose=delete`, admin) |
 | `GET` | `/api/members/{id}/groups` | Groupes du membre |
+| `GET` | `/api/members/{id}?sub=compta` | Entrées comptables du membre |
 | `GET` | `/api/groups` | Liste des groupes avec comptage membres |
 | `POST` | `/api/groups` | Créer un groupe (manager) |
 | `GET` | `/api/groups/{id}` | Détail d'un groupe |
@@ -182,7 +195,10 @@ html/
 ├── includes/
 │   ├── lib/
 │   │   ├── auth.php            # Session, login, rôles (readonly/user/manager/admin)
-│   │   └── bootstrap.php       # PDO, app settings, helpers
+│   │   ├── bootstrap.php       # PDO, app settings, helpers
+│   │   ├── mailer.php          # Client SMTP pur PHP, templates, journal
+│   │   ├── locale.php          # Chargement des bundles de locale (mbLoadLocale)
+│   │   └── migrations.php      # Runner de migrations (CLI + admin web)
 │   ├── routing/
 │   │   ├── views.php           # View router
 │   │   └── actions.php         # POST action dispatcher
@@ -197,7 +213,7 @@ html/
 │   ├── partials/
 │   │   ├── menu.php            # Nav sidebar
 │   │   └── donor_table.php     # Shared donor table partial
-│   └── actions/                # CRUD handlers (members, groups, compta…)
+│   └── actions/                # CRUD handlers (members, groups, compta, compta_recap, cotisation_reminder…)
 ├── classes/
 │   ├── user_class.php          # Classe User (CRUD, cotisation, dons)
 │   ├── team_class.php          # Classe Team (groupes)
@@ -205,7 +221,10 @@ html/
 │   ├── metagroup_class.php     # Classe Metagroup (catégories de groupes)
 │   └── property_class.php      # Classe UserProperty (appartenance, suivi)
 ├── locales/
-│   └── resources_fr.php        # Libellés français (UTF-8)
+│   ├── resources_fr.php        # Libellés français (UTF-8, base complète)
+│   └── resources_{en,de,es}.php # Surcharges EN/DE/ES avec repli sur le FR
+├── migrations/
+│   └── NNNN_description.sql    # Un fichier par changement de schéma, suivi dans schema_migrations
 ├── css/
 │   ├── custom.css              # Styles MemberBase
 │   ├── webfonts/               # Font Awesome 6 woff2/ttf
@@ -248,6 +267,8 @@ docker compose up -d
 ```
 
 Puis aller sur `http://localhost:8080/install.php` et utiliser `mariadb` comme host de DB (pas `localhost`).
+
+La stack Docker inclut [Mailpit](https://github.com/axllent/mailpit) pour intercepter les emails en développement : SMTP sur `localhost:1025`, interface web sur `http://localhost:8025`.
 
 ### Mise à jour (instance existante)
 

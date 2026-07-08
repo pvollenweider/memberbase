@@ -24,6 +24,8 @@ Guide pratique pour la gestion quotidienne des membres, segments, comptabilité,
 12. [Rôles utilisateurs et matrice des droits](#12-rôles-utilisateurs-et-matrice-des-droits)
 13. [Changer son mot de passe](#13-changer-son-mot-de-passe)
 14. [Déconnexion](#14-déconnexion)
+15. [Récapitulatifs comptables par email](#15-récapitulatifs-comptables-par-email)
+16. [Rappels de cotisation impayée](#16-rappels-de-cotisation-impayée)
 
 ---
 
@@ -294,11 +296,14 @@ Le formulaire est en haut du tableau :
 
 1. **Type** — sélectionner le type de versement (cotisation, don…).
 2. **Date** — format JJ/MM/AAAA (date du jour pré-remplie).
-3. **Libellé** — description libre.
-4. **Somme** — montant en CHF (ex. `50` ou `12.50`).
-5. **Quittance** — numéro de quittance / référence.
-6. **Attestation** (case à cocher) — cocher si le donateur souhaite une attestation fiscale.
-7. Cliquer **Ajouter**.
+3. **Année de cotisation** — n'apparaît que pour un type marqué « cotisation » ; utile quand le
+   paiement d'une année tombe dans une autre (ex. cotisation 2027 payée en décembre 2026).
+   Pré-rempli sur l'année de la date de paiement.
+4. **Libellé** — description libre.
+5. **Somme** — montant en CHF (ex. `50` ou `12.50`).
+6. **Quittance** — numéro de quittance / référence.
+7. **Attestation** (case à cocher) — cocher si le donateur souhaite une attestation fiscale.
+8. Cliquer **Ajouter**.
 
 ### Modifier / supprimer
 
@@ -466,9 +471,11 @@ les sections disponibles dépendent du rôle.
 | Segments combinés | Manager / Admin | Filtres regroupant plusieurs segments |
 | Types compta | Manager / Admin | Types de versements |
 | Réglages | Admin | Paramètres généraux de l'organisation |
+| Email | Admin | Configuration SMTP, templates d'email, journal des envois (voir §15) |
 | Utilisateurs | Admin | Comptes de connexion à l'application |
 | Journal | Admin | Journal d'activité |
 | Intégrité | Admin | Vérification et correction des données |
+| Santé | Admin | Export de la base, application des migrations en attente |
 | Archivés | Admin | Liste des membres archivés |
 
 ### Types compta
@@ -489,6 +496,9 @@ Pour chaque type de versement :
 | Segment affiché par défaut | Segment ouvert à l'arrivée sur la liste — **à mettre à jour chaque année** |
 | Segment membres (année de référence) | Utilisé pour les filtres cotisations et l'aperçu des dons — **à mettre à jour chaque année** |
 | Segment membres sans cotisation | Membres actifs exemptés de cotisation (bénévoles, comité…) |
+| Numéro IDE | Identifiant d'entreprise suisse — bouton **Vérifier via Zefix** pour préremplir nom/adresse/but statutaire automatiquement |
+| But statutaire | Extrait des statuts, utilisé dans les documents officiels |
+| Statut d'exonération fiscale | Saisie manuelle (ex. « Exonérée AFC-GE depuis 2018 ») |
 
 ### Utilisateurs (Admin)
 
@@ -565,3 +575,38 @@ connexion suivante.
 ## 14. Déconnexion
 
 Cliquer son **nom d'utilisateur** en haut à droite, puis **Déconnexion**.
+
+---
+
+## 15. Récapitulatifs comptables par email
+
+Accès : menu **Emails** (Manager / Admin). Envoie à chaque membre un email récapitulant ses
+entrées comptables pas encore notifiées (cotisations, dons…), regroupées en une seule fois
+plutôt qu'une notification par entrée.
+
+1. Choisir l'**année** à traiter.
+2. La liste affiche les membres avec entrées en attente, séparés entre ceux **avec email**
+   (envoi possible) et **sans email** (repliable, non envoyables).
+3. Cliquer une ligne ouvre un **aperçu** de l'email tel qu'il sera reçu (rendu HTML réel du
+   template configuré dans Réglages → Email).
+4. **Envoyer les récapitulatifs** (bouton en haut) envoie à tous les membres avec email en une
+   fois, ou **Envoyer** dans la modale d'aperçu pour un envoi individuel.
+5. **Mode étendu** (case à cocher) affiche aussi les membres déjà notifiés cette année, avec
+   possibilité de renvoyer (forçage).
+
+Une fois envoyée, une entrée n'est plus reprise dans le lot suivant. Si l'entrée a une
+**année de cotisation** différente de l'année de paiement (ex. cotisation 2027 payée en
+décembre 2026), l'email le précise explicitement.
+
+---
+
+## 16. Rappels de cotisation impayée
+
+Accès : vue **Membres perdus** (menu principal ou Réglages → sections liées aux membres).
+Liste les membres ayant cotisé l'année précédente mais pas encore l'année en cours.
+
+- **Envoyer un rappel** sur une ligne individuelle, ou en masse pour toute la liste.
+- Un membre déjà relancé cette année n'est pas resollicité automatiquement (anti-doublon) —
+  le statut « Rappel envoyé le [date] » apparaît sur sa ligne.
+- Le contenu de l'email est celui configuré dans Réglages → Email → Templates
+  (`tpl_cotisation_reminder`).

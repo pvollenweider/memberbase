@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "e15212ad593f6fadef72681d04c5958dd35f737b",
-  "generatedAt": "2026-07-03T10:33:35.034Z",
+  "gitCommitHash": "0326c69df730056321e45a14c99c21971c650ede",
+  "generatedAt": "2026-07-08T17:08:36.302Z",
   "files": {
     ".github/ISSUE_TEMPLATE/bug_report.yml": {
       "filePath": ".github/ISSUE_TEMPLATE/bug_report.yml",
@@ -95,32 +95,22 @@
     },
     "CHANGELOG.md": {
       "filePath": "CHANGELOG.md",
-      "contentHash": "7f7f686b38c8fa06d512948fec4aaa2880a2f9e82a8ae21d78c9e01c36e972ca",
+      "contentHash": "5941b4ab3e4aa82cb92c79319078e6fdbfdafb502a65a73a99c163061b0cd0e8",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 576,
+      "totalLines": 613,
       "hasStructuralAnalysis": true
     },
     "CLAUDE.md": {
       "filePath": "CLAUDE.md",
-      "contentHash": "7ee1f74187e1be12c6d66b8cc55ca0fe2f5186363aabebe27f152b93db6550b7",
+      "contentHash": "ef475d58c0feb8f868182de37306819b044dc0a6bb1e4f0bd7a35bca68050b02",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 174,
-      "hasStructuralAnalysis": true
-    },
-    "composer.json": {
-      "filePath": "composer.json",
-      "contentHash": "b2b189b291967abeb70be870d762a805e541ee8e0ec9904da3c4df255a9ad236",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 16,
+      "totalLines": 182,
       "hasStructuralAnalysis": true
     },
     "CONTRIBUTING.md": {
@@ -143,34 +133,64 @@
       "totalLines": 194,
       "hasStructuralAnalysis": true
     },
-    "doc/admin.md": {
-      "filePath": "doc/admin.md",
-      "contentHash": "6700db6e29e71d5dae1631ef4ba0abf778ba8c1052ed886a543374c2e0d1bc26",
+    "Dockerfile": {
+      "filePath": "Dockerfile",
+      "contentHash": "8c457b3426c091eab76b1817ed7c7a0fb52ac5c0b405c33bf5e5e34011e808c5",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 915,
+      "totalLines": 19,
       "hasStructuralAnalysis": true
     },
-    "doc/api.md": {
-      "filePath": "doc/api.md",
-      "contentHash": "02223165b8f740f67c86a4738bf716a624805b29e7e9d57dace981c87ac9487f",
+    "MIGRATION_PROD.md": {
+      "filePath": "MIGRATION_PROD.md",
+      "contentHash": "244b37b686cabbfc525175b54985d9ebb773748e0293dafc23b83ddde11ed440",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 867,
+      "totalLines": 162,
       "hasStructuralAnalysis": true
     },
-    "doc/architecture.md": {
-      "filePath": "doc/architecture.md",
-      "contentHash": "966c486761f8ed8268674bafe84f9b4577081d87a767854940b1d1f9adae25e2",
+    "Makefile": {
+      "filePath": "Makefile",
+      "contentHash": "0cd239051765a57fc6c4986bed870a8bf15bcb31c6b0729b0bc41fb869fa332f",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 507,
+      "totalLines": 69,
+      "hasStructuralAnalysis": true
+    },
+    "PRODUCT.md": {
+      "filePath": "PRODUCT.md",
+      "contentHash": "15155872dc7a8b66eb912d2ecd65aa75a2134dbf26c95e4f27eae1ba66bb81c2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "a8c4f3acec0309f83b67701616a6de8f72fcc98c0878b549c70af02176629309",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 334,
+      "hasStructuralAnalysis": true
+    },
+    "composer.json": {
+      "filePath": "composer.json",
+      "contentHash": "b2b189b291967abeb70be870d762a805e541ee8e0ec9904da3c4df255a9ad236",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
       "hasStructuralAnalysis": true
     },
     "doc/ONBOARDING.md": {
@@ -183,14 +203,44 @@
       "totalLines": 173,
       "hasStructuralAnalysis": true
     },
-    "doc/user.md": {
-      "filePath": "doc/user.md",
-      "contentHash": "675a1a26ed18e52a0c7c5f7dba5b2d6a26832e17c623f72955356acb7ba03b66",
+    "doc/admin.md": {
+      "filePath": "doc/admin.md",
+      "contentHash": "4168c03008bc4021af69c374af229882324f026071e2e4f09a16d49a6b6b9366",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 561,
+      "totalLines": 1022,
+      "hasStructuralAnalysis": true
+    },
+    "doc/api.md": {
+      "filePath": "doc/api.md",
+      "contentHash": "e536f57dc8465c87ada8defd99106d42ca6d20466201a3dea35d105101d376dc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 910,
+      "hasStructuralAnalysis": true
+    },
+    "doc/architecture.md": {
+      "filePath": "doc/architecture.md",
+      "contentHash": "6d18efbb37e22b0ad604a2f4eeb537bfbddd7116c81231ee2503e406defad07e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 592,
+      "hasStructuralAnalysis": true
+    },
+    "doc/user.md": {
+      "filePath": "doc/user.md",
+      "contentHash": "58d48fd3b32d25dd66cf502009ede3771ab3ad296dea4be0645ead3b94fbd78a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 613,
       "hasStructuralAnalysis": true
     },
     "docker-compose.test.yml": {
@@ -205,12 +255,12 @@
     },
     "docker-compose.yml": {
       "filePath": "docker-compose.yml",
-      "contentHash": "b9ddd0c3fb26feb0996653583b310e6c62e54791271b762138e14f3e62176403",
+      "contentHash": "3b7220a0c4b0dc30fc43009b917e9ef1dac82a4dda833daaa8cc0ea72c3e5c72",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 44,
+      "totalLines": 54,
       "hasStructuralAnalysis": true
     },
     "docker/apache.conf": {
@@ -223,16 +273,6 @@
       "totalLines": 111,
       "hasStructuralAnalysis": false
     },
-    "Dockerfile": {
-      "filePath": "Dockerfile",
-      "contentHash": "8c457b3426c091eab76b1817ed7c7a0fb52ac5c0b405c33bf5e5e34011e808c5",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 19,
-      "hasStructuralAnalysis": true
-    },
     "html/0F5B592E883E10E5F744B70B861AE02B.txt": {
       "filePath": "html/0F5B592E883E10E5F744B70B861AE02B.txt",
       "contentHash": "a49e1d3aecfa6219116fafe2bdc22d8d802331a7033c7fe08f2a32200ec08b4f",
@@ -241,6 +281,16 @@
       "imports": [],
       "exports": [],
       "totalLines": 3,
+      "hasStructuralAnalysis": false
+    },
+    "html/api/.htaccess": {
+      "filePath": "html/api/.htaccess",
+      "contentHash": "f27ee9c932432f32a210a7e07ea8036bd8dd5531047b8cbfdc1c3192b8138a0e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
       "hasStructuralAnalysis": false
     },
     "html/api/_bootstrap.php": {
@@ -264,16 +314,6 @@
       ],
       "totalLines": 86,
       "hasStructuralAnalysis": true
-    },
-    "html/api/.htaccess": {
-      "filePath": "html/api/.htaccess",
-      "contentHash": "f27ee9c932432f32a210a7e07ea8036bd8dd5531047b8cbfdc1c3192b8138a0e",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 15,
-      "hasStructuralAnalysis": false
     },
     "html/api/compta-types.php": {
       "filePath": "html/api/compta-types.php",
@@ -500,7 +540,7 @@
     },
     "html/api/members.php": {
       "filePath": "html/api/members.php",
-      "contentHash": "6ef0d6514eee7494b3e16c2befcfd373d2c47a4571dc6c6440977d9119f8e522",
+      "contentHash": "4e13277c3bc97dcb6ed6284464cfecb45c2b8762cec69a90d66ad32a8fad9242",
       "functions": [
         {
           "name": "memberFieldsForDiff",
@@ -613,6 +653,15 @@
           "returnType": "void",
           "exported": true,
           "lineCount": 37
+        },
+        {
+          "name": "handleGetCompta",
+          "params": [
+            "$id"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 40
         }
       ],
       "classes": [],
@@ -629,9 +678,10 @@
         "handleCreate",
         "handleUpdate",
         "handleDelete",
-        "handleGetGroups"
+        "handleGetGroups",
+        "handleGetCompta"
       ],
-      "totalLines": 451,
+      "totalLines": 493,
       "hasStructuralAnalysis": true
     },
     "html/api/suivi.php": {
@@ -722,7 +772,7 @@
     },
     "html/attestation_bulk.php": {
       "filePath": "html/attestation_bulk.php",
-      "contentHash": "38302d7fe860f685aa99afe4318a7959ddfc2f29ff31ae1bded05770df3515d0",
+      "contentHash": "99105d87d8be6443004094fb72be57c6d7edd01df19853b7c3b8696efc278118",
       "functions": [
         {
           "name": "fdf_escape_name",
@@ -759,12 +809,12 @@
         "fdf_encode_value",
         "fdf_generate"
       ],
-      "totalLines": 146,
+      "totalLines": 152,
       "hasStructuralAnalysis": true
     },
     "html/attestation_don.php": {
       "filePath": "html/attestation_don.php",
-      "contentHash": "4fbff6e4f37d9672a398c1bb65e3b5f659fbeb7b54ff815fc8ab452bbe6e8b3c",
+      "contentHash": "0c54522cefd204ac1e806d719d7b98029c4e811127dbafba14aa294782e30c07",
       "functions": [
         {
           "name": "fdf_escape_name",
@@ -801,7 +851,7 @@
         "fdf_encode_value",
         "fdf_generate"
       ],
-      "totalLines": 117,
+      "totalLines": 123,
       "hasStructuralAnalysis": true
     },
     "html/classes/.htaccess": {
@@ -816,7 +866,7 @@
     },
     "html/classes/compta_class.php": {
       "filePath": "html/classes/compta_class.php",
-      "contentHash": "0126c542357d1a2cede51b2766aa230a393a525ee494279ca273ff69ef4aeedb",
+      "contentHash": "b88c568b131daca8febb8d0f84d8208b190eb82fbca2efc05bb19866164eb57a",
       "functions": [
         {
           "name": "__construct",
@@ -831,7 +881,7 @@
           ],
           "returnType": "void",
           "exported": false,
-          "lineCount": 17
+          "lineCount": 18
         },
         {
           "name": "getId",
@@ -877,6 +927,12 @@
         },
         {
           "name": "getWantsAttestation",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "getCotisationYear",
           "params": [],
           "exported": false,
           "lineCount": 1
@@ -938,6 +994,15 @@
           "lineCount": 1
         },
         {
+          "name": "setCotisationYear",
+          "params": [
+            "$v"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 15
+        },
+        {
           "name": "save",
           "params": [],
           "returnType": "void",
@@ -984,6 +1049,7 @@
             "getSum",
             "getQuittance",
             "getWantsAttestation",
+            "getCotisationYear",
             "setUserId",
             "setTypeId",
             "setDate",
@@ -991,6 +1057,7 @@
             "setSum",
             "setQuittance",
             "setWantsAttestation",
+            "setCotisationYear",
             "save",
             "remove",
             "typesByUser",
@@ -1004,22 +1071,23 @@
             "libele",
             "sum",
             "quittance",
-            "wants_attestation"
+            "wants_attestation",
+            "cotisation_year"
           ],
           "exported": true,
-          "lineCount": 135
+          "lineCount": 153
         }
       ],
       "imports": [],
       "exports": [
         "Compta"
       ],
-      "totalLines": 145,
+      "totalLines": 163,
       "hasStructuralAnalysis": true
     },
     "html/classes/member_filter_class.php": {
       "filePath": "html/classes/member_filter_class.php",
-      "contentHash": "a4aa3c7cb267d304c1bff611bf1ff6201bd5f537efe51e8e851c22e21aa7f975",
+      "contentHash": "915461b1a1adb1efb2f6f4f41bd017d6e3bf06dcaa2af28cf4042cc9271a6075",
       "functions": [
         {
           "name": "isVirtual",
@@ -1040,7 +1108,7 @@
           ],
           "returnType": "array",
           "exported": false,
-          "lineCount": 112
+          "lineCount": 114
         },
         {
           "name": "noCotiMembers",
@@ -1063,14 +1131,14 @@
           ],
           "properties": [],
           "exported": true,
-          "lineCount": 155
+          "lineCount": 157
         }
       ],
       "imports": [],
       "exports": [
         "MemberFilter"
       ],
-      "totalLines": 169,
+      "totalLines": 171,
       "hasStructuralAnalysis": true
     },
     "html/classes/metagroup_class.php": {
@@ -2030,12 +2098,12 @@
     },
     "html/export.php": {
       "filePath": "html/export.php",
-      "contentHash": "fd92779d7d5f5b282738f730100b5eb8fc16d6fb436e6e25e9a6d15c1a8b65c4",
+      "contentHash": "2115352dc726289b1ab2465bba3e9879b5ec366c7e038c0de1f7ec5c78ab1f08",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 36,
+      "totalLines": 40,
       "hasStructuralAnalysis": true
     },
     "html/health.php": {
@@ -2072,37 +2140,111 @@
     },
     "html/includes/actions/auth.php": {
       "filePath": "html/includes/actions/auth.php",
-      "contentHash": "befa7fa6da7ab01b4b25aa2b124e96a272d728080dc45dbc5c865e6616328395",
+      "contentHash": "6ff45fb1fd252a97095599dd9d6808bb7452d7a570a2b5321176cb28b09ed091",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 177,
+      "totalLines": 189,
       "hasStructuralAnalysis": true
     },
     "html/includes/actions/compta.php": {
       "filePath": "html/includes/actions/compta.php",
-      "contentHash": "ec610f30a8286c7aee0f64f6ccc5db681911081cb131ccd94038274d889af762",
+      "contentHash": "c561a92e36a7efb1403647d633c27b8d24c6962f34f42f1a0e508c9289182c9b",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 97,
+      "totalLines": 132,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/actions/compta_recap.php": {
+      "filePath": "html/includes/actions/compta_recap.php",
+      "contentHash": "fbaba8da62c328450c396a197e6cf87d5a0ab89c203d592b763936a4ed304123",
+      "functions": [
+        {
+          "name": "_recapLoadEntries",
+          "params": [
+            "$pdo",
+            "$filterUserId",
+            "$year",
+            "$force"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "_recapSinceLine",
+          "params": [
+            "$pdo",
+            "$GLOBAL",
+            "$year",
+            "$force"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "_recapBuildVars",
+          "params": [
+            "$entries",
+            "$appSettings",
+            "$GLOBAL"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 77
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "_recapLoadEntries",
+        "_recapSinceLine",
+        "_recapBuildVars"
+      ],
+      "totalLines": 291,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/actions/cotisation_reminder.php": {
+      "filePath": "html/includes/actions/cotisation_reminder.php",
+      "contentHash": "788fb3b23635b786d1132ce6aaa51e9b12a5a49bb96829d471f74aa756c4fd84",
+      "functions": [
+        {
+          "name": "_cotiReminderVars",
+          "params": [
+            "$m",
+            "$year",
+            "$appSettings"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 23
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "_cotiReminderVars"
+      ],
+      "totalLines": 169,
       "hasStructuralAnalysis": true
     },
     "html/includes/actions/groups.php": {
       "filePath": "html/includes/actions/groups.php",
-      "contentHash": "3614c6eb2bdab31ff1e2e757015ab017929a3f9a44cbc278e1983766000f02fe",
+      "contentHash": "be192b29282df7db110a18c5c95ab2246199ff07f76c3055e6ae1249dbbb01ca",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 389,
+      "totalLines": 404,
       "hasStructuralAnalysis": true
     },
     "html/includes/actions/import.php": {
       "filePath": "html/includes/actions/import.php",
-      "contentHash": "6a92bc980cc31054eb77a80bb26303b59981e41b211ace90e1edeb98ada1dbe5",
+      "contentHash": "b561ffc5c461c1438cac9771f9f9fe05bd69e4d02a5e512484729e58a695cb3d",
       "functions": [
         {
           "name": "importRedirect",
@@ -2123,22 +2265,22 @@
     },
     "html/includes/actions/maintenance.php": {
       "filePath": "html/includes/actions/maintenance.php",
-      "contentHash": "1e4733ac86cd4c284997e1fef0681635e18a0dcc3fafd817adb2ccfea8b31218",
+      "contentHash": "9aec17ec82c594948e0d939fc17f400aff18b947094cfbd91b23d985db8e7a88",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 38,
+      "totalLines": 56,
       "hasStructuralAnalysis": true
     },
     "html/includes/actions/members.php": {
       "filePath": "html/includes/actions/members.php",
-      "contentHash": "4e14855bcd00b3193c006a91b1b192fb3f86432dd96ca1599b8e11f8586b6f80",
+      "contentHash": "0f0422b094f88969070e43317a254c0966e7473a3a62c94229c288eaa29e976f",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 298,
+      "totalLines": 301,
       "hasStructuralAnalysis": true
     },
     "html/includes/actions/metagroups.php": {
@@ -2153,12 +2295,12 @@
     },
     "html/includes/actions/settings.php": {
       "filePath": "html/includes/actions/settings.php",
-      "contentHash": "3f749c9b505183a6e7c34188900d33c1c8d904ddbd3c5baab3dc48d1b254e62e",
+      "contentHash": "66887be10ab0f6c569a76eaa814323045260bdce9364afb5af17dd4cdb95cf97",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 107,
+      "totalLines": 287,
       "hasStructuralAnalysis": true
     },
     "html/includes/actions/suivi.php": {
@@ -2173,7 +2315,7 @@
     },
     "html/includes/lib/auth.php": {
       "filePath": "html/includes/lib/auth.php",
-      "contentHash": "1ba3e229a7a1595e57e0dfb7ce594efc9f4a9dcffb367cc69d2cfb2973d9f661",
+      "contentHash": "48100194a89c8413f779cc034f3c205ad0b79fbc869d349a19affa019fdc8d01",
       "functions": [
         {
           "name": "authUser",
@@ -2254,7 +2396,7 @@
           ],
           "returnType": "bool",
           "exported": true,
-          "lineCount": 20
+          "lineCount": 23
         },
         {
           "name": "authLogout",
@@ -2280,12 +2422,12 @@
         "authLogin",
         "authLogout"
       ],
-      "totalLines": 125,
+      "totalLines": 128,
       "hasStructuralAnalysis": true
     },
     "html/includes/lib/bootstrap.php": {
       "filePath": "html/includes/lib/bootstrap.php",
-      "contentHash": "d21a3c380732e84c0c6b6c91d1bef18a42b9bd5e4f97b9479e10ccb47124bebd",
+      "contentHash": "1f24300ec40d369ec71c3064cbe7cb8e30b05eea74fd67acbf14c1837aaf0464",
       "functions": [
         {
           "name": "getMaxVal",
@@ -2346,19 +2488,19 @@
         "migrationDrift",
         "auditLog"
       ],
-      "totalLines": 170,
+      "totalLines": 183,
       "hasStructuralAnalysis": true
     },
     "html/includes/lib/import_fields.php": {
       "filePath": "html/includes/lib/import_fields.php",
-      "contentHash": "2ab82c00532168605fd17b125b8a6fddc3b8544d59f8023892a0f4e93e9e907c",
+      "contentHash": "e8d4443aed3a2e57dc217a85e5a7ac63a29e2284b165d9c0888cd65939195345",
       "functions": [
         {
           "name": "importFieldLabels",
           "params": [],
           "returnType": "array",
           "exported": true,
-          "lineCount": 21
+          "lineCount": 22
         },
         {
           "name": "importAllowedFields",
@@ -2395,12 +2537,215 @@
         "importNormalizeSexe",
         "importFieldValue"
       ],
-      "totalLines": 65,
+      "totalLines": 66,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/lib/locale.php": {
+      "filePath": "html/includes/lib/locale.php",
+      "contentHash": "172a663f555ed4e5d19d0463ed9595dc781ac9473756742c26381cb459332549",
+      "functions": [
+        {
+          "name": "mbAvailableLocales",
+          "params": [],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "mbNormalizeLocale",
+          "params": [
+            "$lang"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "mbLoadLocale",
+          "params": [
+            "$lang"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "mbAvailableLocales",
+        "mbNormalizeLocale",
+        "mbLoadLocale"
+      ],
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/lib/mailer.php": {
+      "filePath": "html/includes/lib/mailer.php",
+      "contentHash": "ee849a7043064a129bde46af6e6ef35365111b2200879b0bd23c946932a2077b",
+      "functions": [
+        {
+          "name": "mbSmtpSend",
+          "params": [
+            "$cfg",
+            "$to",
+            "$subject",
+            "$bodyText",
+            "$bodyHtml"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 177
+        },
+        {
+          "name": "mbSmtpEncryptPassword",
+          "params": [
+            "$password",
+            "$encKey"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "mbSmtpDecryptPassword",
+          "params": [
+            "$encrypted",
+            "$encKey"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "mbSmtpGetOrCreateEncKey",
+          "params": [
+            "$pdo"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "mbSendMail",
+          "params": [
+            "$pdo",
+            "$to",
+            "$subject",
+            "$bodyHtml",
+            "$bodyText",
+            "$userId"
+          ],
+          "returnType": "bool",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "_mbLogEmail",
+          "params": [
+            "$pdo",
+            "$to",
+            "$subject",
+            "$status",
+            "$errorMsg",
+            "$userId",
+            "$bodyText",
+            "$bodyHtml",
+            "$tplKey"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "mbDefaultTemplates",
+          "params": [],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 105
+        },
+        {
+          "name": "mbGetTemplate",
+          "params": [
+            "$pdo",
+            "$key"
+          ],
+          "returnType": "object",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "mbBuildSalutation",
+          "params": [
+            "$firstname",
+            "$lastname",
+            "$society"
+          ],
+          "returnType": "array",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "mbRenderTemplate",
+          "params": [
+            "$tpl",
+            "$vars"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "mbSendTemplate",
+          "params": [
+            "$pdo",
+            "$to",
+            "$tplKey",
+            "$vars",
+            "$userId"
+          ],
+          "returnType": "bool|string",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "mbSendMailWithError",
+          "params": [
+            "$pdo",
+            "$to",
+            "$subject",
+            "$bodyHtml",
+            "$bodyText",
+            "$userId",
+            "$tplKey"
+          ],
+          "returnType": "bool|string",
+          "exported": true,
+          "lineCount": 24
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "mbSmtpSend",
+        "mbSmtpEncryptPassword",
+        "mbSmtpDecryptPassword",
+        "mbSmtpGetOrCreateEncKey",
+        "mbSendMail",
+        "_mbLogEmail",
+        "mbDefaultTemplates",
+        "mbGetTemplate",
+        "mbBuildSalutation",
+        "mbRenderTemplate",
+        "mbSendTemplate",
+        "mbSendMailWithError"
+      ],
+      "totalLines": 541,
       "hasStructuralAnalysis": true
     },
     "html/includes/lib/migrations.php": {
       "filePath": "html/includes/lib/migrations.php",
-      "contentHash": "6037d0a1a53338a9e2318a8776a115610ae34004112bd529d7059eb3e7369824",
+      "contentHash": "eb52f4fc65e5deddb8b2362a94767c4fd8f0e64ab6b0619f742e8e5a1c944aac",
       "functions": [
         {
           "name": "mbMigrationsDir",
@@ -2460,7 +2805,7 @@
           ],
           "returnType": "array",
           "exported": true,
-          "lineCount": 44
+          "lineCount": 45
         },
         {
           "name": "mbDumpDatabase",
@@ -2484,7 +2829,7 @@
         "mbRunPendingMigrations",
         "mbDumpDatabase"
       ],
-      "totalLines": 150,
+      "totalLines": 151,
       "hasStructuralAnalysis": true
     },
     "html/includes/lib/pure.php": {
@@ -2531,7 +2876,7 @@
     },
     "html/includes/partials/donor_table.php": {
       "filePath": "html/includes/partials/donor_table.php",
-      "contentHash": "5066ef5ec000fff98e46693fe5864572e273489d506cda874b106dcec7039bea",
+      "contentHash": "2b2bf9a1d9abd00ad8d5b2fe4ffd61b2b27ac3539c631223d0501cfae079356a",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2539,49 +2884,59 @@
       "totalLines": 97,
       "hasStructuralAnalysis": true
     },
-    "html/includes/partials/menu.php": {
-      "filePath": "html/includes/partials/menu.php",
-      "contentHash": "ad308a145215479c6e64721d0ad5e69e13ef487b650c59f1bc1614566a6bcc09",
+    "html/includes/partials/email_log_section.php": {
+      "filePath": "html/includes/partials/email_log_section.php",
+      "contentHash": "fe909fb8c5b8f1bc419b09e105f877f2b8982ac80781737420f6f8ec21b54ecf",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 198,
+      "totalLines": 68,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/partials/menu.php": {
+      "filePath": "html/includes/partials/menu.php",
+      "contentHash": "42c1b78a2891849633e1b0089391c60796eda08e6f2375ead4a78c338e029c6d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 203,
       "hasStructuralAnalysis": true
     },
     "html/includes/routing/actions.php": {
       "filePath": "html/includes/routing/actions.php",
-      "contentHash": "35f438e0442e54a75bd271d20298b339636f74071ffdeec961692934e8f4f0ef",
+      "contentHash": "bab98cf519b4173ee5d116f50422d68ffeefb6d38c9e2f2e2cdd988f2fdbea3c",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 82,
+      "totalLines": 95,
       "hasStructuralAnalysis": true
     },
     "html/includes/routing/views.php": {
       "filePath": "html/includes/routing/views.php",
-      "contentHash": "4c927a136c414a7e10a74f56613213f3c928cd11c86b2c726d98440ccc9ebe1f",
+      "contentHash": "4cb381b3f3d5a95dbaaea1be198da62fbeb20f6fcaafa87713c27bfca8c28256",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 99,
+      "totalLines": 101,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/auth_change_password.php": {
       "filePath": "html/includes/views/auth_change_password.php",
-      "contentHash": "53e9d3b8fead654a5a50c26196ea4a466e9a47f44f7c2d198df933135e0dc5fe",
+      "contentHash": "e4f0fdc4f3ceadc7ec60480378034bafb864cf7dbaabf756540883133536f15c",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 65,
+      "totalLines": 89,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/compta_delete_confirm.php": {
       "filePath": "html/includes/views/compta_delete_confirm.php",
-      "contentHash": "be2fcf7542bde54f9a12c3fb32cedf38f7b93157f966f6d0977653ec5ad5fd1f",
+      "contentHash": "cc92c130523da4d04e4c9e0f1a245c3bf3635c8cf7a432c68da982c772484437",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2601,17 +2956,17 @@
     },
     "html/includes/views/compta_edit_form.php": {
       "filePath": "html/includes/views/compta_edit_form.php",
-      "contentHash": "fd3409e70b57671034173fe6c2bd4b4751f60bfef32f6739323f37f0c2bdde21",
+      "contentHash": "9a4c4f5a0c2e31b046747ddc028d8be6267578859c2d86ea572dbd9b3be8ad1e",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 115,
+      "totalLines": 152,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/compta_last_entry.php": {
       "filePath": "html/includes/views/compta_last_entry.php",
-      "contentHash": "993401e6bbd8e2895cae64b6e69bf59cd56ba34e7201715d94a09f74f6d19c8b",
+      "contentHash": "3ab549360079795ce60f58d85cddae316cbe1dd3e25adbcec426b450f9e33b63",
       "functions": [
         {
           "name": "_lec_type_swatch",
@@ -2635,7 +2990,17 @@
     },
     "html/includes/views/compta_list.php": {
       "filePath": "html/includes/views/compta_list.php",
-      "contentHash": "133b2117c4f13d49bef339554003c75742c57c04a0c36bd791e9d631f14c2396",
+      "contentHash": "016008fdd01b71e4e0f3e832231f3303971727e515175e70816caf5cd909483f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 719,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/compta_recap.php": {
+      "filePath": "html/includes/views/compta_recap.php",
+      "contentHash": "b5c245f6de86eae1c7a938631ec78e48cb41a7814baadb9b3f34f9738f934258",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2645,7 +3010,7 @@
     },
     "html/includes/views/donors_lapsed.php": {
       "filePath": "html/includes/views/donors_lapsed.php",
-      "contentHash": "e0d1ba0e0e95b21dfe500ed8371c8d5de4230cd32490103d25c126698a44c92e",
+      "contentHash": "c39b38c8abb08ecf28b3db5c06e2e5557de87b8e8c67bea38b37654a29c2fa0a",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2655,7 +3020,7 @@
     },
     "html/includes/views/donors_loyal.php": {
       "filePath": "html/includes/views/donors_loyal.php",
-      "contentHash": "1710092850bc535a29be6f62bafcdb751a4f447d4157c12257bb9d1231878f57",
+      "contentHash": "633a57ba40fb7242fd3de527a20bfd4800eb3667d2839bd2d9b9c48d1937b9f7",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2665,7 +3030,7 @@
     },
     "html/includes/views/donors_new.php": {
       "filePath": "html/includes/views/donors_new.php",
-      "contentHash": "e4df321b4ddf887a7769170b4017c5f29be14dbb862fbf7f1e9bf32dd2159f14",
+      "contentHash": "2f255c6a0006fc05d8c5288c6bb1c649d112caba570a328cbcb2e92bf527a591",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2675,17 +3040,27 @@
     },
     "html/includes/views/donors_summary.php": {
       "filePath": "html/includes/views/donors_summary.php",
-      "contentHash": "ce1fa702aaaeb019a375acc00e912f1b3954022cccba88a29f43d4a67f7b5516",
+      "contentHash": "7e8a6231af7d0a1b6afe0dd6e74d5028b5bea2496045772a05869fdfd6fbf95b",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 684,
+      "totalLines": 692,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/email_detail.php": {
+      "filePath": "html/includes/views/email_detail.php",
+      "contentHash": "cf33f1af86242503746398e0ca9dd1bf501b24249dec80437029166ccfa9c25f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 113,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/import_step1.php": {
       "filePath": "html/includes/views/import_step1.php",
-      "contentHash": "0e3b3cffee01e2af52595ec33cb18ae446693f4296ca2b89f7e22eafb535a7ba",
+      "contentHash": "cef2500a2a4e5022436e62469cb9f9d51b6da90e440fc778362d5cdaea514b97",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2695,17 +3070,17 @@
     },
     "html/includes/views/import_step2.php": {
       "filePath": "html/includes/views/import_step2.php",
-      "contentHash": "f9c97dfda69d3f0f7618890b60ecb4dd23ef6c7ac082501b5e2ec45fb2f78fd8",
+      "contentHash": "412e166286e0cfd21d3b1c12da7d68dd24917b9ed4ae7579a8f2f02177b1e0d0",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 169,
+      "totalLines": 168,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/import_step3.php": {
       "filePath": "html/includes/views/import_step3.php",
-      "contentHash": "c5ecad0acb6861e9811a4d67721452d95998bd173845aceea29c5abe4fb9be10",
+      "contentHash": "53aafe1dc86bbc52aafd66d999474eff2726ae73e0fb01021899ea0810733d0e",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2715,17 +3090,17 @@
     },
     "html/includes/views/members_lapsed.php": {
       "filePath": "html/includes/views/members_lapsed.php",
-      "contentHash": "1699d66ad7b560e3a4b011b6d1ef13d86086d5aaf11a72b45cded737c9aadcae",
+      "contentHash": "556d6a764d58517a773b92adf34c06bb67d2934f1489cd3157eef053ca936433",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 107,
+      "totalLines": 313,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/settings_app_users.php": {
       "filePath": "html/includes/views/settings_app_users.php",
-      "contentHash": "ccb5afe3bd7d47df98619ee5d667245494b93cefea4ee74cc23373b51f9432d2",
+      "contentHash": "59ed1a4d1f5b3468112b40479b4e78baed7fa0cab881efcfbaeacd8b56b9a5f9",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2735,7 +3110,7 @@
     },
     "html/includes/views/settings_audit_log.php": {
       "filePath": "html/includes/views/settings_audit_log.php",
-      "contentHash": "098665a7d18fcf1234c48879afc208fab073613cf592818c2a95012b8f196df9",
+      "contentHash": "6d0ea4b35b254f8b7a4271f65ff62219ec5751c6d2a47b65368be142753ade28",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2745,7 +3120,7 @@
     },
     "html/includes/views/settings_categories.php": {
       "filePath": "html/includes/views/settings_categories.php",
-      "contentHash": "68b60d3a63be50e8c516291e8c557161db62023d471637f4cd2c08331f69feea",
+      "contentHash": "fe15595ffc93601ce2944bf5799490c875c4e9f1ddea7b5821c659c107acc437",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2755,7 +3130,7 @@
     },
     "html/includes/views/settings_compta_types.php": {
       "filePath": "html/includes/views/settings_compta_types.php",
-      "contentHash": "d38a8f4f5ccd80597b35370c246caad59c860e95a94923d8a279b91f07df9fd6",
+      "contentHash": "a4cc8deb0c5c2c7f17a8002226f64418e40cf3931c2239462fa122ceedc9cfa3",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2763,19 +3138,49 @@
       "totalLines": 317,
       "hasStructuralAnalysis": true
     },
-    "html/includes/views/settings_filter_edit.php": {
-      "filePath": "html/includes/views/settings_filter_edit.php",
-      "contentHash": "9d82c925c47d0755132c7299c097e645a8c5e6b6f977c904c74cf4f164e4ce5e",
+    "html/includes/views/settings_email.php": {
+      "filePath": "html/includes/views/settings_email.php",
+      "contentHash": "bbd32f4a6a00c323eeb242f4f61a772eb836a363ac5929e4a1ab4b730e84d420",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 463,
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_email_log.php": {
+      "filePath": "html/includes/views/settings_email_log.php",
+      "contentHash": "36b2d15f1c15ee0ed55c9dbd732b357500873d9a6e9838132a52732f0c7d4e11",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 155,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_email_templates.php": {
+      "filePath": "html/includes/views/settings_email_templates.php",
+      "contentHash": "78bfd04ea56efac3072d1444972c1bda497d77c094242176178ed04dcff80334",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 222,
+      "hasStructuralAnalysis": true
+    },
+    "html/includes/views/settings_filter_edit.php": {
+      "filePath": "html/includes/views/settings_filter_edit.php",
+      "contentHash": "90d0db48af77c85a80bc4089d4413c793fcc7255f2c6085e09679030f8704a89",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 465,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/settings_filters.php": {
       "filePath": "html/includes/views/settings_filters.php",
-      "contentHash": "df12ac75bf859312e6f1dd63db71da7dafafbe975a3d4329009676652c616da9",
+      "contentHash": "7b09b98b71636143fbc1e8d49a3cb2ddf18c5157096b2cccb6bd47193d4a3002",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2785,7 +3190,7 @@
     },
     "html/includes/views/settings_general.php": {
       "filePath": "html/includes/views/settings_general.php",
-      "contentHash": "79438c682ce0fa7a0703a93a46780d3c15b0fc1ccee4f25d9aa5852eea876ae8",
+      "contentHash": "e5bbcb9099095379c34dce4b6967c405e24c153cbfa790d47d6c4db7d68bfba9",
       "functions": [
         {
           "name": "_settings_nav_item",
@@ -2807,22 +3212,22 @@
       "exports": [
         "_settings_nav_item"
       ],
-      "totalLines": 327,
+      "totalLines": 432,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/settings_group_edit.php": {
       "filePath": "html/includes/views/settings_group_edit.php",
-      "contentHash": "b89af213405e1dd40667d47d19e81469c1ba346491deb50540d2cf63b551af9a",
+      "contentHash": "adaed0726ae027922e1143fcc1ac59e5bce0e7b9bbffad0ed1cf0a9462f6644d",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 517,
+      "totalLines": 515,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/settings_groups.php": {
       "filePath": "html/includes/views/settings_groups.php",
-      "contentHash": "e47d135105a4072d7c11e5cee56e4341a8556bb1350263f3e2f6ca4554a82069",
+      "contentHash": "2ac9458d9d3975384ecf599b3d975b7cd2525bea7a2230e8b8512fa9115c87cc",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2832,17 +3237,17 @@
     },
     "html/includes/views/settings_health.php": {
       "filePath": "html/includes/views/settings_health.php",
-      "contentHash": "0f8d740ddcd06d94a4be3dc12f6779956c309dddd1f2d0bf44f03bf918d609ff",
+      "contentHash": "a487d1fe77c2a468ecd8c423689b574345ea4de8b319b43f2cc8a08546ea8222",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 211,
+      "totalLines": 256,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/settings_integrity.php": {
       "filePath": "html/includes/views/settings_integrity.php",
-      "contentHash": "7296d9125054cb007d21e7b3507137feadca263ffbe33bf3ab3411046e11b6b5",
+      "contentHash": "fde21133677e918f483f89ceb485f1ecbdec5551b2583f003ffe71843b1befbf",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2852,7 +3257,7 @@
     },
     "html/includes/views/suivi_delete_confirm.php": {
       "filePath": "html/includes/views/suivi_delete_confirm.php",
-      "contentHash": "fddd956e6ff7310e7a3ae2d588cd747b0f95497527435974cfc7b21c05b2428e",
+      "contentHash": "03ec54d253c8f3d95378787495e06746dfd3898fcf64358e3a0bfa57ea23df00",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2882,22 +3287,22 @@
     },
     "html/includes/views/suivi_last_entry.php": {
       "filePath": "html/includes/views/suivi_last_entry.php",
-      "contentHash": "456fa162c5795f3b89671782d20617971b1e9ab381eb6be7888b96cafd7ecfce",
+      "contentHash": "3ccc6221353bc744202941e4e929f4985079f07918518f9e63c81cd2c02a4516",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 89,
+      "totalLines": 124,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/suivi_list.php": {
       "filePath": "html/includes/views/suivi_list.php",
-      "contentHash": "e809c8672984d9593fa3eb2b359390fe906ac05329fede2309a75b50eff86953",
+      "contentHash": "b8d5b3f820dcf04a1316ded34ca87bf143cf7e0dba64bc3cd8d6d5e292af6f0a",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 80,
+      "totalLines": 83,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/users_add_form.php": {
@@ -2912,12 +3317,12 @@
     },
     "html/includes/views/users_anonymize.php": {
       "filePath": "html/includes/views/users_anonymize.php",
-      "contentHash": "34502faaf52d1270a461613a0990c7b87534e79865b76c8028e77211443e99f3",
+      "contentHash": "34c2a27f871ba0691c3a2ca4a86bceb6335e2334e5d2b42702e6f5e4b3dee5f8",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 56,
+      "totalLines": 54,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/users_deactivate_legacy.php": {
@@ -2932,7 +3337,7 @@
     },
     "html/includes/views/users_delete_confirm.php": {
       "filePath": "html/includes/views/users_delete_confirm.php",
-      "contentHash": "1a07757a0d3c02052b684d8ba6986886bac410f7953c10959a3a277f73f25618",
+      "contentHash": "b1dea8f7403c3115e891ad6efd2ce31163739154d75f2f467b829430d1e9b2b9",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2942,7 +3347,7 @@
     },
     "html/includes/views/users_edit_form.php": {
       "filePath": "html/includes/views/users_edit_form.php",
-      "contentHash": "b540b478fe9e904ade8a953d47951b3feefd46f059ff2423cf3650cae3386f76",
+      "contentHash": "37bf23b94a635921e49231cf9b5210500dd6637bc9ed413e49e7bed3a979d3bf",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2952,27 +3357,27 @@
     },
     "html/includes/views/users_general_data.php": {
       "filePath": "html/includes/views/users_general_data.php",
-      "contentHash": "f42f98eafa0a5f0c72c28fdcfc608fbefb90bffc891eb0557cf9389255c0113e",
+      "contentHash": "1f79a8ee005214bf39a9ddea5989d49f1ad6a3a0f7ee4c60105eeb1a3ed5d180",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 404,
+      "totalLines": 406,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/users_history.php": {
       "filePath": "html/includes/views/users_history.php",
-      "contentHash": "873a9680fd57fc1df4db21c21d0ecf31793f5c842be9dac06b0c6c4b955cace2",
+      "contentHash": "128bafc3d2eb6c18510ae5aff2c3dd895992d0f88b4b13de1766b2aeed216fab",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 71,
+      "totalLines": 73,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/users_inactive.php": {
       "filePath": "html/includes/views/users_inactive.php",
-      "contentHash": "a1cdadd1611d201a5ceeef07f2074ceea82603017b9c6942e5851cd7f5fe1abe",
+      "contentHash": "15840de6a3e58b41eb2ddb1c29dca5b5c7548fce53007b0dbc264f2809e7ba4f",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2982,7 +3387,7 @@
     },
     "html/includes/views/users_list.php": {
       "filePath": "html/includes/views/users_list.php",
-      "contentHash": "7e115add341f18388e3d277d858cec47c168edf93c585963f23e60ec1f928195",
+      "contentHash": "86eb7db3b2d77db96943bbca583914021e66214e268f149a15655a7d8a7a6aa0",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -2992,17 +3397,17 @@
     },
     "html/includes/views/users_member_of.php": {
       "filePath": "html/includes/views/users_member_of.php",
-      "contentHash": "74df84f49cbc25b7de1685e10ccc5fb22468458f9efb1582cf3e907e9569c909",
+      "contentHash": "57f1dc97ded37320f777f7a91fac59b47db6f7e62c50987ebb1ed2349f03dc6b",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 260,
+      "totalLines": 262,
       "hasStructuralAnalysis": true
     },
     "html/includes/views/users_merge.php": {
       "filePath": "html/includes/views/users_merge.php",
-      "contentHash": "81e0b3ae3f65ae5f090a1463ee538a680eb689fd9d319306aa2f315f36c4d2a4",
+      "contentHash": "7368f6eb077a4de1e750780f3f2effedae841d7f551743bb669c1fe87019ecf9",
       "functions": [],
       "classes": [],
       "imports": [],
@@ -3012,7 +3417,7 @@
     },
     "html/index.php": {
       "filePath": "html/index.php",
-      "contentHash": "d4629251c295b6ff781e547f363287b88adcdf1944b87bd871f208eb29815f65",
+      "contentHash": "f4d19fdb201e9792dd9ee8180ab1e26f7e3ad592ed99061ebbfbad56d7de316f",
       "functions": [
         {
           "name": "getMicroTime",
@@ -3026,12 +3431,12 @@
       "exports": [
         "getMicroTime"
       ],
-      "totalLines": 215,
+      "totalLines": 212,
       "hasStructuralAnalysis": true
     },
     "html/install.php": {
       "filePath": "html/install.php",
-      "contentHash": "8795b054d98030c2cd05d343aeb86c39bad160bbc7834a7e13d03c1cd2a5755b",
+      "contentHash": "0733b3bfd587e6b2f6623b976c4b002cfeb458fe5354ee45291adbea3189ebdd",
       "functions": [
         {
           "name": "installerPdo",
@@ -3046,12 +3451,12 @@
       "exports": [
         "installerPdo"
       ],
-      "totalLines": 672,
+      "totalLines": 716,
       "hasStructuralAnalysis": true
     },
     "html/js/app.js": {
       "filePath": "html/js/app.js",
-      "contentHash": "c9733935eb9c3d5860f36177e9e0274f1223d4c10ba48231fe8631fb0ceb4ab4",
+      "contentHash": "152276e2da7d20233501fea0b83e296eefa47efb2d822148186e88835c385a8d",
       "functions": [
         {
           "name": "casaInit",
@@ -3065,7 +3470,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 204,
+      "totalLines": 205,
       "hasStructuralAnalysis": true
     },
     "html/js/dt_defaults.js": {
@@ -3138,6 +3543,16 @@
       "totalLines": 68,
       "hasStructuralAnalysis": true
     },
+    "html/js/vendor/datahref2.jquery.js": {
+      "filePath": "html/js/vendor/datahref2.jquery.js",
+      "contentHash": "c9d65bb7210b062d7382b8f0304e31e4d6dddd68327240f667505715afece3d6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 55,
+      "hasStructuralAnalysis": true
+    },
     "html/locales/.htaccess": {
       "filePath": "html/locales/.htaccess",
       "contentHash": "fa28d421a28ed9b6f4b997d5119c2b8adbacff6e2dd119a179b71230f9664934",
@@ -3148,14 +3563,44 @@
       "totalLines": 2,
       "hasStructuralAnalysis": false
     },
-    "html/locales/resources_fr.php": {
-      "filePath": "html/locales/resources_fr.php",
-      "contentHash": "621902e4dff48f6587ad4c3507f5ab61396025451a9ca5fa5b67d6db0bcd9c02",
+    "html/locales/resources_de.php": {
+      "filePath": "html/locales/resources_de.php",
+      "contentHash": "515b880b4b511bf0cdfdee549085952752008beb02924f61aa6c51420d60330d",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 136,
+      "totalLines": 1018,
+      "hasStructuralAnalysis": true
+    },
+    "html/locales/resources_en.php": {
+      "filePath": "html/locales/resources_en.php",
+      "contentHash": "7beca5de1d1dfd82bc0941025b48be0cd1f742de0b6f9bd9a02e5bb898c7b12a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1018,
+      "hasStructuralAnalysis": true
+    },
+    "html/locales/resources_es.php": {
+      "filePath": "html/locales/resources_es.php",
+      "contentHash": "5baf6a7be612391af79f0392967bd8ddc1cc0c82c669aeaa74d880abe0d05942",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1020,
+      "hasStructuralAnalysis": true
+    },
+    "html/locales/resources_fr.php": {
+      "filePath": "html/locales/resources_fr.php",
+      "contentHash": "b4755adec771c17ad56b9bd78bc6dfa99bbcdebdb8ed398025ab8017c6f36675",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1018,
       "hasStructuralAnalysis": true
     },
     "html/log4php.properties": {
@@ -3170,12 +3615,12 @@
     },
     "html/login.php": {
       "filePath": "html/login.php",
-      "contentHash": "979d52a53868f596e93a492a7bff63ec8015916818c32a260d192085d25230ad",
+      "contentHash": "984028dc540e9e8992235243acb1bd7f8b05e0a250e0c9d9a02b4225ae61872f",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 109,
+      "totalLines": 110,
       "hasStructuralAnalysis": true
     },
     "html/members.iml": {
@@ -3218,14 +3663,114 @@
       "totalLines": 8,
       "hasStructuralAnalysis": true
     },
-    "html/set-password.php": {
-      "filePath": "html/set-password.php",
-      "contentHash": "c77329683b7631d93f8d9961d49af70dd487c733dec7f547afce11163748f950",
+    "html/migrations/0003_app_users_locale.sql": {
+      "filePath": "html/migrations/0003_app_users_locale.sql",
+      "contentHash": "e6e5fbd32c63da819f6ea61dc35cb40810e7f28251ee71285070c94808cda4f7",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 96,
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "html/migrations/0004_org_ide_fields.sql": {
+      "filePath": "html/migrations/0004_org_ide_fields.sql",
+      "contentHash": "66f3656e5c54a4a38e6003951accb6acf42bb526867d839c38b95c389af740d4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": true
+    },
+    "html/migrations/0005_email_log.sql": {
+      "filePath": "html/migrations/0005_email_log.sql",
+      "contentHash": "c8f7e293d4e8a7df4dc8c59e52d7e454f97ee55ed9295ab67fa9d317f7596660",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "html/migrations/0006_email_templates.sql": {
+      "filePath": "html/migrations/0006_email_templates.sql",
+      "contentHash": "86a61599d958b12cb1c9d442c57d22ca4760990c69e08c4fc92d95b0037570e0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "html/migrations/0007_compta_notified_at.sql": {
+      "filePath": "html/migrations/0007_compta_notified_at.sql",
+      "contentHash": "3acf1afe6335be7a028ed2355f81f7981f8efe2f11cd97376a468680f3eb2f6c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "html/migrations/0008_compta_cotisation_year.sql": {
+      "filePath": "html/migrations/0008_compta_cotisation_year.sql",
+      "contentHash": "eb0cea4b81683cc7569c8d78cfa805af69bcc2177d4a186c1bf32edf0e738140",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "html/migrations/0009_backfill_cotisation_year.sql": {
+      "filePath": "html/migrations/0009_backfill_cotisation_year.sql",
+      "contentHash": "394425f63ae29a90a5889bc3517487cb00e866b9208ff3e079cbfb594c8ba1df",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
+    "html/migrations/0010_email_templates_html.sql": {
+      "filePath": "html/migrations/0010_email_templates_html.sql",
+      "contentHash": "cd59d0e38c5c1bd65460e08eff38e8333783786e4ac1320af1ebda9768696d61",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": true
+    },
+    "html/migrations/0011_email_log_body.sql": {
+      "filePath": "html/migrations/0011_email_log_body.sql",
+      "contentHash": "77f261b240b069a3341c954589a45e002d45a29ff3969dabefb2111aaad91d68",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "html/migrations/0012_email_log_tpl_key.sql": {
+      "filePath": "html/migrations/0012_email_log_tpl_key.sql",
+      "contentHash": "174609687eb64a7dd67cd2b6668fc5ec2196d854dd9cdfddc135d719f023cbde",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "html/set-password.php": {
+      "filePath": "html/set-password.php",
+      "contentHash": "85bc07d527074e69b35e159d36613f280bc913af1b620ce5858af20e1f2dc0c7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 97,
       "hasStructuralAnalysis": true
     },
     "html/tools/backup.sh": {
@@ -3270,12 +3815,12 @@
     },
     "html/tools/migrate.php": {
       "filePath": "html/tools/migrate.php",
-      "contentHash": "fe21050e43b46faf2409b01ba2d1896e7b734f1c1ef181987d7df9abfdc0e414",
+      "contentHash": "fd3a96f471414741b25c99ca2a77b26f50fbb072831cca4d668c3d24e67868fa",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 129,
+      "totalLines": 131,
       "hasStructuralAnalysis": true
     },
     "html/tools/restore.sh": {
@@ -3286,26 +3831,6 @@
       "imports": [],
       "exports": [],
       "totalLines": 35,
-      "hasStructuralAnalysis": true
-    },
-    "Makefile": {
-      "filePath": "Makefile",
-      "contentHash": "21aaf9efe93d076d029fd63e674b1dd3ad3c62a4e3dd8b80d8b7e97173e81377",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 59,
-      "hasStructuralAnalysis": true
-    },
-    "MIGRATION_PROD.md": {
-      "filePath": "MIGRATION_PROD.md",
-      "contentHash": "244b37b686cabbfc525175b54985d9ebb773748e0293dafc23b83ddde11ed440",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 162,
       "hasStructuralAnalysis": true
     },
     "package.json": {
@@ -3346,34 +3871,24 @@
       "totalLines": 28,
       "hasStructuralAnalysis": true
     },
-    "PRODUCT.md": {
-      "filePath": "PRODUCT.md",
-      "contentHash": "15155872dc7a8b66eb912d2ecd65aa75a2134dbf26c95e4f27eae1ba66bb81c2",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 45,
-      "hasStructuralAnalysis": true
-    },
-    "README.md": {
-      "filePath": "README.md",
-      "contentHash": "cc681cd6574d5c2e5ea81735d68b034e4074205278254058b8dcc99fe3ec493e",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 305,
-      "hasStructuralAnalysis": true
-    },
     "schema.sql": {
       "filePath": "schema.sql",
-      "contentHash": "1ee45d02e865242810b8e5dcf3adc0cb268fe0eeb48ef39666f537f61f1c5923",
+      "contentHash": "f889fc841686de8cf28f0b68b7448e667b13fd593ae6d6fc10a0505819e0dcfc",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 147,
+      "totalLines": 188,
+      "hasStructuralAnalysis": true
+    },
+    "tests/README.md": {
+      "filePath": "tests/README.md",
+      "contentHash": "38395fb73fb4037bffadd173bc8b2e8a382957d8c2dc77a2e54475c8a7ff8a5a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 84,
       "hasStructuralAnalysis": true
     },
     "tests/api.spec.ts": {
@@ -3490,6 +4005,90 @@
       "totalLines": 76,
       "hasStructuralAnalysis": true
     },
+    "tests/cotisation-reminders.spec.ts": {
+      "filePath": "tests/cotisation-reminders.spec.ts",
+      "contentHash": "346bbfde1a8a49e59b7a08436e12773756d1b13f1c0b0c2f64d3f2a0c5f1c5ea",
+      "functions": [
+        {
+          "name": "openReminderModal",
+          "params": [
+            "page"
+          ],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "csrfToken",
+          "params": [
+            "api"
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "purgeMailpit",
+          "params": [
+            "request"
+          ],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "mailpitMessages",
+          "params": [
+            "request"
+          ],
+          "returnType": "Promise<any[]>",
+          "exported": false,
+          "lineCount": 5
+        },
+        {
+          "name": "mailpitBody",
+          "params": [
+            "request",
+            "id"
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "APIRequestContext"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 196,
+      "hasStructuralAnalysis": true
+    },
+    "tests/datahref-nested-link.spec.ts": {
+      "filePath": "tests/datahref-nested-link.spec.ts",
+      "contentHash": "82674a4618de015b1f4b39a8f217d3097eddc39971e95955b6208379548dca7e",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 73,
+      "hasStructuralAnalysis": true
+    },
     "tests/db-maintenance.spec.ts": {
       "filePath": "tests/db-maintenance.spec.ts",
       "contentHash": "771a633bd182bf251fd9b3e6c433fdf7964c4a332db97dd09c9a9a93507475e5",
@@ -3564,32 +4163,32 @@
     },
     "tests/fixtures/legacy.sql": {
       "filePath": "tests/fixtures/legacy.sql",
-      "contentHash": "4059f0bb77f0d9b7b73f5fc20b08cfbd93c34c934d61b7f16ddca4d0ba5e7bd3",
+      "contentHash": "db3e71b18ddccd682886b1e93d444980f9b43cef94b6d84ebecee7bfeee0ac40",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 41,
+      "totalLines": 66,
       "hasStructuralAnalysis": true
     },
     "tests/fixtures/reset-db.sh": {
       "filePath": "tests/fixtures/reset-db.sh",
-      "contentHash": "81e12216b68bee6e046beddda77a250d35abd41b0cb7f605d7d0ac1a72c77a82",
+      "contentHash": "c2b58840f80e949a83442debf7598d28d4d1064853a8328ce486282bae956f88",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 40,
+      "totalLines": 48,
       "hasStructuralAnalysis": true
     },
     "tests/fixtures/seed.sql": {
       "filePath": "tests/fixtures/seed.sql",
-      "contentHash": "fe0af85b5b8bdbbdd0c9724339d43bf11b5a45c58771ec42da66789faaaef8bb",
+      "contentHash": "0ca1dff23876b8ee49de93d41368785b9116263ee2b407de9a646b9c0519a9e2",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 56,
+      "totalLines": 78,
       "hasStructuralAnalysis": true
     },
     "tests/global-setup.ts": {
@@ -3705,7 +4304,7 @@
     },
     "tests/inactive-members.spec.ts": {
       "filePath": "tests/inactive-members.spec.ts",
-      "contentHash": "e0c3eeb4f619c7ebd028ad66181e7b78fa02f5c9a9bce765690d9b2d2398544f",
+      "contentHash": "4a5d7e95da7189eee7fb8bfdd0f2932482af361183faca78e7c122c941f4526f",
       "functions": [
         {
           "name": "getNewUserId",
@@ -3732,9 +4331,45 @@
       "totalLines": 70,
       "hasStructuralAnalysis": true
     },
+    "tests/locale.spec.ts": {
+      "filePath": "tests/locale.spec.ts",
+      "contentHash": "773194060b0d777e8e1bad15f0afe692fd17049ac72ad3e1cb007221397cb7d7",
+      "functions": [
+        {
+          "name": "switchLocale",
+          "params": [
+            "page",
+            "code",
+            "selectLabel"
+          ],
+          "exported": false,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect",
+            "Page"
+          ]
+        },
+        {
+          "source": "./helpers/login",
+          "specifiers": [
+            "login"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
     "tests/members.spec.ts": {
       "filePath": "tests/members.spec.ts",
-      "contentHash": "8fd2f72ae1f7e18c26095b626103dfe3fea7d3f5fadc626a5a9f79140b0c6627",
+      "contentHash": "21477c01dd40e408bbae1c322048e0473c0fd809c180c2c7a265bebcd9dd7cb8",
       "functions": [
         {
           "name": "getNewUserId",
@@ -3758,7 +4393,7 @@
         }
       ],
       "exports": [],
-      "totalLines": 96,
+      "totalLines": 97,
       "hasStructuralAnalysis": true
     },
     "tests/merge-users.spec.ts": {
@@ -3905,16 +4540,6 @@
       ],
       "exports": [],
       "totalLines": 108,
-      "hasStructuralAnalysis": true
-    },
-    "tests/README.md": {
-      "filePath": "tests/README.md",
-      "contentHash": "38395fb73fb4037bffadd173bc8b2e8a382957d8c2dc77a2e54475c8a7ff8a5a",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 84,
       "hasStructuralAnalysis": true
     },
     "tests/resume.spec.ts": {
@@ -4150,6 +4775,24 @@
       "totalLines": 72,
       "hasStructuralAnalysis": true
     },
+    "tests/team-filter.spec.ts": {
+      "filePath": "tests/team-filter.spec.ts",
+      "contentHash": "47b4e48213cac7bd65d88dc35b493a3e7da0549db2b9ec380c2581e1bae1f39c",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@playwright/test",
+          "specifiers": [
+            "test",
+            "expect"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 174,
+      "hasStructuralAnalysis": true
+    },
     "tests/tiptap.spec.ts": {
       "filePath": "tests/tiptap.spec.ts",
       "contentHash": "3fc7f9a92953ce4a84fab1d7bb9b77434513ca72170a16ff42f157109dd028f2",
@@ -4168,14 +4811,105 @@
       "totalLines": 23,
       "hasStructuralAnalysis": true
     },
-    "tests/unit/bootstrap.php": {
-      "filePath": "tests/unit/bootstrap.php",
-      "contentHash": "d29008628a2e7446e135c31d6aafa7628b51a6474ce8ddce754f4abd2b0c9f83",
-      "functions": [],
-      "classes": [],
-      "imports": [],
-      "exports": [],
-      "totalLines": 17,
+    "tests/unit/ComptaYearTest.php": {
+      "filePath": "tests/unit/ComptaYearTest.php",
+      "contentHash": "c29508ea42034ba86d0f0099da7006c81168a4ab7735175d53537a62391dd08f",
+      "functions": [
+        {
+          "name": "make",
+          "params": [],
+          "returnType": "Compta",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "testNullAndEmptyStringClearYear",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "testCurrentYearIsAccepted",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "testNextYearIsAccepted",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "testYearTooFarInFutureIsRejected",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "testYearTooFarInPastIsRejected",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "testOldButValidYearIsAccepted",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "testStringYearIsCoerced",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "testCoalesceEffectiveYear",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 18
+        }
+      ],
+      "classes": [
+        {
+          "name": "ComptaYearTest",
+          "methods": [
+            "make",
+            "testNullAndEmptyStringClearYear",
+            "testCurrentYearIsAccepted",
+            "testNextYearIsAccepted",
+            "testYearTooFarInFutureIsRejected",
+            "testYearTooFarInPastIsRejected",
+            "testOldButValidYearIsAccepted",
+            "testStringYearIsCoerced",
+            "testCoalesceEffectiveYear"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 86
+        }
+      ],
+      "imports": [
+        {
+          "source": "PHPUnit\\Framework\\TestCase",
+          "specifiers": [
+            "TestCase"
+          ]
+        }
+      ],
+      "exports": [
+        "ComptaYearTest"
+      ],
+      "totalLines": 97,
       "hasStructuralAnalysis": true
     },
     "tests/unit/ImportFieldsTest.php": {
@@ -4333,9 +5067,19 @@
       "totalLines": 54,
       "hasStructuralAnalysis": true
     },
+    "tests/unit/bootstrap.php": {
+      "filePath": "tests/unit/bootstrap.php",
+      "contentHash": "cebc0c2aa139edb08ca860d779cb833adaac7a6bf7823a407caea723da7e329d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
     "tests/upgrade/assert.sh": {
       "filePath": "tests/upgrade/assert.sh",
-      "contentHash": "62b8a95487341ed54970e52aad30421f026b20543ec074c04374780ec6c5a4fc",
+      "contentHash": "6e0267d24ad18d5d724e7858233fa3556c193c3d53ce103cd54844718f6ff3d9",
       "functions": [
         {
           "name": "q",
@@ -4353,7 +5097,7 @@
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 42,
+      "totalLines": 84,
       "hasStructuralAnalysis": true
     },
     "tests/views.spec.ts": {
@@ -4372,6 +5116,61 @@
       ],
       "exports": [],
       "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "tools/publish-site.sh": {
+      "filePath": "tools/publish-site.sh",
+      "contentHash": "d288f1c24859354f1c4d35d13779481610df9bfe0c047b068e02ad5cacd6b9b8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "tools/release.sh": {
+      "filePath": "tools/release.sh",
+      "contentHash": "bba80a9e4808e220ffa00a7fab01f5523430f2a51f4a84a74ded98151959695c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "tools/site-release.mjs": {
+      "filePath": "tools/site-release.mjs",
+      "contentHash": "13c9780f5c6d4162037dd8e53a6369d75d499a3be4ab3257f2ab81c2110901e4",
+      "functions": [
+        {
+          "name": "escapeHtml",
+          "params": [
+            "s"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "inlineMd",
+          "params": [
+            "s"
+          ],
+          "exported": false,
+          "lineCount": 7
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "node:fs",
+          "specifiers": [
+            "readFileSync",
+            "writeFileSync"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 87,
       "hasStructuralAnalysis": true
     }
   }

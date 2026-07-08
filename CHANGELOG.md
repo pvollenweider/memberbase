@@ -2,6 +2,30 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [4.0.0] — 2026-07-08
+
+### Nouveautés
+
+- **Configuration SMTP** (Réglages → Email) : client SMTP pur PHP sans dépendance externe (plain / STARTTLS / SSL-TLS, AUTH LOGIN/PLAIN ou sans auth), mot de passe chiffré au repos, envoi de test avec message d'erreur SMTP détaillé.
+- **Templates d'email configurables** (objet + corps texte/HTML, variables `{{placeholder}}`) pour le rappel de cotisation, le récapitulatif comptable et l'attestation de don, avec repli sur un template intégré par défaut.
+- **Récapitulatifs comptables groupés** (`comptaRecap`) : un email par membre récapitulant ses entrées non notifiées, aperçu avant envoi (rendu HTML réel), envoi individuel ou en masse, filtre par année, mode étendu pour renvoyer aux membres déjà notifiés.
+- **Rappels de cotisation impayée** : envoi manuel individuel ou en masse depuis la vue Membres perdus, avec garde anti-doublon par année.
+- **Journal des emails** (Réglages → Email → Journal) : historique paginé, statut envoyé/erreur, renvoi d'une entrée en erreur, purge.
+- **Année de cotisation** (`compta.cotisation_year`) : distingue l'année de paiement de l'année de cotisation couverte (ex. cotisation N+1 payée en décembre N) ; champ validé côté serveur, reflété dans les emails et exposé par l'API REST (`GET /api/members/{id}?sub=compta`).
+- **Champs organisation** : numéro IDE suisse avec vérification automatique via Zefix (préremplissage nom/adresse/but statutaire), but statutaire, statut d'exonération fiscale.
+
+### Corrections
+
+- Lien PDF d'attestation non cliquable dans une ligne cliquable (`ca-row-link`) : le plugin `datahref` interceptait les clics sur les liens imbriqués.
+- Lookup Zefix : bascule vers le flux d'API réel (`search.json` → `firm/{ehraid}.json`), l'ancien endpoint étant décommissionné.
+- Erreur réseau sur les boutons Zefix/LINDAS causée par une requête `fetch()` sans en-tête `HX-Request`.
+- `assert.sh` (test CI d'upgrade) n'attendait que 9 migrations appliquées au lieu de 12.
+- `email_templates.body_html` manquant dans `schema.sql`/`install.php` — un fresh install ne créait pas cette colonne pourtant utilisée par les templates HTML.
+
+### Technique
+
+- Test de convergence CI depuis une base de données legacy étendu aux migrations 0010-0012 (`tests/upgrade/`).
+
 ## [3.8.0] — 2026-07-03
 
 ### Nouveautés

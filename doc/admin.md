@@ -1,6 +1,6 @@
 # Guide administrateur — MemberBase
 
-Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 3.5.6). Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
+Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 4.0.0). Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
 
 ---
 
@@ -19,6 +19,7 @@ Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploi
 11. [CI/CD](#11-cicd)
 12. [Mise à jour du schéma](#12-mise-à-jour-du-schéma)
 13. [Logs d'audit](#13-logs-daudit)
+14. [Emails et communications](#14-emails-et-communications)
 
 ---
 
@@ -219,6 +220,10 @@ Stockés en base, modifiables dans Réglages → Général. Clés principales :
 | `membre_team` | ID du groupe de référence pour les filtres cotisation |
 | `archive_id` | ID du groupe archives (exclu des vues par défaut) |
 | `membre_team_prefix` | Préfixe des groupes membres annuels (ex. `Membre`) |
+| `org_ide` | Numéro IDE suisse (CHE-XXX.XXX.XXX) — figure sur les attestations de dons. Bouton **Vérifier via Zefix** dans l'UI : interroge le registre du commerce suisse (`zefix.ch`, flux `search.json` → `firm/{ehraid}.json`) pour préremplir nom/adresse/but statutaire à partir du numéro IDE |
+| `org_purpose` | But statutaire (extrait des statuts) — préremplissable via Zefix |
+| `org_tax_status` | Statut d'exonération fiscale — saisie manuelle uniquement (aucun registre fédéral consulté automatiquement) |
+| `smtp_*` | Configuration SMTP — voir [§14.1](#141-configuration-smtp) |
 
 Modification directe en SQL si nécessaire :
 
@@ -782,19 +787,60 @@ npx playwright show-report
 
 ### Principe général
 
-Toutes les instructions `CREATE TABLE` dans `install.php` utilisent `CREATE TABLE IF NOT EXISTS`. Un `git pull` suivi d'un rechargement Apache suffit pour les mises à jour courantes — les tables existantes ne sont pas touchées.
+Chaque changement de schéma est un fichier `html/migrations/NNNN_description.sql`
+(sous `html/` pour être déployé avec l'application, protégé de l'accès HTTP par
+`html/migrations/.htaccess`). Les migrations appliquées sont suivies dans la table
+`schema_migrations` (nom + horodatage + checksum SHA-256).
 
-Ce schéma idempotent signifie que re-passer par `install.php?step=3` sur une instance existante est sans danger : les tables sont ignorées, les données conservées.
+Un `git pull` seul ne suffit plus pour les mises à jour qui ajoutent une
+migration — il faut l'appliquer explicitement (deux méthodes ci-dessous).
+Les instructions `CREATE TABLE` d'`install.php` restent idempotentes
+(`CREATE TABLE IF NOT EXISTS`) et embarquent en plus le schéma courant complet :
+une **installation fraîche** n'exécute jamais les migrations une par une, elle
+crée directement le schéma à jour puis marque toutes les migrations comme
+appliquées (« baseline »).
 
-### Migrations exceptionnelles
+### Méthode 1 — CLI (`tools/migrate.php`)
 
-Les modifications de schéma non rétrocompatibles (ajout de colonne `NOT NULL` sans valeur par défaut, renommage de table, changement d'index) sont documentées dans `MIGRATION_PROD.md` à la racine du dépôt.
+```bash
+# Voir l'état : appliquées / en attente / dérive
+php html/tools/migrate.php --status
 
-Avant toute migration :
-1. Lire `MIGRATION_PROD.md` pour la version cible
-2. Faire un dump de la base (`mysqldump`)
-3. Tester la migration sur un environnement de staging
-4. Appliquer en production dans une fenêtre de maintenance
+# Appliquer les migrations en attente
+php html/tools/migrate.php
+# (ou : make migrate)
+
+# Marquer tout comme appliqué sans exécuter — réservé au fresh install,
+# jamais sur une prod existante (géré automatiquement par install.php)
+php html/tools/migrate.php --baseline
+```
+
+`--status` sort en code 2 et affiche `[!] DÉRIVE` si le contenu d'une migration
+déjà appliquée a été modifié après coup (comparaison de checksum) — **ne jamais
+éditer une migration déjà appliquée**, en créer une nouvelle à la place.
+
+### Méthode 2 — Interface web (sans accès SSH)
+
+**Réglages → Santé** (admin) permet, sans ligne de commande :
+- **Exporter la base** (dump SQL pur, sans dépendre de `mysqldump` sur le serveur)
+- **Appliquer les migrations en attente** (case « j'ai fait une sauvegarde »
+  obligatoire avant de pouvoir valider)
+
+Cette page affiche aussi le nombre de migrations en attente et signale toute
+dérive de checksum détectée.
+
+### Avant toute migration en production
+
+1. `php html/tools/migrate.php --status` (ou Réglages → Santé) pour voir ce qui va s'appliquer
+2. Dump de la base (`mysqldump`, ou export intégré via Réglages → Santé)
+3. Tester sur un environnement de staging si la migration est structurante
+4. Appliquer en production
+
+⚠️ Le DDL MySQL est auto-committé (pas de rollback transactionnel) — la
+sauvegarde de l'étape 2 est la seule protection en cas de problème.
+
+`MIGRATION_PROD.md` à la racine du dépôt documente l'historique des migrations
+manuelles d'avant ce système (versions ≤ 3.7.x) ; il n'est plus alimenté.
 
 ### Vérifier l'état du schéma
 
@@ -805,7 +851,8 @@ SHOW TABLES;
 -- Vérifier la structure d'une table
 DESCRIBE app_users;
 
--- Comparer avec le schéma cible dans install.php
+-- État détaillé des migrations
+SELECT * FROM schema_migrations ORDER BY id;
 ```
 
 ---
@@ -868,6 +915,61 @@ DELETE FROM audit_log WHERE created_at < DATE_SUB(NOW(), INTERVAL 2 YEAR);
 ```
 
 ---
+
+## 14. Emails et communications
+
+Accès : **Réglages → Email** (`?view=settings&tab=email`, admin uniquement). Une seule page avec trois sections empilées : configuration SMTP, journal des envois, templates.
+
+### 14.1 Configuration SMTP
+
+Client SMTP pur PHP (`html/includes/lib/mailer.php`, sans dépendance externe) supportant connexion en clair, STARTTLS, SSL/TLS implicite, AUTH LOGIN/PLAIN ou sans authentification.
+
+| Champ | Description |
+|-------|-------------|
+| Serveur / Port | Hôte et port SMTP |
+| Chiffrement | Aucun / STARTTLS / SSL-TLS |
+| Authentification | Case à cocher — si activée, expose utilisateur + mot de passe |
+| Utilisateur / Mot de passe | Identifiants SMTP. Le mot de passe est **chiffré au repos** dans `app_settings` avec une clé générée automatiquement par installation (`mbSmtpGetOrCreateEncKey()`) |
+| Nom / Email d'expéditeur | En-têtes `From` des emails sortants |
+| Répondre à | En-tête `Reply-To` (optionnel) |
+
+Un bouton **Envoi de test** permet de vérifier la configuration sans passer par une action métier (`sendTestEmail`) — affiche le message d'erreur SMTP brut en cas d'échec (utile pour diagnostiquer un souci d'auth ou de certificat SSL).
+
+Si le SMTP n'est pas configuré ou que l'envoi échoue, les fonctionnalités email (rappels, récapitulatifs) échouent silencieusement côté utilisateur final (pas de blocage de l'action déclenchante) mais l'échec est visible dans le journal des emails.
+
+### 14.2 Journal des emails (`email_log`)
+
+Historique paginé de tous les envois (destinataire, sujet, statut envoyé/erreur, date). Actions :
+- **Renvoyer** une entrée en erreur individuellement
+- **Vider le journal** (purge complète)
+
+Chaque envoi lié à un membre (rappel de cotisation, récapitulatif compta) apparaît aussi dans l'historique de ce membre (onglet Suivi / Historique) via une section dédiée.
+
+### 14.3 Templates d'email
+
+Trois templates éditables (objet + corps texte + corps HTML) stockés dans `email_templates`, avec repli sur un template intégré par défaut si absent :
+
+| Clé | Usage |
+|-----|-------|
+| `tpl_cotisation_reminder` | Rappel de cotisation impayée |
+| `tpl_attestation_don` | Envoi de l'attestation de don (template configuré, pas encore d'action d'envoi câblée dans l'UI) |
+| `tpl_payment_receipt` | Récapitulatif comptable groupé (compta recap) |
+
+Interpolation par `{{placeholder}}` (pas `%s`/`sprintf`). Une modale « Variables disponibles » liste les placeholders utilisables par template (ex. `{{firstname}}`, `{{entries}}`, `{{total}}`, `{{org_name}}`).
+
+### 14.4 Rappels de cotisation
+
+Depuis la vue **Membres perdus** (`lapsedMembers`), envoi manuel — individuel ou en masse — d'un rappel aux membres ayant cotisé l'année précédente mais pas l'année en cours. Anti-doublon : un membre déjà relancé cette année (`email_log.tpl_key = 'tpl_cotisation_reminder'` + année) n'est pas re-sollicité tant que l'option de forçage n'est pas utilisée.
+
+### 14.5 Récapitulatifs comptables (compta recap)
+
+Vue **`comptaRecap`** : envoi groupé d'un email par membre récapitulant ses entrées comptables non encore notifiées (`compta.notified_at IS NULL`), filtrable par année. Fonctionnalités :
+- Aperçu avant envoi (modale par membre, rendu HTML réel du template)
+- Envoi en masse ou membre par membre
+- Mode étendu affichant aussi les membres déjà notifiés (renvoi possible avec forçage)
+- Annotation automatique de l'année de cotisation dans l'email quand elle diffère de l'année de paiement (`compta.cotisation_year` — ex. cotisation 2027 payée en décembre 2026), validée côté serveur dans une plage raisonnable (année N-50 à N+1)
+
+Après envoi, les entrées incluses sont marquées `notified_at = NOW()` et ne réapparaissent plus dans le lot suivant.
 
 ## Réglages de l'application
 
