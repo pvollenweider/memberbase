@@ -113,47 +113,34 @@ test.describe('Send cotisation reminders', () => {
     expect(msgs[0].To[0].Address).toBe('carol@example.com');
   });
 
-  test('email subject is "Rappel de cotisation"', async ({ page, request }) => {
+  test('email subject is "Rappel de cotisation"', async ({ request }) => {
     await purgeMailpit(request);
 
-    await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
-    // Patch window.fetch to append force=1 so the anti-duplicate guard is bypassed.
-    await page.evaluate(() => {
-      const orig = window.fetch.bind(window);
-      (window as any).fetch = (url: RequestInfo, opts?: RequestInit) => {
-        if (typeof opts?.body === 'string' && opts.body.includes('sendCotisationReminders')) {
-          opts = { ...opts, body: opts.body + '&force=1' };
-        }
-        return orig(url, opts);
-      };
+    // Send directly via API with force=1 to bypass the anti-duplicate guard
+    // (prior tests may have already sent to Carol this year in the shared DB).
+    const csrf = await csrfToken(request);
+    await request.post('/index.php', {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
+      data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
-    await openReminderModal(page);
-    await page.locator('#btn-send-coti-reminders').click({ force: true });
-    await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
 
     const msgs = await mailpitMessages(request);
+    expect(msgs).toHaveLength(1);
     expect(msgs[0].Subject).toBe('Rappel de cotisation');
   });
 
-  test('email body contains year, membership URL and org name', async ({ page, request }) => {
+  test('email body contains year, membership URL and org name', async ({ request }) => {
     await purgeMailpit(request);
 
-    await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
-    await page.evaluate(() => {
-      const orig = window.fetch.bind(window);
-      (window as any).fetch = (url: RequestInfo, opts?: RequestInit) => {
-        if (typeof opts?.body === 'string' && opts.body.includes('sendCotisationReminders')) {
-          opts = { ...opts, body: opts.body + '&force=1' };
-        }
-        return orig(url, opts);
-      };
+    const csrf = await csrfToken(request);
+    await request.post('/index.php', {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
+      data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
-    await openReminderModal(page);
-    await page.locator('#btn-send-coti-reminders').click({ force: true });
-    await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
 
     const msgs = await mailpitMessages(request);
-    const body  = await mailpitBody(request, msgs[0].ID);
+    expect(msgs).toHaveLength(1);
+    const body = await mailpitBody(request, msgs[0].ID);
 
     expect(body).toContain(String(YEAR));
     expect(body).toContain('MemberBase Test');
@@ -164,19 +151,11 @@ test.describe('Send cotisation reminders', () => {
   test('email is logged in email_log for the member', async ({ page, request }) => {
     await purgeMailpit(request);
 
-    await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
-    await page.evaluate(() => {
-      const orig = window.fetch.bind(window);
-      (window as any).fetch = (url: RequestInfo, opts?: RequestInit) => {
-        if (typeof opts?.body === 'string' && opts.body.includes('sendCotisationReminders')) {
-          opts = { ...opts, body: opts.body + '&force=1' };
-        }
-        return orig(url, opts);
-      };
+    const csrf = await csrfToken(request);
+    await request.post('/index.php', {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
+      data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
-    await openReminderModal(page);
-    await page.locator('#btn-send-coti-reminders').click({ force: true });
-    await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
 
     // Check the email appears in Carol's (user 4) suivi tab
     await page.goto('/index.php?view=suivi&userid=4');
