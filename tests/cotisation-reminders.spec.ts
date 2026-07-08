@@ -153,7 +153,7 @@ test.describe('Send cotisation reminders', () => {
     // Check the email appears in Carol's (user 4) suivi tab
     await page.goto('/index.php?view=suivi&userid=4');
     await page.waitForLoadState('load');
-    await expect(page.locator('text=Rappel de cotisation')).toBeVisible();
+    await expect(page.locator('text=Rappel de cotisation').first()).toBeVisible();
   });
 
   test('CSRF guard rejects unauthenticated POST', async ({ request }) => {
