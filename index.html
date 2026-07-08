@@ -463,6 +463,18 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap">
     <h2 id="changelog-h">Dernières versions</h2>
     <article class="release">
+      <h3 class="v">4.0.0 <span class="d">8 juillet 2026</span></h3>
+      <ul>
+        <li><strong>Configuration SMTP</strong> (Réglages → Email) : client SMTP pur PHP sans dépendance externe (plain / STARTTLS / SSL-TLS, AUTH LOGIN/PLAIN ou sans auth), mot de passe chiffré au repos, envoi de test avec message d'erreur SMTP détaillé.</li>
+        <li><strong>Templates d'email configurables</strong> (objet + corps texte/HTML, variables <code class="inline">{{placeholder}}</code>) pour le rappel de cotisation, le récapitulatif comptable et l'attestation de don, avec repli sur un template intégré par défaut.</li>
+        <li><strong>Récapitulatifs comptables groupés</strong> (<code class="inline">comptaRecap</code>) : un email par membre récapitulant ses entrées non notifiées, aperçu avant envoi (rendu HTML réel), envoi individuel ou en masse, filtre par année, mode étendu pour renvoyer aux membres déjà notifiés.</li>
+        <li><strong>Rappels de cotisation impayée</strong> : envoi manuel individuel ou en masse depuis la vue Membres perdus, avec garde anti-doublon par année.</li>
+        <li><strong>Journal des emails</strong> (Réglages → Email → Journal) : historique paginé, statut envoyé/erreur, renvoi d'une entrée en erreur, purge.</li>
+        <li><strong>Année de cotisation</strong> (<code class="inline">compta.cotisation_year</code>) : distingue l'année de paiement de l'année de cotisation couverte (ex. cotisation N+1 payée en décembre N) ; champ validé côté serveur, reflété dans les emails et exposé par l'API REST (<code class="inline">GET /api/members/{id}?sub=compta</code>).</li>
+        <li><strong>Champs organisation</strong> : numéro IDE suisse avec vérification automatique via</li>
+      </ul>
+    </article>
+    <article class="release">
       <h3 class="v">3.8.0 <span class="d">3 juillet 2026</span></h3>
       <ul>
         <li><strong>Interface multilingue (FR/EN/DE/ES)</strong> : chaque utilisateur choisit sa langue d'interface (carte « Langue » sur la page Mot de passe), stockée sur son compte (<code class="inline">app_users.locale</code>, défaut français) et appliquée immédiatement. Traductions complètes en anglais, allemand (orthographe suisse) et espagnol ; toute clé manquante retombe automatiquement sur le français.</li>
@@ -478,13 +490,6 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li><strong>Lien vers la documentation en ligne</strong> : le pied de page de l'application et celui de l'installateur (<code class="inline">install.php</code>) pointent désormais vers le site du projet et la documentation en ligne (https://pvollenweider.github.io/memberbase/) au lieu du dépôt GitHub brut. Nouveau libellé <code class="inline">documentation</code> dans la locale.</li>
         <li>Site de documentation public GitHub Pages (https://pvollenweider.github.io/memberbase/) : workflow de maintenance documenté dans <code class="inline">CLAUDE.md</code> (régénération du knowledge graph et du site à chaque release).</li>
         <li>Nettoyage de balises parasites en fin de <code class="inline">doc/user.md</code> et <code class="inline">doc/architecture.md</code>.</li>
-      </ul>
-    </article>
-    <article class="release">
-      <h3 class="v">3.6.0 <span class="d">3 juillet 2026</span></h3>
-      <ul>
-        <li><strong>Maintenance DB sans SSH</strong> — export de la base et application des migrations depuis Réglages → Santé.</li>
-        <li><strong>Cache-busting des assets</strong> — les CSS/JS portent <code class="inline">?v=APP_VERSION</code>, plus de cache navigateur périmé après mise à jour.</li>
       </ul>
     </article>
     <p class="changelog-more"><a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md">Historique complet des versions</a></p>
