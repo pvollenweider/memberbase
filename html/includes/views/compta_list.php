@@ -313,7 +313,7 @@ if (document.readyState === 'loading') {
 <!-- Recap send modal for this user -->
 <div class="modal fade" id="modal-send-recap-user" tabindex="-1"
      aria-labelledby="modal-send-recap-user-label" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+  <div class="modal-dialog modal-xl" style="--bs-modal-height:85vh">
     <div class="modal-content">
       <div class="modal-header">
         <div>
@@ -322,7 +322,7 @@ if (document.readyState === 'loading') {
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="overflow:visible;min-height:500px">
         <!-- Controls -->
         <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
           <div class="dropdown">
