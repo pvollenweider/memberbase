@@ -393,10 +393,10 @@ function mbDefaultTemplates(): array
         // {{since_line}}   = "depuis votre dernier récapitulatif du DD.MM.YYYY" or "depuis votre adhésion"
         'tpl_compta_recap' => [
             'subject'   => 'Récapitulatif de vos versements — {{org_name}}',
-            'body_text' => "{{greeting_text}}\n\nVoici le récapitulatif de vos versements enregistrés{{display_name_line}} ({{since_line}}) :\n\n{{entries}}\nTotal : CHF {{total}}\n\nUne attestation de don vous sera envoyée en début d'année prochaine pour votre déclaration fiscale.\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nVoici le récapitulatif de vos versements enregistrés{{display_name_line}} {{since_line}} :\n\n{{entries}}\nTotal : CHF {{total}}\n\nUne attestation de don vous sera envoyée en début d'année prochaine pour votre déclaration fiscale.\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
             'body_html' => $htmlWrap(
                 '<p>{{greeting}}</p>
-<p>Voici le récapitulatif de vos versements enregistrés{{display_name_line}} (<em>{{since_line}}</em>) :</p>
+<p>Voici le récapitulatif de vos versements enregistrés{{display_name_line}} <em>{{since_line}}</em> :</p>
 {{entries_html}}
 <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin-top:0;font-size:14px">
   <tr style="background:#1a5276;color:#ffffff">
