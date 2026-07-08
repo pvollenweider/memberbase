@@ -181,8 +181,8 @@ include __DIR__ . '/../partials/donor_table.php';
             if (data.ok) {
                 var msg = btn.dataset.msgOk
                     .replace('%d', data.sent)
-                    .replace('%s', data.sent > 1 ? 's' : '')
-                    .replace('%sk', data.skipped);
+                    .replace('%sk', data.skipped)
+                    .replace(/%s/g, data.sent > 1 ? 's' : '');
                 result.innerHTML = '<div class="alert alert-success py-2 mb-0"><i class="fas fa-circle-check me-1" aria-hidden="true"></i>' + msg + '</div>';
                 footer.querySelector('button[data-bs-dismiss]').textContent = <?= json_encode($GLOBAL['close']) ?>;
                 btn.style.display = 'none';
