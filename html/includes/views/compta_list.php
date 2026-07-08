@@ -334,9 +334,10 @@ if (document.readyState === 'loading') {
         </div>
         <!-- Preview area -->
         <div id="recap-user-loading" class="d-flex align-items-center justify-content-center py-5" style="display:none!important"></div>
-        <div id="recap-user-error" class="alert alert-danger" style="display:none"></div>
-        <div id="recap-user-empty" class="text-muted small" style="display:none">
-          <?= $GLOBAL['comptaRecapNoPending'] ?>
+        <div id="recap-user-error" class="alert alert-danger m-3" style="display:none"></div>
+        <div id="recap-user-empty" class="alert alert-info m-3" style="display:none">
+          <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
+          <span id="recap-user-empty-msg"></span>
         </div>
         <div id="recap-user-subject" class="text-muted small mb-2" style="display:none"></div>
         <iframe id="recap-user-frame" style="width:100%;border:none;min-height:400px;display:none" sandbox="allow-same-origin allow-scripts"></iframe>
@@ -408,6 +409,8 @@ if (document.readyState === 'loading') {
             document.getElementById('btn-recap-user-preview').click();
             return;
           }
+          // Force was already on and still nothing — truly no entries
+          document.getElementById('recap-user-empty-msg').textContent = <?= json_encode($GLOBAL['comptaRecapNoEntriesForce']) ?>;
           document.getElementById('recap-user-empty').style.display = '';
         } else {
           var el = document.getElementById('recap-user-error');
