@@ -117,6 +117,15 @@ test.describe('Send cotisation reminders', () => {
     await purgeMailpit(request);
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
+    // Inject force=1 so the anti-duplicate guard is bypassed (prior test already sent to Carol).
+    await page.route('**/index.php', async (route) => {
+      const req = route.request();
+      if (req.method() === 'POST') {
+        const body = req.postData() ?? '';
+        return route.continue({ postData: body.includes('sendCotisationReminders') ? body + '&force=1' : body });
+      }
+      return route.continue();
+    });
     await openReminderModal(page);
     await page.locator('#btn-send-coti-reminders').click({ force: true });
     await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
@@ -129,6 +138,14 @@ test.describe('Send cotisation reminders', () => {
     await purgeMailpit(request);
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
+    await page.route('**/index.php', async (route) => {
+      const req = route.request();
+      if (req.method() === 'POST') {
+        const body = req.postData() ?? '';
+        return route.continue({ postData: body.includes('sendCotisationReminders') ? body + '&force=1' : body });
+      }
+      return route.continue();
+    });
     await openReminderModal(page);
     await page.locator('#btn-send-coti-reminders').click({ force: true });
     await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
@@ -146,6 +163,14 @@ test.describe('Send cotisation reminders', () => {
     await purgeMailpit(request);
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
+    await page.route('**/index.php', async (route) => {
+      const req = route.request();
+      if (req.method() === 'POST') {
+        const body = req.postData() ?? '';
+        return route.continue({ postData: body.includes('sendCotisationReminders') ? body + '&force=1' : body });
+      }
+      return route.continue();
+    });
     await openReminderModal(page);
     await page.locator('#btn-send-coti-reminders').click({ force: true });
     await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });

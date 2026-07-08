@@ -189,6 +189,13 @@ CREATE TABLE IF NOT EXISTS `email_log` (
   KEY `idx_status`     (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `schema_migrations` (
+  `version`    varchar(255) NOT NULL,
+  `applied_at` int(11)      NOT NULL DEFAULT 0,
+  `checksum`   char(64)     NOT NULL DEFAULT '',
+  PRIMARY KEY (`version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET foreign_key_checks = 1;
 SQL;
 $step       = $_GET['step'] ?? '1';
