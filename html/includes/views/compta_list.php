@@ -401,6 +401,13 @@ if (document.readyState === 'loading') {
       showRecapUserLoading(false);
       if (!data.ok) {
         if (data.error === 'no_entries') {
+          var forceToggle = document.getElementById('recap-force-toggle');
+          if (!forceToggle.checked) {
+            // No pending entries — auto-enable force and retry to show already-sent
+            forceToggle.checked = true;
+            document.getElementById('btn-recap-user-preview').click();
+            return;
+          }
           document.getElementById('recap-user-empty').style.display = '';
         } else {
           var el = document.getElementById('recap-user-error');
