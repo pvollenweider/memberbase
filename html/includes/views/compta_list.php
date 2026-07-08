@@ -339,7 +339,7 @@ if (document.readyState === 'loading') {
           <?= $GLOBAL['comptaRecapNoPending'] ?>
         </div>
         <div id="recap-user-subject" class="text-muted small mb-2" style="display:none"></div>
-        <iframe id="recap-user-frame" style="width:100%;border:none;min-height:400px;display:none" sandbox="allow-same-origin"></iframe>
+        <iframe id="recap-user-frame" style="width:100%;border:none;min-height:400px;display:none" sandbox="allow-same-origin allow-scripts"></iframe>
       </div>
       <div class="modal-footer gap-2">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
