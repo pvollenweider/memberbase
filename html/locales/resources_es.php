@@ -928,6 +928,15 @@ $GLOBAL['emailLogResending']     = "Reenviando…";
 $GLOBAL['emailLogResendOk']      = "Correo reenviado con éxito.";
 $GLOBAL['emailLogResendFail']    = "Error al reenviar.";
 
+// Email detail view
+$GLOBAL['emailSent']             = "Correo enviado";
+$GLOBAL['viewEmail']             = "Ver correo";
+$GLOBAL['emailTo']               = "Para";
+$GLOBAL['emailStatus']           = "Estado";
+$GLOBAL['emailStatusSent']       = "Enviado";
+$GLOBAL['emailStatusError']      = "Error";
+$GLOBAL['emailViewPlaintext']    = "Ver versión en texto plano";
+
 // Email templates
 $GLOBAL['emailTemplates']              = "Plantillas de correo";
 $GLOBAL['emailTemplatesSaved']         = "Plantilla guardada.";

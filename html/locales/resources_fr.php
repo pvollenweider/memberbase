@@ -928,6 +928,15 @@ $GLOBAL['emailLogResending']     = "Renvoi en cours…";
 $GLOBAL['emailLogResendOk']      = "Email renvoyé avec succès.";
 $GLOBAL['emailLogResendFail']    = "Échec du renvoi.";
 
+// Email detail view
+$GLOBAL['emailSent']             = "Email envoyé";
+$GLOBAL['viewEmail']             = "Voir l'email";
+$GLOBAL['emailTo']               = "Destinataire";
+$GLOBAL['emailStatus']           = "Statut";
+$GLOBAL['emailStatusSent']       = "Envoyé";
+$GLOBAL['emailStatusError']      = "Erreur";
+$GLOBAL['emailViewPlaintext']    = "Voir la version texte brut";
+
 // Email templates
 $GLOBAL['emailTemplates']              = "Modèles d'email";
 $GLOBAL['emailTemplatesSaved']         = "Modèle enregistré.";

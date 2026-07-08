@@ -928,6 +928,15 @@ $GLOBAL['emailLogResending']     = "Wird erneut gesendet…";
 $GLOBAL['emailLogResendOk']      = "E-Mail erfolgreich erneut gesendet.";
 $GLOBAL['emailLogResendFail']    = "Erneutes Senden fehlgeschlagen.";
 
+// Email detail view
+$GLOBAL['emailSent']             = "E-Mail gesendet";
+$GLOBAL['viewEmail']             = "E-Mail anzeigen";
+$GLOBAL['emailTo']               = "An";
+$GLOBAL['emailStatus']           = "Status";
+$GLOBAL['emailStatusSent']       = "Gesendet";
+$GLOBAL['emailStatusError']      = "Fehler";
+$GLOBAL['emailViewPlaintext']    = "Nur-Text-Version anzeigen";
+
 // Email templates
 $GLOBAL['emailTemplates']              = "E-Mail-Vorlagen";
 $GLOBAL['emailTemplatesSaved']         = "Vorlage gespeichert.";

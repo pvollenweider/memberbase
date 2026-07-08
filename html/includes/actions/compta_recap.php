@@ -127,11 +127,17 @@ if ($action === 'sendComptaRecap') {
             'org_city'      => $appSettings['org_city']      ?? '',
             'org_web'       => $appSettings['org_web']       ?? '',
             'contact_email' => $contactEmail,
-        ]);
+        ], (int)$userId);
 
         if ($ok) {
             $sentCount++;
             foreach ($entries as $e) { $notifiedIds[] = (int)$e['id']; }
+            auditLog($pdo, 'sendComptaRecap',
+                "sent to {$first['firstname']} {$first['lastname']} <{$first['email']}> — "
+                . count($entries) . ' entr(ies), CHF ' . $total);
+        } else {
+            auditLog($pdo, 'sendComptaRecap',
+                "FAILED for {$first['firstname']} {$first['lastname']} <{$first['email']}>");
         }
         // On send failure: leave notified_at NULL so it retries next batch
     }

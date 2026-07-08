@@ -250,8 +250,14 @@ function mbSmtpGetOrCreateEncKey(PDO $pdo): string
  * @param string $bodyText  Optional plain-text body.
  * @return bool             True if the email was sent successfully.
  */
-function mbSendMail(PDO $pdo, string $to, string $subject, string $bodyHtml, string $bodyText = ''): bool
-{
+function mbSendMail(
+    PDO $pdo,
+    string $to,
+    string $subject,
+    string $bodyHtml,
+    string $bodyText = '',
+    ?int $userId = null
+): bool {
     global $appSettings;
     try {
         $cfg  = $appSettings;
@@ -260,25 +266,43 @@ function mbSendMail(PDO $pdo, string $to, string $subject, string $bodyHtml, str
         $result = mbSmtpSend($cfg, $to, $subject, $text, $bodyHtml);
         $status = $result['ok'] ? 'sent' : 'error';
         $errMsg = $result['ok'] ? null : ($result['error'] ?? 'unknown error');
-        _mbLogEmail($pdo, $to, $subject, $status, $errMsg);
+        _mbLogEmail($pdo, $to, $subject, $status, $errMsg, $userId, $text, $bodyHtml);
         return $result['ok'];
     } catch (\Throwable $e) {
-        _mbLogEmail($pdo, $to, $subject, 'error', $e->getMessage());
+        _mbLogEmail($pdo, $to, $subject, 'error', $e->getMessage(), $userId);
         return false;
     }
 }
 
 /**
  * Insert one row into email_log. Silently ignores failures (e.g. table not yet migrated).
+ *
+ * @param ?int    $userId   Optional member id (links the log entry to the member's suivi)
+ * @param string  $bodyText Rendered plain-text body
+ * @param string  $bodyHtml Rendered HTML body (may be empty)
  */
-function _mbLogEmail(PDO $pdo, string $to, string $subject, string $status, ?string $errorMsg): void
-{
+function _mbLogEmail(
+    PDO $pdo,
+    string $to,
+    string $subject,
+    string $status,
+    ?string $errorMsg,
+    ?int $userId = null,
+    string $bodyText = '',
+    string $bodyHtml = ''
+): void {
     try {
         $pdo->prepare(
-            "INSERT INTO email_log (to_email, subject, status, error_msg) VALUES (?, ?, ?, ?)"
-        )->execute([$to, $subject, $status, $errorMsg]);
+            "INSERT INTO email_log (user_id, to_email, subject, status, error_msg, body_text, body_html)
+             VALUES (?, ?, ?, ?, ?, ?, ?)"
+        )->execute([$userId, $to, $subject, $status, $errorMsg, $bodyText, $bodyHtml]);
     } catch (\Throwable $e) {
-        // Table may not exist yet (migration pending) — silently ignore
+        // Columns may not exist yet (migration pending) — retry without new columns
+        try {
+            $pdo->prepare(
+                "INSERT INTO email_log (to_email, subject, status, error_msg) VALUES (?, ?, ?, ?)"
+            )->execute([$to, $subject, $status, $errorMsg]);
+        } catch (\Throwable $e2) {}
     }
 }
 
@@ -440,11 +464,11 @@ function mbRenderTemplate(string $tpl, array $vars): string
  * @param array  $vars    Placeholder values
  * @return bool
  */
-function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars): bool
+function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars, ?int $userId = null): bool
 {
     $tpl      = mbGetTemplate($pdo, $tplKey);
     $subject  = mbRenderTemplate($tpl->subject,   $vars);
     $bodyText = mbRenderTemplate($tpl->body_text, $vars);
     $bodyHtml = isset($tpl->body_html) ? mbRenderTemplate($tpl->body_html, $vars) : '';
-    return mbSendMail($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText);
+    return mbSendMail($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText, $userId);
 }

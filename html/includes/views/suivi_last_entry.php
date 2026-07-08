@@ -1,20 +1,43 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * Lists members by their most recent follow-up (suivi) entry date.
+ * Lists members by their most recent follow-up (suivi) entry date,
+ * merged with sent emails (from email_log where user_id IS NOT NULL).
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-$stmt = $pdo->query(
-    "SELECT users.id, users.firstname, users.lastname, users.society,
-            user_properties.date, user_properties.value
-     FROM users
-     JOIN user_properties ON users.id = user_properties.user_id
-     WHERE users.status=1 AND user_properties.parameter = 'suivi'
-     ORDER BY user_properties.date DESC"
+
+// Suivi entries (manual notes)
+$stmtSuivi = $pdo->query(
+    "SELECT u.id AS user_id, u.firstname, u.lastname, u.society,
+            up.date AS ts, up.value AS content,
+            'suivi' AS kind, NULL AS email_log_id
+     FROM users u
+     JOIN user_properties up ON u.id = up.user_id
+     WHERE u.status = 1 AND up.parameter = 'suivi'"
 );
-$rows = $stmt->fetchAll(PDO::FETCH_OBJ);
+$rows = $stmtSuivi->fetchAll(PDO::FETCH_OBJ);
+
+// Sent emails linked to a member
+$emailRows = [];
+try {
+    $stmtEmail = $pdo->query(
+        "SELECT u.id AS user_id, u.firstname, u.lastname, u.society,
+                UNIX_TIMESTAMP(el.created_at) AS ts, el.subject AS content,
+                'email' AS kind, el.id AS email_log_id
+         FROM email_log el
+         JOIN users u ON u.id = el.user_id
+         WHERE el.user_id IS NOT NULL AND el.status = 'sent'"
+    );
+    $emailRows = $stmtEmail->fetchAll(PDO::FETCH_OBJ);
+} catch (\Throwable $e) {
+    // email_log.user_id column not yet migrated — skip silently
+}
+
+// Merge and sort by date desc
+$allRows = array_merge($rows, $emailRows);
+usort($allRows, fn($a, $b) => (int)$b->ts - (int)$a->ts);
 ?>
 
 <div class="d-flex align-items-center gap-2 mb-3">
@@ -31,20 +54,32 @@ $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
 </tr>
 </thead>
 <tbody>
-<?php foreach ($rows as $row):
-    $date      = timeStampToformatedDate($row->date);
-    $name      = trim(($row->society ? htmlentities($row->society, ENT_COMPAT, $charset) . ' ' : '') .
-                      htmlentities($row->lastname, ENT_COMPAT, $charset) . ' ' .
-                      htmlentities($row->firstname, ENT_COMPAT, $charset));
+<?php foreach ($allRows as $row):
+    $date = timeStampToformatedDate($row->ts);
+    $name = trim(($row->society ? htmlentities($row->society, ENT_COMPAT, $charset) . ' ' : '') .
+                 htmlentities($row->lastname, ENT_COMPAT, $charset) . ' ' .
+                 htmlentities($row->firstname, ENT_COMPAT, $charset));
+    $isEmail = $row->kind === 'email';
 ?>
     <tr class="position-relative">
-        <td><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
+        <td class="text-nowrap"><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
         <td class="text-nowrap"><?= $name ?></td>
-        <td><?= html_entity_decode($row->value, ENT_COMPAT, $charset) ?></td>
         <td>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= (int)$row->id ?>"
+            <?php if ($isEmail): ?>
+            <i class="fas fa-envelope me-1 text-primary" aria-hidden="true" title="<?= $GLOBAL['emailSent'] ?>"></i>
+            <?php endif ?>
+            <?= html_entity_decode($row->content, ENT_COMPAT, $charset) ?>
+        </td>
+        <td class="text-end" style="white-space:nowrap">
+            <?php if ($isEmail && $row->email_log_id): ?>
+            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=emailDetail&amp;emailid=<?= (int)$row->email_log_id ?>"
+               class="stretched-link" hx-boost="false"
+               title="<?= $GLOBAL['viewEmail'] ?>"></a>
+            <?php else: ?>
+            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= (int)$row->user_id ?>"
                class="stretched-link" hx-boost="false"
                aria-label="<?= sprintf($GLOBAL['viewSuiviOf'], htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset)) ?>"></a>
+            <?php endif ?>
         </td>
     </tr>
 <?php endforeach ?>
