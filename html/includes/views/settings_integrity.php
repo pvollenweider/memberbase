@@ -6,135 +6,22 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// Duplicate members — same firstName+lastName
-$stmtDupName = $pdo->query("
-    SELECT firstName, lastName, COUNT(*) AS cnt,
-           GROUP_CONCAT(id ORDER BY id SEPARATOR ',') AS ids
-    FROM users
-    WHERE status=1 AND (TRIM(firstName) != '' OR TRIM(lastName) != '')
-    GROUP BY TRIM(LOWER(firstName)), TRIM(LOWER(lastName))
-    HAVING COUNT(*) > 1
-    ORDER BY lastName, firstName
-");
-$dupNames = $stmtDupName->fetchAll(PDO::FETCH_OBJ);
-
-// Duplicate members — same email (non-empty)
-$stmtDupEmail = $pdo->query("
-    SELECT email, COUNT(*) AS cnt,
-           GROUP_CONCAT(id ORDER BY id SEPARATOR ',') AS ids
-    FROM users
-    WHERE status=1 AND TRIM(email) != ''
-    GROUP BY TRIM(LOWER(email))
-    HAVING COUNT(*) > 1
-    ORDER BY email
-");
-$dupEmails = $stmtDupEmail->fetchAll(PDO::FETCH_OBJ);
-
-// Groups hidden but still assigned to a category (is_filter=0)
-$stmtCat = $pdo->query("
-    SELECT DISTINCT t.id AS team_id, t.name AS team_name,
-           m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
-    FROM team t
-    JOIN metagroup j ON j.teamid = t.id
-    JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
-    WHERE t.hidden = 1
-    ORDER BY m.sort_order, m.name, t.name
-");
-$hiddenInCats = $stmtCat->fetchAll(PDO::FETCH_OBJ);
-
-// Groups hidden but still assigned to a metagroup (is_filter=1)
-$stmtMg = $pdo->query("
-    SELECT DISTINCT t.id AS team_id, t.name AS team_name,
-           m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
-    FROM team t
-    JOIN metagroup j ON j.teamid = t.id
-    JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 1
-    WHERE t.hidden = 1
-    ORDER BY m.sort_order, m.name, t.name
-");
-$hiddenInMeta = $stmtMg->fetchAll(PDO::FETCH_OBJ);
-
-// Groups hidden but still have members assigned
-$stmtMembers = $pdo->query("
-    SELECT t.id AS team_id, t.name AS team_name,
-           COUNT(up.user_id) AS member_count
-    FROM team t
-    JOIN user_properties up ON up.parameter = CONCAT('team_', t.id)
-    JOIN users u ON u.id = up.user_id AND u.status = 1
-    WHERE t.hidden = 1
-    GROUP BY t.id, t.name
-    ORDER BY t.name
-");
-$hiddenWithMembers = $stmtMembers->fetchAll(PDO::FETCH_OBJ);
-
-// --- Format & cohérence des données ---
-
-// compta.date invalide (0 ou dans le futur)
-$stmtDateInvalid = $pdo->query("
-    SELECT c.id, c.date, c.user_id, u.firstname, u.lastname, c.libele
-    FROM compta c
-    LEFT JOIN users u ON u.id = c.user_id
-    WHERE c.date = 0 OR c.date > UNIX_TIMESTAMP()
-    ORDER BY c.id DESC
-    LIMIT 100
-");
-$dateInvalid = $stmtDateInvalid->fetchAll(PDO::FETCH_OBJ);
-
-// compta.type_id NULL
-$stmtTypeNull = $pdo->query("
-    SELECT c.id, c.user_id, u.firstname, u.lastname, c.libele, c.sum
-    FROM compta c
-    LEFT JOIN users u ON u.id = c.user_id
-    WHERE c.type_id IS NULL
-    ORDER BY c.id DESC
-    LIMIT 100
-");
-$typeNull = $stmtTypeNull->fetchAll(PDO::FETCH_OBJ);
-
-// users.email mal formaté (non-vide, pas de @)
-$stmtEmailInvalid = $pdo->query("
-    SELECT id, firstname, lastname, email
-    FROM users
-    WHERE status=1 AND TRIM(email) != '' AND email NOT LIKE '%@%'
-    ORDER BY lastname, firstname
-");
-$emailInvalid = $stmtEmailInvalid->fetchAll(PDO::FETCH_OBJ);
-
-// users.sexe hors enum
-$stmtSexeInvalid = $pdo->query("
-    SELECT id, firstname, lastname, sexe
-    FROM users
-    WHERE status=1 AND sexe NOT IN ('na','hf','f','m')
-    ORDER BY lastname, firstname
-");
-$sexeInvalid = $stmtSexeInvalid->fetchAll(PDO::FETCH_OBJ);
-
-// users sans nom de famille ni société
-$stmtNoName = $pdo->query("
-    SELECT id, firstname, lastname, society
-    FROM users
-    WHERE status=1 AND TRIM(lastname) = '' AND TRIM(society) = ''
-    ORDER BY id
-");
-$noName = $stmtNoName->fetchAll(PDO::FETCH_OBJ);
-
-// users.email_alt mal formaté
-$stmtEmailAltInvalid = $pdo->query("
-    SELECT id, firstname, lastname, email_alt
-    FROM users
-    WHERE status=1 AND TRIM(email_alt) != '' AND email_alt NOT LIKE '%@%'
-    ORDER BY lastname, firstname
-");
-$emailAltInvalid = $stmtEmailAltInvalid->fetchAll(PDO::FETCH_OBJ);
-
-// users.birthday dans le futur
-$stmtBirthdayFuture = $pdo->query("
-    SELECT id, firstname, lastname, birthday
-    FROM users
-    WHERE status=1 AND birthday > 0 AND birthday > UNIX_TIMESTAMP()
-    ORDER BY lastname, firstname
-");
-$birthdayFuture = $stmtBirthdayFuture->fetchAll(PDO::FETCH_OBJ);
+require_once __DIR__ . '/../lib/integrity.php';
+$_ic = mbRunIntegrityChecks($pdo);
+[
+    'dupNames'          => $dupNames,
+    'dupEmails'         => $dupEmails,
+    'hiddenInCats'      => $hiddenInCats,
+    'hiddenInMeta'      => $hiddenInMeta,
+    'hiddenWithMembers' => $hiddenWithMembers,
+    'dateInvalid'       => $dateInvalid,
+    'typeNull'          => $typeNull,
+    'emailInvalid'      => $emailInvalid,
+    'sexeInvalid'       => $sexeInvalid,
+    'noName'            => $noName,
+    'emailAltInvalid'   => $emailAltInvalid,
+    'birthdayFuture'    => $birthdayFuture,
+] = $_ic;
 
 $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty($hiddenInMeta) && empty($hiddenWithMembers)
       && empty($dateInvalid) && empty($typeNull)

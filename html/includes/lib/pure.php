@@ -1,6 +1,6 @@
 <?php
 /**
- * Pure helper functions — no side effects, no I/O, no globals.
+ * Pure helper functions -- no side effects, no I/O, no globals.
  *
  * Extracted from bootstrap.php so they can be unit-tested in isolation
  * (PHPUnit, see tests/unit/) without opening a database connection.
@@ -32,8 +32,74 @@ function timeStampToformatedDate(?int $timestamp): string
     return $timestamp ? date("d/m/Y", $timestamp) : "";
 }
 
-/** Replaces typographic apostrophes (’) with straight apostrophes (') from user input. */
+/** Replaces typographic apostrophes (’) with straight apostrophes from user input. */
 function unquote(string $s): string
 {
     return str_replace("\u{2019}", "'", $s);
+}
+
+/**
+ * Build greeting/display-name template variables for a contact.
+ *
+ * Returns: display_name, society, greeting (HTML), greeting_text (plain).
+ */
+function mbBuildSalutation(string $firstname, string $lastname, string $society): array
+{
+    $fn          = trim($firstname);
+    $ln          = trim($lastname);
+    $soc         = trim($society);
+    $personName  = trim("$fn $ln");
+    $displayName = $personName !== '' ? $personName : $soc;
+
+    // Greeting uses person name only -- no society fallback (avoids "Bonjour Entreprise SA,")
+    $greeting     = $personName !== ''
+        ? 'Bonjour <strong>' . htmlspecialchars($personName, ENT_QUOTES, 'UTF-8') . '</strong>,'
+        : 'Bonjour,';
+    $greetingText = $personName !== '' ? "Bonjour $personName," : 'Bonjour,';
+
+    return [
+        'display_name'  => $displayName,
+        'society'       => $soc,
+        'greeting'      => $greeting,
+        'greeting_text' => $greetingText,
+    ];
+}
+
+/**
+ * Replace {{placeholder}} tokens in a template string.
+ */
+function mbRenderTemplate(string $tpl, array $vars): string
+{
+    foreach ($vars as $k => $v) {
+        $tpl = str_replace('{{' . $k . '}}', (string)$v, $tpl);
+    }
+    return $tpl;
+}
+
+/**
+ * Build email template variables for a cotisation reminder.
+ * Pure -- no DB, no I/O.
+ */
+function mbBuildCotiReminderVars(object $m, int $year, array $appSettings): array
+{
+    $contactEmail    = $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? '');
+    $membershipUrl   = $appSettings['membership_url'] ?? '';
+    $membershipBlock = $membershipUrl !== ''
+        ? '<p style="margin:16px 0"><a href="' . htmlspecialchars($membershipUrl, ENT_QUOTES, 'UTF-8') . '" style="color:#1a5276">'
+          . htmlspecialchars($membershipUrl, ENT_QUOTES, 'UTF-8') . '</a></p>'
+        : '';
+    $salutation = mbBuildSalutation($m->firstname ?? '', $m->lastname ?? '', $m->society ?? '');
+    return array_merge($salutation, [
+        'firstname'            => $m->firstname ?? '',
+        'lastname'             => $m->lastname  ?? '',
+        'email'                => $m->email     ?? '',
+        'year'                 => (string)$year,
+        'membership_url'       => $membershipUrl,
+        'membership_url_block' => $membershipBlock,
+        'org_name'             => $appSettings['org_name']    ?? '',
+        'org_address'          => $appSettings['org_address'] ?? '',
+        'org_city'             => $appSettings['org_city']    ?? '',
+        'org_web'              => $appSettings['org_web']     ?? '',
+        'contact_email'        => $contactEmail,
+    ]);
 }
