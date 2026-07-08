@@ -968,6 +968,8 @@ $GLOBAL['comptaRecapNoPending']      = "Sin pendientes — todos los miembros ha
 $GLOBAL['comptaRecapHelp']           = "Se envía un correo por miembro con todas las entradas aún no notificadas.";
 $GLOBAL['comptaRecapSentOk']         = "%d miembro(s) notificado(s) correctamente.";
 $GLOBAL['comptaRecapSkipped']        = "%d miembro(s) sin correo omitido(s).";
+$GLOBAL['comptaRecapSinceLastBatch'] = "desde su último resumen del %s";
+$GLOBAL['comptaRecapSinceFirst']     = "desde su adhesión";
 
 // Bulk compta notified mark (Configuración → Salud)
 $GLOBAL['comptaBulkTitle']           = "Marcado masivo — resúmenes contables";

@@ -968,6 +968,8 @@ $GLOBAL['comptaRecapNoPending']      = "Nothing pending — all members have bee
 $GLOBAL['comptaRecapHelp']           = "One email per member is sent, grouping all entries not yet notified. Entries for members without an email address are marked as handled without sending.";
 $GLOBAL['comptaRecapSentOk']         = "%d member(s) notified successfully.";
 $GLOBAL['comptaRecapSkipped']        = "%d member(s) without email skipped.";
+$GLOBAL['comptaRecapSinceLastBatch'] = "since your last recap of %s";
+$GLOBAL['comptaRecapSinceFirst']     = "since your membership";
 
 // Bulk compta notified mark (Settings → Health)
 $GLOBAL['comptaBulkTitle']           = "Bulk mark — accounting recaps";

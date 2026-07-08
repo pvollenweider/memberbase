@@ -968,6 +968,8 @@ $GLOBAL['comptaRecapNoPending']      = "Aucune entrée en attente — tous les m
 $GLOBAL['comptaRecapHelp']           = "Un email par membre est envoyé, regroupant toutes les entrées non encore notifiées. Les entrées des membres sans adresse email sont marquées comme traitées sans envoi.";
 $GLOBAL['comptaRecapSentOk']         = "%d membre(s) notifié(s) avec succès.";
 $GLOBAL['comptaRecapSkipped']        = "%d membre(s) sans email ignoré(s).";
+$GLOBAL['comptaRecapSinceLastBatch'] = "depuis votre dernier récapitulatif du %s";
+$GLOBAL['comptaRecapSinceFirst']     = "depuis votre adhésion";
 
 // Bulk compta notified mark (Settings → Santé)
 $GLOBAL['comptaBulkTitle']           = "Marquage en masse — récapitulatifs comptables";

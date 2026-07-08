@@ -362,16 +362,17 @@ function mbDefaultTemplates(): array
 <p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
 <p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
-        // {{entries}}      = plain-text block, one line per entry (date · label · amount)
+        // {{entries}}      = plain-text block, one line per entry (date · type · description · amount)
         // {{entries_html}} = HTML <table> of entries (built by the action)
         // {{total}}        = formatted sum of included entries
         // {{send_date}}    = date of the batch send (DD mois YYYY)
+        // {{since_line}}   = "depuis votre dernier récapitulatif du DD.MM.YYYY" or "depuis votre adhésion"
         'tpl_compta_recap' => [
             'subject'   => 'Récapitulatif de vos versements — {{org_name}}',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVoici les derniers versements enregistrés à votre nom, reçus au {{send_date}} :\n\n{{entries}}\nTotal : CHF {{total}}\n\nUne attestation de don vous sera envoyée en début d'année prochaine pour votre déclaration fiscale.\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVoici le récapitulatif de vos versements enregistrés à votre nom ({{since_line}}) :\n\n{{entries}}\nTotal : CHF {{total}}\n\nUne attestation de don vous sera envoyée en début d'année prochaine pour votre déclaration fiscale.\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
             'body_html' => $htmlWrap(
                 '<p>Bonjour <strong>{{firstname}} {{lastname}}</strong>,</p>
-<p>Voici le récapitulatif de vos versements enregistrés à votre nom, reçus au <strong>{{send_date}}</strong> :</p>
+<p>Voici le récapitulatif de vos versements (<em>{{since_line}}</em>) :</p>
 {{entries_html}}
 <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin-top:0;font-size:14px">
   <tr style="background:#1a5276;color:#ffffff">

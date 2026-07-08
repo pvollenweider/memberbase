@@ -25,12 +25,14 @@ if ($action === 'sendComptaRecap') {
         exit;
     };
 
-    // Load all unnotified compta entries joined with their member
+    // Load all unnotified compta entries joined with their member and type label
     $rows = $pdo->query(
         "SELECT c.id, c.user_id, c.date, c.libele, c.sum,
-                u.firstname, u.lastname, u.email
+                u.firstname, u.lastname, u.email,
+                COALESCE(ct.label, '') AS type_label
          FROM compta c
          JOIN users u ON u.id = c.user_id AND u.status = 1
+         LEFT JOIN compta_type ct ON ct.id = c.type_id
          WHERE c.notified_at IS NULL
            AND c.sum <> 0
          ORDER BY c.user_id, c.date ASC"
@@ -55,6 +57,14 @@ if ($action === 'sendComptaRecap') {
         $sendDate = date('d.m.Y');
     }
 
+    // Last batch date — used to tell the member "since your last recap of DD.MM.YYYY"
+    $lastBatchRaw = $pdo->query(
+        "SELECT MAX(notified_at) FROM compta WHERE notified_at IS NOT NULL"
+    )->fetchColumn();
+    $sinceLine = $lastBatchRaw
+        ? sprintf($GLOBAL['comptaRecapSinceLastBatch'], date('d.m.Y', strtotime($lastBatchRaw)))
+        : $GLOBAL['comptaRecapSinceFirst'];
+
     $contactEmail = $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? '');
 
     foreach ($byMember as $userId => $entries) {
@@ -74,14 +84,20 @@ if ($action === 'sendComptaRecap') {
         $total    = '0.00';
         $odd      = true;
         foreach ($entries as $e) {
-            $d      = $e['date'] ? date('d.m.Y', (int)$e['date']) : '—';
-            $label  = $e['libele'] !== '' ? htmlspecialchars($e['libele'], ENT_QUOTES, 'UTF-8') : '—';
-            $amount = number_format((float)$e['sum'], 2, '.', "'");
-            $lines[]  = $d . '  ' . ($e['libele'] !== '' ? $e['libele'] : '—') . '  CHF ' . $amount;
-            $bg       = $odd ? '#f7fafd' : '#ffffff';
+            $d         = $e['date'] ? date('d.m.Y', (int)$e['date']) : '—';
+            $typeLabel = $e['type_label'] !== '' ? $e['type_label'] : '—';
+            $desc      = $e['libele'] !== '' ? $e['libele'] : $typeLabel;
+            $descHtml  = htmlspecialchars($desc, ENT_QUOTES, 'UTF-8');
+            $typeHtml  = htmlspecialchars($typeLabel, ENT_QUOTES, 'UTF-8');
+            $amount    = number_format((float)$e['sum'], 2, '.', "'");
+            $lines[]   = $d . '  [' . $typeLabel . ']  ' . $desc . '  CHF ' . $amount;
+            $bg        = $odd ? '#f7fafd' : '#ffffff';
             $htmlRows .= '<tr style="background:' . $bg . '">'
                        . '<td style="border:1px solid #dde3ea;padding:8px;font-size:14px">' . $d . '</td>'
-                       . '<td style="border:1px solid #dde3ea;padding:8px;font-size:14px">' . $label . '</td>'
+                       . '<td style="border:1px solid #dde3ea;padding:8px;font-size:14px">'
+                       .   '<span style="display:inline-block;background:#e8f0fe;color:#1a5276;border-radius:3px;padding:1px 6px;font-size:12px;margin-right:6px">' . $typeHtml . '</span>'
+                       .   $descHtml
+                       . '</td>'
                        . '<td style="border:1px solid #dde3ea;padding:8px;font-size:14px;text-align:right">CHF ' . $amount . '</td>'
                        . '</tr>';
             $odd = !$odd;
@@ -91,7 +107,7 @@ if ($action === 'sendComptaRecap') {
         $entriesHtml  = '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0;font-size:14px">'
                       . '<tr style="background:#1a5276;color:#ffffff">'
                       . '<th style="border:1px solid #154360;padding:8px;font-weight:600;text-align:left">Date</th>'
-                      . '<th style="border:1px solid #154360;padding:8px;font-weight:600;text-align:left">Description</th>'
+                      . '<th style="border:1px solid #154360;padding:8px;font-weight:600;text-align:left">Type / Description</th>'
                       . '<th style="border:1px solid #154360;padding:8px;font-weight:600;text-align:right">Montant</th>'
                       . '</tr>'
                       . $htmlRows
@@ -105,6 +121,7 @@ if ($action === 'sendComptaRecap') {
             'entries_html'  => $entriesHtml,
             'total'         => $total,
             'send_date'     => $sendDate,
+            'since_line'    => $sinceLine,
             'org_name'      => $appSettings['org_name']      ?? '',
             'org_address'   => $appSettings['org_address']   ?? '',
             'org_city'      => $appSettings['org_city']      ?? '',

@@ -968,6 +968,8 @@ $GLOBAL['comptaRecapNoPending']      = "Nichts ausstehend \u{2014} alle Mitglied
 $GLOBAL['comptaRecapHelp']           = "Pro Mitglied wird eine E-Mail gesendet, die alle noch nicht gemeldeten Eintr\u{00E4}ge zusammenfasst.";
 $GLOBAL['comptaRecapSentOk']         = "%d Mitglied(er) erfolgreich benachrichtigt.";
 $GLOBAL['comptaRecapSkipped']        = "%d Mitglied(er) ohne E-Mail \u{00FC}bersprungen.";
+$GLOBAL['comptaRecapSinceLastBatch'] = "seit Ihrer letzten Zusammenfassung vom %s";
+$GLOBAL['comptaRecapSinceFirst']     = "seit Ihrer Mitgliedschaft";
 
 // Bulk compta notified mark (Einstellungen → Gesundheit)
 $GLOBAL['comptaBulkTitle']           = "Massenmarkierung \u{2014} Buchhaltungs-Recaps";
