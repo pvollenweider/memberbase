@@ -947,6 +947,7 @@ $GLOBAL['emailTemplateBodyText']       = "Plain text";
 $GLOBAL['emailTemplateBodyHtml']       = "HTML";
 $GLOBAL['emailTemplateHelp']           = "Available variables: {{greeting}}, {{greeting_text}}, {{display_name}}, {{firstname}}, {{lastname}}, {{society}}, {{email}}, {{org_name}}, {{contact_email}}, {{org_address}}, {{org_city}}, {{org_web}}";
 $GLOBAL['emailTemplateHtmlHelp']       = "HTML template for the email. Leave blank to send plain text only. Same variables as the text tab.";
+$GLOBAL['emailTemplateVarsHelp']       = "Available variables";
 $GLOBAL['emailTemplateWelcome']        = "Welcome email";
 $GLOBAL['emailTemplateCotiReminder']   = "Membership reminder";
 $GLOBAL['emailTemplateAttestationDon'] = "Donation certificate";

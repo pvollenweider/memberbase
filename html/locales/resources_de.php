@@ -947,6 +947,7 @@ $GLOBAL['emailTemplateBodyText']       = "Nur Text";
 $GLOBAL['emailTemplateBodyHtml']       = "HTML";
 $GLOBAL['emailTemplateHelp']           = "Verfügbare Variablen: {{greeting}}, {{greeting_text}}, {{display_name}}, {{firstname}}, {{lastname}}, {{society}}, {{email}}, {{org_name}}, {{contact_email}}, {{org_address}}, {{org_city}}, {{org_web}}";
 $GLOBAL['emailTemplateHtmlHelp']       = "HTML-Vorlage der E-Mail. Leer lassen, um nur Nur-Text zu senden. Gleiche Variablen wie im Nur-Text-Tab.";
+$GLOBAL['emailTemplateVarsHelp']       = "Verfügbare Variablen";
 $GLOBAL['emailTemplateWelcome']        = "Willkommens-E-Mail";
 $GLOBAL['emailTemplateCotiReminder']   = "Mitgliedschaftserinnerung";
 $GLOBAL['emailTemplateAttestationDon'] = "Spendenquittung";

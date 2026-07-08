@@ -947,6 +947,7 @@ $GLOBAL['emailTemplateBodyText']       = "Texto plano";
 $GLOBAL['emailTemplateBodyHtml']       = "HTML";
 $GLOBAL['emailTemplateHelp']           = "Variables disponibles: {{greeting}}, {{greeting_text}}, {{display_name}}, {{firstname}}, {{lastname}}, {{society}}, {{email}}, {{org_name}}, {{contact_email}}, {{org_address}}, {{org_city}}, {{org_web}}";
 $GLOBAL['emailTemplateHtmlHelp']       = "Plantilla HTML del correo. Dejar en blanco para enviar solo texto. Mismas variables que en la pestaña de texto.";
+$GLOBAL['emailTemplateVarsHelp']       = "Variables disponibles";
 $GLOBAL['emailTemplateWelcome']        = "Correo de bienvenida";
 $GLOBAL['emailTemplateCotiReminder']   = "Recordatorio de cuota";
 $GLOBAL['emailTemplateAttestationDon'] = "Certificado de donación";

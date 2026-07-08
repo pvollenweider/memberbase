@@ -94,13 +94,24 @@ $tplLabels = [
           <textarea class="form-control form-control-sm border-0" rows="6"
                     name="tpl_body"
                     style="font-family:monospace;font-size:0.82rem"><?= htmlspecialchars($bodyVal, ENT_QUOTES, $charset) ?></textarea>
-          <div class="form-text px-1"><?= $GLOBAL['emailTemplateHelp'] ?></div>
+          <div class="form-text px-1">
+            <?= $GLOBAL['emailTemplateHelp'] ?>
+            <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline"
+                    data-bs-toggle="modal" data-bs-target="#tpl-vars-modal"
+                    title="<?= $GLOBAL['emailTemplateVarsHelp'] ?? 'Aide sur les variables' ?>"
+                    style="font-size:0.8rem;line-height:1">(?)</button>
+          </div>
         </div>
         <div class="tab-pane fade" id="<?= $paneHtml ?>" role="tabpanel">
           <textarea class="form-control form-control-sm border-0" rows="10"
                     name="tpl_body_html"
                     style="font-family:monospace;font-size:0.82rem"><?= htmlspecialchars($htmlVal, ENT_QUOTES, $charset) ?></textarea>
-          <div class="form-text px-1"><?= $GLOBAL['emailTemplateHtmlHelp'] ?></div>
+          <div class="form-text px-1">
+            <?= $GLOBAL['emailTemplateHtmlHelp'] ?>
+            <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline"
+                    data-bs-toggle="modal" data-bs-target="#tpl-vars-modal"
+                    style="font-size:0.8rem;line-height:1">(?)</button>
+          </div>
         </div>
       </div>
 
@@ -112,4 +123,100 @@ $tplLabels = [
 </div>
 <?php endforeach ?>
 
+</div>
+
+<!-- Variables reference modal (shared by all template editors) -->
+<div class="modal fade" id="tpl-vars-modal" tabindex="-1"
+     aria-labelledby="tpl-vars-modal-label" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tpl-vars-modal-label">
+          <i class="fas fa-code me-2" aria-hidden="true"></i><?= $GLOBAL['emailTemplateVarsHelp'] ?? 'Variables disponibles' ?>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body p-0">
+        <table class="table table-sm table-hover mb-0" style="font-size:0.85rem">
+          <thead class="table-light">
+            <tr>
+              <th style="width:30%"><?= $GLOBAL['variable'] ?? 'Variable' ?></th>
+              <th><?= $GLOBAL['description'] ?? 'Description' ?></th>
+              <th style="width:25%"><?= $GLOBAL['example'] ?? 'Exemple' ?></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-secondary"><td colspan="3" class="fw-semibold px-3 py-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">Salutation</td></tr>
+            <tr>
+              <td><code>{{greeting}}</code></td>
+              <td>Formule de salutation HTML — prénom+nom en gras si disponibles, sinon société, sinon "Bonjour," seul. À utiliser dans le corps HTML.</td>
+              <td class="text-muted">Bonjour <strong>Jean Dupont</strong>,</td>
+            </tr>
+            <tr>
+              <td><code>{{greeting_text}}</code></td>
+              <td>Même logique, version texte brut. À utiliser dans le corps texte.</td>
+              <td class="text-muted">Bonjour Jean Dupont,</td>
+            </tr>
+            <tr>
+              <td><code>{{display_name}}</code></td>
+              <td>Meilleur nom disponible : prénom+nom, sinon société, sinon vide.</td>
+              <td class="text-muted">Jean Dupont</td>
+            </tr>
+            <tr class="table-secondary"><td colspan="3" class="fw-semibold px-3 py-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">Contact</td></tr>
+            <tr>
+              <td><code>{{firstname}}</code></td>
+              <td>Prénom du destinataire (peut être vide pour une société).</td>
+              <td class="text-muted">Jean</td>
+            </tr>
+            <tr>
+              <td><code>{{lastname}}</code></td>
+              <td>Nom de famille (peut être vide pour une société).</td>
+              <td class="text-muted">Dupont</td>
+            </tr>
+            <tr>
+              <td><code>{{society}}</code></td>
+              <td>Raison sociale (peut être vide pour un particulier).</td>
+              <td class="text-muted">Entreprise SA</td>
+            </tr>
+            <tr>
+              <td><code>{{email}}</code></td>
+              <td>Adresse email du destinataire.</td>
+              <td class="text-muted">jean@exemple.ch</td>
+            </tr>
+            <tr class="table-secondary"><td colspan="3" class="fw-semibold px-3 py-1" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">Organisation</td></tr>
+            <tr>
+              <td><code>{{org_name}}</code></td>
+              <td>Nom de l'organisation (Réglages → Général).</td>
+              <td class="text-muted">Mon Association</td>
+            </tr>
+            <tr>
+              <td><code>{{contact_email}}</code></td>
+              <td>Email de contact (adresse reply-to SMTP, ou adresse d'expédition).</td>
+              <td class="text-muted">contact@asso.ch</td>
+            </tr>
+            <tr>
+              <td><code>{{org_address}}</code></td>
+              <td>Adresse postale de l'organisation.</td>
+              <td class="text-muted">Rue de la Paix 1</td>
+            </tr>
+            <tr>
+              <td><code>{{org_city}}</code></td>
+              <td>Ville de l'organisation.</td>
+              <td class="text-muted">Genève</td>
+            </tr>
+            <tr>
+              <td><code>{{org_web}}</code></td>
+              <td>Site web de l'organisation.</td>
+              <td class="text-muted">www.asso.ch</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="text-muted small px-3 pt-2 pb-1">
+          <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
+          Variables spécifiques à certains templates (reçu, récapitulatif…) : <code>{{type}}</code>, <code>{{amount}}</code>, <code>{{entry_date}}</code>, <code>{{entries_html}}</code>, <code>{{total}}</code>, <code>{{since_line}}</code> — voir les commentaires dans le template par défaut.
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
