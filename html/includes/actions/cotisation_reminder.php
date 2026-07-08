@@ -6,7 +6,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-if ($action !== 'sendCotisationReminders') { return; }
+if (($_REQUEST['action'] ?? '') !== 'sendCotisationReminders') { return; }
 if (!isManager()) { http_response_code(403); exit; }
 
 header('Content-Type: application/json; charset=utf-8');
