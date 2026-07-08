@@ -9,29 +9,36 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year <= 0) { $year = (int)date("Y"); }
 
-$membreTeamId = (int)($appSettings['default_team'] ?? 0);
-
-$prevTeamStmt = $pdo->prepare("SELECT id, name FROM team WHERE name = ?");
-$prevTeamStmt->execute([($appSettings['membre_team_prefix'] ?? 'Membre') . ' ' . ($year - 1)]);
-$prevTeam = $prevTeamStmt->fetch(PDO::FETCH_OBJ);
-$prevTeamId = $prevTeam ? (int)$prevTeam->id : 0;
-
+// Members who paid a cotisation for year-1 but not for year (by cotisation_year).
+$cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
 $rows = [];
-if ($prevTeamId > 0 && $membreTeamId > 0) {
-    $sql = "
+if (!empty($cotiTypeIds)) {
+    $ph = implode(',', array_fill(0, count($cotiTypeIds), '?'));
+    $stmt = $pdo->prepare("
         SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email
         FROM users u
-        JOIN user_properties up ON up.user_id = u.id AND up.parameter = ? AND up.value = 'true'
-        WHERE u.status=1 AND u.id NOT IN (
-            SELECT user_id FROM user_properties WHERE parameter = ? AND value = 'true'
-        )
+        WHERE u.status = 1
+          AND EXISTS (
+              SELECT 1 FROM compta c
+              WHERE c.user_id = u.id AND c.type_id IN ($ph)
+                AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
+          )
+          AND NOT EXISTS (
+              SELECT 1 FROM compta c
+              WHERE c.user_id = u.id AND c.type_id IN ($ph)
+                AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
+          )
         ORDER BY u.lastname, u.firstname, u.society
-    ";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute(["team_$prevTeamId", "team_$membreTeamId"]);
+    ");
+    $params = array_merge(
+        array_values($cotiTypeIds), [$year - 1],
+        array_values($cotiTypeIds), [$year]
+    );
+    $stmt->execute($params);
     $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
 }
 $count = count($rows);
+$prevTeamId = 1; // non-zero so the table renders
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
@@ -54,9 +61,9 @@ $count = count($rows);
   </div>
 </div>
 
-<?php if ($prevTeamId <= 0): ?>
+<?php if (empty($cotiTypeIds)): ?>
 <div class="alert alert-secondary" style="font-size:0.85rem">
-  <?= sprintf($GLOBAL['noMemberTeamFound'], $year-1) ?>
+  <?= $GLOBAL['noComptaCotiType'] ?>
 </div>
 <?php else: ?>
 
