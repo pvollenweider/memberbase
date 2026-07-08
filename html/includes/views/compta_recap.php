@@ -30,6 +30,24 @@ $_pending = $pdo->query(
 $_pendingMembers = (int)$_pending->members;
 $_pendingEntries = (int)$_pending->entries;
 
+// Load preview rows grouped by member
+$_previewRows = $pdo->query(
+    "SELECT c.id, c.user_id, c.date, c.libele, c.sum, c.cotisation_year,
+            COALESCE(ct.is_cotisation, 0) AS ct_coti, ct.label AS ct_label,
+            u.firstname, u.lastname, u.email
+     FROM compta c
+     JOIN users u ON u.id = c.user_id AND u.status = 1
+     LEFT JOIN compta_type ct ON ct.id = c.type_id
+     WHERE c.notified_at IS NULL AND c.sum <> 0
+     ORDER BY u.lastname ASC, u.firstname ASC, c.date ASC"
+)->fetchAll(PDO::FETCH_OBJ);
+
+$_previewByMember = [];
+foreach ($_previewRows as $_pr) {
+    $_previewByMember[$_pr->user_id]['meta']   = $_pr;
+    $_previewByMember[$_pr->user_id]['entries'][] = $_pr;
+}
+
 // Last batch date
 $_lastBatch = $pdo->query(
     "SELECT MAX(notified_at) FROM compta WHERE notified_at IS NOT NULL"
@@ -89,3 +107,68 @@ $_lastBatch = $pdo->query(
 <p class="text-muted small mt-3">
   <i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapHelp'] ?>
 </p>
+
+<?php if (!empty($_previewByMember)): ?>
+<h6 class="mt-4 mb-2 text-muted">
+  <i class="fas fa-list me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapPreviewTitle'] ?>
+</h6>
+<div class="table-responsive">
+<table class="table table-sm table-hover align-middle" style="font-size:0.85rem">
+  <thead class="table-light">
+    <tr>
+      <th><?= $GLOBAL['member'] ?></th>
+      <th><?= $GLOBAL['email'] ?></th>
+      <th class="text-end"><?= $GLOBAL['entriesColumn'] ?></th>
+      <th class="text-end"><?= $GLOBAL['total'] ?></th>
+      <th><?= $GLOBAL['date'] ?></th>
+      <th><?= $GLOBAL['type'] ?></th>
+      <th class="text-end"><?= $GLOBAL['amount'] ?></th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($_previewByMember as $_uid => $_pg):
+        $_pmeta    = $_pg['meta'];
+        $_pentries = $_pg['entries'];
+        $_ptotal   = array_sum(array_column($_pentries, 'sum'));
+        $_hasEmail = trim($_pmeta->email) !== '';
+    ?>
+    <?php foreach ($_pentries as $_pi => $_pe): ?>
+    <tr<?= !$_hasEmail ? ' class="text-muted"' : '' ?>>
+      <?php if ($_pi === 0): ?>
+      <td rowspan="<?= count($_pentries) ?>" class="fw-semibold" style="vertical-align:top;padding-top:0.6rem">
+        <a href="<?= $_SERVER['PHP_SELF'] ?>?view=profil&userid=<?= (int)$_uid ?>" class="text-decoration-none">
+          <?= htmlspecialchars($_pmeta->lastname . ' ' . $_pmeta->firstname, ENT_QUOTES, $charset) ?>
+        </a>
+      </td>
+      <td rowspan="<?= count($_pentries) ?>" style="vertical-align:top;padding-top:0.6rem">
+        <?php if ($_hasEmail): ?>
+          <span class="text-truncate d-inline-block" style="max-width:180px"><?= htmlspecialchars($_pmeta->email, ENT_QUOTES, $charset) ?></span>
+        <?php else: ?>
+          <span class="badge bg-warning text-dark"><?= $GLOBAL['comptaRecapNoEmail'] ?></span>
+        <?php endif ?>
+      </td>
+      <td rowspan="<?= count($_pentries) ?>" class="text-end fw-semibold" style="vertical-align:top;padding-top:0.6rem">
+        <?= count($_pentries) ?>
+      </td>
+      <td rowspan="<?= count($_pentries) ?>" class="text-end fw-semibold" style="vertical-align:top;padding-top:0.6rem">
+        <?= number_format($_ptotal, 2, '.', "'") ?>
+      </td>
+      <?php endif ?>
+      <td><?= $_pe->date ? date('d.m.Y', (int)$_pe->date) : '—' ?></td>
+      <td>
+        <?= htmlspecialchars((string)$_pe->ct_label, ENT_QUOTES, $charset) ?>
+        <?php if ($_pe->ct_coti && $_pe->cotisation_year): ?>
+          <?php $_payYear = $_pe->date ? (int)date('Y', (int)$_pe->date) : 0; ?>
+          <?php if ((int)$_pe->cotisation_year !== $_payYear): ?>
+            <span class="badge bg-warning text-dark ms-1" style="font-size:0.7rem"><?= (int)$_pe->cotisation_year ?></span>
+          <?php endif ?>
+        <?php endif ?>
+      </td>
+      <td class="text-end"><?= number_format((float)$_pe->sum, 2, '.', "'") ?></td>
+    </tr>
+    <?php endforeach ?>
+    <?php endforeach ?>
+  </tbody>
+</table>
+</div>
+<?php endif ?>
