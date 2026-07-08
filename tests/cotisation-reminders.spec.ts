@@ -113,13 +113,16 @@ test.describe('Send cotisation reminders', () => {
     expect(msgs[0].To[0].Address).toBe('carol@example.com');
   });
 
-  test('email subject is "Rappel de cotisation"', async ({ request }) => {
+  test('email subject is "Rappel de cotisation"', async ({ page, request }) => {
     await purgeMailpit(request);
 
-    // Send directly via API with force=1 to bypass the anti-duplicate guard
-    // (prior tests may have already sent to Carol this year in the shared DB).
-    const csrf = await csrfToken(request);
-    await request.post('/index.php', {
+    // Use page.request (authenticated session) with force=1 to bypass the anti-duplicate
+    // guard — prior tests may have already sent to Carol this year in the shared DB.
+    await page.goto('/index.php');
+    const csrf = await page.evaluate(() =>
+      document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
+    );
+    await page.request.post('/index.php', {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
       data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
@@ -129,11 +132,14 @@ test.describe('Send cotisation reminders', () => {
     expect(msgs[0].Subject).toBe('Rappel de cotisation');
   });
 
-  test('email body contains year, membership URL and org name', async ({ request }) => {
+  test('email body contains year, membership URL and org name', async ({ page, request }) => {
     await purgeMailpit(request);
 
-    const csrf = await csrfToken(request);
-    await request.post('/index.php', {
+    await page.goto('/index.php');
+    const csrf = await page.evaluate(() =>
+      document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
+    );
+    await page.request.post('/index.php', {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
       data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
@@ -151,8 +157,11 @@ test.describe('Send cotisation reminders', () => {
   test('email is logged in email_log for the member', async ({ page, request }) => {
     await purgeMailpit(request);
 
-    const csrf = await csrfToken(request);
-    await request.post('/index.php', {
+    await page.goto('/index.php');
+    const csrf = await page.evaluate(() =>
+      document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
+    );
+    await page.request.post('/index.php', {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf },
       data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
     });
