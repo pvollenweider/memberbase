@@ -979,6 +979,11 @@ $GLOBAL['comptaRecapSentOk']         = "%d membre(s) notifié(s) avec succès.";
 $GLOBAL['comptaRecapSkipped']        = "%d membre(s) sans email ignoré(s).";
 $GLOBAL['comptaRecapSinceLastBatch'] = "depuis votre dernier récapitulatif du %s";
 $GLOBAL['comptaRecapSinceFirst']     = "depuis votre adhésion";
+$GLOBAL['comptaRecapPreviewHint']    = "Cliquez sur une ligne pour prévisualiser l'email avant envoi.";
+$GLOBAL['comptaRecapModalTitle']     = "Prévisualisation de l'email";
+$GLOBAL['comptaRecapSendLater']      = "Envoyer plus tard";
+$GLOBAL['comptaRecapSendOne']        = "Envoyer";
+$GLOBAL['comptaRecapNoEmail']        = "sans email";
 
 // Bulk compta notified mark (Settings → Santé)
 $GLOBAL['comptaBulkTitle']           = "Marquage en masse — récapitulatifs comptables";

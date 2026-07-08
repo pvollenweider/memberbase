@@ -979,6 +979,11 @@ $GLOBAL['comptaRecapSentOk']         = "%d member(s) notified successfully.";
 $GLOBAL['comptaRecapSkipped']        = "%d member(s) without email skipped.";
 $GLOBAL['comptaRecapSinceLastBatch'] = "since your last recap of %s";
 $GLOBAL['comptaRecapSinceFirst']     = "since your membership";
+$GLOBAL['comptaRecapPreviewHint']    = "Click a row to preview the email before sending.";
+$GLOBAL['comptaRecapModalTitle']     = "Email preview";
+$GLOBAL['comptaRecapSendLater']      = "Send later";
+$GLOBAL['comptaRecapSendOne']        = "Send";
+$GLOBAL['comptaRecapNoEmail']        = "no email";
 
 // Bulk compta notified mark (Settings → Health)
 $GLOBAL['comptaBulkTitle']           = "Bulk mark — accounting recaps";

@@ -979,6 +979,11 @@ $GLOBAL['comptaRecapSentOk']         = "%d Mitglied(er) erfolgreich benachrichti
 $GLOBAL['comptaRecapSkipped']        = "%d Mitglied(er) ohne E-Mail \u{00FC}bersprungen.";
 $GLOBAL['comptaRecapSinceLastBatch'] = "seit Ihrer letzten Zusammenfassung vom %s";
 $GLOBAL['comptaRecapSinceFirst']     = "seit Ihrer Mitgliedschaft";
+$GLOBAL['comptaRecapPreviewHint']    = "Klicken Sie auf eine Zeile, um die E-Mail vor dem Senden anzuzeigen.";
+$GLOBAL['comptaRecapModalTitle']     = "E-Mail-Vorschau";
+$GLOBAL['comptaRecapSendLater']      = "Sp\u{00E4}ter senden";
+$GLOBAL['comptaRecapSendOne']        = "Senden";
+$GLOBAL['comptaRecapNoEmail']        = "keine E-Mail";
 
 // Bulk compta notified mark (Einstellungen → Gesundheit)
 $GLOBAL['comptaBulkTitle']           = "Massenmarkierung \u{2014} Buchhaltungs-Recaps";
