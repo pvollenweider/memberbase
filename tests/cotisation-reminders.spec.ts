@@ -178,10 +178,14 @@ test.describe('Settings — membership URL', () => {
   test('saving a new URL persists it', async ({ page }) => {
     await page.goto('/index.php?view=settings&tab=settings');
     await page.fill('#s_membership_url', 'https://example.org/join');
-    await page.locator('button[type="submit"].btn-primary').first().click();
 
-    // After save the action redirects to ?view=settings&saved=1 (no tab param) —
-    // navigate back to the settings tab explicitly to verify persistence.
+    // The form uses hx-post; wait for the htmx response marker before navigating away
+    await Promise.all([
+      page.waitForSelector('#settings-save-msg #casa-save-ok', { state: 'attached', timeout: 10_000 }),
+      page.locator('button[type="submit"].btn-primary').first().click(),
+    ]);
+
+    // Navigate fresh to the settings tab to verify persistence
     await page.goto('/index.php?view=settings&tab=settings');
     await expect(page.locator('#s_membership_url')).toHaveValue('https://example.org/join');
   });
@@ -194,9 +198,13 @@ test.describe('Email template — cotisation reminder', () => {
     await page.goto('/index.php?view=settings&tab=email');
     await page.waitForLoadState('load');
 
-    // Select the cotisation reminder template
-    await page.selectOption('select[name="tpl_key"]', 'tpl_cotisation_reminder');
-    await expect(page.locator('textarea[name="tpl_body"]')).toBeVisible();
-    await expect(page.locator('input[name="tpl_subject"]')).toHaveValue('Rappel de cotisation');
+    // Templates are rendered as stacked cards (no dropdown) — find the cotisation reminder card
+    // by its hidden tpl_key input, then assert the visible subject field in the same card.
+    const card = page.locator('.card').filter({
+      has: page.locator('input[name="tpl_key"][value="tpl_cotisation_reminder"]'),
+    });
+    await expect(card).toBeVisible();
+    await expect(card.locator('input[name="tpl_subject"]')).toHaveValue('Rappel de cotisation');
+    await expect(card.locator('textarea[name="tpl_body"]')).toBeVisible();
   });
 });
