@@ -85,12 +85,22 @@ test.describe('Send cotisation reminders', () => {
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
 
+    // Capture the fetch response for diagnostics
+    let fetchStatus = 0;
+    let fetchBody   = '';
+    page.on('response', async (resp) => {
+      if (resp.url().includes('index.php') && resp.request().method() === 'POST') {
+        fetchStatus = resp.status();
+        fetchBody   = await resp.text().catch(() => '(read error)');
+      }
+    });
+
     // Open confirm modal (wait for Bootstrap fade) and click send
     await openReminderModal(page);
     await page.click('#btn-send-coti-reminders');
 
     // Modal should show a success alert
-    await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('#coti-reminder-result .alert-success'), `fetch ${fetchStatus}: ${fetchBody}`).toBeVisible({ timeout: 15_000 });
 
     // Exactly 1 email delivered (Carol has email; Dave does not)
     const msgs = await mailpitMessages(request);
@@ -154,15 +164,14 @@ test.describe('Send cotisation reminders', () => {
 
 test.describe('Settings — membership URL', () => {
   test('membership URL field is present in settings', async ({ page }) => {
-    await page.goto('/index.php?view=settings&tab=general');
-    await page.locator('#s_membership_url').scrollIntoViewIfNeeded();
+    await page.goto('/index.php?view=settings&tab=settings');
     await expect(page.locator('#s_membership_url')).toBeVisible();
     // Pre-filled from seed
     await expect(page.locator('#s_membership_url')).toHaveValue('https://www.memberbase.test/devenir-membre');
   });
 
   test('saving a new URL persists it', async ({ page }) => {
-    await page.goto('/index.php?view=settings&tab=general');
+    await page.goto('/index.php?view=settings&tab=settings');
     await page.fill('#s_membership_url', 'https://example.org/join');
     await page.locator('button[type="submit"].btn-primary').first().click();
     await page.waitForTimeout(500);
