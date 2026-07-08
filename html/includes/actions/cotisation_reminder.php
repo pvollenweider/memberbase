@@ -9,6 +9,8 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 if (($_REQUEST['action'] ?? '') !== 'sendCotisationReminders') { return; }
 if (!isManager()) { http_response_code(403); exit; }
 
+// Discard any page HTML already buffered — this action returns pure JSON.
+while (ob_get_level()) ob_end_clean();
 header('Content-Type: application/json; charset=utf-8');
 
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
