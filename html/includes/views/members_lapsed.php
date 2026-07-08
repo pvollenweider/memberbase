@@ -202,6 +202,7 @@ $prevTeamId  = 1; // non-zero so the table renders
           <button type="button" class="btn btn-outline-primary btn-sm js-send-one"
                   data-user-id="<?= (int)$m->id ?>"
                   data-year="<?= $year ?>"
+                  data-confirm="<?= htmlspecialchars(sprintf($GLOBAL['cotiReminderConfirmOne'], trim(($m->firstname ?? $m->society ?? '') . ' ' . ($m->lastname ?? ''))), ENT_QUOTES, $charset) ?>"
                   data-msg-ok="<?= htmlspecialchars($GLOBAL['cotiReminderSentOk'], ENT_QUOTES, $charset) ?>"
                   data-msg-fail="<?= htmlspecialchars($GLOBAL['cotiReminderSentFail'], ENT_QUOTES, $charset) ?>"
                   data-label-sending="<?= htmlspecialchars($GLOBAL['sendCotiRemindersSending'], ENT_QUOTES, $charset) ?>">
@@ -232,6 +233,7 @@ include __DIR__ . '/../partials/donor_table.php';
     // Per-row individual send buttons
     document.querySelectorAll('.js-send-one').forEach(function (btn) {
         btn.addEventListener('click', function () {
+            if (!confirm(btn.dataset.confirm)) return;
             var orig = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + btn.dataset.labelSending;

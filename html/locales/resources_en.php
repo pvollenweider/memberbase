@@ -283,6 +283,7 @@ $GLOBAL['sendCotiRemindersSending'] = 'Sending…';
 $GLOBAL['sendCotiRemindersOk']      = '%d email%s sent. %sk skipped (no email address).';
 $GLOBAL['sendCotiRemindersFail']    = 'Error while sending. Please check your SMTP configuration.';
 $GLOBAL['sendCotiRemindersBtnOne']  = 'Send reminder';
+$GLOBAL['cotiReminderConfirmOne']   = 'Send a membership reminder to %s?';
 $GLOBAL['cotiReminderAlreadySent']  = 'Reminder sent on %s';
 $GLOBAL['cotiReminderNeverSent']    = 'Not yet contacted';
 $GLOBAL['sendCotiRemindersSkipAlready'] = '%d already contacted this year (skipped).';

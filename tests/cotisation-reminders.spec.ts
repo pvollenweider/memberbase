@@ -73,6 +73,35 @@ test.describe('Lapsed members view', () => {
     await expect(page.locator('[data-bs-target="#modal-send-coti-reminders"]')).toBeVisible();
   });
 
+  test('per-row send button asks for confirmation before sending', async ({ page }) => {
+    await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
+    await page.waitForLoadState('load');
+
+    const sendOneBtn = page.locator('.js-send-one').first();
+    await expect(sendOneBtn).toBeVisible();
+
+    let dialogSeen = false;
+    page.once('dialog', async (dialog) => {
+      dialogSeen = true;
+      expect(dialog.type()).toBe('confirm');
+      await dialog.dismiss();
+    });
+
+    // No request should be sent when the confirmation is dismissed.
+    let requestFired = false;
+    const onRequest = (req: any) => {
+      if (req.url().includes('index.php') && req.method() === 'POST') requestFired = true;
+    };
+    page.on('request', onRequest);
+    await sendOneBtn.click();
+    await page.waitForTimeout(300);
+    page.off('request', onRequest);
+
+    expect(dialogSeen).toBe(true);
+    expect(requestFired).toBe(false);
+    await expect(sendOneBtn).toBeEnabled();
+  });
+
   test('year selector changes the list', async ({ page }) => {
     // No lapsed members for 2025 (nobody paid 2024 in our seed)
     await page.goto(`/index.php?view=lapsedMembers&year=2025`);

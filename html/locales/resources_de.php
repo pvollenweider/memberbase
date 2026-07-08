@@ -282,6 +282,7 @@ $GLOBAL['sendCotiRemindersSending'] = "Wird gesendet…";
 $GLOBAL['sendCotiRemindersOk']      = "%d E-Mail%s gesendet. %sk übersprungen (keine E-Mail-Adresse).";
 $GLOBAL['sendCotiRemindersFail']    = "Fehler beim Senden. Bitte SMTP-Konfiguration prüfen.";
 $GLOBAL['sendCotiRemindersBtnOne']  = "Erinnerung senden";
+$GLOBAL['cotiReminderConfirmOne']   = "Eine Mitgliedschaftserinnerung an %s senden?";
 $GLOBAL['cotiReminderAlreadySent']  = "Erinnerung gesendet am %s";
 $GLOBAL['cotiReminderNeverSent']    = "Noch nicht kontaktiert";
 $GLOBAL['sendCotiRemindersSkipAlready'] = "%d bereits kontaktiert dieses Jahr (übersprungen).";

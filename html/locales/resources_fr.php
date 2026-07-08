@@ -283,6 +283,7 @@ $GLOBAL['sendCotiRemindersSending'] = "Envoi en cours…";
 $GLOBAL['sendCotiRemindersOk']      = "%d email%s envoyé%s. %sk ignoré(s) (pas d'adresse email).";
 $GLOBAL['sendCotiRemindersFail']    = "Erreur lors de l'envoi. Vérifiez la configuration SMTP.";
 $GLOBAL['sendCotiRemindersBtnOne']  = "Envoyer un rappel";
+$GLOBAL['cotiReminderConfirmOne']   = "Envoyer un rappel de cotisation à %s ?";
 $GLOBAL['cotiReminderAlreadySent']  = "Rappel envoyé le %s";
 $GLOBAL['cotiReminderNeverSent']    = "Pas encore contacté";
 $GLOBAL['sendCotiRemindersSkipAlready'] = "%d déjà contacté%s cette année (ignoré%s).";

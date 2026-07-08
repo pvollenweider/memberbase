@@ -282,6 +282,7 @@ $GLOBAL['sendCotiRemindersSending'] = "Enviando…";
 $GLOBAL['sendCotiRemindersOk']      = "%d correo%s enviado%s. %sk omitido(s) (sin dirección de correo).";
 $GLOBAL['sendCotiRemindersFail']    = "Error al enviar. Por favor verifique la configuración SMTP.";
 $GLOBAL['sendCotiRemindersBtnOne']  = "Enviar recordatorio";
+$GLOBAL['cotiReminderConfirmOne']   = "¿Enviar un recordatorio de cuota a %s?";
 $GLOBAL['cotiReminderAlreadySent']  = "Recordatorio enviado el %s";
 $GLOBAL['cotiReminderNeverSent']    = "Aún no contactado";
 $GLOBAL['sendCotiRemindersSkipAlready'] = "%d ya contactado%s este año (omitido%s).";
