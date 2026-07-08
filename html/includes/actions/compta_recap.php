@@ -53,8 +53,7 @@ function _recapLoadEntries(PDO $pdo, ?int $filterUserId = null): array
 function _recapBuildVars(array $entries, array $appSettings, array $GLOBAL): array
 {
     $lastBatchRaw = null; // caller may override $sinceLine if needed
-    $sendDate = strftime('%d %B %Y');
-    if (!$sendDate || $sendDate === '%d %B %Y') $sendDate = date('d.m.Y');
+    $sendDate = date('d.m.Y');
 
     $lines    = [];
     $htmlRows = '';
@@ -164,7 +163,6 @@ if ($action === 'sendComptaRecap') {
 } elseif ($action === 'previewComptaRecap') {
     // Returns JSON {subject, html, text} for a single member's pending recap email.
     if (!isManager()) { http_response_code(403); exit; }
-    error_log('[previewComptaRecap] reached, user_id=' . ($_REQUEST['user_id'] ?? '?'));
     header('Content-Type: application/json; charset=utf-8');
     $userId   = (int)($_REQUEST['user_id'] ?? 0);
     $byMember = _recapLoadEntries($pdo, $userId);
