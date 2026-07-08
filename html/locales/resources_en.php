@@ -986,6 +986,9 @@ $GLOBAL['comptaRecapModalTitle']     = "Email preview";
 $GLOBAL['comptaRecapSendLater']      = "Send later";
 $GLOBAL['comptaRecapSendOne']        = "Send";
 $GLOBAL['comptaRecapNoEmail']        = "no email";
+$GLOBAL['comptaRecapNoEmailSection'] = "Members without email address (%d)";
+$GLOBAL['comptaRecapForceAll']       = "Force send (all entries for the year, even already sent)";
+$GLOBAL['comptaRecapSendUserBtn']    = "Send a recap";
 
 // Bulk compta notified mark (Settings → Health)
 $GLOBAL['comptaBulkTitle']           = "Bulk mark — accounting recaps";

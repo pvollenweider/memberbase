@@ -1,7 +1,7 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * Compta recap — preview table with per-member send modal.
+ * Compta recap — preview table with per-member send modal, filtered by year.
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -12,30 +12,37 @@ if (!isManager()) { ?>
   </div>
 <?php return; }
 
+$_year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
+if ($_year <= 0) { $_year = (int)date('Y'); }
+
 // Flash messages from redirect
 $_recapOk   = isset($_GET['recapOk'])   ? (int)$_GET['recapOk']   : null;
 $_recapSkip = isset($_GET['recapSkip']) ? (int)$_GET['recapSkip'] : 0;
 
-// Pending stats — zero-sum entries are excluded from emails so not counted
-$_pending = $pdo->query(
+// Pending stats for the selected year (zero-sum excluded)
+$_pending = $pdo->prepare(
     "SELECT COUNT(DISTINCT c.user_id) AS members, COUNT(*) AS entries
      FROM compta c
      JOIN users u ON u.id = c.user_id AND u.status = 1
-     WHERE c.notified_at IS NULL AND c.sum <> 0"
-)->fetchObject();
+     WHERE c.notified_at IS NULL AND c.sum <> 0
+       AND YEAR(FROM_UNIXTIME(c.date)) = ?"
+);
+$_pending->execute([$_year]);
+$_pending = $_pending->fetchObject();
 
 $_pendingMembers = (int)$_pending->members;
 $_pendingEntries = (int)$_pending->entries;
 
-// Last batch date
+// Last batch date (global, not year-filtered — shows when last send happened)
 $_lastBatch = $pdo->query(
     "SELECT MAX(notified_at) FROM compta WHERE notified_at IS NOT NULL"
 )->fetchColumn();
 
-// Load pending entries per member for the preview table
-$_previewRows = [];
+// Load pending entries per member for the selected year, split by email presence
+$_withEmail = [];
+$_noEmail   = [];
 if ($_pendingMembers > 0) {
-    $stmt = $pdo->query(
+    $stmt = $pdo->prepare(
         "SELECT c.user_id, u.firstname, u.lastname, u.email,
                 COUNT(*) AS nb_entries,
                 SUM(c.sum) AS total,
@@ -44,11 +51,20 @@ if ($_pendingMembers > 0) {
          FROM compta c
          JOIN users u ON u.id = c.user_id AND u.status = 1
          WHERE c.notified_at IS NULL AND c.sum <> 0
+           AND YEAR(FROM_UNIXTIME(c.date)) = ?
          GROUP BY c.user_id, u.firstname, u.lastname, u.email
          ORDER BY u.lastname, u.firstname"
     );
-    $_previewRows = $stmt->fetchAll(PDO::FETCH_OBJ);
+    $stmt->execute([$_year]);
+    foreach ($stmt->fetchAll(PDO::FETCH_OBJ) as $_pr) {
+        if (trim($_pr->email) !== '') {
+            $_withEmail[] = $_pr;
+        } else {
+            $_noEmail[] = $_pr;
+        }
+    }
 }
+$_sendableCount = count($_withEmail);
 ?>
 
 <div class="page-title-row mb-3">
@@ -65,45 +81,55 @@ if ($_pendingMembers > 0) {
 </div>
 <?php endif ?>
 
-<!-- Stats row -->
-<div class="row g-3 mb-4">
-  <div class="col-sm-auto">
-    <div class="card text-center px-4 py-3">
-      <div style="font-size:2rem;font-weight:700;line-height:1"><?= $_pendingMembers ?></div>
-      <div class="text-muted small mt-1"><?= $GLOBAL['comptaRecapPendingMembers'] ?></div>
-    </div>
+<!-- Year picker + stats row -->
+<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+  <div class="dropdown">
+    <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <?= $_year ?>
+    </button>
+    <ul class="dropdown-menu">
+      <?php for ($i = 0; $i < 10; $i++): $y = (int)date('Y') - $i; ?>
+      <li><a class="dropdown-item<?= $y === $_year ? ' active' : '' ?>"
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=comptaRecap&amp;year=<?= $y ?>"><?= $y ?></a></li>
+      <?php endfor ?>
+    </ul>
   </div>
-  <div class="col-sm-auto">
-    <div class="card text-center px-4 py-3">
-      <div style="font-size:2rem;font-weight:700;line-height:1"><?= $_pendingEntries ?></div>
-      <div class="text-muted small mt-1"><?= $GLOBAL['comptaRecapPendingEntries'] ?></div>
-    </div>
+
+  <div class="card text-center px-4 py-2">
+    <div style="font-size:1.6rem;font-weight:700;line-height:1"><?= $_pendingMembers ?></div>
+    <div class="text-muted small mt-1"><?= $GLOBAL['comptaRecapPendingMembers'] ?></div>
+  </div>
+  <div class="card text-center px-4 py-2">
+    <div style="font-size:1.6rem;font-weight:700;line-height:1"><?= $_pendingEntries ?></div>
+    <div class="text-muted small mt-1"><?= $GLOBAL['comptaRecapPendingEntries'] ?></div>
   </div>
   <?php if ($_lastBatch): ?>
-  <div class="col-sm-auto">
-    <div class="card text-center px-4 py-3">
-      <div style="font-size:1.1rem;font-weight:600;line-height:1"><?= htmlspecialchars(date('d.m.Y', strtotime($_lastBatch)), ENT_QUOTES, $charset) ?></div>
-      <div class="text-muted small mt-1"><?= $GLOBAL['comptaRecapLastBatch'] ?></div>
-    </div>
+  <div class="card text-center px-4 py-2">
+    <div style="font-size:1rem;font-weight:600;line-height:1"><?= htmlspecialchars(date('d.m.Y', strtotime($_lastBatch)), ENT_QUOTES, $charset) ?></div>
+    <div class="text-muted small mt-1"><?= $GLOBAL['comptaRecapLastBatch'] ?></div>
   </div>
   <?php endif ?>
 </div>
 
 <?php if ($_pendingMembers > 0): ?>
 
-<!-- Preview table -->
+<!-- Preview table — members WITH email -->
 <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
   <span class="text-muted small"><i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapPreviewHint'] ?></span>
+  <?php if ($_sendableCount > 0): ?>
   <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline">
     <input type="hidden" name="action" value="sendComptaRecap">
     <input type="hidden" name="view"   value="comptaRecap">
+    <input type="hidden" name="year"   value="<?= $_year ?>">
     <button type="submit" class="btn btn-primary btn-sm">
       <i class="fas fa-paper-plane me-1" aria-hidden="true"></i>
-      <?= sprintf($GLOBAL['comptaRecapSendBtn'], $_pendingMembers) ?>
+      <?= sprintf($GLOBAL['comptaRecapSendBtn'], $_sendableCount) ?>
     </button>
   </form>
+  <?php endif ?>
 </div>
 
+<?php if (!empty($_withEmail)): ?>
 <table class="table table-sm table-hover" id="recap-preview-table">
   <thead class="table-light">
     <tr>
@@ -115,32 +141,61 @@ if ($_pendingMembers > 0) {
     </tr>
   </thead>
   <tbody>
-  <?php foreach ($_previewRows as $_pr):
-      $_hasEmail = trim($_pr->email) !== '';
-      $_total    = number_format((float)$_pr->total, 2, '.', "'");
+  <?php foreach ($_withEmail as $_pr):
+      $_total = number_format((float)$_pr->total, 2, '.', "'");
   ?>
     <tr class="recap-row" style="cursor:pointer"
         data-userid="<?= (int)$_pr->user_id ?>"
         data-name="<?= htmlspecialchars(trim($_pr->firstname . ' ' . $_pr->lastname), ENT_QUOTES, $charset) ?>"
-        data-email="<?= htmlspecialchars($_pr->email, ENT_QUOTES, $charset) ?>"
-        data-has-email="<?= $_hasEmail ? '1' : '0' ?>">
+        data-email="<?= htmlspecialchars($_pr->email, ENT_QUOTES, $charset) ?>">
       <td class="text-nowrap"><?= htmlspecialchars(trim($_pr->lastname . ' ' . $_pr->firstname), ENT_QUOTES, $charset) ?></td>
-      <td>
-        <?php if ($_hasEmail): ?>
-          <?= htmlspecialchars($_pr->email, ENT_QUOTES, $charset) ?>
-        <?php else: ?>
-          <span class="badge bg-warning text-dark"><?= $GLOBAL['comptaRecapNoEmail'] ?></span>
-        <?php endif ?>
-      </td>
+      <td><?= htmlspecialchars($_pr->email, ENT_QUOTES, $charset) ?></td>
       <td class="text-center"><?= (int)$_pr->nb_entries ?></td>
       <td class="text-end">CHF <?= htmlspecialchars($_total, ENT_QUOTES, $charset) ?></td>
-      <td class="text-end">
-        <i class="fas fa-eye text-muted" aria-hidden="true"></i>
-      </td>
+      <td class="text-end"><i class="fas fa-eye text-muted" aria-hidden="true"></i></td>
     </tr>
   <?php endforeach ?>
   </tbody>
 </table>
+<?php endif ?>
+
+<!-- Members WITHOUT email — collapsible -->
+<?php if (!empty($_noEmail)): ?>
+<div class="mt-3">
+  <button class="btn btn-outline-warning btn-sm" type="button"
+          data-bs-toggle="collapse" data-bs-target="#recap-no-email-section"
+          aria-expanded="false" aria-controls="recap-no-email-section">
+    <i class="fas fa-envelope-circle-check me-1" aria-hidden="true"></i>
+    <?= sprintf($GLOBAL['comptaRecapNoEmailSection'], count($_noEmail)) ?>
+  </button>
+  <div class="collapse mt-2" id="recap-no-email-section">
+    <table class="table table-sm table-warning table-bordered">
+      <thead>
+        <tr>
+          <th><?= $GLOBAL['member'] ?></th>
+          <th class="text-center"><?= $GLOBAL['entriesColumn'] ?></th>
+          <th class="text-end"><?= $GLOBAL['total'] ?></th>
+        </tr>
+      </thead>
+      <tbody>
+      <?php foreach ($_noEmail as $_pr):
+          $_total = number_format((float)$_pr->total, 2, '.', "'");
+      ?>
+        <tr>
+          <td>
+            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$_pr->user_id ?>" class="text-nowrap">
+              <?= htmlspecialchars(trim($_pr->lastname . ' ' . $_pr->firstname), ENT_QUOTES, $charset) ?>
+            </a>
+          </td>
+          <td class="text-center"><?= (int)$_pr->nb_entries ?></td>
+          <td class="text-end">CHF <?= htmlspecialchars($_total, ENT_QUOTES, $charset) ?></td>
+        </tr>
+      <?php endforeach ?>
+      </tbody>
+    </table>
+  </div>
+</div>
+<?php endif ?>
 
 <?php else: ?>
 <p class="text-muted"><i class="fas fa-circle-check me-1 text-success" aria-hidden="true"></i><?= $GLOBAL['comptaRecapNoPending'] ?></p>
@@ -184,13 +239,13 @@ if ($_pendingMembers > 0) {
 <script>
 (function () {
   function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
-  var baseUrl   = <?= json_encode($_SERVER['PHP_SELF']) ?>;
+  var baseUrl       = <?= json_encode($_SERVER['PHP_SELF']) ?>;
+  var recapYear     = <?= (int)$_year ?>;
   var currentUserId = null;
 
   function openPreview(userId, name, email) {
     currentUserId = userId;
 
-    // Reset modal state
     document.getElementById('recap-modal-loading').style.display = '';
     document.getElementById('recap-modal-error').style.display   = 'none';
     document.getElementById('recap-modal-frame').style.display   = 'none';
@@ -204,7 +259,9 @@ if ($_pendingMembers > 0) {
     fetch(baseUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
-      body: 'action=previewComptaRecap&view=comptaRecap&csrf=' + encodeURIComponent(getCsrf()) + '&user_id=' + encodeURIComponent(userId)
+      body: 'action=previewComptaRecap&view=comptaRecap&csrf=' + encodeURIComponent(getCsrf())
+          + '&user_id=' + encodeURIComponent(userId)
+          + '&year=' + encodeURIComponent(recapYear)
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {
@@ -218,7 +275,6 @@ if ($_pendingMembers > 0) {
       document.getElementById('recap-modal-subject').textContent = data.subject;
       var frame = document.getElementById('recap-modal-frame');
       frame.style.display = '';
-      // Write HTML into iframe
       var doc = frame.contentDocument || frame.contentWindow.document;
       doc.open(); doc.write(data.html || '<pre>' + (data.text || '') + '</pre>'); doc.close();
       frame.addEventListener('load', function () {
@@ -237,18 +293,12 @@ if ($_pendingMembers > 0) {
     });
   }
 
-  // Row click → open modal
   document.querySelectorAll('.recap-row').forEach(function (tr) {
     tr.addEventListener('click', function () {
-      openPreview(
-        tr.dataset.userid,
-        tr.dataset.name,
-        tr.dataset.email
-      );
+      openPreview(tr.dataset.userid, tr.dataset.name, tr.dataset.email);
     });
   });
 
-  // Send one button
   document.getElementById('btn-recap-send-one').addEventListener('click', function () {
     if (!currentUserId) return;
     var btn = this;
@@ -258,18 +308,14 @@ if ($_pendingMembers > 0) {
     fetch(baseUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
-      body: 'action=sendComptaRecapOne&view=comptaRecap&csrf=' + encodeURIComponent(getCsrf()) + '&user_id=' + encodeURIComponent(currentUserId)
+      body: 'action=sendComptaRecapOne&view=comptaRecap&csrf=' + encodeURIComponent(getCsrf())
+          + '&user_id=' + encodeURIComponent(currentUserId)
+          + '&year=' + encodeURIComponent(recapYear)
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {
       if (data.ok) {
         bootstrap.Modal.getInstance(document.getElementById('recapPreviewModal')).hide();
-        // Remove the sent row from the table
-        var row = document.querySelector('.recap-row[data-userid="' + currentUserId + '"]');
-        if (row) row.remove();
-        // Update pending counter
-        var counter = document.querySelector('.card .page-stat-members');
-        // Reload page to refresh counters accurately
         window.__dirtyOverride = true;
         window.location.reload();
       } else {

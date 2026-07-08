@@ -986,6 +986,9 @@ $GLOBAL['comptaRecapModalTitle']     = "Prévisualisation de l'email";
 $GLOBAL['comptaRecapSendLater']      = "Envoyer plus tard";
 $GLOBAL['comptaRecapSendOne']        = "Envoyer";
 $GLOBAL['comptaRecapNoEmail']        = "sans email";
+$GLOBAL['comptaRecapNoEmailSection'] = "Membres sans adresse email (%d)";
+$GLOBAL['comptaRecapForceAll']       = "Forcer l'envoi (toutes les entrées de l'année, même déjà envoyées)";
+$GLOBAL['comptaRecapSendUserBtn']    = "Envoyer un récapitulatif";
 
 // Bulk compta notified mark (Settings → Santé)
 $GLOBAL['comptaBulkTitle']           = "Marquage en masse — récapitulatifs comptables";

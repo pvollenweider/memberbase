@@ -986,6 +986,9 @@ $GLOBAL['comptaRecapModalTitle']     = "Vista previa del correo";
 $GLOBAL['comptaRecapSendLater']      = "Enviar más tarde";
 $GLOBAL['comptaRecapSendOne']        = "Enviar";
 $GLOBAL['comptaRecapNoEmail']        = "sin correo";
+$GLOBAL['comptaRecapNoEmailSection'] = "Miembros sin dirección de correo (%d)";
+$GLOBAL['comptaRecapForceAll']       = "Forzar envío (todas las entradas del año, incluso ya enviadas)";
+$GLOBAL['comptaRecapSendUserBtn']    = "Enviar un resumen";
 
 // Bulk compta notified mark (Configuración → Salud)
 $GLOBAL['comptaBulkTitle']           = "Marcado masivo — resúmenes contables";

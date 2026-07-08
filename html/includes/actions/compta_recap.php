@@ -16,18 +16,29 @@ require_once __DIR__ . '/../lib/mailer.php';
 $action = $_REQUEST['action'];
 
 /**
- * Load unnotified entries for a single user_id (or all users if null).
- * Returns entries grouped by user_id.
+ * Load compta entries for recap emails.
+ *
+ * @param int|null $filterUserId  restrict to one user (null = all)
+ * @param int      $year          filter by payment year (0 = no filter)
+ * @param bool     $force         include already-notified entries
  */
-function _recapLoadEntries(PDO $pdo, ?int $filterUserId = null): array
+function _recapLoadEntries(PDO $pdo, ?int $filterUserId = null, int $year = 0, bool $force = false): array
 {
-    $where = 'c.notified_at IS NULL AND c.sum <> 0';
-    $params = [];
-    if ($filterUserId !== null) {
-        $where .= ' AND c.user_id = ?';
-        $params[] = $filterUserId;
+    $conditions = ['c.sum <> 0'];
+    $params     = [];
+    if (!$force) {
+        $conditions[] = 'c.notified_at IS NULL';
     }
-    $stmt = $pdo->prepare(
+    if ($filterUserId !== null) {
+        $conditions[] = 'c.user_id = ?';
+        $params[]     = $filterUserId;
+    }
+    if ($year > 0) {
+        $conditions[] = 'YEAR(FROM_UNIXTIME(c.date)) = ?';
+        $params[]     = $year;
+    }
+    $where = implode(' AND ', $conditions);
+    $stmt  = $pdo->prepare(
         "SELECT c.id, c.user_id, c.date, c.libele, c.sum,
                 u.firstname, u.lastname, u.email,
                 COALESCE(ct.label, '') AS type_label
@@ -38,7 +49,7 @@ function _recapLoadEntries(PDO $pdo, ?int $filterUserId = null): array
          ORDER BY c.user_id, c.date ASC"
     );
     $stmt->execute($params);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $rows     = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $byMember = [];
     foreach ($rows as $r) {
         $byMember[$r['user_id']][] = $r;
@@ -112,14 +123,15 @@ function _recapBuildVars(array $entries, array $appSettings, array $GLOBAL): arr
 if ($action === 'sendComptaRecap') {
     if (!isManager()) { http_response_code(403); exit; }
 
-    $isHtmx = isset($_SERVER['HTTP_HX_REQUEST']);
-    $redirect = static function (string $q) use ($isHtmx): void {
-        $url = $_SERVER['PHP_SELF'] . '?view=comptaRecap&' . $q;
+    $recapYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
+    $isHtmx    = isset($_SERVER['HTTP_HX_REQUEST']);
+    $redirect  = static function (string $q) use ($isHtmx, $recapYear): void {
+        $url = $_SERVER['PHP_SELF'] . '?view=comptaRecap&year=' . $recapYear . '&' . $q;
         if ($isHtmx) { header('HX-Location: ' . $url); } else { header('Location: ' . $url); }
         exit;
     };
 
-    $byMember = _recapLoadEntries($pdo);
+    $byMember = _recapLoadEntries($pdo, null, $recapYear);
     if (empty($byMember)) { $redirect('recapOk=0'); }
 
     $lastBatchRaw = $pdo->query("SELECT MAX(notified_at) FROM compta WHERE notified_at IS NOT NULL")->fetchColumn();
@@ -161,12 +173,14 @@ if ($action === 'sendComptaRecap') {
     $redirect('recapOk=' . $sentCount . '&recapSkip=' . $skipCount);
 
 } elseif ($action === 'previewComptaRecap') {
-    // Returns JSON {subject, html, text} for a single member's pending recap email.
+    // Returns JSON {subject, html, text} for a single member's recap email.
     if (!isManager()) { http_response_code(403); exit; }
     while (ob_get_level()) ob_end_clean();
     header('Content-Type: application/json; charset=utf-8');
-    $userId   = (int)($_REQUEST['user_id'] ?? 0);
-    $byMember = _recapLoadEntries($pdo, $userId);
+    $userId    = (int)($_REQUEST['user_id'] ?? 0);
+    $recapYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
+    $force     = !empty($_REQUEST['force']);
+    $byMember  = _recapLoadEntries($pdo, $userId, $recapYear, $force);
     if (empty($byMember)) { echo json_encode(['ok' => false, 'error' => 'no_entries']); exit; }
     $entries = reset($byMember);
 
@@ -190,8 +204,10 @@ if ($action === 'sendComptaRecap') {
     if (!isManager()) { http_response_code(403); exit; }
     while (ob_get_level()) ob_end_clean();
     header('Content-Type: application/json; charset=utf-8');
-    $userId   = (int)($_REQUEST['user_id'] ?? 0);
-    $byMember = _recapLoadEntries($pdo, $userId);
+    $userId    = (int)($_REQUEST['user_id'] ?? 0);
+    $recapYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
+    $force     = !empty($_REQUEST['force']);
+    $byMember  = _recapLoadEntries($pdo, $userId, $recapYear, $force);
     if (empty($byMember)) { echo json_encode(['ok' => false, 'error' => 'no_entries']); exit; }
     $entries = reset($byMember);
     $first   = $entries[0];
@@ -214,7 +230,7 @@ if ($action === 'sendComptaRecap') {
         $ph = implode(',', array_fill(0, count($ids), '?'));
         $pdo->prepare("UPDATE compta SET notified_at = NOW() WHERE id IN ($ph)")->execute($ids);
         auditLog($pdo, 'sendComptaRecapOne',
-            "sent to {$first['firstname']} {$first['lastname']} <{$first['email']}> — "
+            "sent to {$first['firstname']} {$first['lastname']} <{$first['email']}> (year=$recapYear force=" . ($force ? '1' : '0') . ") — "
             . count($entries) . ' entr(ies), CHF ' . $total);
     }
     echo json_encode(['ok' => $ok]);
