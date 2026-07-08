@@ -158,7 +158,12 @@ if (!isAdmin()) { ?>
       if (data.ok) {
         res.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i><?= addslashes($GLOBAL['smtpTestOk']) ?></span>';
       } else {
-        res.innerHTML = '<span class="text-danger"><i class="fas fa-xmark me-1"></i>' + (data.error || '<?= addslashes($GLOBAL['smtpTestFail']) ?>') + '</span>';
+        var html = '<span class="text-danger"><i class="fas fa-xmark me-1"></i>' + (data.error || '<?= addslashes($GLOBAL['smtpTestFail']) ?>') + '</span>';
+        if (data.debug) {
+          html += '<div class="mt-2"><a class="small text-muted" href="#" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'\':\'none\';return false"><?= addslashes($GLOBAL['smtpDebugToggle']) ?></a>'
+               + '<pre class="mt-1 p-2 border rounded small text-muted" style="white-space:pre-wrap;display:none;max-height:300px;overflow:auto">' + data.debug.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</pre></div>';
+        }
+        res.innerHTML = html;
       }
     })
     .catch(function(){ res.innerHTML = '<span class="text-danger"><?= addslashes($GLOBAL['smtpTestFail']) ?></span>'; })

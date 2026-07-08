@@ -16,7 +16,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @param string $to
  * @param string $subject
  * @param string $body   Plain-text body.
- * @return array{ok:bool,error:string}
+ * @return array{ok:bool,error:string,debug:string}
  */
 function mbSmtpSend(array $cfg, string $to, string $subject, string $body): array
 {
@@ -30,16 +30,21 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
     $fromName   = $cfg['smtp_from_name']  ?? '';
     $replyTo    = $cfg['smtp_reply_to']   ?? '';
 
-    if ($host === '') return ['ok' => false, 'error' => 'smtp_not_configured'];
+    $log = [];
+    $log[] = "Config: host=$host port=$port encryption=$encryption auth=" . ($auth ? 'yes' : 'no');
+    if ($auth) $log[] = "Auth user: $user";
+
+    if ($host === '') return ['ok' => false, 'error' => 'smtp_not_configured', 'debug' => implode("\n", $log)];
 
     $timeout = 15;
 
-    // Build socket address
     if ($encryption === 'ssl') {
         $address = 'ssl://' . $host . ':' . $port;
     } else {
         $address = 'tcp://' . $host . ':' . $port;
     }
+
+    $log[] = "Connecting to $address ...";
 
     $errno  = 0;
     $errstr = '';
@@ -49,21 +54,25 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
     ]]);
     $sock = @stream_socket_client($address, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $ctx);
     if ($sock === false) {
-        return ['ok' => false, 'error' => "Connection failed: $errstr ($errno)"];
+        $log[] = "Connection failed: $errstr ($errno)";
+        return ['ok' => false, 'error' => "Connection failed: $errstr ($errno)", 'debug' => implode("\n", $log)];
     }
+    $log[] = "Connected.";
     stream_set_timeout($sock, $timeout);
 
-    $read = function() use ($sock): string {
+    $read = function() use ($sock, &$log): string {
         $buf = '';
         while ($line = fgets($sock, 512)) {
             $buf .= $line;
-            // A line not starting with 3-digit code followed by '-' is the last line of a response
+            $log[] = '< ' . rtrim($line);
             if (strlen($line) >= 4 && $line[3] !== '-') break;
         }
         return $buf;
     };
 
-    $cmd = function(string $c) use ($sock, $read): string {
+    $cmd = function(string $c, string $display = '') use ($sock, $read, &$log): string {
+        // Log the command but mask base64 credentials
+        $log[] = '> ' . ($display !== '' ? $display : $c);
         fwrite($sock, $c . "\r\n");
         return $read();
     };
@@ -78,7 +87,8 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
         if ($code($resp) !== 220) throw new RuntimeException("Greeting: $resp");
 
         // EHLO
-        $resp = $cmd('EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'));
+        $ehloHost = $_SERVER['SERVER_NAME'] ?? 'localhost';
+        $resp = $cmd('EHLO ' . $ehloHost);
         if ($code($resp) !== 250) throw new RuntimeException("EHLO: $resp");
         $ehlo = $resp;
 
@@ -89,11 +99,13 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
             }
             $resp = $cmd('STARTTLS');
             if ($code($resp) !== 220) throw new RuntimeException("STARTTLS: $resp");
+            $log[] = '(TLS handshake...)';
             if (!stream_socket_enable_crypto($sock, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
                 throw new RuntimeException('TLS handshake failed');
             }
+            $log[] = 'TLS established.';
             // Re-EHLO after TLS
-            $resp = $cmd('EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'));
+            $resp = $cmd('EHLO ' . $ehloHost);
             if ($code($resp) !== 250) throw new RuntimeException("EHLO post-TLS: $resp");
             $ehlo = $resp;
         }
@@ -103,19 +115,18 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
             if (strpos($ehlo, 'AUTH') !== false && strpos($ehlo, 'LOGIN') !== false) {
                 $resp = $cmd('AUTH LOGIN');
                 if ($code($resp) !== 334) throw new RuntimeException("AUTH LOGIN: $resp");
-                $resp = $cmd(base64_encode($user));
+                $resp = $cmd(base64_encode($user), 'AUTH username: [base64]');
                 if ($code($resp) !== 334) throw new RuntimeException("AUTH username: $resp");
-                $resp = $cmd(base64_encode($pass));
+                $resp = $cmd(base64_encode($pass), 'AUTH password: [base64]');
                 if ($code($resp) !== 235) throw new RuntimeException("AUTH password: $resp");
             } elseif (strpos($ehlo, 'PLAIN') !== false) {
                 $plain = base64_encode("\0" . $user . "\0" . $pass);
-                $resp = $cmd('AUTH PLAIN ' . $plain);
+                $resp = $cmd('AUTH PLAIN ' . $plain, 'AUTH PLAIN [base64]');
                 if ($code($resp) !== 235) throw new RuntimeException("AUTH PLAIN: $resp");
             }
         }
 
         // Envelope
-        $fromFull = $fromName !== '' ? '"' . addslashes($fromName) . '" <' . $fromEmail . '>' : $fromEmail;
         $resp = $cmd('MAIL FROM:<' . $fromEmail . '>');
         if ($code($resp) !== 250) throw new RuntimeException("MAIL FROM: $resp");
 
@@ -147,6 +158,7 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
         $message = $headers . "\r\n" . $bodyEncoded;
         $message = preg_replace('/^\./', '..', $message);
 
+        $log[] = '> [message headers + body]';
         fwrite($sock, $message . "\r\n.\r\n");
         $resp = $read();
         if ($code($resp) !== 250) throw new RuntimeException("Message accepted: $resp");
@@ -154,11 +166,11 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
         $cmd('QUIT');
         fclose($sock);
 
-        return ['ok' => true, 'error' => ''];
+        return ['ok' => true, 'error' => '', 'debug' => implode("\n", $log)];
 
     } catch (RuntimeException $e) {
         @fclose($sock);
-        return ['ok' => false, 'error' => $e->getMessage()];
+        return ['ok' => false, 'error' => $e->getMessage(), 'debug' => implode("\n", $log)];
     }
 }
 

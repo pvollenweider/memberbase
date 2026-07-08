@@ -908,6 +908,7 @@ $GLOBAL['smtpTestSend']        = "Senden";
 $GLOBAL['smtpTesting']         = "Wird gesendet…";
 $GLOBAL['smtpTestOk']          = "E-Mail erfolgreich gesendet.";
 $GLOBAL['smtpTestFail']        = "Senden fehlgeschlagen. Bitte Konfiguration prüfen.";
+$GLOBAL['smtpDebugToggle']     = "SMTP-Verbindungsprotokoll anzeigen";
 $GLOBAL['smtpTestMissingTo']   = "Bitte eine Ziel-E-Mail-Adresse eingeben.";
 
 // Email log journal
