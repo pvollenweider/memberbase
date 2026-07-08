@@ -54,6 +54,7 @@ $UA_VIEW_ROUTES = [
     // Suivi
     'updateSuivi'         => ['suivi_edit_form.php',       null, [], 'suivi'],
     'lastEntrySuivi'      => ['suivi_last_entry.php'],
+    'emailDetail'         => ['email_detail.php',         'isManager'],
     'removeSuivi'         => ['suivi_delete_confirm.php',  'canWrite'],
     'removeSuiviConfirm'  => ['suivi_delete_do.php',       'canWrite'],
 

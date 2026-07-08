@@ -64,15 +64,9 @@ $degraded = !empty($pending) || !empty($drift);
 <?php
 $_migOk  = isset($_GET['migOk']) ? (int)$_GET['migOk'] : null;
 $_migErr = $_GET['migErr'] ?? null;
-$_bulkWelcomeOk  = isset($_GET['bulkWelcomeOk'])  ? (int)$_GET['bulkWelcomeOk']  : null;
-$_bulkWelcomeErr = $_GET['bulkWelcomeErr'] ?? null;
 $_bulkComptaOk   = isset($_GET['bulkComptaOk'])   ? (int)$_GET['bulkComptaOk']   : null;
 $_bulkComptaErr  = $_GET['bulkComptaErr'] ?? null;
-if ($_bulkWelcomeOk !== null): ?>
-  <div class="alert alert-success py-2" role="alert"><i class="fas fa-circle-check me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['welcomeEmailBulkOk'], $_bulkWelcomeOk) ?></div>
-<?php elseif ($_bulkWelcomeErr !== null): ?>
-  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['welcomeEmailBulkErrConfirm'] ?></div>
-<?php endif ?>
+?>
 <?php if ($_bulkComptaOk !== null): ?>
   <div class="alert alert-success py-2" role="alert"><i class="fas fa-circle-check me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['comptaBulkOk'], $_bulkComptaOk) ?></div>
 <?php elseif ($_bulkComptaErr !== null): ?>
@@ -220,39 +214,6 @@ if ($_bulkWelcomeOk !== null): ?>
   </div>
 </div>
 
-<?php
-// Count members without the welcome-sent flag (to show in the button)
-$_welcomeUntouched = (int)$pdo->query(
-    "SELECT COUNT(*) FROM users u
-     WHERE u.status = 1
-       AND NOT EXISTS (
-           SELECT 1 FROM user_properties p
-           WHERE p.user_id = u.id AND p.parameter = 'email_welcome_sent'
-       )"
-)->fetchColumn();
-if ($_welcomeUntouched > 0):
-?>
-<div class="card mt-3 border-warning-subtle">
-  <div class="card-body">
-    <h6 class="card-title text-muted mb-2">
-      <i class="fas fa-envelope me-1" aria-hidden="true"></i><?= $GLOBAL['welcomeEmailBulkTitle'] ?>
-    </h6>
-    <p class="small text-muted mb-2"><?= sprintf($GLOBAL['welcomeEmailBulkDesc'], $_welcomeUntouched) ?></p>
-    <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex flex-column gap-1" style="max-width:380px">
-      <input type="hidden" name="action" value="markAllWelcomeSent">
-      <input type="hidden" name="view"   value="settings">
-      <input type="hidden" name="tab"    value="health">
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="confirm_bulk" id="confirm_bulk_welcome" required data-no-dirty>
-        <label class="form-check-label small" for="confirm_bulk_welcome"><?= $GLOBAL['welcomeEmailBulkConfirm'] ?></label>
-      </div>
-      <button type="submit" class="btn btn-outline-warning btn-sm">
-        <i class="fas fa-check-double me-1" aria-hidden="true"></i><?= $GLOBAL['welcomeEmailBulkBtn'] ?>
-      </button>
-    </form>
-  </div>
-</div>
-<?php endif ?>
 
 <?php
 // Count compta entries not yet included in any recap batch.

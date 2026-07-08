@@ -224,16 +224,33 @@ if ($action == 'deleteTeam') {
         $stmt->execute([$kFrom1, $kTo1, $kFrom, $kTo]);
     } else {
         $groupName = sprintf($GLOBAL['lapsedMembersGroupName'], $yr, date("d.m.Y"));
-        $membreTeamId  = (int)($appSettings['default_team'] ?? 0);
-        $prevTeamStmt  = $pdo->prepare("SELECT id FROM team WHERE name = ?");
-        $prevTeamStmt->execute([($appSettings['membre_team_prefix'] ?? 'Membre') . ' ' . ($yr - 1)]);
-        $prevTeamId    = (int)$prevTeamStmt->fetchColumn();
-        if ($prevTeamId <= 0 || $membreTeamId <= 0) {
-            echo '<script>alert("' . $GLOBAL['memberTeamsNotFound'] . '");history.back();</script>';
+        $cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
+        if (empty($cotiTypeIds)) {
+            echo '<script>alert("' . addslashes($GLOBAL['noComptaCotiType']) . '");history.back();</script>';
             exit;
         }
-        $stmt = $pdo->prepare("SELECT user_id FROM user_properties WHERE parameter=? AND value='true' AND user_id NOT IN (SELECT user_id FROM user_properties WHERE parameter=? AND value='true')");
-        $stmt->execute(["team_$prevTeamId", "team_$membreTeamId"]);
+        $ph = implode(',', array_fill(0, count($cotiTypeIds), '?'));
+        $_noCotiTeam  = (int)($appSettings['member_no_coti_team'] ?? 0);
+        $noCotiClause = $_noCotiTeam > 0
+            ? "AND NOT EXISTS (SELECT 1 FROM user_properties WHERE user_id=u.id AND parameter='team_$_noCotiTeam' AND value='true')"
+            : '';
+        $stmt = $pdo->prepare("
+            SELECT u.id AS user_id FROM users u
+            WHERE u.status = 1
+              $noCotiClause
+              AND EXISTS (
+                  SELECT 1 FROM compta c WHERE c.user_id = u.id AND c.type_id IN ($ph)
+                    AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM compta c WHERE c.user_id = u.id AND c.type_id IN ($ph)
+                    AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
+              )
+        ");
+        $stmt->execute(array_merge(
+            array_values($cotiTypeIds), [$yr - 1],
+            array_values($cotiTypeIds), [$yr]
+        ));
     }
     $userIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
     if (empty($userIds)) {

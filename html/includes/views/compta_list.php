@@ -45,6 +45,15 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
   </div>
 
   <?php if ($year != -2): ?>
+  <?php
+  // Count excluded-from-donation entries in the current year view (without type filter to give full picture)
+  $_exclWhere = "FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id"
+      . " WHERE c.user_id = " . $user->getId()
+      . " AND c.date > $from AND c.date < $to"
+      . " AND COALESCE(ct.is_excluded_from_donation,0) = 1"
+      . " AND c.sum <> 0";
+  $_exclCount = (int)$pdo->query("SELECT COUNT(*) " . $_exclWhere)->fetchColumn();
+  ?>
   <div class="dropdown ms-auto">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <i class="fas fa-file-pdf me-1" aria-hidden="true"></i><?= $GLOBAL['attestation'] ?>
@@ -68,8 +77,22 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
   </a>
   <?php endif ?>
 
+  <?php if (isManager() && trim($user->getEmail()) !== ''): ?>
+  <button type="button" class="btn btn-outline-secondary btn-sm ms-auto"
+          data-bs-toggle="modal" data-bs-target="#modal-send-recap-user"
+          data-no-dirty>
+    <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapSendUserBtn'] ?>
+  </button>
+  <?php endif ?>
+
 </div>
 
+<?php if (($year ?? -2) != -2 && ($_exclCount ?? 0) > 0): ?>
+<div class="alert alert-warning py-2 d-flex align-items-start gap-2" style="font-size:0.85rem" role="alert">
+  <i class="fas fa-circle-info mt-1 flex-shrink-0" aria-hidden="true"></i>
+  <span><?= sprintf($GLOBAL['attestationExclNote'], $_exclCount) ?></span>
+</div>
+<?php endif ?>
 
 <form action="<?=$_SERVER['PHP_SELF']?>" method="post" name="addCompta">
 <input type="hidden" name="action" value="addCompta"/>
@@ -254,7 +277,7 @@ while ($row = $stmt->fetchObject()) {
 </p>
 <?php endif ?>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+function _comptaListInit() {
     // Row click navigation
     var tbody = document.querySelector('form[name="addCompta"] tbody');
     if (tbody) tbody.addEventListener('click', function(e) {
@@ -278,8 +301,215 @@ document.addEventListener('DOMContentLoaded', function() {
         typeSelect.addEventListener('change', toggleCotiYear);
         toggleCotiYear();
     }
-});
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _comptaListInit);
+} else {
+    _comptaListInit();
+}
 </script>
+
+<?php if (isManager() && trim($user->getEmail()) !== ''): ?>
+<!-- Recap send modal for this user -->
+<div class="modal fade" id="modal-send-recap-user" tabindex="-1"
+     aria-labelledby="modal-send-recap-user-label" aria-hidden="true">
+  <div class="modal-dialog modal-xl" style="--bs-modal-height:85vh">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title mb-0" id="modal-send-recap-user-label"><?= $GLOBAL['comptaRecapModalTitle'] ?></h5>
+          <div class="text-muted small"><?= htmlspecialchars($user->getEmail(), ENT_QUOTES, $charset) ?></div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body" style="overflow:visible;min-height:500px">
+        <!-- Controls -->
+        <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+          <div class="dropdown">
+            <button class="ca-filter-btn dropdown-toggle" type="button" id="recap-user-year-btn"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+              <?= (int)date('Y') ?>
+            </button>
+            <ul class="dropdown-menu" id="recap-user-year-menu">
+              <?php for ($i = 0; $i < 10; $i++): $y = (int)date('Y') - $i; ?>
+              <li><a class="dropdown-item recap-user-year-item<?= $i === 0 ? ' active' : '' ?>"
+                     data-year="<?= $y ?>" href="#"><?= $y ?></a></li>
+              <?php endfor ?>
+            </ul>
+          </div>
+          <div id="recap-scope-toggle-wrap" class="form-check form-switch mb-0" style="font-size:0.875rem">
+            <input class="form-check-input" type="checkbox" role="switch" id="recap-scope-all" data-no-dirty>
+            <label class="form-check-label text-muted" for="recap-scope-all"><?= $GLOBAL['comptaRecapScopeAll'] ?></label>
+          </div>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="btn-recap-user-preview">
+            <i class="fas fa-eye me-1" aria-hidden="true"></i><?= $GLOBAL['preview'] ?? 'Prévisualiser' ?>
+          </button>
+        </div>
+        <!-- Preview area -->
+        <div id="recap-user-loading" style="display:none;align-items:center;justify-content:center;padding:3rem 0"></div>
+        <div id="recap-user-error" class="alert alert-danger m-3" style="display:none"></div>
+        <div id="recap-user-empty" class="alert alert-info m-3" style="display:none">
+          <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
+          <span id="recap-user-empty-msg"></span>
+        </div>
+        <div id="recap-user-subject" class="text-muted small mb-2" style="display:none"></div>
+        <iframe id="recap-user-frame" style="width:100%;border:none;min-height:400px;display:none" sandbox="allow-same-origin allow-scripts"></iframe>
+      </div>
+      <div class="modal-footer gap-2">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <button type="button" class="btn btn-primary" id="btn-recap-user-send" disabled>
+          <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapSendOne'] ?>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
+  var baseUrl    = <?= json_encode($_SERVER['PHP_SELF']) ?>;
+  var userId     = <?= (int)$user->getId() ?>;
+  var recapYear  = <?= (int)date('Y') ?>;
+  var currentYear = recapYear;
+
+  function isForceScope() {
+    var el = document.getElementById('recap-scope-all');
+    // Hidden (past year) → always force
+    return el.parentElement.style.display === 'none' || el.checked;
+  }
+
+  function updateScopeToggle() {
+    var wrap = document.getElementById('recap-scope-toggle-wrap');
+    if (recapYear < currentYear) {
+      // Past year: hide toggle, force is implicit
+      wrap.style.display = 'none';
+    } else {
+      // Current year: show toggle, default unchecked
+      wrap.style.display = '';
+      document.getElementById('recap-scope-all').checked = false;
+    }
+  }
+
+  // Year picker
+  document.querySelectorAll('.recap-user-year-item').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      recapYear = parseInt(this.dataset.year, 10);
+      document.getElementById('recap-user-year-btn').textContent = this.dataset.year;
+      document.querySelectorAll('.recap-user-year-item').forEach(function (el) { el.classList.remove('active'); });
+      this.classList.add('active');
+      updateScopeToggle();
+      // Reset preview
+      document.getElementById('recap-user-frame').style.display   = 'none';
+      document.getElementById('recap-user-subject').style.display = 'none';
+      document.getElementById('recap-user-empty').style.display   = 'none';
+      document.getElementById('btn-recap-user-send').disabled     = true;
+    });
+  });
+
+  function showRecapUserLoading(on) {
+    var el = document.getElementById('recap-user-loading');
+    el.style.display = on ? 'flex' : 'none';
+    if (on) el.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>';
+  }
+
+  document.getElementById('btn-recap-user-preview').addEventListener('click', function () {
+    var force = isForceScope() ? '1' : '';
+    showRecapUserLoading(true);
+    document.getElementById('recap-user-error').style.display   = 'none';
+    document.getElementById('recap-user-empty').style.display   = 'none';
+    document.getElementById('recap-user-frame').style.display   = 'none';
+    document.getElementById('recap-user-subject').style.display = 'none';
+    document.getElementById('btn-recap-user-send').disabled     = true;
+
+    fetch(baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
+      body: 'action=previewComptaRecap&view=comptaRecap&csrf=' + encodeURIComponent(getCsrf())
+          + '&user_id=' + encodeURIComponent(userId)
+          + '&year='    + encodeURIComponent(recapYear)
+          + '&force='   + encodeURIComponent(force)
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      showRecapUserLoading(false);
+      if (!data.ok) {
+        if (data.error === 'no_entries') {
+          var scopeWrap = document.getElementById('recap-scope-toggle-wrap');
+          var scopeVisible = scopeWrap.style.display !== 'none';
+          if (scopeVisible && !document.getElementById('recap-scope-all').checked) {
+            // Current year, new-only mode → auto-switch to all and retry
+            document.getElementById('recap-scope-all').checked = true;
+            document.getElementById('btn-recap-user-preview').click();
+            return;
+          }
+          // Force was already on and still nothing — truly no entries
+          document.getElementById('recap-user-empty-msg').textContent = <?= json_encode($GLOBAL['comptaRecapNoEntriesForce']) ?>;
+          document.getElementById('recap-user-empty').style.display = '';
+        } else {
+          var el = document.getElementById('recap-user-error');
+          el.textContent = data.error || '<?= addslashes($GLOBAL['error'] ?? 'Erreur') ?>';
+          el.style.display = '';
+        }
+        return;
+      }
+      var sub = document.getElementById('recap-user-subject');
+      sub.textContent  = data.subject;
+      sub.style.display = '';
+      var frame = document.getElementById('recap-user-frame');
+      frame.srcdoc = data.html || '<pre>' + (data.text || '') + '</pre>';
+      frame.style.display = '';
+      frame.addEventListener('load', function () {
+        try { frame.style.height = (frame.contentDocument.body.scrollHeight + 16) + 'px'; } catch(e){}
+      }, { once: true });
+      frame.style.height = '400px';
+      document.getElementById('btn-recap-user-send').disabled = false;
+    })
+    .catch(function () {
+      showRecapUserLoading(false);
+      var el = document.getElementById('recap-user-error');
+      el.textContent = '<?= addslashes($GLOBAL['error'] ?? 'Erreur réseau') ?>';
+      el.style.display = '';
+    });
+  });
+
+  document.getElementById('btn-recap-user-send').addEventListener('click', function () {
+    var force = isForceScope() ? '1' : '';
+    var btn   = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span><?= addslashes($GLOBAL['sending'] ?? 'Envoi…') ?>';
+
+    fetch(baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
+      body: 'action=sendComptaRecapOne&view=comptaRecap&csrf=' + encodeURIComponent(getCsrf())
+          + '&user_id=' + encodeURIComponent(userId)
+          + '&year='    + encodeURIComponent(recapYear)
+          + '&force='   + encodeURIComponent(force)
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('modal-send-recap-user')).hide();
+        // Briefly show success toast if available, otherwise just re-enable button
+        btn.innerHTML = '<i class="fas fa-check me-1"></i><?= addslashes($GLOBAL['sent'] ?? 'Envoyé') ?>';
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i><?= addslashes($GLOBAL['comptaRecapSendOne']) ?>';
+        var el = document.getElementById('recap-user-error');
+        el.textContent = data.error || '<?= addslashes($GLOBAL['error'] ?? 'Erreur') ?>';
+        el.style.display = '';
+      }
+    })
+    .catch(function () {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i><?= addslashes($GLOBAL['comptaRecapSendOne']) ?>';
+    });
+  });
+}());
+</script>
+<?php endif ?>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 $_ctBg = [

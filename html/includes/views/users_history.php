@@ -68,3 +68,5 @@ $(function () {
 });
 </script>
 <?php endif ?>
+
+<?php require __DIR__ . '/../partials/email_log_section.php'; ?>

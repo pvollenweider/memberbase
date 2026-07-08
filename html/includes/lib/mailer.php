@@ -9,16 +9,18 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 
 /**
- * Send an email via SMTP.
+ * Send an email via SMTP, with optional HTML body (multipart/alternative).
  *
- * @param array  $cfg  Keys: host, port, encryption (none|starttls|ssl), auth (0|1),
- *                     username, password, from_email, from_name, reply_to.
+ * @param array  $cfg      Keys: smtp_host, smtp_port, smtp_encryption, smtp_auth,
+ *                         smtp_user, smtp_password, smtp_enc_key, smtp_from_email,
+ *                         smtp_from_name, smtp_reply_to.
  * @param string $to
  * @param string $subject
- * @param string $body   Plain-text body.
- * @return array{ok:bool,error:string}
+ * @param string $bodyText Plain-text body.
+ * @param string $bodyHtml Optional HTML body; when provided, sends multipart/alternative.
+ * @return array{ok:bool,error:string,debug:string}
  */
-function mbSmtpSend(array $cfg, string $to, string $subject, string $body): array
+function mbSmtpSend(array $cfg, string $to, string $subject, string $bodyText, string $bodyHtml = ''): array
 {
     $host       = $cfg['smtp_host']       ?? '';
     $port       = (int)($cfg['smtp_port'] ?? 587);
@@ -30,40 +32,57 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
     $fromName   = $cfg['smtp_from_name']  ?? '';
     $replyTo    = $cfg['smtp_reply_to']   ?? '';
 
-    if ($host === '') return ['ok' => false, 'error' => 'smtp_not_configured'];
+    $log = [];
+    $log[] = "Config: host=$host port=$port encryption=$encryption auth=" . ($auth ? 'yes' : 'no');
+    if ($auth) $log[] = "Auth user: $user";
+
+    if ($host === '') return ['ok' => false, 'error' => 'smtp_not_configured', 'debug' => implode("\n", $log)];
 
     $timeout = 15;
 
-    // Build socket address
     if ($encryption === 'ssl') {
         $address = 'ssl://' . $host . ':' . $port;
     } else {
         $address = 'tcp://' . $host . ':' . $port;
     }
 
+    $log[] = "Connecting to $address ...";
+
     $errno  = 0;
     $errstr = '';
     $ctx = stream_context_create(['ssl' => [
         'verify_peer'       => false,
         'verify_peer_name'  => false,
+        'allow_self_signed' => true,
     ]]);
+    error_clear_last();
     $sock = @stream_socket_client($address, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $ctx);
     if ($sock === false) {
-        return ['ok' => false, 'error' => "Connection failed: $errstr ($errno)"];
+        // $errstr is often empty on SSL errors — fall back to error_get_last()
+        if ($errstr === '' || $errstr === '0') {
+            $last = error_get_last();
+            $errstr = $last['message'] ?? 'unknown error';
+        }
+        $msg = "Connection failed: $errstr" . ($errno ? " ($errno)" : '');
+        $log[] = $msg;
+        return ['ok' => false, 'error' => $msg, 'debug' => implode("\n", $log)];
     }
+    $log[] = "Connected.";
     stream_set_timeout($sock, $timeout);
 
-    $read = function() use ($sock): string {
+    $read = function() use ($sock, &$log): string {
         $buf = '';
         while ($line = fgets($sock, 512)) {
             $buf .= $line;
-            // A line not starting with 3-digit code followed by '-' is the last line of a response
+            $log[] = '< ' . rtrim($line);
             if (strlen($line) >= 4 && $line[3] !== '-') break;
         }
         return $buf;
     };
 
-    $cmd = function(string $c) use ($sock, $read): string {
+    $cmd = function(string $c, string $display = '') use ($sock, $read, &$log): string {
+        // Log the command but mask base64 credentials
+        $log[] = '> ' . ($display !== '' ? $display : $c);
         fwrite($sock, $c . "\r\n");
         return $read();
     };
@@ -78,7 +97,8 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
         if ($code($resp) !== 220) throw new RuntimeException("Greeting: $resp");
 
         // EHLO
-        $resp = $cmd('EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'));
+        $ehloHost = $_SERVER['SERVER_NAME'] ?? 'localhost';
+        $resp = $cmd('EHLO ' . $ehloHost);
         if ($code($resp) !== 250) throw new RuntimeException("EHLO: $resp");
         $ehlo = $resp;
 
@@ -89,11 +109,13 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
             }
             $resp = $cmd('STARTTLS');
             if ($code($resp) !== 220) throw new RuntimeException("STARTTLS: $resp");
+            $log[] = '(TLS handshake...)';
             if (!stream_socket_enable_crypto($sock, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
                 throw new RuntimeException('TLS handshake failed');
             }
+            $log[] = 'TLS established.';
             // Re-EHLO after TLS
-            $resp = $cmd('EHLO ' . ($_SERVER['SERVER_NAME'] ?? 'localhost'));
+            $resp = $cmd('EHLO ' . $ehloHost);
             if ($code($resp) !== 250) throw new RuntimeException("EHLO post-TLS: $resp");
             $ehlo = $resp;
         }
@@ -103,19 +125,18 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
             if (strpos($ehlo, 'AUTH') !== false && strpos($ehlo, 'LOGIN') !== false) {
                 $resp = $cmd('AUTH LOGIN');
                 if ($code($resp) !== 334) throw new RuntimeException("AUTH LOGIN: $resp");
-                $resp = $cmd(base64_encode($user));
+                $resp = $cmd(base64_encode($user), 'AUTH username: [base64]');
                 if ($code($resp) !== 334) throw new RuntimeException("AUTH username: $resp");
-                $resp = $cmd(base64_encode($pass));
+                $resp = $cmd(base64_encode($pass), 'AUTH password: [base64]');
                 if ($code($resp) !== 235) throw new RuntimeException("AUTH password: $resp");
             } elseif (strpos($ehlo, 'PLAIN') !== false) {
                 $plain = base64_encode("\0" . $user . "\0" . $pass);
-                $resp = $cmd('AUTH PLAIN ' . $plain);
+                $resp = $cmd('AUTH PLAIN ' . $plain, 'AUTH PLAIN [base64]');
                 if ($code($resp) !== 235) throw new RuntimeException("AUTH PLAIN: $resp");
             }
         }
 
         // Envelope
-        $fromFull = $fromName !== '' ? '"' . addslashes($fromName) . '" <' . $fromEmail . '>' : $fromEmail;
         $resp = $cmd('MAIL FROM:<' . $fromEmail . '>');
         if ($code($resp) !== 250) throw new RuntimeException("MAIL FROM: $resp");
 
@@ -126,7 +147,7 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
         $resp = $cmd('DATA');
         if ($code($resp) !== 354) throw new RuntimeException("DATA: $resp");
 
-        $date    = date('r');
+        $date           = date('r');
         $subjectEncoded = '=?UTF-8?B?' . base64_encode($subject) . '?=';
         $fromEncoded    = $fromName !== ''
             ? '=?UTF-8?B?' . base64_encode($fromName) . '?= <' . $fromEmail . '>'
@@ -138,15 +159,30 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
         if ($replyTo !== '') $headers .= "Reply-To: $replyTo\r\n";
         $headers .= "Subject: $subjectEncoded\r\n";
         $headers .= "MIME-Version: 1.0\r\n";
-        $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-        $headers .= "Content-Transfer-Encoding: base64\r\n";
 
-        $bodyEncoded = chunk_split(base64_encode($body));
+        if ($bodyHtml !== '') {
+            $boundary = '----=_Part_' . md5(uniqid('', true));
+            $headers .= "Content-Type: multipart/alternative; boundary=\"$boundary\"\r\n";
+            $bodyPart  = "--$boundary\r\n";
+            $bodyPart .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            $bodyPart .= "Content-Transfer-Encoding: base64\r\n\r\n";
+            $bodyPart .= chunk_split(base64_encode($bodyText));
+            $bodyPart .= "--$boundary\r\n";
+            $bodyPart .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $bodyPart .= "Content-Transfer-Encoding: base64\r\n\r\n";
+            $bodyPart .= chunk_split(base64_encode($bodyHtml));
+            $bodyPart .= "--$boundary--\r\n";
+            $message = $headers . "\r\n" . $bodyPart;
+        } else {
+            $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            $headers .= "Content-Transfer-Encoding: base64\r\n";
+            $message = $headers . "\r\n" . chunk_split(base64_encode($bodyText));
+        }
 
         // Dot-stuff: lines starting with '.' must be doubled
-        $message = $headers . "\r\n" . $bodyEncoded;
         $message = preg_replace('/^\./', '..', $message);
 
+        $log[] = '> [message headers + body]';
         fwrite($sock, $message . "\r\n.\r\n");
         $resp = $read();
         if ($code($resp) !== 250) throw new RuntimeException("Message accepted: $resp");
@@ -154,11 +190,11 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $body): arra
         $cmd('QUIT');
         fclose($sock);
 
-        return ['ok' => true, 'error' => ''];
+        return ['ok' => true, 'error' => '', 'debug' => implode("\n", $log)];
 
     } catch (RuntimeException $e) {
         @fclose($sock);
-        return ['ok' => false, 'error' => $e->getMessage()];
+        return ['ok' => false, 'error' => $e->getMessage(), 'debug' => implode("\n", $log)];
     }
 }
 
@@ -214,36 +250,60 @@ function mbSmtpGetOrCreateEncKey(PDO $pdo): string
  * @param string $bodyText  Optional plain-text body.
  * @return bool             True if the email was sent successfully.
  */
-function mbSendMail(PDO $pdo, string $to, string $subject, string $bodyHtml, string $bodyText = ''): bool
-{
+function mbSendMail(
+    PDO $pdo,
+    string $to,
+    string $subject,
+    string $bodyHtml,
+    string $bodyText = '',
+    ?int $userId = null
+): bool {
     global $appSettings;
     try {
-        $cfg = $appSettings;
+        $cfg  = $appSettings;
         $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
-        // Use plain text body for now (HTML support requires MIME multipart — future enhancement)
-        $body   = $bodyText !== '' ? $bodyText : strip_tags($bodyHtml);
-        $result = mbSmtpSend($cfg, $to, $subject, $body);
+        $text   = $bodyText !== '' ? $bodyText : strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $bodyHtml));
+        $result = mbSmtpSend($cfg, $to, $subject, $text, $bodyHtml);
         $status = $result['ok'] ? 'sent' : 'error';
         $errMsg = $result['ok'] ? null : ($result['error'] ?? 'unknown error');
-        _mbLogEmail($pdo, $to, $subject, $status, $errMsg);
+        _mbLogEmail($pdo, $to, $subject, $status, $errMsg, $userId, $text, $bodyHtml);
         return $result['ok'];
     } catch (\Throwable $e) {
-        _mbLogEmail($pdo, $to, $subject, 'error', $e->getMessage());
+        _mbLogEmail($pdo, $to, $subject, 'error', $e->getMessage(), $userId);
         return false;
     }
 }
 
 /**
  * Insert one row into email_log. Silently ignores failures (e.g. table not yet migrated).
+ *
+ * @param ?int    $userId   Optional member id (links the log entry to the member's suivi)
+ * @param string  $bodyText Rendered plain-text body
+ * @param string  $bodyHtml Rendered HTML body (may be empty)
  */
-function _mbLogEmail(PDO $pdo, string $to, string $subject, string $status, ?string $errorMsg): void
-{
+function _mbLogEmail(
+    PDO $pdo,
+    string $to,
+    string $subject,
+    string $status,
+    ?string $errorMsg,
+    ?int $userId = null,
+    string $bodyText = '',
+    string $bodyHtml = '',
+    string $tplKey = ''
+): void {
     try {
         $pdo->prepare(
-            "INSERT INTO email_log (to_email, subject, status, error_msg) VALUES (?, ?, ?, ?)"
-        )->execute([$to, $subject, $status, $errorMsg]);
+            "INSERT INTO email_log (user_id, tpl_key, to_email, subject, status, error_msg, body_text, body_html)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        )->execute([$userId, $tplKey, $to, $subject, $status, $errorMsg, $bodyText, $bodyHtml]);
     } catch (\Throwable $e) {
-        // Table may not exist yet (migration pending) — silently ignore
+        // Columns may not exist yet (migration pending) — retry without new columns
+        try {
+            $pdo->prepare(
+                "INSERT INTO email_log (to_email, subject, status, error_msg) VALUES (?, ?, ?, ?)"
+            )->execute([$to, $subject, $status, $errorMsg]);
+        } catch (\Throwable $e2) {}
     }
 }
 
@@ -253,34 +313,106 @@ function _mbLogEmail(PDO $pdo, string $to, string $subject, string $status, ?str
  */
 function mbDefaultTemplates(): array
 {
+    // Shared inline CSS for HTML emails (table-based, safe for Outlook/Gmail/Apple Mail)
+    $htmlWrap = static function(string $bodyContent, string $orgName): string {
+        return '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . htmlspecialchars($orgName, ENT_QUOTES, 'UTF-8') . '</title></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Helvetica,Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:24px 0">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:6px;overflow:hidden;max-width:600px;width:100%">
+  <!-- Header -->
+  <tr><td style="background:#1a5276;padding:24px 32px">
+    <p style="margin:0;color:#ffffff;font-size:20px;font-weight:bold">' . htmlspecialchars($orgName, ENT_QUOTES, 'UTF-8') . '</p>
+  </td></tr>
+  <!-- Body -->
+  <tr><td style="padding:32px 32px 24px;color:#222222;font-size:15px;line-height:1.6">
+' . $bodyContent . '
+  </td></tr>
+  <!-- Footer -->
+  <tr><td style="background:#f0f0f0;padding:16px 32px;color:#888888;font-size:12px;border-top:1px solid #e0e0e0">
+    ' . htmlspecialchars($orgName, ENT_QUOTES, 'UTF-8') . ' · Ce message vous a été envoyé automatiquement, merci de ne pas y répondre directement.
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>';
+    };
+
     return [
-        'tpl_welcome' => [
-            'subject'   => 'Bienvenue — {{org_name}}',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous avons bien enregistré votre adhésion à {{org_name}}.\n\nPour toute question, vous pouvez nous contacter à l'adresse suivante : {{contact_email}}\n\nCordialement,\n{{org_name}}",
-        ],
-        // {{type}}      = label of the compta_type (e.g. "Don libre")
-        // {{amount}}    = formatted amount (e.g. "80.00")
+        // {{type}}       = label of the compta_type (e.g. "Don libre")
+        // {{amount}}     = formatted amount (e.g. "80.00")
         // {{entry_date}} = date of the entry (DD.MM.YYYY)
-        // {{libele}}    = free-text note on the entry (may be empty)
+        // {{libele}}     = free-text note on the entry (may be empty)
         'tpl_payment_receipt' => [
             'subject'   => 'Confirmation de réception — {{org_name}}',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous avons bien reçu votre versement et vous en remercions.\n\n  Type    : {{type}}\n  Montant : CHF {{amount}}\n  Date    : {{entry_date}}\n{{libele_line}}\nPour toute question : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nNous avons bien reçu votre versement{{society_line}} et vous en remercions.\n\n  Type    : {{type}}\n  Montant : CHF {{amount}}\n  Date    : {{entry_date}}\n{{libele_line}}\nPour toute question : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_html' => $htmlWrap(
+                '<p>{{greeting}}</p>
+<p>Nous avons bien reçu votre versement{{society_line}} et vous en remercions chaleureusement.</p>
+<table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin:16px 0;font-size:14px">
+  <tr style="background:#f0f4f8"><td style="border:1px solid #dde3ea;width:40%"><strong>Type</strong></td><td style="border:1px solid #dde3ea">{{type}}</td></tr>
+  <tr><td style="border:1px solid #dde3ea"><strong>Montant</strong></td><td style="border:1px solid #dde3ea">CHF {{amount}}</td></tr>
+  <tr style="background:#f0f4f8"><td style="border:1px solid #dde3ea"><strong>Date</strong></td><td style="border:1px solid #dde3ea">{{entry_date}}</td></tr>
+  {{libele_row}}
+</table>
+<p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
+<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
+        // {{year}}           = cotisation year (e.g. "2026")
+        // {{membership_url}} = URL of the membership page (from app settings)
         'tpl_cotisation_reminder' => [
             'subject'   => 'Rappel de cotisation',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nNous vous rappelons que votre cotisation est en attente de règlement.\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nSauf erreur de notre part, votre cotisation à {{org_name}} pour l'année {{year}} n'a pas encore été réglée.\n\nEn tant que membre, votre cotisation annuelle est essentielle : elle permet à notre association de mener à bien ses activités en faveur des enfants en situation de vulnérabilité en Amérique latine — recherche de fonds, suivi de projets sur le terrain, sensibilisation du public et représentation auprès des organisations internationales.\n\nSi vous avez déjà renouvelé votre adhésion, merci — vous pouvez ignorer ce message. Dans le cas contraire, nous comptons sur votre soutien et vous invitons à renouveler votre adhésion quand vous le pouvez.\n\nPour plus d'informations sur l'adhésion : {{membership_url}}\n\nPour toute question : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_html' => $htmlWrap(
+                '<p>{{greeting}}</p>
+<p>Sauf erreur de notre part, votre cotisation à <strong>{{org_name}}</strong> pour l\'année <strong>{{year}}</strong> n\'a pas encore été réglée.</p>
+<p>En tant que membre, votre cotisation annuelle est essentielle : elle permet à notre association de mener à bien ses activités en faveur des enfants en situation de vulnérabilité en Amérique latine :</p>
+<ul style="margin:8px 0 12px 0;padding-left:20px;line-height:1.7">
+  <li>Recherche de fonds pour soutenir les projets sur le terrain</li>
+  <li>Suivi des projets et reddition de comptes à nos bailleurs</li>
+  <li>Missions d\'évaluation sur le terrain</li>
+  <li>Sensibilisation du public et des étudiant·e·s</li>
+  <li>Représentation auprès des organisations internationales</li>
+  <li>Recrutement de volontaires</li>
+</ul>
+<p>Si vous avez déjà renouvelé votre adhésion, merci — vous pouvez ignorer ce message. Dans le cas contraire, nous comptons sur votre soutien et vous invitons à renouveler votre adhésion quand vous le pouvez.</p>
+{{membership_url_block}}
+<p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
+<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
         'tpl_attestation_don' => [
             'subject'   => 'Attestation de don',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVeuillez trouver ci-joint votre attestation de don.\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nVeuillez trouver ci-joint votre attestation de don.\n\nCordialement,\n{{org_name}}",
+            'body_html' => $htmlWrap(
+                '<p>{{greeting}}</p>
+<p>Veuillez trouver ci-joint votre attestation de don pour l\'année fiscale écoulée.</p>
+<p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
+<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
-        // {{entries}} = plain-text block, one line per entry (date · label · amount)
-        // {{total}}   = formatted sum of included entries
-        // {{send_date}} = date of the batch send (DD mois YYYY)
-        // Future: this template will be triggerable via scheduled tasks (issue #117)
+        // {{entries}}      = plain-text block, one line per entry (date · type · description · amount)
+        // {{entries_html}} = HTML <table> of entries (built by the action)
+        // {{total}}        = formatted sum of included entries
+        // {{send_date}}    = date of the batch send (DD mois YYYY)
+        // {{since_line}}   = "depuis votre dernier récapitulatif du DD.MM.YYYY" or "depuis votre adhésion"
         'tpl_compta_recap' => [
             'subject'   => 'Récapitulatif de vos versements — {{org_name}}',
-            'body_text' => "Bonjour {{firstname}} {{lastname}},\n\nVoici les derniers versements enregistrés à votre nom, reçus au {{send_date}} :\n\n{{entries}}\nTotal : CHF {{total}}\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nVoici le récapitulatif de vos versements enregistrés{{display_name_line}} {{since_line}} :\n\n{{entries}}\nTotal : CHF {{total}}\n\nUne attestation de don vous sera envoyée en début d'année prochaine pour votre déclaration fiscale.\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_html' => $htmlWrap(
+                '<p>{{greeting}}</p>
+<p>Voici le récapitulatif de vos versements enregistrés{{display_name_line}} <em>{{since_line}}</em> :</p>
+{{entries_html}}
+<table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin-top:0;font-size:14px">
+  <tr style="background:#1a5276;color:#ffffff">
+    <td colspan="3" style="border:1px solid #154360;text-align:right"><strong>Total : CHF {{total}}</strong></td>
+  </tr>
+</table>
+<p style="margin-top:20px;padding:14px 16px;background:#eaf4fb;border-left:4px solid #1a5276;font-size:14px;color:#1a5276">
+  <strong>Attestation de don :</strong> Un document officiel vous sera envoyé en début d\'année prochaine pour votre déclaration fiscale cantonale et fédérale.
+</p>
+<p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
+<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
     ];
 }
@@ -295,18 +427,55 @@ function mbDefaultTemplates(): array
 function mbGetTemplate(PDO $pdo, string $key): object
 {
     try {
-        $row = $pdo->prepare("SELECT subject, body_text FROM email_templates WHERE `key`=? LIMIT 1");
+        $row = $pdo->prepare("SELECT subject, body_text, body_html FROM email_templates WHERE `key`=? LIMIT 1");
         $row->execute([$key]);
         $tpl = $row->fetchObject();
-        if ($tpl && $tpl->body_text !== '') return $tpl;
+        if ($tpl && $tpl->body_text !== '') {
+            // If body_html column doesn't exist yet, set empty string
+            if (!isset($tpl->body_html)) $tpl->body_html = '';
+            return $tpl;
+        }
     } catch (\Throwable $e) {
-        // Table may not exist yet
+        // Table may not exist yet or body_html column not migrated
     }
     $defaults = mbDefaultTemplates();
     if (isset($defaults[$key])) {
         return (object)$defaults[$key];
     }
-    return (object)['subject' => '', 'body_text' => ''];
+    return (object)['subject' => '', 'body_text' => '', 'body_html' => ''];
+}
+
+/**
+ * Build greeting and display-name vars for email templates.
+ *
+ * Handles the case where a contact has no first/last name but only a society.
+ * Returns an array ready to be merged into template vars:
+ *   display_name   — best available name (firstname+lastname, else society, else "")
+ *   society        — raw society field
+ *   greeting       — HTML greeting paragraph inner content, e.g.
+ *                    "Bonjour <strong>Jean Dupont</strong>,"  or  "Bonjour,"
+ *   greeting_text  — plain-text greeting line, e.g. "Bonjour Jean Dupont,"
+ */
+function mbBuildSalutation(string $firstname, string $lastname, string $society): array
+{
+    $fn          = trim($firstname);
+    $ln          = trim($lastname);
+    $soc         = trim($society);
+    $personName  = trim("$fn $ln");
+    $displayName = $personName !== '' ? $personName : $soc;
+
+    // Greeting uses person name only — no society fallback (avoids "Bonjour Entreprise SA,")
+    $greeting     = $personName !== ''
+        ? 'Bonjour <strong>' . htmlspecialchars($personName, ENT_QUOTES, 'UTF-8') . '</strong>,'
+        : 'Bonjour,';
+    $greetingText = $personName !== '' ? "Bonjour $personName," : 'Bonjour,';
+
+    return [
+        'display_name'  => $displayName,
+        'society'       => $soc,
+        'greeting'      => $greeting,
+        'greeting_text' => $greetingText,
+    ];
 }
 
 /**
@@ -333,10 +502,39 @@ function mbRenderTemplate(string $tpl, array $vars): string
  * @param array  $vars    Placeholder values
  * @return bool
  */
-function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars): bool
+function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars, ?int $userId = null): bool|string
 {
-    $tpl     = mbGetTemplate($pdo, $tplKey);
-    $subject = mbRenderTemplate($tpl->subject, $vars);
-    $body    = mbRenderTemplate($tpl->body_text, $vars);
-    return mbSendMail($pdo, $to, $subject, $body);
+    $tpl      = mbGetTemplate($pdo, $tplKey);
+    $subject  = mbRenderTemplate($tpl->subject,   $vars);
+    $bodyText = mbRenderTemplate($tpl->body_text, $vars);
+    $bodyHtml = isset($tpl->body_html) ? mbRenderTemplate($tpl->body_html, $vars) : '';
+    return mbSendMailWithError($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText, $userId, $tplKey);
+}
+
+/**
+ * Like mbSendMail but returns true on success or an error string on failure.
+ */
+function mbSendMailWithError(
+    PDO $pdo,
+    string $to,
+    string $subject,
+    string $bodyHtml,
+    string $bodyText = '',
+    ?int $userId = null,
+    string $tplKey = ''
+): bool|string {
+    global $appSettings;
+    try {
+        $cfg  = $appSettings;
+        $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
+        $text   = $bodyText !== '' ? $bodyText : strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $bodyHtml));
+        $result = mbSmtpSend($cfg, $to, $subject, $text, $bodyHtml);
+        $status = $result['ok'] ? 'sent' : 'error';
+        $errMsg = $result['ok'] ? null : ($result['error'] ?? 'unknown error');
+        _mbLogEmail($pdo, $to, $subject, $status, $errMsg, $userId, $text, $bodyHtml, $tplKey);
+        return $result['ok'] ? true : ($errMsg ?? 'send_failed');
+    } catch (\Throwable $e) {
+        _mbLogEmail($pdo, $to, $subject, 'error', $e->getMessage(), $userId, '', '', $tplKey);
+        return $e->getMessage();
+    }
 }

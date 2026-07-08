@@ -36,4 +36,12 @@ define('DB_USER', 'members');
 define('DB_PASS', 'members');
 PHP
 
+# Baseline all migrations so the "pending migrations" banner never shows during tests.
+# The schema was applied directly from schema.sql; --baseline records them as applied.
+docker compose -f "$REPO_ROOT/docker-compose.yml" exec -T php \
+  php /var/www/html/tools/migrate.php --baseline 2>/dev/null || true
+
+# Purge Mailpit inbox so tests start clean
+curl -s -X DELETE http://localhost:8025/api/v1/messages || true
+
 echo "members_test reset complete."

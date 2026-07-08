@@ -40,7 +40,7 @@ $_stStats = $pdo->prepare("
         SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS other_last_year_count,
         -- cotisation
         SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 THEN 1 ELSE 0 END) AS ever_coti,
-        SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS coti_this_year,
+        SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ? THEN 1 ELSE 0 END) AS coti_this_year,
         -- années du premier versement par catégorie
         MIN(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 THEN c.date ELSE NULL END) AS don_first_ts,
         MIN(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 THEN c.date ELSE NULL END) AS other_first_ts,
@@ -60,7 +60,7 @@ $_stStats->execute([
     $_tsThisYear, $_tsNextYear,  // other_this_year_count
     $_tsLastYear, $_tsThisYear,  // other_last_year_amount
     $_tsLastYear, $_tsThisYear,  // other_last_year_count
-    $_tsThisYear, $_tsNextYear,  // coti_this_year
+    $_year,                       // coti_this_year (by cotisation_year or payment year)
     $user->getId()
 ]);
 $_stats = $_stStats->fetchObject();

@@ -173,14 +173,27 @@ CREATE TABLE IF NOT EXISTS `email_templates` (
 -- Email send log
 CREATE TABLE IF NOT EXISTS `email_log` (
   `id`         int(11)      NOT NULL AUTO_INCREMENT,
+  `user_id`    int(11)      NULL,
+  `tpl_key`    varchar(100) NOT NULL DEFAULT '',
   `created_at` datetime     NOT NULL DEFAULT current_timestamp(),
   `to_email`   varchar(255) NOT NULL DEFAULT '',
   `subject`    varchar(500) NOT NULL DEFAULT '',
   `status`     enum('sent','error') NOT NULL DEFAULT 'sent',
   `error_msg`  text         DEFAULT NULL,
+  `body_text`  text         NOT NULL DEFAULT '',
+  `body_html`  longtext     NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
+  KEY `idx_user_id`   (`user_id`),
+  KEY `idx_tpl_key`   (`tpl_key`),
   KEY `idx_created_at` (`created_at`),
   KEY `idx_status`     (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `schema_migrations` (
+  `version`    varchar(255) NOT NULL,
+  `applied_at` int(11)      NOT NULL DEFAULT 0,
+  `checksum`   char(64)     NOT NULL DEFAULT '',
+  PRIMARY KEY (`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET foreign_key_checks = 1;

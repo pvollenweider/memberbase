@@ -253,6 +253,7 @@ $GLOBAL['attestation'] = "Bescheinigung";
 $GLOBAL['displayedYear'] = "(angezeigtes Jahr)";
 $GLOBAL['removeTypeFilter'] = "Typfilter entfernen";
 $GLOBAL['notCountedAsDonation'] = "Nicht als Spende gezählt";
+$GLOBAL['attestationExclNote']  = "Diese Bescheinigung enth\u{00E4}lt nur Spenden. Die %d Eintrag/Eintr\u{00E4}ge mit \"Excl. don\" (Mitgliedsbeitr\u{00E4}ge o.\u{00A0}.\u{00E4}.) sind nicht enthalten.";
 
 // --- Donor / member cohort views ---
 $GLOBAL['backToDonationOverview'] = "Zurück zur Spendenübersicht";
@@ -269,10 +270,23 @@ $GLOBAL['loyalDonorsCount'] = '<strong>%1$s treue Spender</strong> — haben sow
 $GLOBAL['newDonorsTitle'] = "Neue Spender %d";
 $GLOBAL['newDonorsCount'] = '<strong>%1$s neue Spender</strong> — haben in <strong>%4$d</strong> beigetragen, ohne Spende in <strong>%5$d</strong>.';
 $GLOBAL['lapsedMembersTitle'] = "Verlorene Mitglieder %d → %d";
-$GLOBAL['noMemberTeamFound'] = "Kein Segment „Mitglied %d“ in der Datenbank gefunden.";
+$GLOBAL['noMemberTeamFound']  = "Kein Segment „Mitglied %d” in der Datenbank gefunden.";
+$GLOBAL['noComptaCotiType']   = "Kein Beitragstyp konfiguriert.";
 $GLOBAL['createSegmentLapsedMembers'] = "Segment „Zu reaktivierende Mitglieder %d“ erstellen";
 $GLOBAL['confirmCreateLapsedMembersSegment'] = "Segment „Zu reaktivierende Mitglieder %d“ mit <strong>%s</strong> Person(en) erstellen?";
-$GLOBAL['lapsedMembersCount'] = '<strong>%1$s Mitglieder</strong> waren in „Mitglied %3$d“, aber nicht in „Mitglied %4$d“.';
+$GLOBAL['lapsedMembersCount'] = '<strong>%1$s Mitglieder</strong> waren in „Mitglied %3$d”, aber nicht in „Mitglied %4$d”.';
+$GLOBAL['sendCotiRemindersBtn']     = "Mitgliedschaftserinnerungen senden";
+$GLOBAL['sendCotiRemindersTitle']   = "Mitgliedschaftserinnerungen";
+$GLOBAL['sendCotiRemindersConfirm'] = "Eine Mitgliedschaftserinnerung an <strong>%d Mitglied%s</strong> senden, die ihre Mitgliedschaft in <strong>%d</strong> nicht erneuert haben?";
+$GLOBAL['sendCotiRemindersSending'] = "Wird gesendet…";
+$GLOBAL['sendCotiRemindersOk']      = "%d E-Mail%s gesendet. %sk übersprungen (keine E-Mail-Adresse).";
+$GLOBAL['sendCotiRemindersFail']    = "Fehler beim Senden. Bitte SMTP-Konfiguration prüfen.";
+$GLOBAL['sendCotiRemindersBtnOne']  = "Erinnerung senden";
+$GLOBAL['cotiReminderAlreadySent']  = "Erinnerung gesendet am %s";
+$GLOBAL['cotiReminderNeverSent']    = "Noch nicht kontaktiert";
+$GLOBAL['sendCotiRemindersSkipAlready'] = "%d bereits kontaktiert dieses Jahr (übersprungen).";
+$GLOBAL['cotiReminderSentOk']       = "Erinnerung gesendet.";
+$GLOBAL['cotiReminderSentFail']     = "Senden fehlgeschlagen.";
 
 // --- donors_summary ---
 $GLOBAL['activeQuestion'] = "Aktiv?";
@@ -426,7 +440,9 @@ $GLOBAL['organization'] = "Organisation";
 $GLOBAL['orgName'] = "Name der Organisation";
 $GLOBAL['npaShort'] = "PLZ";
 $GLOBAL['memberTeamPrefixLabel'] = "Präfix der Mitglieder-Segmente";
-$GLOBAL['memberTeamPrefixHelp'] = "Präfix zum Auffinden der Mitglieder-Segmente früherer Jahre (z. B. „Mitglied“ für die Segmente „Mitglied 2025“, „Mitglied 2026“…).";
+$GLOBAL['memberTeamPrefixHelp'] = "Präfix zum Auffinden der Mitglieder-Segmente früherer Jahre (z. B. „Mitglied” für die Segmente „Mitglied 2025”, „Mitglied 2026”…).";
+$GLOBAL['membershipUrlLabel'] = "Mitgliedschaftsseite";
+$GLOBAL['membershipUrlHelp']  = "URL der Mitgliedschaftsseite auf Ihrer Website. Wird in Erinnerungs-E-Mails über die Variable {{membership_url}} verwendet.";
 $GLOBAL['defaultTeamLabel'] = "Standardmässig angezeigtes Segment";
 $GLOBAL['defaultTeamHelp'] = "Segment, das beim Öffnen der Mitgliederliste ausgewählt ist. Wählen Sie das Segment der Mitglieder des laufenden Jahres (z. B. „Mitglied 2026“). Jedes Jahr zu aktualisieren.";
 $GLOBAL['maskedSuffix'] = "(ausgeblendet)";
@@ -696,7 +712,13 @@ $GLOBAL['saveBtn'] = "Speichern";
 // --- users_history.php ---
 $GLOBAL['changeHistory'] = "Änderungshistorie";
 $GLOBAL['changeHistoryHint'] = "Alle für dieses Mitglied erfassten Aktionen.";
-$GLOBAL['noJournalEntriesForMember'] = "Keine Protokolleinträge für dieses Mitglied.";
+$GLOBAL['noJournalEntriesForMember'] = "Keine Protokolleintr\u{00E4}ge f\u{00FC}r dieses Mitglied.";
+$GLOBAL['emailLogSection']           = "Gesendete E-Mails";
+$GLOBAL['emailLogHint']              = "Verlauf der von der Anwendung an dieses Mitglied gesendeten E-Mails.";
+$GLOBAL['emailLogNoEntries']         = "Keine E-Mail an dieses Mitglied gesendet.";
+$GLOBAL['emailLogStatus']            = "Status";
+$GLOBAL['emailLogStatusSent']        = "Gesendet";
+$GLOBAL['emailLogStatusError']       = "Fehler";
 
 // --- users_inactive.php ---
 $GLOBAL['archivedMembers'] = "Archivierte Mitglieder";
@@ -908,6 +930,7 @@ $GLOBAL['smtpTestSend']        = "Senden";
 $GLOBAL['smtpTesting']         = "Wird gesendet…";
 $GLOBAL['smtpTestOk']          = "E-Mail erfolgreich gesendet.";
 $GLOBAL['smtpTestFail']        = "Senden fehlgeschlagen. Bitte Konfiguration prüfen.";
+$GLOBAL['smtpDebugToggle']     = "SMTP-Verbindungsprotokoll anzeigen";
 $GLOBAL['smtpTestMissingTo']   = "Bitte eine Ziel-E-Mail-Adresse eingeben.";
 
 // Email log journal
@@ -915,9 +938,6 @@ $GLOBAL['emailLog']              = "Versandprotokoll";
 $GLOBAL['emailLogDate']          = "Datum";
 $GLOBAL['emailLogTo']            = "Empfänger";
 $GLOBAL['emailLogSubject']       = "Betreff";
-$GLOBAL['emailLogStatus']        = "Status";
-$GLOBAL['emailLogStatusSent']    = "Gesendet";
-$GLOBAL['emailLogStatusError']   = "Fehler";
 $GLOBAL['emailLogEmpty']         = "Noch keine E-Mails gesendet.";
 $GLOBAL['emailLogPurge']         = "Protokoll leeren";
 $GLOBAL['emailLogPurgeConfirm']  = "Alle Einträge des E-Mail-Protokolls löschen?";
@@ -927,45 +947,57 @@ $GLOBAL['emailLogResending']     = "Wird erneut gesendet…";
 $GLOBAL['emailLogResendOk']      = "E-Mail erfolgreich erneut gesendet.";
 $GLOBAL['emailLogResendFail']    = "Erneutes Senden fehlgeschlagen.";
 
+// Email detail view
+$GLOBAL['emailSent']             = "E-Mail gesendet";
+$GLOBAL['viewEmail']             = "E-Mail anzeigen";
+$GLOBAL['emailTo']               = "An";
+$GLOBAL['emailStatus']           = "Status";
+$GLOBAL['emailStatusSent']       = "Gesendet";
+$GLOBAL['emailStatusError']      = "Fehler";
+$GLOBAL['emailViewPlaintext']    = "Nur-Text-Version anzeigen";
+
 // Email templates
 $GLOBAL['emailTemplates']              = "E-Mail-Vorlagen";
 $GLOBAL['emailTemplatesSaved']         = "Vorlage gespeichert.";
 $GLOBAL['emailTemplateSubject']        = "Betreff";
 $GLOBAL['emailTemplateBody']           = "Nachrichtentext";
-$GLOBAL['emailTemplateHelp'] = "Verfügbare Variablen: {{firstname}}, {{lastname}}, {{email}}, {{org_name}}, {{contact_email}}, {{org_address}}, {{org_city}}, {{org_web}}";
-$GLOBAL['emailTemplateWelcome']        = "Willkommens-E-Mail";
+$GLOBAL['emailTemplateBodyText']       = "Nur Text";
+$GLOBAL['emailTemplateBodyHtml']       = "HTML";
+$GLOBAL['emailTemplateHelp']           = "Verfügbare Variablen: {{greeting}}, {{greeting_text}}, {{display_name}}, {{firstname}}, {{lastname}}, {{society}}, {{email}}, {{org_name}}, {{contact_email}}, {{org_address}}, {{org_city}}, {{org_web}}";
+$GLOBAL['emailTemplateHtmlHelp']       = "HTML-Vorlage der E-Mail. Leer lassen, um nur Nur-Text zu senden. Gleiche Variablen wie im Nur-Text-Tab.";
+$GLOBAL['emailTemplateVarsHelp']       = "Verfügbare Variablen";
 $GLOBAL['emailTemplateCotiReminder']   = "Mitgliedschaftserinnerung";
 $GLOBAL['emailTemplateAttestationDon'] = "Spendenquittung";
-$GLOBAL['emailWelcomeEnabled']         = "Willkommens-E-Mail beim Erstellen eines Mitglieds senden";
-
-// Welcome email manual send
-$GLOBAL['sendWelcomeEmail']        = "Willkommens-E-Mail senden";
-$GLOBAL['sendWelcomeEmailSending'] = "Wird gesendet…";
-$GLOBAL['sendWelcomeEmailOk']      = "Willkommens-E-Mail gesendet.";
-$GLOBAL['sendWelcomeEmailFail']    = "Senden fehlgeschlagen.";
-$GLOBAL['sendWelcomeEmailNoEmail'] = "Dieses Mitglied hat keine E-Mail-Adresse.";
-$GLOBAL['sendWelcomeEmailAlreadySent'] = "Willkommens-E-Mail bereits gesendet am %s";
-
-// Bulk welcome email mark
-$GLOBAL['welcomeEmailBulkTitle']      = "Massenmarkierung — Willkommens-E-Mail";
-$GLOBAL['welcomeEmailBulkDesc']       = "%d aktive(s) Mitglied(er) haben noch keine Markierung \u{201E}Willkommens-E-Mail gesendet\u{201C}. Markieren Sie alle als erledigt, um zu verhindern, dass bestehende Mitglieder eine Willkommens-E-Mail erhalten.";
-$GLOBAL['welcomeEmailBulkConfirm']    = "Ich verstehe, dass diese Mitglieder nie automatisch eine Willkommens-E-Mail erhalten werden";
-$GLOBAL['welcomeEmailBulkBtn']        = "Alle als erledigt markieren";
-$GLOBAL['welcomeEmailBulkOk']         = "%d Mitglied(er) als erledigt markiert.";
-$GLOBAL['welcomeEmailBulkErrConfirm'] = "Bitte Bestätigungs-Checkbox ankreuzen.";
 
 // Compta recap batch email
-$GLOBAL['comptaRecapTitle']          = "Buchhaltungs-Recap per E-Mail";
+$GLOBAL['comptaRecapTitle']          = "E-Mails";
+$GLOBAL['comptaRecapPageTitle']      = "Buchhaltungs-Recap per E-Mail";
 $GLOBAL['comptaRecapPendingMembers'] = "Mitglieder ausstehend";
 $GLOBAL['comptaRecapPendingEntries'] = "nicht benachrichtigte Eintr\u{00E4}ge";
 $GLOBAL['comptaRecapLastBatch']      = "letzter Versand";
 $GLOBAL['comptaRecapSendBtn']        = "Recaps senden (%d Mitglieder)";
 $GLOBAL['comptaRecapNoPending']      = "Nichts ausstehend \u{2014} alle Mitglieder wurden benachrichtigt.";
+$GLOBAL['comptaRecapNoEntries']      = "Keine Buchhaltungseintr\u{00E4}ge f\u{00FC}r dieses Jahr.";
+$GLOBAL['comptaRecapNoEntriesForce'] = "Keine Eintr\u{00E4}ge f\u{00FC}r dieses Jahr gefunden, auch nicht im erzwungenen Modus.";
 $GLOBAL['comptaRecapHelp']           = "Pro Mitglied wird eine E-Mail gesendet, die alle noch nicht gemeldeten Eintr\u{00E4}ge zusammenfasst.";
 $GLOBAL['comptaRecapSentOk']         = "%d Mitglied(er) erfolgreich benachrichtigt.";
 $GLOBAL['comptaRecapSkipped']        = "%d Mitglied(er) ohne E-Mail \u{00FC}bersprungen.";
-$GLOBAL['comptaRecapPreviewTitle']   = "Vorschau der zu sendenden E-Mails";
+$GLOBAL['comptaRecapSinceLastBatch'] = "seit Ihrer letzten Zusammenfassung vom %s";
+$GLOBAL['comptaRecapSinceYear']      = "im Jahr %d";
+$GLOBAL['comptaRecapSinceFirst']     = "seit Ihrer Mitgliedschaft";
+$GLOBAL['comptaRecapPreviewHint']    = "Klicken Sie auf eine Zeile, um die E-Mail vor dem Senden anzuzeigen.";
+$GLOBAL['comptaRecapModalTitle']     = "E-Mail-Vorschau";
+$GLOBAL['comptaRecapSendLater']      = "Sp\u{00E4}ter senden";
+$GLOBAL['comptaRecapSendOne']        = "Senden";
 $GLOBAL['comptaRecapNoEmail']        = "keine E-Mail";
+$GLOBAL['comptaRecapNoEmailSection'] = "Mitglieder ohne E-Mail-Adresse (%d)";
+$GLOBAL['comptaRecapExtended']       = "Erweiterter Modus (auch gesendete anzeigen)";
+$GLOBAL['comptaRecapAlreadySent']    = "Bereits benachrichtigt (%d Mitglieder)";
+$GLOBAL['comptaRecapSentOn']         = "Benachrichtigt am %s";
+$GLOBAL['comptaRecapForceAll']       = "Erzwingen (alle Einträge des Jahres, auch bereits gesendete)";
+$GLOBAL['comptaRecapScopeNew']       = "Neue Eintr\u{00E4}ge";
+$GLOBAL['comptaRecapScopeAll']       = "Alle Eintr\u{00E4}ge";
+$GLOBAL['comptaRecapSendUserBtn']    = "Zusammenfassung senden";
 
 // Bulk compta notified mark (Einstellungen → Gesundheit)
 $GLOBAL['comptaBulkTitle']           = "Massenmarkierung \u{2014} Buchhaltungs-Recaps";
