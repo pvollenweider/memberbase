@@ -42,7 +42,7 @@ test.describe('Members', () => {
     await getNewUserId(page);
 
     await page.goto('/index.php?action=search&searchString=Testmembre');
-    await expect(page.locator('table.table tbody tr').first()).toContainText('Testmembre');
+    await expect(page.locator('table.table tbody tr', { hasText: 'Testmembre' })).toBeVisible({ timeout: 10_000 });
   });
 
   test('edit a member firstname and verify updated', async ({ page }) => {

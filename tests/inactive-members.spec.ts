@@ -57,7 +57,7 @@ test.describe.serial('Inactive members', () => {
 
     // Verify member is back in main list
     await page.goto('/index.php?action=search&searchString=Archived');
-    await expect(page.locator('table.table tbody tr').first()).toContainText('Archived');
+    await expect(page.locator('table.table tbody tr', { hasText: 'Archived' })).toBeVisible({ timeout: 10_000 });
 
     // Cleanup: delete the member
     if (archivedId) {
