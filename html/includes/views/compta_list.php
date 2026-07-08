@@ -254,7 +254,7 @@ while ($row = $stmt->fetchObject()) {
 </p>
 <?php endif ?>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function init() {
     // Row click navigation
     var tbody = document.querySelector('form[name="addCompta"] tbody');
     if (tbody) tbody.addEventListener('click', function(e) {
@@ -278,7 +278,12 @@ document.addEventListener('DOMContentLoaded', function() {
         typeSelect.addEventListener('change', toggleCotiYear);
         toggleCotiYear();
     }
-});
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 </script>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
