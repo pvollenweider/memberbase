@@ -459,10 +459,11 @@ function mbBuildSalutation(string $firstname, string $lastname, string $society)
     $personName  = trim("$fn $ln");
     $displayName = $personName !== '' ? $personName : $soc;
 
-    $greeting     = $displayName !== ''
-        ? 'Bonjour <strong>' . htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') . '</strong>,'
+    // Greeting uses person name only — no society fallback (avoids "Bonjour Entreprise SA,")
+    $greeting     = $personName !== ''
+        ? 'Bonjour <strong>' . htmlspecialchars($personName, ENT_QUOTES, 'UTF-8') . '</strong>,'
         : 'Bonjour,';
-    $greetingText = $displayName !== '' ? "Bonjour $displayName," : 'Bonjour,';
+    $greetingText = $personName !== '' ? "Bonjour $personName," : 'Bonjour,';
 
     return [
         'display_name'  => $displayName,
