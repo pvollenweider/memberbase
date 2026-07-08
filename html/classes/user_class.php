@@ -65,8 +65,7 @@ class User
 
     public function lookupUserByEmail(string $email): void
     {
-        global $pdo;
-        $stmt = $pdo->prepare("SELECT " . self::SELECT_COLS . " FROM users WHERE email LIKE ?");
+        $stmt = db()->prepare("SELECT " . self::SELECT_COLS . " FROM users WHERE email LIKE ?");
         $stmt->execute(["%" . $email . "%"]);
         foreach ($stmt as $row) {
             $this->hydrateFromRow($row);
@@ -75,8 +74,7 @@ class User
 
     public function lookupUser(int $id): void
     {
-        global $pdo;
-        $stmt = $pdo->prepare("SELECT " . self::SELECT_COLS . " FROM users WHERE id=?");
+        $stmt = db()->prepare("SELECT " . self::SELECT_COLS . " FROM users WHERE id=?");
         $stmt->execute([$id]);
         $row = $stmt->fetchObject();
         if ($row) {
@@ -131,8 +129,7 @@ class User
 
     public function getProperty(string $parameter): string
     {
-        global $pdo;
-        $stmt = $pdo->prepare("SELECT value FROM user_properties WHERE user_id=? AND parameter=?");
+        $stmt = db()->prepare("SELECT value FROM user_properties WHERE user_id=? AND parameter=?");
         $stmt->execute([$this->id, $parameter]);
         $row = $stmt->fetchObject();
         return $row ? (string) $row->value : "";
@@ -145,8 +142,7 @@ class User
 
     private function firstComptaDate(string $sql, array $params): int
     {
-        global $pdo;
-        $stmt = $pdo->prepare($sql);
+        $stmt = db()->prepare($sql);
         $stmt->execute($params);
         $row = $stmt->fetchObject();
         return $row ? (int) $row->date : -1;
@@ -197,41 +193,36 @@ class User
 
     public function hasComptaEntries(int $year, int $number): bool
     {
-        global $pdo;
         $from = mktime(0, 0, 0, 1, 0, $year - $number);
         $to   = mktime(0, 0, 0, 1, 1, $year + 1);
-        $stmt = $pdo->prepare("SELECT 1 FROM compta WHERE user_id=? AND date>? AND date<? LIMIT 1");
+        $stmt = db()->prepare("SELECT 1 FROM compta WHERE user_id=? AND date>? AND date<? LIMIT 1");
         $stmt->execute([$this->id, $from, $to]);
         return $stmt->fetchObject() !== false;
     }
 
     public function hasComptaEntry(): bool
     {
-        global $pdo;
-        $stmt = $pdo->prepare("SELECT 1 FROM compta WHERE user_id=? LIMIT 1");
+        $stmt = db()->prepare("SELECT 1 FROM compta WHERE user_id=? LIMIT 1");
         $stmt->execute([$this->id]);
         return $stmt->fetchObject() !== false;
     }
 
     public function addMembership(int $teamId): void
     {
-        global $pdo;
-        $pdo->prepare("INSERT IGNORE INTO user_properties (user_id,parameter,value) VALUES (?,?,?)")
+        db()->prepare("INSERT IGNORE INTO user_properties (user_id,parameter,value) VALUES (?,?,?)")
             ->execute([$this->id, "team_$teamId", 'true']);
     }
 
     public function removeMembership(int $teamId): void
     {
-        global $pdo;
-        $pdo->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter=?")
+        db()->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter=?")
             ->execute([$this->id, "team_$teamId"]);
     }
 
     public function save(): int
     {
-        global $pdo;
         if ($this->id) {
-            $pdo->prepare(
+            db()->prepare(
                 "UPDATE users SET firstname=?,lastname=?,society=?,sexe=?,title=?,address=?,npa=?,
                  tel=?,telprof=?,portable=?,fax=?,email=?,email_alt=?,web=?,birthday=?,comment=?,modificationDate=?
                  WHERE id=?"
@@ -243,7 +234,7 @@ class User
             ]);
             return (int) $this->id;
         } else {
-            $pdo->prepare(
+            db()->prepare(
                 "INSERT INTO users (firstname,lastname,society,sexe,title,address,npa,
                  tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,modificationDate)
                  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
@@ -253,16 +244,15 @@ class User
                 $this->portable, $this->fax, $this->email, $this->emailAlt ?? '', $this->web, $this->birthDay,
                 $this->comment, time(), time(),
             ]);
-            return (int)$pdo->lastInsertId();
+            return (int)db()->lastInsertId();
         }
     }
 
     public function remove(): void
     {
-        global $pdo;
-        $pdo->prepare("DELETE FROM users WHERE id=?")->execute([$this->id]);
-        $pdo->prepare("DELETE FROM user_properties WHERE user_id=?")->execute([$this->id]);
-        $pdo->prepare("DELETE FROM compta WHERE user_id=?")->execute([$this->id]);
+        db()->prepare("DELETE FROM users WHERE id=?")->execute([$this->id]);
+        db()->prepare("DELETE FROM user_properties WHERE user_id=?")->execute([$this->id]);
+        db()->prepare("DELETE FROM compta WHERE user_id=?")->execute([$this->id]);
     }
 
     /**
@@ -284,7 +274,6 @@ class User
      */
     public static function listWithFilters(array $opts): array
     {
-        global $pdo;
 
         $team        = (int)($opts['team'] ?? 0);
         $metagroup   = (int)($opts['metagroup'] ?? 0);
@@ -345,7 +334,7 @@ class User
 
         $query .= " ORDER BY $orderColumn $orderSort";
 
-        $stmt = $pdo->prepare($query);
+        $stmt = db()->prepare($query);
         $stmt->execute($queryParams);
         return $stmt->fetchAll(PDO::FETCH_OBJ);
     }

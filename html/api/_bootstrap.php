@@ -23,7 +23,6 @@ function apiError(int $code, string $message): never
     // Security log: access denied on the API (role guard). Best-effort — never
     // let logging break the API response.
     if ($code === 403) {
-        global $pdo;
         try {
             auditLog($pdo, 'accessDenied', 'api ' . ($_SERVER['REQUEST_METHOD'] ?? '?') . ' ' . ($_SERVER['REQUEST_URI'] ?? '?') . ' role=' . ($_SESSION['app_user_role'] ?? '?'));
         } catch (Throwable) { /* ignore */ }
@@ -55,7 +54,7 @@ if (in_array($_apiMethod, ['POST', 'PUT', 'PATCH'], true)) {
 const API_RATE_WINDOW = 60;
 const API_RATE_MAX    = 600;
 try {
-    $pdo->exec(
+    db()->exec(
         "CREATE TABLE IF NOT EXISTS `api_rate_limit` (
             `bucket`       VARCHAR(190) NOT NULL,
             `hits`         INT(11)      NOT NULL DEFAULT 0,
@@ -66,16 +65,16 @@ try {
     );
     $_rlId  = 'u' . ($_SESSION['app_user_id'] ?? '0') . ':' . ($_SERVER['REMOTE_ADDR'] ?? '?');
     $_rlKey = $_rlId . ':' . intdiv(time(), API_RATE_WINDOW);
-    $pdo->prepare(
+    db()->prepare(
         "INSERT INTO api_rate_limit (bucket, hits, window_start) VALUES (?, 1, ?)
          ON DUPLICATE KEY UPDATE hits = hits + 1"
     )->execute([$_rlKey, time()]);
-    $_rlStmt = $pdo->prepare("SELECT hits FROM api_rate_limit WHERE bucket = ?");
+    $_rlStmt = db()->prepare("SELECT hits FROM api_rate_limit WHERE bucket = ?");
     $_rlStmt->execute([$_rlKey]);
     $_rlHits = (int)$_rlStmt->fetchColumn();
     // Opportunistic cleanup of stale buckets (~1% of requests).
     if (random_int(1, 100) === 1) {
-        $pdo->prepare("DELETE FROM api_rate_limit WHERE window_start < ?")
+        db()->prepare("DELETE FROM api_rate_limit WHERE window_start < ?")
             ->execute([time() - API_RATE_WINDOW * 5]);
     }
     if ($_rlHits > API_RATE_MAX) {

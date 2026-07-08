@@ -19,8 +19,7 @@ class Team
 
     public function lookupTeam(int $id): void
     {
-        global $pdo;
-        $stmt = $pdo->prepare("SELECT id,name,hidden FROM team WHERE id=?");
+        $stmt = db()->prepare("SELECT id,name,hidden FROM team WHERE id=?");
         $stmt->execute([$id]);
         $row = $stmt->fetchObject();
         if ($row) {
@@ -40,20 +39,18 @@ class Team
 
     public function save(): void
     {
-        global $pdo;
         if ($this->id) {
-            $pdo->prepare("UPDATE team SET name=?,hidden=? WHERE id=?")->execute([$this->name, $this->hidden, $this->id]);
+            db()->prepare("UPDATE team SET name=?,hidden=? WHERE id=?")->execute([$this->name, $this->hidden, $this->id]);
         } else {
-            $pdo->prepare("INSERT INTO team (name,hidden) VALUES (?,?)")->execute([$this->name, $this->hidden]);
-            $this->id = (int)$pdo->lastInsertId();
+            db()->prepare("INSERT INTO team (name,hidden) VALUES (?,?)")->execute([$this->name, $this->hidden]);
+            $this->id = (int)db()->lastInsertId();
         }
     }
 
     /** Team name, or null if the team does not exist. */
     public static function nameById(int $id): ?string
     {
-        global $pdo;
-        $stmt = $pdo->prepare("SELECT name FROM team WHERE id=?");
+        $stmt = db()->prepare("SELECT name FROM team WHERE id=?");
         $stmt->execute([$id]);
         $name = $stmt->fetchColumn();
         return $name === false ? null : $name;
@@ -67,8 +64,7 @@ class Team
      */
     public static function listForDropdown(): array
     {
-        global $pdo;
-        return $pdo->query("
+        return db()->query("
             SELECT t.id, t.name,
                    COALESCE(cat.name, '') AS cat_name,
                    COALESCE(cat.id, 0) AS cat_id,
@@ -89,8 +85,7 @@ class Team
 
     public function isMemberOfMetagroup(int $metagroupId): bool
     {
-        global $pdo;
-        $stmt = $pdo->prepare("SELECT 1 FROM metagroup WHERE id=? AND teamid=? LIMIT 1");
+        $stmt = db()->prepare("SELECT 1 FROM metagroup WHERE id=? AND teamid=? LIMIT 1");
         $stmt->execute([$metagroupId, $this->id]);
         $result = $stmt->fetchObject() !== false;
         return $result;
@@ -98,22 +93,19 @@ class Team
 
     public function addMetagroupMembership(int $metagroupId): void
     {
-        global $pdo;
         if (!$this->isMemberOfMetagroup($metagroupId)) {
-            $pdo->prepare("INSERT INTO metagroup (id,teamid) VALUES (?,?)")->execute([$metagroupId, $this->id]);
+            db()->prepare("INSERT INTO metagroup (id,teamid) VALUES (?,?)")->execute([$metagroupId, $this->id]);
         }
     }
 
     public function removeMetagroupMembership(int $metagroupId): void
     {
-        global $pdo;
-        $pdo->prepare("DELETE FROM metagroup WHERE teamid=? AND id=?")->execute([$this->id, $metagroupId]);
+        db()->prepare("DELETE FROM metagroup WHERE teamid=? AND id=?")->execute([$this->id, $metagroupId]);
     }
 
     public function isUsed(): bool
     {
-        global $pdo;
-        $stmt = $pdo->prepare("SELECT 1 FROM user_properties WHERE parameter=? LIMIT 1");
+        $stmt = db()->prepare("SELECT 1 FROM user_properties WHERE parameter=? LIMIT 1");
         $stmt->execute(["team_$this->id"]);
         $result = $stmt->fetchObject() !== false;
         return $result;
@@ -121,9 +113,8 @@ class Team
 
     public function remove(): void
     {
-        global $pdo;
         if (!$this->isUsed()) {
-            $pdo->prepare("DELETE FROM team WHERE id=?")->execute([$this->id]);
+            db()->prepare("DELETE FROM team WHERE id=?")->execute([$this->id]);
         } else {
             print "Could not remove $this->name because some users are members.<br/>";
             print "Click <a href='" . $_SERVER['PHP_SELF'] . "?action=search&amp;team=" . $this->id . "'>here</a> to see the user list";
