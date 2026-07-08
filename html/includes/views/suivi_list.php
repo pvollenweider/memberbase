@@ -66,6 +66,9 @@ while ($row = $stmt->fetchObject()) {
 </table>
 </div>
 </form>
+
+<?php require __DIR__ . '/../partials/email_log_section.php'; ?>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var tbody = document.querySelector('form[name="addSuivi"] tbody');

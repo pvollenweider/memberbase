@@ -699,6 +699,12 @@ $GLOBAL['saveBtn'] = "Save";
 $GLOBAL['changeHistory'] = "Change history";
 $GLOBAL['changeHistoryHint'] = "All actions recorded for this member.";
 $GLOBAL['noJournalEntriesForMember'] = "No log entry for this member.";
+$GLOBAL['emailLogSection']           = "Sent emails";
+$GLOBAL['emailLogHint']              = "History of emails sent to this member by the application.";
+$GLOBAL['emailLogNoEntries']         = "No email sent to this member.";
+$GLOBAL['emailLogStatus']            = "Status";
+$GLOBAL['emailLogStatusSent']        = "Sent";
+$GLOBAL['emailLogStatusError']       = "Error";
 
 // --- users_inactive.php ---
 $GLOBAL['archivedMembers'] = "Archived members";

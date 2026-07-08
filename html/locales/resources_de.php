@@ -698,7 +698,13 @@ $GLOBAL['saveBtn'] = "Speichern";
 // --- users_history.php ---
 $GLOBAL['changeHistory'] = "Änderungshistorie";
 $GLOBAL['changeHistoryHint'] = "Alle für dieses Mitglied erfassten Aktionen.";
-$GLOBAL['noJournalEntriesForMember'] = "Keine Protokolleinträge für dieses Mitglied.";
+$GLOBAL['noJournalEntriesForMember'] = "Keine Protokolleintr\u{00E4}ge f\u{00FC}r dieses Mitglied.";
+$GLOBAL['emailLogSection']           = "Gesendete E-Mails";
+$GLOBAL['emailLogHint']              = "Verlauf der von der Anwendung an dieses Mitglied gesendeten E-Mails.";
+$GLOBAL['emailLogNoEntries']         = "Keine E-Mail an dieses Mitglied gesendet.";
+$GLOBAL['emailLogStatus']            = "Status";
+$GLOBAL['emailLogStatusSent']        = "Gesendet";
+$GLOBAL['emailLogStatusError']       = "Fehler";
 
 // --- users_inactive.php ---
 $GLOBAL['archivedMembers'] = "Archivierte Mitglieder";
