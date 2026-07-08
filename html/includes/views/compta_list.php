@@ -254,7 +254,7 @@ while ($row = $stmt->fetchObject()) {
 </p>
 <?php endif ?>
 <script>
-(function init() {
+function _comptaListInit() {
     // Row click navigation
     var tbody = document.querySelector('form[name="addCompta"] tbody');
     if (tbody) tbody.addEventListener('click', function(e) {
@@ -280,9 +280,9 @@ while ($row = $stmt->fetchObject()) {
     }
 }
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', _comptaListInit);
 } else {
-    init();
+    _comptaListInit();
 }
 </script>
 <?php
