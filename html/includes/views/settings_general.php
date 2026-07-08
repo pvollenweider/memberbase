@@ -173,6 +173,14 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                        value="<?= htmlspecialchars($appSettings['org_tax_status'] ?? '', ENT_QUOTES, $charset) ?>">
               </div>
 
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membership_url"><?= $GLOBAL['membershipUrlLabel'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['membershipUrlHelp'] ?></p>
+                <input type="url" name="membership_url" id="s_membership_url" class="form-control form-control-sm" style="max-width:420px"
+                       placeholder="https://www.example.org/devenir-membre"
+                       value="<?= htmlspecialchars($appSettings['membership_url'] ?? '', ENT_QUOTES, $charset) ?>">
+              </div>
+
               <div class="mb-4">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team_prefix"><?= $GLOBAL['memberTeamPrefixLabel'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['memberTeamPrefixHelp'] ?></p>

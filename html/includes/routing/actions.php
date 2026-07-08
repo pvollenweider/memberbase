@@ -61,6 +61,7 @@ if (isset($_REQUEST['action'])) {
         'addComptaType'        => 'settings',
         'updateComptaType'     => 'settings',
         'deleteComptaType'     => 'settings',
+        'sendCotisationReminders' => 'cotisation_reminder',
         'sendComptaRecap'       => 'compta_recap',
         'sendComptaRecapOne'    => 'compta_recap',
         'previewComptaRecap'    => 'compta_recap',

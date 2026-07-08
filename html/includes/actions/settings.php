@@ -23,7 +23,7 @@ if ($action == 'saveSettings') {
     // String settings — stored as trimmed text
     $strKeys = ['org_name', 'org_address', 'org_npa', 'org_city', 'org_country',
                 'org_ide', 'org_purpose', 'org_tax_status',
-                'membre_team_prefix'];
+                'membre_team_prefix', 'membership_url'];
     $stmt = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
     foreach ($intKeys as $key) {
         if (isset($_REQUEST[$key])) {

@@ -73,10 +73,19 @@ $prevTeamId = 1; // non-zero so the table renders
 </div>
 <?php else: ?>
 
-<button type="button" class="btn btn-outline-warning btn-sm mb-3"
+<div class="d-flex gap-2 mb-3 flex-wrap">
+<button type="button" class="btn btn-outline-warning btn-sm"
         data-bs-toggle="modal" data-bs-target="#modal-create-lapsed-members">
   <i class="fas fa-users me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['createSegmentLapsedMembers'], $year) ?>
 </button>
+<?php if (isManager() && $count > 0): ?>
+<button type="button" class="btn btn-outline-primary btn-sm"
+        data-bs-toggle="modal" data-bs-target="#modal-send-coti-reminders"
+        data-count="<?= $count ?>">
+  <i class="fas fa-envelope me-1" aria-hidden="true"></i><?= $GLOBAL['sendCotiRemindersBtn'] ?>
+</button>
+<?php endif ?>
+</div>
 
 <div class="modal fade" id="modal-create-lapsed-members" tabindex="-1" aria-labelledby="modal-create-lapsed-members-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -104,6 +113,34 @@ $prevTeamId = 1; // non-zero so the table renders
   </div>
 </div>
 
+<!-- Cotisation reminder send modal -->
+<div class="modal fade" id="modal-send-coti-reminders" tabindex="-1" aria-labelledby="modal-send-coti-reminders-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-send-coti-reminders-label">
+          <i class="fas fa-envelope me-2" aria-hidden="true"></i><?= $GLOBAL['sendCotiRemindersTitle'] ?>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body" id="coti-reminder-modal-body">
+        <p><?= sprintf($GLOBAL['sendCotiRemindersConfirm'], $count, $count > 1 ? 's' : '', $year) ?></p>
+        <div id="coti-reminder-result" class="mt-3" style="display:none"></div>
+      </div>
+      <div class="modal-footer" id="coti-reminder-modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <button type="button" class="btn btn-primary" id="btn-send-coti-reminders"
+                data-year="<?= $year ?>"
+                data-label-sending="<?= htmlspecialchars($GLOBAL['sendCotiRemindersSending'], ENT_QUOTES, $charset) ?>"
+                data-msg-ok="<?= htmlspecialchars($GLOBAL['sendCotiRemindersOk'], ENT_QUOTES, $charset) ?>"
+                data-msg-fail="<?= htmlspecialchars($GLOBAL['sendCotiRemindersFail'], ENT_QUOTES, $charset) ?>">
+          <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['send'] ?>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="alert alert-warning d-flex align-items-start gap-2 py-2 mb-3" role="status" style="font-size:0.85rem">
   <i class="fas fa-user-clock mt-1 flex-shrink-0" aria-hidden="true"></i>
   <span><?= sprintf($GLOBAL['lapsedMembersCount'], $count, $count > 1 ? 's' : '', $year-1, $year) ?></span>
@@ -116,4 +153,52 @@ $extra_columns = [];
 $row_href      = fn($row) => $_SERVER['PHP_SELF'] . '?view=compta&userid=' . (int)$row->id;
 include __DIR__ . '/../partials/donor_table.php';
 ?>
+<?php endif ?>
+
+<?php if (isManager() && $count > 0): ?>
+<script>
+(function () {
+    var btn = document.getElementById('btn-send-coti-reminders');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        var result = document.getElementById('coti-reminder-result');
+        var footer = document.getElementById('coti-reminder-modal-footer');
+        var orig   = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + btn.dataset.labelSending;
+        result.style.display = 'none';
+        fetch(<?= json_encode($_SERVER['PHP_SELF']) ?>, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : ''
+            },
+            body: 'action=sendCotisationReminders&year=' + encodeURIComponent(btn.dataset.year)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            result.style.display = '';
+            if (data.ok) {
+                var msg = btn.dataset.msgOk
+                    .replace('%d', data.sent)
+                    .replace('%s', data.sent > 1 ? 's' : '')
+                    .replace('%sk', data.skipped);
+                result.innerHTML = '<div class="alert alert-success py-2 mb-0"><i class="fas fa-circle-check me-1" aria-hidden="true"></i>' + msg + '</div>';
+                footer.querySelector('button[data-bs-dismiss]').textContent = <?= json_encode($GLOBAL['close']) ?>;
+                btn.style.display = 'none';
+            } else {
+                result.innerHTML = '<div class="alert alert-danger py-2 mb-0"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>' + btn.dataset.msgFail + '</div>';
+                btn.disabled = false;
+                btn.innerHTML = orig;
+            }
+        })
+        .catch(function () {
+            result.style.display = '';
+            result.innerHTML = '<div class="alert alert-danger py-2 mb-0"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>' + btn.dataset.msgFail + '</div>';
+            btn.disabled = false;
+            btn.innerHTML = orig;
+        });
+    });
+}());
+</script>
 <?php endif ?>

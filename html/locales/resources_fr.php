@@ -276,6 +276,12 @@ $GLOBAL['noComptaCotiType']   = "Aucun type de cotisation configuré.";
 $GLOBAL['createSegmentLapsedMembers'] = "Créer segment «Membres à relancer %d»";
 $GLOBAL['confirmCreateLapsedMembersSegment'] = "Créer le segment «Membres à relancer %d» avec <strong>%s</strong> personne(s)?";
 $GLOBAL['lapsedMembersCount'] = "<strong>%s membre%s</strong> étaient dans «Membre %d» mais pas dans «Membre %d».";
+$GLOBAL['sendCotiRemindersBtn']     = "Envoyer rappels de cotisation";
+$GLOBAL['sendCotiRemindersTitle']   = "Rappels de cotisation";
+$GLOBAL['sendCotiRemindersConfirm'] = "Envoyer un rappel de cotisation à <strong>%d membre%s</strong> qui n'ont pas renouvelé leur cotisation en <strong>%d</strong> ?";
+$GLOBAL['sendCotiRemindersSending'] = "Envoi en cours…";
+$GLOBAL['sendCotiRemindersOk']      = "%d email%s envoyé%s. %sk ignoré(s) (pas d'adresse email).";
+$GLOBAL['sendCotiRemindersFail']    = "Erreur lors de l'envoi. Vérifiez la configuration SMTP.";
 
 // --- donors_summary ---
 $GLOBAL['activeQuestion'] = "Actif?";
@@ -429,6 +435,8 @@ $GLOBAL['orgName'] = "Nom de l'organisation";
 $GLOBAL['npaShort'] = "NPA";
 $GLOBAL['memberTeamPrefixLabel'] = "Préfixe des segments membres";
 $GLOBAL['memberTeamPrefixHelp'] = "Préfixe utilisé pour retrouver les segments membres des années précédentes (ex: «Membre» pour les segments «Membre 2025», «Membre 2026»…).";
+$GLOBAL['membershipUrlLabel'] = "Page «Devenir membre»";
+$GLOBAL['membershipUrlHelp']  = "URL de la page d'adhésion de votre site. Utilisée dans les emails de rappel de cotisation via la variable {{membership_url}}.";
 $GLOBAL['defaultTeamLabel'] = "Segment affiché par défaut";
 $GLOBAL['defaultTeamHelp'] = "Segment sélectionné à l'ouverture de la liste des membres. Choisir le segment correspondant aux membres de l'année en cours (ex: «Membre 2026»). À mettre à jour chaque année.";
 $GLOBAL['maskedSuffix'] = "(masqué)";

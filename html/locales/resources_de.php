@@ -274,7 +274,13 @@ $GLOBAL['noMemberTeamFound']  = “Kein Segment „Mitglied %d” in der Datenba
 $GLOBAL['noComptaCotiType']   = “Kein Beitragstyp konfiguriert.”;
 $GLOBAL['createSegmentLapsedMembers'] = "Segment „Zu reaktivierende Mitglieder %d“ erstellen";
 $GLOBAL['confirmCreateLapsedMembersSegment'] = "Segment „Zu reaktivierende Mitglieder %d“ mit <strong>%s</strong> Person(en) erstellen?";
-$GLOBAL['lapsedMembersCount'] = '<strong>%1$s Mitglieder</strong> waren in „Mitglied %3$d“, aber nicht in „Mitglied %4$d“.';
+$GLOBAL['lapsedMembersCount'] = '<strong>%1$s Mitglieder</strong> waren in „Mitglied %3$d”, aber nicht in „Mitglied %4$d”.';
+$GLOBAL['sendCotiRemindersBtn']     = “Mitgliedschaftserinnerungen senden”;
+$GLOBAL['sendCotiRemindersTitle']   = “Mitgliedschaftserinnerungen”;
+$GLOBAL['sendCotiRemindersConfirm'] = “Eine Mitgliedschaftserinnerung an <strong>%d Mitglied%s</strong> senden, die ihre Mitgliedschaft in <strong>%d</strong> nicht erneuert haben?”;
+$GLOBAL['sendCotiRemindersSending'] = “Wird gesendet…”;
+$GLOBAL['sendCotiRemindersOk']      = “%d E-Mail%s gesendet. %s übersprungen (keine E-Mail-Adresse).”;
+$GLOBAL['sendCotiRemindersFail']    = “Fehler beim Senden. Bitte SMTP-Konfiguration prüfen.”;
 
 // --- donors_summary ---
 $GLOBAL['activeQuestion'] = "Aktiv?";
@@ -427,8 +433,10 @@ $GLOBAL['settingsSectionAria'] = "Einstellungsbereich";
 $GLOBAL['organization'] = "Organisation";
 $GLOBAL['orgName'] = "Name der Organisation";
 $GLOBAL['npaShort'] = "PLZ";
-$GLOBAL['memberTeamPrefixLabel'] = "Präfix der Mitglieder-Segmente";
-$GLOBAL['memberTeamPrefixHelp'] = "Präfix zum Auffinden der Mitglieder-Segmente früherer Jahre (z. B. „Mitglied“ für die Segmente „Mitglied 2025“, „Mitglied 2026“…).";
+$GLOBAL['memberTeamPrefixLabel'] = “Präfix der Mitglieder-Segmente”;
+$GLOBAL['memberTeamPrefixHelp'] = “Präfix zum Auffinden der Mitglieder-Segmente früherer Jahre (z. B. „Mitglied” für die Segmente „Mitglied 2025”, „Mitglied 2026”…).”;
+$GLOBAL['membershipUrlLabel'] = “Mitgliedschaftsseite”;
+$GLOBAL['membershipUrlHelp']  = “URL der Mitgliedschaftsseite auf Ihrer Website. Wird in Erinnerungs-E-Mails über die Variable {{membership_url}} verwendet.”;
 $GLOBAL['defaultTeamLabel'] = "Standardmässig angezeigtes Segment";
 $GLOBAL['defaultTeamHelp'] = "Segment, das beim Öffnen der Mitgliederliste ausgewählt ist. Wählen Sie das Segment der Mitglieder des laufenden Jahres (z. B. „Mitglied 2026“). Jedes Jahr zu aktualisieren.";
 $GLOBAL['maskedSuffix'] = "(ausgeblendet)";

@@ -275,7 +275,13 @@ $GLOBAL['noMemberTeamFound']  = “No “Member %d” team found in the database
 $GLOBAL['noComptaCotiType']   = “No cotisation type configured.”;
 $GLOBAL['createSegmentLapsedMembers'] = "Create segment “Members to re-engage %d”";
 $GLOBAL['confirmCreateLapsedMembersSegment'] = "Create the segment “Members to re-engage %d” with <strong>%s</strong> person(s)?";
-$GLOBAL['lapsedMembersCount'] = "<strong>%s member%s</strong> were in “Member %d” but not in “Member %d”.";
+$GLOBAL['lapsedMembersCount'] = “<strong>%s member%s</strong> were in “Member %d” but not in “Member %d”.”;
+$GLOBAL['sendCotiRemindersBtn']     = “Send membership reminders”;
+$GLOBAL['sendCotiRemindersTitle']   = “Membership reminders”;
+$GLOBAL['sendCotiRemindersConfirm'] = “Send a membership reminder to <strong>%d member%s</strong> who have not renewed their membership in <strong>%d</strong>?”;
+$GLOBAL['sendCotiRemindersSending'] = “Sending…”;
+$GLOBAL['sendCotiRemindersOk']      = “%d email%s sent. %sk skipped (no email address).”;
+$GLOBAL['sendCotiRemindersFail']    = “Error while sending. Please check your SMTP configuration.”;
 
 // --- donors_summary ---
 $GLOBAL['activeQuestion'] = "Active?";
@@ -427,8 +433,10 @@ $GLOBAL['settingsSectionAria'] = "Settings section";
 $GLOBAL['organization'] = "Organization";
 $GLOBAL['orgName'] = "Organization name";
 $GLOBAL['npaShort'] = "NPA";
-$GLOBAL['memberTeamPrefixLabel'] = "Member segments prefix";
-$GLOBAL['memberTeamPrefixHelp'] = "Prefix used to find the member segments of previous years (e.g. “Member” for the segments “Member 2025”, “Member 2026”…).";
+$GLOBAL['memberTeamPrefixLabel'] = “Member segments prefix”;
+$GLOBAL['memberTeamPrefixHelp'] = “Prefix used to find the member segments of previous years (e.g. “Member” for the segments “Member 2025”, “Member 2026”…).”;
+$GLOBAL['membershipUrlLabel'] = “Membership page”;
+$GLOBAL['membershipUrlHelp']  = “URL of the membership page on your website. Used in membership reminder emails via the {{membership_url}} variable.”;
 $GLOBAL['defaultTeamLabel'] = "Segment displayed by default";
 $GLOBAL['defaultTeamHelp'] = "Segment selected when opening the member list. Choose the segment matching the current year's members (e.g. “Member 2026”). To be updated every year.";
 $GLOBAL['maskedSuffix'] = "(hidden)";

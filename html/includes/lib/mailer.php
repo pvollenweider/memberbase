@@ -359,12 +359,25 @@ function mbDefaultTemplates(): array
 <p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
 <p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
+        // {{year}}           = cotisation year (e.g. "2026")
+        // {{membership_url}} = URL of the membership page (from app settings)
         'tpl_cotisation_reminder' => [
             'subject'   => 'Rappel de cotisation',
-            'body_text' => "{{greeting_text}}\n\nNous vous rappelons que votre cotisation est en attente de règlement.\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nSauf erreur de notre part, votre cotisation à {{org_name}} pour l'année {{year}} n'a pas encore été réglée.\n\nEn tant que membre, votre cotisation annuelle est essentielle : elle permet à notre association de mener à bien ses activités en faveur des enfants en situation de vulnérabilité en Amérique latine — recherche de fonds, suivi de projets sur le terrain, sensibilisation du public et représentation auprès des organisations internationales.\n\nSi vous avez déjà effectué votre versement, veuillez ignorer ce message. Dans le cas contraire, nous vous serions reconnaissants de bien vouloir régulariser votre situation dans les meilleurs délais.\n\nPour plus d'informations sur l'adhésion : {{membership_url}}\n\nPour toute question : {{contact_email}}\n\nCordialement,\n{{org_name}}",
             'body_html' => $htmlWrap(
                 '<p>{{greeting}}</p>
-<p>Nous vous rappelons que votre cotisation à <strong>{{org_name}}</strong> est en attente de règlement.</p>
+<p>Sauf erreur de notre part, votre cotisation à <strong>{{org_name}}</strong> pour l\'année <strong>{{year}}</strong> n\'a pas encore été réglée.</p>
+<p>En tant que membre, votre cotisation annuelle est essentielle : elle permet à notre association de mener à bien ses activités en faveur des enfants en situation de vulnérabilité en Amérique latine :</p>
+<ul style="margin:8px 0 12px 0;padding-left:20px;line-height:1.7">
+  <li>Recherche de fonds pour soutenir les projets sur le terrain</li>
+  <li>Suivi des projets et reddition de comptes à nos bailleurs</li>
+  <li>Missions d\'évaluation sur le terrain</li>
+  <li>Sensibilisation du public et des étudiant·e·s</li>
+  <li>Représentation auprès des organisations internationales</li>
+  <li>Recrutement de volontaires</li>
+</ul>
+<p>Si vous avez déjà effectué votre versement, veuillez ignorer ce message. Dans le cas contraire, nous vous serions reconnaissants de bien vouloir régulariser votre situation dans les meilleurs délais.</p>
+{{membership_url_block}}
 <p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
 <p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
