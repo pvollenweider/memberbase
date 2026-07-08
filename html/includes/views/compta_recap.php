@@ -12,7 +12,8 @@ if (!isManager()) { ?>
   </div>
 <?php return; }
 
-$_year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
+$_year     = isset($_GET['year'])     ? (int)$_GET['year'] : (int)date('Y');
+$_extended = !empty($_GET['extended']);
 if ($_year <= 0) { $_year = (int)date('Y'); }
 
 // Flash messages from redirect
@@ -65,6 +66,25 @@ if ($_pendingMembers > 0) {
     }
 }
 $_sendableCount = count($_withEmail);
+
+// Extended mode: load already-notified members for the year
+$_alreadySent = [];
+if ($_extended) {
+    $stmtSent = $pdo->prepare(
+        "SELECT c.user_id, u.firstname, u.lastname, u.email,
+                COUNT(*) AS nb_entries,
+                SUM(c.sum) AS total,
+                MAX(c.notified_at) AS last_notified_at
+         FROM compta c
+         JOIN users u ON u.id = c.user_id AND u.status = 1
+         WHERE c.notified_at IS NOT NULL AND c.sum <> 0
+           AND YEAR(FROM_UNIXTIME(c.date)) = ?
+         GROUP BY c.user_id, u.firstname, u.lastname, u.email
+         ORDER BY u.lastname, u.firstname"
+    );
+    $stmtSent->execute([$_year]);
+    $_alreadySent = $stmtSent->fetchAll(PDO::FETCH_OBJ);
+}
 ?>
 
 <div class="page-title-row mb-3">
@@ -90,9 +110,18 @@ $_sendableCount = count($_withEmail);
     <ul class="dropdown-menu">
       <?php for ($i = 0; $i < 10; $i++): $y = (int)date('Y') - $i; ?>
       <li><a class="dropdown-item<?= $y === $_year ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=comptaRecap&amp;year=<?= $y ?>"><?= $y ?></a></li>
+             href="<?= $_SERVER['PHP_SELF'] ?>?view=comptaRecap&amp;year=<?= $y ?><?= $_extended ? '&amp;extended=1' : '' ?>"><?= $y ?></a></li>
       <?php endfor ?>
     </ul>
+  </div>
+
+  <div class="form-check form-switch ms-1 mb-0" style="font-size:0.875rem">
+    <input class="form-check-input" type="checkbox" role="switch" id="recap-extended-toggle"
+           data-no-dirty
+           <?= $_extended ? 'checked' : '' ?>>
+    <label class="form-check-label text-muted" for="recap-extended-toggle">
+      <?= $GLOBAL['comptaRecapExtended'] ?>
+    </label>
   </div>
 
   <div class="card text-center px-4 py-2">
@@ -201,6 +230,44 @@ $_sendableCount = count($_withEmail);
 <p class="text-muted"><i class="fas fa-circle-check me-1 text-success" aria-hidden="true"></i><?= $GLOBAL['comptaRecapNoPending'] ?></p>
 <?php endif ?>
 
+<!-- Already-notified members (extended mode) -->
+<?php if ($_extended && !empty($_alreadySent)): ?>
+<div class="mt-4">
+  <h6 class="text-muted fw-semibold mb-2" style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.04em">
+    <i class="fas fa-check-double me-1" aria-hidden="true"></i>
+    <?= sprintf($GLOBAL['comptaRecapAlreadySent'], count($_alreadySent)) ?>
+  </h6>
+  <table class="table table-sm table-hover opacity-75">
+    <thead class="table-light">
+      <tr>
+        <th><?= $GLOBAL['member'] ?></th>
+        <th><?= $GLOBAL['email'] ?></th>
+        <th class="text-center"><?= $GLOBAL['entriesColumn'] ?></th>
+        <th class="text-end"><?= $GLOBAL['total'] ?></th>
+        <th><?= $GLOBAL['comptaRecapLastBatch'] ?></th>
+      </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($_alreadySent as $_sr):
+        $_total  = number_format((float)$_sr->total, 2, '.', "'");
+        $_sentDt = $_sr->last_notified_at ? date('d.m.Y', strtotime($_sr->last_notified_at)) : '—';
+    ?>
+      <tr class="recap-row" style="cursor:pointer"
+          data-userid="<?= (int)$_sr->user_id ?>"
+          data-name="<?= htmlspecialchars(trim($_sr->firstname . ' ' . $_sr->lastname), ENT_QUOTES, $charset) ?>"
+          data-email="<?= htmlspecialchars($_sr->email, ENT_QUOTES, $charset) ?>">
+        <td class="text-nowrap"><?= htmlspecialchars(trim($_sr->lastname . ' ' . $_sr->firstname), ENT_QUOTES, $charset) ?></td>
+        <td><?= htmlspecialchars($_sr->email, ENT_QUOTES, $charset) ?></td>
+        <td class="text-center"><?= (int)$_sr->nb_entries ?></td>
+        <td class="text-end">CHF <?= htmlspecialchars($_total, ENT_QUOTES, $charset) ?></td>
+        <td class="text-muted small"><?= htmlspecialchars(sprintf($GLOBAL['comptaRecapSentOn'], $_sentDt), ENT_QUOTES, $charset) ?></td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+</div>
+<?php endif ?>
+
 <p class="text-muted small mt-3">
   <i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapHelp'] ?>
 </p>
@@ -297,6 +364,13 @@ $_sendableCount = count($_withEmail);
     tr.addEventListener('click', function () {
       openPreview(tr.dataset.userid, tr.dataset.name, tr.dataset.email);
     });
+  });
+
+  document.getElementById('recap-extended-toggle').addEventListener('change', function () {
+    var url = baseUrl + '?view=comptaRecap&year=' + recapYear;
+    if (this.checked) { url += '&extended=1'; }
+    window.__dirtyOverride = true;
+    window.location = url;
   });
 
   document.getElementById('btn-recap-send-one').addEventListener('click', function () {

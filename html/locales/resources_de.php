@@ -988,6 +988,9 @@ $GLOBAL['comptaRecapSendLater']      = "Sp\u{00E4}ter senden";
 $GLOBAL['comptaRecapSendOne']        = "Senden";
 $GLOBAL['comptaRecapNoEmail']        = "keine E-Mail";
 $GLOBAL['comptaRecapNoEmailSection'] = "Mitglieder ohne E-Mail-Adresse (%d)";
+$GLOBAL['comptaRecapExtended']       = "Erweiterter Modus (auch gesendete anzeigen)";
+$GLOBAL['comptaRecapAlreadySent']    = "Bereits benachrichtigt (%d Mitglieder)";
+$GLOBAL['comptaRecapSentOn']         = "Benachrichtigt am %s";
 $GLOBAL['comptaRecapForceAll']       = "Erzwingen (alle Einträge des Jahres, auch bereits gesendete)";
 $GLOBAL['comptaRecapSendUserBtn']    = "Zusammenfassung senden";
 

@@ -988,6 +988,9 @@ $GLOBAL['comptaRecapSendLater']      = "Enviar más tarde";
 $GLOBAL['comptaRecapSendOne']        = "Enviar";
 $GLOBAL['comptaRecapNoEmail']        = "sin correo";
 $GLOBAL['comptaRecapNoEmailSection'] = "Miembros sin dirección de correo (%d)";
+$GLOBAL['comptaRecapExtended']       = "Modo extendido (mostrar también los enviados)";
+$GLOBAL['comptaRecapAlreadySent']    = "Ya notificados (%d miembros)";
+$GLOBAL['comptaRecapSentOn']         = "Notificado el %s";
 $GLOBAL['comptaRecapForceAll']       = "Forzar envío (todas las entradas del año, incluso ya enviadas)";
 $GLOBAL['comptaRecapSendUserBtn']    = "Enviar un resumen";
 
