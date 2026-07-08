@@ -113,7 +113,8 @@ $('table').datahref();
 $(function () {
     $('.datepicker').datetimepicker({
         format: 'L',
-        locale: 'fr'
+        locale: 'fr',
+        widgetParent: 'body'
     });
     $.extend(true, $.fn.datetimepicker.defaults, {
         icons: {
@@ -146,7 +147,7 @@ function casaInit(root) {
     // datepicker
     $(root).find('.datepicker').each(function () {
         if (!$(this).data('DateTimePicker')) {
-            $(this).datetimepicker({ format: 'L', locale: 'fr' });
+            $(this).datetimepicker({ format: 'L', locale: 'fr', widgetParent: 'body' });
         }
     });
 
