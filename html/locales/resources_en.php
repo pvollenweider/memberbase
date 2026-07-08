@@ -254,6 +254,7 @@ $GLOBAL['attestation'] = "Receipt";
 $GLOBAL['displayedYear'] = "(displayed year)";
 $GLOBAL['removeTypeFilter'] = "Remove the type filter";
 $GLOBAL['notCountedAsDonation'] = "Not counted as a donation";
+$GLOBAL['attestationExclNote']  = "This certificate only includes donations. The %d entry/entries marked \"Excl. don\" (membership fees or other) are not included.";
 
 // --- Donor / member cohort views ---
 $GLOBAL['backToDonationOverview'] = "Back to the donation overview";

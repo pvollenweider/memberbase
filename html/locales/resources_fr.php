@@ -254,6 +254,7 @@ $GLOBAL['attestation'] = "Attestation";
 $GLOBAL['displayedYear'] = "(année affichée)";
 $GLOBAL['removeTypeFilter'] = "Supprimer le filtre type";
 $GLOBAL['notCountedAsDonation'] = "Non compté comme don";
+$GLOBAL['attestationExclNote']  = "Cette attestation ne contient que les dons. Les %d entrée(s) marquée(s) « Excl. don » (cotisations ou autres) n'y figurent pas.";
 
 // --- Donor / member cohort views ---
 $GLOBAL['backToDonationOverview'] = "Retour à l'aperçu des dons";

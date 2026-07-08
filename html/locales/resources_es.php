@@ -253,6 +253,7 @@ $GLOBAL['attestation'] = "Certificado";
 $GLOBAL['displayedYear'] = "(año mostrado)";
 $GLOBAL['removeTypeFilter'] = "Quitar el filtro de tipo";
 $GLOBAL['notCountedAsDonation'] = "No contado como donativo";
+$GLOBAL['attestationExclNote']  = "Este certificado solo incluye donaciones. Las %d entradas marcadas como \"Excl. don\" (cuotas u otras) no están incluidas.";
 
 // --- Donor / member cohort views ---
 $GLOBAL['backToDonationOverview'] = "Volver al resumen de donativos";

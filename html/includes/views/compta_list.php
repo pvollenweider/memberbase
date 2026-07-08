@@ -45,6 +45,15 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
   </div>
 
   <?php if ($year != -2): ?>
+  <?php
+  // Count excluded-from-donation entries in the current year view (without type filter to give full picture)
+  $_exclWhere = "FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id"
+      . " WHERE c.user_id = " . $user->getId()
+      . " AND c.date > $from AND c.date < $to"
+      . " AND COALESCE(ct.is_excluded_from_donation,0) = 1"
+      . " AND c.sum <> 0";
+  $_exclCount = (int)$pdo->query("SELECT COUNT(*) " . $_exclWhere)->fetchColumn();
+  ?>
   <div class="dropdown ms-auto">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <i class="fas fa-file-pdf me-1" aria-hidden="true"></i><?= $GLOBAL['attestation'] ?>
@@ -78,6 +87,12 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
 
 </div>
 
+<?php if (($year ?? -2) != -2 && ($_exclCount ?? 0) > 0): ?>
+<div class="alert alert-warning py-2 d-flex align-items-start gap-2" style="font-size:0.85rem" role="alert">
+  <i class="fas fa-circle-info mt-1 flex-shrink-0" aria-hidden="true"></i>
+  <span><?= sprintf($GLOBAL['attestationExclNote'], $_exclCount) ?></span>
+</div>
+<?php endif ?>
 
 <form action="<?=$_SERVER['PHP_SELF']?>" method="post" name="addCompta">
 <input type="hidden" name="action" value="addCompta"/>

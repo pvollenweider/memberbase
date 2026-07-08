@@ -253,6 +253,7 @@ $GLOBAL['attestation'] = "Bescheinigung";
 $GLOBAL['displayedYear'] = "(angezeigtes Jahr)";
 $GLOBAL['removeTypeFilter'] = "Typfilter entfernen";
 $GLOBAL['notCountedAsDonation'] = "Nicht als Spende gezählt";
+$GLOBAL['attestationExclNote']  = "Diese Bescheinigung enth\u{00E4}lt nur Spenden. Die %d Eintrag/Eintr\u{00E4}ge mit \"Excl. don\" (Mitgliedsbeitr\u{00E4}ge o.\u{00A0}.\u{00E4}.) sind nicht enthalten.";
 
 // --- Donor / member cohort views ---
 $GLOBAL['backToDonationOverview'] = "Zurück zur Spendenübersicht";
