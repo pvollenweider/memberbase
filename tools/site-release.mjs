@@ -20,13 +20,20 @@ if (!indexPath) {
 
 const changelog = readFileSync(changelogPath, 'utf8');
 
-// Latest entry: "## [x.y.z] — YYYY-MM-DD" up to the next "## [".
-const entryMatch = changelog.match(/^## \[(\d+\.\d+\.\d+)\] — (\d{4}-\d{2}-\d{2})\n([\s\S]*?)(?=^## \[|\Z)/m);
-if (!entryMatch) {
+// Latest entry: "## [x.y.z] — YYYY-MM-DD" up to the next "## [" (or end of file).
+// Note: JS regex has no \Z (end-of-string) anchor like Python/PCRE — it's parsed
+// as the literal letter "Z", which silently truncated any entry containing a
+// capital Z before its next header (e.g. "via Zefix"). Find the boundary with
+// indexOf instead of relying on a lookahead alternation.
+const headerMatch = changelog.match(/^## \[(\d+\.\d+\.\d+)\] — (\d{4}-\d{2}-\d{2})\n/m);
+if (!headerMatch) {
   console.error('No release entry found in ' + changelogPath);
   process.exit(1);
 }
-const [, version, isoDate, body] = entryMatch;
+const [, version, isoDate] = headerMatch;
+const bodyStart = headerMatch.index + headerMatch[0].length;
+const nextHeaderIdx = changelog.indexOf('\n## [', bodyStart);
+const body = nextHeaderIdx === -1 ? changelog.slice(bodyStart) : changelog.slice(bodyStart, nextHeaderIdx);
 
 const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
   'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
