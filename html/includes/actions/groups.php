@@ -230,9 +230,14 @@ if ($action == 'deleteTeam') {
             exit;
         }
         $ph = implode(',', array_fill(0, count($cotiTypeIds), '?'));
+        $_noCotiTeam  = (int)($appSettings['member_no_coti_team'] ?? 0);
+        $noCotiClause = $_noCotiTeam > 0
+            ? "AND NOT EXISTS (SELECT 1 FROM user_properties WHERE user_id=u.id AND parameter='team_$_noCotiTeam' AND value='true')"
+            : '';
         $stmt = $pdo->prepare("
             SELECT u.id AS user_id FROM users u
             WHERE u.status = 1
+              $noCotiClause
               AND EXISTS (
                   SELECT 1 FROM compta c WHERE c.user_id = u.id AND c.type_id IN ($ph)
                     AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?

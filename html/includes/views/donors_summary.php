@@ -83,13 +83,17 @@ if ($year != -2) {
 
     // Member counts by cotisation_year (fallback: YEAR of payment date)
     $_cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
+    $_noCotiTeam  = (int)($appSettings['member_no_coti_team'] ?? 0);
+    $_noCotiJoin  = $_noCotiTeam > 0
+        ? "AND NOT EXISTS (SELECT 1 FROM user_properties WHERE user_id=u.id AND parameter='team_$_noCotiTeam' AND value='true')"
+        : '';
     $_kMembres = 0;
     $_kMembresPrev = 0;
     $_kMembresDelta = null;
     $_kMembresLapsed = 0;
     if (!empty($_cotiTypeIds)) {
         $_ph = implode(',', array_fill(0, count($_cotiTypeIds), '?'));
-        $_sM = $pdo->prepare("SELECT COUNT(DISTINCT u.id) FROM users u JOIN compta c ON c.user_id=u.id WHERE u.status=1 AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?");
+        $_sM = $pdo->prepare("SELECT COUNT(DISTINCT u.id) FROM users u JOIN compta c ON c.user_id=u.id WHERE u.status=1 $_noCotiJoin AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?");
         $_sM->execute(array_merge(array_values($_cotiTypeIds), [$year]));
         $_kMembres = (int)$_sM->fetchColumn();
         $_sM->execute(array_merge(array_values($_cotiTypeIds), [$year - 1]));
@@ -99,6 +103,7 @@ if ($year != -2) {
         $_sLapsedM = $pdo->prepare("
             SELECT COUNT(*) FROM users u
             WHERE u.status=1
+              $_noCotiJoin
               AND EXISTS (SELECT 1 FROM compta c WHERE c.user_id=u.id AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?)
               AND NOT EXISTS (SELECT 1 FROM compta c WHERE c.user_id=u.id AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?)
         ");

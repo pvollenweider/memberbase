@@ -10,14 +10,20 @@ $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year <= 0) { $year = (int)date("Y"); }
 
 // Members who paid a cotisation for year-1 but not for year (by cotisation_year).
-$cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
+$cotiTypeIds  = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
+$_noCotiTeam  = (int)($appSettings['member_no_coti_team'] ?? 0);
 $rows = [];
 if (!empty($cotiTypeIds)) {
     $ph = implode(',', array_fill(0, count($cotiTypeIds), '?'));
+    // Exclude members belonging to the no-cotisation team if configured.
+    $noCotiClause = $_noCotiTeam > 0
+        ? "AND NOT EXISTS (SELECT 1 FROM user_properties WHERE user_id=u.id AND parameter='team_$_noCotiTeam' AND value='true')"
+        : '';
     $stmt = $pdo->prepare("
         SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email
         FROM users u
         WHERE u.status = 1
+          $noCotiClause
           AND EXISTS (
               SELECT 1 FROM compta c
               WHERE c.user_id = u.id AND c.type_id IN ($ph)
