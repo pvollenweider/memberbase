@@ -162,7 +162,7 @@ function handleCreate(): void
     $_auUser = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
     $_auUser->execute([$memberId]);
     $typLabel = $comptaTypes[$typeId]->label ?? "type=$typeId";
-    auditLog($pdo, 'addCompta',
+    auditLog(db(), 'addCompta',
         "membre: " . ($_auUser->fetchColumn() ?: "id=$memberId") . " | $typLabel | {$c->getSum()} CHF",
         $memberId);
 
@@ -187,7 +187,7 @@ function handleUpdate(int $id): void
 
     $c->lookupCompta($id);
     $typLabel = $comptaTypes[(int)$c->getTypeId()]->label ?? "type={$c->getTypeId()}";
-    auditLog($pdo, 'updateCompta', "compta#=$id | $typLabel | {$c->getSum()} CHF", (int)$c->getUserId());
+    auditLog(db(), 'updateCompta', "compta#=$id | $typLabel | {$c->getSum()} CHF", (int)$c->getUserId());
 
     echo json_encode(['data' => entryToArray($c)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
@@ -201,7 +201,7 @@ function handleDelete(int $id): void
     $c->lookupCompta($id);
     if (!$c->getId()) apiError(404, 'Entry not found');
 
-    auditLog($pdo, 'deleteCompta', "compta#=$id | {$c->getSum()} CHF", (int)$c->getUserId());
+    auditLog(db(), 'deleteCompta', "compta#=$id | {$c->getSum()} CHF", (int)$c->getUserId());
     $c->remove();
 
     http_response_code(204);

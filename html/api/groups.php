@@ -169,7 +169,7 @@ function handleCreate(): void
     $team->setHidden((bool)($body['hidden'] ?? false));
     $team->save();
 
-    auditLog($pdo, 'addTeam', "name: $name");
+    auditLog(db(), 'addTeam', "name: $name");
 
     $stmt = db()->prepare("SELECT t.id, t.name, t.hidden, 0 AS member_count, NULL AS cat_id, NULL AS cat_name FROM team t WHERE t.id=?");
     $stmt->execute([$team->getId()]);
@@ -189,7 +189,7 @@ function handleUpdate(int $id): void
     if (array_key_exists('hidden', $body)) $team->setHidden((bool)$body['hidden']);
     $team->save();
 
-    auditLog($pdo, 'renameTeam', "id=$id | name: {$team->getName()}");
+    auditLog(db(), 'renameTeam', "id=$id | name: {$team->getName()}");
 
     $stmt = db()->prepare(
         "SELECT t.id, t.name, t.hidden,
@@ -217,7 +217,7 @@ function handleDelete(int $id): void
         apiError(409, 'Group still has members — remove them first or use force=true');
     }
 
-    auditLog($pdo, 'deleteTeam', "id=$id | name: {$team->getName()}");
+    auditLog(db(), 'deleteTeam', "id=$id | name: {$team->getName()}");
     db()->prepare("DELETE FROM team WHERE id=?")->execute([$id]);
 
     http_response_code(204);
@@ -245,7 +245,7 @@ function handleAddMember(int $groupId): void
     $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
     $_auU->execute([$memberId]);
     $_auName = trim((string)$_auU->fetchColumn());
-    auditLog($pdo, 'addMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
+    auditLog(db(), 'addMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
 
     http_response_code(204);
 }
@@ -264,7 +264,7 @@ function handleRemoveMember(int $groupId): void
     $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
     $_auU->execute([$memberId]);
     $_auName = trim((string)$_auU->fetchColumn());
-    auditLog($pdo, 'removeMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
+    auditLog(db(), 'removeMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
 
     http_response_code(204);
 }

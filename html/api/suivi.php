@@ -121,7 +121,7 @@ function handleCreate(): void
 
     $_auU = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
     $_auU->execute([$memberId]);
-    auditLog($pdo, 'addSuivi', "membre: " . ($_auU->fetchColumn() ?: "id=$memberId") . " | " . substr((string)$body['note'], 0, 80), $memberId);
+    auditLog(db(), 'addSuivi', "membre: " . ($_auU->fetchColumn() ?: "id=$memberId") . " | " . substr((string)$body['note'], 0, 80), $memberId);
 
     $p->lookupUserProperty($newId);
     http_response_code(201);
@@ -145,7 +145,7 @@ function handleUpdate(int $id): void
 
     $_auU = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
     $_auU->execute([(int)$p->getUserId()]);
-    auditLog($pdo, 'updateSuivi', "suivi#=$id | membre: " . ($_auU->fetchColumn() ?: "id={$p->getUserId()}"), (int)$p->getUserId());
+    auditLog(db(), 'updateSuivi', "suivi#=$id | membre: " . ($_auU->fetchColumn() ?: "id={$p->getUserId()}"), (int)$p->getUserId());
 
     $p->lookupUserProperty($id);
     echo json_encode(['data' => entryToArray($p)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -159,7 +159,7 @@ function handleDelete(int $id): void
 
     $_auU = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
     $_auU->execute([(int)$p->getUserId()]);
-    auditLog($pdo, 'deleteSuivi', "suivi#=$id | membre: " . ($_auU->fetchColumn() ?: "id={$p->getUserId()}"), (int)$p->getUserId());
+    auditLog(db(), 'deleteSuivi', "suivi#=$id | membre: " . ($_auU->fetchColumn() ?: "id={$p->getUserId()}"), (int)$p->getUserId());
 
     $p->remove();
     http_response_code(204);

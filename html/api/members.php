@@ -183,7 +183,7 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
     }
 
     // Shared filter logic — same source of truth as the members list view
-    $ids = array_keys(MemberFilter::resolveIds($filterId, $pdo, $year, $appSettings));
+    $ids = array_keys(MemberFilter::resolveIds($filterId, db(), $year, $appSettings));
     $total = count($ids);
 
     if ($total === 0) {
@@ -345,7 +345,7 @@ function handleCreate(): void
     applyFields($user, $body);
 
     $newId = $user->save();
-    auditLog($pdo, 'addUser', "id=$newId | {$user->firstName} {$user->lastName} | email: {$user->email}", $newId);
+    auditLog(db(), 'addUser', "id=$newId | {$user->firstName} {$user->lastName} | email: {$user->email}", $newId);
 
     $user->lookupUser($newId);
     http_response_code(201);
@@ -381,7 +381,7 @@ function handleUpdate(int $id): void
     }
     $detail = "id=$id | {$freshUser->getFirstName()} {$freshUser->getLastName()}";
     $detail .= $diffs ? ' | ' . implode(' ; ', $diffs) : ' | (aucune modification)';
-    auditLog($pdo, 'updateUser', $detail, $id);
+    auditLog(db(), 'updateUser', $detail, $id);
 
     echo json_encode(['data' => memberToArray($freshUser)],
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -398,11 +398,11 @@ function handleDelete(int $id): void
 
     if ($dispose === 'delete') {
         if (!isAdmin()) apiError(403, 'Admin role required to permanently delete a member');
-        auditLog($pdo, 'deleteUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
+        auditLog(db(), 'deleteUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
         $user->remove();
     } else {
         db()->prepare("UPDATE users SET status=0 WHERE id=?")->execute([$id]);
-        auditLog($pdo, 'deactivateUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
+        auditLog(db(), 'deactivateUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
     }
 
     http_response_code(204);

@@ -24,7 +24,7 @@ function apiError(int $code, string $message): never
     // let logging break the API response.
     if ($code === 403) {
         try {
-            auditLog($pdo, 'accessDenied', 'api ' . ($_SERVER['REQUEST_METHOD'] ?? '?') . ' ' . ($_SERVER['REQUEST_URI'] ?? '?') . ' role=' . ($_SESSION['app_user_role'] ?? '?'));
+            auditLog(db(), 'accessDenied', 'api ' . ($_SERVER['REQUEST_METHOD'] ?? '?') . ' ' . ($_SERVER['REQUEST_URI'] ?? '?') . ' role=' . ($_SESSION['app_user_role'] ?? '?'));
         } catch (Throwable) { /* ignore */ }
     }
     http_response_code($code);
