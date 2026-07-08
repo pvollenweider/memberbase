@@ -36,4 +36,7 @@ define('DB_USER', 'members');
 define('DB_PASS', 'members');
 PHP
 
+# Purge Mailpit inbox so tests start clean
+curl -s -X DELETE http://localhost:8025/api/v1/messages || true
+
 echo "members_test reset complete."
