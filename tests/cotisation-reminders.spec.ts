@@ -15,13 +15,17 @@ const YEAR        = 2026; // lapsed members paid 2025, not 2026 (see seed)
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-/** Open the send-reminder modal and wait for it to finish animating. */
+/** Open the send-reminder modal and wait for Bootstrap's shown.bs.modal event (fires after animation). */
 async function openReminderModal(page: any): Promise<void> {
-  await page.click('[data-bs-target="#modal-send-coti-reminders"]');
-  // Wait for Bootstrap fade animation to finish (modal gets class "show" after ~300 ms)
-  await page.waitForFunction(
-    () => document.getElementById('modal-send-coti-reminders')?.classList.contains('show')
+  // Register the shown.bs.modal listener BEFORE triggering the modal so we don't miss it.
+  const shown = page.evaluate(() =>
+    new Promise<void>(resolve => {
+      document.getElementById('modal-send-coti-reminders')
+        ?.addEventListener('shown.bs.modal', () => resolve(), { once: true });
+    })
   );
+  await page.click('[data-bs-target="#modal-send-coti-reminders"]');
+  await shown; // waits until Bootstrap finishes the fade-in animation
 }
 
 async function csrfToken(api: APIRequestContext): Promise<string> {
@@ -84,23 +88,21 @@ test.describe('Send cotisation reminders', () => {
     await purgeMailpit(request);
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
-
-    // Capture the fetch response for diagnostics
-    let fetchStatus = 0;
-    let fetchBody   = '';
-    page.on('response', async (resp) => {
-      if (resp.url().includes('index.php') && resp.request().method() === 'POST') {
-        fetchStatus = resp.status();
-        fetchBody   = await resp.text().catch(() => '(read error)');
-      }
-    });
-
-    // Open confirm modal (wait for Bootstrap fade) and click send
     await openReminderModal(page);
-    await page.click('#btn-send-coti-reminders');
+
+    // Wait for the POST response at the same time as clicking so we don't miss it
+    const [resp] = await Promise.all([
+      page.waitForResponse(
+        (r: any) => r.url().includes('index.php') && r.request().method() === 'POST',
+        { timeout: 15_000 }
+      ),
+      page.locator('#btn-send-coti-reminders').click({ force: true }),
+    ]);
+    const json = await resp.json();
+    expect(json.ok, `server response: ${JSON.stringify(json)}`).toBe(true);
 
     // Modal should show a success alert
-    await expect(page.locator('#coti-reminder-result .alert-success'), `fetch ${fetchStatus}: ${fetchBody}`).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 5_000 });
 
     // Exactly 1 email delivered (Carol has email; Dave does not)
     const msgs = await mailpitMessages(request);
@@ -113,7 +115,7 @@ test.describe('Send cotisation reminders', () => {
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
     await openReminderModal(page);
-    await page.click('#btn-send-coti-reminders');
+    await page.locator('#btn-send-coti-reminders').click({ force: true });
     await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
 
     const msgs = await mailpitMessages(request);
@@ -125,7 +127,7 @@ test.describe('Send cotisation reminders', () => {
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
     await openReminderModal(page);
-    await page.click('#btn-send-coti-reminders');
+    await page.locator('#btn-send-coti-reminders').click({ force: true });
     await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
 
     const msgs = await mailpitMessages(request);
@@ -142,7 +144,7 @@ test.describe('Send cotisation reminders', () => {
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
     await openReminderModal(page);
-    await page.click('#btn-send-coti-reminders');
+    await page.locator('#btn-send-coti-reminders').click({ force: true });
     await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
 
     // Check the email appears in Carol's (user 4) suivi tab

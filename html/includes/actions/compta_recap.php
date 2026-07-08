@@ -64,13 +64,14 @@ function _recapLoadEntries(PDO $pdo, ?int $filterUserId = null, int $year = 0, b
  */
 function _recapSinceLine(PDO $pdo, array $GLOBAL, int $year, bool $force): string
 {
+    // Email body is always French regardless of the admin's UI locale — use FR strings directly.
     if ($force || $year !== (int)date('Y')) {
-        return sprintf($GLOBAL['comptaRecapSinceYear'], $year);
+        return 'en ' . $year;
     }
     $lastBatchRaw = $pdo->query("SELECT MAX(notified_at) FROM compta WHERE notified_at IS NOT NULL")->fetchColumn();
     return $lastBatchRaw
-        ? sprintf($GLOBAL['comptaRecapSinceLastBatch'], date('d.m.Y', strtotime($lastBatchRaw)))
-        : $GLOBAL['comptaRecapSinceFirst'];
+        ? 'depuis votre dernier récapitulatif du ' . date('d.m.Y', strtotime($lastBatchRaw))
+        : 'depuis votre adhésion';
 }
 
 /**
@@ -161,10 +162,7 @@ if ($action === 'sendComptaRecap') {
     $byMember = _recapLoadEntries($pdo, null, $recapYear);
     if (empty($byMember)) { $redirect('recapOk=0'); }
 
-    $lastBatchRaw = $pdo->query("SELECT MAX(notified_at) FROM compta WHERE notified_at IS NOT NULL")->fetchColumn();
-    $sinceLine    = $lastBatchRaw
-        ? sprintf($GLOBAL['comptaRecapSinceLastBatch'], date('d.m.Y', strtotime($lastBatchRaw)))
-        : $GLOBAL['comptaRecapSinceFirst'];
+    $sinceLine = _recapSinceLine($pdo, $GLOBAL, $recapYear, false);
 
     $sentCount = 0; $skipCount = 0; $notifiedIds = [];
 
