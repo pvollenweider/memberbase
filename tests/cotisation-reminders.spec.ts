@@ -98,7 +98,10 @@ test.describe('Send cotisation reminders', () => {
       ),
       page.locator('#btn-send-coti-reminders').click({ force: true }),
     ]);
-    const json = await resp.json();
+    const body = await resp.text();
+    expect(resp.status(), `HTTP ${resp.status()} body: ${body.substring(0, 1000)}`).toBe(200);
+    expect(body, `body: ${body.substring(0, 500)}`).not.toContain('<!DOCTYPE');
+    const json = JSON.parse(body);
     expect(json.ok, `server response: ${JSON.stringify(json)}`).toBe(true);
 
     // Modal should show a success alert
@@ -176,9 +179,10 @@ test.describe('Settings — membership URL', () => {
     await page.goto('/index.php?view=settings&tab=settings');
     await page.fill('#s_membership_url', 'https://example.org/join');
     await page.locator('button[type="submit"].btn-primary').first().click();
-    await page.waitForTimeout(500);
 
-    await page.reload();
+    // After save the action redirects to ?view=settings&saved=1 (no tab param) —
+    // navigate back to the settings tab explicitly to verify persistence.
+    await page.goto('/index.php?view=settings&tab=settings');
     await expect(page.locator('#s_membership_url')).toHaveValue('https://example.org/join');
   });
 });
