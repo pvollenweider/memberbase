@@ -955,26 +955,8 @@ $GLOBAL['emailTemplateBodyHtml']       = "HTML";
 $GLOBAL['emailTemplateHelp']           = "Available variables: {{greeting}}, {{greeting_text}}, {{display_name}}, {{firstname}}, {{lastname}}, {{society}}, {{email}}, {{org_name}}, {{contact_email}}, {{org_address}}, {{org_city}}, {{org_web}}";
 $GLOBAL['emailTemplateHtmlHelp']       = "HTML template for the email. Leave blank to send plain text only. Same variables as the text tab.";
 $GLOBAL['emailTemplateVarsHelp']       = "Available variables";
-$GLOBAL['emailTemplateWelcome']        = "Welcome email";
 $GLOBAL['emailTemplateCotiReminder']   = "Membership reminder";
 $GLOBAL['emailTemplateAttestationDon'] = "Donation certificate";
-$GLOBAL['emailWelcomeEnabled']         = "Send a welcome email when a member is created";
-
-// Welcome email manual send
-$GLOBAL['sendWelcomeEmail']        = "Send welcome email";
-$GLOBAL['sendWelcomeEmailSending'] = "Sending…";
-$GLOBAL['sendWelcomeEmailOk']      = "Welcome email sent.";
-$GLOBAL['sendWelcomeEmailFail']    = "Send failed.";
-$GLOBAL['sendWelcomeEmailNoEmail'] = "This member has no email address.";
-$GLOBAL['sendWelcomeEmailAlreadySent'] = "Welcome email already sent on %s";
-
-// Bulk welcome email mark
-$GLOBAL['welcomeEmailBulkTitle']      = "Bulk mark — welcome email";
-$GLOBAL['welcomeEmailBulkDesc']       = "%d active member(s) do not yet have the \"welcome email sent\" flag. Mark them all as handled to prevent sending a welcome email to existing members.";
-$GLOBAL['welcomeEmailBulkConfirm']    = "I understand these members will never receive the welcome email automatically";
-$GLOBAL['welcomeEmailBulkBtn']        = "Mark all as handled";
-$GLOBAL['welcomeEmailBulkOk']         = "%d member(s) marked as handled.";
-$GLOBAL['welcomeEmailBulkErrConfirm'] = "Please check the confirmation checkbox.";
 
 // Compta recap batch email
 $GLOBAL['comptaRecapTitle']          = "Emails";

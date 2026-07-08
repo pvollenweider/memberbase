@@ -27,7 +27,6 @@ $allTemplates = array_merge($defaults, $dbTemplates); // DB overrides defaults
 
 // Map template key → display label
 $tplLabels = [
-    'tpl_welcome'             => $GLOBAL['emailTemplateWelcome'],
     'tpl_payment_receipt'     => $GLOBAL['emailTemplatePaymentReceipt'],
     'tpl_cotisation_reminder' => $GLOBAL['emailTemplateCotiReminder'],
     'tpl_attestation_don'     => $GLOBAL['emailTemplateAttestationDon'],

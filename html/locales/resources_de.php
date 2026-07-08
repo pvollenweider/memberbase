@@ -955,26 +955,8 @@ $GLOBAL['emailTemplateBodyHtml']       = "HTML";
 $GLOBAL['emailTemplateHelp']           = "Verfügbare Variablen: {{greeting}}, {{greeting_text}}, {{display_name}}, {{firstname}}, {{lastname}}, {{society}}, {{email}}, {{org_name}}, {{contact_email}}, {{org_address}}, {{org_city}}, {{org_web}}";
 $GLOBAL['emailTemplateHtmlHelp']       = "HTML-Vorlage der E-Mail. Leer lassen, um nur Nur-Text zu senden. Gleiche Variablen wie im Nur-Text-Tab.";
 $GLOBAL['emailTemplateVarsHelp']       = "Verfügbare Variablen";
-$GLOBAL['emailTemplateWelcome']        = "Willkommens-E-Mail";
 $GLOBAL['emailTemplateCotiReminder']   = "Mitgliedschaftserinnerung";
 $GLOBAL['emailTemplateAttestationDon'] = "Spendenquittung";
-$GLOBAL['emailWelcomeEnabled']         = "Willkommens-E-Mail beim Erstellen eines Mitglieds senden";
-
-// Welcome email manual send
-$GLOBAL['sendWelcomeEmail']        = "Willkommens-E-Mail senden";
-$GLOBAL['sendWelcomeEmailSending'] = "Wird gesendet…";
-$GLOBAL['sendWelcomeEmailOk']      = "Willkommens-E-Mail gesendet.";
-$GLOBAL['sendWelcomeEmailFail']    = "Senden fehlgeschlagen.";
-$GLOBAL['sendWelcomeEmailNoEmail'] = "Dieses Mitglied hat keine E-Mail-Adresse.";
-$GLOBAL['sendWelcomeEmailAlreadySent'] = "Willkommens-E-Mail bereits gesendet am %s";
-
-// Bulk welcome email mark
-$GLOBAL['welcomeEmailBulkTitle']      = "Massenmarkierung — Willkommens-E-Mail";
-$GLOBAL['welcomeEmailBulkDesc']       = "%d aktive(s) Mitglied(er) haben noch keine Markierung \u{201E}Willkommens-E-Mail gesendet\u{201C}. Markieren Sie alle als erledigt, um zu verhindern, dass bestehende Mitglieder eine Willkommens-E-Mail erhalten.";
-$GLOBAL['welcomeEmailBulkConfirm']    = "Ich verstehe, dass diese Mitglieder nie automatisch eine Willkommens-E-Mail erhalten werden";
-$GLOBAL['welcomeEmailBulkBtn']        = "Alle als erledigt markieren";
-$GLOBAL['welcomeEmailBulkOk']         = "%d Mitglied(er) als erledigt markiert.";
-$GLOBAL['welcomeEmailBulkErrConfirm'] = "Bitte Bestätigungs-Checkbox ankreuzen.";
 
 // Compta recap batch email
 $GLOBAL['comptaRecapTitle']          = "E-Mails";

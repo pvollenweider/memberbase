@@ -297,43 +297,4 @@ if ($_REQUEST['action'] == 'updateUser') {
         }
     }
 
-} elseif ($_REQUEST['action'] === 'sendWelcomeEmail') {
-    if (!isManager()) { http_response_code(403); exit; }
-    header('Content-Type: application/json; charset=utf-8');
-    $id  = (int)($_REQUEST['id'] ?? 0);
-    if ($id <= 0) { echo json_encode(['ok' => false, 'error' => 'invalid_id']); exit; }
-    // Guard: already sent
-    $chkSent = $pdo->prepare("SELECT value FROM user_properties WHERE user_id=? AND parameter='email_welcome_sent' LIMIT 1");
-    $chkSent->execute([$id]);
-    if ($chkSent->fetchColumn() !== false) {
-        echo json_encode(['ok' => false, 'error' => 'already_sent']);
-        exit;
-    }
-    $row = $pdo->prepare("SELECT firstname, lastname, society, email FROM users WHERE id=? AND status=1 LIMIT 1");
-    $row->execute([$id]);
-    $m = $row->fetchObject();
-    if (!$m) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }
-    if ($m->email === '') { echo json_encode(['ok' => false, 'error' => 'no_email']); exit; }
-    require_once __DIR__ . '/../lib/mailer.php';
-    $ok = mbSendTemplate($pdo, $m->email, 'tpl_welcome', array_merge(
-        mbBuildSalutation($m->firstname, $m->lastname, $m->society ?? ''),
-    [
-        'firstname'     => $m->firstname,
-        'lastname'      => $m->lastname,
-        'email'         => $m->email,
-        'org_name'      => $appSettings['org_name']      ?? '',
-        'org_address'   => $appSettings['org_address']   ?? '',
-        'org_city'      => $appSettings['org_city']      ?? '',
-        'org_country'   => $appSettings['org_country']   ?? '',
-        'org_web'       => $appSettings['org_web']       ?? '',
-        'contact_email' => $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? ''),
-    ]));
-    if ($ok) {
-        $pdo->prepare(
-            "INSERT IGNORE INTO user_properties (user_id, parameter, value, date) VALUES (?, 'email_welcome_sent', ?, ?)"
-        )->execute([$id, date('Y-m-d H:i:s'), time()]);
-    }
-    auditLog($pdo, 'sendWelcomeEmail', "id=$id to={$m->email}");
-    echo json_encode(['ok' => $ok]);
-    exit;
 }

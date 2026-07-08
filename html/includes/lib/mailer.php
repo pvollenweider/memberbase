@@ -340,15 +340,6 @@ function mbDefaultTemplates(): array
     };
 
     return [
-        'tpl_welcome' => [
-            'subject'   => 'Bienvenue — {{org_name}}',
-            'body_text' => "{{greeting_text}}\n\nNous avons bien enregistré votre adhésion à {{org_name}}.\n\nPour toute question, vous pouvez nous contacter à l'adresse suivante : {{contact_email}}\n\nCordialement,\n{{org_name}}",
-            'body_html' => $htmlWrap(
-                '<p>{{greeting}}</p>
-<p>Nous avons bien enregistré votre adhésion à <strong>{{org_name}}</strong> et vous en remercions.</p>
-<p>Pour toute question, n\'hésitez pas à nous contacter : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
-<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
-        ],
         // {{type}}       = label of the compta_type (e.g. "Don libre")
         // {{amount}}     = formatted amount (e.g. "80.00")
         // {{entry_date}} = date of the entry (DD.MM.YYYY)

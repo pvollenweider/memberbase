@@ -240,7 +240,7 @@ if ($action == 'saveSettings') {
     $subject  = trim($_REQUEST['tpl_subject']   ?? '');
     $body     = trim($_REQUEST['tpl_body']      ?? '');
     $bodyHtml = trim($_REQUEST['tpl_body_html'] ?? '');
-    $allowed  = ['tpl_welcome', 'tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don'];
+    $allowed  = ['tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don'];
     if (in_array($key, $allowed, true) && $subject !== '' && $body !== '') {
         try {
             $pdo->prepare(

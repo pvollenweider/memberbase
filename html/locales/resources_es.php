@@ -955,26 +955,10 @@ $GLOBAL['emailTemplateBodyHtml']       = "HTML";
 $GLOBAL['emailTemplateHelp']           = "Variables disponibles: {{greeting}}, {{greeting_text}}, {{display_name}}, {{firstname}}, {{lastname}}, {{society}}, {{email}}, {{org_name}}, {{contact_email}}, {{org_address}}, {{org_city}}, {{org_web}}";
 $GLOBAL['emailTemplateHtmlHelp']       = "Plantilla HTML del correo. Dejar en blanco para enviar solo texto. Mismas variables que en la pestaña de texto.";
 $GLOBAL['emailTemplateVarsHelp']       = "Variables disponibles";
-$GLOBAL['emailTemplateWelcome']        = "Correo de bienvenida";
 $GLOBAL['emailTemplateCotiReminder']   = "Recordatorio de cuota";
 $GLOBAL['emailTemplateAttestationDon'] = "Certificado de donación";
-$GLOBAL['emailWelcomeEnabled']         = "Enviar un correo de bienvenida al crear un miembro";
 
-// Welcome email manual send
-$GLOBAL['sendWelcomeEmail']        = "Enviar correo de bienvenida";
-$GLOBAL['sendWelcomeEmailSending'] = "Enviando…";
-$GLOBAL['sendWelcomeEmailOk']      = "Correo de bienvenida enviado.";
-$GLOBAL['sendWelcomeEmailFail']    = "Error al enviar.";
-$GLOBAL['sendWelcomeEmailNoEmail'] = "Este miembro no tiene dirección de correo.";
-$GLOBAL['sendWelcomeEmailAlreadySent'] = "Correo de bienvenida ya enviado el %s";
 
-// Bulk welcome email mark
-$GLOBAL['welcomeEmailBulkTitle']      = "Marcado masivo — correo de bienvenida";
-$GLOBAL['welcomeEmailBulkDesc']       = "%d miembro(s) activo(s) aún no tienen la marca «correo de bienvenida enviado». Márcalos todos como tratados para evitar enviar un correo de bienvenida a miembros existentes.";
-$GLOBAL['welcomeEmailBulkConfirm']    = "Entiendo que estos miembros nunca recibirán el correo de bienvenida automáticamente";
-$GLOBAL['welcomeEmailBulkBtn']        = "Marcar todos como tratados";
-$GLOBAL['welcomeEmailBulkOk']         = "%d miembro(s) marcado(s) como tratados.";
-$GLOBAL['welcomeEmailBulkErrConfirm'] = "Por favor, marque la casilla de confirmación.";
 
 // Compta recap batch email
 $GLOBAL['comptaRecapTitle']          = "Emails";
