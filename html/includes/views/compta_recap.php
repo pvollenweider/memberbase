@@ -203,7 +203,7 @@ if ($_pendingMembers > 0) {
 
     fetch(baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrfToken },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrfToken, 'HX-Request': 'true' },
       body: 'action=previewComptaRecap&view=comptaRecap&user_id=' + encodeURIComponent(userId)
     })
     .then(function (r) { return r.json(); })
@@ -257,7 +257,7 @@ if ($_pendingMembers > 0) {
 
     fetch(baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrfToken },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrfToken, 'HX-Request': 'true' },
       body: 'action=sendComptaRecapOne&view=comptaRecap&user_id=' + encodeURIComponent(currentUserId)
     })
     .then(function (r) { return r.json(); })
