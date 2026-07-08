@@ -265,6 +265,8 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
         <li><a href="#12-rôles-utilisateurs-et-matrice-des-droits">12. Rôles utilisateurs et matrice des droits</a></li>
         <li><a href="#13-changer-son-mot-de-passe">13. Changer son mot de passe</a></li>
         <li><a href="#14-déconnexion">14. Déconnexion</a></li>
+<li><a href="#15-récapitulatifs-comptables-par-email">15. Récapitulatifs comptables par email</a></li>
+<li><a href="#16-rappels-de-cotisation-impayée">16. Rappels de cotisation impayée</a></li>
       </ul>
     </nav>
     <div class="prose">
@@ -491,6 +493,9 @@ par type et évolution mensuelle / cumulée).</p>
 <ol>
 <li><strong>Type</strong> — sélectionner le type de versement (cotisation, don…).</li>
 <li><strong>Date</strong> — format JJ/MM/AAAA (date du jour pré-remplie).</li>
+<li><strong>Année de cotisation</strong> — n&#39;apparaît que pour un type marqué « cotisation » ; utile quand le
+paiement d&#39;une année tombe dans une autre (ex. cotisation 2027 payée en décembre 2026).
+Pré-rempli sur l&#39;année de la date de paiement.</li>
 <li><strong>Libellé</strong> — description libre.</li>
 <li><strong>Somme</strong> — montant en CHF (ex. <code>50</code> ou <code>12.50</code>).</li>
 <li><strong>Quittance</strong> — numéro de quittance / référence.</li>
@@ -630,9 +635,11 @@ les sections disponibles dépendent du rôle.</p>
 <tr><td>Segments combinés</td><td>Manager / Admin</td><td>Filtres regroupant plusieurs segments</td></tr>
 <tr><td>Types compta</td><td>Manager / Admin</td><td>Types de versements</td></tr>
 <tr><td>Réglages</td><td>Admin</td><td>Paramètres généraux de l&#39;organisation</td></tr>
+<tr><td>Email</td><td>Admin</td><td>Configuration SMTP, templates d&#39;email, journal des envois (voir §15)</td></tr>
 <tr><td>Utilisateurs</td><td>Admin</td><td>Comptes de connexion à l&#39;application</td></tr>
 <tr><td>Journal</td><td>Admin</td><td>Journal d&#39;activité</td></tr>
 <tr><td>Intégrité</td><td>Admin</td><td>Vérification et correction des données</td></tr>
+<tr><td>Santé</td><td>Admin</td><td>Export de la base, application des migrations en attente</td></tr>
 <tr><td>Archivés</td><td>Admin</td><td>Liste des membres archivés</td></tr></tbody></table></div>
 <h3 id="types-compta">Types compta<a class="anchor" href="#types-compta" aria-label="Lien d'ancrage">#</a></h3>
 <p>Pour chaque type de versement :</p>
@@ -647,7 +654,7 @@ les sections disponibles dépendent du rôle.</p>
 <tr><td>Préfixe des segments membres</td><td>Préfixe pour retrouver les segments membres des années (ex. « Membre »)</td></tr>
 <tr><td>Segment affiché par défaut</td><td>Segment ouvert à l&#39;arrivée sur la liste — <strong>à mettre à jour chaque année</strong></td></tr>
 <tr><td>Segment membres (année de référence)</td><td>Utilisé pour les filtres cotisations et l&#39;aperçu des dons — <strong>à mettre à jour chaque année</strong></td></tr>
-<tr><td>Segment membres sans cotisation</td><td>Membres actifs exemptés de cotisation (bénévoles, comité…)</td></tr></tbody></table></div>
+<tr><td>Segment membres sans cotisation</td><td>Membres actifs exemptés de cotisation (bénévoles, comité…)</td></tr><tr><td>Numéro IDE</td><td>Identifiant d&#39;entreprise suisse — bouton <strong>Vérifier via Zefix</strong> pour préremplir nom/adresse/but statutaire automatiquement</td></tr><tr><td>But statutaire</td><td>Extrait des statuts, utilisé dans les documents officiels</td></tr><tr><td>Statut d&#39;exonération fiscale</td><td>Saisie manuelle (ex. « Exonérée AFC-GE depuis 2018 »)</td></tr></tbody></table></div>
 <h3 id="utilisateurs-admin">Utilisateurs (Admin)<a class="anchor" href="#utilisateurs-admin" aria-label="Lien d'ancrage">#</a></h3>
 <p>Gestion des comptes de connexion :</p>
 <ul>
@@ -706,6 +713,36 @@ connexion suivante.</p>
 <hr>
 <h2 id="14-déconnexion">14. Déconnexion<a class="anchor" href="#14-déconnexion" aria-label="Lien d'ancrage">#</a></h2>
 <p>Cliquer son <strong>nom d&#39;utilisateur</strong> en haut à droite, puis <strong>Déconnexion</strong>.</p>
+<hr>
+<h2 id="15-récapitulatifs-comptables-par-email">15. Récapitulatifs comptables par email<a class="anchor" href="#15-récapitulatifs-comptables-par-email" aria-label="Lien d'ancrage">#</a></h2>
+<p>Accès : menu <strong>Emails</strong> (Manager / Admin). Envoie à chaque membre un email récapitulant ses
+entrées comptables pas encore notifiées (cotisations, dons…), regroupées en une seule fois
+plutôt qu&#39;une notification par entrée.</p>
+<ol>
+<li>Choisir l&#39;<strong>année</strong> à traiter.</li>
+<li>La liste affiche les membres avec entrées en attente, séparés entre ceux <strong>avec email</strong>
+(envoi possible) et <strong>sans email</strong> (repliable, non envoyables).</li>
+<li>Cliquer une ligne ouvre un <strong>aperçu</strong> de l&#39;email tel qu&#39;il sera reçu (rendu HTML réel du
+template configuré dans Réglages → Email).</li>
+<li><strong>Envoyer les récapitulatifs</strong> (bouton en haut) envoie à tous les membres avec email en une
+fois, ou <strong>Envoyer</strong> dans la modale d&#39;aperçu pour un envoi individuel.</li>
+<li><strong>Mode étendu</strong> (case à cocher) affiche aussi les membres déjà notifiés cette année, avec
+possibilité de renvoyer (forçage).</li>
+</ol>
+<p>Une fois envoyée, une entrée n&#39;est plus reprise dans le lot suivant. Si l&#39;entrée a une
+<strong>année de cotisation</strong> différente de l&#39;année de paiement (ex. cotisation 2027 payée en
+décembre 2026), l&#39;email le précise explicitement.</p>
+<hr>
+<h2 id="16-rappels-de-cotisation-impayée">16. Rappels de cotisation impayée<a class="anchor" href="#16-rappels-de-cotisation-impayée" aria-label="Lien d'ancrage">#</a></h2>
+<p>Accès : vue <strong>Membres perdus</strong> (menu principal ou Réglages → sections liées aux membres).
+Liste les membres ayant cotisé l&#39;année précédente mais pas encore l&#39;année en cours.</p>
+<ul>
+<li><strong>Envoyer un rappel</strong> sur une ligne individuelle, ou en masse pour toute la liste.</li>
+<li>Un membre déjà relancé cette année n&#39;est pas resollicité automatiquement (anti-doublon) —
+le statut « Rappel envoyé le [date] » apparaît sur sa ligne.</li>
+<li>Le contenu de l&#39;email est celui configuré dans Réglages → Email → Templates
+(<code>tpl_cotisation_reminder</code>).</li>
+</ul>
 
     </div>
     <nav class="pager" aria-label="Navigation entre les guides">

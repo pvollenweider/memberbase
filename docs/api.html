@@ -263,7 +263,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
       </ul>
     </nav>
     <div class="prose">
-<p>API REST interne de l&#39;application MemberBase (version <strong>3.5.6</strong>). Toutes les réponses sont en JSON UTF-8.</p>
+<p>API REST interne de l&#39;application MemberBase (version <strong>4.0.0</strong>). Toutes les réponses sont en JSON UTF-8.</p>
 <hr>
 <h2 id="authentification">Authentification<a class="anchor" href="#authentification" aria-label="Lien d'ancrage">#</a></h2>
 <p>L&#39;API ne dispose pas de token séparé. Elle repose sur <strong>la session web de l&#39;application</strong> : la requête doit porter le cookie de session obtenu lors d&#39;une connexion via l&#39;interface web (<code>login.php</code>).</p>
@@ -322,6 +322,7 @@ curl -b cookies.txt https://votre-domaine/api/members
 <div class="table-scroll" role="region" aria-label="Tableau — Routage (.htaccess)" tabindex="0"><table><thead><tr><th scope="col">Méthode + chemin</th><th scope="col">Script cible</th></tr></thead><tbody><tr><td><code>/api/members</code></td><td><code>members.php</code></td></tr>
 <tr><td><code>/api/members/{id}</code></td><td><code>members.php?id={id}</code></td></tr>
 <tr><td><code>/api/members/{id}/groups</code></td><td><code>members.php?id={id}&amp;sub=groups</code></td></tr>
+<tr><td><code>/api/members/{id}?sub=compta</code></td><td><code>members.php?id={id}&amp;sub=compta</code> (pas de clean-URL dédiée)</td></tr>
 <tr><td><code>/api/compta</code></td><td><code>compta.php</code></td></tr>
 <tr><td><code>/api/compta/{id}</code></td><td><code>compta.php?id={id}</code></td></tr>
 <tr><td><code>/api/compta-types</code></td><td><code>compta-types.php</code></td></tr>
@@ -521,6 +522,41 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 </ul>
 <h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
 <pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/members/42/groups&quot;
+</code></pre>
+<hr>
+<h3 id="get-apimembersidsubcompta"><code>GET /api/members/{id}?sub=compta</code><a class="anchor" href="#get-apimembersidsubcompta" aria-label="Lien d'ancrage">#</a></h3>
+<p>Écritures comptables d&#39;un membre, triées par date décroissante (<code>date DESC, id DESC</code>). Rôle : <code>canRead()</code>.</p>
+<blockquote>
+<p>Pas de route clean-URL dédiée dans <code>html/api/.htaccess</code> (contrairement à <code>sub=groups</code> → <code>/members/{id}/groups</code>) : seule la forme en query string fonctionne.</p>
+</blockquote>
+<h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-json">{
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: 231,
+      &quot;date&quot;: &quot;2026-01-15&quot;,
+      &quot;label&quot;: &quot;Cotisation 2026&quot;,
+      &quot;amount&quot;: 50.0,
+      &quot;quittance&quot;: null,
+      &quot;wantsAttestation&quot;: false,
+      &quot;notifiedAt&quot;: null,
+      &quot;cotisationYear&quot;: 2026,
+      &quot;type&quot;: { &quot;id&quot;: 3, &quot;label&quot;: &quot;Cotisation&quot;, &quot;color&quot;: &quot;#4caf50&quot;, &quot;isCotisation&quot;: true }
+    }
+  ]
+}
+</code></pre>
+<ul>
+<li><code>notifiedAt</code> : date d&#39;envoi du récapitulatif email incluant cette entrée (<code>null</code> = pas encore notifiée).</li>
+<li><code>cotisationYear</code> : année de cotisation couverte par l&#39;entrée quand elle diffère de l&#39;année de paiement (ex. cotisation 2027 payée en décembre 2026), sinon <code>null</code> — dans ce cas l&#39;année effective est celle du champ <code>date</code>.</li>
+<li><code>type</code> est <code>null</code> si l&#39;entrée n&#39;a pas de type associé.</li>
+</ul>
+<h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
+<ul>
+<li><code>404</code> — membre introuvable ou inactif (<code>status = 1</code>)</li>
+</ul>
+<h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/members/42?sub=compta&quot;
 </code></pre>
 <hr>
 <h2 id="segments-groups">Segments (groups)<a class="anchor" href="#segments-groups" aria-label="Lien d'ancrage">#</a></h2>

@@ -269,7 +269,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
       </ul>
     </nav>
     <div class="prose">
-<p>Ce guide s&#39;adresse à l&#39;administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 3.5.6). Il couvre l&#39;installation, la configuration, la sécurité, l&#39;API et la maintenance.</p>
+<p>Ce guide s&#39;adresse à l&#39;administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 4.0.0). Il couvre l&#39;installation, la configuration, la sécurité, l&#39;API et la maintenance.</p>
 <hr>
 <hr>
 <h2 id="1-prérequis">1. Prérequis<a class="anchor" href="#1-prérequis" aria-label="Lien d'ancrage">#</a></h2>
@@ -406,7 +406,7 @@ define(&#39;DB_PASS&#39;, &#39;secret&#39;);
 <tr><td><code>default_team</code></td><td>ID du groupe affiché par défaut dans la liste membres</td></tr>
 <tr><td><code>membre_team</code></td><td>ID du groupe de référence pour les filtres cotisation</td></tr>
 <tr><td><code>archive_id</code></td><td>ID du groupe archives (exclu des vues par défaut)</td></tr>
-<tr><td><code>membre_team_prefix</code></td><td>Préfixe des groupes membres annuels (ex. <code>Membre</code>)</td></tr></tbody></table></div>
+<tr><td><code>membre_team_prefix</code></td><td>Préfixe des groupes membres annuels (ex. <code>Membre</code>)</td></tr><tr><td><code>org_ide</code></td><td>Numéro IDE suisse (CHE-XXX.XXX.XXX) — figure sur les attestations de dons. Bouton <strong>Vérifier via Zefix</strong> dans l&#39;UI : interroge le registre du commerce suisse (<code>zefix.ch</code>, flux <code>search.json</code> → <code>firm/{ehraid}.json</code>) pour préremplir nom/adresse/but statutaire à partir du numéro IDE</td></tr><tr><td><code>org_purpose</code></td><td>But statutaire (extrait des statuts) — préremplissable via Zefix</td></tr><tr><td><code>org_tax_status</code></td><td>Statut d&#39;exonération fiscale — saisie manuelle uniquement (aucun registre fédéral consulté automatiquement)</td></tr><tr><td><code>smtp_*</code></td><td>Configuration SMTP — voir <a href="#141-configuration-smtp">§14.1</a></td></tr></tbody></table></div>
 <p>Modification directe en SQL si nécessaire :</p>
 <pre><code class="language-sql">UPDATE app_settings SET value = &#39;Nouvelle valeur&#39; WHERE `key` = &#39;org_name&#39;;
 </code></pre>
@@ -819,17 +819,37 @@ npx playwright show-report
 <hr>
 <h2 id="12-mise-à-jour-du-schéma">12. Mise à jour du schéma<a class="anchor" href="#12-mise-à-jour-du-schéma" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="principe-général">Principe général<a class="anchor" href="#principe-général" aria-label="Lien d'ancrage">#</a></h3>
-<p>Toutes les instructions <code>CREATE TABLE</code> dans <code>install.php</code> utilisent <code>CREATE TABLE IF NOT EXISTS</code>. Un <code>git pull</code> suivi d&#39;un rechargement Apache suffit pour les mises à jour courantes — les tables existantes ne sont pas touchées.</p>
-<p>Ce schéma idempotent signifie que re-passer par <code>install.php?step=3</code> sur une instance existante est sans danger : les tables sont ignorées, les données conservées.</p>
-<h3 id="migrations-exceptionnelles">Migrations exceptionnelles<a class="anchor" href="#migrations-exceptionnelles" aria-label="Lien d'ancrage">#</a></h3>
-<p>Les modifications de schéma non rétrocompatibles (ajout de colonne <code>NOT NULL</code> sans valeur par défaut, renommage de table, changement d&#39;index) sont documentées dans <code>MIGRATION_PROD.md</code> à la racine du dépôt.</p>
-<p>Avant toute migration :</p>
+<p>Chaque changement de schéma est un fichier <code>html/migrations/NNNN_description.sql</code> (sous <code>html/</code> pour être déployé avec l&#39;application, protégé de l&#39;accès HTTP par <code>html/migrations/.htaccess</code>). Les migrations appliquées sont suivies dans la table <code>schema_migrations</code> (nom + horodatage + checksum SHA-256).</p>
+<p>Un <code>git pull</code> seul ne suffit plus pour les mises à jour qui ajoutent une migration — il faut l&#39;appliquer explicitement (deux méthodes ci-dessous). Les instructions <code>CREATE TABLE</code> d&#39;<code>install.php</code> restent idempotentes (<code>CREATE TABLE IF NOT EXISTS</code>) et embarquent en plus le schéma courant complet : une <strong>installation fraîche</strong> n&#39;exécute jamais les migrations une par une, elle crée directement le schéma à jour puis marque toutes les migrations comme appliquées (« baseline »).</p>
+<h3 id="méthode-1-cli-toolsmigratephp">Méthode 1 — CLI (<code>tools/migrate.php</code>)<a class="anchor" href="#méthode-1-cli-toolsmigratephp" aria-label="Lien d'ancrage">#</a></h3>
+<pre><code class="language-bash"># Voir l&#39;état : appliquées / en attente / dérive
+php html/tools/migrate.php --status
+
+# Appliquer les migrations en attente
+php html/tools/migrate.php
+# (ou : make migrate)
+
+# Marquer tout comme appliqué sans exécuter — réservé au fresh install,
+# jamais sur une prod existante (géré automatiquement par install.php)
+php html/tools/migrate.php --baseline
+</code></pre>
+<p><code>--status</code> sort en code 2 et affiche <code>[!] DÉRIVE</code> si le contenu d&#39;une migration déjà appliquée a été modifié après coup (comparaison de checksum) — <strong>ne jamais éditer une migration déjà appliquée</strong>, en créer une nouvelle à la place.</p>
+<h3 id="méthode-2-interface-web-sans-accès-ssh">Méthode 2 — Interface web (sans accès SSH)<a class="anchor" href="#méthode-2-interface-web-sans-accès-ssh" aria-label="Lien d'ancrage">#</a></h3>
+<p><strong>Réglages → Santé</strong> (admin) permet, sans ligne de commande :</p>
+<ul>
+<li><strong>Exporter la base</strong> (dump SQL pur, sans dépendre de <code>mysqldump</code> sur le serveur)</li>
+<li><strong>Appliquer les migrations en attente</strong> (case « j&#39;ai fait une sauvegarde » obligatoire avant de pouvoir valider)</li>
+</ul>
+<p>Cette page affiche aussi le nombre de migrations en attente et signale toute dérive de checksum détectée.</p>
+<h3 id="avant-toute-migration-en-production">Avant toute migration en production<a class="anchor" href="#avant-toute-migration-en-production" aria-label="Lien d'ancrage">#</a></h3>
 <ol>
-<li>Lire <code>MIGRATION_PROD.md</code> pour la version cible</li>
-<li>Faire un dump de la base (<code>mysqldump</code>)</li>
-<li>Tester la migration sur un environnement de staging</li>
-<li>Appliquer en production dans une fenêtre de maintenance</li>
+<li><code>php html/tools/migrate.php --status</code> (ou Réglages → Santé) pour voir ce qui va s&#39;appliquer</li>
+<li>Dump de la base (<code>mysqldump</code>, ou export intégré via Réglages → Santé)</li>
+<li>Tester sur un environnement de staging si la migration est structurante</li>
+<li>Appliquer en production</li>
 </ol>
+<p>⚠️ Le DDL MySQL est auto-committé (pas de rollback transactionnel) — la sauvegarde de l&#39;étape 2 est la seule protection en cas de problème.</p>
+<p><code>MIGRATION_PROD.md</code> à la racine du dépôt documente l&#39;historique des migrations manuelles d&#39;avant ce système (versions ≤ 3.7.x) ; il n&#39;est plus alimenté.</p>
 <h3 id="vérifier-létat-du-schéma">Vérifier l&#39;état du schéma<a class="anchor" href="#vérifier-létat-du-schéma" aria-label="Lien d'ancrage">#</a></h3>
 <pre><code class="language-sql">-- Lister les tables existantes
 SHOW TABLES;
@@ -837,7 +857,8 @@ SHOW TABLES;
 -- Vérifier la structure d&#39;une table
 DESCRIBE app_users;
 
--- Comparer avec le schéma cible dans install.php
+-- État détaillé des migrations
+SELECT * FROM schema_migrations ORDER BY id;
 </code></pre>
 <hr>
 <h2 id="13-logs-daudit">13. Logs d&#39;audit<a class="anchor" href="#13-logs-daudit" aria-label="Lien d'ancrage">#</a></h2>
@@ -880,6 +901,43 @@ ORDER BY created_at DESC;
 <pre><code class="language-sql">-- Supprimer les entrées de plus de 2 ans
 DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 </code></pre>
+<hr>
+<h2 id="14-emails-et-communications">14. Emails et communications<a class="anchor" href="#14-emails-et-communications" aria-label="Lien d'ancrage">#</a></h2>
+<p>Accès : <strong>Réglages → Email</strong> (<code>?view=settings&amp;tab=email</code>, admin uniquement). Une seule page avec trois sections empilées : configuration SMTP, journal des envois, templates.</p>
+<h3 id="141-configuration-smtp">14.1 Configuration SMTP<a class="anchor" href="#141-configuration-smtp" aria-label="Lien d'ancrage">#</a></h3>
+<p>Client SMTP pur PHP (<code>html/includes/lib/mailer.php</code>, sans dépendance externe) supportant connexion en clair, STARTTLS, SSL/TLS implicite, AUTH LOGIN/PLAIN ou sans authentification.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Configuration SMTP" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Serveur / Port</td><td>Hôte et port SMTP</td></tr>
+<tr><td>Chiffrement</td><td>Aucun / STARTTLS / SSL-TLS</td></tr>
+<tr><td>Authentification</td><td>Case à cocher — si activée, expose utilisateur + mot de passe</td></tr>
+<tr><td>Utilisateur / Mot de passe</td><td>Identifiants SMTP. Le mot de passe est <strong>chiffré au repos</strong> dans <code>app_settings</code> avec une clé générée automatiquement par installation (<code>mbSmtpGetOrCreateEncKey()</code>)</td></tr>
+<tr><td>Nom / Email d&#39;expéditeur</td><td>En-têtes <code>From</code> des emails sortants</td></tr>
+<tr><td>Répondre à</td><td>En-tête <code>Reply-To</code> (optionnel)</td></tr></tbody></table></div>
+<p>Un bouton <strong>Envoi de test</strong> permet de vérifier la configuration sans passer par une action métier (<code>sendTestEmail</code>) — affiche le message d&#39;erreur SMTP brut en cas d&#39;échec (utile pour diagnostiquer un souci d&#39;auth ou de certificat SSL).</p>
+<p>Si le SMTP n&#39;est pas configuré ou que l&#39;envoi échoue, les fonctionnalités email (rappels, récapitulatifs) échouent silencieusement côté utilisateur final (pas de blocage de l&#39;action déclenchante) mais l&#39;échec est visible dans le journal des emails.</p>
+<h3 id="142-journal-des-emails-email_log">14.2 Journal des emails (<code>email_log</code>)<a class="anchor" href="#142-journal-des-emails-email_log" aria-label="Lien d'ancrage">#</a></h3>
+<p>Historique paginé de tous les envois (destinataire, sujet, statut envoyé/erreur, date). Actions :</p>
+<ul>
+<li><strong>Renvoyer</strong> une entrée en erreur individuellement</li>
+<li><strong>Vider le journal</strong> (purge complète)</li>
+</ul>
+<p>Chaque envoi lié à un membre (rappel de cotisation, récapitulatif compta) apparaît aussi dans l&#39;historique de ce membre (onglet Suivi / Historique) via une section dédiée.</p>
+<h3 id="143-templates-demail">14.3 Templates d&#39;email<a class="anchor" href="#143-templates-demail" aria-label="Lien d'ancrage">#</a></h3>
+<p>Trois templates éditables (objet + corps texte + corps HTML) stockés dans <code>email_templates</code>, avec repli sur un template intégré par défaut si absent :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Templates d&#39;email" tabindex="0"><table><thead><tr><th scope="col">Clé</th><th scope="col">Usage</th></tr></thead><tbody><tr><td><code>tpl_cotisation_reminder</code></td><td>Rappel de cotisation impayée</td></tr>
+<tr><td><code>tpl_attestation_don</code></td><td>Envoi de l&#39;attestation de don (template configuré, pas encore d&#39;action d&#39;envoi câblée dans l&#39;UI)</td></tr>
+<tr><td><code>tpl_payment_receipt</code></td><td>Récapitulatif comptable groupé (compta recap)</td></tr></tbody></table></div>
+<p>Interpolation par <code>{{placeholder}}</code> (pas <code>%s</code>/<code>sprintf</code>). Une modale « Variables disponibles » liste les placeholders utilisables par template (ex. <code>{{firstname}}</code>, <code>{{entries}}</code>, <code>{{total}}</code>, <code>{{org_name}}</code>).</p>
+<h3 id="144-rappels-de-cotisation">14.4 Rappels de cotisation<a class="anchor" href="#144-rappels-de-cotisation" aria-label="Lien d'ancrage">#</a></h3>
+<p>Depuis la vue <strong>Membres perdus</strong> (<code>lapsedMembers</code>), envoi manuel — individuel ou en masse — d&#39;un rappel aux membres ayant cotisé l&#39;année précédente mais pas l&#39;année en cours. Anti-doublon : un membre déjà relancé cette année (<code>email_log.tpl_key = &#39;tpl_cotisation_reminder&#39;</code> + année) n&#39;est pas re-sollicité tant que l&#39;option de forçage n&#39;est pas utilisée.</p>
+<h3 id="145-récapitulatifs-comptables-compta-recap">14.5 Récapitulatifs comptables (compta recap)<a class="anchor" href="#145-récapitulatifs-comptables-compta-recap" aria-label="Lien d'ancrage">#</a></h3>
+<p>Vue <strong><code>comptaRecap</code></strong> : envoi groupé d&#39;un email par membre récapitulant ses entrées comptables non encore notifiées (<code>compta.notified_at IS NULL</code>), filtrable par année. Fonctionnalités :</p>
+<ul>
+<li>Aperçu avant envoi (modale par membre, rendu HTML réel du template)</li>
+<li>Envoi en masse ou membre par membre</li>
+<li>Mode étendu affichant aussi les membres déjà notifiés (renvoi possible avec forçage)</li>
+<li>Annotation automatique de l&#39;année de cotisation dans l&#39;email quand elle diffère de l&#39;année de paiement (<code>compta.cotisation_year</code> — ex. cotisation 2027 payée en décembre 2026), validée côté serveur dans une plage raisonnable (année N-50 à N+1)</li>
+</ul>
+<p>Après envoi, les entrées incluses sont marquées <code>notified_at = NOW()</code> et ne réapparaissent plus dans le lot suivant.</p>
 <hr>
 <h2 id="réglages-de-lapplication">Réglages de l&#39;application<a class="anchor" href="#réglages-de-lapplication" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="général">Général<a class="anchor" href="#général" aria-label="Lien d'ancrage">#</a></h3>

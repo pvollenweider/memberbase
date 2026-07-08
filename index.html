@@ -471,7 +471,13 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li><strong>Rappels de cotisation impayée</strong> : envoi manuel individuel ou en masse depuis la vue Membres perdus, avec garde anti-doublon par année.</li>
         <li><strong>Journal des emails</strong> (Réglages → Email → Journal) : historique paginé, statut envoyé/erreur, renvoi d'une entrée en erreur, purge.</li>
         <li><strong>Année de cotisation</strong> (<code class="inline">compta.cotisation_year</code>) : distingue l'année de paiement de l'année de cotisation couverte (ex. cotisation N+1 payée en décembre N) ; champ validé côté serveur, reflété dans les emails et exposé par l'API REST (<code class="inline">GET /api/members/{id}?sub=compta</code>).</li>
-        <li><strong>Champs organisation</strong> : numéro IDE suisse avec vérification automatique via</li>
+        <li><strong>Champs organisation</strong> : numéro IDE suisse avec vérification automatique via Zefix (préremplissage nom/adresse/but statutaire), but statutaire, statut d'exonération fiscale.</li>
+        <li>Lien PDF d'attestation non cliquable dans une ligne cliquable (<code class="inline">ca-row-link</code>) : le plugin <code class="inline">datahref</code> interceptait les clics sur les liens imbriqués.</li>
+        <li>Lookup Zefix : bascule vers le flux d'API réel (<code class="inline">search.json</code> → <code class="inline">firm/{ehraid}.json</code>), l'ancien endpoint étant décommissionné.</li>
+        <li>Erreur réseau sur les boutons Zefix/LINDAS causée par une requête <code class="inline">fetch()</code> sans en-tête <code class="inline">HX-Request</code>.</li>
+        <li><code class="inline">assert.sh</code> (test CI d'upgrade) n'attendait que 9 migrations appliquées au lieu de 12.</li>
+        <li><code class="inline">email_templates.body_html</code> manquant dans <code class="inline">schema.sql</code>/<code class="inline">install.php</code> — un fresh install ne créait pas cette colonne pourtant utilisée par les templates HTML.</li>
+        <li>Test de convergence CI depuis une base de données legacy étendu aux migrations 0010-0012 (<code class="inline">tests/upgrade/</code>).</li>
       </ul>
     </article>
     <article class="release">

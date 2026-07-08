@@ -264,10 +264,11 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
         <li><a href="#11-génération-de-documents-attestations-pdf">11. Génération de documents (attestations PDF)</a></li>
         <li><a href="#12-tests--ci">12. Tests &amp; CI</a></li>
         <li><a href="#13-conventions-de-code">13. Conventions de code</a></li>
+<li><a href="#14-emails-et-notifications">14. Emails et notifications</a></li>
       </ul>
     </nav>
     <div class="prose">
-<p>MemberBase <strong>v3.5.6</strong> — application PHP 8.2 de gestion des membres pour ONG.
+<p>MemberBase <strong>v4.0.0</strong> — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.</p>
 <blockquote>
 <p><strong>Terminologie.</strong> Depuis la v3.5.4, l&#39;interface parle de <strong>Segment</strong> (au lieu de
@@ -371,11 +372,11 @@ pas en <code>DATE</code> SQL ; conversions via <code>formatedDateToTimeStamp()</
 <tr><td><code>user_properties</code></td><td>EAV : appartenance segment (<code>parameter=&#39;team_&lt;id&gt;&#39;</code>, <code>value=&#39;true&#39;</code>) et notes de suivi</td><td>pas de PK, <code>id</code> legacy</td></tr>
 <tr><td><code>metagroup</code></td><td>Segments combinés / catégories : <code>name</code>, <code>teamid</code>, <code>is_filter</code>, <code>sort_order</code></td><td><code>id</code> via <code>maxval</code></td></tr>
 <tr><td><code>compta_type</code></td><td>Types d&#39;écriture : <code>label</code>, <code>color</code>, <code>sort_order</code>, <code>is_cotisation</code>, <code>is_excluded_from_donation</code>, <code>is_institutional</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
-<tr><td><code>compta</code></td><td>Écritures : <code>user_id</code>, <code>date</code> (Unix), <code>libele</code>, <code>sum</code> (varchar, CHF), <code>quittance</code>, <code>type_id</code>, <code>wants_attestation</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>compta</code></td><td>Écritures : <code>user_id</code>, <code>date</code> (Unix), <code>libele</code>, <code>sum</code> (<strong>decimal(10,2)</strong>, CHF), <code>quittance</code>, <code>type_id</code>, <code>wants_attestation</code>, <strong><code>notified_at</code></strong> (dernier envoi du récapitulatif email, <code>NULL</code> = non notifiée), <strong><code>cotisation_year</code></strong> (année de cotisation si différente de l&#39;année de paiement)</td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>maxval</code></td><td>Compteur de séquence manuel (clé/valeur)</td><td>PK <code>parameter</code></td></tr>
-<tr><td><code>app_settings</code></td><td>Configuration organisation (clé/valeur : <code>org_name</code>, <code>membre_team</code>, <code>archive_id</code>, etc.)</td><td>PK <code>key</code></td></tr>
-<tr><td><code>app_users</code></td><td>Comptes applicatifs : <code>password_hash</code> (bcrypt), <code>role</code> enum, <code>force_password_change</code>, <code>is_active</code>, <code>last_login</code>, <code>reset_token</code>, <code>token_expires_at</code>, <code>email</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
-<tr><td><code>audit_log</code></td><td>Journal : <code>app_user_id</code>, <code>username</code>, <code>action</code>, <code>detail</code>, <code>subject_user_id</code>, <code>created_at</code></td><td><code>id</code> AUTO_INCREMENT</td></tr></tbody></table></div>
+<tr><td><code>app_settings</code></td><td>Configuration organisation (clé/valeur : <code>org_name</code>, <code>membre_team</code>, <code>archive_id</code>, <code>org_ide</code>, <code>org_purpose</code>, <code>org_tax_status</code>, <code>smtp_*</code>, etc. — <code>value</code> en <code>TEXT</code> depuis la migration 0004 pour les champs multi-lignes)</td><td>PK <code>key</code></td></tr>
+<tr><td><code>app_users</code></td><td>Comptes applicatifs : <code>password_hash</code> (bcrypt), <code>role</code> enum, <strong><code>locale</code></strong> (langue d&#39;interface, défaut <code>fr</code>), <code>force_password_change</code>, <code>is_active</code>, <code>last_login</code>, <code>reset_token</code>, <code>token_expires_at</code>, <code>email</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>audit_log</code></td><td>Journal : <code>app_user_id</code>, <code>username</code>, <code>action</code>, <code>detail</code>, <code>subject_user_id</code>, <code>created_at</code></td><td><code>id</code> AUTO_INCREMENT</td></tr><tr><td><code>email_templates</code></td><td>Templates éditables (clé <code>tpl_*</code>) : <code>subject</code>, <code>body_text</code>, <code>body_html</code>, <code>updated_at</code></td><td>PK <code>key</code></td></tr><tr><td><code>email_log</code></td><td>Historique des envois : <code>user_id</code>, <code>tpl_key</code>, <code>to_email</code>, <code>subject</code>, <code>status</code> (sent/error), <code>error_msg</code>, <code>body_text</code>, <code>body_html</code>, <code>created_at</code></td><td><code>id</code> AUTO_INCREMENT</td></tr><tr><td><code>schema_migrations</code></td><td>Suivi des migrations appliquées : <code>version</code>, <code>applied_at</code>, <code>checksum</code> (SHA-256, détection de dérive)</td><td>PK <code>version</code></td></tr></tbody></table></div>
 <h3 id="relations">Relations<a class="anchor" href="#relations" aria-label="Lien d'ancrage">#</a></h3>
 <pre><code>app_users ── session ──&gt; index.php ── actions/* ── auditLog() ──&gt; audit_log
 
@@ -427,7 +428,10 @@ segments combinés : <code>isMemberOfMetagroup()</code>, <code>addMetagroupMembe
 <code>removeMetagroupMembership()</code>.</p>
 <h3 id="compta-comptaclassphp"><code>Compta</code> (<code>compta_class.php</code>)<a class="anchor" href="#compta-comptaclassphp" aria-label="Lien d'ancrage">#</a></h3>
 <p><code>lookupCompta()</code>, <code>save()</code>, <code>remove()</code>, getters/setters (date, <code>libele</code>, <code>sum</code>,
-<code>quittance</code>, <code>type_id</code>, <code>wants_attestation</code>).</p>
+<code>quittance</code>, <code>type_id</code>, <code>wants_attestation</code>, <code>notified_at</code>, <code>cotisation_year</code>).</p>
+<p><code>setCotisationYear()</code> valide la valeur côté serveur : rejette (met <code>null</code>) toute
+année hors de la plage <code>[année courante - 50, année courante + 1]</code>, et coerce
+les chaînes numériques en entier. Testé dans <code>tests/unit/ComptaYearTest.php</code>.</p>
 <h3 id="metagroup-metagroupclassphp"><code>Metagroup</code> (<code>metagroup_class.php</code>)<a class="anchor" href="#metagroup-metagroupclassphp" aria-label="Lien d'ancrage">#</a></h3>
 <p><code>lookupMetagroup()</code>, <code>save()</code>, <code>remove()</code>, <code>isUsed()</code>. <code>id</code> alloué via <code>maxval</code>.</p>
 <h3 id="userproperty-propertyclassphp"><code>UserProperty</code> (<code>property_class.php</code>)<a class="anchor" href="#userproperty-propertyclassphp" aria-label="Lien d'ancrage">#</a></h3>
@@ -686,6 +690,56 @@ volontairement non localisées.</li>
 <li>Commits signés <code>pvollenweider &lt;pvollenweider@jahia.com&gt;</code> (auteur <em>et</em> committer),
 sans ligne <code>Co-Authored-By</code> (voir <code>CLAUDE.md</code>).</li>
 </ul>
+<hr>
+<h2 id="14-emails-et-notifications">14. Emails et notifications<a class="anchor" href="#14-emails-et-notifications" aria-label="Lien d'ancrage">#</a></h2>
+<h3 id="htmlincludeslibmailerphp-client-smtp-pur-php"><code>html/includes/lib/mailer.php</code> — client SMTP pur PHP<a class="anchor" href="#htmlincludeslibmailerphp-client-smtp-pur-php" aria-label="Lien d'ancrage">#</a></h3>
+<p>Pas de dépendance externe (pas de PHPMailer/Symfony Mailer). Fonctions principales :</p>
+<pre><code class="language-php">mbSmtpSend(array $cfg, string $to, string $subject, string $bodyText, string $bodyHtml = &#39;&#39;): array
+// Client bas niveau : plain / STARTTLS / SSL-TLS, AUTH LOGIN/PLAIN ou sans auth.
+// Retourne [&#39;ok&#39; =&gt; bool, &#39;error&#39; =&gt; string, &#39;debug&#39; =&gt; string] (jamais d&#39;exception).
+
+mbSendMail(PDO $pdo, string $to, string $subject, string $bodyHtml, string $bodyText = &#39;&#39;): bool
+// Helper haut niveau : lit la config SMTP depuis $appSettings, envoie, journalise
+// dans email_log via _mbLogEmail(). Échec silencieux — ne casse jamais l&#39;action appelante.
+
+mbGetTemplate(PDO $pdo, string $key): object       // DB → repli sur mbDefaultTemplates()
+mbRenderTemplate(string $tpl, array $vars): string  // remplace {{placeholder}}
+mbSendTemplate(PDO $pdo, string $to, string $key, array $vars, ?int $userId = null)
+// Charge le template, rend sujet/corps, envoie, journalise (avec user_id pour le lier
+// à l&#39;historique du membre).
+
+mbBuildSalutation(string $firstname, string $lastname, string $society): array
+// Gère le cas société-seule (pas de prénom/nom) : greeting, display_name, etc.
+
+mbSmtpEncryptPassword() / mbSmtpDecryptPassword() / mbSmtpGetOrCreateEncKey()
+// Le mot de passe SMTP est chiffré au repos dans app_settings avec une clé
+// générée automatiquement par installation.
+</code></pre>
+<p>Mot de passe SMTP et secrets ne transitent jamais en clair dans les logs (<code>mbSmtpSend</code> ne journalise pas les identifiants dans <code>debug</code>).</p>
+<h3 id="handlers-daction">Handlers d&#39;action<a class="anchor" href="#handlers-daction" aria-label="Lien d'ancrage">#</a></h3>
+<div class="table-scroll" role="region" aria-label="Tableau — Handlers d&#39;action" tabindex="0"><table><thead><tr><th scope="col">Fichier</th><th scope="col">Rôle</th></tr></thead><tbody><tr><td><code>includes/actions/settings.php</code></td><td><code>saveSmtp</code>, <code>sendTestEmail</code>, <code>saveEmailTemplate</code>, <code>purgeEmailLog</code>, <code>resendEmail</code>, <code>zefixLookup</code></td></tr>
+<tr><td><code>includes/actions/compta_recap.php</code></td><td><code>sendComptaRecap</code>, <code>sendComptaRecapOne</code>, <code>previewComptaRecap</code> (JSON, rendu HTML réel du template pour la modale), <code>markAllComptaNotified</code></td></tr>
+<tr><td><code>includes/actions/cotisation_reminder.php</code></td><td><code>sendCotisationReminders</code>, <code>sendCotisationReminderOne</code></td></tr></tbody></table></div>
+<p><code>compta_recap.php</code> factorise le chargement des entrées et la construction des
+variables de template dans des fonctions privées (<code>_recapLoadEntries()</code>,
+<code>_recapBuildVars()</code>, <code>_recapSinceLine()</code>) partagées entre l&#39;envoi réel et
+l&#39;aperçu JSON — garantit que la prévisualisation correspond exactement à
+l&#39;email effectivement envoyé.</p>
+<h3 id="anti-doublon-des-rappels">Anti-doublon des rappels<a class="anchor" href="#anti-doublon-des-rappels" aria-label="Lien d'ancrage">#</a></h3>
+<p><code>cotisation_reminder.php</code> interroge <code>email_log</code> (<code>tpl_key = &#39;tpl_cotisation_reminder&#39;</code>,
+filtré par année) avant d&#39;envoyer, pour ne pas relancer deux fois le même
+membre la même année sans forçage explicite.</p>
+<h3 id="zefix-registre-du-commerce-suisse">Zefix (registre du commerce suisse)<a class="anchor" href="#zefix-registre-du-commerce-suisse" aria-label="Lien d'ancrage">#</a></h3>
+<p><code>zefixLookup</code> (action <code>settings.php</code>) interroge l&#39;API REST publique de Zefix
+en deux temps (l&#39;ancien endpoint <code>GET /firm/{uid}</code> est décommissionné) :</p>
+<ol>
+<li><code>POST https://www.zefix.ch/ZefixREST/api/v1/firm/search.json</code> (recherche exacte par IDE) → <code>ehraid</code></li>
+<li><code>GET https://www.zefix.ch/ZefixREST/api/v1/firm/{ehraid}.json</code> → nom, adresse, but statutaire</li>
+</ol>
+<p>Préremplit <code>org_name</code>, <code>org_address</code>, <code>org_npa</code>, <code>org_city</code>, <code>org_country</code>,
+<code>org_purpose</code> depuis le formulaire Réglages → Général. Le champ <code>org_tax_status</code>
+(statut d&#39;exonération fiscale) reste en saisie manuelle — aucun registre fédéral
+n&#39;est interrogé automatiquement pour cette donnée.</p>
 
     </div>
     <nav class="pager" aria-label="Navigation entre les guides">
