@@ -289,13 +289,14 @@ function _mbLogEmail(
     ?string $errorMsg,
     ?int $userId = null,
     string $bodyText = '',
-    string $bodyHtml = ''
+    string $bodyHtml = '',
+    string $tplKey = ''
 ): void {
     try {
         $pdo->prepare(
-            "INSERT INTO email_log (user_id, to_email, subject, status, error_msg, body_text, body_html)
-             VALUES (?, ?, ?, ?, ?, ?, ?)"
-        )->execute([$userId, $to, $subject, $status, $errorMsg, $bodyText, $bodyHtml]);
+            "INSERT INTO email_log (user_id, tpl_key, to_email, subject, status, error_msg, body_text, body_html)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        )->execute([$userId, $tplKey, $to, $subject, $status, $errorMsg, $bodyText, $bodyHtml]);
     } catch (\Throwable $e) {
         // Columns may not exist yet (migration pending) — retry without new columns
         try {
@@ -507,7 +508,7 @@ function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars, ?int 
     $subject  = mbRenderTemplate($tpl->subject,   $vars);
     $bodyText = mbRenderTemplate($tpl->body_text, $vars);
     $bodyHtml = isset($tpl->body_html) ? mbRenderTemplate($tpl->body_html, $vars) : '';
-    return mbSendMailWithError($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText, $userId);
+    return mbSendMailWithError($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText, $userId, $tplKey);
 }
 
 /**
@@ -519,7 +520,8 @@ function mbSendMailWithError(
     string $subject,
     string $bodyHtml,
     string $bodyText = '',
-    ?int $userId = null
+    ?int $userId = null,
+    string $tplKey = ''
 ): bool|string {
     global $appSettings;
     try {
@@ -529,10 +531,10 @@ function mbSendMailWithError(
         $result = mbSmtpSend($cfg, $to, $subject, $text, $bodyHtml);
         $status = $result['ok'] ? 'sent' : 'error';
         $errMsg = $result['ok'] ? null : ($result['error'] ?? 'unknown error');
-        _mbLogEmail($pdo, $to, $subject, $status, $errMsg, $userId, $text, $bodyHtml);
+        _mbLogEmail($pdo, $to, $subject, $status, $errMsg, $userId, $text, $bodyHtml, $tplKey);
         return $result['ok'] ? true : ($errMsg ?? 'send_failed');
     } catch (\Throwable $e) {
-        _mbLogEmail($pdo, $to, $subject, 'error', $e->getMessage(), $userId);
+        _mbLogEmail($pdo, $to, $subject, 'error', $e->getMessage(), $userId, '', '', $tplKey);
         return $e->getMessage();
     }
 }

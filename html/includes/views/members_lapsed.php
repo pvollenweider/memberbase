@@ -43,8 +43,31 @@ if (!empty($cotiTypeIds)) {
     $stmt->execute($params);
     $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
 }
-$count = count($rows);
-$prevTeamId = 1; // non-zero so the table renders
+
+// Map: user_id → last reminder sent_at (this year) from email_log.
+$reminderSentMap = [];
+if (!empty($rows)) {
+    $rowIds = array_map(fn($r) => (int)$r->id, $rows);
+    $phIds  = implode(',', array_fill(0, count($rowIds), '?'));
+    try {
+        $rStmt = $pdo->prepare(
+            "SELECT user_id, MAX(created_at) AS sent_at
+             FROM email_log
+             WHERE tpl_key = 'tpl_cotisation_reminder'
+               AND YEAR(created_at) = ?
+               AND user_id IN ($phIds)
+             GROUP BY user_id"
+        );
+        $rStmt->execute(array_merge([$year], $rowIds));
+        foreach ($rStmt->fetchAll(PDO::FETCH_OBJ) as $r) {
+            $reminderSentMap[(int)$r->user_id] = $r->sent_at;
+        }
+    } catch (\Throwable) {}
+}
+
+$count       = count($rows);
+$alreadySent = count($reminderSentMap);
+$prevTeamId  = 1; // non-zero so the table renders
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <a href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
@@ -124,7 +147,10 @@ $prevTeamId = 1; // non-zero so the table renders
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body" id="coti-reminder-modal-body">
-        <p><?= sprintf($GLOBAL['sendCotiRemindersConfirm'], $count, $count > 1 ? 's' : '', $year) ?></p>
+        <p><?= sprintf($GLOBAL['sendCotiRemindersConfirm'], $count - $alreadySent, $count - $alreadySent > 1 ? 's' : '', $year) ?></p>
+        <?php if ($alreadySent > 0): ?>
+        <p class="text-muted small mb-0"><i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['sendCotiRemindersSkipAlready'], $alreadySent, $alreadySent > 1 ? 's' : '', $alreadySent > 1 ? 's' : '') ?></p>
+        <?php endif ?>
         <div id="coti-reminder-result" class="mt-3" style="display:none"></div>
       </div>
       <div class="modal-footer" id="coti-reminder-modal-footer">
@@ -146,18 +172,100 @@ $prevTeamId = 1; // non-zero so the table renders
   <span><?= sprintf($GLOBAL['lapsedMembersCount'], $count, $count > 1 ? 's' : '', $year-1, $year) ?></span>
 </div>
 
+<?php if (isManager()): ?>
+<div class="table-responsive">
+<table class="table table-sm table-hover align-middle" style="font-size:0.875rem">
+  <thead class="table-light">
+    <tr>
+      <th><?= $GLOBAL['lastname'] ?? 'Nom' ?></th>
+      <th><?= $GLOBAL['firstname'] ?? 'Prénom' ?></th>
+      <th><?= $GLOBAL['email'] ?? 'Email' ?></th>
+      <th><?= $GLOBAL['sendCotiRemindersTitle'] ?></th>
+    </tr>
+  </thead>
+  <tbody>
+  <?php foreach ($rows as $m): ?>
+    <?php
+    $sentAt  = $reminderSentMap[(int)$m->id] ?? null;
+    $hasEmail = trim($m->email) !== '';
+    ?>
+    <tr>
+      <td><a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&userid=<?= (int)$m->id ?>"><?= htmlspecialchars($m->lastname  ?? '', ENT_QUOTES, $charset) ?></a></td>
+      <td><?= htmlspecialchars($m->firstname ?? $m->society ?? '', ENT_QUOTES, $charset) ?></td>
+      <td><?= htmlspecialchars($m->email ?? '', ENT_QUOTES, $charset) ?></td>
+      <td>
+        <?php if ($sentAt): ?>
+          <span class="badge text-bg-secondary" title="<?= htmlspecialchars(sprintf($GLOBAL['cotiReminderAlreadySent'], date('d.m.Y', strtotime($sentAt))), ENT_QUOTES, $charset) ?>">
+            <i class="fas fa-check me-1" aria-hidden="true"></i><?= date('d.m.Y', strtotime($sentAt)) ?>
+          </span>
+        <?php elseif ($hasEmail): ?>
+          <button type="button" class="btn btn-outline-primary btn-sm js-send-one"
+                  data-user-id="<?= (int)$m->id ?>"
+                  data-year="<?= $year ?>"
+                  data-msg-ok="<?= htmlspecialchars($GLOBAL['cotiReminderSentOk'], ENT_QUOTES, $charset) ?>"
+                  data-msg-fail="<?= htmlspecialchars($GLOBAL['cotiReminderSentFail'], ENT_QUOTES, $charset) ?>"
+                  data-label-sending="<?= htmlspecialchars($GLOBAL['sendCotiRemindersSending'], ENT_QUOTES, $charset) ?>">
+            <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendCotiRemindersBtnOne'] ?>
+          </button>
+        <?php else: ?>
+          <span class="text-muted small"><i class="fas fa-ban me-1" aria-hidden="true"></i><?= $GLOBAL['noEmail'] ?? 'Pas d\'email' ?></span>
+        <?php endif ?>
+      </td>
+    </tr>
+  <?php endforeach ?>
+  </tbody>
+</table>
+</div>
+<?php else: ?>
 <?php
-defined('APP_ENTRY') or die('Direct access not permitted.');
 $dt_order      = [[1, 'asc']];
 $extra_columns = [];
 $row_href      = fn($row) => $_SERVER['PHP_SELF'] . '?view=compta&userid=' . (int)$row->id;
 include __DIR__ . '/../partials/donor_table.php';
 ?>
 <?php endif ?>
+<?php endif ?>
 
 <?php if (isManager() && $count > 0): ?>
 <script>
 (function () {
+    // Per-row individual send buttons
+    document.querySelectorAll('.js-send-one').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + btn.dataset.labelSending;
+            fetch(<?= json_encode($_SERVER['PHP_SELF']) ?>, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : ''
+                },
+                body: 'action=sendCotisationReminderOne&user_id=' + encodeURIComponent(btn.dataset.userId)
+                    + '&year=' + encodeURIComponent(btn.dataset.year)
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.ok) {
+                    var today = new Date();
+                    var d = String(today.getDate()).padStart(2,'0') + '.'
+                          + String(today.getMonth()+1).padStart(2,'0') + '.'
+                          + today.getFullYear();
+                    btn.closest('td').innerHTML =
+                        '<span class="badge text-bg-secondary"><i class="fas fa-check me-1" aria-hidden="true"></i>' + d + '</span>';
+                } else {
+                    btn.innerHTML = '<i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>' + btn.dataset.msgFail;
+                    btn.classList.replace('btn-outline-primary', 'btn-outline-danger');
+                    btn.disabled = false;
+                }
+            })
+            .catch(function () {
+                btn.innerHTML = orig;
+                btn.disabled = false;
+            });
+        });
+    });
+
     var btn = document.getElementById('btn-send-coti-reminders');
     if (!btn) return;
     btn.addEventListener('click', function () {

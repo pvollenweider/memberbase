@@ -280,8 +280,14 @@ $GLOBAL['sendCotiRemindersBtn']     = 'Send membership reminders';
 $GLOBAL['sendCotiRemindersTitle']   = 'Membership reminders';
 $GLOBAL['sendCotiRemindersConfirm'] = 'Send a membership reminder to <strong>%d member%s</strong> who have not renewed their membership in <strong>%d</strong>?';
 $GLOBAL['sendCotiRemindersSending'] = 'Sending…';
-$GLOBAL['sendCotiRemindersOk']      = '%d email%s sent. %s skipped (no email address).';
+$GLOBAL['sendCotiRemindersOk']      = '%d email%s sent. %sk skipped (no email address).';
 $GLOBAL['sendCotiRemindersFail']    = 'Error while sending. Please check your SMTP configuration.';
+$GLOBAL['sendCotiRemindersBtnOne']  = 'Send reminder';
+$GLOBAL['cotiReminderAlreadySent']  = 'Reminder sent on %s';
+$GLOBAL['cotiReminderNeverSent']    = 'Not yet contacted';
+$GLOBAL['sendCotiRemindersSkipAlready'] = '%d already contacted this year (skipped).';
+$GLOBAL['cotiReminderSentOk']       = 'Reminder sent.';
+$GLOBAL['cotiReminderSentFail']     = 'Send failed.';
 
 // --- donors_summary ---
 $GLOBAL['activeQuestion'] = "Active?";

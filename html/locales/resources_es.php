@@ -279,8 +279,14 @@ $GLOBAL['sendCotiRemindersBtn']     = "Enviar recordatorios de cuota";
 $GLOBAL['sendCotiRemindersTitle']   = "Recordatorios de cuota";
 $GLOBAL['sendCotiRemindersConfirm'] = "¿Enviar un recordatorio de cuota a <strong>%d miembro%s</strong> que no han renovado su cuota en <strong>%d</strong>?";
 $GLOBAL['sendCotiRemindersSending'] = "Enviando…";
-$GLOBAL['sendCotiRemindersOk']      = "%d correo%s enviado%s. %s omitido(s) (sin dirección de correo).";
+$GLOBAL['sendCotiRemindersOk']      = "%d correo%s enviado%s. %sk omitido(s) (sin dirección de correo).";
 $GLOBAL['sendCotiRemindersFail']    = "Error al enviar. Por favor verifique la configuración SMTP.";
+$GLOBAL['sendCotiRemindersBtnOne']  = "Enviar recordatorio";
+$GLOBAL['cotiReminderAlreadySent']  = "Recordatorio enviado el %s";
+$GLOBAL['cotiReminderNeverSent']    = "Aún no contactado";
+$GLOBAL['sendCotiRemindersSkipAlready'] = "%d ya contactado%s este año (omitido%s).";
+$GLOBAL['cotiReminderSentOk']       = "Recordatorio enviado.";
+$GLOBAL['cotiReminderSentFail']     = "Error al enviar.";
 
 // --- donors_summary ---
 $GLOBAL['activeQuestion'] = "¿Activo?";

@@ -279,8 +279,14 @@ $GLOBAL['sendCotiRemindersBtn']     = “Mitgliedschaftserinnerungen senden”;
 $GLOBAL['sendCotiRemindersTitle']   = “Mitgliedschaftserinnerungen”;
 $GLOBAL['sendCotiRemindersConfirm'] = “Eine Mitgliedschaftserinnerung an <strong>%d Mitglied%s</strong> senden, die ihre Mitgliedschaft in <strong>%d</strong> nicht erneuert haben?”;
 $GLOBAL['sendCotiRemindersSending'] = “Wird gesendet…”;
-$GLOBAL['sendCotiRemindersOk']      = “%d E-Mail%s gesendet. %s übersprungen (keine E-Mail-Adresse).”;
+$GLOBAL['sendCotiRemindersOk']      = “%d E-Mail%s gesendet. %sk übersprungen (keine E-Mail-Adresse).”;
 $GLOBAL['sendCotiRemindersFail']    = “Fehler beim Senden. Bitte SMTP-Konfiguration prüfen.”;
+$GLOBAL['sendCotiRemindersBtnOne']  = “Erinnerung senden”;
+$GLOBAL['cotiReminderAlreadySent']  = “Erinnerung gesendet am %s”;
+$GLOBAL['cotiReminderNeverSent']    = “Noch nicht kontaktiert”;
+$GLOBAL['sendCotiRemindersSkipAlready'] = “%d bereits kontaktiert dieses Jahr (übersprungen).”;
+$GLOBAL['cotiReminderSentOk']       = “Erinnerung gesendet.”;
+$GLOBAL['cotiReminderSentFail']     = “Senden fehlgeschlagen.”;
 
 // --- donors_summary ---
 $GLOBAL['activeQuestion'] = "Aktiv?";
