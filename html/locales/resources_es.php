@@ -969,7 +969,8 @@ $GLOBAL['welcomeEmailBulkOk']         = "%d miembro(s) marcado(s) como tratados.
 $GLOBAL['welcomeEmailBulkErrConfirm'] = "Por favor, marque la casilla de confirmación.";
 
 // Compta recap batch email
-$GLOBAL['comptaRecapTitle']          = "Resumen contable por correo";
+$GLOBAL['comptaRecapTitle']          = "Emails";
+$GLOBAL['comptaRecapPageTitle']      = "Resumen contable por correo";
 $GLOBAL['comptaRecapPendingMembers'] = "miembros pendientes";
 $GLOBAL['comptaRecapPendingEntries'] = "entradas sin notificar";
 $GLOBAL['comptaRecapLastBatch']      = "último envío";

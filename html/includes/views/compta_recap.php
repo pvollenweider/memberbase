@@ -52,7 +52,7 @@ if ($_pendingMembers > 0) {
 ?>
 
 <div class="page-title-row mb-3">
-  <h1 class="page-title"><?= $GLOBAL['comptaRecapTitle'] ?></h1>
+  <h1 class="page-title"><?= $GLOBAL['comptaRecapPageTitle'] ?></h1>
 </div>
 
 <?php if ($_recapOk !== null): ?>

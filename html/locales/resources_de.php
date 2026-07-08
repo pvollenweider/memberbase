@@ -969,7 +969,8 @@ $GLOBAL['welcomeEmailBulkOk']         = "%d Mitglied(er) als erledigt markiert."
 $GLOBAL['welcomeEmailBulkErrConfirm'] = "Bitte Bestätigungs-Checkbox ankreuzen.";
 
 // Compta recap batch email
-$GLOBAL['comptaRecapTitle']          = "Buchhaltungs-Recap per E-Mail";
+$GLOBAL['comptaRecapTitle']          = "E-Mails";
+$GLOBAL['comptaRecapPageTitle']      = "Buchhaltungs-Recap per E-Mail";
 $GLOBAL['comptaRecapPendingMembers'] = "Mitglieder ausstehend";
 $GLOBAL['comptaRecapPendingEntries'] = "nicht benachrichtigte Eintr\u{00E4}ge";
 $GLOBAL['comptaRecapLastBatch']      = "letzter Versand";
