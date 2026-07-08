@@ -420,9 +420,8 @@ if (document.readyState === 'loading') {
       sub.textContent  = data.subject;
       sub.style.display = '';
       var frame = document.getElementById('recap-user-frame');
+      frame.srcdoc = data.html || '<pre>' + (data.text || '') + '</pre>';
       frame.style.display = '';
-      var doc = frame.contentDocument || frame.contentWindow.document;
-      doc.open(); doc.write(data.html || '<pre>' + (data.text || '') + '</pre>'); doc.close();
       frame.addEventListener('load', function () {
         try { frame.style.height = (frame.contentDocument.body.scrollHeight + 16) + 'px'; } catch(e){}
       }, { once: true });
