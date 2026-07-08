@@ -69,7 +69,7 @@ class Team
                    COALESCE(cat.name, '') AS cat_name,
                    COALESCE(cat.id, 0) AS cat_id,
                    COALESCE(cat.sort_order, 99999) AS cat_sort,
-                   (SELECT COUNT(*) FROM user_properties up WHERE up.parameter = CONCAT('team_', t.id)) AS member_count
+                   (SELECT COUNT(*) FROM user_team ut WHERE ut.team_id = t.id) AS member_count
             FROM team t
             LEFT JOIN (
                 SELECT j.teamid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
@@ -105,8 +105,8 @@ class Team
 
     public function isUsed(): bool
     {
-        $stmt = db()->prepare("SELECT 1 FROM user_properties WHERE parameter=? LIMIT 1");
-        $stmt->execute(["team_$this->id"]);
+        $stmt = db()->prepare("SELECT 1 FROM user_team WHERE team_id=? LIMIT 1");
+        $stmt->execute([$this->id]);
         $result = $stmt->fetchObject() !== false;
         return $result;
     }

@@ -238,12 +238,11 @@ function handleList(): void
     }
 
     if ($teamId !== null && $teamId > 0) {
-        $joins  .= ' JOIN user_properties up_t ON up_t.user_id = users.id AND up_t.parameter = ?';
-        $params  = array_merge([$params[0] ?? null === null ? [] : $params], [["team_$teamId"]]);
+        $joins  .= ' JOIN user_team up_t ON up_t.user_id = users.id AND up_t.team_id = ?';
         // rebuild flat params list
         $params = array_merge(
             $search !== '' ? array_fill(0, 8, '%' . $search . '%') : [],
-            ["team_$teamId"]
+            [$teamId]
         );
     }
 
@@ -259,9 +258,9 @@ function handleList(): void
                 JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             return;
         }
-        $mgParams  = array_map(fn($id) => "team_$id", $mgTeamIds);
+        $mgParams  = $mgTeamIds;
         $mgPh      = implode(',', array_fill(0, count($mgParams), '?'));
-        $joins    .= ' JOIN user_properties up_mg ON up_mg.user_id = users.id AND up_mg.parameter IN (' . $mgPh . ')';
+        $joins    .= ' JOIN user_team up_mg ON up_mg.user_id = users.id AND up_mg.team_id IN (' . $mgPh . ')';
         $params    = array_merge($search !== '' ? array_fill(0, 8, '%' . $search . '%') : [], $mgParams);
     }
 
@@ -296,16 +295,16 @@ function handleList(): void
         $teamNames = array_column($stNames->fetchAll(PDO::FETCH_ASSOC), 'name', 'id');
         // Fetch which users are in which teams
         $userPh    = implode(',', array_fill(0, count($resultIds), '?'));
-        $paramsPh  = implode(',', array_fill(0, count($mgParams), '?'));
+        $teamPh    = implode(',', array_fill(0, count($mgParams), '?'));
         $stGrp     = db()->prepare("
-            SELECT user_id, parameter FROM user_properties
-            WHERE user_id IN ($userPh) AND parameter IN ($paramsPh)
-            ORDER BY parameter ASC
+            SELECT user_id, team_id FROM user_team
+            WHERE user_id IN ($userPh) AND team_id IN ($teamPh)
+            ORDER BY team_id ASC
         ");
         $stGrp->execute(array_merge($resultIds, $mgParams));
         foreach ($stGrp->fetchAll() as $gr) {
             $uid = (int)$gr->user_id;
-            $tid = (int)substr($gr->parameter, 5); // strip "team_"
+            $tid = (int)$gr->team_id;
             if (!isset($groupsByUser[$uid])) $groupsByUser[$uid] = [];
             $groupsByUser[$uid][] = ['id' => $tid, 'name' => $teamNames[$tid] ?? ''];
         }
@@ -420,7 +419,7 @@ function handleGetGroups(int $id): void
         "SELECT t.id, t.name, t.hidden,
                 cat.id AS cat_id, cat.name AS cat_name
          FROM team t
-         JOIN user_properties up ON up.parameter = CONCAT('team_', t.id) AND up.user_id = ?
+         JOIN user_team ut ON ut.team_id = t.id AND ut.user_id = ?
          LEFT JOIN (
              SELECT j.teamid, c.id, c.name, c.sort_order
              FROM metagroup j

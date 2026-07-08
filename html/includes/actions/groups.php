@@ -27,7 +27,7 @@ if ($action == 'deleteTeam') {
     $teamName = $pdo->prepare("SELECT name FROM team WHERE id=?");
     $teamName->execute([$teamId]);
     auditLog($pdo, 'deleteTeamForce', "id=$teamId " . ($teamName->fetchColumn() ?: ''));
-    $pdo->prepare("DELETE FROM user_properties WHERE parameter = ?")->execute(["team_$teamId"]);
+    $pdo->prepare("DELETE FROM user_team WHERE team_id = ?")->execute([$teamId]);
     $pdo->prepare("DELETE FROM team WHERE id = ?")->execute([$teamId]);
 
 } elseif ($action == 'reassignTeam') {
@@ -38,16 +38,12 @@ if ($action == 'deleteTeam') {
         $_auDst = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auDst->execute([$targetTeamId]);
         auditLog($pdo, 'reassignTeam', "groupe source: " . ($_auSrc->fetchColumn() ?: "id=$teamId") . " → groupe cible: " . ($_auDst->fetchColumn() ?: "id=$targetTeamId"));
         $pdo->prepare(
-            "UPDATE user_properties
-             SET parameter = ?
-             WHERE parameter = ?
-             AND user_id NOT IN (
-                 SELECT user_id FROM (
-                     SELECT user_id FROM user_properties WHERE parameter = ?
-                 ) AS already
-             )"
-        )->execute(["team_$targetTeamId", "team_$teamId", "team_$targetTeamId"]);
-        $pdo->prepare("DELETE FROM user_properties WHERE parameter = ?")->execute(["team_$teamId"]);
+            "INSERT IGNORE INTO user_team (user_id, team_id)
+             SELECT user_id, ?
+             FROM user_team
+             WHERE team_id = ?"
+        )->execute([$targetTeamId, $teamId]);
+        $pdo->prepare("DELETE FROM user_team WHERE team_id = ?")->execute([$teamId]);
         $pdo->prepare("DELETE FROM team WHERE id = ?")->execute([$teamId]);
     }
 
@@ -55,18 +51,15 @@ if ($action == 'deleteTeam') {
     $teamId = (int)$_REQUEST['id'];
     if ($teamId > 0 && !empty($_REQUEST['importFrom']) && is_array($_REQUEST['importFrom'])) {
         $stmt = $pdo->prepare(
-            "INSERT INTO user_properties (user_id, parameter, value)
-             SELECT up.user_id, ?, up.value
-             FROM user_properties up
-             WHERE up.parameter = ?
-             AND up.user_id NOT IN (
-                 SELECT user_id FROM user_properties WHERE parameter = ?
-             )"
+            "INSERT IGNORE INTO user_team (user_id, team_id)
+             SELECT user_id, ?
+             FROM user_team
+             WHERE team_id = ?"
         );
         foreach ($_REQUEST['importFrom'] as $srcId) {
             $srcId = (int)$srcId;
             if ($srcId > 0 && $srcId !== $teamId) {
-                $stmt->execute(["team_$teamId", "team_$srcId", "team_$teamId"]);
+                $stmt->execute([$teamId, $srcId]);
             }
         }
     }
@@ -82,15 +75,15 @@ if ($action == 'deleteTeam') {
     $cotisTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
     if ($teamId > 0 && $year >= 2000 && $year <= 2100 && !empty($cotisTypeIds)) {
         $placeholders = implode(',', array_fill(0, count($cotisTypeIds), '?'));
-        $params       = array_merge(["team_$teamId"], $cotisTypeIds, [$year, "team_$teamId"]);
+        $params       = array_merge([$teamId], $cotisTypeIds, [$year, $teamId]);
         $pdo->prepare("
-            INSERT INTO user_properties (user_id, parameter, value)
-            SELECT u.id, ?, 'true'
+            INSERT IGNORE INTO user_team (user_id, team_id)
+            SELECT u.id, ?
             FROM users u
             JOIN compta c ON c.user_id = u.id
             WHERE c.type_id IN ($placeholders)
               AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
-              AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
+              AND u.id NOT IN (SELECT user_id FROM user_team WHERE team_id = ?)
             GROUP BY u.id
         ")->execute($params);
     }
@@ -117,17 +110,17 @@ if ($action == 'deleteTeam') {
             $instSubClause = 'AND c.type_id NOT IN (SELECT id FROM compta_type WHERE is_institutional = 1)';
         }
         $pdo->prepare("
-            INSERT INTO user_properties (user_id, parameter, value)
-            SELECT u.id, ?, 'true'
+            INSERT IGNORE INTO user_team (user_id, team_id)
+            SELECT u.id, ?
             FROM users u
             JOIN compta c ON c.user_id = u.id
             WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
               $instSubClause
               AND c.date > ? AND c.date < ?
-              AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
+              AND u.id NOT IN (SELECT user_id FROM user_team WHERE team_id = ?)
             GROUP BY u.id
             HAVING SUM(c.sum) >= ?
-        ")->execute(["team_$teamId", $from, $to, "team_$teamId", $minSum]);
+        ")->execute([$teamId, $from, $to, $teamId, $minSum]);
     }
     $_auTeamD = $pdo->prepare("SELECT name FROM team WHERE id=?"); $_auTeamD->execute([$teamId]);
     $typeLabel = ['institutional' => 'institutionnels', 'non_institutional' => 'non-institutionnels', 'all' => 'tous'][$donorType];
@@ -232,7 +225,7 @@ if ($action == 'deleteTeam') {
         $ph = implode(',', array_fill(0, count($cotiTypeIds), '?'));
         $_noCotiTeam  = (int)($appSettings['member_no_coti_team'] ?? 0);
         $noCotiClause = $_noCotiTeam > 0
-            ? "AND NOT EXISTS (SELECT 1 FROM user_properties WHERE user_id=u.id AND parameter='team_$_noCotiTeam' AND value='true')"
+            ? "AND NOT EXISTS (SELECT 1 FROM user_team WHERE user_id=u.id AND team_id=$_noCotiTeam)"
             : '';
         $stmt = $pdo->prepare("
             SELECT u.id AS user_id FROM users u
@@ -263,9 +256,9 @@ if ($action == 'deleteTeam') {
     $team->save();
     $newTeamId = $team->id;
     if ($newTeamId > 0) {
-        $ins = $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, 'true')");
+        $ins = $pdo->prepare("INSERT IGNORE INTO user_team (user_id, team_id) VALUES (?, ?)");
         foreach ($userIds as $uid) {
-            $ins->execute([(int)$uid, "team_$newTeamId"]);
+            $ins->execute([(int)$uid, $newTeamId]);
         }
     }
     auditLog($pdo, 'createLapsedGroup', "type: $groupType | année: $yr | groupe créé: $groupName (id=$newTeamId) | " . count($userIds) . " membres");
@@ -299,14 +292,11 @@ if ($action == 'deleteTeam') {
             $srcId = (int) $srcId;
             if ($srcId <= 0) continue;
             $pdo->prepare(
-                "INSERT INTO user_properties (user_id, parameter, value)
-                 SELECT up.user_id, ?, up.value
-                 FROM user_properties up
-                 WHERE up.parameter = ?
-                 AND up.user_id NOT IN (
-                     SELECT user_id FROM user_properties WHERE parameter = ?
-                 )"
-            )->execute(["team_$newTeamId", "team_$srcId", "team_$newTeamId"]);
+                "INSERT IGNORE INTO user_team (user_id, team_id)
+                 SELECT user_id, ?
+                 FROM user_team
+                 WHERE team_id = ?"
+            )->execute([$newTeamId, $srcId]);
         }
     }
     auditLog($pdo, 'addTeamWithImport', "id=$newTeamId | {$_REQUEST['name']} | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
@@ -370,10 +360,10 @@ if ($action == 'deleteTeam') {
         foreach ($_REQUEST['importFrom'] as $srcId) {
             $srcId = (int)$srcId;
             if ($srcId > 0 && $srcId !== $teamId) {
-                $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter)
-                    SELECT user_id, ? FROM user_properties WHERE parameter = ? AND user_id NOT IN
-                    (SELECT user_id FROM user_properties WHERE parameter = ?)"
-                )->execute(["team_$teamId", "team_$srcId", "team_$teamId"]);
+                $pdo->prepare(
+                "INSERT IGNORE INTO user_team (user_id, team_id)
+                 SELECT user_id, ? FROM user_team WHERE team_id = ?"
+            )->execute([$teamId, $srcId]);
                 $importedFrom[] = $srcId;
             }
         }

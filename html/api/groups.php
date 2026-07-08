@@ -88,11 +88,11 @@ function handleList(): void
 
     $stmt = db()->query(
         "SELECT t.id, t.name, t.hidden,
-                COUNT(up.user_id) AS member_count,
+                COUNT(ut.user_id) AS member_count,
                 cat.id AS cat_id, cat.name AS cat_name
          FROM team t
-         LEFT JOIN user_properties up ON up.parameter = CONCAT('team_', t.id)
-         LEFT JOIN users u ON u.id = up.user_id AND u.status = 1
+         LEFT JOIN user_team ut ON ut.team_id = t.id
+         LEFT JOIN users u ON u.id = ut.user_id AND u.status = 1
          " . CAT_JOIN . "
          GROUP BY t.id, t.name, t.hidden, cat.id, cat.name, cat.sort_order
          ORDER BY COALESCE(cat.sort_order, 99999) ASC,
@@ -112,11 +112,11 @@ function handleGet(int $id): void
 
     $stmt = db()->prepare(
         "SELECT t.id, t.name, t.hidden,
-                COUNT(up.user_id) AS member_count,
+                COUNT(ut.user_id) AS member_count,
                 cat.id AS cat_id, cat.name AS cat_name
          FROM team t
-         LEFT JOIN user_properties up ON up.parameter = CONCAT('team_', t.id)
-         LEFT JOIN users u ON u.id = up.user_id AND u.status = 1
+         LEFT JOIN user_team ut ON ut.team_id = t.id
+         LEFT JOIN users u ON u.id = ut.user_id AND u.status = 1
          " . CAT_JOIN . "
          WHERE t.id = ?
          GROUP BY t.id, t.name, t.hidden, cat.id, cat.name, cat.sort_order"
@@ -139,11 +139,11 @@ function handleListMembers(int $id): void
     $stmt = db()->prepare(
         "SELECT u.id, u.firstname, u.lastname, u.email, u.npa
          FROM users u
-         JOIN user_properties up ON up.user_id = u.id AND up.parameter = ?
+         JOIN user_team ut ON ut.user_id = u.id AND ut.team_id = ?
          WHERE u.status = 1
          ORDER BY u.lastname ASC, u.firstname ASC"
     );
-    $stmt->execute(["team_$id"]);
+    $stmt->execute([$id]);
 
     $data = array_map(fn($r) => [
         'id'        => (int)$r->id,
@@ -193,11 +193,11 @@ function handleUpdate(int $id): void
 
     $stmt = db()->prepare(
         "SELECT t.id, t.name, t.hidden,
-                COUNT(up.user_id) AS member_count,
+                COUNT(ut.user_id) AS member_count,
                 cat.id AS cat_id, cat.name AS cat_name
          FROM team t
-         LEFT JOIN user_properties up ON up.parameter = CONCAT('team_', t.id)
-         LEFT JOIN users u ON u.id = up.user_id AND u.status = 1
+         LEFT JOIN user_team ut ON ut.team_id = t.id
+         LEFT JOIN users u ON u.id = ut.user_id AND u.status = 1
          " . CAT_JOIN . "
          WHERE t.id = ?
          GROUP BY t.id, t.name, t.hidden, cat.id, cat.name, cat.sort_order"
@@ -239,8 +239,8 @@ function handleAddMember(int $groupId): void
     $chkUser->execute([$memberId]);
     if (!$chkUser->fetchColumn()) apiError(422, "Member #$memberId not found");
 
-    db()->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, 'true')")
-        ->execute([$memberId, "team_$groupId"]);
+    db()->prepare("INSERT IGNORE INTO user_team (user_id, team_id) VALUES (?, ?)")
+        ->execute([$memberId, $groupId]);
 
     $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
     $_auU->execute([$memberId]);
@@ -258,8 +258,8 @@ function handleRemoveMember(int $groupId): void
     $memberId = isset($body['memberId']) ? (int)$body['memberId'] : 0;
     if (!$memberId) apiError(422, 'memberId is required');
 
-    db()->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter=?")
-        ->execute([$memberId, "team_$groupId"]);
+    db()->prepare("DELETE FROM user_team WHERE user_id=? AND team_id=?")
+        ->execute([$memberId, $groupId]);
 
     $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
     $_auU->execute([$memberId]);

@@ -126,7 +126,7 @@ class MemberFilter
                 $st = $pdo->prepare("
                     SELECT u.id
                     FROM users u
-                    JOIN user_properties up ON up.user_id = u.id AND up.parameter = ?
+                    JOIN user_team ut ON ut.user_id = u.id AND ut.team_id = ?
                     WHERE u.status = 1
                       AND NOT EXISTS (
                           SELECT 1 FROM compta c
@@ -137,7 +137,7 @@ class MemberFilter
                             )
                       )
                 ");
-                $st->execute(["team_$membreTeam", $year]);
+                $st->execute([$membreTeam, $year]);
                 while ($r = $st->fetchObject()) {
                     $uid = (int)$r->id;
                     if (empty($noCoti[$uid])) {
@@ -159,8 +159,8 @@ class MemberFilter
         if ($noCotiTeam <= 0) {
             return [];
         }
-        $st = $pdo->prepare("SELECT user_id FROM user_properties WHERE parameter=?");
-        $st->execute(["team_$noCotiTeam"]);
+        $st = $pdo->prepare("SELECT user_id FROM user_team WHERE team_id=?");
+        $st->execute([$noCotiTeam]);
         $map = [];
         while ($r = $st->fetchObject()) {
             $map[(int)$r->user_id] = true;

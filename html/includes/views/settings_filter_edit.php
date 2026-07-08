@@ -58,7 +58,7 @@ foreach ($allTeams as $t) {
 ksort($catGroups);
 
 // Member counts per team
-$cntRows = $pdo->query("SELECT SUBSTRING(parameter, 6) AS team_id, COUNT(*) AS cnt FROM user_properties WHERE parameter LIKE 'team_%' GROUP BY parameter")->fetchAll(PDO::FETCH_OBJ);
+$cntRows = $pdo->query("SELECT team_id, COUNT(*) AS cnt FROM user_team GROUP BY team_id")->fetchAll(PDO::FETCH_OBJ);
 $teamCounts = [];
 foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 ?>

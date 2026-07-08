@@ -7,7 +7,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 // Member counts per team
-$countRows = $pdo->query("SELECT SUBSTRING(parameter, 6) AS team_id, COUNT(*) AS cnt FROM user_properties WHERE parameter LIKE 'team_%' GROUP BY parameter")->fetchAll(PDO::FETCH_OBJ);
+$countRows = $pdo->query("SELECT team_id, COUNT(*) AS cnt FROM user_team GROUP BY team_id")->fetchAll(PDO::FETCH_OBJ);
 $teamCounts = [];
 foreach ($countRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 

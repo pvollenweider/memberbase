@@ -137,7 +137,9 @@ class User
 
     public function isMemberOfTeam(int $teamId): bool
     {
-        return $this->getProperty("team_" . $teamId) === 'true';
+        $stmt = db()->prepare("SELECT 1 FROM user_team WHERE user_id=? AND team_id=? LIMIT 1");
+        $stmt->execute([$this->id, $teamId]);
+        return $stmt->fetchColumn() !== false;
     }
 
     private function firstComptaDate(string $sql, array $params): int
@@ -220,14 +222,14 @@ class User
 
     public function addMembership(int $teamId): void
     {
-        db()->prepare("INSERT IGNORE INTO user_properties (user_id,parameter,value) VALUES (?,?,?)")
-            ->execute([$this->id, "team_$teamId", 'true']);
+        db()->prepare("INSERT IGNORE INTO user_team (user_id, team_id) VALUES (?, ?)")
+            ->execute([$this->id, $teamId]);
     }
 
     public function removeMembership(int $teamId): void
     {
-        db()->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter=?")
-            ->execute([$this->id, "team_$teamId"]);
+        db()->prepare("DELETE FROM user_team WHERE user_id=? AND team_id=?")
+            ->execute([$this->id, $teamId]);
     }
 
     public function save(): int
@@ -295,12 +297,12 @@ class User
                . " users.sexe, users.address, users.npa, users.email, users.creationDate"
                . " FROM users";
         if ($metagroup > 0) {
-            $query .= ",user_properties ";
+            $query .= ",user_team ";
         } else {
             // Virtual filter IDs (resolved via MemberFilter) and team=0 (all members)
-            // do not need a user_properties join
+            // do not need a user_team join
             if ($team != 0 && $team != -1 && !MemberFilter::isVirtual($team)) {
-                $query .= ",user_properties ";
+                $query .= ",user_team ";
             }
         }
         $query .= " WHERE 1=1 AND users.status=1 ";
@@ -324,8 +326,8 @@ class User
             $mgTeamIds = Metagroup::teamIds($metagroup);
             if (count($mgTeamIds) > 0) {
                 $placeholders = implode(',', array_fill(0, count($mgTeamIds), '?'));
-                $query .= " AND users.id=user_properties.user_id AND user_properties.parameter IN ($placeholders)";
-                $queryParams = array_merge($queryParams, array_map(fn($id) => "team_$id", $mgTeamIds));
+                $query .= " AND users.id=user_team.user_id AND user_team.team_id IN ($placeholders)";
+                $queryParams = array_merge($queryParams, $mgTeamIds);
             } else {
                 $query .= " AND 1=0"; // metagroup has no teams — return empty
             }
@@ -335,11 +337,11 @@ class User
                 // via the MemberFilter ID set applied by the caller
             } else if ($team == -1234) {
                 $membreTeam = (int)($opts['membreTeam'] ?? 0);
-                $query .= " AND users.id=user_properties.user_id ";
-                $query .= "AND ( ";
-                $query .= "user_properties.parameter='team_$membreTeam') ";
+                $query .= " AND users.id=user_team.user_id AND user_team.team_id=? ";
+                $queryParams[] = $membreTeam;
             } else {
-                $query .= " AND users.id=user_properties.user_id AND user_properties.parameter='team_$team'";
+                $query .= " AND users.id=user_team.user_id AND user_team.team_id=?";
+                $queryParams[] = $team;
             }
         }
 

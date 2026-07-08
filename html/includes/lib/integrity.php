@@ -65,8 +65,8 @@ function mbRunIntegrityChecks(PDO $db): array
             SELECT t.id AS team_id, t.name AS team_name,
                    COUNT(up.user_id) AS member_count
             FROM team t
-            JOIN user_properties up ON up.parameter = CONCAT('team_', t.id)
-            JOIN users u ON u.id = up.user_id AND u.status = 1
+            JOIN user_team ut ON ut.team_id = t.id
+            JOIN users u ON u.id = ut.user_id AND u.status = 1
             WHERE t.hidden = 1
             GROUP BY t.id, t.name
             ORDER BY t.name

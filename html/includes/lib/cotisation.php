@@ -26,7 +26,7 @@ function mbGetLapsedMembers(PDO $db, int $year, array $cotiTypeIds, int $noCotiT
     }
     $ph           = implode(',', array_fill(0, count($cotiTypeIds), '?'));
     $noCotiClause = $noCotiTeam > 0
-        ? "AND NOT EXISTS (SELECT 1 FROM user_properties WHERE user_id=u.id AND parameter='team_$noCotiTeam' AND value='true')"
+        ? "AND NOT EXISTS (SELECT 1 FROM user_team WHERE user_id=u.id AND team_id=$noCotiTeam)"
         : '';
 
     $stmt = $db->prepare("

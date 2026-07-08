@@ -31,7 +31,7 @@ $_muSt->execute([$_muIdB]); $cComptaB = (int)$_muSt->fetchColumn();
 $_muSt = $pdo->prepare("SELECT COUNT(*) FROM user_properties WHERE user_id=? AND parameter='suivi'");
 $_muSt->execute([$_muIdA]); $cSuiviA = (int)$_muSt->fetchColumn();
 $_muSt->execute([$_muIdB]); $cSuiviB = (int)$_muSt->fetchColumn();
-$_muSt = $pdo->prepare("SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ', ') FROM user_properties up JOIN team t ON t.id = CAST(SUBSTRING(up.parameter,6) AS UNSIGNED) WHERE up.user_id=? AND up.parameter LIKE 'team_%'");
+$_muSt = $pdo->prepare("SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ', ') FROM user_team ut JOIN team t ON t.id = ut.team_id WHERE ut.user_id=?");
 $_muSt->execute([$_muIdA]); $groupsA = $_muSt->fetchColumn() ?: '—';
 $_muSt->execute([$_muIdB]); $groupsB = $_muSt->fetchColumn() ?: '—';
 

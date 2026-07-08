@@ -129,13 +129,8 @@ if ($_REQUEST['action'] == 'updateUser') {
         $pdo->prepare("UPDATE user_properties SET user_id=? WHERE user_id=? AND parameter NOT LIKE 'team_%'")->execute([$survivorId, $sourceId]);
 
         // Move team memberships (dedup)
-        $srcTeams = $pdo->prepare("SELECT parameter, value FROM user_properties WHERE user_id=? AND parameter LIKE 'team_%'");
-        $srcTeams->execute([$sourceId]);
-        $insTeam = $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, ?)");
-        while ($t = $srcTeams->fetchObject()) {
-            $insTeam->execute([$survivorId, $t->parameter, $t->value]);
-        }
-        $pdo->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter LIKE 'team_%'")->execute([$sourceId]);
+        $pdo->prepare("INSERT IGNORE INTO user_team (user_id, team_id) SELECT ?, team_id FROM user_team WHERE user_id=?")->execute([$survivorId, $sourceId]);
+        $pdo->prepare("DELETE FROM user_team WHERE user_id=?")->execute([$sourceId]);
 
         // Dispose source
         if ($disposal === 'delete') {

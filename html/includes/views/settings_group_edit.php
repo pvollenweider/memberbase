@@ -19,11 +19,11 @@ $team->lookupTeam($id);
 $stmtMembers = $pdo->prepare(
     "SELECT u.id, u.lastname, u.firstname, u.society
      FROM users u
-     INNER JOIN user_properties up ON up.user_id = u.id
-     WHERE up.parameter = ? AND u.status=1
+     INNER JOIN user_team ut ON ut.user_id = u.id
+     WHERE ut.team_id = ? AND u.status=1
      ORDER BY u.lastname, u.firstname"
 );
-$stmtMembers->execute(["team_$id"]);
+$stmtMembers->execute([$id]);
 $members = $stmtMembers->fetchAll(PDO::FETCH_OBJ);
 $memberCount = count($members);
 
@@ -55,9 +55,9 @@ $countDonors = function(array $allowedTypeIds, int $from, int $to) use ($pdo, $i
         FROM users u JOIN compta c ON c.user_id = u.id
         WHERE c.type_id IN ($ph)
           AND c.date > ? AND c.date < ?
-          AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
+          AND u.id NOT IN (SELECT user_id FROM user_team WHERE team_id = ?)
     ");
-    $r->execute(array_merge($allowedTypeIds, [$from, $to, "team_$id"]));
+    $r->execute(array_merge($allowedTypeIds, [$from, $to, $id]));
     return (int)$r->fetchColumn();
 };
 
@@ -84,15 +84,15 @@ for ($yi = 0; $yi < 10; $yi++) {
             FROM users u JOIN compta c ON c.user_id = u.id
             WHERE c.type_id IN ($cotisPlaceholders)
               AND c.date > ? AND c.date < ?
-              AND u.id NOT IN (SELECT user_id FROM user_properties WHERE parameter = ?)
+              AND u.id NOT IN (SELECT user_id FROM user_team WHERE team_id = ?)
         ");
-        $r2->execute(array_merge($cotisTypeIds, [$from, $to, "team_$id"]));
+        $r2->execute(array_merge($cotisTypeIds, [$from, $to, $id]));
         $importCountsPerYear[$dy]['cotis'] = (int)$r2->fetchColumn();
     }
 }
 
 // Member counts per team (for badges)
-$cntRows = $pdo->query("SELECT SUBSTRING(parameter, 6) AS team_id, COUNT(*) AS cnt FROM user_properties WHERE parameter LIKE 'team_%' GROUP BY parameter")->fetchAll(PDO::FETCH_OBJ);
+$cntRows = $pdo->query("SELECT team_id, COUNT(*) AS cnt FROM user_team GROUP BY team_id")->fetchAll(PDO::FETCH_OBJ);
 $teamCounts = [];
 foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 ?>
