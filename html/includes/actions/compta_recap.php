@@ -39,7 +39,8 @@ function _recapLoadEntries(PDO $pdo, ?int $filterUserId = null, int $year = 0, b
     }
     $where = implode(' AND ', $conditions);
     $stmt  = $pdo->prepare(
-        "SELECT c.id, c.user_id, c.date, c.libele, c.sum,
+        "SELECT c.id, c.user_id, c.date, c.libele, c.sum, c.cotisation_year,
+                COALESCE(ct.is_cotisation, 0) AS ct_coti,
                 u.firstname, u.lastname, u.society, u.email,
                 COALESCE(ct.label, '') AS type_label
          FROM compta c
@@ -96,7 +97,15 @@ function _recapBuildVars(array $entries, array $appSettings, array $GLOBAL): arr
         $descHtml  = htmlspecialchars($desc, ENT_QUOTES, 'UTF-8');
         $typeHtml  = htmlspecialchars($typeLabel, ENT_QUOTES, 'UTF-8');
         $amount    = number_format((float)$e['sum'], 2, '.', "'");
-        $lines[]   = $d . '  [' . $typeLabel . ']  ' . $desc . '  CHF ' . $amount;
+        $line      = $d . '  [' . $typeLabel . ']  ' . $desc . '  CHF ' . $amount;
+        // Append cotisation year when it differs from the payment year
+        if (!empty($e['ct_coti']) && !empty($e['cotisation_year'])) {
+            $payYear = $e['date'] ? (int)date('Y', (int)$e['date']) : 0;
+            if ((int)$e['cotisation_year'] !== $payYear) {
+                $line .= '  (cotisation ' . (int)$e['cotisation_year'] . ')';
+            }
+        }
+        $lines[]   = $line;
         $bg        = $odd ? '#f7fafd' : '#ffffff';
         $htmlRows .= '<tr style="background:' . $bg . '">'
                    . '<td style="border:1px solid #dde3ea;padding:8px;font-size:14px">' . $d . '</td>'
