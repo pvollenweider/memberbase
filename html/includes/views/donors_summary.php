@@ -81,26 +81,29 @@ if ($year != -2) {
     $_typeBreakdown = $_sTypeBreak->fetchAll(PDO::FETCH_OBJ);
     $_typeTotal = array_sum(array_map(fn($r) => (float)$r->total, $_typeBreakdown));
 
+    // Member counts by cotisation_year (fallback: YEAR of payment date)
+    $_cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
     $_kMembres = 0;
     $_kMembresPrev = 0;
     $_kMembresDelta = null;
-    if ($membreTeamId > 0) {
-        $_sM = $pdo->prepare("SELECT COUNT(*) FROM user_properties WHERE parameter=? AND value='true'");
-        $_sM->execute(["team_$membreTeamId"]);
+    $_kMembresLapsed = 0;
+    if (!empty($_cotiTypeIds)) {
+        $_ph = implode(',', array_fill(0, count($_cotiTypeIds), '?'));
+        $_sM = $pdo->prepare("SELECT COUNT(DISTINCT u.id) FROM users u JOIN compta c ON c.user_id=u.id WHERE u.status=1 AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?");
+        $_sM->execute(array_merge(array_values($_cotiTypeIds), [$year]));
         $_kMembres = (int)$_sM->fetchColumn();
+        $_sM->execute(array_merge(array_values($_cotiTypeIds), [$year - 1]));
+        $_kMembresPrev = (int)$_sM->fetchColumn();
+        $_kMembresDelta = $_kMembresPrev > 0 ? (($_kMembres - $_kMembresPrev) / $_kMembresPrev * 100) : null;
 
-        $_rPrev = $pdo->prepare("SELECT id FROM team WHERE name = ?");
-        $_rPrev->execute([($appSettings['membre_team_prefix'] ?? 'Membre') . ' ' . ($year - 1)]);
-        $_prevTeamId = (int)$_rPrev->fetchColumn();
-        if ($_prevTeamId > 0) {
-            $_sM->execute(["team_$_prevTeamId"]);
-            $_kMembresPrev = (int)$_sM->fetchColumn();
-            $_kMembresDelta = $_kMembresPrev > 0 ? (($_kMembres - $_kMembresPrev) / $_kMembresPrev * 100) : null;
-
-            $_sLapsedM = $pdo->prepare("SELECT COUNT(*) FROM user_properties WHERE parameter=? AND value='true' AND user_id NOT IN (SELECT user_id FROM user_properties WHERE parameter=? AND value='true')");
-            $_sLapsedM->execute(["team_$_prevTeamId", "team_$membreTeamId"]);
-            $_kMembresLapsed = (int)$_sLapsedM->fetchColumn();
-        }
+        $_sLapsedM = $pdo->prepare("
+            SELECT COUNT(*) FROM users u
+            WHERE u.status=1
+              AND EXISTS (SELECT 1 FROM compta c WHERE c.user_id=u.id AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?)
+              AND NOT EXISTS (SELECT 1 FROM compta c WHERE c.user_id=u.id AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?)
+        ");
+        $_sLapsedM->execute(array_merge(array_values($_cotiTypeIds), [$year - 1], array_values($_cotiTypeIds), [$year]));
+        $_kMembresLapsed = (int)$_sLapsedM->fetchColumn();
     }
 
     $_kDelta = $_kTotal1 > 0 ? (($_kTotal - $_kTotal1) / $_kTotal1 * 100) : null;
