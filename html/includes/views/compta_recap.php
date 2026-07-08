@@ -203,8 +203,8 @@ if ($_pendingMembers > 0) {
 
     fetch(baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
-      body: 'action=previewComptaRecap&view=comptaRecap&user_id=' + encodeURIComponent(userId)
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true', 'X-CSRF-Token': getCsrf() },
+      body: 'action=previewComptaRecap&view=comptaRecap&csrf=' + encodeURIComponent(getCsrf()) + '&user_id=' + encodeURIComponent(userId)
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {
@@ -257,8 +257,8 @@ if ($_pendingMembers > 0) {
 
     fetch(baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
-      body: 'action=sendComptaRecapOne&view=comptaRecap&user_id=' + encodeURIComponent(currentUserId)
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true', 'X-CSRF-Token': getCsrf() },
+      body: 'action=sendComptaRecapOne&view=comptaRecap&csrf=' + encodeURIComponent(getCsrf()) + '&user_id=' + encodeURIComponent(currentUserId)
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {

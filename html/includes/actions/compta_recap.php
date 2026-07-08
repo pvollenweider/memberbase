@@ -164,7 +164,6 @@ if ($action === 'sendComptaRecap') {
 } elseif ($action === 'previewComptaRecap') {
     // Returns JSON {subject, html, text} for a single member's pending recap email.
     if (!isManager()) { http_response_code(403); exit; }
-    while (ob_get_level()) ob_end_clean();
     header('Content-Type: application/json; charset=utf-8');
     $userId   = (int)($_REQUEST['user_id'] ?? 0);
     $byMember = _recapLoadEntries($pdo, $userId);
@@ -189,7 +188,6 @@ if ($action === 'sendComptaRecap') {
 } elseif ($action === 'sendComptaRecapOne') {
     // Sends recap email to a single member and marks their entries as notified.
     if (!isManager()) { http_response_code(403); exit; }
-    while (ob_get_level()) ob_end_clean();
     header('Content-Type: application/json; charset=utf-8');
     $userId   = (int)($_REQUEST['user_id'] ?? 0);
     $byMember = _recapLoadEntries($pdo, $userId);
