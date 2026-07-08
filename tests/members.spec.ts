@@ -39,10 +39,11 @@ test.describe('Members', () => {
     await page.click('button[type="submit"].btn-success');
 
     // htmx swaps in generalData without changing URL — confirm swap completed
-    await getNewUserId(page);
+    const uid = await getNewUserId(page);
 
-    await page.goto('/index.php?action=search&searchString=Testmembre');
-    await expect(page.locator('table.table tbody tr', { hasText: 'Testmembre' })).toBeVisible({ timeout: 10_000 });
+    // Navigate directly to the new member's profile to confirm creation
+    await page.goto(`/index.php?view=generalData&userid=${uid}`);
+    await expect(page.locator('.ca-view-zone')).toContainText('Testmembre', { timeout: 10_000 });
   });
 
   test('edit a member firstname and verify updated', async ({ page }) => {

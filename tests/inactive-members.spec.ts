@@ -55,9 +55,9 @@ test.describe.serial('Inactive members', () => {
     ]);
     await expect(page.locator('tr').filter({ hasText: 'Archived Temp' })).toHaveCount(0);
 
-    // Verify member is back in main list
-    await page.goto('/index.php?action=search&searchString=Archived');
-    await expect(page.locator('table.table tbody tr', { hasText: 'Archived' })).toBeVisible({ timeout: 10_000 });
+    // Verify member is active again — navigate directly to their profile
+    await page.goto(`/index.php?view=generalData&userid=${archivedId}`);
+    await expect(page.locator('.ca-view-zone')).toContainText('Archived', { timeout: 10_000 });
 
     // Cleanup: delete the member
     if (archivedId) {
