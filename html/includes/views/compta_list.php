@@ -337,11 +337,9 @@ if (document.readyState === 'loading') {
               <?php endfor ?>
             </ul>
           </div>
-          <div class="btn-group btn-group-sm" role="group" aria-label="<?= htmlspecialchars($GLOBAL['comptaRecapScopeNew'], ENT_QUOTES, $charset) ?>">
-            <input type="radio" class="btn-check" name="recap-scope" id="recap-scope-new" value="new" checked data-no-dirty>
-            <label class="btn btn-outline-secondary" for="recap-scope-new"><?= $GLOBAL['comptaRecapScopeNew'] ?></label>
-            <input type="radio" class="btn-check" name="recap-scope" id="recap-scope-all" value="all" data-no-dirty>
-            <label class="btn btn-outline-secondary" for="recap-scope-all"><?= $GLOBAL['comptaRecapScopeAll'] ?></label>
+          <div id="recap-scope-toggle-wrap" class="form-check form-switch mb-0" style="font-size:0.875rem">
+            <input class="form-check-input" type="checkbox" role="switch" id="recap-scope-all" data-no-dirty>
+            <label class="form-check-label text-muted" for="recap-scope-all"><?= $GLOBAL['comptaRecapScopeAll'] ?></label>
           </div>
           <button type="button" class="btn btn-outline-primary btn-sm" id="btn-recap-user-preview">
             <i class="fas fa-eye me-1" aria-hidden="true"></i><?= $GLOBAL['preview'] ?? 'Prévisualiser' ?>
@@ -376,7 +374,21 @@ if (document.readyState === 'loading') {
   var currentYear = recapYear;
 
   function isForceScope() {
-    return document.getElementById('recap-scope-all').checked;
+    var el = document.getElementById('recap-scope-all');
+    // Hidden (past year) → always force
+    return el.parentElement.style.display === 'none' || el.checked;
+  }
+
+  function updateScopeToggle() {
+    var wrap = document.getElementById('recap-scope-toggle-wrap');
+    if (recapYear < currentYear) {
+      // Past year: hide toggle, force is implicit
+      wrap.style.display = 'none';
+    } else {
+      // Current year: show toggle, default unchecked
+      wrap.style.display = '';
+      document.getElementById('recap-scope-all').checked = false;
+    }
   }
 
   // Year picker
@@ -387,10 +399,7 @@ if (document.readyState === 'loading') {
       document.getElementById('recap-user-year-btn').textContent = this.dataset.year;
       document.querySelectorAll('.recap-user-year-item').forEach(function (el) { el.classList.remove('active'); });
       this.classList.add('active');
-      // Auto-switch scope: past year → all entries
-      if (recapYear < currentYear) {
-        document.getElementById('recap-scope-all').checked = true;
-      }
+      updateScopeToggle();
       // Reset preview
       document.getElementById('recap-user-frame').style.display   = 'none';
       document.getElementById('recap-user-subject').style.display = 'none';
@@ -427,8 +436,10 @@ if (document.readyState === 'loading') {
       showRecapUserLoading(false);
       if (!data.ok) {
         if (data.error === 'no_entries') {
-          if (!isForceScope()) {
-            // No pending entries — auto-switch to "all" scope and retry
+          var scopeWrap = document.getElementById('recap-scope-toggle-wrap');
+          var scopeVisible = scopeWrap.style.display !== 'none';
+          if (scopeVisible && !document.getElementById('recap-scope-all').checked) {
+            // Current year, new-only mode → auto-switch to all and retry
             document.getElementById('recap-scope-all').checked = true;
             document.getElementById('btn-recap-user-preview').click();
             return;

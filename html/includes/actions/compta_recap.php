@@ -176,7 +176,7 @@ if ($action === 'sendComptaRecap') {
         }
         [$vars, $ids, $total] = _recapBuildVars($entries, $appSettings, $GLOBAL);
         $vars['since_line']   = $sinceLine;
-        $ok = mbSendTemplate($pdo, $first['email'], 'tpl_compta_recap', $vars, (int)$userId);
+        $ok = mbSendTemplate($pdo, $first['email'], 'tpl_compta_recap', $vars, (int)$userId) === true;
         if ($ok) {
             $sentCount++;
             $notifiedIds = array_merge($notifiedIds, $ids);
@@ -243,7 +243,8 @@ if ($action === 'sendComptaRecap') {
 
     [$vars, $ids, $total] = _recapBuildVars($entries, $appSettings, $GLOBAL);
     $vars['since_line'] = $sinceLine;
-    $ok = mbSendTemplate($pdo, $first['email'], 'tpl_compta_recap', $vars, $userId);
+    $result = mbSendTemplate($pdo, $first['email'], 'tpl_compta_recap', $vars, $userId);
+    $ok     = $result === true;
 
     if ($ok) {
         $ph = implode(',', array_fill(0, count($ids), '?'));
@@ -251,8 +252,10 @@ if ($action === 'sendComptaRecap') {
         auditLog($pdo, 'sendComptaRecapOne',
             "sent to {$first['firstname']} {$first['lastname']} <{$first['email']}> (year=$recapYear force=" . ($force ? '1' : '0') . ") — "
             . count($entries) . ' entr(ies), CHF ' . $total);
+        echo json_encode(['ok' => true]);
+    } else {
+        echo json_encode(['ok' => false, 'error' => is_string($result) ? $result : 'send_failed']);
     }
-    echo json_encode(['ok' => $ok]);
     exit;
 
 } elseif ($action === 'markAllComptaNotified') {

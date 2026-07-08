@@ -496,11 +496,38 @@ function mbRenderTemplate(string $tpl, array $vars): string
  * @param array  $vars    Placeholder values
  * @return bool
  */
-function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars, ?int $userId = null): bool
+function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars, ?int $userId = null): bool|string
 {
     $tpl      = mbGetTemplate($pdo, $tplKey);
     $subject  = mbRenderTemplate($tpl->subject,   $vars);
     $bodyText = mbRenderTemplate($tpl->body_text, $vars);
     $bodyHtml = isset($tpl->body_html) ? mbRenderTemplate($tpl->body_html, $vars) : '';
-    return mbSendMail($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText, $userId);
+    return mbSendMailWithError($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText, $userId);
+}
+
+/**
+ * Like mbSendMail but returns true on success or an error string on failure.
+ */
+function mbSendMailWithError(
+    PDO $pdo,
+    string $to,
+    string $subject,
+    string $bodyHtml,
+    string $bodyText = '',
+    ?int $userId = null
+): bool|string {
+    global $appSettings;
+    try {
+        $cfg  = $appSettings;
+        $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
+        $text   = $bodyText !== '' ? $bodyText : strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $bodyHtml));
+        $result = mbSmtpSend($cfg, $to, $subject, $text, $bodyHtml);
+        $status = $result['ok'] ? 'sent' : 'error';
+        $errMsg = $result['ok'] ? null : ($result['error'] ?? 'unknown error');
+        _mbLogEmail($pdo, $to, $subject, $status, $errMsg, $userId, $text, $bodyHtml);
+        return $result['ok'] ? true : ($errMsg ?? 'send_failed');
+    } catch (\Throwable $e) {
+        _mbLogEmail($pdo, $to, $subject, 'error', $e->getMessage(), $userId);
+        return $e->getMessage();
+    }
 }
