@@ -15,6 +15,15 @@ const YEAR        = 2026; // lapsed members paid 2025, not 2026 (see seed)
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
+/** Open the send-reminder modal and wait for it to finish animating. */
+async function openReminderModal(page: any): Promise<void> {
+  await page.click('[data-bs-target="#modal-send-coti-reminders"]');
+  // Wait for Bootstrap fade animation to finish (modal gets class "show" after ~300 ms)
+  await page.waitForFunction(
+    () => document.getElementById('modal-send-coti-reminders')?.classList.contains('show')
+  );
+}
+
 async function csrfToken(api: APIRequestContext): Promise<string> {
   const html = await (await api.get('/index.php')).text();
   const m    = html.match(/name="csrf-token" content="([^"]+)"/);
@@ -76,9 +85,8 @@ test.describe('Send cotisation reminders', () => {
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
 
-    // Open confirm modal and click send
-    await page.click('[data-bs-target="#modal-send-coti-reminders"]');
-    await expect(page.locator('#modal-send-coti-reminders')).toBeVisible();
+    // Open confirm modal (wait for Bootstrap fade) and click send
+    await openReminderModal(page);
     await page.click('#btn-send-coti-reminders');
 
     // Modal should show a success alert
@@ -94,7 +102,7 @@ test.describe('Send cotisation reminders', () => {
     await purgeMailpit(request);
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
-    await page.click('[data-bs-target="#modal-send-coti-reminders"]');
+    await openReminderModal(page);
     await page.click('#btn-send-coti-reminders');
     await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
 
@@ -106,7 +114,7 @@ test.describe('Send cotisation reminders', () => {
     await purgeMailpit(request);
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
-    await page.click('[data-bs-target="#modal-send-coti-reminders"]');
+    await openReminderModal(page);
     await page.click('#btn-send-coti-reminders');
     await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
 
@@ -123,7 +131,7 @@ test.describe('Send cotisation reminders', () => {
     await purgeMailpit(request);
 
     await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
-    await page.click('[data-bs-target="#modal-send-coti-reminders"]');
+    await openReminderModal(page);
     await page.click('#btn-send-coti-reminders');
     await expect(page.locator('#coti-reminder-result .alert-success')).toBeVisible({ timeout: 15_000 });
 
