@@ -115,37 +115,15 @@ test.describe('Send cotisation reminders', () => {
     expect(msgs[0].To[0].Address).toBe('carol@example.com');
   });
 
-  test('email subject is "Rappel de cotisation"', async ({ page, request }) => {
-    await purgeMailpit(request);
-
-    // Use page.request (authenticated session) with force=1 to bypass the anti-duplicate
-    // guard — prior tests may have already sent to Carol this year in the shared DB.
-    await page.goto('/index.php');
-    const csrf = await page.evaluate(() =>
-      document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
-    );
-    await page.context().request.post('/index.php', {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf, 'HX-Request': 'true' },
-      data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
-    });
-
+  test('email subject is "Rappel de cotisation"', async ({ request }) => {
+    // Serial mode: Mailpit still has Carol's email from the previous test.
     const msgs = await mailpitMessages(request);
     expect(msgs).toHaveLength(1);
     expect(msgs[0].Subject).toBe('Rappel de cotisation');
   });
 
-  test('email body contains year, membership URL and org name', async ({ page, request }) => {
-    await purgeMailpit(request);
-
-    await page.goto('/index.php');
-    const csrf = await page.evaluate(() =>
-      document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
-    );
-    await page.context().request.post('/index.php', {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf, 'HX-Request': 'true' },
-      data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
-    });
-
+  test('email body contains year, membership URL and org name', async ({ request }) => {
+    // Serial mode: reuse email from the first send test.
     const msgs = await mailpitMessages(request);
     expect(msgs).toHaveLength(1);
     const body = await mailpitBody(request, msgs[0].ID);
@@ -156,19 +134,8 @@ test.describe('Send cotisation reminders', () => {
     expect(body).toContain('Sauf erreur');
   });
 
-  test('email is logged in email_log for the member', async ({ page, request }) => {
-    await purgeMailpit(request);
-
-    await page.goto('/index.php');
-    const csrf = await page.evaluate(() =>
-      document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? ''
-    );
-    await page.context().request.post('/index.php', {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': csrf, 'HX-Request': 'true' },
-      data: `action=sendCotisationReminders&year=${YEAR}&force=1`,
-    });
-
-    // Check the email appears in Carol's (user 4) suivi tab
+  test('email is logged in email_log for the member', async ({ page }) => {
+    // Serial mode: the first send test already logged this email. Just check suivi.
     await page.goto('/index.php?view=suivi&userid=4');
     await page.waitForLoadState('load');
     await expect(page.locator('text=Rappel de cotisation').first()).toBeVisible();
