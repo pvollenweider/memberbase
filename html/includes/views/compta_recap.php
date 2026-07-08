@@ -285,7 +285,7 @@ if ($_extended) {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body p-0" style="min-height:300px">
-        <div id="recap-modal-loading" class="d-flex align-items-center justify-content-center py-5">
+        <div id="recap-modal-loading" style="display:flex;align-items:center;justify-content:center;padding:3rem 0">
           <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
         </div>
         <div id="recap-modal-error" class="alert alert-danger m-3" style="display:none"></div>
