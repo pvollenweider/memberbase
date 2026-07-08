@@ -25,8 +25,7 @@ class Compta
 
     public function lookupCompta(int $id): void
     {
-        global $pdo;
-        $stmt = $pdo->prepare("SELECT id,user_id,type_id,date,libele,sum,quittance,wants_attestation,cotisation_year FROM compta WHERE id=?");
+        $stmt = db()->prepare("SELECT id,user_id,type_id,date,libele,sum,quittance,wants_attestation,cotisation_year FROM compta WHERE id=?");
         $stmt->execute([$id]);
         $row = $stmt->fetchObject();
         if ($row) {
@@ -77,16 +76,15 @@ class Compta
 
     public function save(): void
     {
-        global $pdo;
         if ($this->id) {
-            $pdo->prepare(
+            db()->prepare(
                 "UPDATE compta SET user_id=?,type_id=?,date=?,libele=?,sum=?,quittance=?,wants_attestation=?,cotisation_year=? WHERE id=?"
             )->execute([
                 $this->userId, $this->type_id, $this->date, $this->libele,
                 $this->sum, $this->quittance, $this->wants_attestation, $this->cotisation_year, $this->id,
             ]);
         } else {
-            $pdo->prepare(
+            db()->prepare(
                 "INSERT INTO compta (user_id,type_id,date,libele,sum,quittance,wants_attestation,cotisation_year) VALUES (?,?,?,?,?,?,?,?)"
             )->execute([
                 $this->userId, $this->type_id, $this->date,
@@ -97,8 +95,7 @@ class Compta
 
     public function remove(): void
     {
-        global $pdo;
-        $pdo->prepare("DELETE FROM compta WHERE id=?")->execute([$this->id]);
+        db()->prepare("DELETE FROM compta WHERE id=?")->execute([$this->id]);
     }
 
     /**
@@ -109,12 +106,11 @@ class Compta
      */
     public static function typesByUser(array $userIds): array
     {
-        global $pdo;
         if (!$userIds) {
             return [];
         }
         $placeholders = implode(',', array_fill(0, count($userIds), '?'));
-        $stmt = $pdo->prepare("
+        $stmt = db()->prepare("
             SELECT c.user_id, ct.id AS type_id, ct.label, ct.color
             FROM compta c
             JOIN compta_type ct ON ct.id = c.type_id
@@ -139,10 +135,9 @@ class Compta
      */
     public static function activitySummaryByUser(int $year): array
     {
-        global $pdo;
         $from = mktime(0, 0, 0, 1, 0, $year - 10);
         $to   = mktime(0, 0, 0, 1, 1, $year + 1);
-        $stmt = $pdo->prepare("
+        $stmt = db()->prepare("
             SELECT c.user_id,
                    COUNT(*) AS total,
                    MAX(c.date) AS last_date,

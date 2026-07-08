@@ -41,6 +41,9 @@ try {
     header('Location: install.php'); exit;
 }
 
+// Returns the shared PDO connection. Use this instead of `global $pdo` inside functions and methods.
+function db(): PDO { global $pdo; return $pdo; }
+
 // Redirect to installer if schema not yet initialized
 try {
     $pdo->query("SELECT 1 FROM compta_type LIMIT 1");
@@ -107,9 +110,8 @@ function getMaxVal(PDO $pdo, string $parameter): int
 
 function updateAndGetMaxVal(string $parameter): int
 {
-    global $pdo;
-    $value = getMaxVal($pdo, $parameter) + 1;
-    $pdo->prepare("UPDATE maxval SET value=? WHERE parameter=?")->execute([$value, $parameter]);
+    $value = getMaxVal(db(), $parameter) + 1;
+    db()->prepare("UPDATE maxval SET value=? WHERE parameter=?")->execute([$value, $parameter]);
     return $value;
 }
 

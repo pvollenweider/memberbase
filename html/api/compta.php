@@ -77,7 +77,6 @@ function validateTypeId(int $typeId): void
 
 function handleList(): void
 {
-    global $pdo;
     if (!canRead()) apiError(403, 'Forbidden');
 
     $memberId = isset($_GET['memberId']) ? (int)$_GET['memberId'] : null;
@@ -95,7 +94,7 @@ function handleList(): void
         $params[] = $to;
     }
 
-    $stmt = $pdo->prepare(
+    $stmt = db()->prepare(
         "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation
          FROM compta c
          $where
@@ -129,7 +128,7 @@ function handleGet(int $id): void
 
 function handleCreate(): void
 {
-    global $pdo, $comptaTypes;
+    global $comptaTypes;
     if (!canWrite()) apiError(403, 'Forbidden');
     $body = requestBody();
 
@@ -143,7 +142,7 @@ function handleCreate(): void
 
     validateTypeId($typeId);
 
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $stmt = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
     $stmt->execute([$memberId]);
     if (!$stmt->fetchColumn()) apiError(422, "Member #$memberId not found");
 
@@ -157,13 +156,13 @@ function handleCreate(): void
     applyFields($c, $body);
     $c->save();
 
-    $newId = (int)$pdo->lastInsertId();
+    $newId = (int)db()->lastInsertId();
     $c->lookupCompta($newId);
 
-    $_auUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+    $_auUser = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
     $_auUser->execute([$memberId]);
     $typLabel = $comptaTypes[$typeId]->label ?? "type=$typeId";
-    auditLog($pdo, 'addCompta',
+    auditLog(db(), 'addCompta',
         "membre: " . ($_auUser->fetchColumn() ?: "id=$memberId") . " | $typLabel | {$c->getSum()} CHF",
         $memberId);
 
@@ -173,7 +172,7 @@ function handleCreate(): void
 
 function handleUpdate(int $id): void
 {
-    global $pdo, $comptaTypes;
+    global $comptaTypes;
     if (!canWrite()) apiError(403, 'Forbidden');
     $body = requestBody();
 
@@ -188,14 +187,13 @@ function handleUpdate(int $id): void
 
     $c->lookupCompta($id);
     $typLabel = $comptaTypes[(int)$c->getTypeId()]->label ?? "type={$c->getTypeId()}";
-    auditLog($pdo, 'updateCompta', "compta#=$id | $typLabel | {$c->getSum()} CHF", (int)$c->getUserId());
+    auditLog(db(), 'updateCompta', "compta#=$id | $typLabel | {$c->getSum()} CHF", (int)$c->getUserId());
 
     echo json_encode(['data' => entryToArray($c)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
 function handleDelete(int $id): void
 {
-    global $pdo;
 
     if (!canWrite()) apiError(403, 'Forbidden');
 
@@ -203,7 +201,7 @@ function handleDelete(int $id): void
     $c->lookupCompta($id);
     if (!$c->getId()) apiError(404, 'Entry not found');
 
-    auditLog($pdo, 'deleteCompta', "compta#=$id | {$c->getSum()} CHF", (int)$c->getUserId());
+    auditLog(db(), 'deleteCompta', "compta#=$id | {$c->getSum()} CHF", (int)$c->getUserId());
     $c->remove();
 
     http_response_code(204);

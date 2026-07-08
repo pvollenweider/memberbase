@@ -84,10 +84,9 @@ function groupToArray(object $row): array
 
 function handleList(): void
 {
-    global $pdo;
     if (!canRead()) apiError(403, 'Forbidden');
 
-    $stmt = $pdo->query(
+    $stmt = db()->query(
         "SELECT t.id, t.name, t.hidden,
                 COUNT(up.user_id) AS member_count,
                 cat.id AS cat_id, cat.name AS cat_name
@@ -109,10 +108,9 @@ function handleList(): void
 
 function handleGet(int $id): void
 {
-    global $pdo;
     if (!canRead()) apiError(403, 'Forbidden');
 
-    $stmt = $pdo->prepare(
+    $stmt = db()->prepare(
         "SELECT t.id, t.name, t.hidden,
                 COUNT(up.user_id) AS member_count,
                 cat.id AS cat_id, cat.name AS cat_name
@@ -132,14 +130,13 @@ function handleGet(int $id): void
 
 function handleListMembers(int $id): void
 {
-    global $pdo;
     if (!canRead()) apiError(403, 'Forbidden');
 
-    $stmt = $pdo->prepare("SELECT id FROM team WHERE id=? LIMIT 1");
+    $stmt = db()->prepare("SELECT id FROM team WHERE id=? LIMIT 1");
     $stmt->execute([$id]);
     if (!$stmt->fetchColumn()) apiError(404, 'Group not found');
 
-    $stmt = $pdo->prepare(
+    $stmt = db()->prepare(
         "SELECT u.id, u.firstname, u.lastname, u.email, u.npa
          FROM users u
          JOIN user_properties up ON up.user_id = u.id AND up.parameter = ?
@@ -161,7 +158,6 @@ function handleListMembers(int $id): void
 
 function handleCreate(): void
 {
-    global $pdo;
     if (!isManager()) apiError(403, 'Manager role required');
 
     $body = requestBody();
@@ -173,9 +169,9 @@ function handleCreate(): void
     $team->setHidden((bool)($body['hidden'] ?? false));
     $team->save();
 
-    auditLog($pdo, 'addTeam', "name: $name");
+    auditLog(db(), 'addTeam', "name: $name");
 
-    $stmt = $pdo->prepare("SELECT t.id, t.name, t.hidden, 0 AS member_count, NULL AS cat_id, NULL AS cat_name FROM team t WHERE t.id=?");
+    $stmt = db()->prepare("SELECT t.id, t.name, t.hidden, 0 AS member_count, NULL AS cat_id, NULL AS cat_name FROM team t WHERE t.id=?");
     $stmt->execute([$team->getId()]);
 
     http_response_code(201);
@@ -184,7 +180,6 @@ function handleCreate(): void
 
 function handleUpdate(int $id): void
 {
-    global $pdo;
     if (!isManager()) apiError(403, 'Manager role required');
 
     $team = loadGroup($id);
@@ -194,9 +189,9 @@ function handleUpdate(int $id): void
     if (array_key_exists('hidden', $body)) $team->setHidden((bool)$body['hidden']);
     $team->save();
 
-    auditLog($pdo, 'renameTeam', "id=$id | name: {$team->getName()}");
+    auditLog(db(), 'renameTeam', "id=$id | name: {$team->getName()}");
 
-    $stmt = $pdo->prepare(
+    $stmt = db()->prepare(
         "SELECT t.id, t.name, t.hidden,
                 COUNT(up.user_id) AS member_count,
                 cat.id AS cat_id, cat.name AS cat_name
@@ -214,7 +209,6 @@ function handleUpdate(int $id): void
 
 function handleDelete(int $id): void
 {
-    global $pdo;
     if (!isManager()) apiError(403, 'Manager role required');
 
     $team = loadGroup($id);
@@ -223,56 +217,54 @@ function handleDelete(int $id): void
         apiError(409, 'Group still has members — remove them first or use force=true');
     }
 
-    auditLog($pdo, 'deleteTeam', "id=$id | name: {$team->getName()}");
-    $pdo->prepare("DELETE FROM team WHERE id=?")->execute([$id]);
+    auditLog(db(), 'deleteTeam', "id=$id | name: {$team->getName()}");
+    db()->prepare("DELETE FROM team WHERE id=?")->execute([$id]);
 
     http_response_code(204);
 }
 
 function handleAddMember(int $groupId): void
 {
-    global $pdo;
     if (!isManager()) apiError(403, 'Manager role required');
 
     $body     = requestBody();
     $memberId = isset($body['memberId']) ? (int)$body['memberId'] : 0;
     if (!$memberId) apiError(422, 'memberId is required');
 
-    $chkGroup = $pdo->prepare("SELECT id FROM team WHERE id=? LIMIT 1");
+    $chkGroup = db()->prepare("SELECT id FROM team WHERE id=? LIMIT 1");
     $chkGroup->execute([$groupId]);
     if (!$chkGroup->fetchColumn()) apiError(404, 'Group not found');
 
-    $chkUser = $pdo->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $chkUser = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
     $chkUser->execute([$memberId]);
     if (!$chkUser->fetchColumn()) apiError(422, "Member #$memberId not found");
 
-    $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, 'true')")
+    db()->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, 'true')")
         ->execute([$memberId, "team_$groupId"]);
 
-    $_auU = $pdo->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
+    $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
     $_auU->execute([$memberId]);
     $_auName = trim((string)$_auU->fetchColumn());
-    auditLog($pdo, 'addMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
+    auditLog(db(), 'addMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
 
     http_response_code(204);
 }
 
 function handleRemoveMember(int $groupId): void
 {
-    global $pdo;
     if (!isManager()) apiError(403, 'Manager role required');
 
     $body     = requestBody();
     $memberId = isset($body['memberId']) ? (int)$body['memberId'] : 0;
     if (!$memberId) apiError(422, 'memberId is required');
 
-    $pdo->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter=?")
+    db()->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter=?")
         ->execute([$memberId, "team_$groupId"]);
 
-    $_auU = $pdo->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
+    $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
     $_auU->execute([$memberId]);
     $_auName = trim((string)$_auU->fetchColumn());
-    auditLog($pdo, 'removeMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
+    auditLog(db(), 'removeMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
 
     http_response_code(204);
 }

@@ -112,12 +112,11 @@ function applyFields(User $user, array $body): void
 
 function emitMemberList(array $rows, int $page, int $limit, int $total, bool $includeTypes, array $groupsByUser = []): void
 {
-    global $pdo;
     $typesByUser = [];
     if ($includeTypes && !empty($rows)) {
         $ids = array_unique(array_map(fn($r) => (int)$r->id, $rows));
         $ph  = implode(',', array_fill(0, count($ids), '?'));
-        $stT = $pdo->prepare("
+        $stT = db()->prepare("
             SELECT c.user_id, ct.id AS type_id, ct.label, ct.color
             FROM compta c
             JOIN compta_type ct ON ct.id = c.type_id
@@ -159,7 +158,7 @@ function emitMemberList(array $rows, int $page, int $limit, int $total, bool $in
 
 function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, bool $includeTypes): void
 {
-    global $pdo, $appSettings;
+    global $appSettings;
 
     $year = (int)date('Y');
 
@@ -170,8 +169,8 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
 
     // All active members — no ID restriction needed
     if ($filterId === FILTER_ALL_EXCEPT_ARCHIVES) {
-        $total = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE status = 1")->fetchColumn();
-        $stmt = $pdo->prepare("$baseSelect WHERE users.status = 1 $orderBy LIMIT ? OFFSET ?");
+        $total = (int)db()->query("SELECT COUNT(*) FROM users WHERE status = 1")->fetchColumn();
+        $stmt = db()->prepare("$baseSelect WHERE users.status = 1 $orderBy LIMIT ? OFFSET ?");
         $stmt->bindValue(1, $limit,  PDO::PARAM_INT);
         $stmt->bindValue(2, $offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -184,7 +183,7 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
     }
 
     // Shared filter logic — same source of truth as the members list view
-    $ids = array_keys(MemberFilter::resolveIds($filterId, $pdo, $year, $appSettings));
+    $ids = array_keys(MemberFilter::resolveIds($filterId, db(), $year, $appSettings));
     $total = count($ids);
 
     if ($total === 0) {
@@ -193,7 +192,7 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
     }
 
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $stmt = $pdo->prepare("$baseSelect WHERE users.id IN ($placeholders) $orderBy LIMIT ? OFFSET ?");
+    $stmt = db()->prepare("$baseSelect WHERE users.id IN ($placeholders) $orderBy LIMIT ? OFFSET ?");
     $i = 1;
     foreach ($ids as $uid) { $stmt->bindValue($i++, $uid, PDO::PARAM_INT); }
     $stmt->bindValue($i++, $limit,  PDO::PARAM_INT);
@@ -205,7 +204,7 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
 
 function handleList(): void
 {
-    global $pdo, $appSettings;
+    global $appSettings;
     if (!canRead()) apiError(403, 'Forbidden');
 
     $search       = trim($_GET['search'] ?? '');
@@ -252,7 +251,7 @@ function handleList(): void
     $mgParams  = [];
 
     if ($metagroupId !== null && $metagroupId > 0) {
-        $stmtMg = $pdo->prepare("SELECT teamid FROM metagroup WHERE id=? AND teamid IS NOT NULL");
+        $stmtMg = db()->prepare("SELECT teamid FROM metagroup WHERE id=? AND teamid IS NOT NULL");
         $stmtMg->execute([$metagroupId]);
         $mgTeamIds = $stmtMg->fetchAll(PDO::FETCH_COLUMN);
         if (empty($mgTeamIds)) {
@@ -266,7 +265,7 @@ function handleList(): void
         $params    = array_merge($search !== '' ? array_fill(0, 8, '%' . $search . '%') : [], $mgParams);
     }
 
-    $stmtCount = $pdo->prepare("SELECT COUNT(DISTINCT users.id) FROM users $joins $where");
+    $stmtCount = db()->prepare("SELECT COUNT(DISTINCT users.id) FROM users $joins $where");
     $stmtCount->execute($params);
     $total = (int)$stmtCount->fetchColumn();
 
@@ -278,7 +277,7 @@ function handleList(): void
             ORDER BY users.lastname ASC, users.firstname ASC
             LIMIT ? OFFSET ?";
 
-    $stmt = $pdo->prepare($sql);
+    $stmt = db()->prepare($sql);
     $i = 1;
     foreach ($params as $val) { $stmt->bindValue($i++, $val); }
     $stmt->bindValue($i++, $limit,  PDO::PARAM_INT);
@@ -292,13 +291,13 @@ function handleList(): void
         $resultIds = array_map(fn($r) => (int)$r->id, $rows);
         // Fetch team names
         $teamIdPh  = implode(',', array_fill(0, count($mgTeamIds), '?'));
-        $stNames   = $pdo->prepare("SELECT id, name FROM team WHERE id IN ($teamIdPh)");
+        $stNames   = db()->prepare("SELECT id, name FROM team WHERE id IN ($teamIdPh)");
         $stNames->execute($mgTeamIds);
         $teamNames = array_column($stNames->fetchAll(PDO::FETCH_ASSOC), 'name', 'id');
         // Fetch which users are in which teams
         $userPh    = implode(',', array_fill(0, count($resultIds), '?'));
         $paramsPh  = implode(',', array_fill(0, count($mgParams), '?'));
-        $stGrp     = $pdo->prepare("
+        $stGrp     = db()->prepare("
             SELECT user_id, parameter FROM user_properties
             WHERE user_id IN ($userPh) AND parameter IN ($paramsPh)
             ORDER BY parameter ASC
@@ -328,7 +327,6 @@ function handleGet(int $id): void
 
 function handleCreate(): void
 {
-    global $pdo;
     if (!canWrite()) apiError(403, 'Forbidden');
     $body = requestBody();
 
@@ -347,7 +345,7 @@ function handleCreate(): void
     applyFields($user, $body);
 
     $newId = $user->save();
-    auditLog($pdo, 'addUser', "id=$newId | {$user->firstName} {$user->lastName} | email: {$user->email}", $newId);
+    auditLog(db(), 'addUser', "id=$newId | {$user->firstName} {$user->lastName} | email: {$user->email}", $newId);
 
     $user->lookupUser($newId);
     http_response_code(201);
@@ -357,7 +355,6 @@ function handleCreate(): void
 
 function handleUpdate(int $id): void
 {
-    global $pdo;
     if (!canWrite()) apiError(403, 'Forbidden');
     $body = requestBody();
 
@@ -384,7 +381,7 @@ function handleUpdate(int $id): void
     }
     $detail = "id=$id | {$freshUser->getFirstName()} {$freshUser->getLastName()}";
     $detail .= $diffs ? ' | ' . implode(' ; ', $diffs) : ' | (aucune modification)';
-    auditLog($pdo, 'updateUser', $detail, $id);
+    auditLog(db(), 'updateUser', $detail, $id);
 
     echo json_encode(['data' => memberToArray($freshUser)],
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -392,7 +389,6 @@ function handleUpdate(int $id): void
 
 function handleDelete(int $id): void
 {
-    global $pdo;
 
     $user = new User();
     $user->lookupUser($id);
@@ -402,11 +398,11 @@ function handleDelete(int $id): void
 
     if ($dispose === 'delete') {
         if (!isAdmin()) apiError(403, 'Admin role required to permanently delete a member');
-        auditLog($pdo, 'deleteUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
+        auditLog(db(), 'deleteUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
         $user->remove();
     } else {
-        $pdo->prepare("UPDATE users SET status=0 WHERE id=?")->execute([$id]);
-        auditLog($pdo, 'deactivateUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
+        db()->prepare("UPDATE users SET status=0 WHERE id=?")->execute([$id]);
+        auditLog(db(), 'deactivateUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
     }
 
     http_response_code(204);
@@ -414,14 +410,13 @@ function handleDelete(int $id): void
 
 function handleGetGroups(int $id): void
 {
-    global $pdo;
     if (!canRead()) apiError(403, 'Forbidden');
 
-    $chk = $pdo->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $chk = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
     $chk->execute([$id]);
     if (!$chk->fetchColumn()) apiError(404, 'Member not found');
 
-    $stmt = $pdo->prepare(
+    $stmt = db()->prepare(
         "SELECT t.id, t.name, t.hidden,
                 cat.id AS cat_id, cat.name AS cat_name
          FROM team t
@@ -452,14 +447,13 @@ function handleGetGroups(int $id): void
 
 function handleGetCompta(int $id): void
 {
-    global $pdo;
     if (!canRead()) apiError(403, 'Forbidden');
 
-    $chk = $pdo->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $chk = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
     $chk->execute([$id]);
     if (!$chk->fetchColumn()) apiError(404, 'Member not found');
 
-    $stmt = $pdo->prepare(
+    $stmt = db()->prepare(
         "SELECT c.id, c.date, c.libele, c.sum, c.quittance,
                 c.wants_attestation, c.notified_at, c.cotisation_year,
                 ct.id AS type_id, ct.label AS type_label, ct.color AS type_color,
