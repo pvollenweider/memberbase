@@ -478,7 +478,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        <?= sprintf($GLOBAL['deleteSegmentAndRemoveMembersConfirm'], htmlentities($team->getName(), ENT_QUOTES, $charset), $memberCount, $memberCount > 1 ? 's' : '') ?>
+        <?= sprintf($GLOBAL['deleteSegmentAndRemoveMembersConfirm'], htmlentities($segment->getName(), ENT_QUOTES, $charset), $memberCount, $memberCount > 1 ? 's' : '') ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
@@ -499,7 +499,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        <?= sprintf($GLOBAL['deleteSegmentConfirm'], htmlentities($team->getName(), ENT_QUOTES, $charset)) ?>
+        <?= sprintf($GLOBAL['deleteSegmentConfirm'], htmlentities($segment->getName(), ENT_QUOTES, $charset)) ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
