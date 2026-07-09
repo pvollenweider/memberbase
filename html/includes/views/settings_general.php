@@ -18,12 +18,12 @@ $_settingsDrillDown = in_array($_REQUEST['view'] ?? '', ['updateSegment', 'updat
 
 $_paneClass = function(string $tab) use ($_activeTab): string {
     $active = $_activeTab ?? '';
-    if ($active === 'teams') $active = 'groups';
+    if ($active === 'teams' || $active === 'segments') $active = 'groups';
     return $active === $tab ? ' show active' : '';
 };
 
 function _settings_nav_item(string $tab, string $icon, string $label, string $activeTab, bool $drillDown, string $self): void {
-    if ($activeTab === 'teams') $activeTab = 'groups';
+    if ($activeTab === 'teams' || $activeTab === 'segments') $activeTab = 'groups';
     $isActive   = $activeTab === $tab;
     $activeClass = $isActive ? ' active' : '';
     if ($drillDown) {
@@ -380,6 +380,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
         'integrity':  '#tab-integrity',
         'health':     '#tab-health',
         'teams':      '#tab-groups',
+        'segments':   '#tab-groups',
       };
       var targetPane = urlTab && tabMap[urlTab] ? tabMap[urlTab]
                      : sessionStorage.getItem(STORAGE_KEY)

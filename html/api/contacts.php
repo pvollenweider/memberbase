@@ -32,7 +32,7 @@ match (true) {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-function memberFieldsForDiff(User $u): array
+function memberFieldsForDiff(Contact $u): array
 {
     return [
         'firstName' => (string)$u->getFirstName(),
@@ -54,7 +54,7 @@ function memberFieldsForDiff(User $u): array
     ];
 }
 
-function memberToArray(User $u): array
+function memberToArray(Contact $u): array
 {
     return [
         'id'               => (int)$u->getId(),
@@ -90,7 +90,7 @@ function requestBody(): array
 }
 
 /** Applies allowed string fields from $body onto $user. */
-function applyFields(User $user, array $body): void
+function applyFields(Contact $user, array $body): void
 {
     $allowed = ['firstName','lastName','society','gender','title','address','npa',
                 'email','emailAlt','tel','telProf','portable','fax','web','comment'];
