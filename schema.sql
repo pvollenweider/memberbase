@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `idx_users_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Groups
-CREATE TABLE IF NOT EXISTS `team` (
+-- Segments (formerly "teams" / groups)
+CREATE TABLE IF NOT EXISTS `segment` (
   `id`     int(11)      NOT NULL AUTO_INCREMENT,
   `name`   varchar(64)  NOT NULL DEFAULT '',
   `hidden` tinyint(1)   NOT NULL DEFAULT 0,
@@ -45,7 +45,15 @@ CREATE TABLE IF NOT EXISTS `team` (
   KEY `idx_hidden` (`hidden`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Group → member membership (stored in user_properties with parameter='team')
+-- Segment → member membership join table
+CREATE TABLE IF NOT EXISTS `user_segment` (
+  `user_id`    INT NOT NULL,
+  `segment_id` INT NOT NULL,
+  PRIMARY KEY (`user_id`, `segment_id`),
+  KEY `idx_user_segment_segment_id` (`segment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- User extra properties (non-team EAV data)
 CREATE TABLE IF NOT EXISTS `user_properties` (
   `id`        int(8)       NOT NULL DEFAULT 0,
   `user_id`   int(8)       NOT NULL DEFAULT 0,
@@ -61,11 +69,11 @@ CREATE TABLE IF NOT EXISTS `user_properties` (
 CREATE TABLE IF NOT EXISTS `metagroup` (
   `id`         int(11)      NOT NULL,
   `name`       varchar(255) DEFAULT NULL,
-  `teamid`     int(11)      DEFAULT NULL,
+  `segmentid`  int(11)      DEFAULT NULL,
   `is_filter`  tinyint(1)   NOT NULL DEFAULT 1,
   `sort_order` int(11)      NOT NULL DEFAULT 0,
-  KEY `idx_teamid`   (`teamid`),
-  KEY `idx_id_name`  (`id`, `name`(64))
+  KEY `idx_segmentid` (`segmentid`),
+  KEY `idx_id_name`   (`id`, `name`(64))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Accounting types

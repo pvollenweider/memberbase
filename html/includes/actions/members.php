@@ -125,17 +125,12 @@ if ($_REQUEST['action'] == 'updateUser') {
         // Move compta
         $pdo->prepare("UPDATE compta SET user_id=? WHERE user_id=?")->execute([$survivorId, $sourceId]);
 
-        // Move non-team user_properties
+        // Move non-segment user_properties
         $pdo->prepare("UPDATE user_properties SET user_id=? WHERE user_id=? AND parameter NOT LIKE 'team_%'")->execute([$survivorId, $sourceId]);
 
-        // Move team memberships (dedup)
-        $srcTeams = $pdo->prepare("SELECT parameter, value FROM user_properties WHERE user_id=? AND parameter LIKE 'team_%'");
-        $srcTeams->execute([$sourceId]);
-        $insTeam = $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, ?)");
-        while ($t = $srcTeams->fetchObject()) {
-            $insTeam->execute([$survivorId, $t->parameter, $t->value]);
-        }
-        $pdo->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter LIKE 'team_%'")->execute([$sourceId]);
+        // Move segment memberships (dedup)
+        $pdo->prepare("INSERT IGNORE INTO user_segment (user_id, segment_id) SELECT ?, segment_id FROM user_segment WHERE user_id=?")->execute([$survivorId, $sourceId]);
+        $pdo->prepare("DELETE FROM user_segment WHERE user_id=?")->execute([$sourceId]);
 
         // Dispose source
         if ($disposal === 'delete') {
@@ -289,7 +284,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     auditLog($pdo, 'addUser', "id=$userid | {$user->firstName} {$user->lastName} | email: {$user->email}", (int)$userid);
     $fromTeam = (int)($_REQUEST['fromTeam'] ?? 0);
     if ($fromTeam > 0 && !empty($_REQUEST['addToFromTeam'])) {
-        $chk = $pdo->prepare("SELECT COUNT(*) FROM team WHERE id=?");
+        $chk = $pdo->prepare("SELECT COUNT(*) FROM segment WHERE id=?");
         $chk->execute([$fromTeam]);
         if ($chk->fetchColumn() > 0) {
             $ins = $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, 'true')");

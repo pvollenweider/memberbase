@@ -6,32 +6,32 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// Member counts per team
-$countRows = $pdo->query("SELECT SUBSTRING(parameter, 6) AS team_id, COUNT(*) AS cnt FROM user_properties WHERE parameter LIKE 'team_%' GROUP BY parameter")->fetchAll(PDO::FETCH_OBJ);
-$teamCounts = [];
-foreach ($countRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
+// Member counts per segment
+$countRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM user_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
+$segmentCounts = [];
+foreach ($countRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 
-$allTeams   = $pdo->query("SELECT id, name FROM team WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
-$categories = $pdo->query("SELECT DISTINCT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+$allSegments = $pdo->query("SELECT id, name FROM segment WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+$categories  = $pdo->query("SELECT DISTINCT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 
-// Category map for import grouping: teamid → category name
+// Category map for import grouping: segmentid → category name
 $_importCatRows = $pdo->query("
-    SELECT j.teamid, m.name AS cat_name, MIN(m.sort_order) AS sort_order
+    SELECT j.segmentid, m.name AS cat_name, MIN(m.sort_order) AS sort_order
     FROM metagroup j
     JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
-    WHERE j.teamid IS NOT NULL
-    GROUP BY j.teamid, m.name
+    WHERE j.segmentid IS NOT NULL
+    GROUP BY j.segmentid, m.name
 ")->fetchAll(PDO::FETCH_OBJ);
-$_importTeamCat = [];
+$_importSegCat = [];
 foreach ($_importCatRows as $_icr) {
-    $_importTeamCat[(int)$_icr->teamid] = $_icr->cat_name;
+    $_importSegCat[(int)$_icr->segmentid] = $_icr->cat_name;
 }
-// Group visible teams by category for import section
-$_importByCat  = []; // cat_name => [team objects]
+// Group visible segments by category for import section
+$_importByCat  = []; // cat_name => [segment objects]
 $_importNoCat  = [];
-foreach ($allTeams as $_it) {
-    if (isset($_importTeamCat[(int)$_it->id])) {
-        $_importByCat[$_importTeamCat[(int)$_it->id]][] = $_it;
+foreach ($allSegments as $_it) {
+    if (isset($_importSegCat[(int)$_it->id])) {
+        $_importByCat[$_importSegCat[(int)$_it->id]][] = $_it;
     } else {
         $_importNoCat[] = $_it;
     }
@@ -45,15 +45,15 @@ if (!empty($_SESSION['group_toast'])) {
     unset($_SESSION['group_toast']);
     $_gtHidden  = ($_gt['undo_act'] === 'bulkHide') ? 1 : 0;
     $_gtIdsStr  = implode(',', $_gt['undo_ids']);
-    $_gtUndoUrl = $_SERVER['PHP_SELF'] . '?action=undoGroupVisibility&hidden=' . $_gtHidden . '&ids=' . urlencode($_gtIdsStr) . '&view=settings&tab=groups';
+    $_gtUndoUrl = $_SERVER['PHP_SELF'] . '?action=undoSegmentVisibility&hidden=' . $_gtHidden . '&ids=' . urlencode($_gtIdsStr) . '&view=settings&tab=groups';
     echo '<div id="casa-membership-toast" hidden data-msg="' . htmlspecialchars($_gt['msg'], ENT_QUOTES) . '" data-undo-url="' . htmlspecialchars($_gtUndoUrl, ENT_QUOTES) . '"></div>';
 }
 ?>
 
-<p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['addTeam'] ?></p>
+<p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['addSegment'] ?></p>
 
-<form role="form" action="<?= $_SERVER['PHP_SELF'] ?>" method="post" name="addTeam" class="mb-4">
-  <input type="hidden" name="action" value="addTeamWithImport"/>
+<form role="form" action="<?= $_SERVER['PHP_SELF'] ?>" method="post" name="addSegment" class="mb-4">
+  <input type="hidden" name="action" value="addSegmentWithImport"/>
   <input type="hidden" name="view"   value="settings"/>
   <input type="hidden" name="tab"    value="groups"/>
 
@@ -73,7 +73,7 @@ if (!empty($_SESSION['group_toast'])) {
   </div>
   <?php endif ?>
 
-  <?php if (count($allTeams) > 0): ?>
+  <?php if (count($allSegments) > 0): ?>
   <details style="font-size:0.8rem">
     <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem">
       <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
@@ -89,14 +89,14 @@ if (!empty($_SESSION['group_toast'])) {
       <p class="text-muted mb-2" style="font-size:0.75rem"><?= $GLOBAL['importCopyHint'] ?></p>
       <div class="d-flex flex-column gap-1">
         <?php
-        function _renderImportCb($t, $teamCounts, $charset) { ?>
+        function _renderImportCb($t, $segmentCounts, $charset) { ?>
         <div class="form-check form-check-sm">
           <input class="form-check-input" type="checkbox"
                  name="importFrom[]" value="<?= (int)$t->id ?>"
                  id="import_<?= (int)$t->id ?>">
           <label class="form-check-label" for="import_<?= (int)$t->id ?>">
             <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
-            <?php $cnt = $teamCounts[(int)$t->id] ?? 0; if ($cnt > 0): ?>
+            <?php $cnt = $segmentCounts[(int)$t->id] ?? 0; if ($cnt > 0): ?>
             <span class="badge rounded-pill ms-1" style="font-size:0.6rem;font-weight:500;background:var(--ca-primary-light);color:var(--ca-primary-dark)"><?= $cnt ?></span>
             <?php endif ?>
           </label>
@@ -107,14 +107,14 @@ if (!empty($_SESSION['group_toast'])) {
         <p class="text-muted mb-0 mt-2" style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em">
           <?= htmlentities($_catName, ENT_COMPAT, $charset) ?>
         </p>
-        <?php foreach ($_catTeams as $t): _renderImportCb($t, $teamCounts, $charset); endforeach;
+        <?php foreach ($_catTeams as $t): _renderImportCb($t, $segmentCounts, $charset); endforeach;
         endforeach;
 
         if (!empty($_importNoCat)):
           if (!empty($_importByCat)): ?>
         <p class="text-muted mb-0 mt-2" style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em"><?= $GLOBAL['noCategoryLabel'] ?></p>
           <?php endif;
-          foreach ($_importNoCat as $t): _renderImportCb($t, $teamCounts, $charset); endforeach;
+          foreach ($_importNoCat as $t): _renderImportCb($t, $segmentCounts, $charset); endforeach;
         endif; ?>
       </div>
     </div>
@@ -159,14 +159,14 @@ $stmt = $pdo->query("
            COALESCE(cat.name, '') AS cat_name,
            COALESCE(cat.id, 0) AS cat_id,
            COALESCE(cat.sort_order, 99999) AS cat_sort
-    FROM team t
+    FROM segment t
     LEFT JOIN (
-        SELECT j.teamid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
+        SELECT j.segmentid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
         FROM metagroup j
         JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-        WHERE j.teamid IS NOT NULL
-        GROUP BY j.teamid
-    ) cat ON cat.teamid = t.id
+        WHERE j.segmentid IS NOT NULL
+        GROUP BY j.segmentid
+    ) cat ON cat.segmentid = t.id
     ORDER BY t.hidden ASC, cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
 ");
 $prevHidden = 0;
@@ -217,7 +217,7 @@ while ($row = $stmt->fetchObject()) {
                  class="text-decoration-none <?= $isHidden ? 'text-muted' : '' ?>">
                 <?= $name ?>
               </a>
-              <?php $cnt = $teamCounts[$id] ?? 0; if ($cnt > 0): ?>
+              <?php $cnt = $segmentCounts[$id] ?? 0; if ($cnt > 0): ?>
               <span class="badge rounded-pill ms-1" style="font-size:0.65rem;font-weight:500;background:var(--ca-primary-light);color:var(--ca-primary-dark)"><?= $cnt ?></span>
               <?php endif ?>
             </span>
@@ -243,7 +243,7 @@ while ($row = $stmt->fetchObject()) {
                     aria-label="<?= sprintf($GLOBAL['renameNameAria'], $name) ?>" style="font-size:0.78rem;line-height:1">
               <i class="fas fa-i-cursor" aria-hidden="true"></i>
             </button>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $id ?>"
+            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateSegment&amp;id=<?= $id ?>"
                class="text-decoration-none text-muted" aria-label="<?= sprintf($GLOBAL['segmentSettingsAria'], $name) ?>" style="font-size:0.78rem">
               <i class="fas fa-gear" aria-hidden="true"></i>
             </a>
@@ -365,14 +365,14 @@ function toggleHiddenSection(btn) {
   });
 
   function doRename(row) {
-    var teamId = row.dataset.teamId;
+    var segmentId = row.dataset.segmentId;
     var input  = row.querySelector('.team-rename-input');
     var name   = input.value.trim();
     if (!name) { input.focus(); return; }
 
     var body = new URLSearchParams();
-    body.append('action', 'renameTeam');
-    body.append('id',     teamId);
+    body.append('action', 'renameSegment');
+    body.append('id',     segmentId);
     body.append('name',   name);
 
     fetch(window.location.pathname, {

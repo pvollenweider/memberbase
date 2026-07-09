@@ -208,16 +208,16 @@ function handleList(): void
     if (!canRead()) apiError(403, 'Forbidden');
 
     $search       = trim($_GET['search'] ?? '');
-    $teamId       = isset($_GET['team']) ? (int)$_GET['team'] : null;
+    $segmentId    = isset($_GET['team']) ? (int)$_GET['team'] : null;
     $metagroupId  = isset($_GET['metagroup']) ? (int)$_GET['metagroup'] : null;
     $page         = max(1, (int)($_GET['page']  ?? 1));
     $limit        = min(2000, max(1, (int)($_GET['limit'] ?? 25)));
     $offset       = ($page - 1) * $limit;
     $includeTypes = !empty($_GET['types']);
 
-    // Virtual filters: negative teamId handled as SQL subqueries
-    if ($teamId !== null && $teamId < 0) {
-        handleVirtualFilter($teamId, $page, $limit, $offset, $includeTypes);
+    // Virtual filters: negative segmentId handled as SQL subqueries
+    if ($segmentId !== null && $segmentId < 0) {
+        handleVirtualFilter($segmentId, $page, $limit, $offset, $includeTypes);
         return;
     }
 
@@ -237,31 +237,30 @@ function handleList(): void
         $params = array_fill(0, 8, $like);
     }
 
-    if ($teamId !== null && $teamId > 0) {
-        $joins  .= ' JOIN user_properties up_t ON up_t.user_id = users.id AND up_t.parameter = ?';
-        $params  = array_merge([$params[0] ?? null === null ? [] : $params], [["team_$teamId"]]);
+    if ($segmentId !== null && $segmentId > 0) {
+        $joins  .= ' JOIN user_segment up_t ON up_t.user_id = users.id AND up_t.segment_id = ?';
         // rebuild flat params list
         $params = array_merge(
             $search !== '' ? array_fill(0, 8, '%' . $search . '%') : [],
-            ["team_$teamId"]
+            [$segmentId]
         );
     }
 
-    $mgTeamIds = [];
-    $mgParams  = [];
+    $mgSegmentIds = [];
+    $mgParams     = [];
 
     if ($metagroupId !== null && $metagroupId > 0) {
-        $stmtMg = db()->prepare("SELECT teamid FROM metagroup WHERE id=? AND teamid IS NOT NULL");
+        $stmtMg = db()->prepare("SELECT segmentid FROM metagroup WHERE id=? AND segmentid IS NOT NULL");
         $stmtMg->execute([$metagroupId]);
-        $mgTeamIds = $stmtMg->fetchAll(PDO::FETCH_COLUMN);
-        if (empty($mgTeamIds)) {
+        $mgSegmentIds = $stmtMg->fetchAll(PDO::FETCH_COLUMN);
+        if (empty($mgSegmentIds)) {
             echo json_encode(['data' => [], 'meta' => ['page' => 1, 'limit' => $limit, 'total' => 0]],
                 JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             return;
         }
-        $mgParams  = array_map(fn($id) => "team_$id", $mgTeamIds);
+        $mgParams  = $mgSegmentIds;
         $mgPh      = implode(',', array_fill(0, count($mgParams), '?'));
-        $joins    .= ' JOIN user_properties up_mg ON up_mg.user_id = users.id AND up_mg.parameter IN (' . $mgPh . ')';
+        $joins    .= ' JOIN user_segment up_mg ON up_mg.user_id = users.id AND up_mg.segment_id IN (' . $mgPh . ')';
         $params    = array_merge($search !== '' ? array_fill(0, 8, '%' . $search . '%') : [], $mgParams);
     }
 
@@ -285,29 +284,29 @@ function handleList(): void
     $stmt->execute();
     $rows = $stmt->fetchAll();
 
-    // Pre-fetch metagroup team membership for each result user
+    // Pre-fetch metagroup segment membership for each result user
     $groupsByUser = [];
-    if (!empty($mgTeamIds) && !empty($rows)) {
-        $resultIds = array_map(fn($r) => (int)$r->id, $rows);
-        // Fetch team names
-        $teamIdPh  = implode(',', array_fill(0, count($mgTeamIds), '?'));
-        $stNames   = db()->prepare("SELECT id, name FROM team WHERE id IN ($teamIdPh)");
-        $stNames->execute($mgTeamIds);
-        $teamNames = array_column($stNames->fetchAll(PDO::FETCH_ASSOC), 'name', 'id');
-        // Fetch which users are in which teams
+    if (!empty($mgSegmentIds) && !empty($rows)) {
+        $resultIds    = array_map(fn($r) => (int)$r->id, $rows);
+        // Fetch segment names
+        $segIdPh      = implode(',', array_fill(0, count($mgSegmentIds), '?'));
+        $stNames      = db()->prepare("SELECT id, name FROM segment WHERE id IN ($segIdPh)");
+        $stNames->execute($mgSegmentIds);
+        $segmentNames = array_column($stNames->fetchAll(PDO::FETCH_ASSOC), 'name', 'id');
+        // Fetch which users are in which segments
         $userPh    = implode(',', array_fill(0, count($resultIds), '?'));
-        $paramsPh  = implode(',', array_fill(0, count($mgParams), '?'));
+        $segPh     = implode(',', array_fill(0, count($mgParams), '?'));
         $stGrp     = db()->prepare("
-            SELECT user_id, parameter FROM user_properties
-            WHERE user_id IN ($userPh) AND parameter IN ($paramsPh)
-            ORDER BY parameter ASC
+            SELECT user_id, segment_id FROM user_segment
+            WHERE user_id IN ($userPh) AND segment_id IN ($segPh)
+            ORDER BY segment_id ASC
         ");
         $stGrp->execute(array_merge($resultIds, $mgParams));
         foreach ($stGrp->fetchAll() as $gr) {
             $uid = (int)$gr->user_id;
-            $tid = (int)substr($gr->parameter, 5); // strip "team_"
+            $sid = (int)$gr->segment_id;
             if (!isset($groupsByUser[$uid])) $groupsByUser[$uid] = [];
-            $groupsByUser[$uid][] = ['id' => $tid, 'name' => $teamNames[$tid] ?? ''];
+            $groupsByUser[$uid][] = ['id' => $sid, 'name' => $segmentNames[$sid] ?? ''];
         }
     }
 
@@ -419,15 +418,15 @@ function handleGetGroups(int $id): void
     $stmt = db()->prepare(
         "SELECT t.id, t.name, t.hidden,
                 cat.id AS cat_id, cat.name AS cat_name
-         FROM team t
-         JOIN user_properties up ON up.parameter = CONCAT('team_', t.id) AND up.user_id = ?
+         FROM segment t
+         JOIN user_segment us ON us.segment_id = t.id AND us.user_id = ?
          LEFT JOIN (
-             SELECT j.teamid, c.id, c.name, c.sort_order
+             SELECT j.segmentid, c.id, c.name, c.sort_order
              FROM metagroup j
              JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-             WHERE j.teamid IS NOT NULL
-             GROUP BY j.teamid
-         ) cat ON cat.teamid = t.id
+             WHERE j.segmentid IS NOT NULL
+             GROUP BY j.segmentid
+         ) cat ON cat.segmentid = t.id
          ORDER BY COALESCE(cat.sort_order, 99999) ASC,
                   COALESCE(cat.name, 'ZZZZ') ASC,
                   t.name ASC"

@@ -479,18 +479,18 @@ test.describe('Server — suivi action guards', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Server — group action guards', () => {
-  test('readonly: action=addMembership → 403', async ({ playwright }) => {
+  test('readonly: action=assignSegment → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'readonly');
     const csrf = await csrfFor(api);
-    const r = await api.post('/index.php', { form: { csrf, action: 'addMembership', id: String(ACTIVE_MEMBER_ID), teamId: '1' } });
+    const r = await api.post('/index.php', { form: { csrf, action: 'assignSegment', id: String(ACTIVE_MEMBER_ID), segmentId: '1' } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
 
-  test('user: action=removeMembership → 403', async ({ playwright }) => {
+  test('user: action=unassignSegment → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'user');
     const csrf = await csrfFor(api);
-    const r = await api.post('/index.php', { form: { csrf, action: 'removeMembership', id: String(ACTIVE_MEMBER_ID), teamId: '1' } });
+    const r = await api.post('/index.php', { form: { csrf, action: 'unassignSegment', id: String(ACTIVE_MEMBER_ID), segmentId: '1' } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });

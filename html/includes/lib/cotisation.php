@@ -16,7 +16,7 @@
  * @param PDO   $db          Database connection
  * @param int   $year        Target year (lapsed = paid $year-1, not paid $year)
  * @param int[] $cotiTypeIds compta_type IDs that count as a cotisation
- * @param int   $noCotiTeam  If > 0, exclude members of this team from results
+ * @param int   $noCotiTeam  If > 0, exclude members of this segment from results
  * @return object[]          PDO rows with id, firstname, lastname, society, email
  */
 function mbGetLapsedMembers(PDO $db, int $year, array $cotiTypeIds, int $noCotiTeam = 0): array
@@ -26,7 +26,7 @@ function mbGetLapsedMembers(PDO $db, int $year, array $cotiTypeIds, int $noCotiT
     }
     $ph           = implode(',', array_fill(0, count($cotiTypeIds), '?'));
     $noCotiClause = $noCotiTeam > 0
-        ? "AND NOT EXISTS (SELECT 1 FROM user_properties WHERE user_id=u.id AND parameter='team_$noCotiTeam' AND value='true')"
+        ? "AND NOT EXISTS (SELECT 1 FROM user_segment WHERE user_id=u.id AND segment_id=$noCotiTeam)"
         : '';
 
     $stmt = $db->prepare("

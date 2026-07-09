@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `idx_users_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `team` (
+CREATE TABLE IF NOT EXISTS `segment` (
   `id`     int(11)     NOT NULL AUTO_INCREMENT,
   `name`   varchar(64) NOT NULL DEFAULT '',
   `hidden` tinyint(1)  NOT NULL DEFAULT 0,
@@ -77,13 +77,20 @@ CREATE TABLE IF NOT EXISTS `user_properties` (
   KEY `idx_user_param` (`user_id`, `parameter`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `user_segment` (
+  `user_id` int NOT NULL,
+  `segment_id` int NOT NULL,
+  PRIMARY KEY (`user_id`, `segment_id`),
+  KEY `idx_user_segment_segment_id` (`segment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `metagroup` (
   `id`         int(11)      NOT NULL,
   `name`       varchar(255) DEFAULT NULL,
-  `teamid`     int(11)      DEFAULT NULL,
+  `segmentid`  int(11)      DEFAULT NULL,
   `is_filter`  tinyint(1)   NOT NULL DEFAULT 1,
   `sort_order` int(11)      NOT NULL DEFAULT 0,
-  KEY `idx_teamid`  (`teamid`),
+  KEY `idx_segmentid` (`segmentid`),
   KEY `idx_id_name` (`id`, `name`(64))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -357,8 +364,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
             // Create default member group for current year and set as default_team + membre_team
             $currentYear = (int)date('Y');
             $prefix = $memberPrefix ?: 'Membre';
-            $insertTeam = $pdo->prepare("INSERT INTO team (name, hidden) VALUES (?, 0)");
-            $findTeam   = $pdo->prepare("SELECT id FROM team WHERE name = ?");
+            $insertTeam = $pdo->prepare("INSERT INTO segment (name, hidden) VALUES (?, 0)");
+            $findTeam   = $pdo->prepare("SELECT id FROM segment WHERE name = ?");
 
             // Previous year team (for delta display in resume)
             $prevGroupName = $prefix . ' ' . ($currentYear - 1);
@@ -386,9 +393,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
             $metaId = $mvRow ? (int)$mvRow->value + 1 : 1;
             $existingMeta = (int)$pdo->query("SELECT COUNT(*) FROM metagroup WHERE name='Membres'")->fetchColumn();
             if (!$existingMeta) {
-                $pdo->prepare("INSERT INTO metagroup (id, name, teamid, is_filter, sort_order) VALUES (?, ?, NULL, 0, 1)")->execute([$metaId, 'Membres']);
-                $pdo->prepare("INSERT INTO metagroup (id, name, teamid, is_filter, sort_order) VALUES (?, NULL, ?, 0, 0)")->execute([$metaId, $prevTeamId]);
-                $pdo->prepare("INSERT INTO metagroup (id, name, teamid, is_filter, sort_order) VALUES (?, NULL, ?, 0, 0)")->execute([$metaId, $defaultTeamId]);
+                $pdo->prepare("INSERT INTO metagroup (id, name, segmentid, is_filter, sort_order) VALUES (?, ?, NULL, 0, 1)")->execute([$metaId, 'Membres']);
+                $pdo->prepare("INSERT INTO metagroup (id, name, segmentid, is_filter, sort_order) VALUES (?, NULL, ?, 0, 0)")->execute([$metaId, $prevTeamId]);
+                $pdo->prepare("INSERT INTO metagroup (id, name, segmentid, is_filter, sort_order) VALUES (?, NULL, ?, 0, 0)")->execute([$metaId, $defaultTeamId]);
                 $pdo->prepare("UPDATE maxval SET value=? WHERE parameter='metagroup_id'")->execute([$metaId]);
             }
 
@@ -592,7 +599,7 @@ $steps = ['1' => $GLOBAL['stepPrereqs'], '2' => $GLOBAL['stepDatabase'], '3' => 
       <h2 class="h5 mb-1"><?= $GLOBAL['schemaInitTitle'] ?></h2>
       <p class="text-muted small mb-2"><?= $GLOBAL['schemaInitHint'] ?></p>
       <div class="alert alert-light small mb-3">
-        <strong><?= $GLOBAL['tablesCreated'] ?></strong> users, team, user_properties, metagroup, compta, compta_type, maxval, app_settings, app_users, audit_log
+        <strong><?= $GLOBAL['tablesCreated'] ?></strong> users, segment, user_properties, user_segment, metagroup, compta, compta_type, maxval, app_settings, app_users, audit_log
       </div>
       <form method="post" action="install.php?step=3">
         <button type="submit" class="btn btn-primary w-100"><?= $GLOBAL['createTablesBtn'] ?></button>

@@ -25,9 +25,9 @@ VALUES
   (4, 'Lapsed',   'Carol',  'carol@example.com',    1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ''),
   (5, 'Lapsed',   'Dave',   '',                     1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), '');
 
--- Teams / groups
-INSERT INTO `team` (`id`, `name`, `hidden`) VALUES (1, 'Membre 2025', 0);
-INSERT INTO `team` (`id`, `name`, `hidden`) VALUES (2, 'Membre 2026', 0);
+-- Segments (formerly teams)
+INSERT INTO `segment` (`id`, `name`, `hidden`) VALUES (1, 'Membre 2025', 0);
+INSERT INTO `segment` (`id`, `name`, `hidden`) VALUES (2, 'Membre 2026', 0);
 
 -- App settings — default_team=0 means "all active members" (no group filter)
 -- SMTP points to Mailpit running in Docker (port 1025, no auth)
@@ -60,18 +60,18 @@ VALUES
   (4, 4, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50', 'Q-004', 1, 0, 2025),
   (5, 5, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50', 'Q-005', 1, 0, 2025);
 
--- user_properties: team membership
-INSERT INTO `user_properties` (`id`, `user_id`, `parameter`, `date`, `value`) VALUES
-  (1, 1, 'team_1', UNIX_TIMESTAMP(), 'true'),
-  (2, 1, 'team_2', UNIX_TIMESTAMP(), 'true'),
-  (3, 2, 'team_1', UNIX_TIMESTAMP(), 'true'),
-  (4, 2, 'team_2', UNIX_TIMESTAMP(), 'true'),
-  (5, 4, 'team_1', UNIX_TIMESTAMP(), 'true'),
-  (6, 5, 'team_1', UNIX_TIMESTAMP(), 'true');
+-- Segment membership (join table)
+INSERT INTO `user_segment` (`user_id`, `segment_id`) VALUES
+  (1, 1),
+  (1, 2),
+  (2, 1),
+  (2, 2),
+  (4, 1),
+  (5, 1);
 
 -- maxval rows
 INSERT INTO `maxval` (`parameter`, `value`) VALUES
-  ('userpropertiesid', 6),
+  ('userpropertiesid', 0),
   ('metagroup_id', 0);
 
 SET foreign_key_checks = 1;

@@ -50,7 +50,7 @@ if (isset($_REQUEST['addMem'])) {
     $addMem = $_REQUEST['addMem'];
 }
 if ($addMem != -1) {
-    ?><?= $GLOBAL['addMembershipEntry'] ?> <?=$addMem?><?php
+    ?><?= $GLOBAL['assignSegmentEntry'] ?> <?=$addMem?><?php
 }
 ?>
 
@@ -200,7 +200,7 @@ while ($row = $stmt->fetchObject()) {
     $rowStyle = isset($bgVarMap[$ctColor]) ? '--bs-table-bg:' . $bgVarMap[$ctColor] : '';
 
     if ($addMem != -1) {
-        $user->addMembership($addMem);
+        $user->assignSegment($addMem);
     }
     ?>
     <?php

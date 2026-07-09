@@ -135,9 +135,11 @@ class User
         return $row ? (string) $row->value : "";
     }
 
-    public function isMemberOfTeam(int $teamId): bool
+    public function isMemberOfSegment(int $segmentId): bool
     {
-        return $this->getProperty("team_" . $teamId) === 'true';
+        $stmt = db()->prepare("SELECT 1 FROM user_segment WHERE user_id=? AND segment_id=? LIMIT 1");
+        $stmt->execute([$this->id, $segmentId]);
+        return $stmt->fetchColumn() !== false;
     }
 
     private function firstComptaDate(string $sql, array $params): int
@@ -218,16 +220,16 @@ class User
         return $stmt->fetchColumn() ?: "id=$id";
     }
 
-    public function addMembership(int $teamId): void
+    public function assignSegment(int $segmentId): void
     {
-        db()->prepare("INSERT IGNORE INTO user_properties (user_id,parameter,value) VALUES (?,?,?)")
-            ->execute([$this->id, "team_$teamId", 'true']);
+        db()->prepare("INSERT IGNORE INTO user_segment (user_id, segment_id) VALUES (?, ?)")
+            ->execute([$this->id, $segmentId]);
     }
 
-    public function removeMembership(int $teamId): void
+    public function unassignSegment(int $segmentId): void
     {
-        db()->prepare("DELETE FROM user_properties WHERE user_id=? AND parameter=?")
-            ->execute([$this->id, "team_$teamId"]);
+        db()->prepare("DELETE FROM user_segment WHERE user_id=? AND segment_id=?")
+            ->execute([$this->id, $segmentId]);
     }
 
     public function save(): int
@@ -295,12 +297,12 @@ class User
                . " users.sexe, users.address, users.npa, users.email, users.creationDate"
                . " FROM users";
         if ($metagroup > 0) {
-            $query .= ",user_properties ";
+            $query .= ",user_segment ";
         } else {
             // Virtual filter IDs (resolved via MemberFilter) and team=0 (all members)
-            // do not need a user_properties join
+            // do not need a user_segment join
             if ($team != 0 && $team != -1 && !MemberFilter::isVirtual($team)) {
-                $query .= ",user_properties ";
+                $query .= ",user_segment ";
             }
         }
         $query .= " WHERE 1=1 AND users.status=1 ";
@@ -321,25 +323,25 @@ class User
         }
 
         if ($metagroup > 0) {
-            $mgTeamIds = Metagroup::teamIds($metagroup);
-            if (count($mgTeamIds) > 0) {
-                $placeholders = implode(',', array_fill(0, count($mgTeamIds), '?'));
-                $query .= " AND users.id=user_properties.user_id AND user_properties.parameter IN ($placeholders)";
-                $queryParams = array_merge($queryParams, array_map(fn($id) => "team_$id", $mgTeamIds));
+            $mgSegmentIds = Metagroup::segmentIds($metagroup);
+            if (count($mgSegmentIds) > 0) {
+                $placeholders = implode(',', array_fill(0, count($mgSegmentIds), '?'));
+                $query .= " AND users.id=user_segment.user_id AND user_segment.segment_id IN ($placeholders)";
+                $queryParams = array_merge($queryParams, $mgSegmentIds);
             } else {
-                $query .= " AND 1=0"; // metagroup has no teams — return empty
+                $query .= " AND 1=0"; // metagroup has no segments — return empty
             }
         } else if ($team != -1) {
             if ($team == 0 || MemberFilter::isVirtual($team)) {
                 // team=0 = all active members; virtual filters restrict rows
                 // via the MemberFilter ID set applied by the caller
             } else if ($team == -1234) {
-                $membreTeam = (int)($opts['membreTeam'] ?? 0);
-                $query .= " AND users.id=user_properties.user_id ";
-                $query .= "AND ( ";
-                $query .= "user_properties.parameter='team_$membreTeam') ";
+                $membreSegment = (int)($opts['membreTeam'] ?? 0);
+                $query .= " AND users.id=user_segment.user_id AND user_segment.segment_id=? ";
+                $queryParams[] = $membreSegment;
             } else {
-                $query .= " AND users.id=user_properties.user_id AND user_properties.parameter='team_$team'";
+                $query .= " AND users.id=user_segment.user_id AND user_segment.segment_id=?";
+                $queryParams[] = $team;
             }
         }
 

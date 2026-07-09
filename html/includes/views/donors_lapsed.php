@@ -52,7 +52,7 @@ $count = count($rows);
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline" hx-boost="false">
-          <input type="hidden" name="action"    value="createLapsedGroup">
+          <input type="hidden" name="action"    value="createLapsedSegment">
           <input type="hidden" name="groupType" value="donors">
           <input type="hidden" name="year"      value="<?= $year ?>">
           <input type="hidden" name="view"      value="lapsedDonors">

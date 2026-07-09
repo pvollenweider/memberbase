@@ -12,7 +12,7 @@ $inactiveUsers = $pdo->query(
      WHERE status=0
      ORDER BY society, lastName, firstName"
 )->fetchAll(PDO::FETCH_OBJ);
-$allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
+$allSegments = $pdo->query("SELECT id, name, hidden FROM segment ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
 ?>
 <div class="row justify-content-center mt-4">
   <div class="col-12 col-xl-10">

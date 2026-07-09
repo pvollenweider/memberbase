@@ -8,18 +8,18 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 // Membership toast sentinel
 $_msAction  = $_REQUEST['action'] ?? '';
-$_msTeamId  = (int)($_REQUEST['teamId'] ?? 0);
+$_msTeamId  = (int)($_REQUEST['segmentId'] ?? 0);
 $_msUserId  = (int)($_REQUEST['id']     ?? 0);
-if (($_msAction === 'addMembership' || $_msAction === 'removeMembership') && $_msTeamId > 0 && $_msUserId > 0) {
-    $_msTeamNameStmt = $pdo->prepare("SELECT name FROM team WHERE id=?");
+if (($_msAction === 'assignSegment' || $_msAction === 'unassignSegment') && $_msTeamId > 0 && $_msUserId > 0) {
+    $_msTeamNameStmt = $pdo->prepare("SELECT name FROM segment WHERE id=?");
     $_msTeamNameStmt->execute([$_msTeamId]);
     $_msTeamName = $_msTeamNameStmt->fetchColumn() ?: sprintf($GLOBAL['segmentNumber'], $_msTeamId);
-    if ($_msAction === 'addMembership') {
+    if ($_msAction === 'assignSegment') {
         $_msMsg     = sprintf($GLOBAL['membershipAdded'], htmlspecialchars($_msTeamName, ENT_QUOTES, $charset));
-        $_msUndoUrl = $_SERVER['PHP_SELF'] . '?view=generalData&action=removeMembership&id=' . $_msUserId . '&teamId=' . $_msTeamId;
+        $_msUndoUrl = $_SERVER['PHP_SELF'] . '?view=generalData&action=unassignSegment&id=' . $_msUserId . '&segmentId=' . $_msTeamId;
     } else {
         $_msMsg     = sprintf($GLOBAL['membershipRemoved'], htmlspecialchars($_msTeamName, ENT_QUOTES, $charset));
-        $_msUndoUrl = $_SERVER['PHP_SELF'] . '?view=generalData&action=addMembership&id=' . $_msUserId . '&teamId=' . $_msTeamId;
+        $_msUndoUrl = $_SERVER['PHP_SELF'] . '?view=generalData&action=assignSegment&id=' . $_msUserId . '&segmentId=' . $_msTeamId;
     }
     echo '<div id="casa-membership-toast" hidden data-msg="' . htmlspecialchars($_msMsg, ENT_QUOTES, $charset) . '" data-undo-url="' . htmlspecialchars($_msUndoUrl, ENT_QUOTES, $charset) . '"></div>';
 }
@@ -37,14 +37,14 @@ $stmtAll = $pdo->query("
            COALESCE(cat.name, '') AS cat_name,
            COALESCE(cat.id, 0) AS cat_id,
            COALESCE(cat.sort_order, 99999) AS cat_sort
-    FROM team t
+    FROM segment t
     LEFT JOIN (
-        SELECT j.teamid, c.id, c.name, c.sort_order
+        SELECT j.segmentid, c.id, c.name, c.sort_order
         FROM metagroup j
         JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-        WHERE j.teamid IS NOT NULL
-        GROUP BY j.teamid
-    ) cat ON cat.teamid = t.id
+        WHERE j.segmentid IS NOT NULL
+        GROUP BY j.segmentid
+    ) cat ON cat.segmentid = t.id
     WHERE 1=1 $whereHidden
     ORDER BY cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
 ");
@@ -52,7 +52,7 @@ $stmtAll = $pdo->query("
 $memberTeams    = [];
 $nonMemberTeams = [];
 while ($row = $stmtAll->fetchObject()) {
-    if ($user->isMemberOfTeam($row->id)) {
+    if ($user->isMemberOfSegment($row->id)) {
         $memberTeams[] = $row;
     } elseif (!$row->hidden) {
         $nonMemberTeams[] = $row;
@@ -102,13 +102,13 @@ uasort($nonMemberBycat, $_catSortFn);
         <?php endif ?>
         <div class="d-flex flex-wrap gap-1 mb-3">
             <?php
-            $_justAdded = (($_REQUEST['action'] ?? '') === 'addMembership') ? (int)($_REQUEST['teamId'] ?? 0) : 0;
+            $_justAdded = (($_REQUEST['action'] ?? '') === 'assignSegment') ? (int)($_REQUEST['segmentId'] ?? 0) : 0;
             foreach ($group['teams'] as $t):
                 $isNew = $_justAdded === (int)$t->id;
             ?>
                 <?php if (isManager()): ?>
                 <a class="member-pill<?= $isNew ? ' pill-just-added' : '' ?><?= $t->hidden ? ' pill-hidden' : '' ?>"
-                   href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=removeMembership&amp;id=<?= $user->id ?>&amp;teamId=<?= $t->id ?>"
+                   href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=unassignSegment&amp;id=<?= $user->id ?>&amp;segmentId=<?= $t->id ?>"
                    title="<?= ($t->hidden ? $GLOBAL['hiddenSegmentPrefix'] : '') . sprintf($GLOBAL['removeFromSegment'], htmlentities($t->name, ENT_COMPAT, $charset)) ?>">
                     <?php if ($t->hidden): ?><i class="fas fa-eye-slash me-1" aria-label="<?= $GLOBAL['hiddenSegment'] ?>" style="font-size:0.65rem;opacity:0.6"></i><?php endif ?>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
@@ -126,10 +126,10 @@ uasort($nonMemberBycat, $_catSortFn);
 <?php endif ?>
 
 <?php if (isManager()): ?>
-<details class="ca-integrity-section mt-3" <?= ((($_REQUEST['action'] ?? '') === 'addMembership') || !empty($_REQUEST['viewall'])) ? 'open' : '' ?>>
+<details class="ca-integrity-section mt-3" <?= ((($_REQUEST['action'] ?? '') === 'assignSegment') || !empty($_REQUEST['viewall'])) ? 'open' : '' ?>>
   <summary class="ca-integrity-summary">
     <i class="fas fa-plus me-1 text-muted" style="font-size:0.7rem" aria-hidden="true"></i>
-    <?= $GLOBAL['addTeam'] ?>
+    <?= $GLOBAL['addSegment'] ?>
   </summary>
   <div>
     <?php foreach ($nonMemberBycat as $group): ?>
@@ -140,7 +140,7 @@ uasort($nonMemberBycat, $_catSortFn);
         <?php endif ?>
         <div class="group-add-list mb-1">
             <?php foreach ($group['teams'] as $t): ?>
-                <a href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=addMembership&amp;id=<?= $user->id ?>&amp;teamId=<?= $t->id ?>">
+                <a href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=assignSegment&amp;id=<?= $user->id ?>&amp;segmentId=<?= $t->id ?>">
                     <i class="far fa-square-plus" aria-hidden="true"></i>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
                 </a>
@@ -170,7 +170,7 @@ uasort($nonMemberBycat, $_catSortFn);
   var ADDED_TPL   = <?= json_encode($GLOBAL['membershipAdded'], JSON_UNESCAPED_UNICODE) ?>;
   var REMOVED_TPL = <?= json_encode($GLOBAL['membershipRemoved'], JSON_UNESCAPED_UNICODE) ?>;
 
-  function _showToast(msg, undoAction, teamId) {
+  function _showToast(msg, undoAction, segmentId) {
     var toastEl = document.getElementById('casaToast');
     var msgEl   = document.getElementById('casaToastMsg');
     var undoEl  = document.getElementById('casaToastUndo');
@@ -182,7 +182,7 @@ uasort($nonMemberBycat, $_catSortFn);
         undoEl.onclick = function (e) {
           e.preventDefault();
           bootstrap.Toast.getInstance(toastEl)?.hide();
-          _doMembership(undoAction, teamId, null);
+          _doMembership(undoAction, segmentId, null);
         };
       } else {
         undoEl.style.display = 'none';
@@ -207,10 +207,10 @@ uasort($nonMemberBycat, $_catSortFn);
     });
   }
 
-  function _doMembership(action, teamId, teamName) {
+  function _doMembership(action, segmentId, teamName) {
     if (_busy) return;
     _busy = true;
-    fetch('/api/groups/' + teamId + '/members', {
+    fetch('/api/groups/' + segmentId + '/members', {
       method:      action === 'add' ? 'POST' : 'DELETE',
       headers:     { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
@@ -224,14 +224,14 @@ uasort($nonMemberBycat, $_catSortFn);
       _busy = false;
       if (teamName) {
         var undoAct = action === 'add' ? 'remove' : 'add';
-        _showToast((action === 'add' ? ADDED_TPL : REMOVED_TPL).replace('%s', teamName), undoAct, teamId);
+        _showToast((action === 'add' ? ADDED_TPL : REMOVED_TPL).replace('%s', teamName), undoAct, segmentId);
       }
     })
     .catch(function (err) { _busy = false; console.error('membership error', err); });
   }
 
-  function _teamIdFromHref(href) {
-    return parseInt(new URLSearchParams((href || '').split('?')[1] || '').get('teamId') || '0', 10);
+  function _segmentIdFromHref(href) {
+    return parseInt(new URLSearchParams((href || '').split('?')[1] || '').get('segmentId') || '0', 10);
   }
 
   // Single permanent capture-phase delegated listener — fires before htmx body bubble listener
@@ -241,9 +241,9 @@ uasort($nonMemberBycat, $_catSortFn);
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      var teamId   = _teamIdFromHref(pill.getAttribute('href'));
+      var segmentId   = _segmentIdFromHref(pill.getAttribute('href'));
       var teamName = (pill.textContent || '').replace(/✕/g, '').trim();
-      if (teamId > 0) _doMembership('remove', teamId, teamName);
+      if (segmentId > 0) _doMembership('remove', segmentId, teamName);
       return;
     }
     var addLink = e.target.closest('#ca-member-panel .group-add-list a');
@@ -251,9 +251,9 @@ uasort($nonMemberBycat, $_catSortFn);
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      var teamId   = _teamIdFromHref(addLink.getAttribute('href'));
+      var segmentId   = _segmentIdFromHref(addLink.getAttribute('href'));
       var teamName = (addLink.textContent || '').trim();
-      if (teamId > 0) _doMembership('add', teamId, teamName);
+      if (segmentId > 0) _doMembership('add', segmentId, teamName);
       return;
     }
   }, true); // capture phase — fires before htmx body bubble listener

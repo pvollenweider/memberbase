@@ -236,7 +236,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         </td>
         <td><?= (int)$row->member_count ?></td>
         <td class="text-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= (int)$row->team_id ?>"
+          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateSegment&amp;id=<?= (int)$row->team_id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>

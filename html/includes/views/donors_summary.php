@@ -18,7 +18,7 @@ $type = "allTypes";
 $membreTeamId = (int)($appSettings['default_team'] ?? 0);
 $membreTeamLabel = $GLOBAL['activeQuestion'];
 if ($membreTeamId > 0) {
-    $r = $pdo->prepare("SELECT name FROM team WHERE id = ?");
+    $r = $pdo->prepare("SELECT name FROM segment WHERE id = ?");
     $r->execute([$membreTeamId]);
     $membreTeamLabel = $r->fetchColumn() ?: $GLOBAL['activeQuestion'];
 }
@@ -85,7 +85,7 @@ if ($year != -2) {
     $_cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
     $_noCotiTeam  = (int)($appSettings['member_no_coti_team'] ?? 0);
     $_noCotiJoin  = $_noCotiTeam > 0
-        ? "AND NOT EXISTS (SELECT 1 FROM user_properties WHERE user_id=u.id AND parameter='team_$_noCotiTeam' AND value='true')"
+        ? "AND NOT EXISTS (SELECT 1 FROM user_segment WHERE user_id=u.id AND segment_id=$_noCotiTeam)"
         : '';
     $_kMembres = 0;
     $_kMembresPrev = 0;
@@ -478,7 +478,7 @@ if ($_showPie) {
 </thead>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-$params = ["team_$membreTeamId"];
+$params = [$membreTeamId];
 $_exclSub = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
 $_sumExpr = $showAll ? 'SUM(c.sum)' : "SUM(CASE WHEN c.type_id NOT IN ($_exclSub) THEN c.sum ELSE 0 END)";
 $baseSelect = "
@@ -490,8 +490,8 @@ $baseSelect = "
            MAX(COALESCE(ct.is_institutional, 0)) AS has_institutional,
            MAX(COALESCE(ct.is_excluded_from_donation, 0)) AS has_excluded,
            EXISTS(
-               SELECT 1 FROM user_properties up
-               WHERE up.user_id = u.id AND up.parameter = ? AND up.value = 'true'
+               SELECT 1 FROM user_segment us
+               WHERE us.user_id = u.id AND us.segment_id = ?
            ) AS is_actif
     FROM users u
     JOIN compta c ON u.id = c.user_id

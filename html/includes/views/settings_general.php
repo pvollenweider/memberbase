@@ -6,10 +6,10 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-$allTeams = $pdo->query("SELECT id, name, hidden FROM team ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
+$allSegments = $pdo->query("SELECT id, name, hidden FROM segment ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
 $saved = isset($_GET['saved']);
 $_activeTab = $_REQUEST['tab'] ?? null;
-$_settingsDrillDown = in_array($_REQUEST['view'] ?? '', ['updateTeam', 'updateMetagroup']);
+$_settingsDrillDown = in_array($_REQUEST['view'] ?? '', ['updateSegment', 'updateMetagroup']);
 
 $_paneClass = function(string $tab) use ($_activeTab): string {
     $active = $_activeTab ?? '';
@@ -192,7 +192,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_default_team"><?= $GLOBAL['defaultTeamLabel'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['defaultTeamHelp'] ?></p>
                 <select name="default_team" id="s_default_team" class="form-select form-select-sm" style="max-width:320px">
-                  <?php foreach ($allTeams as $t): ?>
+                  <?php foreach ($allSegments as $t): ?>
                   <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['default_team'] === (int)$t->id ? 'selected' : '' ?>>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' ' . $GLOBAL['maskedSuffix'] : '' ?>
                   </option>
@@ -203,7 +203,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team"><?= $GLOBAL['membreTeamLabel'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['membreTeamHelp'] ?></p>
                 <select name="membre_team" id="s_membre_team" class="form-select form-select-sm" style="max-width:320px">
-                  <?php foreach ($allTeams as $t): ?>
+                  <?php foreach ($allSegments as $t): ?>
                   <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['membre_team'] === (int)$t->id ? 'selected' : '' ?>>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' ' . $GLOBAL['maskedSuffix'] : '' ?>
                   </option>
@@ -215,7 +215,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['noCotiTeamHelp'] ?></p>
                 <select name="member_no_coti_team" id="s_member_no_coti_team" class="form-select form-select-sm" style="max-width:320px">
                   <option value="0" <?= empty($appSettings['member_no_coti_team']) ? 'selected' : '' ?>><?= $GLOBAL['noneOption'] ?></option>
-                  <?php foreach ($allTeams as $t): ?>
+                  <?php foreach ($allSegments as $t): ?>
                   <option value="<?= (int)$t->id ?>" <?= (int)($appSettings['member_no_coti_team'] ?? 0) === (int)$t->id ? 'selected' : '' ?>>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' ' . $GLOBAL['maskedSuffix'] : '' ?>
                   </option>
@@ -298,7 +298,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           <!-- Groupes -->
           <div class="tab-pane fade<?= $_paneClass('groups') ?>" id="tab-groups" role="tabpanel" aria-labelledby="tab-groups-btn">
             <div class="mt-1">
-            <?php if (($_REQUEST['view'] ?? '') === 'updateTeam'): include __DIR__ . '/settings_group_edit.php'; else: include __DIR__ . '/settings_groups.php'; endif; ?>
+            <?php if (($_REQUEST['view'] ?? '') === 'updateSegment'): include __DIR__ . '/settings_group_edit.php'; else: include __DIR__ . '/settings_groups.php'; endif; ?>
             </div>
           </div><!-- #tab-groups -->
 

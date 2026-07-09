@@ -1,13 +1,13 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * Team entity — loads and holds a single group record.
+ * Segment entity — loads and holds a single group record.
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
-class Team
+class Segment
 {
     public $id;
     public $name;
@@ -17,9 +17,9 @@ class Team
     {
     }
 
-    public function lookupTeam(int $id): void
+    public function lookupSegment(int $id): void
     {
-        $stmt = db()->prepare("SELECT id,name,hidden FROM team WHERE id=?");
+        $stmt = db()->prepare("SELECT id,name,hidden FROM segment WHERE id=?");
         $stmt->execute([$id]);
         $row = $stmt->fetchObject();
         if ($row) {
@@ -27,7 +27,7 @@ class Team
             $this->name   = $row->name;
             $this->hidden = (int) $row->hidden;
         } else {
-            throw new \RuntimeException("Could not find team with id [$id]");
+            throw new \RuntimeException("Could not find segment with id [$id]");
         }
     }
 
@@ -40,24 +40,24 @@ class Team
     public function save(): void
     {
         if ($this->id) {
-            db()->prepare("UPDATE team SET name=?,hidden=? WHERE id=?")->execute([$this->name, $this->hidden, $this->id]);
+            db()->prepare("UPDATE segment SET name=?,hidden=? WHERE id=?")->execute([$this->name, $this->hidden, $this->id]);
         } else {
-            db()->prepare("INSERT INTO team (name,hidden) VALUES (?,?)")->execute([$this->name, $this->hidden]);
+            db()->prepare("INSERT INTO segment (name,hidden) VALUES (?,?)")->execute([$this->name, $this->hidden]);
             $this->id = (int)db()->lastInsertId();
         }
     }
 
-    /** Team name, or null if the team does not exist. */
+    /** Segment name, or null if the segment does not exist. */
     public static function nameById(int $id): ?string
     {
-        $stmt = db()->prepare("SELECT name FROM team WHERE id=?");
+        $stmt = db()->prepare("SELECT name FROM segment WHERE id=?");
         $stmt->execute([$id]);
         $name = $stmt->fetchColumn();
         return $name === false ? null : $name;
     }
 
     /**
-     * Visible teams with their category and member count, ordered for the
+     * Visible segments with their category and member count, ordered for the
      * members list filter dropdown (category sort order, then name).
      *
      * @return object[] rows: id, name, cat_name, cat_id, cat_sort, member_count
@@ -69,15 +69,15 @@ class Team
                    COALESCE(cat.name, '') AS cat_name,
                    COALESCE(cat.id, 0) AS cat_id,
                    COALESCE(cat.sort_order, 99999) AS cat_sort,
-                   (SELECT COUNT(*) FROM user_properties up WHERE up.parameter = CONCAT('team_', t.id)) AS member_count
-            FROM team t
+                   (SELECT COUNT(*) FROM user_segment us WHERE us.segment_id = t.id) AS member_count
+            FROM segment t
             LEFT JOIN (
-                SELECT j.teamid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
+                SELECT j.segmentid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
                 FROM metagroup j
                 JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-                WHERE j.teamid IS NOT NULL
-                GROUP BY j.teamid
-            ) cat ON cat.teamid = t.id
+                WHERE j.segmentid IS NOT NULL
+                GROUP BY j.segmentid
+            ) cat ON cat.segmentid = t.id
             WHERE t.hidden = 0
             ORDER BY cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
         ")->fetchAll(PDO::FETCH_OBJ);
@@ -85,7 +85,7 @@ class Team
 
     public function isMemberOfMetagroup(int $metagroupId): bool
     {
-        $stmt = db()->prepare("SELECT 1 FROM metagroup WHERE id=? AND teamid=? LIMIT 1");
+        $stmt = db()->prepare("SELECT 1 FROM metagroup WHERE id=? AND segmentid=? LIMIT 1");
         $stmt->execute([$metagroupId, $this->id]);
         $result = $stmt->fetchObject() !== false;
         return $result;
@@ -94,19 +94,19 @@ class Team
     public function addMetagroupMembership(int $metagroupId): void
     {
         if (!$this->isMemberOfMetagroup($metagroupId)) {
-            db()->prepare("INSERT INTO metagroup (id,teamid) VALUES (?,?)")->execute([$metagroupId, $this->id]);
+            db()->prepare("INSERT INTO metagroup (id,segmentid) VALUES (?,?)")->execute([$metagroupId, $this->id]);
         }
     }
 
     public function removeMetagroupMembership(int $metagroupId): void
     {
-        db()->prepare("DELETE FROM metagroup WHERE teamid=? AND id=?")->execute([$this->id, $metagroupId]);
+        db()->prepare("DELETE FROM metagroup WHERE segmentid=? AND id=?")->execute([$this->id, $metagroupId]);
     }
 
     public function isUsed(): bool
     {
-        $stmt = db()->prepare("SELECT 1 FROM user_properties WHERE parameter=? LIMIT 1");
-        $stmt->execute(["team_$this->id"]);
+        $stmt = db()->prepare("SELECT 1 FROM user_segment WHERE segment_id=? LIMIT 1");
+        $stmt->execute([$this->id]);
         $result = $stmt->fetchObject() !== false;
         return $result;
     }
@@ -114,10 +114,10 @@ class Team
     public function remove(): void
     {
         if (!$this->isUsed()) {
-            db()->prepare("DELETE FROM team WHERE id=?")->execute([$this->id]);
+            db()->prepare("DELETE FROM segment WHERE id=?")->execute([$this->id]);
         } else {
             print "Could not remove $this->name because some users are members.<br/>";
-            print "Click <a href='" . $_SERVER['PHP_SELF'] . "?action=search&amp;team=" . $this->id . "'>here</a> to see the user list";
+            print "Click <a href='" . $_SERVER['PHP_SELF'] . "?action=search&amp;segment=" . $this->id . "'>here</a> to see the user list";
         }
     }
 }

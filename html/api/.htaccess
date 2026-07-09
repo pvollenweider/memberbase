@@ -11,4 +11,7 @@ RewriteRule ^suivi/?$                       suivi.php                           
 RewriteRule ^groups/([0-9]+)/members/?$     groups.php?id=$1&sub=members         [QSA,L]
 RewriteRule ^groups/([0-9]+)/?$             groups.php?id=$1                     [QSA,L]
 RewriteRule ^groups/?$                      groups.php                           [QSA,L]
+RewriteRule ^segments/([0-9]+)/members/?$   segments.php?id=$1&sub=members       [QSA,L]
+RewriteRule ^segments/([0-9]+)/?$           segments.php?id=$1                   [QSA,L]
+RewriteRule ^segments/?$                    segments.php                         [QSA,L]
 Require all granted

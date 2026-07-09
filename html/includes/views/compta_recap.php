@@ -388,6 +388,7 @@ if ($_extended) {
       body: 'action=sendComptaRecapOne&view=comptaRecap&csrf=' + encodeURIComponent(getCsrf())
           + '&user_id=' + encodeURIComponent(currentUserId)
           + '&year=' + encodeURIComponent(recapYear)
+          + (currentForce ? '&force=1' : '')
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {

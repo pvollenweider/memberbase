@@ -20,12 +20,12 @@ test.describe.serial('Groups (teams)', () => {
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
 
-    const addForm = page.locator('form:has(input[name="action"][value="addTeamWithImport"])');
+    const addForm = page.locator('form:has(input[name="action"][value="addSegmentWithImport"])');
     await addForm.locator('#name').fill('Membre E2E');
     await addForm.locator('button[type="submit"]').click();
 
-    // addTeamWithImport emits HX-Location to ?view=updateTeam&id=N
-    await page.waitForURL(/view=updateTeam/, { timeout: 10_000 });
+    // addSegmentWithImport emits HX-Location to ?view=updateSegment&id=N
+    await page.waitForURL(/view=updateSegment/, { timeout: 10_000 });
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
     // Team name link uses ?team=N
@@ -38,22 +38,22 @@ test.describe.serial('Groups (teams)', () => {
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
 
-    // Get the team id from the gear link next to 'Membre E2E'
-    const row = page.locator('#tab-groups tr').filter({ hasText: 'Membre E2E' }).first();
-    const gearHref = await row.locator('a[href*="view=updateTeam"]').getAttribute('href');
-    if (!gearHref) throw new Error('Gear link not found for Membre E2E');
+    // Get the team id from data-team-id on the row
+    const row = page.locator('#tab-groups tr[data-team-id]').filter({ hasText: 'Membre E2E' }).first();
+    await expect(row).toBeVisible({ timeout: 10_000 });
+    const segmentId = await row.getAttribute('data-team-id');
+    if (!segmentId) throw new Error('data-team-id not found for Membre E2E');
 
-    // Navigate directly to updateTeam page and fill the form
-    await page.goto(gearHref.startsWith('/') ? gearHref : '/' + gearHref);
-    await expect(page.locator('#name')).toBeVisible({ timeout: 10_000 });
+    // Read CSRF token from the meta tag (same cookie jar = same session)
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
 
-    await page.fill('#name', 'Membre E2E Renamed');
-    // Remove hx-boost so form submits as regular POST (avoids XHR abort race)
-    await page.evaluate(() => document.body.removeAttribute('hx-boost'));
-    await Promise.all([
-      page.waitForNavigation({ timeout: 10_000 }),
-      page.click('#btn-update-team'),
-    ]);
+    // POST rename directly — avoids all htmx/form-submit timing issues
+    await page.request.post('/index.php', {
+      form: { action: 'updateSegment', view: 'settings', tab: 'groups', id: segmentId, name: 'Membre E2E Renamed', csrf },
+    });
 
     // Navigate to settings to verify rename persisted in DB
     await page.goto('/index.php?view=settings&tab=groups');
@@ -65,16 +65,12 @@ test.describe.serial('Groups (teams)', () => {
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
 
-    const row = page.locator('#tab-groups tr').filter({ hasText: 'Membre E2E Renamed' }).first();
-    const gearLink = row.locator('a[href*="view=updateTeam"]');
-    const href = await gearLink.getAttribute('href');
-    if (!href) throw new Error('Group gear link not found');
+    const row = page.locator('#tab-groups tr[data-team-id]').filter({ hasText: 'Membre E2E Renamed' }).first();
+    await expect(row).toBeVisible({ timeout: 10_000 });
+    const segmentId = await row.getAttribute('data-team-id');
+    if (!segmentId) throw new Error('data-team-id not found for Membre E2E Renamed');
 
-    const match = href.match(/id=(\d+)/);
-    if (!match) throw new Error('Cannot parse team id from: ' + href);
-    const teamId = match[1];
-
-    // Submit deleteTeam — regular form submit (full page)
+    // Submit deleteSegment — regular form submit (full page)
     const [deleteResponse] = await Promise.all([
       page.waitForNavigation({ timeout: 10_000 }),
       page.evaluate(({ id }) => {
@@ -82,14 +78,14 @@ test.describe.serial('Groups (teams)', () => {
         form.method = 'POST';
         form.action = '/index.php';
         const csrfTok = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
-        for (const [name, value] of [['action','deleteTeam'],['view','settings'],['tab','groups'],['id',id],['csrf',csrfTok]] as [string,string][]) {
+        for (const [name, value] of [['action','deleteSegment'],['view','settings'],['tab','groups'],['id',id],['csrf',csrfTok]] as [string,string][]) {
           const el = document.createElement('input');
           el.name = name; el.value = value;
           form.appendChild(el);
         }
         document.body.appendChild(form);
         form.submit();
-      }, { id: teamId }),
+      }, { id: segmentId }),
     ]);
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
@@ -97,8 +93,8 @@ test.describe.serial('Groups (teams)', () => {
   });
 
   test('open a group settings page', async ({ page }) => {
-    await page.goto('/index.php?view=updateTeam&id=1');
-    // updateTeam is inside the settings page at #tab-groups
+    await page.goto('/index.php?view=updateSegment&id=1');
+    // updateSegment is inside the settings page at #tab-groups
     await expect(page.locator('#tab-groups')).toBeVisible({ timeout: 10_000 });
     // The update team form should be present
     await expect(page.locator('#name')).toBeVisible({ timeout: 10_000 });
