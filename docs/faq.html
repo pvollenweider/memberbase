@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ — Documentation MemberBase</title>
+<meta name="description" content="Questions fréquentes sur MemberBase : gestion des membres, cotisations, segments, comptabilité, emails, administration et API.">
+<style>
+:root {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --ink: #17181a;
+  --ink-mid: #3d4045;
+  --ink-muted: #565a60;
+  --rule: #dcdcd8;
+  --rule-strong: #b9b9b4;
+  --red: #c02218;
+  --link-hover: #9a1b12;
+  --code-bg: #1d1e21;
+  --code-ink: #e8e8e4;
+  --inline-code-bg: #ececea;
+  --note-bg: #f1f1ef;
+  --focus: #17181a;
+  --z-header: 10;
+  --z-skip: 20;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141416;
+    --surface: #1c1d20;
+    --ink: #ececea;
+    --ink-mid: #c4c6ca;
+    --ink-muted: #a3a6ac;
+    --rule: #2e2f33;
+    --rule-strong: #4a4b50;
+    --red: #ff6b5e;
+    --link-hover: #ffa298;
+    --code-bg: #0f0f11;
+    --code-ink: #dcdcd8;
+    --inline-code-bg: #26272b;
+    --note-bg: #1f2023;
+    --focus: #ececea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141416;
+  --surface: #1c1d20;
+  --ink: #ececea;
+  --ink-mid: #c4c6ca;
+  --ink-muted: #a3a6ac;
+  --rule: #2e2f33;
+  --rule-strong: #4a4b50;
+  --red: #ff6b5e;
+  --link-hover: #ffa298;
+  --code-bg: #0f0f11;
+  --code-ink: #dcdcd8;
+  --inline-code-bg: #26272b;
+  --note-bg: #1f2023;
+  --focus: #ececea;
+}
+:root[data-theme="light"] {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --ink: #17181a;
+  --ink-mid: #3d4045;
+  --ink-muted: #565a60;
+  --rule: #dcdcd8;
+  --rule-strong: #b9b9b4;
+  --red: #c02218;
+  --link-hover: #9a1b12;
+  --code-bg: #1d1e21;
+  --code-ink: #e8e8e4;
+  --inline-code-bg: #ececea;
+  --note-bg: #f1f1ef;
+  --focus: #17181a;
+}
+
+* { box-sizing: border-box; margin: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.0625rem/1.7 -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+code, pre, kbd { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.15; letter-spacing: -0.015em; }
+a { color: var(--red); text-underline-offset: 3px; }
+a:hover { color: var(--link-hover); }
+a:focus-visible, button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+[id] { scroll-margin-top: 5rem; }
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: var(--z-skip);
+  background: var(--ink); color: var(--bg);
+  padding: .75rem 1.25rem; font-weight: 600; text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+.wrap { max-width: 75rem; margin-inline: auto; padding-inline: clamp(1.25rem, 4vw, 2.5rem); }
+
+/* header */
+header.site {
+  position: sticky; top: 0; z-index: var(--z-header);
+  background: var(--bg); border-bottom: 1px solid var(--rule);
+}
+.site-bar { display: flex; align-items: center; gap: .8rem; padding-block: .8rem; }
+.wordmark {
+  font-weight: 800; font-size: 1.05rem; color: var(--ink);
+  text-decoration: none; display: flex; align-items: center; gap: .55rem;
+}
+.wordmark .dot { width: .7em; height: .7em; background: var(--red); flex: none; }
+.breadcrumb { display: flex; align-items: center; gap: .8rem; min-width: 0; }
+.crumb { color: var(--ink-muted); }
+.crumb-link { color: var(--ink-mid); text-decoration: none; font-weight: 500; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+a.crumb-link:hover { color: var(--ink); text-decoration: underline; }
+@media (max-width: 640px) { .breadcrumb .crumb:last-of-type, .breadcrumb span.crumb-link { display: none; } }
+.theme-toggle {
+  margin-left: auto; background: none; border: 1px solid var(--ink-muted); color: var(--ink);
+  padding: .35rem .7rem; font: inherit; font-size: .85rem; cursor: pointer;
+}
+.theme-toggle:hover { border-color: var(--ink); }
+
+/* layout */
+.doc-grid {
+  display: grid; grid-template-columns: 14rem minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 4rem); align-items: start;
+  padding-block: clamp(1.5rem, 4vw, 3rem) clamp(3rem, 6vw, 5rem);
+}
+.doc-nav { position: sticky; top: 4.5rem; }
+.doc-nav h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .8rem; }
+.doc-nav ul { list-style: none; padding: 0; }
+.doc-nav li + li { margin-top: .15rem; }
+.doc-nav a {
+  display: block; padding: .4rem .6rem; text-decoration: none;
+  color: var(--ink-mid); font-size: .95rem; border-left: 2px solid transparent;
+}
+.doc-nav a:hover { color: var(--ink); background: var(--note-bg); }
+.doc-nav a[aria-current="page"] { color: var(--ink); font-weight: 650; border-left-color: var(--red); }
+.doc-nav .gh-link { margin-top: 1.6rem; font-size: .9rem; }
+@media (max-width: 860px) {
+  .doc-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .doc-nav { position: static; border-bottom: 1px solid var(--rule); padding-bottom: 1.2rem; }
+  .doc-nav ul { display: flex; flex-wrap: wrap; gap: .3rem .8rem; }
+  .doc-nav a { border-left: none; border-bottom: 2px solid transparent; padding: .3rem .2rem; }
+  .doc-nav a[aria-current="page"] { border-bottom-color: var(--red); }
+  .doc-nav .gh-link { display: none; }
+}
+
+/* content */
+.doc-main { max-width: 46rem; min-width: 0; }
+.doc-main > h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: .4rem; }
+.doc-main > .lead { color: var(--ink-muted); font-size: 1.08rem; margin-bottom: 1.8rem; }
+
+/* category TOC */
+.toc { border: 1px solid var(--rule-strong); padding: 1.1rem 1.4rem 1.2rem; margin-block: 1.6rem 2.4rem; }
+.toc h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin-bottom: .6rem; }
+.toc ul { list-style: none; padding: 0; columns: 2; column-gap: 2.5rem; font-size: .93rem; }
+.toc li { margin-block: .18rem; break-inside: avoid; }
+.toc a { color: var(--ink-mid); text-decoration: none; }
+.toc a:hover { color: var(--red); text-decoration: underline; }
+@media (max-width: 640px) { .toc ul { columns: 1; } }
+
+/* category section */
+.faq-section { margin-top: 3rem; padding-top: 1.6rem; border-top: 1px solid var(--rule); }
+.faq-section:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+.faq-section-label {
+  display: inline-block;
+  font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--red); margin-bottom: .9rem;
+}
+.faq-section > h2 {
+  font-size: 1.5rem; font-weight: 750; letter-spacing: -0.015em;
+  margin-bottom: 1.4rem;
+}
+
+/* accordion items */
+.faq-item { border-bottom: 1px solid var(--rule); }
+.faq-item:first-of-type { border-top: 1px solid var(--rule); }
+
+.faq-q {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  width: 100%; background: none; border: none; text-align: left;
+  padding: 1rem 0; cursor: pointer; color: var(--ink);
+  font: inherit; font-size: 1rem; font-weight: 600; line-height: 1.4;
+}
+.faq-q:hover { color: var(--red); }
+.faq-q[aria-expanded="true"] { color: var(--red); }
+
+.faq-icon {
+  flex: none; width: 1.25rem; height: 1.25rem; position: relative;
+}
+.faq-icon::before, .faq-icon::after {
+  content: ''; position: absolute; background: currentColor;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.faq-icon::before { top: 50%; left: 0; right: 0; height: 1.5px; transform: translateY(-50%); }
+.faq-icon::after  { left: 50%; top: 0; bottom: 0; width: 1.5px; transform: translateX(-50%); }
+.faq-q[aria-expanded="true"] .faq-icon::after { transform: translateX(-50%) rotate(90deg); opacity: 0; }
+
+.faq-body {
+  overflow: hidden;
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows .22s ease;
+}
+.faq-body.open { grid-template-rows: 1fr; }
+.faq-body-inner { overflow: hidden; }
+.faq-body-inner > * + * { margin-top: .9rem; }
+.faq-body-inner { padding-bottom: 1.1rem; color: var(--ink-mid); font-size: .98rem; line-height: 1.72; }
+.faq-body-inner p strong, .faq-body-inner li strong { color: var(--ink); }
+.faq-body-inner ol, .faq-body-inner ul { padding-left: 1.4rem; }
+.faq-body-inner li + li { margin-top: .3rem; }
+.faq-body-inner code {
+  background: var(--inline-code-bg); padding: .1em .35em;
+  font-size: .86em; border-radius: 2px;
+}
+.faq-body-inner pre {
+  background: var(--code-bg); color: var(--code-ink);
+  padding: 1rem 1.2rem; overflow-x: auto;
+  font-size: .87rem; line-height: 1.6;
+}
+.faq-body-inner pre code { background: none; padding: 0; font-size: inherit; }
+.faq-body-inner blockquote {
+  background: var(--note-bg); border: 1px solid var(--rule);
+  padding: .75rem 1.1rem; font-size: .95rem;
+}
+
+/* pager */
+.pager {
+  display: flex; justify-content: space-between; gap: 1rem;
+  margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--rule-strong);
+}
+.pager-link { display: block; text-decoration: none; font-weight: 650; color: var(--ink); max-width: 45%; }
+.pager-link:hover { color: var(--red); }
+.pager-link .pager-dir { display: block; font-size: .82rem; font-weight: 400; color: var(--ink-muted); margin-bottom: .2rem; }
+.pager-link.next { text-align: right; margin-left: auto; }
+
+/* footer */
+.site-footer { border-top: 1px solid var(--rule); padding-block: 1.8rem; }
+.site-footer p { font-size: .92rem; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#doc-content">Aller au contenu principal</a>
+
+<header class="site">
+  <div class="wrap site-bar">
+    <nav class="breadcrumb" aria-label="Fil d'Ariane">
+      <a class="wordmark" href="../index.html"><span class="dot" aria-hidden="true"></span>MemberBase</a>
+      <span class="crumb" aria-hidden="true">/</span>
+      <a class="crumb-link" href="./">Documentation</a>
+      <span class="crumb" aria-hidden="true">/</span>
+      <span class="crumb-link" aria-current="page">FAQ</span>
+    </nav>
+    <button type="button" class="theme-toggle" id="theme-toggle">Activer le mode sombre</button>
+  </div>
+</header>
+
+<div class="wrap doc-grid">
+  <nav class="doc-nav" aria-label="Guides de documentation">
+    <h2>Guides</h2>
+    <ul>
+      <li><a href="user.html">Guide utilisateur</a></li>
+      <li><a href="admin.html">Guide administrateur</a></li>
+      <li><a href="api.html">API REST</a></li>
+      <li><a href="architecture.html">Architecture</a></li>
+      <li><a href="faq.html" aria-current="page">FAQ</a></li>
+    </ul>
+    <p class="gh-link"><a href="https://github.com/pvollenweider/memberbase">Projet sur GitHub</a></p>
+  </nav>
+
+  <main id="doc-content" class="doc-main">
+    <h1>FAQ</h1>
+    <p class="lead">Questions fréquentes, cas pratiques et subtilités d'utilisation — classés par profil.</p>
+
+    <nav class="toc" aria-labelledby="toc-h">
+      <h2 id="toc-h">Catégories</h2>
+      <ul>
+        <li><a href="#membres-et-contacts">Membres &amp; contacts</a></li>
+        <li><a href="#segments-et-filtres">Segments &amp; filtres</a></li>
+        <li><a href="#comptabilite-et-dons">Comptabilité &amp; dons</a></li>
+        <li><a href="#cotisations">Cotisations</a></li>
+        <li><a href="#emails-et-communications">Emails &amp; communications</a></li>
+        <li><a href="#administration">Administration</a></li>
+        <li><a href="#donnees-et-migration">Données &amp; migration</a></li>
+        <li><a href="#api-et-integration">API &amp; intégration</a></li>
+      </ul>
+    </nav>
+
+    <!-- ── MEMBRES & CONTACTS ─────────────────────────────── -->
+    <section class="faq-section" id="membres-et-contacts">
+      <span class="faq-section-label">Membres &amp; contacts</span>
+      <h2>Gestion des fiches membres</h2>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q1-body" id="q1">
+          Un membre a deux fiches (ancienne et nouvelle adresse email). Comment fusionner sans perdre l'historique ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q1-body" role="region" aria-labelledby="q1">
+          <div class="faq-body-inner">
+            <p>L'outil de fusion est accessible via <strong>Réglages → Intégrité</strong>. Pour qu'il détecte les deux fiches automatiquement, elles doivent partager le même email ou le même nom+prénom :</p>
+            <ol>
+              <li>Ouvrez la fiche à fusionner et remplacez son email par celui de la fiche principale. Déposez l'ancien dans le champ <strong>Email alternatif</strong>.</li>
+              <li>Réglages → Intégrité détecte désormais le doublon. Cliquez <strong>Fusionner</strong>.</li>
+              <li>Arbitrez champ par champ (adresse, téléphone…), choisissez le <strong>profil survivant</strong> et le sort du profil source (<em>archiver</em> est recommandé).</li>
+            </ol>
+            <p>Toutes les entrées compta, notes de suivi et appartenances aux segments des deux fiches sont fusionnées et dédoublonnées automatiquement.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q2-body" id="q2">
+          Deux membres se marient et veulent désormais une seule fiche commune. Comment gérer leurs historiques séparés ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q2-body" role="region" aria-labelledby="q2">
+          <div class="faq-body-inner">
+            <p><strong>Exemple :</strong> Alice (alice@example.com, cotisations 2019–2024) et Bob (bob@example.com, cotisations 2020–2024) se marient et veulent une cotisation famille à partir de 2025.</p>
+            <ol>
+              <li>Ouvrez la fiche de Bob, remplacez son email par <code>alice@example.com</code>. Déposez <code>bob@example.com</code> dans son <strong>Email alternatif</strong>.</li>
+              <li>Réglages → Intégrité détecte maintenant les deux fiches. Cliquez <strong>Fusionner</strong>.</li>
+              <li>Choisissez la valeur à garder pour chaque champ divergent (nom, adresse…). Sélectionnez Alice comme profil survivant, archivez Bob.</li>
+            </ol>
+            <p>Résultat : une seule fiche avec l'intégralité des versements 2019–2024 des deux, les deux emails conservés. Pensez ensuite à retirer la fiche des segments « individuel » et à l'ajouter dans un segment « Membre famille 2025 ».</p>
+            <blockquote><p><strong>Astuce :</strong> l'opération de fusion est irréversible. En cas de doute, commencez par archiver plutôt que supprimer le profil source — vous pourrez toujours le consulter.</p></blockquote>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q3-body" id="q3">
+          Comment détecter les emails mal formatés sans ouvrir chaque fiche ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q3-body" role="region" aria-labelledby="q3">
+          <div class="faq-body-inner">
+            <p><strong>Réglages → Intégrité</strong> liste en un seul passage tous les emails et emails alternatifs mal formatés, les dates de naissance dans le futur, les montants invalides, les entrées sans type et les membres sans nom ni société. Cliquez sur une ligne pour accéder directement à la fiche concernée.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q4-body" id="q4">
+          Un bénévole doit saisir des entrées compta mais ne doit pas accéder aux réglages ni aux données personnelles sensibles. Quel rôle lui attribuer ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q4-body" role="region" aria-labelledby="q4">
+          <div class="faq-body-inner">
+            <p>Le rôle <strong>Utilisateur</strong> donne accès à la liste des membres, la compta (lecture + saisie) et le suivi, mais pas aux réglages ni aux fonctions d'administration. Pour une restriction plus forte, <strong>Lecture seule</strong> permet de consulter sans rien modifier. La matrice complète des droits est consultable depuis Réglages → Utilisateurs (icône <strong>?</strong> à côté du champ Rôle).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SEGMENTS & FILTRES ─────────────────────────────── -->
+    <section class="faq-section" id="segments-et-filtres">
+      <span class="faq-section-label">Segments &amp; filtres</span>
+      <h2>Organisation et recherche</h2>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q5-body" id="q5">
+          Comment regrouper automatiquement les membres de trois segments différents pour une campagne ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q5-body" role="region" aria-labelledby="q5">
+          <div class="faq-body-inner">
+            <p>Créez un <strong>Segment combiné</strong> (Réglages → Segments combinés) : saisissez un nom et ajoutez les trois segments sources. Le segment combiné apparaît dans la barre de filtres de la liste des membres et affiche l'union des membres sans duplication.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q6-body" id="q6">
+          Mon association a un « Membre 2023 », « Membre 2024 »… Comment l'application s'appuie-t-elle sur ce nommage ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q6-body" role="region" aria-labelledby="q6">
+          <div class="faq-body-inner">
+            <p>Le préfixe (<code>Membre</code> par défaut) est configurable dans <strong>Réglages → Général</strong>. Il sert à identifier automatiquement les segments membres dans les filtres et l'aperçu des dons. Chaque début d'année, mettez à jour <strong>Segment membres (année de référence)</strong> vers le nouveau segment — les filtres de cotisation et les statistiques basculent immédiatement.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q7-body" id="q7">
+          Peut-on créer ses propres filtres rapides personnalisés (au-delà des filtres virtuels prédéfinis) ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q7-body" role="region" aria-labelledby="q7">
+          <div class="faq-body-inner">
+            <p>Oui. <strong>Réglages → Filtres</strong> (Managers et Admins) permet de créer, modifier et supprimer des filtres rapides personnalisés. Ils apparaissent ensuite dans la barre de filtres de la liste des membres, à côté des filtres virtuels prédéfinis (cotisation impayée, sans activité, etc.).</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q8-body" id="q8">
+          Comment extraire la liste des membres sans renouvellement dans un segment pour d'autres usages (mailing, statistiques) ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q8-body" role="region" aria-labelledby="q8">
+          <div class="faq-body-inner">
+            <p>La vue <strong>Membres perdus</strong> propose un bouton <strong>Créer segment « Membres à relancer AAAA »</strong> en haut de la liste. Il extrait immédiatement ces membres dans un nouveau segment nommé et daté, réutilisable pour un export Excel, un envoi ciblé ou un segment combiné.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── COMPTABILITÉ & DONS ────────────────────────────── -->
+    <section class="faq-section" id="comptabilite-et-dons">
+      <span class="faq-section-label">Comptabilité &amp; dons</span>
+      <h2>Versements, attestations et récapitulatifs</h2>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q9-body" id="q9">
+          Un donateur veut une attestation fiscale, mais elle ne doit pas inclure sa cotisation — seulement ses dons.
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q9-body" role="region" aria-labelledby="q9">
+          <div class="faq-body-inner">
+            <p>C'est le comportement par défaut. Dans <strong>Réglages → Types compta</strong>, cochez <strong>Exclu des dons</strong> sur le type « Cotisation ». Ce type disparaît automatiquement des attestations PDF, des totaux de l'Aperçu des dons et des calculs d'attestations en masse, tout en restant visible dans la compta de la fiche et dans les filtres de cotisation.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q10-body" id="q10">
+          Je veux envoyer les attestations de 2022 maintenant, en 2025. Est-ce possible ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q10-body" role="region" aria-labelledby="q10">
+          <div class="faq-body-inner">
+            <p>Oui. Dans <strong>Aperçu des dons</strong>, sélectionnez l'année <strong>2022</strong> via le sélecteur. Le bouton <strong>Attestations 2022</strong> génère le PDF regroupé pour cette année, quelle que soit la date courante. Seuls les membres ayant coché <strong>Souhaite une attestation</strong> sur au moins une entrée 2022 sont inclus.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q11-body" id="q11">
+          J'ai des membres institutionnels (communes, entreprises) dont les dons ne doivent pas fausser les statistiques individuelles.
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q11-body" role="region" aria-labelledby="q11">
+          <div class="faq-body-inner">
+            <p>Dans <strong>Réglages → Types compta</strong>, cochez <strong>Institutionnel</strong> sur les types concernés. Ces versements disparaissent du filtre rapide « Donateurs non institutionnels actifs en AAAA-1 » et des cartes de l'Aperçu des dons, mais restent visibles dans la compta globale et les attestations.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q12-body" id="q12">
+          J'ai envoyé un récapitulatif comptable avec une erreur dans le template. Comment renvoyer uniquement à certains membres ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q12-body" role="region" aria-labelledby="q12">
+          <div class="faq-body-inner">
+            <p>Dans <strong>Emails → Récapitulatifs</strong>, activez le <strong>Mode étendu</strong> (case à cocher) : les membres déjà notifiés réapparaissent avec un bouton de forçage individuel. Cliquez sur une ligne pour prévisualiser l'email exact tel qu'il sera reçu — rendu HTML réel du template configuré — puis <strong>Envoyer</strong> depuis la modale d'aperçu.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q13-body" id="q13">
+          Quelqu'un a modifié un montant comptable la semaine dernière. Comment savoir qui ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q13-body" role="region" aria-labelledby="q13">
+          <div class="faq-body-inner">
+            <p><strong>Réglages → Journal</strong> trace toutes les actions horodatées avec l'utilisateur et le détail de chaque modification. Pour les modifications via l'API (<code>PATCH /api/contacts/{id}</code>), le journal contient un diff JSON avant/après de chaque champ modifié.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── COTISATIONS ────────────────────────────────────── -->
+    <section class="faq-section" id="cotisations">
+      <span class="faq-section-label">Cotisations</span>
+      <h2>Suivi et rappels</h2>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q14-body" id="q14">
+          Mon association a trois tarifs différents (individuel, famille, réduit). Comment les gérer sans mélanger les statistiques ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q14-body" role="region" aria-labelledby="q14">
+          <div class="faq-body-inner">
+            <p>Créez trois types compta distincts (ex. <em>Cotisation individuelle</em>, <em>Cotisation famille</em>, <em>Cotisation réduite</em>), tous marqués <strong>Est une cotisation</strong>. Les filtres de cotisation impayée et la liste Membres perdus tiennent compte de tous ces types simultanément. La description libre du montant dans l'email de rappel (<strong>Réglages → Général → Description du montant de cotisation</strong>) vous permet d'y indiquer la grille tarifaire complète.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q15-body" id="q15">
+          Un membre du comité ne doit jamais apparaître dans les relances de cotisation. Comment l'exempter ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q15-body" role="region" aria-labelledby="q15">
+          <div class="faq-body-inner">
+            <p>Créez un segment « Membres exemptés de cotisation » et désignez-le dans <strong>Réglages → Général</strong> (champ <strong>Segment membres sans cotisation</strong>). Tous les membres de ce segment sont automatiquement exclus des filtres de cotisation impayée et de la liste Membres perdus.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q16-body" id="q16">
+          Un membre a payé sa cotisation 2025 en décembre 2024. Le filtre « Cotisation 2025 non payée » le compte-t-il correctement ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q16-body" role="region" aria-labelledby="q16">
+          <div class="faq-body-inner">
+            <p>Oui, à condition que l'entrée compta ait <code>cotisation_year = 2025</code> — un champ distinct de la date de paiement, proposé lors de la saisie quand la date est proche de fin d'année. Le récapitulatif email le signale explicitement : <em>« cotisation 2025 payée en décembre 2024 »</em>. Les filtres de cotisation se basent sur <code>cotisation_year</code>, jamais sur la date de paiement brute.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q17-body" id="q17">
+          Comment joindre un bulletin de versement QR (QR-Rechnung) aux rappels de cotisation ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q17-body" role="region" aria-labelledby="q17">
+          <div class="faq-body-inner">
+            <p>Renseignez l'<strong>IBAN</strong> de votre organisation dans <strong>Réglages → Général</strong>. Les rappels de cotisation incluront automatiquement un bulletin de versement PDF en pièce jointe : TYPE_NON (sans référence bancaire), montant ouvert, message <em>« Cotisation AAAA »</em>. L'extension PHP <code>GD</code> doit être active sur le serveur (<code>php8.2-gd</code>).</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q18-body" id="q18">
+          Un rappel a déjà été envoyé à un membre mais le template a changé. Peut-on le renvoyer ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q18-body" role="region" aria-labelledby="q18">
+          <div class="faq-body-inner">
+            <p>Oui. Dans la vue <strong>Membres perdus</strong>, les lignes déjà relancées affichent un badge avec la date d'envoi <em>et</em> un bouton <strong>Renvoyer</strong>. Un modal de confirmation rappelle la date du premier envoi avant d'envoyer. L'envoi individuel n'a pas de garde anti-doublon — l'anti-doublon s'applique uniquement à l'envoi <em>en masse</em>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── EMAILS & COMMUNICATIONS ───────────────────────── -->
+    <section class="faq-section" id="emails-et-communications">
+      <span class="faq-section-label">Emails &amp; communications</span>
+      <h2>SMTP, templates et journaux</h2>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q19-body" id="q19">
+          Mon SMTP refuse les envois au-delà de 50 destinataires par heure. Comment gérer les campagnes en masse ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q19-body" role="region" aria-labelledby="q19">
+          <div class="faq-body-inner">
+            <p>L'envoi en masse s'effectue séquentiellement, un email à la fois, via une connexion SMTP réutilisée. Il n'y a pas de batching automatique côté application. Si votre provider impose une limite horaire, répartissez les envois manuellement par segment, ou utilisez un relais SMTP sans limite (Brevo, Postmark, Mailgun). Le <strong>Journal des emails</strong> (Réglages → Email) vous indique précisément ce qui a été envoyé et ce qui a échoué, avec possibilité de renvoyer les entrées en erreur individuellement.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q20-body" id="q20">
+          Comment personnaliser le contenu des emails de rappel et de récapitulatif ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q20-body" role="region" aria-labelledby="q20">
+          <div class="faq-body-inner">
+            <p>Dans <strong>Réglages → Email → Templates</strong>, chaque template est éditable : sujet, corps HTML, corps texte. Les variables disponibles sont documentées dans chaque template (ex. <code>{{membre_nom}}</code>, <code>{{payment_info_block}}</code> pour le bloc IBAN/QR). Les templates sont versionnés par défaut dans la base — si aucun template personnalisé n'existe, un template par défaut intégré à l'application est utilisé.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ADMINISTRATION ─────────────────────────────────── -->
+    <section class="faq-section" id="administration">
+      <span class="faq-section-label">Administration</span>
+      <h2>Configuration, sécurité et maintenance</h2>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q21-body" id="q21">
+          Je n'ai pas accès SSH à mon serveur. Comment appliquer une migration de schéma après une mise à jour ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q21-body" role="region" aria-labelledby="q21">
+          <div class="faq-body-inner">
+            <p><strong>Réglages → Santé</strong> (Admin) affiche les migrations en attente et permet de les appliquer directement depuis l'interface web, après avoir coché <em>« J'ai effectué une sauvegarde »</em>. La même page propose un <strong>export complet de la base</strong> en SQL pur — sans <code>mysqldump</code> ni accès serveur.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q22-body" id="q22">
+          Le numéro IDE de mon association a changé. Dois-je corriger manuellement tous les documents ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q22-body" role="region" aria-labelledby="q22">
+          <div class="faq-body-inner">
+            <p>Non. Corrigez-le une seule fois dans <strong>Réglages → Général</strong>. Le bouton <strong>Vérifier via Zefix</strong> prérempli automatiquement le nom, l'adresse, le but statutaire et l'IDE depuis le registre officiel suisse. Tous les documents générés (attestations PDF, en-têtes) utilisent ces données centralisées.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q23-body" id="q23">
+          Comment savoir si un fichier de migration a été modifié après son application (dérive de schéma) ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q23-body" role="region" aria-labelledby="q23">
+          <div class="faq-body-inner">
+            <p><code>migrate.php --status</code> signale <code>[!] DÉRIVE</code> (et sort en code 2) si un fichier déjà appliqué a été modifié depuis son application — comparaison par SHA-256 stocké dans <code>schema_migrations.checksum</code>. La page <strong>Réglages → Santé</strong> affiche le même avertissement. Règle : ne jamais éditer une migration déjà appliquée — toujours créer une nouvelle.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── DONNÉES & MIGRATION ────────────────────────────── -->
+    <section class="faq-section" id="donnees-et-migration">
+      <span class="faq-section-label">Données &amp; migration</span>
+      <h2>Import, export et historique</h2>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q24-body" id="q24">
+          J'ai repris la gestion d'une association avec 10 ans d'historique sur Excel. Comment importer sans perdre les montants passés ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q24-body" role="region" aria-labelledby="q24">
+          <div class="faq-body-inner">
+            <p>L'import CSV (wizard en 3 étapes) accepte les colonnes <code>compta_amount</code>, <code>compta_type</code>, <code>compta_date</code> et <code>compta_cotisation_year</code> — vous pouvez donc importer des lignes datées de 2015 avec l'année de cotisation correcte. Créez d'abord vos types compta, puis importez vos contacts avec l'historique financier inclus. Le wizard affiche un échantillon des 25 premières lignes à chaque étape pour valider la correspondance des colonnes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q25-body" id="q25">
+          L'import CSV a créé des doublons. Comment les retrouver et les traiter en masse ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q25-body" role="region" aria-labelledby="q25">
+          <div class="faq-body-inner">
+            <p><strong>Réglages → Intégrité</strong> détecte automatiquement les doublons par email identique ou par correspondance nom+prénom. Chaque doublon détecté est accompagné d'un bouton <strong>Fusionner</strong> qui ouvre l'assistant de fusion. Traitez-les un par un — il n'existe pas de fusion en masse automatique, ce qui évite les fusions incorrectes sur des homonymes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q26-body" id="q26">
+          Comment exporter la liste complète des membres avec leurs versements pour un audit externe ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q26-body" role="region" aria-labelledby="q26">
+          <div class="faq-body-inner">
+            <p>La liste des membres propose les boutons <strong>Excel</strong>, <strong>Copier</strong>, <strong>PDF</strong> et <strong>Imprimer</strong> (barre DataTables au-dessus du tableau) — ils exportent les colonnes visibles après filtrage. Pour un export complet de la base SQL (toutes tables, tous historiques), utilisez <strong>Réglages → Santé → Exporter la base</strong>. Ce dump peut être ouvert avec n'importe quel outil compatible MariaDB/MySQL.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── API & INTÉGRATION ──────────────────────────────── -->
+    <section class="faq-section" id="api-et-integration">
+      <span class="faq-section-label">API &amp; intégration</span>
+      <h2>Automatisation et accès programmatique</h2>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q27-body" id="q27">
+          Comment lire la liste des membres filtrés par segment avec pagination depuis un script externe ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q27-body" role="region" aria-labelledby="q27">
+          <div class="faq-body-inner">
+<pre><code># 1. Authentification (récupère un cookie de session)
+curl -c cookies.txt -X POST https://votre-domaine/index.php \
+  -d "username=api_user&amp;password=xxx"
+
+# 2. Liste paginée — segment 12, page 2, 50 par page
+curl -b cookies.txt \
+  "https://votre-domaine/api/contacts?team=12&amp;page=2&amp;limit=50"</code></pre>
+            <p>La réponse enveloppe <code>{ "data": […], "meta": { "page": 2, "limit": 50, "total": 312 } }</code>. Filtres disponibles : <code>search</code>, <code>team</code>, <code>metagroup</code>, <code>types</code>, <code>active</code>. L'accès requiert une session authentifiée avec au minimum le rôle <strong>Lecture seule</strong>. Voir le <a href="api.html">guide API</a> pour la référence complète.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="q28-body" id="q28">
+          L'API peut-elle être utilisée sans mot de passe (token statique) pour une intégration CI/CD ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="q28-body" role="region" aria-labelledby="q28">
+          <div class="faq-body-inner">
+            <p>Non — l'API s'authentifie exclusivement par <strong>session PHP</strong> (cookie). Il n'existe pas de token statique ni de clé API. Pour une intégration automatisée, créez un compte applicatif dédié avec le rôle minimum nécessaire, stockez ses identifiants en variable d'environnement sécurisée, et automatisez le login en début de script pour récupérer le cookie de session.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="pager" aria-label="Navigation entre les guides">
+      <a class="pager-link" href="architecture.html"><span class="pager-dir">Guide précédent</span>Architecture</a>
+      <span></span>
+    </nav>
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p><a href="../index.html">MemberBase</a> — gestion des membres pour associations. Open source, licence <a href="https://github.com/pvollenweider/memberbase/blob/main/LICENSE">AGPL-3.0</a>. <a href="https://github.com/pvollenweider/memberbase">GitHub</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // Theme toggle
+  var toggle = document.getElementById('theme-toggle');
+  var root = document.documentElement;
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    toggle.textContent = t === 'dark' ? 'Activer le mode clair' : 'Activer le mode sombre';
+    try { localStorage.setItem('mb-theme', t); } catch(e) {}
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('mb-theme'); } catch(e) {}
+  if (saved) applyTheme(saved);
+  else if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme('dark');
+  else applyTheme('light');
+  toggle.addEventListener('click', function () {
+    applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  // Accordion
+  document.querySelectorAll('.faq-q').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      var body = document.getElementById(btn.getAttribute('aria-controls'));
+      btn.setAttribute('aria-expanded', String(!expanded));
+      body.classList.toggle('open', !expanded);
+    });
+  });
+})();
+</script>
+</body>
+</html>
