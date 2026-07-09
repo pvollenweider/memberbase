@@ -44,8 +44,8 @@ function mbRunIntegrityChecks(PDO $db): array
             SELECT t.id AS team_id, t.name AS team_name,
                    COUNT(us.user_id) AS member_count
             FROM segment t
-            JOIN user_segment us ON us.segment_id = t.id
-            JOIN users u ON u.id = us.user_id AND u.status = 1
+            JOIN contact_segment us ON us.segment_id = t.id
+            JOIN contact u ON u.id = us.user_id AND u.status = 1
             WHERE t.hidden = 1
             GROUP BY t.id, t.name
             ORDER BY t.name
@@ -60,7 +60,7 @@ function mbRunIntegrityChecks(PDO $db): array
         'dupNames' => $db->query("
             SELECT firstName, lastName, COUNT(*) AS cnt,
                    GROUP_CONCAT(id ORDER BY id SEPARATOR ',') AS ids
-            FROM users
+            FROM contact
             WHERE status=1 AND (TRIM(firstName) != '' OR TRIM(lastName) != '')
             GROUP BY TRIM(LOWER(firstName)), TRIM(LOWER(lastName))
             HAVING COUNT(*) > 1
@@ -70,7 +70,7 @@ function mbRunIntegrityChecks(PDO $db): array
         'dupEmails' => $db->query("
             SELECT email, COUNT(*) AS cnt,
                    GROUP_CONCAT(id ORDER BY id SEPARATOR ',') AS ids
-            FROM users
+            FROM contact
             WHERE status=1 AND TRIM(email) != ''
             GROUP BY TRIM(LOWER(email))
             HAVING COUNT(*) > 1
@@ -84,7 +84,7 @@ function mbRunIntegrityChecks(PDO $db): array
         'dateInvalid' => $db->query("
             SELECT c.id, c.date, c.user_id, u.firstname, u.lastname, c.libele
             FROM compta c
-            LEFT JOIN users u ON u.id = c.user_id
+            LEFT JOIN contact u ON u.id = c.user_id
             WHERE c.date = 0 OR c.date > UNIX_TIMESTAMP()
             ORDER BY c.id DESC
             LIMIT 100
@@ -93,7 +93,7 @@ function mbRunIntegrityChecks(PDO $db): array
         'typeNull' => $db->query("
             SELECT c.id, c.user_id, u.firstname, u.lastname, c.libele, c.sum
             FROM compta c
-            LEFT JOIN users u ON u.id = c.user_id
+            LEFT JOIN contact u ON u.id = c.user_id
             WHERE c.type_id IS NULL
             ORDER BY c.id DESC
             LIMIT 100
@@ -101,35 +101,35 @@ function mbRunIntegrityChecks(PDO $db): array
 
         'emailInvalid' => $db->query("
             SELECT id, firstname, lastname, email
-            FROM users
+            FROM contact
             WHERE status=1 AND TRIM(email) != '' AND email NOT LIKE '%@%'
             ORDER BY lastname, firstname
         ")->fetchAll(PDO::FETCH_OBJ),
 
         'sexeInvalid' => $db->query("
             SELECT id, firstname, lastname, sexe
-            FROM users
+            FROM contact
             WHERE status=1 AND sexe NOT IN ('na','hf','f','m')
             ORDER BY lastname, firstname
         ")->fetchAll(PDO::FETCH_OBJ),
 
         'noName' => $db->query("
             SELECT id, firstname, lastname, society
-            FROM users
+            FROM contact
             WHERE status=1 AND TRIM(lastname) = '' AND TRIM(society) = ''
             ORDER BY id
         ")->fetchAll(PDO::FETCH_OBJ),
 
         'emailAltInvalid' => $db->query("
             SELECT id, firstname, lastname, email_alt
-            FROM users
+            FROM contact
             WHERE status=1 AND TRIM(email_alt) != '' AND email_alt NOT LIKE '%@%'
             ORDER BY lastname, firstname
         ")->fetchAll(PDO::FETCH_OBJ),
 
         'birthdayFuture' => $db->query("
             SELECT id, firstname, lastname, birthday
-            FROM users
+            FROM contact
             WHERE status=1 AND birthday > 0 AND birthday > UNIX_TIMESTAMP()
             ORDER BY lastname, firstname
         ")->fetchAll(PDO::FETCH_OBJ),

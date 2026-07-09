@@ -73,9 +73,9 @@ test.describe('Personas — view guards', () => {
 test.describe('Personas — REST API', () => {
   // Read (canRead): allowed for everyone logged in.
   for (const role of ROLES) {
-    test(`${role}: GET /api/members → not 403`, async ({ playwright }) => {
+    test(`${role}: GET /api/contacts → not 403`, async ({ playwright }) => {
       const api = await apiAs(playwright, role);
-      const r = await api.get('/api/members');
+      const r = await api.get('/api/contacts');
       expect(r.status()).not.toBe(403);
       await api.dispose();
     });
@@ -85,9 +85,9 @@ test.describe('Personas — REST API', () => {
   const writeAllowed: Role[] = ['user', 'manager', 'admin'];
   for (const role of ROLES) {
     const shouldAllow = writeAllowed.includes(role);
-    test(`${role}: PUT /api/members/${ACTIVE_MEMBER_ID} → ${shouldAllow ? 'not 403' : '403'}`, async ({ playwright }) => {
+    test(`${role}: PUT /api/contacts/${ACTIVE_MEMBER_ID} → ${shouldAllow ? 'not 403' : '403'}`, async ({ playwright }) => {
       const api = await apiAs(playwright, role);
-      const r = await api.put(`/api/members/${ACTIVE_MEMBER_ID}`, { data: { firstName: 'Alice' } });
+      const r = await api.put(`/api/contacts/${ACTIVE_MEMBER_ID}`, { data: { firstName: 'Alice' } });
       if (shouldAllow) expect(r.status()).not.toBe(403);
       else             expect(r.status()).toBe(403);
       await api.dispose();
@@ -97,9 +97,9 @@ test.describe('Personas — REST API', () => {
   // Permanent delete (isAdmin): only the DENIED side is exercised (a 403
   // mutates nothing); the admin case is destructive, covered elsewhere.
   for (const role of ['readonly', 'user', 'manager'] as Role[]) {
-    test(`${role}: DELETE /api/members/${ARCHIVED_MEMBER_ID}?dispose=delete → 403`, async ({ playwright }) => {
+    test(`${role}: DELETE /api/contacts/${ARCHIVED_MEMBER_ID}?dispose=delete → 403`, async ({ playwright }) => {
       const api = await apiAs(playwright, role);
-      const r = await api.delete(`/api/members/${ARCHIVED_MEMBER_ID}?dispose=delete`);
+      const r = await api.delete(`/api/contacts/${ARCHIVED_MEMBER_ID}?dispose=delete`);
       expect(r.status()).toBe(403);
       await api.dispose();
     });

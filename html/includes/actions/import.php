@@ -98,7 +98,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     $byName  = [];
     $stmtAll = $pdo->query("
         SELECT id, firstName, lastName, society, email
-        FROM users WHERE status=1
+        FROM contact WHERE status=1
     ");
     while ($u = $stmtAll->fetch(PDO::FETCH_OBJ)) {
         $e = mb_strtolower(trim((string)$u->email));
@@ -138,7 +138,7 @@ if ($_REQUEST['action'] === 'importUpload') {
         }
     }
     $segStmt = ($segTeamId > 0)
-        ? $pdo->prepare("INSERT IGNORE INTO user_properties (user_id, parameter, value) VALUES (?, ?, 'true')")
+        ? $pdo->prepare("INSERT IGNORE INTO contact_properties (user_id, parameter, value) VALUES (?, ?, 'true')")
         : null;
     $segParam = 'team_' . $segTeamId;
     $segAdded = 0;
@@ -177,7 +177,7 @@ if ($_REQUEST['action'] === 'importUpload') {
             continue;
         }
 
-        $user            = new User();
+        $user            = new Contact();
         $user->firstName = unquote($firstName);
         $user->lastName  = unquote($lastName);
         $user->society   = unquote($data['society'] ?? '');
@@ -237,7 +237,7 @@ if ($_REQUEST['action'] === 'importUpload') {
         $choice = $choices[$i] ?? 'ignore';
         if ($choice === 'ignore') continue;
 
-        $user = new User();
+        $user = new Contact();
         $user->lookupUser($dup['existingId']);
         if (!$user->getId()) continue;
 

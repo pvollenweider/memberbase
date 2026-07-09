@@ -28,7 +28,7 @@ function mbGetLapsedDonors(PDO $db, int $year): array
         SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
                SUM(c.sum) AS total_prev,
                MAX(c.date) AS last_date
-        FROM users u
+        FROM contact u
         JOIN compta c ON u.id = c.user_id
         WHERE u.status=1 AND c.date > ? AND c.date < ?
           AND c.type_id NOT IN ($excl)
@@ -65,7 +65,7 @@ function mbGetLoyalDonors(PDO $db, int $year): array
                (SELECT COALESCE(SUM(c2.sum),0) FROM compta c2
                 WHERE c2.user_id = u.id AND c2.date > ? AND c2.date < ?
                   AND c2.type_id NOT IN ($excl)) AS total_prev
-        FROM users u
+        FROM contact u
         JOIN compta c ON u.id = c.user_id
         WHERE u.status=1 AND c.date > ? AND c.date < ?
           AND c.type_id NOT IN ($excl)
@@ -100,7 +100,7 @@ function mbGetNewDonors(PDO $db, int $year): array
         SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
                SUM(c.sum) AS total_curr,
                MIN(c.date) AS first_date
-        FROM users u
+        FROM contact u
         JOIN compta c ON u.id = c.user_id
         WHERE u.status=1 AND c.date > ? AND c.date < ?
           AND c.type_id NOT IN ($excl)

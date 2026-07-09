@@ -42,7 +42,7 @@ function mbRecapLoadEntries(PDO $db, ?int $filterUserId = null, int $year = 0, b
                 u.firstname, u.lastname, u.society, u.email,
                 COALESCE(ct.label, '') AS type_label
          FROM compta c
-         JOIN users u ON u.id = c.user_id AND u.status = 1
+         JOIN contact u ON u.id = c.user_id AND u.status = 1
          LEFT JOIN compta_type ct ON ct.id = c.type_id
          WHERE $where
          ORDER BY c.user_id, c.date ASC"

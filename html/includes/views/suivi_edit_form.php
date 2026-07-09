@@ -9,7 +9,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $suiviid = $_REQUEST['suiviid'];
 $userProperty = new UserProperty();
 $userProperty->lookupUserProperty($suiviid);
-$suivi_user = new User();
+$suivi_user = new Contact();
 $suivi_user->lookupUser($userProperty->getUserId());
 ?>
 

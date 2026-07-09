@@ -15,9 +15,9 @@ q() { mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -N -B -e "$1"; }
 
 fail() { echo "FAIL: $1"; exit 1; }
 
-# 1. Migration 0001 added users.email_alt
-[ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='users' AND column_name='email_alt'")" = "1" ] \
-  || fail "users.email_alt column missing (0001 not applied)"
+# 1. Migration 0001 added email_alt column (table was users, renamed to contact by 0015)
+[ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='contact' AND column_name='email_alt'")" = "1" ] \
+  || fail "contact.email_alt column missing (0001 + 0015 not applied)"
 
 # 2. Migration 0002 converted compta.sum to DECIMAL
 DT="$(q "SELECT DATA_TYPE FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='compta' AND column_name='sum'")"
@@ -81,14 +81,22 @@ NULL_COTI="$(q "SELECT COUNT(*) FROM compta WHERE cotisation_year IS NULL AND da
 # 15c. Migration 0014 renamed team→segment, user_team→user_segment, teamid→segmentid
 [ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='segment'")" = "1" ] \
   || fail "segment table missing (0014 not applied)"
-[ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='user_segment'")" = "1" ] \
-  || fail "user_segment table missing (0014 not applied)"
 [ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='metagroup' AND column_name='segmentid'")" = "1" ] \
   || fail "metagroup.segmentid column missing (0014 not applied)"
 
-# 16. All 14 migrations recorded in schema_migrations, with checksums
+# 15d. Migration 0015 renamed users→contact, user_segment→contact_segment, user_properties→contact_properties
+[ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='users'")" = "0" ] \
+  || fail "users table still exists after rename (0015 not applied)"
+[ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='contact'")" = "1" ] \
+  || fail "contact table missing (0015 not applied)"
+[ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='contact_segment'")" = "1" ] \
+  || fail "contact_segment table missing (0015 not applied)"
+[ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='contact_properties'")" = "1" ] \
+  || fail "contact_properties table missing (0015 not applied)"
+
+# 16. All 15 migrations recorded in schema_migrations, with checksums
 N="$(q "SELECT COUNT(*) FROM schema_migrations")"
-[ "$N" = "14" ] || fail "schema_migrations has $N rows, expected 14"
+[ "$N" = "15" ] || fail "schema_migrations has $N rows, expected 15"
 BAD="$(q "SELECT COUNT(*) FROM schema_migrations WHERE checksum='' OR checksum IS NULL")"
 [ "$BAD" = "0" ] || fail "$BAD applied migration(s) missing a checksum"
 

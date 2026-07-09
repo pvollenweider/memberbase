@@ -19,7 +19,7 @@ class UserProperty
 
     public function lookupUserProperty(int $id): void
     {
-        $stmt = db()->prepare("SELECT id,user_id,parameter,date,value FROM user_properties WHERE id=?");
+        $stmt = db()->prepare("SELECT id,user_id,parameter,date,value FROM contact_properties WHERE id=?");
         $stmt->execute([$id]);
         $row = $stmt->fetchObject();
         if ($row) {
@@ -48,18 +48,18 @@ class UserProperty
     {
         if ($this->id) {
             db()->prepare(
-                "UPDATE user_properties SET user_id=?,parameter=?,date=?,value=? WHERE id=?"
+                "UPDATE contact_properties SET user_id=?,parameter=?,date=?,value=? WHERE id=?"
             )->execute([$this->userId, $this->parameter, $this->date, $this->value, $this->id]);
         } else {
             $pid = updateAndGetMaxVal("userpropertiesid");
             db()->prepare(
-                "INSERT INTO user_properties (id,user_id,parameter,date,value) VALUES (?,?,?,?,?)"
+                "INSERT INTO contact_properties (id,user_id,parameter,date,value) VALUES (?,?,?,?,?)"
             )->execute([$pid, $this->userId, $this->parameter, $this->date, $this->value]);
         }
     }
 
     public function remove(): void
     {
-        db()->prepare("DELETE FROM user_properties WHERE id=?")->execute([$this->id]);
+        db()->prepare("DELETE FROM contact_properties WHERE id=?")->execute([$this->id]);
     }
 }

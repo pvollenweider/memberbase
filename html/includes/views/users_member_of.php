@@ -210,7 +210,7 @@ uasort($nonMemberBycat, $_catSortFn);
   function _doMembership(action, segmentId, teamName) {
     if (_busy) return;
     _busy = true;
-    fetch('/api/groups/' + segmentId + '/members', {
+    fetch('/api/segments/' + segmentId + '/members', {
       method:      action === 'add' ? 'POST' : 'DELETE',
       headers:     { 'Content-Type': 'application/json' },
       credentials: 'same-origin',

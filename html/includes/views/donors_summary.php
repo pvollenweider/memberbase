@@ -85,7 +85,7 @@ if ($year != -2) {
     $_cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
     $_noCotiTeam  = (int)($appSettings['member_no_coti_team'] ?? 0);
     $_noCotiJoin  = $_noCotiTeam > 0
-        ? "AND NOT EXISTS (SELECT 1 FROM user_segment WHERE user_id=u.id AND segment_id=$_noCotiTeam)"
+        ? "AND NOT EXISTS (SELECT 1 FROM contact_segment WHERE user_id=u.id AND segment_id=$_noCotiTeam)"
         : '';
     $_kMembres = 0;
     $_kMembresPrev = 0;
@@ -93,7 +93,7 @@ if ($year != -2) {
     $_kMembresLapsed = 0;
     if (!empty($_cotiTypeIds)) {
         $_ph = implode(',', array_fill(0, count($_cotiTypeIds), '?'));
-        $_sM = $pdo->prepare("SELECT COUNT(DISTINCT u.id) FROM users u JOIN compta c ON c.user_id=u.id WHERE u.status=1 $_noCotiJoin AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?");
+        $_sM = $pdo->prepare("SELECT COUNT(DISTINCT u.id) FROM contact u JOIN compta c ON c.user_id=u.id WHERE u.status=1 $_noCotiJoin AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?");
         $_sM->execute(array_merge(array_values($_cotiTypeIds), [$year]));
         $_kMembres = (int)$_sM->fetchColumn();
         $_sM->execute(array_merge(array_values($_cotiTypeIds), [$year - 1]));
@@ -101,7 +101,7 @@ if ($year != -2) {
         $_kMembresDelta = $_kMembresPrev > 0 ? (($_kMembres - $_kMembresPrev) / $_kMembresPrev * 100) : null;
 
         $_sLapsedM = $pdo->prepare("
-            SELECT COUNT(*) FROM users u
+            SELECT COUNT(*) FROM contact u
             WHERE u.status=1
               $_noCotiJoin
               AND EXISTS (SELECT 1 FROM compta c WHERE c.user_id=u.id AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?)
@@ -490,10 +490,10 @@ $baseSelect = "
            MAX(COALESCE(ct.is_institutional, 0)) AS has_institutional,
            MAX(COALESCE(ct.is_excluded_from_donation, 0)) AS has_excluded,
            EXISTS(
-               SELECT 1 FROM user_segment us
+               SELECT 1 FROM contact_segment us
                WHERE us.user_id = u.id AND us.segment_id = ?
            ) AS is_actif
-    FROM users u
+    FROM contact u
     JOIN compta c ON u.id = c.user_id
     LEFT JOIN compta_type ct ON ct.id = c.type_id
 ";

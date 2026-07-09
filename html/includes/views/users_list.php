@@ -312,7 +312,7 @@ $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 // Virtual filters — matching IDs resolved once via the shared MemberFilter
-// class (same source of truth as /api/members, see issue #57)
+// class (same source of truth as /api/contacts, see issue #57)
 $_virtualIds = null;
 if (in_array((int)$team, MemberFilter::RESOLVABLE, true)) {
     $_virtualIds = MemberFilter::resolveIds((int)$team, $pdo, (int)$year, $appSettings);
@@ -324,8 +324,8 @@ if ($team == FILTER_NO_ACTIVITY_10Y) {
     $_compta5555 = Compta::activitySummaryByUser((int)$year);
 }
 
-// Fetch — query construction and execution live in User::listWithFilters()
-$_allRows = User::listWithFilters([
+// Fetch — query construction and execution live in Contact::listWithFilters()
+$_allRows = Contact::listWithFilters([
     'team'         => (int)$team,
     'metagroup'    => $metagroup,
     'searchString' => $searchString,
@@ -347,7 +347,7 @@ foreach ($_allRows as $row) {
     // $row already carries the display columns; only id-based methods
     // (isCotisationPayed, assignSegment…) are needed, so skip the per-row
     // full SELECT that lookupUser() would run.
-    $user = new User();
+    $user = new Contact();
     $user->id = $id;
 
     if ($team == -1234) {
@@ -657,7 +657,7 @@ $(document).ready(caInitDT);
   }
 
   function doSearch(q) {
-    var apiUrl  = '/api/members?limit=2000&types=1' + (q ? '&search=' + encodeURIComponent(q) : '');
+    var apiUrl  = '/api/contacts?limit=2000&types=1' + (q ? '&search=' + encodeURIComponent(q) : '');
     var pushUrl = window.location.pathname + (q
       ? '?action=search&team=<?= FILTER_ALL_EXCEPT_ARCHIVES ?>&searchString=' + encodeURIComponent(q)
       : '?view=usersList');
@@ -699,7 +699,7 @@ $(document).ready(caInitDT);
     e.stopPropagation();       // prevent event reaching htmx bubble listener on body
     e.stopImmediatePropagation();
 
-    var apiUrl = '/api/members?limit=2000&types=1';
+    var apiUrl = '/api/contacts?limit=2000&types=1';
     if (teamVal !== null && teamVal !== 0) apiUrl += '&team=' + teamVal;
     if (mgVal   !== null && mgVal   > 0)  apiUrl += '&metagroup=' + mgVal;
 
@@ -738,7 +738,7 @@ $(document).ready(caInitDT);
   // On metagroup page load, replace PHP-rendered table with API result (includes groups column)
   if (INITIAL_METAGROUP > 0) {
     doFetch(
-      '/api/members?limit=2000&types=1&metagroup=' + INITIAL_METAGROUP,
+      '/api/contacts?limit=2000&types=1&metagroup=' + INITIAL_METAGROUP,
       window.location.href,
       ''
     );

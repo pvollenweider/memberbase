@@ -16,7 +16,7 @@ set_time_limit(120);
 
 include __DIR__ . "/includes/lib/bootstrap.php";
 require_once __DIR__ . '/locales/resources_fr.php';
-include "classes/user_class.php";
+include "classes/contact_class.php";
 
 $year   = isset($_GET['year'])   ? (int)$_GET['year']   : (int)date('Y');
 $minSum = isset($_GET['minSum']) ? (int)$_GET['minSum'] : 1;
@@ -30,7 +30,7 @@ $to   = mktime(0, 0, 0, 1, 1, $year + 1);
 $stmt = $pdo->prepare("
     SELECT u.id, u.firstname, u.lastname, u.npa, u.address,
            SUM(c.sum) AS total
-    FROM users u
+    FROM contact u
     JOIN compta c ON u.id = c.user_id
     WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
       AND c.date > ? AND c.date < ?

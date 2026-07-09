@@ -1,7 +1,7 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * General data tab — inline view/edit with Alpine.js + PUT /api/members/{id}.
+ * General data tab — inline view/edit with Alpine.js + PUT /api/contacts/{id}.
  *
  * View mode : data displayed as text, hover reveals edit trigger.
  * Edit mode : same fields as form inputs, saved via JSON API.

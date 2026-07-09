@@ -18,8 +18,8 @@ $segment->lookupSegment($id);
 // Fetch members of this segment
 $stmtMembers = $pdo->prepare(
     "SELECT u.id, u.lastname, u.firstname, u.society
-     FROM users u
-     INNER JOIN user_segment us ON us.user_id = u.id
+     FROM contact u
+     INNER JOIN contact_segment us ON us.user_id = u.id
      WHERE us.segment_id = ? AND u.status=1
      ORDER BY u.lastname, u.firstname"
 );
@@ -52,10 +52,10 @@ $countDonors = function(array $allowedTypeIds, int $from, int $to) use ($pdo, $i
     $ph = implode(',', array_fill(0, count($allowedTypeIds), '?'));
     $r = $pdo->prepare("
         SELECT COUNT(DISTINCT u.id)
-        FROM users u JOIN compta c ON c.user_id = u.id
+        FROM contact u JOIN compta c ON c.user_id = u.id
         WHERE c.type_id IN ($ph)
           AND c.date > ? AND c.date < ?
-          AND u.id NOT IN (SELECT user_id FROM user_segment WHERE segment_id = ?)
+          AND u.id NOT IN (SELECT user_id FROM contact_segment WHERE segment_id = ?)
     ");
     $r->execute(array_merge($allowedTypeIds, [$from, $to, $id]));
     return (int)$r->fetchColumn();
@@ -81,10 +81,10 @@ for ($yi = 0; $yi < 10; $yi++) {
         $cotisPlaceholders = implode(',', array_fill(0, count($cotisTypeIds), '?'));
         $r2 = $pdo->prepare("
             SELECT COUNT(DISTINCT u.id)
-            FROM users u JOIN compta c ON c.user_id = u.id
+            FROM contact u JOIN compta c ON c.user_id = u.id
             WHERE c.type_id IN ($cotisPlaceholders)
               AND c.date > ? AND c.date < ?
-              AND u.id NOT IN (SELECT user_id FROM user_segment WHERE segment_id = ?)
+              AND u.id NOT IN (SELECT user_id FROM contact_segment WHERE segment_id = ?)
         ");
         $r2->execute(array_merge($cotisTypeIds, [$from, $to, $id]));
         $importCountsPerYear[$dy]['cotis'] = (int)$r2->fetchColumn();
@@ -92,7 +92,7 @@ for ($yi = 0; $yi < 10; $yi++) {
 }
 
 // Member counts per segment (for badges)
-$cntRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM user_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
+$cntRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
 $segmentCounts = [];
 foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 ?>

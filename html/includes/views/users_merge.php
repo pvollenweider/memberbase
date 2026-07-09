@@ -15,8 +15,8 @@ if ($_muIdA <= 0 || $_muIdB <= 0 || $_muIdA === $_muIdB) { ?>
 </div>
 <?php return; }
 
-$_muUserA = new User(); $_muUserA->lookupUser($_muIdA);
-$_muUserB = new User(); $_muUserB->lookupUser($_muIdB);
+$_muUserA = new Contact(); $_muUserA->lookupUser($_muIdA);
+$_muUserB = new Contact(); $_muUserB->lookupUser($_muIdB);
 
 if (!$_muUserA->getId() || !$_muUserB->getId()) { ?>
 <div class="alert alert-danger mt-4" role="alert">
@@ -28,10 +28,10 @@ if (!$_muUserA->getId() || !$_muUserB->getId()) { ?>
 $_muSt = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
 $_muSt->execute([$_muIdA]); $cComptaA = (int)$_muSt->fetchColumn();
 $_muSt->execute([$_muIdB]); $cComptaB = (int)$_muSt->fetchColumn();
-$_muSt = $pdo->prepare("SELECT COUNT(*) FROM user_properties WHERE user_id=? AND parameter='suivi'");
+$_muSt = $pdo->prepare("SELECT COUNT(*) FROM contact_properties WHERE user_id=? AND parameter='suivi'");
 $_muSt->execute([$_muIdA]); $cSuiviA = (int)$_muSt->fetchColumn();
 $_muSt->execute([$_muIdB]); $cSuiviB = (int)$_muSt->fetchColumn();
-$_muSt = $pdo->prepare("SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ', ') FROM user_segment us JOIN segment t ON t.id = us.segment_id WHERE us.user_id=?");
+$_muSt = $pdo->prepare("SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ', ') FROM contact_segment us JOIN segment t ON t.id = us.segment_id WHERE us.user_id=?");
 $_muSt->execute([$_muIdA]); $groupsA = $_muSt->fetchColumn() ?: '—';
 $_muSt->execute([$_muIdB]); $groupsB = $_muSt->fetchColumn() ?: '—';
 

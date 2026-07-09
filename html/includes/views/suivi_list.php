@@ -32,7 +32,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 <?php endif ?>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-$query = "SELECT id,user_id,parameter,date,value FROM user_properties ".
+$query = "SELECT id,user_id,parameter,date,value FROM contact_properties ".
          "WHERE user_id=" . $user->getId() . " " .
          "AND parameter='suivi' ".
          "ORDER BY date DESC";

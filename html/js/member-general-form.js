@@ -68,7 +68,7 @@ function memberGeneralForm() {
             this.saving = true;
             this.error  = null;
             try {
-                var resp = await fetch('/api/members/' + this.memberId, {
+                var resp = await fetch('/api/contacts/' + this.memberId, {
                     method:  'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body:    JSON.stringify(patch),

@@ -13,8 +13,8 @@ $stmtSuivi = $pdo->query(
     "SELECT u.id AS user_id, u.firstname, u.lastname, u.society,
             up.date AS ts, up.value AS content,
             'suivi' AS kind, NULL AS email_log_id
-     FROM users u
-     JOIN user_properties up ON u.id = up.user_id
+     FROM contact u
+     JOIN contact_properties up ON u.id = up.user_id
      WHERE u.status = 1 AND up.parameter = 'suivi'"
 );
 $rows = $stmtSuivi->fetchAll(PDO::FETCH_OBJ);
@@ -27,7 +27,7 @@ try {
                 UNIX_TIMESTAMP(el.created_at) AS ts, el.subject AS content,
                 'email' AS kind, el.id AS email_log_id
          FROM email_log el
-         JOIN users u ON u.id = el.user_id
+         JOIN contact u ON u.id = el.user_id
          WHERE el.user_id IS NOT NULL AND el.status = 'sent'"
     );
     $emailRows = $stmtEmail->fetchAll(PDO::FETCH_OBJ);

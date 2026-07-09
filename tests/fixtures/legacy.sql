@@ -6,7 +6,9 @@
 --   * compta.sum is VARCHAR(64)          → migration 0002 must convert to DECIMAL
 --   * a few "dirty" sums (comma, empty, non-numeric) → must be cleaned to 0/dot
 --   * NO schema_migrations table          → migrate.php must create + record it
+--   * users table renamed to contact     → migration 0015 must rename it
 
+-- Table is named `users` here (pre-migration state); migration 0015 renames it to `contact`.
 CREATE TABLE `users` (
   `id`        int(8)       NOT NULL AUTO_INCREMENT,
   `lastname`  varchar(255) NOT NULL DEFAULT '',

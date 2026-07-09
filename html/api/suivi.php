@@ -49,7 +49,7 @@ function requestBody(): array
 
 function loadEntry(int $id): UserProperty
 {
-    $chk = db()->prepare("SELECT id FROM user_properties WHERE id=? AND parameter='suivi' LIMIT 1");
+    $chk = db()->prepare("SELECT id FROM contact_properties WHERE id=? AND parameter='suivi' LIMIT 1");
     $chk->execute([$id]);
     if (!$chk->fetchColumn()) apiError(404, 'Entry not found');
     $p = new UserProperty();
@@ -68,7 +68,7 @@ function handleList(): void
 
     $stmt = db()->prepare(
         "SELECT id, user_id, date, value
-         FROM user_properties
+         FROM contact_properties
          WHERE user_id = ? AND parameter = 'suivi'
          ORDER BY date DESC, id DESC"
     );
@@ -101,7 +101,7 @@ function handleCreate(): void
     if (empty($body['date'])) apiError(422, 'date is required');
     if (!isset($body['note']) || trim((string)$body['note']) === '') apiError(422, 'note is required');
 
-    $stmt = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $stmt = db()->prepare("SELECT id FROM contact WHERE id=? AND status=1 LIMIT 1");
     $stmt->execute([$memberId]);
     if (!$stmt->fetchColumn()) apiError(422, "Member #$memberId not found");
 
@@ -114,12 +114,12 @@ function handleCreate(): void
 
     // UserProperty.save() uses a custom sequence; retrieve the id just inserted
     $stmt2 = db()->prepare(
-        "SELECT id FROM user_properties WHERE user_id=? AND parameter='suivi' ORDER BY id DESC LIMIT 1"
+        "SELECT id FROM contact_properties WHERE user_id=? AND parameter='suivi' ORDER BY id DESC LIMIT 1"
     );
     $stmt2->execute([$memberId]);
     $newId = (int)$stmt2->fetchColumn();
 
-    $_auU = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+    $_auU = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM contact WHERE id=?");
     $_auU->execute([$memberId]);
     auditLog(db(), 'addSuivi', "membre: " . ($_auU->fetchColumn() ?: "id=$memberId") . " | " . substr((string)$body['note'], 0, 80), $memberId);
 
@@ -143,7 +143,7 @@ function handleUpdate(int $id): void
     }
     $p->save();
 
-    $_auU = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+    $_auU = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM contact WHERE id=?");
     $_auU->execute([(int)$p->getUserId()]);
     auditLog(db(), 'updateSuivi', "suivi#=$id | membre: " . ($_auU->fetchColumn() ?: "id={$p->getUserId()}"), (int)$p->getUserId());
 
@@ -157,7 +157,7 @@ function handleDelete(int $id): void
 
     $p = loadEntry($id);
 
-    $_auU = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+    $_auU = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM contact WHERE id=?");
     $_auU->execute([(int)$p->getUserId()]);
     auditLog(db(), 'deleteSuivi', "suivi#=$id | membre: " . ($_auU->fetchColumn() ?: "id={$p->getUserId()}"), (int)$p->getUserId());
 

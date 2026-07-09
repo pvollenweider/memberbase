@@ -30,7 +30,7 @@ $schemaSql = <<<'SQL'
 SET NAMES utf8mb4;
 SET foreign_key_checks = 0;
 
-CREATE TABLE IF NOT EXISTS `users` (
+CREATE TABLE IF NOT EXISTS `contact` (
   `id`               int(8)       NOT NULL AUTO_INCREMENT,
   `lastname`         varchar(255) NOT NULL DEFAULT '',
   `firstname`        varchar(255) NOT NULL DEFAULT '',
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY (`id`),
   KEY `lastname`         (`lastname`(250)),
   KEY `firstname`        (`firstname`(250)),
-  KEY `idx_users_status` (`status`)
+  KEY `idx_contact_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `segment` (
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `segment` (
   KEY `idx_hidden` (`hidden`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `user_properties` (
+CREATE TABLE IF NOT EXISTS `contact_properties` (
   `id`        int(8)       NOT NULL DEFAULT 0,
   `user_id`   int(8)       NOT NULL DEFAULT 0,
   `parameter` varchar(64)  NOT NULL DEFAULT '',
@@ -77,11 +77,11 @@ CREATE TABLE IF NOT EXISTS `user_properties` (
   KEY `idx_user_param` (`user_id`, `parameter`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `user_segment` (
+CREATE TABLE IF NOT EXISTS `contact_segment` (
   `user_id` int NOT NULL,
   `segment_id` int NOT NULL,
   PRIMARY KEY (`user_id`, `segment_id`),
-  KEY `idx_user_segment_segment_id` (`segment_id`)
+  KEY `idx_contact_segment_segment_id` (`segment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `metagroup` (
@@ -599,7 +599,7 @@ $steps = ['1' => $GLOBAL['stepPrereqs'], '2' => $GLOBAL['stepDatabase'], '3' => 
       <h2 class="h5 mb-1"><?= $GLOBAL['schemaInitTitle'] ?></h2>
       <p class="text-muted small mb-2"><?= $GLOBAL['schemaInitHint'] ?></p>
       <div class="alert alert-light small mb-3">
-        <strong><?= $GLOBAL['tablesCreated'] ?></strong> users, segment, user_properties, user_segment, metagroup, compta, compta_type, maxval, app_settings, app_users, audit_log
+        <strong><?= $GLOBAL['tablesCreated'] ?></strong> contact, segment, contact_properties, contact_segment, metagroup, compta, compta_type, maxval, app_settings, app_users, audit_log
       </div>
       <form method="post" action="install.php?step=3">
         <button type="submit" class="btn btn-primary w-100"><?= $GLOBAL['createTablesBtn'] ?></button>

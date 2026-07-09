@@ -25,7 +25,7 @@ if (!in_array($col, $allowedCols)) {
 
 // Debug: show raw hex for rows with suspicious bytes
 if ($dryRun) {
-    $dbg = $pdo->query("SELECT id, HEX(`$col`) as h, `$col` as v FROM users WHERE `$col` LIKE '%â%' OR `$col` LIKE '%Ã%' LIMIT 5");
+    $dbg = $pdo->query("SELECT id, HEX(`$col`) as h, `$col` as v FROM contact WHERE `$col` LIKE '%â%' OR `$col` LIKE '%Ã%' LIMIT 5");
     foreach ($dbg->fetchAll(PDO::FETCH_OBJ) as $d) {
         echo "DEBUG id={$d->id} hex={$d->h} val=" . json_encode($d->v) . "\n";
         $as_bytes = @iconv('UTF-8', 'CP1252', $d->v);
@@ -38,7 +38,7 @@ if ($dryRun) {
     echo "\n";
 }
 
-$stmt = $pdo->query("SELECT id, `$col` FROM users WHERE `$col` != ''");
+$stmt = $pdo->query("SELECT id, `$col` FROM contact WHERE `$col` != ''");
 $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
 
 $fixed = 0;
@@ -83,7 +83,7 @@ foreach ($rows as $row) {
     echo "id={$row->id}: " . json_encode($original) . " → " . json_encode($repaired) . "\n";
 
     if (!$dryRun) {
-        $upd = $pdo->prepare("UPDATE users SET `$col` = ? WHERE id = ?");
+        $upd = $pdo->prepare("UPDATE contact SET `$col` = ? WHERE id = ?");
         $upd->execute([$repaired, $row->id]);
     }
     $fixed++;

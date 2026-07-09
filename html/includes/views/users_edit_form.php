@@ -13,7 +13,7 @@ if ($userid == -1) {
         $userid = (int)$_REQUEST['id'];
     }
 }
-$user = new User();
+$user = new Contact();
 $user->lookupUser($userid);
 
 // Stats for badges + mini-dashboard
@@ -87,7 +87,7 @@ $_stOtherTypes->execute([
     $user->getId()
 ]);
 $_otherTypes = $_stOtherTypes->fetchAll(PDO::FETCH_OBJ);
-$_suiviStmt = $pdo->prepare("SELECT COUNT(*) FROM user_properties WHERE user_id=? AND parameter='suivi'");
+$_suiviStmt = $pdo->prepare("SELECT COUNT(*) FROM contact_properties WHERE user_id=? AND parameter='suivi'");
 $_suiviStmt->execute([$user->getId()]);
 $_suiviCount = (int)$_suiviStmt->fetchColumn();
 ?>

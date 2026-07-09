@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $inactiveUsers = $pdo->query(
     "SELECT id, firstName, lastName, society, email
-     FROM users
+     FROM contact
      WHERE status=0
      ORDER BY society, lastName, firstName"
 )->fetchAll(PDO::FETCH_OBJ);

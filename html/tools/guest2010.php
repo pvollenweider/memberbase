@@ -4,7 +4,7 @@ header("Content-Type: text/html; charset=$charset");
 
 include "resources_fr.php";
 include "declarations.php";
-include "user_class.php";
+include "contact_class.php";
 include "segment_class.php";
 include "compta_class.php";
 include "property_class.php";

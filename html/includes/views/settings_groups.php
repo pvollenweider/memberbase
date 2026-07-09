@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 // Member counts per segment (guard: tables may not exist if migration is pending)
 try {
-    $countRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM user_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
+    $countRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
     $allSegments = $pdo->query("SELECT id, name FROM segment WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {
     $countRows = [];

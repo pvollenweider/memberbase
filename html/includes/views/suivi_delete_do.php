@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $userProperty = new UserProperty();
 $userProperty->lookupUserProperty($_REQUEST['suiviid']);
-auditLog($pdo, 'deleteSuivi', "suivi#={$_REQUEST['suiviid']} | membre: " . User::getMemberName((int)$_REQUEST['userid']) . " | {$userProperty->parameter}: {$userProperty->getValue()}");
+auditLog($pdo, 'deleteSuivi', "suivi#={$_REQUEST['suiviid']} | membre: " . Contact::getMemberName((int)$_REQUEST['userid']) . " | {$userProperty->parameter}: {$userProperty->getValue()}");
 $userProperty->remove();
 $view = "suivi";
 include __DIR__ . "/users_edit_form.php";

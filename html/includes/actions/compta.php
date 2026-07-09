@@ -26,12 +26,12 @@ if ($action == 'addCompta') {
     $compta->save();
     $_auType = $comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}";
     $_auCotiYear = $compta->cotisation_year ? " | annee coti: {$compta->cotisation_year}" : '';
-    auditLog($pdo, 'addCompta', "membre: " . User::getMemberName((int)$compta->userId) . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}{$_auCotiYear}", (int)$compta->userId);
+    auditLog($pdo, 'addCompta', "membre: " . Contact::getMemberName((int)$compta->userId) . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}{$_auCotiYear}", (int)$compta->userId);
 
     // Optional receipt email — only when the checkbox is checked
     if (!empty($_REQUEST['send_receipt'])) {
         require_once __DIR__ . '/../lib/mailer.php';
-        $_rcpUser = new User();
+        $_rcpUser = new Contact();
         $_rcpUser->lookupUser((int)$compta->userId);
         $_rcpEmail = $_rcpUser->getEmail();
         if ($_rcpEmail) {
@@ -97,14 +97,14 @@ if ($action == 'addCompta') {
             $_auDiffs2[] = "{$_f}: [{$_v}] -> [{$_auAfter2[$_f]}]";
         }
     }
-    $auDetail2 = "compta#={$_REQUEST['comptaid']} | membre: " . User::getMemberName((int)$compta->userId);
+    $auDetail2 = "compta#={$_REQUEST['comptaid']} | membre: " . Contact::getMemberName((int)$compta->userId);
     if ($_auDiffs2) { $auDetail2 .= ' | ' . implode(' ; ', $_auDiffs2); }
     else            { $auDetail2 .= ' | (aucune modification)'; }
     auditLog($pdo, 'updateCompta', $auDetail2, (int)$compta->userId);
 
 } elseif ($action == 'deleteComptaEntry') {
     $comptaid = (int)$_REQUEST['comptaid'];
-    $_auDel = $pdo->prepare("SELECT CONCAT(u.firstName,' ',u.lastName), c.sum FROM compta c JOIN users u ON u.id=c.user_id WHERE c.id=?");
+    $_auDel = $pdo->prepare("SELECT CONCAT(u.firstName,' ',u.lastName), c.sum FROM compta c JOIN contact u ON u.id=c.user_id WHERE c.id=?");
     $_auDel->execute([$comptaid]);
     $_auDelRow = $_auDel->fetch(PDO::FETCH_NUM);
     $pdo->prepare("DELETE FROM compta WHERE id=?")->execute([$comptaid]);
@@ -117,7 +117,7 @@ if ($action == 'addCompta') {
     $comptaid = (int)$_REQUEST['comptaid'];
     $value    = isset($_REQUEST['wants_attestation']) ? 1 : 0;
     $pdo->prepare("UPDATE compta SET wants_attestation=? WHERE id=?")->execute([$value, $comptaid]);
-    $_auTwa = $pdo->prepare("SELECT CONCAT(u.firstName,' ',u.lastName) FROM compta c JOIN users u ON u.id=c.user_id WHERE c.id=?");
+    $_auTwa = $pdo->prepare("SELECT CONCAT(u.firstName,' ',u.lastName) FROM compta c JOIN contact u ON u.id=c.user_id WHERE c.id=?");
     $_auTwa->execute([$comptaid]);
     auditLog($pdo, 'toggleWantsAttestation', "compta#=$comptaid | " . ($_auTwa->fetchColumn() ?: '') . " | attestation: " . ($value ? 'oui' : 'non'), (int)$_REQUEST['userid']);
     $year   = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');

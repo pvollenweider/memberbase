@@ -7,8 +7,8 @@
 SET NAMES utf8mb4;
 SET foreign_key_checks = 0;
 
--- Members
-CREATE TABLE IF NOT EXISTS `users` (
+-- Contacts (formerly "users")
+CREATE TABLE IF NOT EXISTS `contact` (
   `id`               int(8)       NOT NULL AUTO_INCREMENT,
   `lastname`         varchar(255) NOT NULL DEFAULT '',
   `firstname`        varchar(255) NOT NULL DEFAULT '',
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY (`id`),
   KEY `lastname`  (`lastname`(250)),
   KEY `firstname` (`firstname`(250)),
-  KEY `idx_users_status` (`status`)
+  KEY `idx_contact_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Segments (formerly "teams" / groups)
@@ -45,16 +45,16 @@ CREATE TABLE IF NOT EXISTS `segment` (
   KEY `idx_hidden` (`hidden`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Segment → member membership join table
-CREATE TABLE IF NOT EXISTS `user_segment` (
+-- Segment → contact membership join table
+CREATE TABLE IF NOT EXISTS `contact_segment` (
   `user_id`    INT NOT NULL,
   `segment_id` INT NOT NULL,
   PRIMARY KEY (`user_id`, `segment_id`),
-  KEY `idx_user_segment_segment_id` (`segment_id`)
+  KEY `idx_contact_segment_segment_id` (`segment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- User extra properties (non-team EAV data)
-CREATE TABLE IF NOT EXISTS `user_properties` (
+-- Contact extra properties (EAV data)
+CREATE TABLE IF NOT EXISTS `contact_properties` (
   `id`        int(8)       NOT NULL DEFAULT 0,
   `user_id`   int(8)       NOT NULL DEFAULT 0,
   `parameter` varchar(64)  NOT NULL DEFAULT '',
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `user_properties` (
   `value`     varchar(255) NOT NULL DEFAULT '',
   KEY `parameter`    (`parameter`),
   KEY `id`           (`id`),
-  KEY `idx_user_param` (`user_id`, `parameter`)
+  KEY `idx_contact_param` (`user_id`, `parameter`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Smart filters (metagroups)

@@ -1,18 +1,18 @@
 <?php
 /**
- * /api/members — REST endpoint for member records.
+ * /api/contacts — REST endpoint for member records.
  *
- * GET    /api/members          list (paginated, optional ?search=)
- * GET    /api/members/{id}     single member detail
- * POST   /api/members          create a member
- * PUT    /api/members/{id}     update a member
- * DELETE /api/members/{id}     deactivate (default) or delete (?dispose=delete, admin only)
+ * GET    /api/contacts          list (paginated, optional ?search=)
+ * GET    /api/contacts/{id}     single member detail
+ * POST   /api/contacts          create a member
+ * PUT    /api/contacts/{id}     update a member
+ * DELETE /api/contacts/{id}     deactivate (default) or delete (?dispose=delete, admin only)
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 require_once __DIR__ . '/_bootstrap.php';
-require_once __DIR__ . '/../classes/user_class.php';
+require_once __DIR__ . '/../classes/contact_class.php';
 require_once __DIR__ . '/../classes/member_filter_class.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -32,7 +32,7 @@ match (true) {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-function memberFieldsForDiff(User $u): array
+function memberFieldsForDiff(Contact $u): array
 {
     return [
         'firstName' => (string)$u->getFirstName(),
@@ -54,7 +54,7 @@ function memberFieldsForDiff(User $u): array
     ];
 }
 
-function memberToArray(User $u): array
+function memberToArray(Contact $u): array
 {
     return [
         'id'               => (int)$u->getId(),
@@ -90,7 +90,7 @@ function requestBody(): array
 }
 
 /** Applies allowed string fields from $body onto $user. */
-function applyFields(User $user, array $body): void
+function applyFields(Contact $user, array $body): void
 {
     $allowed = ['firstName','lastName','society','gender','title','address','npa',
                 'email','emailAlt','tel','telProf','portable','fax','web','comment'];
@@ -162,15 +162,15 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
 
     $year = (int)date('Y');
 
-    $baseSelect = "SELECT users.id, users.firstname, users.lastname, users.society,
-                          users.email, users.npa, users.address, users.sexe, users.creationDate
-                   FROM users";
-    $orderBy    = "ORDER BY users.lastname ASC, users.firstname ASC";
+    $baseSelect = "SELECT contact.id, contact.firstname, contact.lastname, contact.society,
+                          contact.email, contact.npa, contact.address, contact.sexe, contact.creationDate
+                   FROM contact";
+    $orderBy    = "ORDER BY contact.lastname ASC, contact.firstname ASC";
 
     // All active members — no ID restriction needed
     if ($filterId === FILTER_ALL_EXCEPT_ARCHIVES) {
-        $total = (int)db()->query("SELECT COUNT(*) FROM users WHERE status = 1")->fetchColumn();
-        $stmt = db()->prepare("$baseSelect WHERE users.status = 1 $orderBy LIMIT ? OFFSET ?");
+        $total = (int)db()->query("SELECT COUNT(*) FROM contact WHERE status = 1")->fetchColumn();
+        $stmt = db()->prepare("$baseSelect WHERE contact.status = 1 $orderBy LIMIT ? OFFSET ?");
         $stmt->bindValue(1, $limit,  PDO::PARAM_INT);
         $stmt->bindValue(2, $offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -192,7 +192,7 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
     }
 
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $stmt = db()->prepare("$baseSelect WHERE users.id IN ($placeholders) $orderBy LIMIT ? OFFSET ?");
+    $stmt = db()->prepare("$baseSelect WHERE contact.id IN ($placeholders) $orderBy LIMIT ? OFFSET ?");
     $i = 1;
     foreach ($ids as $uid) { $stmt->bindValue($i++, $uid, PDO::PARAM_INT); }
     $stmt->bindValue($i++, $limit,  PDO::PARAM_INT);
@@ -222,23 +222,23 @@ function handleList(): void
     }
 
     $joins  = '';
-    $where  = 'WHERE users.status = 1';
+    $where  = 'WHERE contact.status = 1';
     $params = [];
 
     if ($search !== '') {
         $like    = '%' . $search . '%';
         $where  .= ' AND (
-            users.firstname LIKE ? OR users.lastname LIKE ?
-            OR CONCAT(users.firstname, " ", users.lastname) LIKE ?
-            OR CONCAT(users.lastname,  " ", users.firstname) LIKE ?
-            OR users.society LIKE ? OR users.npa LIKE ?
-            OR users.email   LIKE ? OR users.address LIKE ?
+            contact.firstname LIKE ? OR contact.lastname LIKE ?
+            OR CONCAT(contact.firstname, " ", contact.lastname) LIKE ?
+            OR CONCAT(contact.lastname,  " ", contact.firstname) LIKE ?
+            OR contact.society LIKE ? OR contact.npa LIKE ?
+            OR contact.email   LIKE ? OR contact.address LIKE ?
         )';
         $params = array_fill(0, 8, $like);
     }
 
     if ($segmentId !== null && $segmentId > 0) {
-        $joins  .= ' JOIN user_segment up_t ON up_t.user_id = users.id AND up_t.segment_id = ?';
+        $joins  .= ' JOIN contact_segment up_t ON up_t.user_id = contact.id AND up_t.segment_id = ?';
         // rebuild flat params list
         $params = array_merge(
             $search !== '' ? array_fill(0, 8, '%' . $search . '%') : [],
@@ -260,20 +260,20 @@ function handleList(): void
         }
         $mgParams  = $mgSegmentIds;
         $mgPh      = implode(',', array_fill(0, count($mgParams), '?'));
-        $joins    .= ' JOIN user_segment up_mg ON up_mg.user_id = users.id AND up_mg.segment_id IN (' . $mgPh . ')';
+        $joins    .= ' JOIN contact_segment up_mg ON up_mg.user_id = contact.id AND up_mg.segment_id IN (' . $mgPh . ')';
         $params    = array_merge($search !== '' ? array_fill(0, 8, '%' . $search . '%') : [], $mgParams);
     }
 
-    $stmtCount = db()->prepare("SELECT COUNT(DISTINCT users.id) FROM users $joins $where");
+    $stmtCount = db()->prepare("SELECT COUNT(DISTINCT contact.id) FROM contact $joins $where");
     $stmtCount->execute($params);
     $total = (int)$stmtCount->fetchColumn();
 
     $sql = "SELECT DISTINCT
-                users.id, users.firstname, users.lastname, users.society,
-                users.email, users.npa, users.address, users.sexe,
-                users.creationDate
-            FROM users $joins $where
-            ORDER BY users.lastname ASC, users.firstname ASC
+                contact.id, contact.firstname, contact.lastname, contact.society,
+                contact.email, contact.npa, contact.address, contact.sexe,
+                contact.creationDate
+            FROM contact $joins $where
+            ORDER BY contact.lastname ASC, contact.firstname ASC
             LIMIT ? OFFSET ?";
 
     $stmt = db()->prepare($sql);
@@ -297,7 +297,7 @@ function handleList(): void
         $userPh    = implode(',', array_fill(0, count($resultIds), '?'));
         $segPh     = implode(',', array_fill(0, count($mgParams), '?'));
         $stGrp     = db()->prepare("
-            SELECT user_id, segment_id FROM user_segment
+            SELECT user_id, segment_id FROM contact_segment
             WHERE user_id IN ($userPh) AND segment_id IN ($segPh)
             ORDER BY segment_id ASC
         ");
@@ -316,7 +316,7 @@ function handleList(): void
 function handleGet(int $id): void
 {
     if (!canRead()) apiError(403, 'Forbidden');
-    $user = new User();
+    $user = new Contact();
     $user->lookupUser($id);
     if (!$user->getId()) apiError(404, 'Member not found');
 
@@ -333,7 +333,7 @@ function handleCreate(): void
         apiError(422, 'lastName is required');
     }
 
-    $user = new User();
+    $user = new Contact();
     // Initialize all string fields to '' to avoid NOT NULL constraint on INSERT
     foreach (['firstName','lastName','society','title','address','npa','tel','telProf',
               'portable','fax','email','emailAlt','web','comment'] as $_f) {
@@ -357,7 +357,7 @@ function handleUpdate(int $id): void
     if (!canWrite()) apiError(403, 'Forbidden');
     $body = requestBody();
 
-    $user = new User();
+    $user = new Contact();
     $user->lookupUser($id);
     if (!$user->getId()) apiError(404, 'Member not found');
 
@@ -366,7 +366,7 @@ function handleUpdate(int $id): void
     $user->save();
 
     // Reload from DB for accurate after state
-    $freshUser = new User();
+    $freshUser = new Contact();
     $freshUser->lookupUser($id);
     $after = memberFieldsForDiff($freshUser);
 
@@ -389,7 +389,7 @@ function handleUpdate(int $id): void
 function handleDelete(int $id): void
 {
 
-    $user = new User();
+    $user = new Contact();
     $user->lookupUser($id);
     if (!$user->getId()) apiError(404, 'Member not found');
 
@@ -400,7 +400,7 @@ function handleDelete(int $id): void
         auditLog(db(), 'deleteUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
         $user->remove();
     } else {
-        db()->prepare("UPDATE users SET status=0 WHERE id=?")->execute([$id]);
+        db()->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$id]);
         auditLog(db(), 'deactivateUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
     }
 
@@ -411,7 +411,7 @@ function handleGetGroups(int $id): void
 {
     if (!canRead()) apiError(403, 'Forbidden');
 
-    $chk = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $chk = db()->prepare("SELECT id FROM contact WHERE id=? AND status=1 LIMIT 1");
     $chk->execute([$id]);
     if (!$chk->fetchColumn()) apiError(404, 'Member not found');
 
@@ -419,7 +419,7 @@ function handleGetGroups(int $id): void
         "SELECT t.id, t.name, t.hidden,
                 cat.id AS cat_id, cat.name AS cat_name
          FROM segment t
-         JOIN user_segment us ON us.segment_id = t.id AND us.user_id = ?
+         JOIN contact_segment us ON us.segment_id = t.id AND us.user_id = ?
          LEFT JOIN (
              SELECT j.segmentid, c.id, c.name, c.sort_order
              FROM metagroup j
@@ -448,7 +448,7 @@ function handleGetCompta(int $id): void
 {
     if (!canRead()) apiError(403, 'Forbidden');
 
-    $chk = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $chk = db()->prepare("SELECT id FROM contact WHERE id=? AND status=1 LIMIT 1");
     $chk->execute([$id]);
     if (!$chk->fetchColumn()) apiError(404, 'Member not found');
 

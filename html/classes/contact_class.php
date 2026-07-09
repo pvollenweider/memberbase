@@ -7,7 +7,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
-class User
+class Contact
 {
     public $id;
     // NOT NULL columns — default to '' so a freshly-built User is always safe to save,
@@ -65,7 +65,7 @@ class User
 
     public function lookupUserByEmail(string $email): void
     {
-        $stmt = db()->prepare("SELECT " . self::SELECT_COLS . " FROM users WHERE email LIKE ?");
+        $stmt = db()->prepare("SELECT " . self::SELECT_COLS . " FROM contact WHERE email LIKE ?");
         $stmt->execute(["%" . $email . "%"]);
         foreach ($stmt as $row) {
             $this->hydrateFromRow($row);
@@ -74,7 +74,7 @@ class User
 
     public function lookupUser(int $id): void
     {
-        $stmt = db()->prepare("SELECT " . self::SELECT_COLS . " FROM users WHERE id=?");
+        $stmt = db()->prepare("SELECT " . self::SELECT_COLS . " FROM contact WHERE id=?");
         $stmt->execute([$id]);
         $row = $stmt->fetchObject();
         if ($row) {
@@ -129,7 +129,7 @@ class User
 
     public function getProperty(string $parameter): string
     {
-        $stmt = db()->prepare("SELECT value FROM user_properties WHERE user_id=? AND parameter=?");
+        $stmt = db()->prepare("SELECT value FROM contact_properties WHERE user_id=? AND parameter=?");
         $stmt->execute([$this->id, $parameter]);
         $row = $stmt->fetchObject();
         return $row ? (string) $row->value : "";
@@ -137,7 +137,7 @@ class User
 
     public function isMemberOfSegment(int $segmentId): bool
     {
-        $stmt = db()->prepare("SELECT 1 FROM user_segment WHERE user_id=? AND segment_id=? LIMIT 1");
+        $stmt = db()->prepare("SELECT 1 FROM contact_segment WHERE user_id=? AND segment_id=? LIMIT 1");
         $stmt->execute([$this->id, $segmentId]);
         return $stmt->fetchColumn() !== false;
     }
@@ -215,20 +215,20 @@ class User
      */
     public static function getMemberName(int $id): string
     {
-        $stmt = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
+        $stmt = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM contact WHERE id=?");
         $stmt->execute([$id]);
         return $stmt->fetchColumn() ?: "id=$id";
     }
 
     public function assignSegment(int $segmentId): void
     {
-        db()->prepare("INSERT IGNORE INTO user_segment (user_id, segment_id) VALUES (?, ?)")
+        db()->prepare("INSERT IGNORE INTO contact_segment (user_id, segment_id) VALUES (?, ?)")
             ->execute([$this->id, $segmentId]);
     }
 
     public function unassignSegment(int $segmentId): void
     {
-        db()->prepare("DELETE FROM user_segment WHERE user_id=? AND segment_id=?")
+        db()->prepare("DELETE FROM contact_segment WHERE user_id=? AND segment_id=?")
             ->execute([$this->id, $segmentId]);
     }
 
@@ -236,7 +236,7 @@ class User
     {
         if ($this->id) {
             db()->prepare(
-                "UPDATE users SET firstname=?,lastname=?,society=?,sexe=?,title=?,address=?,npa=?,
+                "UPDATE contact SET firstname=?,lastname=?,society=?,sexe=?,title=?,address=?,npa=?,
                  tel=?,telprof=?,portable=?,fax=?,email=?,email_alt=?,web=?,birthday=?,comment=?,modificationDate=?
                  WHERE id=?"
             )->execute([
@@ -248,7 +248,7 @@ class User
             return (int) $this->id;
         } else {
             db()->prepare(
-                "INSERT INTO users (firstname,lastname,society,sexe,title,address,npa,
+                "INSERT INTO contact (firstname,lastname,society,sexe,title,address,npa,
                  tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,modificationDate)
                  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
             )->execute([
@@ -263,8 +263,8 @@ class User
 
     public function remove(): void
     {
-        db()->prepare("DELETE FROM users WHERE id=?")->execute([$this->id]);
-        db()->prepare("DELETE FROM user_properties WHERE user_id=?")->execute([$this->id]);
+        db()->prepare("DELETE FROM contact WHERE id=?")->execute([$this->id]);
+        db()->prepare("DELETE FROM contact_properties WHERE user_id=?")->execute([$this->id]);
         db()->prepare("DELETE FROM compta WHERE user_id=?")->execute([$this->id]);
     }
 
@@ -293,32 +293,32 @@ class User
         $orderColumn = $opts['orderColumn'] ?? 'lastname';
         $orderSort   = $opts['orderSort'] ?? 'ASC';
 
-        $query = "SELECT DISTINCT users.id, users.firstname, users.lastname, users.society,"
-               . " users.sexe, users.address, users.npa, users.email, users.creationDate"
-               . " FROM users";
+        $query = "SELECT DISTINCT contact.id, contact.firstname, contact.lastname, contact.society,"
+               . " contact.sexe, contact.address, contact.npa, contact.email, contact.creationDate"
+               . " FROM contact";
         if ($metagroup > 0) {
-            $query .= ",user_segment ";
+            $query .= ",contact_segment ";
         } else {
             // Virtual filter IDs (resolved via MemberFilter) and team=0 (all members)
-            // do not need a user_segment join
+            // do not need a contact_segment join
             if ($team != 0 && $team != -1 && !MemberFilter::isVirtual($team)) {
-                $query .= ",user_segment ";
+                $query .= ",contact_segment ";
             }
         }
-        $query .= " WHERE 1=1 AND users.status=1 ";
+        $query .= " WHERE 1=1 AND contact.status=1 ";
 
         $queryParams = [];
         if (($opts['action'] ?? '') === 'search') {
             $like = '%' . ($opts['searchString'] ?? '') . '%';
-            $query .= " AND (users.firstname LIKE ?"
-                    . " OR users.lastname LIKE ?"
-                    . " OR CONCAT(users.firstname, ' ', users.lastname) LIKE ?"
-                    . " OR CONCAT(users.lastname, ' ', users.firstname) LIKE ?"
-                    . " OR users.society LIKE ?"
-                    . " OR users.npa LIKE ?"
-                    . " OR users.email LIKE ?"
-                    . " OR users.comment LIKE ?"
-                    . " OR users.address LIKE ?)";
+            $query .= " AND (contact.firstname LIKE ?"
+                    . " OR contact.lastname LIKE ?"
+                    . " OR CONCAT(contact.firstname, ' ', contact.lastname) LIKE ?"
+                    . " OR CONCAT(contact.lastname, ' ', contact.firstname) LIKE ?"
+                    . " OR contact.society LIKE ?"
+                    . " OR contact.npa LIKE ?"
+                    . " OR contact.email LIKE ?"
+                    . " OR contact.comment LIKE ?"
+                    . " OR contact.address LIKE ?)";
             $queryParams = array_fill(0, 9, $like);
         }
 
@@ -326,7 +326,7 @@ class User
             $mgSegmentIds = Metagroup::segmentIds($metagroup);
             if (count($mgSegmentIds) > 0) {
                 $placeholders = implode(',', array_fill(0, count($mgSegmentIds), '?'));
-                $query .= " AND users.id=user_segment.user_id AND user_segment.segment_id IN ($placeholders)";
+                $query .= " AND contact.id=contact_segment.user_id AND contact_segment.segment_id IN ($placeholders)";
                 $queryParams = array_merge($queryParams, $mgSegmentIds);
             } else {
                 $query .= " AND 1=0"; // metagroup has no segments — return empty
@@ -337,10 +337,10 @@ class User
                 // via the MemberFilter ID set applied by the caller
             } else if ($team == -1234) {
                 $membreSegment = (int)($opts['membreTeam'] ?? 0);
-                $query .= " AND users.id=user_segment.user_id AND user_segment.segment_id=? ";
+                $query .= " AND contact.id=contact_segment.user_id AND contact_segment.segment_id=? ";
                 $queryParams[] = $membreSegment;
             } else {
-                $query .= " AND users.id=user_segment.user_id AND user_segment.segment_id=?";
+                $query .= " AND contact.id=contact_segment.user_id AND contact_segment.segment_id=?";
                 $queryParams[] = $team;
             }
         }
