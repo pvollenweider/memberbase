@@ -24,7 +24,7 @@ $_recapSkip = isset($_GET['recapSkip']) ? (int)$_GET['recapSkip'] : 0;
 $_pending = $pdo->prepare(
     "SELECT COUNT(DISTINCT c.user_id) AS members, COUNT(*) AS entries
      FROM compta c
-     JOIN users u ON u.id = c.user_id AND u.status = 1
+     JOIN contact u ON u.id = c.user_id AND u.status = 1
      WHERE c.notified_at IS NULL AND c.sum <> 0
        AND YEAR(FROM_UNIXTIME(c.date)) = ?"
 );
@@ -50,7 +50,7 @@ if ($_pendingMembers > 0) {
                 MIN(c.date) AS first_date,
                 MAX(c.date) AS last_date
          FROM compta c
-         JOIN users u ON u.id = c.user_id AND u.status = 1
+         JOIN contact u ON u.id = c.user_id AND u.status = 1
          WHERE c.notified_at IS NULL AND c.sum <> 0
            AND YEAR(FROM_UNIXTIME(c.date)) = ?
          GROUP BY c.user_id, u.firstname, u.lastname, u.email
@@ -76,7 +76,7 @@ if ($_extended) {
                 SUM(c.sum) AS total,
                 MAX(c.notified_at) AS last_notified_at
          FROM compta c
-         JOIN users u ON u.id = c.user_id AND u.status = 1
+         JOIN contact u ON u.id = c.user_id AND u.status = 1
          WHERE c.notified_at IS NOT NULL AND c.sum <> 0
            AND YEAR(FROM_UNIXTIME(c.date)) = ?
          GROUP BY c.user_id, u.firstname, u.lastname, u.email

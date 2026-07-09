@@ -51,7 +51,7 @@ class MemberFilter
                     SELECT c.user_id
                     FROM compta c
                     JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1
-                    JOIN users u ON u.id = c.user_id AND u.status = 1
+                    JOIN contact u ON u.id = c.user_id AND u.status = 1
                     GROUP BY c.user_id
                     HAVING COUNT(*) > 0
                        AND SUM(CASE WHEN COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) >= ? THEN 1 ELSE 0 END) = 0
@@ -73,7 +73,7 @@ class MemberFilter
                 $ids = [];
                 $st = $pdo->prepare("
                     SELECT u.id
-                    FROM users u
+                    FROM contact u
                     WHERE u.status = 1
                       AND NOT EXISTS (
                           SELECT 1 FROM compta c
@@ -101,7 +101,7 @@ class MemberFilter
                 $st = $pdo->prepare("
                     SELECT DISTINCT c.user_id
                     FROM compta c
-                    JOIN users u ON u.id = c.user_id AND u.status = 1
+                    JOIN contact u ON u.id = c.user_id AND u.status = 1
                     WHERE c.date > ? AND c.date < ?
                       AND (c.type_id IS NULL OR c.type_id NOT IN ($notIn))
                 ");
@@ -125,8 +125,8 @@ class MemberFilter
                 $ids = [];
                 $st = $pdo->prepare("
                     SELECT u.id
-                    FROM users u
-                    JOIN user_segment us ON us.user_id = u.id AND us.segment_id = ?
+                    FROM contact u
+                    JOIN contact_segment us ON us.user_id = u.id AND us.segment_id = ?
                     WHERE u.status = 1
                       AND NOT EXISTS (
                           SELECT 1 FROM compta c
@@ -159,7 +159,7 @@ class MemberFilter
         if ($noCotiTeam <= 0) {
             return [];
         }
-        $st = $pdo->prepare("SELECT user_id FROM user_segment WHERE segment_id=?");
+        $st = $pdo->prepare("SELECT user_id FROM contact_segment WHERE segment_id=?");
         $st->execute([$noCotiTeam]);
         $map = [];
         while ($r = $st->fetchObject()) {

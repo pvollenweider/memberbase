@@ -69,7 +69,7 @@ class Segment
                    COALESCE(cat.name, '') AS cat_name,
                    COALESCE(cat.id, 0) AS cat_id,
                    COALESCE(cat.sort_order, 99999) AS cat_sort,
-                   (SELECT COUNT(*) FROM user_segment us WHERE us.segment_id = t.id) AS member_count
+                   (SELECT COUNT(*) FROM contact_segment us WHERE us.segment_id = t.id) AS member_count
             FROM segment t
             LEFT JOIN (
                 SELECT j.segmentid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
@@ -105,7 +105,7 @@ class Segment
 
     public function isUsed(): bool
     {
-        $stmt = db()->prepare("SELECT 1 FROM user_segment WHERE segment_id=? LIMIT 1");
+        $stmt = db()->prepare("SELECT 1 FROM contact_segment WHERE segment_id=? LIMIT 1");
         $stmt->execute([$this->id]);
         $result = $stmt->fetchObject() !== false;
         return $result;

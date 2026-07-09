@@ -164,12 +164,12 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
 
     $baseSelect = "SELECT users.id, users.firstname, users.lastname, users.society,
                           users.email, users.npa, users.address, users.sexe, users.creationDate
-                   FROM users";
+                   FROM contact";
     $orderBy    = "ORDER BY users.lastname ASC, users.firstname ASC";
 
     // All active members — no ID restriction needed
     if ($filterId === FILTER_ALL_EXCEPT_ARCHIVES) {
-        $total = (int)db()->query("SELECT COUNT(*) FROM users WHERE status = 1")->fetchColumn();
+        $total = (int)db()->query("SELECT COUNT(*) FROM contact WHERE status = 1")->fetchColumn();
         $stmt = db()->prepare("$baseSelect WHERE users.status = 1 $orderBy LIMIT ? OFFSET ?");
         $stmt->bindValue(1, $limit,  PDO::PARAM_INT);
         $stmt->bindValue(2, $offset, PDO::PARAM_INT);
@@ -238,7 +238,7 @@ function handleList(): void
     }
 
     if ($segmentId !== null && $segmentId > 0) {
-        $joins  .= ' JOIN user_segment up_t ON up_t.user_id = users.id AND up_t.segment_id = ?';
+        $joins  .= ' JOIN contact_segment up_t ON up_t.user_id = users.id AND up_t.segment_id = ?';
         // rebuild flat params list
         $params = array_merge(
             $search !== '' ? array_fill(0, 8, '%' . $search . '%') : [],
@@ -260,11 +260,11 @@ function handleList(): void
         }
         $mgParams  = $mgSegmentIds;
         $mgPh      = implode(',', array_fill(0, count($mgParams), '?'));
-        $joins    .= ' JOIN user_segment up_mg ON up_mg.user_id = users.id AND up_mg.segment_id IN (' . $mgPh . ')';
+        $joins    .= ' JOIN contact_segment up_mg ON up_mg.user_id = users.id AND up_mg.segment_id IN (' . $mgPh . ')';
         $params    = array_merge($search !== '' ? array_fill(0, 8, '%' . $search . '%') : [], $mgParams);
     }
 
-    $stmtCount = db()->prepare("SELECT COUNT(DISTINCT users.id) FROM users $joins $where");
+    $stmtCount = db()->prepare("SELECT COUNT(DISTINCT users.id) FROM contact $joins $where");
     $stmtCount->execute($params);
     $total = (int)$stmtCount->fetchColumn();
 
@@ -272,7 +272,7 @@ function handleList(): void
                 users.id, users.firstname, users.lastname, users.society,
                 users.email, users.npa, users.address, users.sexe,
                 users.creationDate
-            FROM users $joins $where
+            FROM contact $joins $where
             ORDER BY users.lastname ASC, users.firstname ASC
             LIMIT ? OFFSET ?";
 
@@ -297,7 +297,7 @@ function handleList(): void
         $userPh    = implode(',', array_fill(0, count($resultIds), '?'));
         $segPh     = implode(',', array_fill(0, count($mgParams), '?'));
         $stGrp     = db()->prepare("
-            SELECT user_id, segment_id FROM user_segment
+            SELECT user_id, segment_id FROM contact_segment
             WHERE user_id IN ($userPh) AND segment_id IN ($segPh)
             ORDER BY segment_id ASC
         ");
@@ -400,7 +400,7 @@ function handleDelete(int $id): void
         auditLog(db(), 'deleteUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
         $user->remove();
     } else {
-        db()->prepare("UPDATE users SET status=0 WHERE id=?")->execute([$id]);
+        db()->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$id]);
         auditLog(db(), 'deactivateUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
     }
 
@@ -411,7 +411,7 @@ function handleGetGroups(int $id): void
 {
     if (!canRead()) apiError(403, 'Forbidden');
 
-    $chk = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $chk = db()->prepare("SELECT id FROM contact WHERE id=? AND status=1 LIMIT 1");
     $chk->execute([$id]);
     if (!$chk->fetchColumn()) apiError(404, 'Member not found');
 
@@ -419,7 +419,7 @@ function handleGetGroups(int $id): void
         "SELECT t.id, t.name, t.hidden,
                 cat.id AS cat_id, cat.name AS cat_name
          FROM segment t
-         JOIN user_segment us ON us.segment_id = t.id AND us.user_id = ?
+         JOIN contact_segment us ON us.segment_id = t.id AND us.user_id = ?
          LEFT JOIN (
              SELECT j.segmentid, c.id, c.name, c.sort_order
              FROM metagroup j
@@ -448,7 +448,7 @@ function handleGetCompta(int $id): void
 {
     if (!canRead()) apiError(403, 'Forbidden');
 
-    $chk = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $chk = db()->prepare("SELECT id FROM contact WHERE id=? AND status=1 LIMIT 1");
     $chk->execute([$id]);
     if (!$chk->fetchColumn()) apiError(404, 'Member not found');
 

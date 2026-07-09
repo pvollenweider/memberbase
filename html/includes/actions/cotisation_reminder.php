@@ -36,7 +36,7 @@ if ($_cotiAction === 'sendCotisationReminderOne') {
     $userId = (int)($_REQUEST['user_id'] ?? 0);
     if ($userId <= 0) { echo json_encode(['ok' => false, 'error' => 'missing_user_id']); exit; }
 
-    $m = $pdo->prepare("SELECT id, firstname, lastname, society, email FROM users WHERE id = ? AND status = 1");
+    $m = $pdo->prepare("SELECT id, firstname, lastname, society, email FROM contact WHERE id = ? AND status = 1");
     $m->execute([$userId]);
     $member = $m->fetch(PDO::FETCH_OBJ);
     if (!$member) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }

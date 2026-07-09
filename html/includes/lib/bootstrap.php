@@ -95,7 +95,7 @@ const FILTER_NON_INSTIT_LAST_YEAR = -6666;
 // Sequence counter — still used for metagroup_id and userpropertiesid only.
 // segment/users/compta are now native AUTO_INCREMENT.
 // metagroup cannot use AUTO_INCREMENT (id shared across header + member rows).
-// user_properties.id is broken (83k rows with id=0), left for later refactor.
+// contact_properties.id is broken (83k rows with id=0), left for later refactor.
 function getMaxVal(PDO $pdo, string $parameter): int
 {
     $stmt = $pdo->prepare("SELECT value FROM maxval WHERE parameter=?");

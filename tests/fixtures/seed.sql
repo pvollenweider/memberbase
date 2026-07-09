@@ -15,7 +15,7 @@ VALUES
 
 -- Regular members
 -- Users 4 and 5 are lapsed: paid 2025, not 2026. User 5 has no email (skip case).
-INSERT INTO `users` (`id`, `lastname`, `firstname`, `email`, `status`, `creationDate`, `modificationDate`, `comment`)
+INSERT INTO `contact` (`id`, `lastname`, `firstname`, `email`, `status`, `creationDate`, `modificationDate`, `comment`)
 VALUES
   (1, 'Dupont',   'Alice',  'alice@example.com',    1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ''),
   (2, 'Martin',   'Bob',    'bob@example.com',      1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), ''),
@@ -61,7 +61,7 @@ VALUES
   (5, 5, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50', 'Q-005', 1, 0, 2025);
 
 -- Segment membership (join table)
-INSERT INTO `user_segment` (`user_id`, `segment_id`) VALUES
+INSERT INTO `contact_segment` (`user_id`, `segment_id`) VALUES
   (1, 1),
   (1, 2),
   (2, 1),

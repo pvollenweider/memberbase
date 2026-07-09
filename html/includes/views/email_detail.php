@@ -23,7 +23,7 @@ try {
                 el.error_msg, el.body_text, el.body_html,
                 u.id AS user_id, u.firstname, u.lastname
          FROM email_log el
-         LEFT JOIN users u ON u.id = el.user_id
+         LEFT JOIN contact u ON u.id = el.user_id
          WHERE el.id = ? LIMIT 1"
     );
     $stmt->execute([$emailId]);

@@ -58,7 +58,7 @@ foreach ($allTeams as $t) {
 ksort($catGroups);
 
 // Member counts per segment
-$cntRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM user_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
+$cntRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
 $teamCounts = [];
 foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 ?>

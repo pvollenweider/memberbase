@@ -45,7 +45,7 @@ try {
 
 // --- Volume counters ---
 $nbTables  = $_hScalar($pdo, 'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()');
-$nbMembers = $_hScalar($pdo, 'SELECT COUNT(*) FROM users WHERE status = 1');
+$nbMembers = $_hScalar($pdo, 'SELECT COUNT(*) FROM contact WHERE status = 1');
 $nbCompta  = $_hScalar($pdo, 'SELECT COUNT(*) FROM compta');
 $nbAppUsers = $_hScalar($pdo, 'SELECT COUNT(*) FROM app_users WHERE is_active = 1');
 

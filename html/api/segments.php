@@ -91,8 +91,8 @@ function handleList(): void
                 COUNT(us.user_id) AS member_count,
                 cat.id AS cat_id, cat.name AS cat_name
          FROM segment t
-         LEFT JOIN user_segment us ON us.segment_id = t.id
-         LEFT JOIN users u ON u.id = us.user_id AND u.status = 1
+         LEFT JOIN contact_segment us ON us.segment_id = t.id
+         LEFT JOIN contact u ON u.id = us.user_id AND u.status = 1
          " . CAT_JOIN . "
          GROUP BY t.id, t.name, t.hidden, cat.id, cat.name, cat.sort_order
          ORDER BY COALESCE(cat.sort_order, 99999) ASC,
@@ -115,8 +115,8 @@ function handleGet(int $id): void
                 COUNT(us.user_id) AS member_count,
                 cat.id AS cat_id, cat.name AS cat_name
          FROM segment t
-         LEFT JOIN user_segment us ON us.segment_id = t.id
-         LEFT JOIN users u ON u.id = us.user_id AND u.status = 1
+         LEFT JOIN contact_segment us ON us.segment_id = t.id
+         LEFT JOIN contact u ON u.id = us.user_id AND u.status = 1
          " . CAT_JOIN . "
          WHERE t.id = ?
          GROUP BY t.id, t.name, t.hidden, cat.id, cat.name, cat.sort_order"
@@ -138,8 +138,8 @@ function handleListMembers(int $id): void
 
     $stmt = db()->prepare(
         "SELECT u.id, u.firstname, u.lastname, u.email, u.npa
-         FROM users u
-         JOIN user_segment us ON us.user_id = u.id AND us.segment_id = ?
+         FROM contact u
+         JOIN contact_segment us ON us.user_id = u.id AND us.segment_id = ?
          WHERE u.status = 1
          ORDER BY u.lastname ASC, u.firstname ASC"
     );
@@ -196,8 +196,8 @@ function handleUpdate(int $id): void
                 COUNT(us.user_id) AS member_count,
                 cat.id AS cat_id, cat.name AS cat_name
          FROM segment t
-         LEFT JOIN user_segment us ON us.segment_id = t.id
-         LEFT JOIN users u ON u.id = us.user_id AND u.status = 1
+         LEFT JOIN contact_segment us ON us.segment_id = t.id
+         LEFT JOIN contact u ON u.id = us.user_id AND u.status = 1
          " . CAT_JOIN . "
          WHERE t.id = ?
          GROUP BY t.id, t.name, t.hidden, cat.id, cat.name, cat.sort_order"
@@ -235,14 +235,14 @@ function handleAddMember(int $groupId): void
     $chkGroup->execute([$groupId]);
     if (!$chkGroup->fetchColumn()) apiError(404, 'Segment not found');
 
-    $chkUser = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $chkUser = db()->prepare("SELECT id FROM contact WHERE id=? AND status=1 LIMIT 1");
     $chkUser->execute([$memberId]);
     if (!$chkUser->fetchColumn()) apiError(422, "Member #$memberId not found");
 
-    db()->prepare("INSERT IGNORE INTO user_segment (user_id, segment_id) VALUES (?, ?)")
+    db()->prepare("INSERT IGNORE INTO contact_segment (user_id, segment_id) VALUES (?, ?)")
         ->execute([$memberId, $groupId]);
 
-    $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
+    $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM contact WHERE id=?");
     $_auU->execute([$memberId]);
     $_auName = trim((string)$_auU->fetchColumn());
     auditLog(db(), 'assignSegment', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
@@ -258,10 +258,10 @@ function handleRemoveMember(int $groupId): void
     $memberId = isset($body['memberId']) ? (int)$body['memberId'] : 0;
     if (!$memberId) apiError(422, 'memberId is required');
 
-    db()->prepare("DELETE FROM user_segment WHERE user_id=? AND segment_id=?")
+    db()->prepare("DELETE FROM contact_segment WHERE user_id=? AND segment_id=?")
         ->execute([$memberId, $groupId]);
 
-    $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
+    $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM contact WHERE id=?");
     $_auU->execute([$memberId]);
     $_auName = trim((string)$_auU->fetchColumn());
     auditLog(db(), 'unassignSegment', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);

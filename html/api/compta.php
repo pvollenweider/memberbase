@@ -142,7 +142,7 @@ function handleCreate(): void
 
     validateTypeId($typeId);
 
-    $stmt = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
+    $stmt = db()->prepare("SELECT id FROM contact WHERE id=? AND status=1 LIMIT 1");
     $stmt->execute([$memberId]);
     if (!$stmt->fetchColumn()) apiError(422, "Member #$memberId not found");
 
@@ -159,7 +159,7 @@ function handleCreate(): void
     $newId = (int)db()->lastInsertId();
     $c->lookupCompta($newId);
 
-    $_auUser = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM users WHERE id=?");
+    $_auUser = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM contact WHERE id=?");
     $_auUser->execute([$memberId]);
     $typLabel = $comptaTypes[$typeId]->label ?? "type=$typeId";
     auditLog(db(), 'addCompta',

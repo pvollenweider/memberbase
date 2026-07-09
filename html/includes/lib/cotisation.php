@@ -26,12 +26,12 @@ function mbGetLapsedMembers(PDO $db, int $year, array $cotiTypeIds, int $noCotiT
     }
     $ph           = implode(',', array_fill(0, count($cotiTypeIds), '?'));
     $noCotiClause = $noCotiTeam > 0
-        ? "AND NOT EXISTS (SELECT 1 FROM user_segment WHERE user_id=u.id AND segment_id=$noCotiTeam)"
+        ? "AND NOT EXISTS (SELECT 1 FROM contact_segment WHERE user_id=u.id AND segment_id=$noCotiTeam)"
         : '';
 
     $stmt = $db->prepare("
         SELECT u.id, u.firstname, u.lastname, u.society, u.email
-        FROM users u
+        FROM contact u
         WHERE u.status = 1
           $noCotiClause
           AND EXISTS (
