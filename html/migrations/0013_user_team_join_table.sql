@@ -7,21 +7,20 @@ CREATE TABLE IF NOT EXISTS user_team (
     KEY idx_user_team_team_id (team_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Backfill from user_properties only if the table exists (legacy installs).
-DROP PROCEDURE IF EXISTS _mb_migrate_0013;
-CREATE PROCEDURE _mb_migrate_0013()
-BEGIN
-    IF EXISTS (
-        SELECT 1 FROM information_schema.tables
-        WHERE table_schema = DATABASE() AND table_name = 'user_properties'
-    ) THEN
-        INSERT IGNORE INTO user_team (user_id, team_id)
-        SELECT user_id, CAST(SUBSTRING(parameter, 6) AS UNSIGNED)
-        FROM user_properties
-        WHERE parameter LIKE 'team_%' AND value = 'true';
+-- Ensure user_properties exists before backfilling (fresh/test installs may not have it).
+-- IF NOT EXISTS is a no-op on real legacy installs that already have the table.
+CREATE TABLE IF NOT EXISTS user_properties (
+    user_id   INT          NOT NULL,
+    parameter VARCHAR(100) NOT NULL,
+    value     VARCHAR(255) NOT NULL DEFAULT '',
+    PRIMARY KEY (user_id, parameter)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-        DELETE FROM user_properties WHERE parameter LIKE 'team_%';
-    END IF;
-END;
-CALL _mb_migrate_0013();
-DROP PROCEDURE IF EXISTS _mb_migrate_0013;
+-- Backfill: extract team_N → team_id from EAV rows.
+INSERT IGNORE INTO user_team (user_id, team_id)
+SELECT user_id, CAST(SUBSTRING(parameter, 6) AS UNSIGNED)
+FROM user_properties
+WHERE parameter LIKE 'team_%' AND value = 'true';
+
+-- Remove migrated EAV rows.
+DELETE FROM user_properties WHERE parameter LIKE 'team_%';
