@@ -1,26 +1,26 @@
 <?php
 /**
- * /api/groups — REST endpoint for groups (segments).
+ * /api/segments — REST endpoint for segments (groups).
  *
- * GET    /api/groups                        list all groups with member count
- * GET    /api/groups/{id}                   single group
- * GET    /api/groups/{id}/members           members of a group
- * POST   /api/groups                        create group (manager)
- * PUT    /api/groups/{id}                   rename / toggle hidden (manager)
- * DELETE /api/groups/{id}                   delete group (manager, only if empty)
- * POST   /api/groups/{id}/members           add a member to a group (manager)
- * DELETE /api/groups/{id}/members           remove a member from a group (manager)
+ * GET    /api/segments                        list all segments with member count
+ * GET    /api/segments/{id}                   single segment
+ * GET    /api/segments/{id}/members           members of a segment
+ * POST   /api/segments                        create segment (manager)
+ * PUT    /api/segments/{id}                   rename / toggle hidden (manager)
+ * DELETE /api/segments/{id}                   delete segment (manager, only if empty)
+ * POST   /api/segments/{id}/members           add a member to a segment (manager)
+ * DELETE /api/segments/{id}/members           remove a member from a segment (manager)
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 require_once __DIR__ . '/_bootstrap.php';
-require_once __DIR__ . '/../classes/team_class.php';
+require_once __DIR__ . '/../classes/segment_class.php';
 require_once __DIR__ . '/../classes/user_class.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
-$sub    = $_GET['sub'] ?? null; // 'members' for /api/groups/{id}/members
+$sub    = $_GET['sub'] ?? null; // 'members' for /api/segments/{id}/members
 
 // Subquery: resolves the non-filter category (is_filter=0) for each segment.
 define('CAT_JOIN',
@@ -56,18 +56,18 @@ function requestBody(): array
     return $data;
 }
 
-function loadGroup(int $id): Segment
+function loadSegment(int $id): Segment
 {
     $segment = new Segment();
     try {
         $segment->lookupSegment($id);
     } catch (\RuntimeException) {
-        apiError(404, 'Group not found');
+        apiError(404, 'Segment not found');
     }
     return $segment;
 }
 
-function groupToArray(object $row): array
+function segmentToArray(object $row): array
 {
     return [
         'id'           => (int)$row->id,
@@ -101,7 +101,7 @@ function handleList(): void
     );
 
     echo json_encode(
-        ['data' => array_map('groupToArray', $stmt->fetchAll())],
+        ['data' => array_map('segmentToArray', $stmt->fetchAll())],
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
     );
 }
@@ -123,9 +123,9 @@ function handleGet(int $id): void
     );
     $stmt->execute([$id]);
     $row = $stmt->fetchObject();
-    if (!$row) apiError(404, 'Group not found');
+    if (!$row) apiError(404, 'Segment not found');
 
-    echo json_encode(['data' => groupToArray($row)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    echo json_encode(['data' => segmentToArray($row)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
 function handleListMembers(int $id): void
@@ -134,7 +134,7 @@ function handleListMembers(int $id): void
 
     $stmt = db()->prepare("SELECT id FROM segment WHERE id=? LIMIT 1");
     $stmt->execute([$id]);
-    if (!$stmt->fetchColumn()) apiError(404, 'Group not found');
+    if (!$stmt->fetchColumn()) apiError(404, 'Segment not found');
 
     $stmt = db()->prepare(
         "SELECT u.id, u.firstname, u.lastname, u.email, u.npa
@@ -175,14 +175,14 @@ function handleCreate(): void
     $stmt->execute([$segment->getId()]);
 
     http_response_code(201);
-    echo json_encode(['data' => groupToArray($stmt->fetchObject())], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    echo json_encode(['data' => segmentToArray($stmt->fetchObject())], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
 function handleUpdate(int $id): void
 {
     if (!isManager()) apiError(403, 'Manager role required');
 
-    $segment = loadGroup($id);
+    $segment = loadSegment($id);
     $body = requestBody();
 
     if (array_key_exists('name',   $body)) $segment->setName(unquote(trim((string)$body['name'])));
@@ -204,17 +204,17 @@ function handleUpdate(int $id): void
     );
     $stmt->execute([$id]);
 
-    echo json_encode(['data' => groupToArray($stmt->fetchObject())], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    echo json_encode(['data' => segmentToArray($stmt->fetchObject())], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
 function handleDelete(int $id): void
 {
     if (!isManager()) apiError(403, 'Manager role required');
 
-    $segment = loadGroup($id);
+    $segment = loadSegment($id);
 
     if ($segment->isUsed()) {
-        apiError(409, 'Group still has members — remove them first or use force=true');
+        apiError(409, 'Segment still has members — remove them first or use force=true');
     }
 
     auditLog(db(), 'deleteTeam', "id=$id | name: {$segment->getName()}");
@@ -233,7 +233,7 @@ function handleAddMember(int $groupId): void
 
     $chkGroup = db()->prepare("SELECT id FROM segment WHERE id=? LIMIT 1");
     $chkGroup->execute([$groupId]);
-    if (!$chkGroup->fetchColumn()) apiError(404, 'Group not found');
+    if (!$chkGroup->fetchColumn()) apiError(404, 'Segment not found');
 
     $chkUser = db()->prepare("SELECT id FROM users WHERE id=? AND status=1 LIMIT 1");
     $chkUser->execute([$memberId]);
