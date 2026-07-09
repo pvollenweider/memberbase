@@ -240,6 +240,7 @@ $GLOBAL['migrationFailed'] = "FAILED";
 
 // --- Shared form / chart labels ---
 $GLOBAL['numericAmountHint'] = "Numeric amount (e.g. 50 or 12.50)";
+$GLOBAL['sumRequired'] = "Please enter an amount.";
 $GLOBAL['allTypesFull'] = "All types";
 $GLOBAL['monthlyVsCumulative'] = "Monthly vs cumulative";
 $GLOBAL['annual'] = "Annual";
