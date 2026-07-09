@@ -44,8 +44,8 @@ function mbRunIntegrityChecks(PDO $db): array
         'hiddenInCats' => $db->query("
             SELECT DISTINCT t.id AS team_id, t.name AS team_name,
                    m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
-            FROM team t
-            JOIN metagroup j ON j.teamid = t.id
+            FROM segment t
+            JOIN metagroup j ON j.segmentid = t.id
             JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
             WHERE t.hidden = 1
             ORDER BY m.sort_order, m.name, t.name
@@ -54,8 +54,8 @@ function mbRunIntegrityChecks(PDO $db): array
         'hiddenInMeta' => $db->query("
             SELECT DISTINCT t.id AS team_id, t.name AS team_name,
                    m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
-            FROM team t
-            JOIN metagroup j ON j.teamid = t.id
+            FROM segment t
+            JOIN metagroup j ON j.segmentid = t.id
             JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 1
             WHERE t.hidden = 1
             ORDER BY m.sort_order, m.name, t.name
@@ -63,10 +63,10 @@ function mbRunIntegrityChecks(PDO $db): array
 
         'hiddenWithMembers' => $db->query("
             SELECT t.id AS team_id, t.name AS team_name,
-                   COUNT(up.user_id) AS member_count
-            FROM team t
-            JOIN user_team ut ON ut.team_id = t.id
-            JOIN users u ON u.id = ut.user_id AND u.status = 1
+                   COUNT(us.user_id) AS member_count
+            FROM segment t
+            JOIN user_segment us ON us.segment_id = t.id
+            JOIN users u ON u.id = us.user_id AND u.status = 1
             WHERE t.hidden = 1
             GROUP BY t.id, t.name
             ORDER BY t.name

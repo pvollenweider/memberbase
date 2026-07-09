@@ -126,7 +126,7 @@ class MemberFilter
                 $st = $pdo->prepare("
                     SELECT u.id
                     FROM users u
-                    JOIN user_team ut ON ut.user_id = u.id AND ut.team_id = ?
+                    JOIN user_segment us ON us.user_id = u.id AND us.segment_id = ?
                     WHERE u.status = 1
                       AND NOT EXISTS (
                           SELECT 1 FROM compta c
@@ -159,7 +159,7 @@ class MemberFilter
         if ($noCotiTeam <= 0) {
             return [];
         }
-        $st = $pdo->prepare("SELECT user_id FROM user_team WHERE team_id=?");
+        $st = $pdo->prepare("SELECT user_id FROM user_segment WHERE segment_id=?");
         $st->execute([$noCotiTeam]);
         $map = [];
         while ($r = $st->fetchObject()) {

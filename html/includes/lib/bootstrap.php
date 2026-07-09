@@ -86,14 +86,14 @@ $appSettings = array_merge([
 unset($_settingsRows);
 
 // Named constants for virtual filter IDs used in view_users.inc
-// Negative integers — never collide with real team IDs (always > 0)
+// Negative integers — never collide with real segment IDs (always > 0)
 const FILTER_ALL_EXCEPT_ARCHIVES  = -3;
 const FILTER_UNPAID_COTI_CURRENT  = -4;
 const FILTER_UNPAID_COTI_3Y       = -3333;
 const FILTER_NO_ACTIVITY_10Y      = -5555;
 const FILTER_NON_INSTIT_LAST_YEAR = -6666;
 // Sequence counter — still used for metagroup_id and userpropertiesid only.
-// team/users/compta are now native AUTO_INCREMENT.
+// segment/users/compta are now native AUTO_INCREMENT.
 // metagroup cannot use AUTO_INCREMENT (id shared across header + member rows).
 // user_properties.id is broken (83k rows with id=0), left for later refactor.
 function getMaxVal(PDO $pdo, string $parameter): int

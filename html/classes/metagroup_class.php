@@ -55,30 +55,35 @@ class Metagroup
         return db()->query(
             "SELECT DISTINCT m.id, m.name FROM metagroup m
              WHERE m.name IS NOT NULL AND m.is_filter = 1
-               AND EXISTS (SELECT 1 FROM metagroup j WHERE j.id=m.id AND j.teamid IS NOT NULL)
+               AND EXISTS (SELECT 1 FROM metagroup j WHERE j.id=m.id AND j.segmentid IS NOT NULL)
              ORDER BY m.name"
         )->fetchAll(PDO::FETCH_OBJ);
     }
 
-    /** Names of the teams belonging to a metagroup, sorted. @return string[] */
-    public static function teamNames(int $id): array
+    /** Names of the segments belonging to a metagroup, sorted. @return string[] */
+    public static function segmentNames(int $id): array
     {
         $stmt = db()->prepare(
-            "SELECT t.name FROM team t
-             JOIN metagroup j ON j.teamid = t.id
+            "SELECT t.name FROM segment t
+             JOIN metagroup j ON j.segmentid = t.id
              WHERE j.id = ? ORDER BY t.name"
         );
         $stmt->execute([$id]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    /** IDs of the teams belonging to a metagroup. @return int[] */
-    public static function teamIds(int $id): array
+    /** IDs of the segments belonging to a metagroup. @return int[] */
+    public static function segmentIds(int $id): array
     {
-        $stmt = db()->prepare("SELECT teamid FROM metagroup WHERE id=? AND teamid IS NOT NULL");
+        $stmt = db()->prepare("SELECT segmentid FROM metagroup WHERE id=? AND segmentid IS NOT NULL");
         $stmt->execute([$id]);
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
+
+    /** @deprecated Use segmentNames() instead. */
+    public static function teamNames(int $id): array { return self::segmentNames($id); }
+    /** @deprecated Use segmentIds() instead. */
+    public static function teamIds(int $id): array { return self::segmentIds($id); }
 
     public function isUsed(): bool
     {
@@ -93,8 +98,8 @@ class Metagroup
         if (!$this->isUsed()) {
             db()->prepare("DELETE FROM metagroup WHERE id=?")->execute([$this->id]);
         } else {
-            print "Could not remove $this->name because there is a team inside.<br/>";
-            print "Click <a href='" . $_SERVER['PHP_SELF'] . "?action=viewgroups&amp;metagroup=" . $this->id . "'>here</a> to see the team list";
+            print "Could not remove $this->name because there is a segment inside.<br/>";
+            print "Click <a href='" . $_SERVER['PHP_SELF'] . "?action=viewgroups&amp;metagroup=" . $this->id . "'>here</a> to see the segment list";
         }
     }
 }
