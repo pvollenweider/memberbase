@@ -74,9 +74,9 @@ NULL_COTI="$(q "SELECT COUNT(*) FROM compta WHERE cotisation_year IS NULL AND da
 [ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='email_log' AND column_name='tpl_key'")" = "1" ] \
   || fail "email_log.tpl_key column missing (0012 not applied)"
 
-# 15b. Migration 0013 created user_team join table
-[ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='user_team'")" = "1" ] \
-  || fail "user_team table missing (0013 not applied)"
+# 15b. Migration 0013 created user_team (0014 then renames it → user_segment; verify it no longer exists as user_team)
+[ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='user_team'")" = "0" ] \
+  || fail "user_team table still exists after rename (0014 not applied)"
 
 # 15c. Migration 0014 renamed team→segment, user_team→user_segment, teamid→segmentid
 [ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='segment'")" = "1" ] \
