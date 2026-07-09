@@ -56,7 +56,9 @@ function mbRunIntegrityChecks(PDO $db): array
         $hiddenWithMembers = [];
     }
 
-    return [
+    // Queries referencing the contact table fail if migration 0015 has not run yet.
+    try {
+        $contactChecks = [
         'dupNames' => $db->query("
             SELECT firstName, lastName, COUNT(*) AS cnt,
                    GROUP_CONCAT(id ORDER BY id SEPARATOR ',') AS ids
@@ -76,10 +78,6 @@ function mbRunIntegrityChecks(PDO $db): array
             HAVING COUNT(*) > 1
             ORDER BY email
         ")->fetchAll(PDO::FETCH_OBJ),
-
-        'hiddenInCats'     => $hiddenInCats,
-        'hiddenInMeta'     => $hiddenInMeta,
-        'hiddenWithMembers' => $hiddenWithMembers,
 
         'dateInvalid' => $db->query("
             SELECT c.id, c.date, c.user_id, u.firstname, u.lastname, c.libele
@@ -133,5 +131,24 @@ function mbRunIntegrityChecks(PDO $db): array
             WHERE status=1 AND birthday > 0 AND birthday > UNIX_TIMESTAMP()
             ORDER BY lastname, firstname
         ")->fetchAll(PDO::FETCH_OBJ),
-    ];
+        ];
+    } catch (PDOException $e) {
+        $contactChecks = [
+            'dupNames'       => [],
+            'dupEmails'      => [],
+            'dateInvalid'    => [],
+            'typeNull'       => [],
+            'emailInvalid'   => [],
+            'sexeInvalid'    => [],
+            'noName'         => [],
+            'emailAltInvalid'=> [],
+            'birthdayFuture' => [],
+        ];
+    }
+
+    return array_merge($contactChecks, [
+        'hiddenInCats'      => $hiddenInCats,
+        'hiddenInMeta'      => $hiddenInMeta,
+        'hiddenWithMembers' => $hiddenWithMembers,
+    ]);
 }
