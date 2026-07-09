@@ -38,16 +38,14 @@ test.describe.serial('Groups (teams)', () => {
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
 
-    // Get the team id from the gear link next to 'Membre E2E'
-    const row = page.locator('#tab-groups tr').filter({ hasText: 'Membre E2E' }).first();
+    // Get the team id from data-team-id on the row
+    const row = page.locator('#tab-groups tr[data-team-id]').filter({ hasText: 'Membre E2E' }).first();
     await expect(row).toBeVisible({ timeout: 10_000 });
-    const gearLink = row.locator('a[href*="view=updateTeam"]');
-    await expect(gearLink).toBeVisible({ timeout: 10_000 });
-    const gearHref = await gearLink.getAttribute('href');
-    if (!gearHref) throw new Error('Gear link not found for Membre E2E');
+    const teamId = await row.getAttribute('data-team-id');
+    if (!teamId) throw new Error('data-team-id not found for Membre E2E');
 
     // Navigate directly to updateTeam page and fill the form
-    await page.goto(gearHref.startsWith('/') ? gearHref : '/' + gearHref);
+    await page.goto('/index.php?view=updateTeam&id=' + teamId);
     await expect(page.locator('#name')).toBeVisible({ timeout: 10_000 });
 
     await page.fill('#name', 'Membre E2E Renamed');
@@ -68,14 +66,10 @@ test.describe.serial('Groups (teams)', () => {
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
 
-    const row = page.locator('#tab-groups tr').filter({ hasText: 'Membre E2E Renamed' }).first();
-    const gearLink = row.locator('a[href*="view=updateTeam"]');
-    const href = await gearLink.getAttribute('href');
-    if (!href) throw new Error('Group gear link not found');
-
-    const match = href.match(/id=(\d+)/);
-    if (!match) throw new Error('Cannot parse team id from: ' + href);
-    const teamId = match[1];
+    const row = page.locator('#tab-groups tr[data-team-id]').filter({ hasText: 'Membre E2E Renamed' }).first();
+    await expect(row).toBeVisible({ timeout: 10_000 });
+    const teamId = await row.getAttribute('data-team-id');
+    if (!teamId) throw new Error('data-team-id not found for Membre E2E Renamed');
 
     // Submit deleteTeam — regular form submit (full page)
     const [deleteResponse] = await Promise.all([
