@@ -599,7 +599,7 @@ $steps = ['1' => $GLOBAL['stepPrereqs'], '2' => $GLOBAL['stepDatabase'], '3' => 
       <h2 class="h5 mb-1"><?= $GLOBAL['schemaInitTitle'] ?></h2>
       <p class="text-muted small mb-2"><?= $GLOBAL['schemaInitHint'] ?></p>
       <div class="alert alert-light small mb-3">
-        <strong><?= $GLOBAL['tablesCreated'] ?></strong> users, team, user_properties, user_team, metagroup, compta, compta_type, maxval, app_settings, app_users, audit_log
+        <strong><?= $GLOBAL['tablesCreated'] ?></strong> users, segment, user_properties, user_segment, metagroup, compta, compta_type, maxval, app_settings, app_users, audit_log
       </div>
       <form method="post" action="install.php?step=3">
         <button type="submit" class="btn btn-primary w-100"><?= $GLOBAL['createTablesBtn'] ?></button>
