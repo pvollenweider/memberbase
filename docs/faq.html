@@ -294,6 +294,7 @@ a.crumb-link:hover { color: var(--ink); text-decoration: underline; }
         <li><a href="#administration">Administration</a></li>
         <li><a href="#donnees-et-migration">Données &amp; migration</a></li>
         <li><a href="#api-et-integration">API &amp; intégration</a></li>
+        <li><a href="#contribuer">Contribuer &amp; évoluer</a></li>
       </ul>
     </nav>
 
@@ -725,6 +726,51 @@ curl -b cookies.txt \
           </div>
         </div>
       </div>
+    </section>
+
+    <section class="faq-section" id="contribuer">
+      <span class="faq-section-label">Contribuer &amp; évoluer</span>
+      <h2>Projet open source</h2>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="qc1-body" id="qc1">
+          Il me manque une fonctionnalité. Est-il possible de la faire ajouter ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="qc1-body" role="region" aria-labelledby="qc1">
+          <div class="faq-body-inner">
+            <p>MemberBase est un projet open source communautaire, développé pour un besoin réel et livré tel quel. Toute demande d'évolution est la bienvenue, sans garantie de prise en charge ni de délai.</p>
+            <p>La façon la plus efficace de soumettre une demande est d'<strong><a href="https://github.com/pvollenweider/memberbase/issues/new" target="_blank" rel="noopener">ouvrir une issue GitHub</a></strong> en décrivant le cas d'usage concret (pas seulement la fonctionnalité abstraite). Les issues bien contextualisées — « en tant que trésorière d'une association de 500 membres, j'ai besoin de… » — ont beaucoup plus de chances d'être retenues.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="qc2-body" id="qc2">
+          Je suis développeur·se et je veux contribuer. Par où commencer ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="qc2-body" role="region" aria-labelledby="qc2">
+          <div class="faq-body-inner">
+            <p>Le guide de contribution (<a href="https://github.com/pvollenweider/memberbase/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">CONTRIBUTING.md</a>) décrit l'environnement Docker, les conventions de code (PHP 8.2, PDO, locales, migrations) et le processus de pull request.</p>
+            <p>Stack : PHP 8.2 / MariaDB / Bootstrap 5.3 / htmx 2 / Alpine.js — pas de build frontend, PHP pur et JS vanilla. Un <code>make up && make seed</code> suffit pour démarrer.</p>
+            <p>Les <strong><a href="https://github.com/pvollenweider/memberbase/issues" target="_blank" rel="noopener">issues ouvertes</a></strong> sont le meilleur point d'entrée pour trouver quelque chose sur quoi travailler.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false" aria-controls="qc3-body" id="qc3">
+          Sous quelle licence est distribué MemberBase ?
+          <span class="faq-icon" aria-hidden="true"></span>
+        </button>
+        <div class="faq-body" id="qc3-body" role="region" aria-labelledby="qc3">
+          <div class="faq-body-inner">
+            <p>MemberBase est distribué sous licence <strong><a href="https://github.com/pvollenweider/memberbase/blob/main/LICENSE" target="_blank" rel="noopener">AGPL-3.0</a></strong>. Vous pouvez l'utiliser, le modifier et le redistribuer librement, à condition que toute version modifiée déployée sur un serveur accessible à des tiers reste également open source sous la même licence.</p>
+          </div>
+        </div>
+      </div>
+
     </section>
 
     <nav class="pager" aria-label="Navigation entre les guides">
