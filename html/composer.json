@@ -1,0 +1,15 @@
+{
+    "name": "pvollenweider/memberbase-app",
+    "description": "MemberBase — runtime dependencies (QR-Rechnung generation).",
+    "license": "AGPL-3.0-or-later",
+    "type": "project",
+    "require": {
+        "php": ">=8.2",
+        "fpdf/fpdf": "^1.86",
+        "sprain/swiss-qr-bill": "^4.4"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

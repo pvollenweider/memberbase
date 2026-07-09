@@ -22,6 +22,29 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 PHP 8.2 / MariaDB / Bootstrap 5.3 / htmx 2.0.4 / Alpine.js  
 Docker local : `localhost:8080`
 
+## Dépendances PHP runtime (`html/vendor/`)
+
+Le répertoire `html/vendor/` est **committé dans le dépôt** (pas de composer en prod/CI).  
+Seule l'extension PHP **GD** doit être présente sur le serveur (`php8.x-gd`).
+
+Pour **ajouter ou mettre à jour** une dépendance :
+
+```bash
+cd html
+composer require sprain/swiss-qr-bill        # ajouter
+composer update sprain/swiss-qr-bill         # mettre à jour
+find vendor -name ".git" -type d | xargs rm -rf   # supprimer les .git internes
+cd ..
+git add html/vendor/ html/composer.lock html/composer.json
+git commit --author="pvollenweider <pvollenweider@jahia.com>" -m "Update/add vendor dep X"
+```
+
+**Prod Debian** — pré-requis unique (une seule fois) :
+```bash
+sudo apt install -y php8.2-gd && sudo systemctl reload apache2
+```
+Après un `git pull`, aucune action supplémentaire — le `vendor/` est déjà dans le dépôt.
+
 ## Conventions de code
 
 ### Commentaires en anglais

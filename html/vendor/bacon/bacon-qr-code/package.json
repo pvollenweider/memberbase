@@ -1,0 +1,7 @@
+{
+  "name": "baconqrcode",
+  "private": true,
+  "devDependencies": {
+    "pixelmatch": "^7.1.0"
+  }
+}

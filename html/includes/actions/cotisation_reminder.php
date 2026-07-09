@@ -24,6 +24,7 @@ if ($year <= 0) { $year = (int)date('Y'); }
 
 require_once __DIR__ . '/../lib/mailer.php';
 require_once __DIR__ . '/../lib/cotisation.php';
+require_once __DIR__ . '/../lib/qr_bill.php';
 
 $cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
 if (empty($cotiTypeIds)) {
@@ -42,8 +43,13 @@ if ($_cotiAction === 'sendCotisationReminderOne') {
     if (!$member) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }
     if (trim($member->email) === '') { echo json_encode(['ok' => false, 'error' => 'no_email']); exit; }
 
-    $vars   = mbBuildCotiReminderVars($member, $year, $appSettings);
-    $result = mbSendTemplate($pdo, $member->email, 'tpl_cotisation_reminder', $vars, $userId);
+    $vars        = mbBuildCotiReminderVars($member, $year, $appSettings);
+    $attachments = [];
+    $qrPdf       = mbGenerateQrBillPdf($appSettings, $year);
+    if ($qrPdf !== null) {
+        $attachments[] = ['name' => "bulletin-versement-$year.pdf", 'mime' => 'application/pdf', 'data' => $qrPdf];
+    }
+    $result = mbSendTemplateWithAttachment($pdo, $member->email, 'tpl_cotisation_reminder', $vars, $userId, $attachments);
     if ($result === true) {
         auditLog($pdo, 'sendCotisationReminderOne',
             "sent to {$member->firstname} {$member->lastname} <{$member->email}> year=$year");
@@ -67,6 +73,9 @@ $force      = !empty($_REQUEST['force']);
 $memberIds  = array_map(fn($m) => (int)$m->id, $members);
 $alreadyMap = $force ? [] : mbGetAlreadyRemindedIds($pdo, $year, $memberIds);
 
+// Generate QR bill PDF once — the same slip is attached to every reminder
+$qrPdf = mbGenerateQrBillPdf($appSettings, $year);
+
 $sentCount    = 0;
 $skipCount    = 0;
 $alreadyCount = 0;
@@ -83,8 +92,12 @@ foreach ($members as $m) {
         continue;
     }
 
-    $vars   = mbBuildCotiReminderVars($m, $year, $appSettings);
-    $result = mbSendTemplate($pdo, $m->email, 'tpl_cotisation_reminder', $vars, (int)$m->id);
+    $vars        = mbBuildCotiReminderVars($m, $year, $appSettings);
+    $attachments = [];
+    if ($qrPdf !== null) {
+        $attachments[] = ['name' => "bulletin-versement-$year.pdf", 'mime' => 'application/pdf', 'data' => $qrPdf];
+    }
+    $result = mbSendTemplateWithAttachment($pdo, $m->email, 'tpl_cotisation_reminder', $vars, (int)$m->id, $attachments);
     if ($result === true) {
         $sentCount++;
         auditLog($pdo, 'sendCotisationReminders',

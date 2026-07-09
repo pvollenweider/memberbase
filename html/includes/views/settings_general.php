@@ -179,6 +179,21 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
               </div>
 
               <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_iban"><?= $GLOBAL['orgIban'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['orgIbanHelp'] ?></p>
+                <input type="text" name="org_iban" id="s_org_iban" class="form-control form-control-sm" style="max-width:320px"
+                       placeholder="CH56 0483 5012 3456 7800 9"
+                       value="<?= htmlspecialchars($appSettings['org_iban'] ?? '', ENT_QUOTES, $charset) ?>">
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_coti_amount_desc"><?= $GLOBAL['orgCotiAmountDesc'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['orgCotiAmountDescHelp'] ?></p>
+                <input type="text" name="org_coti_amount_desc" id="s_org_coti_amount_desc" class="form-control form-control-sm" style="max-width:560px"
+                       placeholder="<?= htmlspecialchars($GLOBAL['orgCotiAmountDescPlaceholder'], ENT_QUOTES, $charset) ?>"
+                       value="<?= htmlspecialchars($appSettings['org_coti_amount_desc'] ?? '', ENT_QUOTES, $charset) ?>">
+              </div>
+
+              <div class="mb-3">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membership_url"><?= $GLOBAL['membershipUrlLabel'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['membershipUrlHelp'] ?></p>
                 <input type="url" name="membership_url" id="s_membership_url" class="form-control form-control-sm" style="max-width:420px"

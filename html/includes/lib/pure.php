@@ -88,6 +88,39 @@ function mbBuildCotiReminderVars(object $m, int $year, array $appSettings): arra
         ? '<p style="margin:16px 0"><a href="' . htmlspecialchars($membershipUrl, ENT_QUOTES, 'UTF-8') . '" style="color:#1a5276">'
           . htmlspecialchars($membershipUrl, ENT_QUOTES, 'UTF-8') . '</a></p>'
         : '';
+
+    $iban    = trim($appSettings['org_iban'] ?? '');
+    $orgName = $appSettings['org_name'] ?? '';
+
+    // Payment info block injected into the reminder when an IBAN is configured
+    if ($iban !== '') {
+        // Format IBAN with spaces for human readability (groups of 4)
+        $ibanDisplay = implode(' ', str_split(strtoupper(str_replace(' ', '', $iban)), 4));
+
+        $amountDesc = trim($appSettings['org_coti_amount_desc'] ?? '')
+            ?: 'min. CHF 50.- / pers. · CHF 80.- / famille · CHF 20.- étudiant·e·s, AVS, chômeur·euse·s';
+
+        $paymentInfoText = "\n---\nVersement bancaire :\n"
+            . "  Bénéficiaire : $orgName\n"
+            . "  IBAN         : $ibanDisplay\n"
+            . "  Montant      : $amountDesc\n"
+            . "  Communication: Cotisation $year\n"
+            . "\nLe bulletin de versement QR est joint à ce message.\n---";
+
+        $paymentInfoBlock = '<hr style="border:none;border-top:1px solid #e0e0e0;margin:24px 0">'
+            . '<table cellpadding="0" cellspacing="0" width="100%" style="font-size:14px;line-height:1.7">'
+            . '<tr><td colspan="2" style="padding-bottom:8px;font-weight:bold;color:#1a5276">Bulletin de versement QR ci-joint</td></tr>'
+            . '<tr><td style="width:160px;color:#555">Bénéficiaire</td><td>' . htmlspecialchars($orgName, ENT_QUOTES, 'UTF-8') . '</td></tr>'
+            . '<tr><td style="color:#555">IBAN</td><td><code>' . htmlspecialchars($ibanDisplay, ENT_QUOTES, 'UTF-8') . '</code></td></tr>'
+            . '<tr><td style="color:#555">Montant</td><td>' . htmlspecialchars($amountDesc, ENT_QUOTES, 'UTF-8') . '</td></tr>'
+            . '<tr><td style="color:#555">Communication</td><td>Cotisation ' . $year . '</td></tr>'
+            . '</table>'
+            . '<hr style="border:none;border-top:1px solid #e0e0e0;margin:24px 0">';
+    } else {
+        $paymentInfoText  = '';
+        $paymentInfoBlock = '';
+    }
+
     $salutation = mbBuildSalutation($m->firstname ?? '', $m->lastname ?? '', $m->society ?? '');
     return array_merge($salutation, [
         'firstname'            => $m->firstname ?? '',
@@ -96,10 +129,12 @@ function mbBuildCotiReminderVars(object $m, int $year, array $appSettings): arra
         'year'                 => (string)$year,
         'membership_url'       => $membershipUrl,
         'membership_url_block' => $membershipBlock,
-        'org_name'             => $appSettings['org_name']    ?? '',
+        'org_name'             => $orgName,
         'org_address'          => $appSettings['org_address'] ?? '',
         'org_city'             => $appSettings['org_city']    ?? '',
         'org_web'              => $appSettings['org_web']     ?? '',
         'contact_email'        => $contactEmail,
+        'payment_info_text'    => $paymentInfoText,
+        'payment_info_block'   => $paymentInfoBlock,
     ]);
 }

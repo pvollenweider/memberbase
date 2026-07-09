@@ -1,11 +1,16 @@
 FROM php:8.2-apache
 
-# Extensions PHP
-RUN docker-php-ext-install pdo pdo_mysql
-
 # System packages + Apache modules
+# libpng-dev / libjpeg62-turbo-dev / libfreetype6-dev: required by the GD extension
+# (used by endroid/qr-code for QR PNG rendering, vendored in html/vendor/)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends pdftk-java \
+    && apt-get install -y --no-install-recommends \
+        pdftk-java \
+        libpng-dev \
+        libjpeg62-turbo-dev \
+        libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_mysql gd \
     && rm -rf /var/lib/apt/lists/* \
     && a2enmod rewrite headers expires deflate brotli
 

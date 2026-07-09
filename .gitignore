@@ -15,10 +15,11 @@ playwright-report/
 test-results/
 tests/.auth/
 
-# PHP (Composer / PHPUnit)
+# PHP (Composer / PHPUnit — root = dev tooling only, not vendored)
 /vendor/
-composer.lock
+/composer.lock
 .phpunit.cache/
+
 
 # /understand intermediate files (final graph is committed)
 .understand-anything/intermediate/
