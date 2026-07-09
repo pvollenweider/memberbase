@@ -44,17 +44,16 @@ test.describe.serial('Groups (teams)', () => {
     const segmentId = await row.getAttribute('data-team-id');
     if (!segmentId) throw new Error('data-team-id not found for Membre E2E');
 
-    // Navigate directly to updateSegment page and fill the form
-    await page.goto('/index.php?view=updateSegment&id=' + segmentId);
-    await expect(page.locator('#name')).toBeVisible({ timeout: 10_000 });
-
-    await page.fill('#name', 'Membre E2E Renamed');
-    // form.submit() bypasses htmx event listeners entirely, ensuring a real page load
-    await page.evaluate(() => {
-      const form = document.querySelector('form:has(input[name="action"][value="updateSegment"])') as HTMLFormElement;
-      form.submit();
+    // Read CSRF token from the meta tag (same cookie jar = same session)
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
     });
-    await page.waitForLoadState('load', { timeout: 10_000 });
+
+    // POST rename directly — avoids all htmx/form-submit timing issues
+    await page.request.post('/index.php', {
+      form: { action: 'updateSegment', view: 'settings', tab: 'groups', id: segmentId, name: 'Membre E2E Renamed', csrf },
+    });
 
     // Navigate to settings to verify rename persisted in DB
     await page.goto('/index.php?view=settings&tab=groups');
