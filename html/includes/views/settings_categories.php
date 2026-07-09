@@ -13,13 +13,13 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 defined('APP_ENTRY') or die('Direct access not permitted.');
 $allCats = $pdo->query("
     SELECT m.id, m.name,
-           COUNT(DISTINCT j.teamid) AS team_count
+           COUNT(DISTINCT j.segmentid) AS team_count
     FROM metagroup m
     LEFT JOIN metagroup j
         ON j.id = m.id
-        AND j.teamid IS NOT NULL
+        AND j.segmentid IS NOT NULL
         AND j.name IS NULL
-        AND j.teamid IN (SELECT id FROM team WHERE hidden = 0)
+        AND j.segmentid IN (SELECT id FROM segment WHERE hidden = 0)
     WHERE m.name IS NOT NULL AND m.is_filter = 0
     GROUP BY m.id, m.name
     ORDER BY MIN(m.sort_order) ASC, m.name ASC

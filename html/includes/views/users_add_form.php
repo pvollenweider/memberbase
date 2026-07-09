@@ -13,7 +13,7 @@ if (isset($_REQUEST["searchString"])) {
 $fromTeam     = (int)($_REQUEST['fromTeam'] ?? 0);
 $fromTeamName = '';
 if ($fromTeam > 0) {
-    $_ft = $pdo->prepare("SELECT name FROM team WHERE id = ?");
+    $_ft = $pdo->prepare("SELECT name FROM segment WHERE id = ?");
     $_ft->execute([$fromTeam]);
     $fromTeamName = (string)($_ft->fetchColumn() ?: '');
     unset($_ft);

@@ -11,7 +11,7 @@ $_msAction  = $_REQUEST['action'] ?? '';
 $_msTeamId  = (int)($_REQUEST['teamId'] ?? 0);
 $_msUserId  = (int)($_REQUEST['id']     ?? 0);
 if (($_msAction === 'addMembership' || $_msAction === 'removeMembership') && $_msTeamId > 0 && $_msUserId > 0) {
-    $_msTeamNameStmt = $pdo->prepare("SELECT name FROM team WHERE id=?");
+    $_msTeamNameStmt = $pdo->prepare("SELECT name FROM segment WHERE id=?");
     $_msTeamNameStmt->execute([$_msTeamId]);
     $_msTeamName = $_msTeamNameStmt->fetchColumn() ?: sprintf($GLOBAL['segmentNumber'], $_msTeamId);
     if ($_msAction === 'addMembership') {
@@ -37,14 +37,14 @@ $stmtAll = $pdo->query("
            COALESCE(cat.name, '') AS cat_name,
            COALESCE(cat.id, 0) AS cat_id,
            COALESCE(cat.sort_order, 99999) AS cat_sort
-    FROM team t
+    FROM segment t
     LEFT JOIN (
-        SELECT j.teamid, c.id, c.name, c.sort_order
+        SELECT j.segmentid, c.id, c.name, c.sort_order
         FROM metagroup j
         JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-        WHERE j.teamid IS NOT NULL
-        GROUP BY j.teamid
-    ) cat ON cat.teamid = t.id
+        WHERE j.segmentid IS NOT NULL
+        GROUP BY j.segmentid
+    ) cat ON cat.segmentid = t.id
     WHERE 1=1 $whereHidden
     ORDER BY cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
 ");
@@ -52,7 +52,7 @@ $stmtAll = $pdo->query("
 $memberTeams    = [];
 $nonMemberTeams = [];
 while ($row = $stmtAll->fetchObject()) {
-    if ($user->isMemberOfTeam($row->id)) {
+    if ($user->isMemberOfSegment($row->id)) {
         $memberTeams[] = $row;
     } elseif (!$row->hidden) {
         $nonMemberTeams[] = $row;

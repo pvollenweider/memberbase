@@ -15,15 +15,15 @@ $stmtIsFilter = $pdo->prepare("SELECT is_filter FROM metagroup WHERE id=? AND na
 $stmtIsFilter->execute([$mgId]);
 $isFilter = (int)($stmtIsFilter->fetchColumn() ?? 1);
 
-// Teams currently in this metagroup
-$stmtIn = $pdo->prepare("SELECT teamid FROM metagroup WHERE id=? AND teamid IS NOT NULL");
+// Segments currently in this metagroup
+$stmtIn = $pdo->prepare("SELECT segmentid FROM metagroup WHERE id=? AND segmentid IS NOT NULL");
 $stmtIn->execute([$mgId]);
 $memberTeamIds = $stmtIn->fetchAll(PDO::FETCH_COLUMN);
 $memberTeamIds = array_map('intval', $memberTeamIds);
 
-// All teams (including hidden) — members first, then non-members, each alphabetically
-$allTeamsRaw = $pdo->query("SELECT id, name, hidden FROM team ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
-// Only keep visible teams + hidden teams that are already members
+// All segments (including hidden) — members first, then non-members, each alphabetically
+$allTeamsRaw = $pdo->query("SELECT id, name, hidden FROM segment ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+// Only keep visible segments + hidden segments that are already members
 $allTeams = array_filter($allTeamsRaw, fn($t) => !(int)$t->hidden || in_array((int)$t->id, $memberTeamIds));
 usort($allTeams, function($a, $b) use ($memberTeamIds) {
     $aIn = in_array((int)$a->id, $memberTeamIds);
@@ -32,20 +32,20 @@ usort($allTeams, function($a, $b) use ($memberTeamIds) {
     return strcmp($a->name, $b->name);
 });
 
-// Category map: teamid → [category_id, category_name]
+// Category map: segmentid → [category_id, category_name]
 $stmtCats = $pdo->query(
-    "SELECT j.teamid, m.id AS cat_id, m.name AS cat_name
+    "SELECT j.segmentid, m.id AS cat_id, m.name AS cat_name
      FROM metagroup j
      JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
-     WHERE j.teamid IS NOT NULL"
+     WHERE j.segmentid IS NOT NULL"
 );
 $teamCategory = [];
 foreach ($stmtCats->fetchAll(PDO::FETCH_OBJ) as $row) {
-    $teamCategory[(int)$row->teamid] = ['id' => (int)$row->cat_id, 'name' => $row->cat_name];
+    $teamCategory[(int)$row->segmentid] = ['id' => (int)$row->cat_id, 'name' => $row->cat_name];
 }
 
 // Build ordered groups: members-in-category, then unassigned members, then non-members
-$catGroups = []; // cat_name => [teams]
+$catGroups = []; // cat_name => [segments]
 $uncategorized = [];
 foreach ($allTeams as $t) {
     if (isset($teamCategory[(int)$t->id])) {
@@ -57,10 +57,10 @@ foreach ($allTeams as $t) {
 }
 ksort($catGroups);
 
-// Member counts per team
-$cntRows = $pdo->query("SELECT team_id, COUNT(*) AS cnt FROM user_team GROUP BY team_id")->fetchAll(PDO::FETCH_OBJ);
+// Member counts per segment
+$cntRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM user_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
 $teamCounts = [];
-foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
+foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 ?>
 <?php if (!empty($_GET['created'])): ?>
 <div class="alert alert-success alert-dismissible fade show d-flex align-items-start gap-2" role="alert">

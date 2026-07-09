@@ -76,7 +76,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                         $_noCotiTeamId3 = (int)($appSettings['member_no_coti_team'] ?? 0);
                         $_noCotiExclusion = '';
                         if ($_noCotiTeamId3 > 0) {
-                            $_noCotiTeamNameStr = Team::nameById($_noCotiTeamId3);
+                            $_noCotiTeamNameStr = Segment::nameById($_noCotiTeamId3);
                             if ($_noCotiTeamNameStr) {
                                 $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) . '?team=' . $_noCotiTeamId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiTeamNameStr, ENT_QUOTES, $charset) . '</a>');
                             }
@@ -92,8 +92,8 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                         $currentTeamTitle = $GLOBAL['cotiUnpayed'];
                         $currentFilterDesc = sprintf($GLOBAL['filterDescCotiUnpaidCurrent'], $year);
                     } else if ($team > 0) {
-                        $currentteam = new Team();
-                        $currentteam->lookupTeam($team);
+                        $currentteam = new Segment();
+                        $currentteam->lookupSegment($team);
                         $currentTeamTitle = $currentteam->getName();
                     } else {
                         $currentTeamTitle = $GLOBAL['list'];
@@ -140,7 +140,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
 
                         <?php
                         $prevCatId = -1;
-                        foreach (Team::listForDropdown() as $row) {
+                        foreach (Segment::listForDropdown() as $row) {
                             $catId = (int)$row->cat_id;
                             if ($catId !== $prevCatId) {
                                 if ($prevCatId !== -1) echo '<div class="dropdown-divider my-0 team-cat-divider" data-cat="' . $catId . '"></div>';

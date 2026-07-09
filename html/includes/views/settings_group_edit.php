@@ -12,28 +12,28 @@ if ($id <= 0) {
     if (!empty($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . $url); } else { header('Location: ' . $url); }
     exit;
 }
-$team = new Team();
-$team->lookupTeam($id);
+$segment = new Segment();
+$segment->lookupSegment($id);
 
-// Fetch members of this team
+// Fetch members of this segment
 $stmtMembers = $pdo->prepare(
     "SELECT u.id, u.lastname, u.firstname, u.society
      FROM users u
-     INNER JOIN user_team ut ON ut.user_id = u.id
-     WHERE ut.team_id = ? AND u.status=1
+     INNER JOIN user_segment us ON us.user_id = u.id
+     WHERE us.segment_id = ? AND u.status=1
      ORDER BY u.lastname, u.firstname"
 );
 $stmtMembers->execute([$id]);
 $members = $stmtMembers->fetchAll(PDO::FETCH_OBJ);
 $memberCount = count($members);
 
-// Fetch other teams for reassignment + import
-$stmtTeams = $pdo->query("SELECT id, name FROM team WHERE id != $id AND hidden = 0 ORDER BY name");
-$otherTeams = $stmtTeams->fetchAll(PDO::FETCH_OBJ);
+// Fetch other segments for reassignment + import
+$stmtSegments = $pdo->query("SELECT id, name FROM segment WHERE id != $id AND hidden = 0 ORDER BY name");
+$otherSegments = $stmtSegments->fetchAll(PDO::FETCH_OBJ);
 
-// Fetch categories and current category for this team
+// Fetch categories and current category for this segment
 $allCats = $pdo->query("SELECT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter=0 GROUP BY id ORDER BY name ASC")->fetchAll(PDO::FETCH_OBJ);
-$stmtCurrentCat = $pdo->prepare("SELECT c.id FROM metagroup junc JOIN metagroup c ON c.id=junc.id AND c.name IS NOT NULL AND c.is_filter=0 WHERE junc.teamid=? LIMIT 1");
+$stmtCurrentCat = $pdo->prepare("SELECT c.id FROM metagroup junc JOIN metagroup c ON c.id=junc.id AND c.name IS NOT NULL AND c.is_filter=0 WHERE junc.segmentid=? LIMIT 1");
 $stmtCurrentCat->execute([$id]);
 $currentCatId = (int)($stmtCurrentCat->fetchColumn() ?: 0);
 
@@ -55,7 +55,7 @@ $countDonors = function(array $allowedTypeIds, int $from, int $to) use ($pdo, $i
         FROM users u JOIN compta c ON c.user_id = u.id
         WHERE c.type_id IN ($ph)
           AND c.date > ? AND c.date < ?
-          AND u.id NOT IN (SELECT user_id FROM user_team WHERE team_id = ?)
+          AND u.id NOT IN (SELECT user_id FROM user_segment WHERE segment_id = ?)
     ");
     $r->execute(array_merge($allowedTypeIds, [$from, $to, $id]));
     return (int)$r->fetchColumn();
@@ -84,17 +84,17 @@ for ($yi = 0; $yi < 10; $yi++) {
             FROM users u JOIN compta c ON c.user_id = u.id
             WHERE c.type_id IN ($cotisPlaceholders)
               AND c.date > ? AND c.date < ?
-              AND u.id NOT IN (SELECT user_id FROM user_team WHERE team_id = ?)
+              AND u.id NOT IN (SELECT user_id FROM user_segment WHERE segment_id = ?)
         ");
         $r2->execute(array_merge($cotisTypeIds, [$from, $to, $id]));
         $importCountsPerYear[$dy]['cotis'] = (int)$r2->fetchColumn();
     }
 }
 
-// Member counts per team (for badges)
-$cntRows = $pdo->query("SELECT team_id, COUNT(*) AS cnt FROM user_team GROUP BY team_id")->fetchAll(PDO::FETCH_OBJ);
-$teamCounts = [];
-foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
+// Member counts per segment (for badges)
+$cntRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM user_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
+$segmentCounts = [];
+foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 ?>
 <?php if (isset($_REQUEST['imported'])): ?>
 <div class="alert alert-success d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.82rem" role="status">
@@ -114,7 +114,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         </a>
       </div>
       <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
-        <input type="hidden" name="id" value="<?=$team->getId()?>"/>
+        <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
         <input type="hidden" name="action" value="updateTeam"/>
         <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
@@ -123,14 +123,14 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           <label for="name" class="col-sm-3 col-form-label col-form-label-sm text-sm-end"><?= $GLOBAL['name'] ?></label>
           <div class="col-sm-9">
             <input type="text" class="form-control form-control-sm" id="name" name="name"
-                   value="<?=htmlentities($team->getName(),ENT_COMPAT,$charset)?>" maxlength="255" required/>
+                   value="<?=htmlentities($segment->getName(),ENT_COMPAT,$charset)?>" maxlength="255" required/>
           </div>
         </div>
 
         <div class="row mb-3 align-items-center">
           <div class="col-sm-9 offset-sm-3">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="hidden" name="hidden" value="1"<?= $team->getHidden() ? ' checked' : '' ?>>
+              <input class="form-check-input" type="checkbox" id="hidden" name="hidden" value="1"<?= $segment->getHidden() ? ' checked' : '' ?>>
               <label class="form-check-label small" for="hidden">
                 <i class="fas fa-eye-slash me-1 text-muted" aria-hidden="true"></i><?= $GLOBAL['hideInInterfaces'] ?>
               </label>
@@ -162,9 +162,9 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
     </div>
 
     <!-- Import members -->
-    <?php if (count($otherTeams) > 0): ?>
+    <?php if (count($otherSegments) > 0): ?>
     <div>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $team->getId() ?>" method="post">
+      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $segment->getId() ?>" method="post">
         <input type="hidden" name="action" value="importTeamMembers"/>
 
         <details style="font-size:0.8rem">
@@ -187,8 +187,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               </div>
             </div>
             <div class="d-flex flex-column gap-1 mb-3">
-              <?php foreach ($otherTeams as $t): ?>
-              <?php $cnt = $teamCounts[(int)$t->id] ?? 0; ?>
+              <?php foreach ($otherSegments as $t): ?>
+              <?php $cnt = $segmentCounts[(int)$t->id] ?? 0; ?>
               <div class="form-check form-check-sm">
                 <input class="form-check-input" type="checkbox"
                        name="importFrom[]" value="<?= (int)$t->id ?>"
@@ -213,7 +213,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
     <!-- Import cotisation payers by year -->
     <div>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $team->getId() ?>" method="post">
+      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $segment->getId() ?>" method="post">
         <input type="hidden" name="action" value="importCotisants"/>
 
         <details style="font-size:0.8rem">
@@ -260,7 +260,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
 
     <!-- Import donors by year -->
     <div>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $team->getId() ?>" method="post">
+      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $segment->getId() ?>" method="post">
         <input type="hidden" name="action" value="importDonors"/>
 
         <details style="font-size:0.8rem">
@@ -385,18 +385,18 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
           </div>
 
           <!-- Option A: reassign -->
-          <?php if (count($otherTeams) > 0): ?>
+          <?php if (count($otherSegments) > 0): ?>
           <div class="p-3" style="background:var(--ca-ground);border-radius:6px">
             <p class="small fw-semibold mb-2"><?= $GLOBAL['transferMembersToOtherSegment'] ?></p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post" class="d-flex align-items-center gap-2 flex-wrap" hx-boost="false">
               <input type="hidden" name="action" value="reassignTeam"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
-              <input type="hidden" name="id" value="<?=$team->getId()?>"/>
+              <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
               <select name="targetTeamId" class="form-select form-select-sm" style="width:auto" required>
                 <option value=""><?= $GLOBAL['chooseSegmentOption'] ?></option>
-                <?php foreach ($otherTeams as $t): ?>
-                  <?php $cnt = $teamCounts[(int)$t->id] ?? 0; ?>
+                <?php foreach ($otherSegments as $t): ?>
+                  <?php $cnt = $segmentCounts[(int)$t->id] ?? 0; ?>
                   <option value="<?= $t->id ?>"><?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $cnt > 0 ? " ($cnt)" : '' ?></option>
                 <?php endforeach ?>
               </select>
@@ -416,7 +416,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <input type="hidden" name="action" value="deleteTeamForce"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
-              <input type="hidden" name="id" value="<?=$team->getId()?>"/>
+              <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
               <button type="button" class="btn btn-sm btn-danger"
                       data-bs-toggle="modal" data-bs-target="#modal-delete-team-members">
                 <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['removeMembersAndDelete'] ?>
@@ -432,7 +432,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
               <input type="hidden" name="action" value="deleteTeamForce"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
-              <input type="hidden" name="id" value="<?=$team->getId()?>"/>
+              <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
               <button type="button" class="btn btn-sm btn-danger"
                       data-bs-toggle="modal" data-bs-target="#modal-delete-team-empty">
                 <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
@@ -457,7 +457,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->team_id] = (int)$cr->cnt; }
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        <?= sprintf($GLOBAL['reassignAndDeleteConfirm'], $memberCount, $memberCount > 1 ? 's' : '', htmlentities($team->getName(), ENT_QUOTES, $charset)) ?>
+        <?= sprintf($GLOBAL['reassignAndDeleteConfirm'], $memberCount, $memberCount > 1 ? 's' : '', htmlentities($segment->getName(), ENT_QUOTES, $charset)) ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>

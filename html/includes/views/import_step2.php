@@ -18,7 +18,7 @@ if (empty($_headers) || empty($_rows)) {
 $_preview = array_slice($_rows, 0, 25);
 
 // Segments (teams) and categories for the "add to segment" section
-$_segTeams  = $pdo->query("SELECT id, name FROM team WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+$_segTeams  = $pdo->query("SELECT id, name FROM segment WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 $_segCats   = $pdo->query("SELECT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter = 0 GROUP BY id, name ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 $_segAutoName = sprintf($GLOBAL['importSegmentName'], date('d.m.Y H:i'));
 
