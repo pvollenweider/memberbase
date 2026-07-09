@@ -306,13 +306,13 @@ test.describe.serial('suivi API', () => {
   });
 });
 
-// ── /api/groups ───────────────────────────────────────────────────────────────
+// ── /api/segments ───────────────────────────────────────────────────────────────
 
 test.describe.serial('groups API', () => {
   let createdId: number;
 
-  test('GET /api/groups — returns seeded groups', async ({ request }) => {
-    const resp = await request.get('/api/groups');
+  test('GET /api/segments — returns seeded groups', async ({ request }) => {
+    const resp = await request.get('/api/segments');
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data).toBeInstanceOf(Array);
@@ -325,50 +325,50 @@ test.describe.serial('groups API', () => {
     });
   });
 
-  test('GET /api/groups/1 — single group with memberCount', async ({ request }) => {
-    const resp = await request.get('/api/groups/1');
+  test('GET /api/segments/1 — single group with memberCount', async ({ request }) => {
+    const resp = await request.get('/api/segments/1');
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data.id).toBe(1);
     expect(body.data.memberCount).toBeGreaterThanOrEqual(2);
   });
 
-  test('GET /api/groups/999 — 404 for unknown group', async ({ request }) => {
-    const resp = await request.get('/api/groups/999');
+  test('GET /api/segments/999 — 404 for unknown group', async ({ request }) => {
+    const resp = await request.get('/api/segments/999');
     expect(resp.status()).toBe(404);
   });
 
-  test('GET /api/groups/1/members — returns seeded members', async ({ request }) => {
-    const resp = await request.get('/api/groups/1/members');
+  test('GET /api/segments/1/members — returns seeded members', async ({ request }) => {
+    const resp = await request.get('/api/segments/1/members');
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data.length).toBeGreaterThanOrEqual(2);
     expect(body.data[0]).toMatchObject({ id: expect.any(Number), lastName: expect.any(String) });
   });
 
-  test('POST /api/groups — creates a group', async ({ request }) => {
-    const resp = await request.post('/api/groups', { data: { name: 'API Test Group' } });
+  test('POST /api/segments — creates a group', async ({ request }) => {
+    const resp = await request.post('/api/segments', { data: { name: 'API Test Group' } });
     expect(resp.status()).toBe(201);
     const body = await resp.json();
     expect(body.data).toMatchObject({ name: 'API Test Group', hidden: false, memberCount: 0 });
     createdId = body.data.id;
   });
 
-  test('POST /api/groups — 422 when name missing', async ({ request }) => {
-    const resp = await request.post('/api/groups', { data: {} });
+  test('POST /api/segments — 422 when name missing', async ({ request }) => {
+    const resp = await request.post('/api/segments', { data: {} });
     expect(resp.status()).toBe(422);
   });
 
-  test('GET /api/groups/{id} — returns created group', async ({ request }) => {
-    const resp = await request.get(`/api/groups/${createdId}`);
+  test('GET /api/segments/{id} — returns created group', async ({ request }) => {
+    const resp = await request.get(`/api/segments/${createdId}`);
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data.id).toBe(createdId);
     expect(body.data.name).toBe('API Test Group');
   });
 
-  test('PUT /api/groups/{id} — renames group', async ({ request }) => {
-    const resp = await request.put(`/api/groups/${createdId}`, {
+  test('PUT /api/segments/{id} — renames group', async ({ request }) => {
+    const resp = await request.put(`/api/segments/${createdId}`, {
       data: { name: 'API Test Group Renamed' },
     });
     expect(resp.status()).toBe(200);
@@ -376,54 +376,54 @@ test.describe.serial('groups API', () => {
     expect(body.data.name).toBe('API Test Group Renamed');
   });
 
-  test('PUT /api/groups/{id} — toggles hidden', async ({ request }) => {
-    const resp = await request.put(`/api/groups/${createdId}`, { data: { hidden: true } });
+  test('PUT /api/segments/{id} — toggles hidden', async ({ request }) => {
+    const resp = await request.put(`/api/segments/${createdId}`, { data: { hidden: true } });
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data.hidden).toBe(true);
   });
 
-  test('POST /api/groups/{id}/members — adds member 1', async ({ request }) => {
-    const resp = await request.post(`/api/groups/${createdId}/members`, { data: { memberId: 1 } });
+  test('POST /api/segments/{id}/members — adds member 1', async ({ request }) => {
+    const resp = await request.post(`/api/segments/${createdId}/members`, { data: { memberId: 1 } });
     expect(resp.status()).toBe(204);
   });
 
-  test('POST /api/groups/{id}/members — idempotent (INSERT IGNORE)', async ({ request }) => {
-    const resp = await request.post(`/api/groups/${createdId}/members`, { data: { memberId: 1 } });
+  test('POST /api/segments/{id}/members — idempotent (INSERT IGNORE)', async ({ request }) => {
+    const resp = await request.post(`/api/segments/${createdId}/members`, { data: { memberId: 1 } });
     expect(resp.status()).toBe(204);
   });
 
-  test('GET /api/groups/{id}/members — member 1 listed', async ({ request }) => {
-    const resp = await request.get(`/api/groups/${createdId}/members`);
+  test('GET /api/segments/{id}/members — member 1 listed', async ({ request }) => {
+    const resp = await request.get(`/api/segments/${createdId}/members`);
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data.find((m: { id: number }) => m.id === 1)).toBeDefined();
   });
 
-  test('DELETE /api/groups/1 — 409 when group has members', async ({ request }) => {
-    const resp = await request.delete('/api/groups/1');
+  test('DELETE /api/segments/1 — 409 when group has members', async ({ request }) => {
+    const resp = await request.delete('/api/segments/1');
     expect(resp.status()).toBe(409);
   });
 
-  test('DELETE /api/groups/{id}/members — removes member 1', async ({ request }) => {
-    const resp = await request.delete(`/api/groups/${createdId}/members`, { data: { memberId: 1 } });
+  test('DELETE /api/segments/{id}/members — removes member 1', async ({ request }) => {
+    const resp = await request.delete(`/api/segments/${createdId}/members`, { data: { memberId: 1 } });
     expect(resp.status()).toBe(204);
   });
 
-  test('GET /api/groups/{id}/members — empty after removal', async ({ request }) => {
-    const resp = await request.get(`/api/groups/${createdId}/members`);
+  test('GET /api/segments/{id}/members — empty after removal', async ({ request }) => {
+    const resp = await request.get(`/api/segments/${createdId}/members`);
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data.find((m: { id: number }) => m.id === 1)).toBeUndefined();
   });
 
-  test('DELETE /api/groups/{id} — deletes empty group (204)', async ({ request }) => {
-    const resp = await request.delete(`/api/groups/${createdId}`);
+  test('DELETE /api/segments/{id} — deletes empty group (204)', async ({ request }) => {
+    const resp = await request.delete(`/api/segments/${createdId}`);
     expect(resp.status()).toBe(204);
   });
 
-  test('GET /api/groups/{id} — 404 after delete', async ({ request }) => {
-    const resp = await request.get(`/api/groups/${createdId}`);
+  test('GET /api/segments/{id} — 404 after delete', async ({ request }) => {
+    const resp = await request.get(`/api/segments/${createdId}`);
     expect(resp.status()).toBe(404);
   });
 });
