@@ -6,37 +6,37 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// actions: deleteTeam, deleteTeamForce, reassignTeam, importTeamMembers,
+// actions: deleteSegment, deleteSegmentForce, reassignSegment, importSegmentMembers,
 //          importCotisants, importDonors, bulkHide, bulkShow,
-//          undoGroupVisibility, bulkCreateMetagroup, createLapsedGroup,
-//          addTeam, addTeamWithImport, renameTeam, updateTeam,
-//          addMembership, removeMembership
+//          undoSegmentVisibility, bulkCreateMetagroup, createLapsedSegment,
+//          addSegment, addSegmentWithImport, renameSegment, updateSegment,
+//          assignSegment, unassignSegment
 
 if (!isManager()) { http_response_code(403); exit; }
 
 $action = $_REQUEST['action'];
 
-if ($action == 'deleteTeam') {
+if ($action == 'deleteSegment') {
     $segment = new Segment();
     $segment->lookupSegment((int)$_REQUEST['id']);
-    auditLog($pdo, 'deleteTeam', "id={$segment->id} {$segment->name}");
+    auditLog($pdo, 'deleteSegment', "id={$segment->id} {$segment->name}");
     $segment->remove();
 
-} elseif ($action == 'deleteTeamForce') {
+} elseif ($action == 'deleteSegmentForce') {
     $segmentId = (int) $_REQUEST['id'];
     $segmentName = $pdo->prepare("SELECT name FROM segment WHERE id=?");
     $segmentName->execute([$segmentId]);
-    auditLog($pdo, 'deleteTeamForce', "id=$segmentId " . ($segmentName->fetchColumn() ?: ''));
+    auditLog($pdo, 'deleteSegmentForce', "id=$segmentId " . ($segmentName->fetchColumn() ?: ''));
     $pdo->prepare("DELETE FROM user_segment WHERE segment_id = ?")->execute([$segmentId]);
     $pdo->prepare("DELETE FROM segment WHERE id = ?")->execute([$segmentId]);
 
-} elseif ($action == 'reassignTeam') {
+} elseif ($action == 'reassignSegment') {
     $segmentId       = (int) $_REQUEST['id'];
     $targetSegmentId = (int) $_REQUEST['targetTeamId'];
     if ($targetSegmentId > 0 && $targetSegmentId !== $segmentId) {
         $_auSrc = $pdo->prepare("SELECT name FROM segment WHERE id=?"); $_auSrc->execute([$segmentId]);
         $_auDst = $pdo->prepare("SELECT name FROM segment WHERE id=?"); $_auDst->execute([$targetSegmentId]);
-        auditLog($pdo, 'reassignTeam', "groupe source: " . ($_auSrc->fetchColumn() ?: "id=$segmentId") . " → groupe cible: " . ($_auDst->fetchColumn() ?: "id=$targetSegmentId"));
+        auditLog($pdo, 'reassignSegment', "groupe source: " . ($_auSrc->fetchColumn() ?: "id=$segmentId") . " → groupe cible: " . ($_auDst->fetchColumn() ?: "id=$targetSegmentId"));
         $pdo->prepare(
             "INSERT IGNORE INTO user_segment (user_id, segment_id)
              SELECT user_id, ?
@@ -47,7 +47,7 @@ if ($action == 'deleteTeam') {
         $pdo->prepare("DELETE FROM segment WHERE id = ?")->execute([$segmentId]);
     }
 
-} elseif ($action == 'importTeamMembers') {
+} elseif ($action == 'importSegmentMembers') {
     $segmentId = (int)$_REQUEST['id'];
     if ($segmentId > 0 && !empty($_REQUEST['importFrom']) && is_array($_REQUEST['importFrom'])) {
         $stmt = $pdo->prepare(
@@ -64,8 +64,8 @@ if ($action == 'deleteTeam') {
         }
     }
     $_auSegN = $pdo->prepare("SELECT name FROM segment WHERE id=?"); $_auSegN->execute([$segmentId]);
-    auditLog($pdo, 'importTeamMembers', "vers groupe: " . ($_auSegN->fetchColumn() ?: "id=$segmentId") . " | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
-    $_itUrl = $_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $segmentId;
+    auditLog($pdo, 'importSegmentMembers', "vers groupe: " . ($_auSegN->fetchColumn() ?: "id=$segmentId") . " | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
+    $_itUrl = $_SERVER['PHP_SELF'] . '?view=updateSegment&id=' . $segmentId;
     if ($isHtmx) { header('HX-Location: ' . $_itUrl); } else { echo '<script>window.location.replace(' . json_encode($_itUrl) . ');</script>'; }
     exit;
 
@@ -89,7 +89,7 @@ if ($action == 'deleteTeam') {
     }
     $_auSegC = $pdo->prepare("SELECT name FROM segment WHERE id=?"); $_auSegC->execute([$segmentId]);
     auditLog($pdo, 'importCotisants', "vers groupe: " . ($_auSegC->fetchColumn() ?: "id=$segmentId") . " | année: $year");
-    $_icUrl = $_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $segmentId . '&imported=cotisants';
+    $_icUrl = $_SERVER['PHP_SELF'] . '?view=updateSegment&id=' . $segmentId . '&imported=cotisants';
     if ($isHtmx) { header('HX-Location: ' . $_icUrl); } else { echo '<script>window.location.replace(' . json_encode($_icUrl) . ');</script>'; }
     exit;
 
@@ -125,7 +125,7 @@ if ($action == 'deleteTeam') {
     $_auSegD = $pdo->prepare("SELECT name FROM segment WHERE id=?"); $_auSegD->execute([$segmentId]);
     $typeLabel = ['institutional' => 'institutionnels', 'non_institutional' => 'non-institutionnels', 'all' => 'tous'][$donorType];
     auditLog($pdo, 'importDonors', "vers groupe: " . ($_auSegD->fetchColumn() ?: "id=$segmentId") . " | année: $year | min: {$minSum} CHF | type: $typeLabel");
-    $_idUrl = $_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . $segmentId . '&imported=donors';
+    $_idUrl = $_SERVER['PHP_SELF'] . '?view=updateSegment&id=' . $segmentId . '&imported=donors';
     if ($isHtmx) { header('HX-Location: ' . $_idUrl); } else { echo '<script>window.location.replace(' . json_encode($_idUrl) . ');</script>'; }
     exit;
 
@@ -171,7 +171,7 @@ if ($action == 'deleteTeam') {
     }
     exit;
 
-} elseif ($action == 'undoGroupVisibility') {
+} elseif ($action == 'undoSegmentVisibility') {
     $hidden = (int)($_REQUEST['hidden'] ?? 0);
     $ids = array_map('intval', array_filter(explode(',', $_REQUEST['ids'] ?? ''), 'is_numeric'));
     if ($ids) {
@@ -202,7 +202,7 @@ if ($action == 'deleteTeam') {
         exit;
     }
 
-} elseif ($action == 'createLapsedGroup') {
+} elseif ($action == 'createLapsedSegment') {
     $groupType = in_array($_REQUEST['groupType'] ?? '', ['donors', 'members']) ? $_REQUEST['groupType'] : 'donors';
     $yr        = (int)($_REQUEST['year'] ?? date("Y"));
     $excl      = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
@@ -261,23 +261,23 @@ if ($action == 'deleteTeam') {
             $ins->execute([(int)$uid, $newSegmentId]);
         }
     }
-    auditLog($pdo, 'createLapsedGroup', "type: $groupType | année: $yr | groupe créé: $groupName (id=$newSegmentId) | " . count($userIds) . " membres");
+    auditLog($pdo, 'createLapsedSegment', "type: $groupType | année: $yr | groupe créé: $groupName (id=$newSegmentId) | " . count($userIds) . " membres");
     $_clUrl = $_SERVER['PHP_SELF'] . '?team=' . $newSegmentId;
     if ($isHtmx) { header('HX-Location: ' . $_clUrl); } else { echo '<script>window.location.replace(' . json_encode($_clUrl) . ');</script>'; }
     exit;
 
-} elseif ($action == 'addTeam') {
+} elseif ($action == 'addSegment') {
     $segment = new Segment();
     $segment->name = $_REQUEST['name'];
     $segment->setHidden(isset($_REQUEST['hidden']) ? 1 : 0);
     $segment->save();
     $_auNewSegment = $segment->id;
-    auditLog($pdo, 'addTeam', "id=$_auNewSegment | {$_REQUEST['name']}");
-    $_addTeamUrl = $_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . (int)$_auNewSegment;
-    if ($isHtmx) { header('HX-Location: ' . $_addTeamUrl); } else { header('Location: ' . $_addTeamUrl); }
+    auditLog($pdo, 'addSegment', "id=$_auNewSegment | {$_REQUEST['name']}");
+    $_addSegmentUrl = $_SERVER['PHP_SELF'] . '?view=updateSegment&id=' . (int)$_auNewSegment;
+    if ($isHtmx) { header('HX-Location: ' . $_addSegmentUrl); } else { header('Location: ' . $_addSegmentUrl); }
     exit;
 
-} elseif ($action == 'addTeamWithImport') {
+} elseif ($action == 'addSegmentWithImport') {
     $segment = new Segment();
     $segment->name = $_REQUEST['name'];
     $segment->setHidden(0);
@@ -299,12 +299,12 @@ if ($action == 'deleteTeam') {
             )->execute([$newSegmentId, $srcId]);
         }
     }
-    auditLog($pdo, 'addTeamWithImport', "id=$newSegmentId | {$_REQUEST['name']} | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
-    $_atwUrl = $_SERVER['PHP_SELF'] . '?view=updateTeam&id=' . (int)$newSegmentId;
+    auditLog($pdo, 'addSegmentWithImport', "id=$newSegmentId | {$_REQUEST['name']} | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
+    $_atwUrl = $_SERVER['PHP_SELF'] . '?view=updateSegment&id=' . (int)$newSegmentId;
     if ($isHtmx) { header('HX-Location: ' . $_atwUrl); } else { header('Location: ' . $_atwUrl); }
     exit;
 
-} elseif ($action == 'renameTeam') {
+} elseif ($action == 'renameSegment') {
     header('Content-Type: application/json; charset=utf-8');
     $segmentId = (int)($_REQUEST['id'] ?? 0);
     $newName = trim($_REQUEST['name'] ?? '');
@@ -320,11 +320,11 @@ if ($action == 'deleteTeam') {
         exit;
     }
     $pdo->prepare("UPDATE segment SET name=? WHERE id=?")->execute([$newName, $segmentId]);
-    auditLog($pdo, 'renameTeam', 'id=' . $segmentId . ' | ' . $oldName . ' -> ' . $newName);
+    auditLog($pdo, 'renameSegment', 'id=' . $segmentId . ' | ' . $oldName . ' -> ' . $newName);
     echo json_encode(['ok' => true, 'name' => $newName]);
     exit;
 
-} elseif ($action == 'updateTeam') {
+} elseif ($action == 'updateSegment') {
     $segment = new Segment();
     $segment->lookupSegment((int)$_REQUEST['id']);
     $_auTOldName   = $segment->name;
@@ -354,7 +354,7 @@ if ($action == 'deleteTeam') {
     if ($_auTOldHidden !== (isset($_REQUEST['hidden']) ? 1 : 0)) $_auTChanges[] = "masqué: " . ($_auTOldHidden ? 'oui' : 'non') . " → " . (isset($_REQUEST['hidden']) ? 'oui' : 'non');
     if ($_auTOldCat !== $_auTNewCat) $_auTChanges[] = "catégorie: «{$_auTOldCat}» → «{$_auTNewCat}»";
     $auTDetail = "id=$segmentId | {$segment->name}" . (count($_auTChanges) ? ' | ' . implode(', ', $_auTChanges) : ' | aucun changement');
-    auditLog($pdo, 'updateTeam', $auTDetail);
+    auditLog($pdo, 'updateSegment', $auTDetail);
     if (!empty($_REQUEST['importFrom']) && is_array($_REQUEST['importFrom'])) {
         $importedFrom = [];
         foreach ($_REQUEST['importFrom'] as $srcId) {
@@ -371,23 +371,23 @@ if ($action == 'deleteTeam') {
             $_auImpSrc = $pdo->prepare("SELECT name FROM segment WHERE id=?");
             $srcNames = [];
             foreach ($importedFrom as $sid) { $_auImpSrc->execute([$sid]); $srcNames[] = $_auImpSrc->fetchColumn() ?: "id=$sid"; }
-            auditLog($pdo, 'importTeamMembers', "vers groupe: {$segment->name} (id=$segmentId) | depuis: " . implode(', ', $srcNames));
+            auditLog($pdo, 'importSegmentMembers', "vers groupe: {$segment->name} (id=$segmentId) | depuis: " . implode(', ', $srcNames));
         }
     }
 
-} elseif ($action == 'addMembership') {
+} elseif ($action == 'assignSegment') {
     $user = new User();
     $user->lookupUser((int)$_REQUEST['id']);
-    $user->addMembership((int)$_REQUEST['teamId']);
+    $user->assignSegment((int)$_REQUEST['segmentId']);
     $_auSeg = $pdo->prepare("SELECT name FROM segment WHERE id=?");
-    $_auSeg->execute([(int)$_REQUEST['teamId']]);
-    auditLog($pdo, 'addMembership', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) → groupe: " . ($_auSeg->fetchColumn() ?: "id={$_REQUEST['teamId']}"), (int)$_REQUEST['id']);
+    $_auSeg->execute([(int)$_REQUEST['segmentId']]);
+    auditLog($pdo, 'assignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) → groupe: " . ($_auSeg->fetchColumn() ?: "id={$_REQUEST['segmentId']}"), (int)$_REQUEST['id']);
 
-} elseif ($action == 'removeMembership') {
+} elseif ($action == 'unassignSegment') {
     $user = new User();
     $user->lookupUser((int)$_REQUEST['id']);
-    $user->removeMembership((int)$_REQUEST['teamId']);
+    $user->unassignSegment((int)$_REQUEST['segmentId']);
     $_auSeg = $pdo->prepare("SELECT name FROM segment WHERE id=?");
-    $_auSeg->execute([(int)$_REQUEST['teamId']]);
-    auditLog($pdo, 'removeMembership', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) ← groupe: " . ($_auSeg->fetchColumn() ?: "id={$_REQUEST['teamId']}"), (int)$_REQUEST['id']);
+    $_auSeg->execute([(int)$_REQUEST['segmentId']]);
+    auditLog($pdo, 'unassignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) ← groupe: " . ($_auSeg->fetchColumn() ?: "id={$_REQUEST['segmentId']}"), (int)$_REQUEST['id']);
 }

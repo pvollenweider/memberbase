@@ -169,7 +169,7 @@ function handleCreate(): void
     $segment->setHidden((bool)($body['hidden'] ?? false));
     $segment->save();
 
-    auditLog(db(), 'addTeam', "name: $name");
+    auditLog(db(), 'addSegment', "name: $name");
 
     $stmt = db()->prepare("SELECT t.id, t.name, t.hidden, 0 AS member_count, NULL AS cat_id, NULL AS cat_name FROM segment t WHERE t.id=?");
     $stmt->execute([$segment->getId()]);
@@ -189,7 +189,7 @@ function handleUpdate(int $id): void
     if (array_key_exists('hidden', $body)) $segment->setHidden((bool)$body['hidden']);
     $segment->save();
 
-    auditLog(db(), 'renameTeam', "id=$id | name: {$segment->getName()}");
+    auditLog(db(), 'renameSegment', "id=$id | name: {$segment->getName()}");
 
     $stmt = db()->prepare(
         "SELECT t.id, t.name, t.hidden,
@@ -217,7 +217,7 @@ function handleDelete(int $id): void
         apiError(409, 'Segment still has members — remove them first or use force=true');
     }
 
-    auditLog(db(), 'deleteTeam', "id=$id | name: {$segment->getName()}");
+    auditLog(db(), 'deleteSegment', "id=$id | name: {$segment->getName()}");
     db()->prepare("DELETE FROM segment WHERE id=?")->execute([$id]);
 
     http_response_code(204);
@@ -245,7 +245,7 @@ function handleAddMember(int $groupId): void
     $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
     $_auU->execute([$memberId]);
     $_auName = trim((string)$_auU->fetchColumn());
-    auditLog(db(), 'addMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
+    auditLog(db(), 'assignSegment', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
 
     http_response_code(204);
 }
@@ -264,7 +264,7 @@ function handleRemoveMember(int $groupId): void
     $_auU = db()->prepare("SELECT CONCAT(firstname,' ',lastname) FROM users WHERE id=?");
     $_auU->execute([$memberId]);
     $_auName = trim((string)$_auU->fetchColumn());
-    auditLog(db(), 'removeMembership', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
+    auditLog(db(), 'unassignSegment', "group_id=$groupId | membre #$memberId" . ($_auName ? ": $_auName" : ''), $memberId);
 
     http_response_code(204);
 }

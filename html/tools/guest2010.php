@@ -48,7 +48,7 @@ foreach ($lines as $line) {
     <?php 
     /*
     $user->lookupUser($userid);
-    $user->addMembership(55);
+    $user->assignSegment(55);
     */
 }
 ?>

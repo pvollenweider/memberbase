@@ -19,13 +19,13 @@ $metagroup = 0;
 if (isset($_REQUEST['metagroup']) && (int)$_REQUEST['metagroup'] > 0) {
     $metagroup = (int)$_REQUEST['metagroup'];
 }
-$addMembership = -1;
-if (isset ($_REQUEST["addMembership"])) {
-    $addMembership = $_REQUEST["addMembership"];
+$assignSegment = -1;
+if (isset ($_REQUEST["assignSegment"])) {
+    $assignSegment = $_REQUEST["assignSegment"];
 }
-$removeMembership = -1;
-if (isset ($_REQUEST["removeMembership"])) {
-    $removeMembership = $_REQUEST["removeMembership"];
+$unassignSegment = -1;
+if (isset ($_REQUEST["unassignSegment"])) {
+    $unassignSegment = $_REQUEST["unassignSegment"];
 }
 
 $allowedColumns = ['lastname', 'firstname', 'society', 'npa', 'email', 'id'];
@@ -341,7 +341,7 @@ foreach ($_allRows as $row) {
     $id = $row->id;
     $displayLine = true;
     // $row already carries the display columns; only id-based methods
-    // (isCotisationPayed, addMembership…) are needed, so skip the per-row
+    // (isCotisationPayed, assignSegment…) are needed, so skip the per-row
     // full SELECT that lookupUser() would run.
     $user = new User();
     $user->id = $id;
@@ -381,11 +381,11 @@ foreach ($_allRows as $row) {
         $address = htmlentities($address,ENT_COMPAT,$charset);
         $npa = htmlentities($npa,ENT_COMPAT,$charset);
         $emailStr = htmlentities($email,ENT_COMPAT,$charset);
-        if ($addMembership != -1) {
-            $user->addMembership($addMembership);
+        if ($assignSegment != -1) {
+            $user->assignSegment($assignSegment);
         }
-        if ($removeMembership != -1) {
-            $user->removeMembership($removeMembership);
+        if ($unassignSegment != -1) {
+            $user->unassignSegment($unassignSegment);
         }
         #if ($searchString) {
         #    $ss = htmlentities($searchString,ENT_COMPAT,$charset);

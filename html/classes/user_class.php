@@ -220,13 +220,13 @@ class User
         return $stmt->fetchColumn() ?: "id=$id";
     }
 
-    public function addMembership(int $segmentId): void
+    public function assignSegment(int $segmentId): void
     {
         db()->prepare("INSERT IGNORE INTO user_segment (user_id, segment_id) VALUES (?, ?)")
             ->execute([$this->id, $segmentId]);
     }
 
-    public function removeMembership(int $segmentId): void
+    public function unassignSegment(int $segmentId): void
     {
         db()->prepare("DELETE FROM user_segment WHERE user_id=? AND segment_id=?")
             ->execute([$this->id, $segmentId]);

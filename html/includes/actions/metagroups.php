@@ -6,7 +6,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// actions: updateCategoryOrder, updateTeamCategory, updateMetagroupTeams,
+// actions: updateCategoryOrder, updateSegmentCategory, updateMetagroupTeams,
 //          deleteMetagroup, addMetagroup, updateMetagroup
 
 if (!isManager()) { http_response_code(403); exit; }
@@ -21,7 +21,7 @@ if ($action == 'updateCategoryOrder') {
         }
     }
 
-} elseif ($action == 'updateTeamCategory') {
+} elseif ($action == 'updateSegmentCategory') {
     $segmentId = (int)$_REQUEST['id'];
     $categoryId = (int)($_REQUEST['categoryId'] ?? 0);
     $pdo->prepare("DELETE FROM metagroup WHERE segmentid=? AND id IN (

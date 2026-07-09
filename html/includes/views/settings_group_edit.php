@@ -115,7 +115,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
       </div>
       <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
         <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
-        <input type="hidden" name="action" value="updateTeam"/>
+        <input type="hidden" name="action" value="updateSegment"/>
         <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
 
@@ -164,8 +164,8 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
     <!-- Import members -->
     <?php if (count($otherSegments) > 0): ?>
     <div>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $segment->getId() ?>" method="post">
-        <input type="hidden" name="action" value="importTeamMembers"/>
+      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
+        <input type="hidden" name="action" value="importSegmentMembers"/>
 
         <details style="font-size:0.8rem">
           <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem">
@@ -213,7 +213,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
 
     <!-- Import cotisation payers by year -->
     <div>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $segment->getId() ?>" method="post">
+      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
         <input type="hidden" name="action" value="importCotisants"/>
 
         <details style="font-size:0.8rem">
@@ -260,7 +260,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
 
     <!-- Import donors by year -->
     <div>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $segment->getId() ?>" method="post">
+      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
         <input type="hidden" name="action" value="importDonors"/>
 
         <details style="font-size:0.8rem">
@@ -389,7 +389,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
           <div class="p-3" style="background:var(--ca-ground);border-radius:6px">
             <p class="small fw-semibold mb-2"><?= $GLOBAL['transferMembersToOtherSegment'] ?></p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post" class="d-flex align-items-center gap-2 flex-wrap" hx-boost="false">
-              <input type="hidden" name="action" value="reassignTeam"/>
+              <input type="hidden" name="action" value="reassignSegment"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
@@ -413,7 +413,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
             <p class="small fw-semibold mb-1" style="color:var(--ca-danger)"><?= $GLOBAL['removeAllMembersAndDelete'] ?></p>
             <p class="small text-muted mb-2"><?= sprintf($GLOBAL['membersWillBeRemoved'], $memberCount, $memberCount > 1 ? 's' : '') ?></p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post" hx-boost="false">
-              <input type="hidden" name="action" value="deleteTeamForce"/>
+              <input type="hidden" name="action" value="deleteSegmentForce"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
@@ -429,7 +429,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
           <div>
             <p class="small text-muted mb-2"><?= $GLOBAL['segmentHasNoMembers'] ?></p>
             <form action="<?=$_SERVER['PHP_SELF']?>" method="post" hx-boost="false">
-              <input type="hidden" name="action" value="deleteTeamForce"/>
+              <input type="hidden" name="action" value="deleteSegmentForce"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
@@ -462,7 +462,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <button type="button" class="btn btn-warning"
-                onclick="document.querySelector('form [name=action][value=reassignTeam]').closest('form').submit()">
+                onclick="document.querySelector('form [name=action][value=reassignSegment]').closest('form').submit()">
           <?= $GLOBAL['transferAndDissolve'] ?>
         </button>
       </div>
@@ -483,7 +483,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <button type="button" class="btn btn-danger"
-                onclick="document.querySelector('form [name=action][value=deleteTeamForce]').closest('form').submit()">
+                onclick="document.querySelector('form [name=action][value=deleteSegmentForce]').closest('form').submit()">
           <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['removeMembersAndDelete'] ?>
         </button>
       </div>
@@ -504,7 +504,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <button type="button" class="btn btn-danger"
-                onclick="document.querySelector('form [name=action][value=deleteTeamForce]').closest('form').submit()">
+                onclick="document.querySelector('form [name=action][value=deleteSegmentForce]').closest('form').submit()">
           <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
         </button>
       </div>

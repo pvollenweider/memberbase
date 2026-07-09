@@ -20,12 +20,12 @@ test.describe.serial('Groups (teams)', () => {
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
 
-    const addForm = page.locator('form:has(input[name="action"][value="addTeamWithImport"])');
+    const addForm = page.locator('form:has(input[name="action"][value="addSegmentWithImport"])');
     await addForm.locator('#name').fill('Membre E2E');
     await addForm.locator('button[type="submit"]').click();
 
-    // addTeamWithImport emits HX-Location to ?view=updateTeam&id=N
-    await page.waitForURL(/view=updateTeam/, { timeout: 10_000 });
+    // addSegmentWithImport emits HX-Location to ?view=updateSegment&id=N
+    await page.waitForURL(/view=updateSegment/, { timeout: 10_000 });
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
     // Team name link uses ?team=N
@@ -41,11 +41,11 @@ test.describe.serial('Groups (teams)', () => {
     // Get the team id from data-team-id on the row
     const row = page.locator('#tab-groups tr[data-team-id]').filter({ hasText: 'Membre E2E' }).first();
     await expect(row).toBeVisible({ timeout: 10_000 });
-    const teamId = await row.getAttribute('data-team-id');
-    if (!teamId) throw new Error('data-team-id not found for Membre E2E');
+    const segmentId = await row.getAttribute('data-team-id');
+    if (!segmentId) throw new Error('data-team-id not found for Membre E2E');
 
-    // Navigate directly to updateTeam page and fill the form
-    await page.goto('/index.php?view=updateTeam&id=' + teamId);
+    // Navigate directly to updateSegment page and fill the form
+    await page.goto('/index.php?view=updateSegment&id=' + segmentId);
     await expect(page.locator('#name')).toBeVisible({ timeout: 10_000 });
 
     await page.fill('#name', 'Membre E2E Renamed');
@@ -68,10 +68,10 @@ test.describe.serial('Groups (teams)', () => {
 
     const row = page.locator('#tab-groups tr[data-team-id]').filter({ hasText: 'Membre E2E Renamed' }).first();
     await expect(row).toBeVisible({ timeout: 10_000 });
-    const teamId = await row.getAttribute('data-team-id');
-    if (!teamId) throw new Error('data-team-id not found for Membre E2E Renamed');
+    const segmentId = await row.getAttribute('data-team-id');
+    if (!segmentId) throw new Error('data-team-id not found for Membre E2E Renamed');
 
-    // Submit deleteTeam — regular form submit (full page)
+    // Submit deleteSegment — regular form submit (full page)
     const [deleteResponse] = await Promise.all([
       page.waitForNavigation({ timeout: 10_000 }),
       page.evaluate(({ id }) => {
@@ -79,14 +79,14 @@ test.describe.serial('Groups (teams)', () => {
         form.method = 'POST';
         form.action = '/index.php';
         const csrfTok = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
-        for (const [name, value] of [['action','deleteTeam'],['view','settings'],['tab','groups'],['id',id],['csrf',csrfTok]] as [string,string][]) {
+        for (const [name, value] of [['action','deleteSegment'],['view','settings'],['tab','groups'],['id',id],['csrf',csrfTok]] as [string,string][]) {
           const el = document.createElement('input');
           el.name = name; el.value = value;
           form.appendChild(el);
         }
         document.body.appendChild(form);
         form.submit();
-      }, { id: teamId }),
+      }, { id: segmentId }),
     ]);
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
@@ -94,8 +94,8 @@ test.describe.serial('Groups (teams)', () => {
   });
 
   test('open a group settings page', async ({ page }) => {
-    await page.goto('/index.php?view=updateTeam&id=1');
-    // updateTeam is inside the settings page at #tab-groups
+    await page.goto('/index.php?view=updateSegment&id=1');
+    // updateSegment is inside the settings page at #tab-groups
     await expect(page.locator('#tab-groups')).toBeVisible({ timeout: 10_000 });
     // The update team form should be present
     await expect(page.locator('#name')).toBeVisible({ timeout: 10_000 });

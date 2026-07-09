@@ -60,7 +60,7 @@ $UA_VIEW_ROUTES = [
 
     // Réglages & administration
     'settings'            => ['settings_general.php'],
-    'updateTeam'          => ['settings_general.php',      null, ['tab' => 'groups']],
+    'updateSegment'          => ['settings_general.php',      null, ['tab' => 'groups']],
     'updateMetagroup'     => ['settings_general.php',      null, ['tab' => 'filters']],
     'manageComptaTypes'   => ['settings_compta_types.php'],
     'manageAppUsers'      => ['settings_app_users.php'],

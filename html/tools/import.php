@@ -65,7 +65,7 @@ foreach ($lines as $line) {
     $user->comment = "Personne de contact: " . $info;
     $userid = $user->save();
     $user->lookupUser($userid);
-    $user->addMembership(55);
+    $user->assignSegment(55);
     */
 }
 ?>

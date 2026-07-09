@@ -89,7 +89,7 @@ test.describe('Members', () => {
   });
 
   test('navigate to group settings — page loads', async ({ page }) => {
-    await page.goto('/index.php?view=updateTeam&id=1');
+    await page.goto('/index.php?view=updateSegment&id=1');
     await expect(page.locator('#tab-groups')).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('#name')).toBeVisible({ timeout: 10_000 });
   });

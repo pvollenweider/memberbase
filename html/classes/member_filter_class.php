@@ -22,9 +22,9 @@ class MemberFilter
         FILTER_UNPAID_COTI_CURRENT,
     ];
 
-    public static function isVirtual(int $teamId): bool
+    public static function isVirtual(int $segmentId): bool
     {
-        return $teamId === FILTER_ALL_EXCEPT_ARCHIVES || in_array($teamId, self::RESOLVABLE, true);
+        return $segmentId === FILTER_ALL_EXCEPT_ARCHIVES || in_array($segmentId, self::RESOLVABLE, true);
     }
 
     /**

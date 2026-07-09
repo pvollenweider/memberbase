@@ -45,15 +45,15 @@ if (!empty($_SESSION['group_toast'])) {
     unset($_SESSION['group_toast']);
     $_gtHidden  = ($_gt['undo_act'] === 'bulkHide') ? 1 : 0;
     $_gtIdsStr  = implode(',', $_gt['undo_ids']);
-    $_gtUndoUrl = $_SERVER['PHP_SELF'] . '?action=undoGroupVisibility&hidden=' . $_gtHidden . '&ids=' . urlencode($_gtIdsStr) . '&view=settings&tab=groups';
+    $_gtUndoUrl = $_SERVER['PHP_SELF'] . '?action=undoSegmentVisibility&hidden=' . $_gtHidden . '&ids=' . urlencode($_gtIdsStr) . '&view=settings&tab=groups';
     echo '<div id="casa-membership-toast" hidden data-msg="' . htmlspecialchars($_gt['msg'], ENT_QUOTES) . '" data-undo-url="' . htmlspecialchars($_gtUndoUrl, ENT_QUOTES) . '"></div>';
 }
 ?>
 
-<p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['addTeam'] ?></p>
+<p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['addSegment'] ?></p>
 
-<form role="form" action="<?= $_SERVER['PHP_SELF'] ?>" method="post" name="addTeam" class="mb-4">
-  <input type="hidden" name="action" value="addTeamWithImport"/>
+<form role="form" action="<?= $_SERVER['PHP_SELF'] ?>" method="post" name="addSegment" class="mb-4">
+  <input type="hidden" name="action" value="addSegmentWithImport"/>
   <input type="hidden" name="view"   value="settings"/>
   <input type="hidden" name="tab"    value="groups"/>
 
@@ -243,7 +243,7 @@ while ($row = $stmt->fetchObject()) {
                     aria-label="<?= sprintf($GLOBAL['renameNameAria'], $name) ?>" style="font-size:0.78rem;line-height:1">
               <i class="fas fa-i-cursor" aria-hidden="true"></i>
             </button>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateTeam&amp;id=<?= $id ?>"
+            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateSegment&amp;id=<?= $id ?>"
                class="text-decoration-none text-muted" aria-label="<?= sprintf($GLOBAL['segmentSettingsAria'], $name) ?>" style="font-size:0.78rem">
               <i class="fas fa-gear" aria-hidden="true"></i>
             </a>
@@ -365,14 +365,14 @@ function toggleHiddenSection(btn) {
   });
 
   function doRename(row) {
-    var teamId = row.dataset.teamId;
+    var segmentId = row.dataset.segmentId;
     var input  = row.querySelector('.team-rename-input');
     var name   = input.value.trim();
     if (!name) { input.focus(); return; }
 
     var body = new URLSearchParams();
-    body.append('action', 'renameTeam');
-    body.append('id',     teamId);
+    body.append('action', 'renameSegment');
+    body.append('id',     segmentId);
     body.append('name',   name);
 
     fetch(window.location.pathname, {
