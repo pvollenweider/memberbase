@@ -70,6 +70,7 @@ $appSettings = array_merge([
     'org_country'        => '',
     'org_ide'            => '',
     'org_iban'           => '',
+    'org_coti_amount_desc' => '',
     'org_purpose'        => '',
     'org_tax_status'     => '',
     'membre_team_prefix' => 'Membre',

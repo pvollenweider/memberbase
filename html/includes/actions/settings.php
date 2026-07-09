@@ -22,7 +22,7 @@ if ($action == 'saveSettings') {
     $intKeys = ['default_team', 'membre_team', 'member_no_coti_team'];
     // String settings — stored as trimmed text
     $strKeys = ['org_name', 'org_address', 'org_npa', 'org_city', 'org_country',
-                'org_ide', 'org_iban', 'org_purpose', 'org_tax_status',
+                'org_ide', 'org_iban', 'org_coti_amount_desc', 'org_purpose', 'org_tax_status',
                 'membre_team_prefix', 'membership_url'];
     $stmt = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
     foreach ($intKeys as $key) {
