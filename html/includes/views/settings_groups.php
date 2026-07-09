@@ -6,22 +6,29 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// Member counts per segment
-$countRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM user_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
+// Member counts per segment (guard: tables may not exist if migration is pending)
+try {
+    $countRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM user_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
+    $allSegments = $pdo->query("SELECT id, name FROM segment WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+} catch (PDOException $e) {
+    $countRows = [];
+    $allSegments = [];
+}
 $segmentCounts = [];
 foreach ($countRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
-
-$allSegments = $pdo->query("SELECT id, name FROM segment WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 $categories  = $pdo->query("SELECT DISTINCT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 
-// Category map for import grouping: segmentid → category name
-$_importCatRows = $pdo->query("
-    SELECT j.segmentid, m.name AS cat_name, MIN(m.sort_order) AS sort_order
-    FROM metagroup j
-    JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
-    WHERE j.segmentid IS NOT NULL
-    GROUP BY j.segmentid, m.name
-")->fetchAll(PDO::FETCH_OBJ);
+// Category map for import grouping: segmentid → category name (guard: column may not exist yet)
+$_importCatRows = [];
+try {
+    $_importCatRows = $pdo->query("
+        SELECT j.segmentid, m.name AS cat_name, MIN(m.sort_order) AS sort_order
+        FROM metagroup j
+        JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
+        WHERE j.segmentid IS NOT NULL
+        GROUP BY j.segmentid, m.name
+    ")->fetchAll(PDO::FETCH_OBJ);
+} catch (PDOException $e) {}
 $_importSegCat = [];
 foreach ($_importCatRows as $_icr) {
     $_importSegCat[(int)$_icr->segmentid] = $_icr->cat_name;
@@ -154,24 +161,26 @@ if (!empty($_SESSION['group_toast'])) {
     <tbody>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-$stmt = $pdo->query("
-    SELECT t.id, t.name, t.hidden,
-           COALESCE(cat.name, '') AS cat_name,
-           COALESCE(cat.id, 0) AS cat_id,
-           COALESCE(cat.sort_order, 99999) AS cat_sort
-    FROM segment t
-    LEFT JOIN (
-        SELECT j.segmentid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
-        FROM metagroup j
-        JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-        WHERE j.segmentid IS NOT NULL
-        GROUP BY j.segmentid
-    ) cat ON cat.segmentid = t.id
-    ORDER BY t.hidden ASC, cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
-");
+try {
+    $stmt = $pdo->query("
+        SELECT t.id, t.name, t.hidden,
+               COALESCE(cat.name, '') AS cat_name,
+               COALESCE(cat.id, 0) AS cat_id,
+               COALESCE(cat.sort_order, 99999) AS cat_sort
+        FROM segment t
+        LEFT JOIN (
+            SELECT j.segmentid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
+            FROM metagroup j
+            JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
+            WHERE j.segmentid IS NOT NULL
+            GROUP BY j.segmentid
+        ) cat ON cat.segmentid = t.id
+        ORDER BY t.hidden ASC, cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
+    ");
+} catch (PDOException $e) { $stmt = null; }
 $prevHidden = 0;
 $prevCatId  = -1;
-while ($row = $stmt->fetchObject()) {
+while ($stmt && $row = $stmt->fetchObject()) {
     $id       = $row->id;
     $name     = htmlentities($row->name, ENT_COMPAT, $charset);
     $isHidden = (int) $row->hidden;
