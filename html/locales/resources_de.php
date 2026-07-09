@@ -74,6 +74,7 @@ $GLOBAL['addBtn']          = "Hinzufügen";
 $GLOBAL['addGroups']       = "Segmente hinzufügen";
 $GLOBAL['addMetagroup']    = "Kombiniertes Segment hinzufügen";
 $GLOBAL['addTeam']         = "Segment hinzufügen";
+$GLOBAL['addSegment']      = "Segment hinzufügen";
 $GLOBAL['addUser']         = "Hinzufügen";
 $GLOBAL['address']         = "Adresse";
 $GLOBAL['all']             = "Alle";
