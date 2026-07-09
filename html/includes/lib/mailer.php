@@ -16,11 +16,12 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  *                         smtp_from_name, smtp_reply_to.
  * @param string $to
  * @param string $subject
- * @param string $bodyText Plain-text body.
- * @param string $bodyHtml Optional HTML body; when provided, sends multipart/alternative.
+ * @param string $bodyText    Plain-text body.
+ * @param string $bodyHtml    Optional HTML body; when provided, sends multipart/alternative.
+ * @param array  $attachments Optional list of attachments. Each entry: ['name' => string, 'mime' => string, 'data' => string (raw bytes)].
  * @return array{ok:bool,error:string,debug:string}
  */
-function mbSmtpSend(array $cfg, string $to, string $subject, string $bodyText, string $bodyHtml = ''): array
+function mbSmtpSend(array $cfg, string $to, string $subject, string $bodyText, string $bodyHtml = '', array $attachments = []): array
 {
     $host       = $cfg['smtp_host']       ?? '';
     $port       = (int)($cfg['smtp_port'] ?? 587);
@@ -160,7 +161,43 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $bodyText, s
         $headers .= "Subject: $subjectEncoded\r\n";
         $headers .= "MIME-Version: 1.0\r\n";
 
-        if ($bodyHtml !== '') {
+        if (!empty($attachments)) {
+            // multipart/mixed wraps the body + attachments
+            $outerBoundary = '----=_Mixed_' . md5(uniqid('', true));
+            $headers .= "Content-Type: multipart/mixed; boundary=\"$outerBoundary\"\r\n";
+            $bodyPart = "--$outerBoundary\r\n";
+
+            if ($bodyHtml !== '') {
+                // Inner multipart/alternative for text + HTML
+                $altBoundary  = '----=_Alt_' . md5(uniqid('', true));
+                $bodyPart .= "Content-Type: multipart/alternative; boundary=\"$altBoundary\"\r\n\r\n";
+                $bodyPart .= "--$altBoundary\r\n";
+                $bodyPart .= "Content-Type: text/plain; charset=UTF-8\r\n";
+                $bodyPart .= "Content-Transfer-Encoding: base64\r\n\r\n";
+                $bodyPart .= chunk_split(base64_encode($bodyText));
+                $bodyPart .= "--$altBoundary\r\n";
+                $bodyPart .= "Content-Type: text/html; charset=UTF-8\r\n";
+                $bodyPart .= "Content-Transfer-Encoding: base64\r\n\r\n";
+                $bodyPart .= chunk_split(base64_encode($bodyHtml));
+                $bodyPart .= "--$altBoundary--\r\n";
+            } else {
+                $bodyPart .= "Content-Type: text/plain; charset=UTF-8\r\n";
+                $bodyPart .= "Content-Transfer-Encoding: base64\r\n\r\n";
+                $bodyPart .= chunk_split(base64_encode($bodyText));
+            }
+
+            foreach ($attachments as $att) {
+                $safeName = preg_replace('/[^\w.\-]/', '_', $att['name'] ?? 'attachment');
+                $bodyPart .= "--$outerBoundary\r\n";
+                $bodyPart .= "Content-Type: " . ($att['mime'] ?? 'application/octet-stream') . "; name=\"$safeName\"\r\n";
+                $bodyPart .= "Content-Disposition: attachment; filename=\"$safeName\"\r\n";
+                $bodyPart .= "Content-Transfer-Encoding: base64\r\n\r\n";
+                $bodyPart .= chunk_split(base64_encode($att['data']));
+            }
+            $bodyPart .= "--$outerBoundary--\r\n";
+            $message = $headers . "\r\n" . $bodyPart;
+
+        } elseif ($bodyHtml !== '') {
             $boundary = '----=_Part_' . md5(uniqid('', true));
             $headers .= "Content-Type: multipart/alternative; boundary=\"$boundary\"\r\n";
             $bodyPart  = "--$boundary\r\n";
@@ -364,7 +401,7 @@ function mbDefaultTemplates(): array
         // {{membership_url}} = URL of the membership page (from app settings)
         'tpl_cotisation_reminder' => [
             'subject'   => 'Rappel de cotisation',
-            'body_text' => "{{greeting_text}}\n\nSauf erreur de notre part, votre cotisation à {{org_name}} pour l'année {{year}} n'a pas encore été réglée.\n\nEn tant que membre, votre cotisation annuelle est essentielle : elle permet à notre association de mener à bien ses activités en faveur des enfants en situation de vulnérabilité en Amérique latine — recherche de fonds, suivi de projets sur le terrain, sensibilisation du public et représentation auprès des organisations internationales.\n\nSi vous avez déjà renouvelé votre adhésion, merci — vous pouvez ignorer ce message. Dans le cas contraire, nous comptons sur votre soutien et vous invitons à renouveler votre adhésion quand vous le pouvez.\n\nPour plus d'informations sur l'adhésion : {{membership_url}}\n\nPour toute question : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'body_text' => "{{greeting_text}}\n\nSauf erreur de notre part, votre cotisation à {{org_name}} pour l'année {{year}} n'a pas encore été réglée.\n\nEn tant que membre, votre cotisation annuelle est essentielle : elle permet à notre association de mener à bien ses activités en faveur des enfants en situation de vulnérabilité en Amérique latine — recherche de fonds, suivi de projets sur le terrain, sensibilisation du public et représentation auprès des organisations internationales.\n\nSi vous avez déjà renouvelé votre adhésion, merci — vous pouvez ignorer ce message. Dans le cas contraire, nous comptons sur votre soutien et vous invitons à renouveler votre adhésion quand vous le pouvez.\n\nPour plus d'informations sur l'adhésion : {{membership_url}}\n{{payment_info_text}}\nPour toute question : {{contact_email}}\n\nCordialement,\n{{org_name}}",
             'body_html' => $htmlWrap(
                 '<p>{{greeting}}</p>
 <p>Sauf erreur de notre part, votre cotisation à <strong>{{org_name}}</strong> pour l\'année <strong>{{year}}</strong> n\'a pas encore été réglée.</p>
@@ -379,6 +416,7 @@ function mbDefaultTemplates(): array
 </ul>
 <p>Si vous avez déjà renouvelé votre adhésion, merci — vous pouvez ignorer ce message. Dans le cas contraire, nous comptons sur votre soutien et vous invitons à renouveler votre adhésion quand vous le pouvez.</p>
 {{membership_url_block}}
+{{payment_info_block}}
 <p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
 <p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
@@ -468,6 +506,8 @@ function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars, ?int 
 
 /**
  * Like mbSendMail but returns true on success or an error string on failure.
+ *
+ * @param array $attachments Optional — same format as mbSmtpSend $attachments
  */
 function mbSendMailWithError(
     PDO $pdo,
@@ -476,14 +516,15 @@ function mbSendMailWithError(
     string $bodyHtml,
     string $bodyText = '',
     ?int $userId = null,
-    string $tplKey = ''
+    string $tplKey = '',
+    array $attachments = []
 ): bool|string {
     global $appSettings;
     try {
         $cfg  = $appSettings;
         $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
         $text   = $bodyText !== '' ? $bodyText : strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $bodyHtml));
-        $result = mbSmtpSend($cfg, $to, $subject, $text, $bodyHtml);
+        $result = mbSmtpSend($cfg, $to, $subject, $text, $bodyHtml, $attachments);
         $status = $result['ok'] ? 'sent' : 'error';
         $errMsg = $result['ok'] ? null : ($result['error'] ?? 'unknown error');
         _mbLogEmail($pdo, $to, $subject, $status, $errMsg, $userId, $text, $bodyHtml, $tplKey);
@@ -492,4 +533,24 @@ function mbSendMailWithError(
         _mbLogEmail($pdo, $to, $subject, 'error', $e->getMessage(), $userId, '', '', $tplKey);
         return $e->getMessage();
     }
+}
+
+/**
+ * Like mbSendTemplate but attaches an optional list of files.
+ *
+ * @param array $attachments Same format as mbSmtpSend $attachments
+ */
+function mbSendTemplateWithAttachment(
+    PDO $pdo,
+    string $to,
+    string $tplKey,
+    array $vars,
+    ?int $userId = null,
+    array $attachments = []
+): bool|string {
+    $tpl      = mbGetTemplate($pdo, $tplKey);
+    $subject  = mbRenderTemplate($tpl->subject,   $vars);
+    $bodyText = mbRenderTemplate($tpl->body_text, $vars);
+    $bodyHtml = isset($tpl->body_html) ? mbRenderTemplate($tpl->body_html, $vars) : '';
+    return mbSendMailWithError($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText, $userId, $tplKey, $attachments);
 }

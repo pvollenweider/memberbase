@@ -20,5 +20,9 @@ tests/.auth/
 composer.lock
 .phpunit.cache/
 
+# Runtime dependencies (html/ app — install with: cd html && composer install --no-dev)
+html/vendor/
+html/composer.lock
+
 # /understand intermediate files (final graph is committed)
 .understand-anything/intermediate/
