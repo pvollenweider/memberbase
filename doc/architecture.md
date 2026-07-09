@@ -1,14 +1,16 @@
 # Architecture de MemberBase
 
-MemberBase **v4.0.0** — application PHP 8.2 de gestion des membres pour ONG.
+MemberBase **v5.0.0** — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.
 
 > **Terminologie.** Depuis la v3.5.4, l'interface parle de **Segment** (au lieu de
-> « groupe ») et de **Segment combiné** (au lieu de « métagroupe »). Ce sont des
-> libellés uniquement : le code et l'API conservent les noms techniques d'origine
-> — table `team`, table `metagroup`, endpoints `/api/groups`. Dans tout ce document,
-> **« Segment » (UI) = entité `team` (technique)** et **« Segment combiné » (UI) =
-> entité `metagroup`**.
+> « groupe ») et de **Segment combiné** (au lieu de « métagroupe »). Depuis la
+> **v5.0.0**, le code et l'API suivent le même vocabulaire : table `segment`
+> (anciennement `team`), table `metagroup`, endpoints `/api/segments`
+> (anciennement `/api/groups`). De même, la table `users` est renommée `contact`
+> et la classe `User` devient `Contact`. Dans tout ce document, **« Segment »
+> (UI) = entité `segment` (technique)** et **« Segment combiné » (UI) = entité
+> `metagroup`**.
 
 ---
 
@@ -31,8 +33,8 @@ sans Composer. Elle repose sur cinq principes structurants :
 - **API REST séparée** : le répertoire `html/api/` expose des endpoints JSON
   machine-to-machine, distincts de l'interface htmx mais partageant la même session.
 
-Garde constante des listings : la colonne `users.status` (`1` = actif, `0` = archivé)
-est filtrée partout via `WHERE users.status = 1`.
+Garde constante des listings : la colonne `contact.status` (`1` = actif, `0` = archivé)
+est filtrée partout via `WHERE contact.status = 1`.
 
 ---
 
@@ -71,8 +73,8 @@ Navigateur
   |  POST index.php  body: action=updateUser&id=42&…   [HX-Request: true]
   v
 html/index.php → include routing/actions.php
-  |-- $ACTION_MAP['updateUser'] = 'members'
-  |-- require includes/actions/members.php
+  |-- $ACTION_MAP['updateUser'] = 'contacts'
+  |-- require includes/actions/contacts.php
   |       vérifie le rôle (canWrite/isManager/isAdmin selon l'action)
   |       valide, $user->save(), auditLog(...)
   |       if ($isHtmx) { header('HX-Location: …?view=generalData&id=42'); exit; }
@@ -123,10 +125,11 @@ pas en `DATE` SQL ; conversions via `formatedDateToTimeStamp()` / `timeStampTofo
 
 | Table             | Rôle                                                                                     | Clé / séquence         |
 |-------------------|------------------------------------------------------------------------------------------|------------------------|
-| `users`           | Membres : identité, coordonnées (dont **`email_alt`**), `sexe` (na/f/m/hf), `status` (1/0), dates Unix | `id` AUTO_INCREMENT    |
-| `team`            | Segments : `name`, `hidden`                                                               | `id` AUTO_INCREMENT    |
-| `user_properties` | EAV : appartenance segment (`parameter='team_<id>'`, `value='true'`) et notes de suivi   | pas de PK, `id` legacy |
-| `metagroup`       | Segments combinés / catégories : `name`, `teamid`, `is_filter`, `sort_order`             | `id` via `maxval`      |
+| `contact`         | Membres (**anciennement `users`**, renommée v5.0.0) : identité, coordonnées (dont **`email_alt`**), `sexe` (na/f/m/hf), `status` (1/0), dates Unix | `id` AUTO_INCREMENT    |
+| `segment`         | Segments (**anciennement `team`**, renommée v5.0.0) : `name`, `hidden`                   | `id` AUTO_INCREMENT    |
+| `contact_segment` | Appartenance segment (**anciennement EAV dans `user_properties`**, table de jointure depuis v5.0.0) : `user_id` (contact), `segment_id` | PK `(user_id, segment_id)` |
+| `contact_properties` | EAV : notes de suivi (**anciennement `user_properties`**, renommée v5.0.0)             | pas de PK, `id` legacy |
+| `metagroup`       | Segments combinés / catégories : `name`, `segmentid`, `is_filter`, `sort_order`          | `id` via `maxval`      |
 | `compta_type`     | Types d'écriture : `label`, `color`, `sort_order`, `is_cotisation`, `is_excluded_from_donation`, `is_institutional` | `id` AUTO_INCREMENT |
 | `compta`          | Écritures : `user_id`, `date` (Unix), `libele`, `sum` (**decimal(10,2)**, CHF), `quittance`, `type_id`, `wants_attestation`, **`notified_at`** (dernier envoi du récapitulatif email, `NULL` = non notifiée), **`cotisation_year`** (année de cotisation si différente de l'année de paiement) | `id` AUTO_INCREMENT |
 | `maxval`          | Compteur de séquence manuel (clé/valeur)                                                  | PK `parameter`         |
@@ -142,24 +145,28 @@ pas en `DATE` SQL ; conversions via `formatedDateToTimeStamp()` / `timeStampTofo
 ```
 app_users ── session ──> index.php ── actions/* ── auditLog() ──> audit_log
 
-users (id)
-  ├── user_properties (user_id)
-  │        parameter = 'team_<N>'  → appartenance au segment team(id=N)
+contact (id)
+  ├── contact_segment (user_id, segment_id) ──> segment (id)
+  ├── contact_properties (user_id)
   │        parameter = 'suivi_*'   → notes de suivi (UserProperty)
   └── compta (user_id) ── type_id ──> compta_type
                                         (is_cotisation / is_excluded_from_donation / is_institutional)
 
-team (id) ──> metagroup (teamid)   [1 ligne header (teamid NULL) + N lignes membres]
+segment (id) ──> metagroup (segmentid)   [1 ligne header (segmentid NULL) + N lignes membres]
 ```
 
 ### Notes sur le modèle
 
-- **L'appartenance à un segment n'a pas de table de jointure** : elle vit dans
-  `user_properties` (`parameter = 'team_<teamId>'`, `value = 'true'`).
-- `metagroup.id` est **partagé** entre la ligne header (`teamid IS NULL`, portant
-  `name`) et les lignes membres (`teamid = N`), d'où l'usage de `maxval` plutôt que
+- **L'appartenance à un segment a une vraie table de jointure** (`contact_segment`,
+  PK `(user_id, segment_id)`) depuis la v5.0.0. Avant cette version, elle vivait
+  dans le stockage EAV `user_properties` (`parameter = 'team_<teamId>'`,
+  `value = 'true'`) ; la migration `0013` a fait la bascule avec backfill
+  automatique, puis `0014`/`0015` ont renommé les tables (`team` → `segment`,
+  `users` → `contact`).
+- `metagroup.id` est **partagé** entre la ligne header (`segmentid IS NULL`, portant
+  `name`) et les lignes membres (`segmentid = N`), d'où l'usage de `maxval` plutôt que
   d'`AUTO_INCREMENT`.
-- `user_properties.id` est une colonne héritée non fiable (nombreuses lignes à `0`) ;
+- `contact_properties.id` est une colonne héritée non fiable (nombreuses lignes à `0`) ;
   l'identité d'une propriété repose sur `user_id` + `parameter`. Le commentaire de
   `bootstrap.php` mentionne ~83k lignes concernées.
 
@@ -167,16 +174,20 @@ team (id) ──> metagroup (teamid)   [1 ligne header (teamid NULL) + N lignes 
 
 ## 6. Classes de domaine
 
-Fichiers dans `html/classes/`, style *active-record*, sans namespace, `global $pdo`.
+Fichiers dans `html/classes/`, style *active-record*, sans namespace. Depuis la
+v5.0.0, toutes les méthodes lisent/écrivent la base via le singleton `db(): PDO`
+(`html/includes/lib/bootstrap.php`) au lieu d'une variable globale `$pdo` (#125).
 
-### `User` (`user_class.php`) — 54 méthodes
+### `Contact` (`contact_class.php`, anciennement `User`/`user_class.php`) — 54 méthodes
 
 Classe centrale. Regroupe :
 - **Chargement** : `lookupUser(int $id)`, `lookupUserByEmail(string $email)`,
   `hydrateFromRow()` (privé).
-- **Getters/setters** pour chaque colonne de `users` (dont `getEmailAlt`/`setEmailAlt`,
+- **Getters/setters** pour chaque colonne de `contact` (dont `getEmailAlt`/`setEmailAlt`,
   `setBirthDay` qui parse une date d/m/Y).
-- **Segments** : `getProperty()`, `isMemberOfTeam()`, `addMembership()`, `removeMembership()`.
+- **Segments** : `getProperty()`, `isMemberOfSegment()`, `assignSegment()`,
+  `unassignSegment()` (via la table de jointure `contact_segment`, anciennement
+  `isMemberOfTeam()`/`addMembership()`/`removeMembership()` sur l'EAV).
 - **Persistance** : `save()` (retourne l'id, insert ou update selon présence d'id),
   `remove()`.
 - **Requêtes comptables par année** (utilisées par les vues donateurs) :
@@ -190,9 +201,9 @@ public function hasComptaEntries(int $year, int $number): bool
 public function hasComptaEntry(): bool
 ```
 
-### `Team` (`team_class.php`)
+### `Segment` (`segment_class.php`, anciennement `Team`/`team_class.php`)
 
-`lookupTeam()`, `save()`, `remove()`, `isUsed()`, et gestion de l'appartenance aux
+`lookupSegment()`, `save()`, `remove()`, `isUsed()`, et gestion de l'appartenance aux
 segments combinés : `isMemberOfMetagroup()`, `addMetagroupMembership()`,
 `removeMetagroupMembership()`.
 
@@ -218,7 +229,7 @@ getters/setters (`parameter`, `date`, `value`).
 
 ## 7. Authentification & rôles
 
-### Comptes (`app_users`, distincte de `users`)
+### Comptes (`app_users`, distincte de `contact`)
 
 `auth.php` gère session, login (`authLogin`), logout (`authLogout`) et gardes. Le login
 vérifie `is_active = 1`, `password_verify()` contre le hash bcrypt, appelle
@@ -263,15 +274,16 @@ function canRead(): bool     // role ∈ {admin, manager, user, readonly}
 
 ### Structure et routage
 
-`html/api/.htaccess` réécrit les URL REST vers les scripts (ex. `members/42/groups` →
-`members.php?id=42&sub=groups`). Endpoints :
+`html/api/.htaccess` réécrit les URL REST vers les scripts (ex. `contacts/42/groups` →
+`contacts.php?id=42&sub=groups`). Endpoints (routes renommées en v5.0.0 :
+`members` → `contacts`, `groups` → `segments`) :
 
 | Fichier            | Ressource            | Méthodes                                   |
 |--------------------|----------------------|--------------------------------------------|
-| `members.php`      | `/api/members`       | GET (liste + `{id}` + `{id}/groups`), POST, PUT/PATCH, DELETE |
+| `contacts.php`     | `/api/contacts`      | GET (liste + `{id}` + `{id}/groups`), POST, PUT/PATCH, DELETE |
 | `compta.php`       | `/api/compta`        | GET, POST, PUT/PATCH, DELETE               |
 | `compta-types.php` | `/api/compta-types`  | GET uniquement (sinon 405)                 |
-| `groups.php`       | `/api/groups`        | GET, POST, PUT/PATCH, DELETE, membres      |
+| `segments.php`     | `/api/segments`      | GET, POST, PUT/PATCH, DELETE, membres      |
 | `suivi.php`        | `/api/suivi`         | GET, POST, PUT/PATCH, DELETE               |
 
 ### Middleware `_bootstrap.php`
@@ -287,24 +299,24 @@ Au-delà du `401`, chaque handler contrôle le rôle :
 
 - **Lectures** (GET) : `canRead()` sinon `403`.
 - **Écritures membres/compta/suivi** (POST/PUT/PATCH/DELETE) : `canWrite()` sinon `403`.
-- **Écritures segments** (`groups.php` create/update/delete/add-member/remove-member) :
+- **Écritures segments** (`segments.php` create/update/delete/add-member/remove-member) :
   `isManager()` sinon `403`.
-- **Suppression définitive d'un membre** (`DELETE /api/members/{id}?dispose=delete`) :
+- **Suppression définitive d'un membre** (`DELETE /api/contacts/{id}?dispose=delete`) :
   `isAdmin()`. Par défaut (`dispose=deactivate`) le membre est seulement archivé
   (`status=0`).
 
-### `members.php` en détail
+### `contacts.php` en détail
 
 Dispatch par `match (true)` sur `REQUEST_METHOD` + présence de `id`/`sub` :
 
 | Méthode      | URL                          | Handler            |
 |--------------|------------------------------|--------------------|
-| GET          | /api/members                 | `handleList()`     |
-| GET          | /api/members/{id}            | `handleGet()`      |
-| GET          | /api/members/{id}/groups     | `handleGetGroups()`|
-| POST         | /api/members                 | `handleCreate()` (201, `lastName` requis) |
-| PUT / PATCH  | /api/members/{id}            | `handleUpdate()`   |
-| DELETE       | /api/members/{id}            | `handleDelete()` (204) |
+| GET          | /api/contacts                | `handleList()`     |
+| GET          | /api/contacts/{id}           | `handleGet()`      |
+| GET          | /api/contacts/{id}/groups    | `handleGetGroups()`|
+| POST         | /api/contacts                | `handleCreate()` (201, `lastName` requis) |
+| PUT / PATCH  | /api/contacts/{id}           | `handleUpdate()`   |
+| DELETE       | /api/contacts/{id}           | `handleDelete()` (204) |
 | (autre)      | —                            | `apiError(405)`    |
 
 `handleList()` supporte `?search=`, `?team=`, `?metagroup=`, `?page=`, `?limit=`
@@ -316,7 +328,7 @@ l'après, calcule un diff lisible et l'écrit dans `audit_log` (`updateUser`).
 Un `?team=` **négatif** déclenche des requêtes métier dédiées, résolues par la classe
 partagée `MemberFilter` (`html/classes/member_filter_class.php`) — seule source de
 vérité consommée à la fois par la liste des membres (`users_list.php`) et par l'API
-(`api/members.php`). `MemberFilter::resolveIds()` retourne la map `id => true` des
+(`api/contacts.php`). `MemberFilter::resolveIds()` retourne la map `id => true` des
 membres correspondants ; `MemberFilter::isVirtual()` teste si un ID de segment est
 un filtre virtuel. Constantes définies dans `bootstrap.php` :
 
@@ -422,7 +434,7 @@ navigation ou de filtre.
 Chargé avant Alpine, initialisé via `x-data="memberGeneralForm()"`. Données passées par
 attributs `data-*` (pas de `fetch` initial, compatible CSP `self`). États : `editing`,
 `saving`, `saved`, `error`. `save()` n'envoie que les champs modifiés
-(`draft[k] !== data[k]`) via `PATCH /api/members/{id}`, d'où un diff serveur trivial.
+(`draft[k] !== data[k]`) via `PATCH /api/contacts/{id}`, d'où un diff serveur trivial.
 
 ---
 
@@ -495,9 +507,9 @@ base (DDL + `tests/fixtures/seed.sql`).
   (installation classique) ou variables d'environnement `DB_*` (Docker).
 
 ### Séquences
-- `AUTO_INCREMENT` natif pour `users`, `team`, `compta`, `compta_type`, `app_users`,
+- `AUTO_INCREMENT` natif pour `contact`, `segment`, `compta`, `compta_type`, `app_users`,
   `audit_log`. `maxval` (`getMaxVal()` / `updateAndGetMaxVal()`) uniquement pour
-  `metagroup.id` (id partagé header/membres) et l'`id` legacy de `user_properties`.
+  `metagroup.id` (id partagé header/membres) et l'`id` legacy de `contact_properties`.
 
 ### Audit log
 - `auditLog(PDO $pdo, string $action, string $detail = '', ?int $subjectUserId = null)`

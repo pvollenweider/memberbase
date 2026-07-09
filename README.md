@@ -43,9 +43,9 @@ Avec le temps, l'application a été refactorisée pour devenir aussi génériqu
 
 ### Segments et segments combinés
 
-> Terminologie : depuis la v3.5.4, l'interface parle de **Segment** (anciennement « groupe », entité technique `team`) et de **Segment combiné** (anciennement « métagroupe »).
+> Terminologie : depuis la v3.5.4, l'interface parle de **Segment** (anciennement « groupe »). Depuis la v5.0.0, l'entité technique elle-même est renommée `team` → `segment` (table, classe, API) — voir [CHANGELOG](CHANGELOG.md#500--2026-07-09).
 
-- Création et gestion de segments (`team`) avec visibilité configurable (actif/masqué)
+- Création et gestion de segments (`segment`) avec visibilité configurable (actif/masqué)
 - Segments combinés (métagroupes): regrouper des segments en catégories pour filtrage
 - Filtre de la liste membres par segment ou segment combiné
 - Recherche incrémentale dans le dropdown de sélection de segment
@@ -132,21 +132,21 @@ Endpoints JSON disponibles sous `/api/` (authentification de session requise) :
 
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
-| `GET` | `/api/members` | Liste des membres (filtrés par groupes, métagroupes, statut, recherche) |
-| `POST` | `/api/members` | Créer un membre |
-| `GET` | `/api/members/{id}` | Fiche membre complète |
-| `PUT` / `PATCH` | `/api/members/{id}` | Modifier un membre (champs individuels, audit log diff) |
-| `DELETE` | `/api/members/{id}` | Désactiver (`status=0`) ou supprimer (`?dispose=delete`, admin) |
-| `GET` | `/api/members/{id}/groups` | Groupes du membre |
-| `GET` | `/api/members/{id}?sub=compta` | Entrées comptables du membre |
-| `GET` | `/api/groups` | Liste des groupes avec comptage membres |
-| `POST` | `/api/groups` | Créer un groupe (manager) |
-| `GET` | `/api/groups/{id}` | Détail d'un groupe |
-| `PUT` | `/api/groups/{id}` | Renommer / basculer visibilité (manager) |
-| `DELETE` | `/api/groups/{id}` | Supprimer un groupe vide (manager) |
-| `GET` | `/api/groups/{id}/members` | Membres d'un groupe |
-| `POST` | `/api/groups/{id}/members` | Ajouter un membre à un groupe (manager) |
-| `DELETE` | `/api/groups/{id}/members` | Retirer un membre d'un groupe (manager) |
+| `GET` | `/api/contacts` | Liste des membres (filtrés par segments, métagroupes, statut, recherche) |
+| `POST` | `/api/contacts` | Créer un membre |
+| `GET` | `/api/contacts/{id}` | Fiche membre complète |
+| `PUT` / `PATCH` | `/api/contacts/{id}` | Modifier un membre (champs individuels, audit log diff) |
+| `DELETE` | `/api/contacts/{id}` | Désactiver (`status=0`) ou supprimer (`?dispose=delete`, admin) |
+| `GET` | `/api/contacts/{id}/groups` | Segments du membre |
+| `GET` | `/api/contacts/{id}?sub=compta` | Entrées comptables du membre |
+| `GET` | `/api/segments` | Liste des segments avec comptage membres |
+| `POST` | `/api/segments` | Créer un segment (manager) |
+| `GET` | `/api/segments/{id}` | Détail d'un segment |
+| `PUT` | `/api/segments/{id}` | Renommer / basculer visibilité (manager) |
+| `DELETE` | `/api/segments/{id}` | Supprimer un segment vide (manager) |
+| `GET` | `/api/segments/{id}/members` | Membres d'un segment |
+| `POST` | `/api/segments/{id}/members` | Ajouter un membre à un segment (manager) |
+| `DELETE` | `/api/segments/{id}/members` | Retirer un membre d'un segment (manager) |
 | `GET` | `/api/compta` | Entrées comptables d'un membre (filtres: `memberId`, `year`) |
 | `POST` | `/api/compta` | Créer une écriture comptable |
 | `GET` | `/api/compta/{id}` | Détail d'une écriture comptable |
@@ -159,7 +159,7 @@ Endpoints JSON disponibles sous `/api/` (authentification de session requise) :
 | `PUT` | `/api/suivi/{id}` | Modifier une note de suivi |
 | `DELETE` | `/api/suivi/{id}` | Supprimer une note de suivi |
 
-Filtres sur `/api/members` : `search`, `team`, `metagroup`, `page`, `limit`, `types`.
+Filtres sur `/api/contacts` : `search`, `team`, `metagroup`, `page`, `limit`, `types`.
 
 Toutes les réponses sont en JSON UTF-8. Les erreurs retournent `{"error": "message"}` avec le code HTTP approprié.
 
@@ -185,8 +185,8 @@ html/
 ├── api/                        # API REST JSON
 │   ├── .htaccess               # Rewrite vers index.php (FollowSymLinks)
 │   ├── _bootstrap.php          # Auth de session + headers JSON
-│   ├── members.php             # CRUD /api/members, GET|PUT|PATCH|DELETE /api/members/{id}
-│   ├── groups.php              # CRUD /api/groups, membres /api/groups/{id}/members
+│   ├── contacts.php             # CRUD /api/contacts, GET|PUT|PATCH|DELETE /api/contacts/{id}
+│   ├── segments.php             # CRUD /api/segments, membres /api/segments/{id}/members
 │   ├── compta.php              # CRUD /api/compta, GET|PUT|DELETE /api/compta/{id}
 │   ├── compta-types.php        # GET /api/compta-types
 │   └── suivi.php               # CRUD /api/suivi, GET|PUT|DELETE /api/suivi/{id}
@@ -203,7 +203,7 @@ html/
 │   │   ├── views.php           # View router
 │   │   └── actions.php         # POST action dispatcher
 │   ├── views/                  # Page fragments, prefixed by domain
-│   │   ├── users_list.php      # Member list + team filter dropdown
+│   │   ├── users_list.php      # Member list + segment filter dropdown
 │   │   ├── users_general_data.php # Fiche membre (view/edit Alpine toggle)
 │   │   ├── users_edit_form.php # Onglets compta, suivi, historique
 │   │   ├── donors_summary.php  # Contributions KPIs + donor list
@@ -213,12 +213,12 @@ html/
 │   ├── partials/
 │   │   ├── menu.php            # Nav sidebar
 │   │   └── donor_table.php     # Shared donor table partial
-│   └── actions/                # CRUD handlers (members, groups, compta, compta_recap, cotisation_reminder…)
+│   └── actions/                # CRUD handlers (contacts, segments, compta, compta_recap, cotisation_reminder…)
 ├── classes/
-│   ├── user_class.php          # Classe User (CRUD, cotisation, dons)
-│   ├── team_class.php          # Classe Team (groupes)
+│   ├── contact_class.php       # Classe Contact (CRUD, cotisation, dons)
+│   ├── segment_class.php       # Classe Segment (segments)
 │   ├── compta_class.php        # Classe Compta (écritures comptables)
-│   ├── metagroup_class.php     # Classe Metagroup (catégories de groupes)
+│   ├── metagroup_class.php     # Classe Metagroup (catégories de segments)
 │   └── property_class.php      # Classe UserProperty (appartenance, suivi)
 ├── locales/
 │   ├── resources_fr.php        # Libellés français (UTF-8, base complète)

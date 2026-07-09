@@ -104,7 +104,7 @@ Saisir les paramètres de connexion. L'installeur teste la connexion et, si elle
 
 Crée les tables suivantes (toutes avec `CREATE TABLE IF NOT EXISTS` — idempotent) :
 
-`users` `team` `user_properties` `metagroup` `compta` `compta_type` `maxval` `app_settings` `app_users` `audit_log`
+`contact` `segment` `contact_properties` `contact_segment` `metagroup` `compta` `compta_type` `maxval` `app_settings` `app_users` `audit_log` `email_templates` `email_log`
 
 Un clic suffit. Les tables existantes ne sont pas modifiées.
 
@@ -276,11 +276,11 @@ find $WEBROOT/html -type f -exec chmod 644 {} \;
 
 ### Routes API (mod_rewrite)
 
-Les endpoints REST utilisent des URLs propres (`/api/members/42`). `mod_rewrite` doit être actif (`a2enmod rewrite`) **et** les règles `RewriteRule` déclarées **dans le vhost**, pas via `.htaccess` (l'`AllowOverride` du dossier `api/` bloque les directives Rewrite en `.htaccess`). Le bloc `<Directory .../html/api>` complet avec toutes les `RewriteRule` figure dans [`MIGRATION_PROD.md`](../MIGRATION_PROD.md) (section `feature/api-members`). Vérification :
+Les endpoints REST utilisent des URLs propres (`/api/contacts/42`). `mod_rewrite` doit être actif (`a2enmod rewrite`) **et** les règles `RewriteRule` déclarées **dans le vhost**, pas via `.htaccess` (l'`AllowOverride` du dossier `api/` bloque les directives Rewrite en `.htaccess`). Le bloc `<Directory .../html/api>` complet avec toutes les `RewriteRule` figure dans [`MIGRATION_PROD.md`](../MIGRATION_PROD.md#configuration-apache--routes-api). Vérification :
 
 ```bash
 # URL propre → doit retourner 401 (auth requise), pas 404
-curl -s -o /dev/null -w "%{http_code}" https://membres.votre-domaine.ch/api/members/1
+curl -s -o /dev/null -w "%{http_code}" https://membres.votre-domaine.ch/api/contacts/1
 ```
 
 ### pdftk
@@ -571,26 +571,26 @@ curl -c cookies.txt -b cookies.txt \
   https://membres.votre-domaine.ch/login.php
 
 # 2. Utiliser le cookie pour les appels API suivants
-curl -b cookies.txt https://membres.votre-domaine.ch/api/members
+curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
 ```
 
 ### 8.3 Endpoints disponibles
 
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
-| `GET` | `/api/members` | Liste des membres |
-| `GET` | `/api/members/{id}` | Fiche membre complète |
-| `PATCH` | `/api/members/{id}` | Modification partielle (génère un audit log) |
-| `GET` | `/api/members/{id}/groups` | Groupes du membre |
-| `GET` | `/api/groups` | Liste des groupes avec comptage membres |
-| `GET` | `/api/groups/{id}` | Groupe avec ses membres |
+| `GET` | `/api/contacts` | Liste des membres |
+| `GET` | `/api/contacts/{id}` | Fiche membre complète |
+| `PATCH` | `/api/contacts/{id}` | Modification partielle (génère un audit log) |
+| `GET` | `/api/contacts/{id}/groups` | Segments du membre |
+| `GET` | `/api/segments` | Liste des segments avec comptage membres |
+| `GET` | `/api/segments/{id}` | Segment avec ses membres |
 | `GET` | `/api/compta` | Entrées comptables |
 | `GET` | `/api/compta-types` | Types de compta configurés |
 | `GET` | `/api/suivi` | Notes de suivi |
 
 ### 8.4 Paramètres de filtrage
 
-**`GET /api/members`**
+**`GET /api/contacts`**
 
 | Paramètre | Type | Description |
 |-----------|------|-------------|
@@ -622,23 +622,23 @@ curl -b cookies.txt https://membres.votre-domaine.ch/api/members
 BASE=https://membres.votre-domaine.ch
 COOKIES=cookies.txt
 
-# Liste des membres du groupe 3, actifs
-curl -b $COOKIES "$BASE/api/members?group=3&active=1"
+# Liste des membres du segment 3, actifs
+curl -b $COOKIES "$BASE/api/contacts?group=3&active=1"
 
 # Fiche complète du membre 42
-curl -b $COOKIES "$BASE/api/members/42"
+curl -b $COOKIES "$BASE/api/contacts/42"
 
 # Modifier le prénom du membre 42
 curl -b $COOKIES -X PATCH \
   -H "Content-Type: application/json" \
   -d '{"firstname": "Jean-Pierre"}' \
-  "$BASE/api/members/42"
+  "$BASE/api/contacts/42"
 
 # Entrées compta du membre 42 pour 2024
 curl -b $COOKIES "$BASE/api/compta?member=42&year=2024"
 
-# Liste des groupes
-curl -b $COOKIES "$BASE/api/groups"
+# Liste des segments
+curl -b $COOKIES "$BASE/api/segments"
 ```
 
 ### 8.6 Format des réponses
@@ -869,7 +869,7 @@ Structure :
 | `created_at` | datetime | Horodatage (timezone Europe/Zurich) |
 | `app_user_id` | int | ID du compte applicatif auteur |
 | `username` | varchar(100) | Nom d'utilisateur au moment de l'action |
-| `action` | varchar(100) | Code de l'action (ex. `PATCH /api/members/{id}`) |
+| `action` | varchar(100) | Code de l'action (ex. `PATCH /api/contacts/{id}`) |
 | `detail` | text | Détail JSON (diff avant/après pour les PATCH) |
 | `subject_user_id` | int unsigned | ID du membre concerné |
 
@@ -877,7 +877,7 @@ Structure :
 
 La fonction `auditLog()` dans `bootstrap.php` est appelée par les endpoints API qui modifient des données :
 
-- **`PATCH /api/members/{id}`** : enregistre un diff des champs modifiés (valeur avant / valeur après) au format JSON dans la colonne `detail`.
+- **`PATCH /api/contacts/{id}`** : enregistre un diff des champs modifiés (valeur avant / valeur après) au format JSON dans la colonne `detail`.
 
 Les actions de gestion des comptes (création, suppression, réinitialisation de mot de passe) transitent par les actions POST de l'interface web et ne passent pas par l'API — elles ne génèrent pas d'entrée `audit_log` à ce stade.
 

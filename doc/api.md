@@ -1,6 +1,8 @@
 # Référence API MemberBase
 
-API REST interne de l'application MemberBase (version **4.0.0**). Toutes les réponses sont en JSON UTF-8.
+API REST interne de l'application MemberBase (version **5.0.0**). Toutes les réponses sont en JSON UTF-8.
+
+> ⚠️ **v5.0.0 (breaking)** : les routes `/api/members` et `/api/groups` sont renommées `/api/contacts` et `/api/segments` (aucune rétrocompatibilité). Voir le [CHANGELOG](../CHANGELOG.md#500--2026-07-09).
 
 ## Sommaire
 
@@ -9,7 +11,7 @@ API REST interne de l'application MemberBase (version **4.0.0**). Toutes les ré
 - [Format des réponses](#format-des-réponses)
 - [Routage (.htaccess)](#routage-htaccess)
 - [Membres](#membres)
-- [Segments (groups)](#segments-groups)
+- [Segments](#segments)
 - [Comptabilité](#comptabilité)
 - [Types de compta](#types-de-compta)
 - [Suivi](#suivi)
@@ -29,7 +31,7 @@ curl -c cookies.txt \
   -d "username=alice&password=secret"
 
 # Toutes les requêtes API suivantes portent ce cookie
-curl -b cookies.txt https://votre-domaine/api/members
+curl -b cookies.txt https://votre-domaine/api/contacts
 ```
 
 ---
@@ -48,13 +50,13 @@ Le rôle est porté par la session (`$_SESSION['app_user_role']`). Quatre rôles
 Règles réelles appliquées **par endpoint** (vérifiées dans le code — elles ne sont pas homogènes entre ressources) :
 
 - **Membres, Compta, Suivi** : les lectures appellent explicitement `canRead()` (403 si rôle insuffisant) ; les écritures appellent `canWrite()`.
-- **Suppression définitive d'un membre** (`DELETE /api/members/{id}?dispose=delete`) : `isAdmin()` requis (403 sinon). La désactivation simple ne requiert que `canWrite()` implicite (aucun contrôle de rôle explicite au-delà de l'authentification pour la désactivation — voir la note de l'endpoint).
+- **Suppression définitive d'un membre** (`DELETE /api/contacts/{id}?dispose=delete`) : `isAdmin()` requis (403 sinon). La désactivation simple ne requiert que `canWrite()` implicite (aucun contrôle de rôle explicite au-delà de l'authentification pour la désactivation — voir la note de l'endpoint).
 - **Segments / groups** : toutes les écritures (création, mise à jour, suppression, ajout/retrait de membre) appellent `isManager()` (403 sinon). **Les lectures (`GET`) n'effectuent AUCUN contrôle de rôle** : elles ne requièrent que l'authentification (n'importe quel rôle connecté, y compris `readonly`).
 - **Types de compta** (`GET /api/compta-types`) : **aucun contrôle de rôle** au-delà de l'authentification.
 
 Un rôle insuffisant retourne `403` avec `{ "error": "Forbidden" }` (ou un message spécifique, ex. `"Manager role required"`, `"Admin role required to permanently delete a member"`).
 
-> **Terminologie.** L'interface parle désormais de **Segment** ; l'API conserve les chemins `/api/groups` et le vocabulaire « groupe » d'origine (entité SQL `team`). Dans ce document, « Segment » et « groupe » sont synonymes.
+> **Terminologie.** L'interface et l'API parlent désormais de **Segment** (chemins `/api/segments`, entité SQL `segment`, depuis la v5.0.0). Le champ de filtre `team` sur `GET /api/contacts` garde son nom historique par rétrocompatibilité de paramètre. Dans ce document, « Segment » et « groupe » sont synonymes.
 
 ---
 
@@ -62,7 +64,7 @@ Un rôle insuffisant retourne `403` avec `{ "error": "Forbidden" }` (ou un messa
 
 - **Content-Type** : `application/json; charset=utf-8`
 - **Envelope succès** : `{ "data": … }` (objet ou tableau)
-- **Envelope liste paginée** : `{ "data": […], "meta": { "page": 1, "limit": 25, "total": 142 } }` (uniquement `GET /api/members`)
+- **Envelope liste paginée** : `{ "data": […], "meta": { "page": 1, "limit": 25, "total": 142 } }` (uniquement `GET /api/contacts`)
 - **Envelope liste simple** : `{ "data": […] }` (compta, suivi, groups, compta-types, members/{id}/groups, groups/{id}/members)
 - **Erreur** : `{ "error": "message lisible" }`
 
@@ -92,18 +94,18 @@ Le routage est assuré par `html/api/.htaccess`. Chemins exposés :
 
 | Méthode + chemin | Script cible |
 |------------------|--------------|
-| `/api/members` | `members.php` |
-| `/api/members/{id}` | `members.php?id={id}` |
-| `/api/members/{id}/groups` | `members.php?id={id}&sub=groups` |
-| `/api/members/{id}?sub=compta` | `members.php?id={id}&sub=compta` (pas de clean-URL dédiée) |
+| `/api/contacts` | `contacts.php` |
+| `/api/contacts/{id}` | `contacts.php?id={id}` |
+| `/api/contacts/{id}/groups` | `contacts.php?id={id}&sub=groups` |
+| `/api/contacts/{id}?sub=compta` | `contacts.php?id={id}&sub=compta` (pas de clean-URL dédiée) |
 | `/api/compta` | `compta.php` |
 | `/api/compta/{id}` | `compta.php?id={id}` |
 | `/api/compta-types` | `compta-types.php` |
 | `/api/suivi` | `suivi.php` |
 | `/api/suivi/{id}` | `suivi.php?id={id}` |
-| `/api/groups` | `groups.php` |
-| `/api/groups/{id}` | `groups.php?id={id}` |
-| `/api/groups/{id}/members` | `groups.php?id={id}&sub=members` |
+| `/api/segments` | `segments.php` |
+| `/api/segments/{id}` | `segments.php?id={id}` |
+| `/api/segments/{id}/members` | `segments.php?id={id}&sub=members` |
 
 Toute combinaison méthode/chemin non prévue par le dispatcher d'un script retourne `405 Method Not Allowed`.
 
@@ -111,11 +113,11 @@ Toute combinaison méthode/chemin non prévue par le dispatcher d'un script reto
 
 ## Membres
 
-Ressource : `html/api/members.php`. Entité SQL : `users`.
+Ressource : `html/api/contacts.php`. Entité SQL : `contact` (renommée depuis `users` en v5.0.0).
 
-### `GET /api/members`
+### `GET /api/contacts`
 
-Liste paginée des membres **actifs** (`users.status = 1`), triée par `lastName ASC, firstName ASC`.
+Liste paginée des membres **actifs** (`contact.status = 1`), triée par `lastName ASC, firstName ASC`.
 Rôle : `canRead()`.
 
 #### Paramètres de query
@@ -163,12 +165,12 @@ Rôle : `canRead()`.
 
 ```bash
 curl -b cookies.txt \
-  "https://votre-domaine/api/members?search=dupont&limit=10&types=1"
+  "https://votre-domaine/api/contacts?search=dupont&limit=10&types=1"
 ```
 
 ---
 
-### Filtres virtuels sur `GET /api/members`
+### Filtres virtuels sur `GET /api/contacts`
 
 Activés en passant une valeur **négative** au paramètre `team`. La résolution est déléguée à la classe partagée `MemberFilter` (`html/classes/member_filter_class.php`) — la même que celle utilisée par la liste des membres dans l'interface, ce qui garantit des résultats identiques entre la vue et l'API. Pagination standard (`page`, `limit`) et `types` supportés. Une valeur négative non reconnue retourne `400 Unknown virtual filter`.
 
@@ -182,19 +184,19 @@ Constantes définies dans `html/includes/lib/bootstrap.php` :
 | `-5555` | `FILTER_NO_ACTIVITY_10Y` | Membres actifs sans aucune écriture comptable (`compta`) dans les 10 dernières années |
 | `-6666` | `FILTER_NON_INSTIT_LAST_YEAR` | Membres actifs ayant effectué au moins un paiement non-institutionnel (type `is_institutional = 0`, ou sans type) durant l'année civile précédente |
 
-Une cotisation est une écriture dont le type a `is_cotisation = 1`. La réponse a le même format que `GET /api/members` (envelope `data` + `meta`).
+Une cotisation est une écriture dont le type a `is_cotisation = 1`. La réponse a le même format que `GET /api/contacts` (envelope `data` + `meta`).
 
 ```bash
 # Cotisation en retard depuis plus de 3 ans
-curl -b cookies.txt "https://votre-domaine/api/members?team=-3333&limit=50"
+curl -b cookies.txt "https://votre-domaine/api/contacts?team=-3333&limit=50"
 
 # Membres du groupe « membre » sans cotisation cette année
-curl -b cookies.txt "https://votre-domaine/api/members?team=-4"
+curl -b cookies.txt "https://votre-domaine/api/contacts?team=-4"
 ```
 
 ---
 
-### `GET /api/members/{id}`
+### `GET /api/contacts/{id}`
 
 Fiche complète d'un membre. Rôle : `canRead()`.
 
@@ -235,12 +237,12 @@ Valeurs `gender` possibles : `"m"`, `"f"`, `"hf"`, `"na"`. `birthDate` est `YYYY
 #### Exemple curl
 
 ```bash
-curl -b cookies.txt "https://votre-domaine/api/members/42"
+curl -b cookies.txt "https://votre-domaine/api/contacts/42"
 ```
 
 ---
 
-### `POST /api/members`
+### `POST /api/contacts`
 
 Créer un membre. Rôle : `canWrite()`.
 
@@ -269,7 +271,7 @@ Champs de la liste blanche (`applyFields`). **Seul `lastName` est obligatoire** 
 
 #### Réponse
 
-`201 Created` — objet membre complet (même structure que `GET /api/members/{id}`).
+`201 Created` — objet membre complet (même structure que `GET /api/contacts/{id}`).
 
 #### Erreurs
 
@@ -281,14 +283,14 @@ Champs de la liste blanche (`applyFields`). **Seul `lastName` est obligatoire** 
 
 ```bash
 curl -b cookies.txt \
-  -X POST "https://votre-domaine/api/members" \
+  -X POST "https://votre-domaine/api/contacts" \
   -H "Content-Type: application/json" \
   -d '{"lastName": "Dupont", "firstName": "Marie", "email": "marie@example.com"}'
 ```
 
 ---
 
-### `PUT /api/members/{id}` / `PATCH /api/members/{id}`
+### `PUT /api/contacts/{id}` / `PATCH /api/contacts/{id}`
 
 Modification partielle : seuls les champs présents dans le corps sont appliqués. Chaque modification est journalisée dans l'audit log (valeur avant → après). Rôle : `canWrite()`.
 
@@ -296,7 +298,7 @@ Champs acceptés : identiques à `POST` (tous facultatifs). `birthDate: ""` effa
 
 #### Réponse
 
-Objet membre complet après modification (structure de `GET /api/members/{id}`).
+Objet membre complet après modification (structure de `GET /api/contacts/{id}`).
 
 #### Erreurs
 
@@ -308,16 +310,16 @@ Objet membre complet après modification (structure de `GET /api/members/{id}`).
 
 ```bash
 curl -b cookies.txt \
-  -X PATCH "https://votre-domaine/api/members/42" \
+  -X PATCH "https://votre-domaine/api/contacts/42" \
   -H "Content-Type: application/json" \
   -d '{"email": "nouveau@example.com", "portable": "+41 79 111 11 11"}'
 ```
 
 ---
 
-### `DELETE /api/members/{id}`
+### `DELETE /api/contacts/{id}`
 
-Par défaut : **désactivation** (`UPDATE users SET status = 0`). Avec `?dispose=delete` : **suppression définitive** de l'enregistrement (`isAdmin()` requis).
+Par défaut : **désactivation** (`UPDATE contact SET status = 0`). Avec `?dispose=delete` : **suppression définitive** de l'enregistrement (`isAdmin()` requis).
 
 #### Paramètres de query
 
@@ -340,15 +342,15 @@ Par défaut : **désactivation** (`UPDATE users SET status = 0`). Avec `?dispose
 
 ```bash
 # Désactivation (status=0)
-curl -b cookies.txt -X DELETE "https://votre-domaine/api/members/42"
+curl -b cookies.txt -X DELETE "https://votre-domaine/api/contacts/42"
 
 # Suppression définitive (admin)
-curl -b cookies.txt -X DELETE "https://votre-domaine/api/members/42?dispose=delete"
+curl -b cookies.txt -X DELETE "https://votre-domaine/api/contacts/42?dispose=delete"
 ```
 
 ---
 
-### `GET /api/members/{id}/groups`
+### `GET /api/contacts/{id}/groups`
 
 Groupes (segments) auxquels appartient un membre, triés par catégorie (`sort_order`, `name`) puis par nom de groupe. Rôle : `canRead()`.
 
@@ -367,17 +369,17 @@ Groupes (segments) auxquels appartient un membre, triés par catégorie (`sort_o
 
 #### Erreurs
 
-- `404` — membre introuvable **ou inactif** (contrôle `status = 1` ici, contrairement à `GET /api/members/{id}`)
+- `404` — membre introuvable **ou inactif** (contrôle `status = 1` ici, contrairement à `GET /api/contacts/{id}`)
 
 #### Exemple curl
 
 ```bash
-curl -b cookies.txt "https://votre-domaine/api/members/42/groups"
+curl -b cookies.txt "https://votre-domaine/api/contacts/42/groups"
 ```
 
 ---
 
-### `GET /api/members/{id}?sub=compta`
+### `GET /api/contacts/{id}?sub=compta`
 
 Écritures comptables d'un membre, triées par date décroissante (`date DESC, id DESC`). Rôle : `canRead()`.
 
@@ -414,18 +416,18 @@ curl -b cookies.txt "https://votre-domaine/api/members/42/groups"
 #### Exemple curl
 
 ```bash
-curl -b cookies.txt "https://votre-domaine/api/members/42?sub=compta"
+curl -b cookies.txt "https://votre-domaine/api/contacts/42?sub=compta"
 ```
 
 ---
 
-## Segments (groups)
+## Segments
 
-Ressource : `html/api/groups.php`. Entité SQL : `team`. Rappel : « groups » (technique) = « Segment » (UI).
+Ressource : `html/api/segments.php`. Entité SQL : `segment` (renommée depuis `team` en v5.0.0).
 
 > **Contrôle d'accès.** Les lectures (`GET`) ne vérifient **que** l'authentification (aucun `canRead()`). Toutes les écritures vérifient `isManager()` → `403 "Manager role required"` sinon.
 
-### `GET /api/groups`
+### `GET /api/segments`
 
 Liste de tous les groupes avec leur nombre de membres actifs, triés par catégorie puis nom.
 
@@ -443,12 +445,12 @@ Liste de tous les groupes avec leur nombre de membres actifs, triés par catégo
 `memberCount` ne compte que les membres `status = 1`.
 
 ```bash
-curl -b cookies.txt "https://votre-domaine/api/groups"
+curl -b cookies.txt "https://votre-domaine/api/segments"
 ```
 
 ---
 
-### `GET /api/groups/{id}`
+### `GET /api/segments/{id}`
 
 Détail d'un groupe avec nombre de membres actifs. Même structure d'objet que dans la liste.
 
@@ -457,12 +459,12 @@ Détail d'un groupe avec nombre de membres actifs. Même structure d'objet que d
 - `404` — groupe introuvable
 
 ```bash
-curl -b cookies.txt "https://votre-domaine/api/groups/7"
+curl -b cookies.txt "https://votre-domaine/api/segments/7"
 ```
 
 ---
 
-### `POST /api/groups`
+### `POST /api/segments`
 
 Créer un groupe. Rôle : `isManager()`.
 
@@ -484,14 +486,14 @@ Créer un groupe. Rôle : `isManager()`.
 
 ```bash
 curl -b cookies.txt \
-  -X POST "https://votre-domaine/api/groups" \
+  -X POST "https://votre-domaine/api/segments" \
   -H "Content-Type: application/json" \
   -d '{"name": "Nouveaux membres 2025"}'
 ```
 
 ---
 
-### `PUT /api/groups/{id}`
+### `PUT /api/segments/{id}`
 
 Renommer un groupe et/ou basculer sa visibilité. Rôle : `isManager()`. Seuls les champs présents sont appliqués.
 
@@ -511,14 +513,14 @@ Objet groupe mis à jour.
 
 ```bash
 curl -b cookies.txt \
-  -X PUT "https://votre-domaine/api/groups/7" \
+  -X PUT "https://votre-domaine/api/segments/7" \
   -H "Content-Type: application/json" \
   -d '{"name": "Conseil 2025", "hidden": false}'
 ```
 
 ---
 
-### `DELETE /api/groups/{id}`
+### `DELETE /api/segments/{id}`
 
 Supprimer un groupe. Rôle : `isManager()`. Refusé (`409`) si le groupe contient encore des membres.
 
@@ -533,12 +535,12 @@ Supprimer un groupe. Rôle : `isManager()`. Refusé (`409`) si le groupe contien
 - `409` — groupe non vide (message : « Group still has members — remove them first or use force=true ». Note : le paramètre `force=true` évoqué dans le message **n'est pas implémenté** dans le code actuel)
 
 ```bash
-curl -b cookies.txt -X DELETE "https://votre-domaine/api/groups/7"
+curl -b cookies.txt -X DELETE "https://votre-domaine/api/segments/7"
 ```
 
 ---
 
-### `GET /api/groups/{id}/members`
+### `GET /api/segments/{id}/members`
 
 Membres actifs (`status = 1`) d'un groupe, triés par `lastName, firstName`.
 
@@ -557,12 +559,12 @@ Membres actifs (`status = 1`) d'un groupe, triés par `lastName, firstName`.
 - `404` — groupe introuvable
 
 ```bash
-curl -b cookies.txt "https://votre-domaine/api/groups/7/members"
+curl -b cookies.txt "https://votre-domaine/api/segments/7/members"
 ```
 
 ---
 
-### `POST /api/groups/{id}/members`
+### `POST /api/segments/{id}/members`
 
 Ajouter un membre à un groupe (`INSERT IGNORE` — idempotent). Rôle : `isManager()`.
 
@@ -582,14 +584,14 @@ Ajouter un membre à un groupe (`INSERT IGNORE` — idempotent). Rôle : `isMana
 
 ```bash
 curl -b cookies.txt \
-  -X POST "https://votre-domaine/api/groups/7/members" \
+  -X POST "https://votre-domaine/api/segments/7/members" \
   -H "Content-Type: application/json" \
   -d '{"memberId": 42}'
 ```
 
 ---
 
-### `DELETE /api/groups/{id}/members`
+### `DELETE /api/segments/{id}/members`
 
 Retirer un membre d'un groupe. Rôle : `isManager()`.
 
@@ -608,7 +610,7 @@ Retirer un membre d'un groupe. Rôle : `isManager()`.
 
 ```bash
 curl -b cookies.txt \
-  -X DELETE "https://votre-domaine/api/groups/7/members" \
+  -X DELETE "https://votre-domaine/api/segments/7/members" \
   -H "Content-Type: application/json" \
   -d '{"memberId": 42}'
 ```
@@ -787,7 +789,7 @@ curl -b cookies.txt "https://votre-domaine/api/compta-types"
 
 ## Suivi
 
-Ressource : `html/api/suivi.php`. Entité SQL : `user_properties` avec `parameter = 'suivi'`.
+Ressource : `html/api/suivi.php`. Entité SQL : `contact_properties` avec `parameter = 'suivi'`.
 
 ### `GET /api/suivi`
 
@@ -830,7 +832,7 @@ Détail d'une note. Rôle : `canRead()`. Même structure qu'un élément de list
 
 #### Erreurs
 
-- `404` — note introuvable (l'id doit correspondre à une `user_properties` avec `parameter = 'suivi'`)
+- `404` — note introuvable (l'id doit correspondre à une `contact_properties` avec `parameter = 'suivi'`)
 
 ---
 

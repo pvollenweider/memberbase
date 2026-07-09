@@ -75,6 +75,21 @@ En local avec Docker : `make backup [FILE=dump.sql]` / `make restore FILE=dump.s
   numériques : vérifier la page **Réglages → Intégrité** et corriger les
   montants douteux **avant** de migrer en prod (et sauvegarder, DDL non
   annulable). Sur une base déjà propre, la conversion est sans perte.
+- `0013_user_team_join_table.sql` — remplace le stockage EAV de l'appartenance
+  aux équipes (`user_properties`, clé `team_N`) par une table de jointure
+  `user_team` ; backfill automatique depuis les lignes EAV existantes, qui sont
+  ensuite supprimées.
+- `0014_rename_team_to_segment.sql` — **breaking (v5.0.0)** : renomme la table
+  `team` → `segment`, `user_team` → `user_segment` (colonne `team_id` →
+  `segment_id`), et `metagroup.teamid` → `metagroup.segmentid`.
+- `0015_rename_users_to_contact.sql` — **breaking (v5.0.0)** : renomme la table
+  `users` → `contact`, `user_segment` → `contact_segment`, `user_properties` →
+  `contact_properties`. Combinée à `0014`, toute requête SQL ou intégration
+  externe référençant `users`/`team`/`user_team` doit être mise à jour.
+- `0016_settings_org_iban.sql` — nouveau réglage `org_iban` (bulletin de
+  versement QR pour les rappels de cotisation).
+- `0017_settings_coti_amount_desc.sql` — nouveau réglage
+  `org_coti_amount_desc` (texte du champ « Montant » sur le rappel/bulletin QR).
 
 ---
 
@@ -103,16 +118,21 @@ Vérification : `curl -I https://votre-domaine/ | grep -i -E 'x-frame|x-content|
 
 ## Configuration Apache — routes API
 
-Les endpoints API utilisent des URLs propres (`/api/members/42`).
+Les endpoints API utilisent des URLs propres (`/api/contacts/42`).
 `mod_rewrite` doit être actif et les règles déclarées **dans le vhost** (pas via `.htaccess`,
 car `AllowOverride AuthConfig` bloque les directives Rewrite dans `.htaccess`).
+
+> ⚠️ **v5.0.0** : les routes `/api/members` et `/api/groups` sont renommées en
+> `/api/contacts` et `/api/segments` (aucune rétrocompatibilité). Remplacer le
+> bloc `<Directory>` ci-dessous dans le vhost de prod en même temps que le
+> déploiement du code.
 
 ```bash
 a2enmod rewrite
 systemctl reload apache2
 ```
 
-Ajouter ce bloc dans le vhost HTTPS, à l'intérieur du `<VirtualHost *:443>` :
+Ajouter ce bloc dans le vhost HTTPS, à l'intérieur du `<VirtualHost *:443>` (identique à `docker/apache.conf`) :
 
 ```apache
 <Directory "/var/www/vhosts/votre-domaine/html/api">
@@ -121,17 +141,17 @@ Ajouter ce bloc dans le vhost HTTPS, à l'intérieur du `<VirtualHost *:443>` :
     Require all granted
 
     RewriteEngine On
-    RewriteRule ^members/([0-9]+)/groups/?$     members.php?id=$1&sub=groups  [QSA,L]
-    RewriteRule ^members/([0-9]+)/?$            members.php?id=$1             [QSA,L]
-    RewriteRule ^members/?$                     members.php                   [QSA,L]
+    RewriteRule ^contacts/([0-9]+)/groups/?$    contacts.php?id=$1&sub=groups [QSA,L]
+    RewriteRule ^contacts/([0-9]+)/?$           contacts.php?id=$1            [QSA,L]
+    RewriteRule ^contacts/?$                    contacts.php                  [QSA,L]
     RewriteRule ^compta/([0-9]+)/?$             compta.php?id=$1              [QSA,L]
     RewriteRule ^compta/?$                      compta.php                    [QSA,L]
     RewriteRule ^compta-types/?$                compta-types.php              [QSA,L]
     RewriteRule ^suivi/([0-9]+)/?$              suivi.php?id=$1               [QSA,L]
     RewriteRule ^suivi/?$                       suivi.php                     [QSA,L]
-    RewriteRule ^groups/([0-9]+)/members/?$     groups.php?id=$1&sub=members  [QSA,L]
-    RewriteRule ^groups/([0-9]+)/?$             groups.php?id=$1              [QSA,L]
-    RewriteRule ^groups/?$                      groups.php                    [QSA,L]
+    RewriteRule ^segments/([0-9]+)/members/?$   segments.php?id=$1&sub=members [QSA,L]
+    RewriteRule ^segments/([0-9]+)/?$           segments.php?id=$1            [QSA,L]
+    RewriteRule ^segments/?$                    segments.php                  [QSA,L]
 </Directory>
 ```
 
@@ -139,10 +159,10 @@ Vérification post-déploiement :
 
 ```bash
 # Auth required → 401, not 500
-curl -s -o /dev/null -w "%{http_code}" https://votre-domaine/api/members.php
+curl -s -o /dev/null -w "%{http_code}" https://votre-domaine/api/contacts.php
 
 # mod_rewrite active → 401, not 404
-curl -s -o /dev/null -w "%{http_code}" https://votre-domaine/api/members/1
+curl -s -o /dev/null -w "%{http_code}" https://votre-domaine/api/contacts/1
 ```
 
 ---
