@@ -152,9 +152,22 @@ $prevTeamId  = 1; // non-zero so the table renders
       <td><?= htmlspecialchars($m->email ?? '', ENT_QUOTES, $charset) ?></td>
       <td>
         <?php if ($sentAt): ?>
-          <span class="badge text-bg-secondary" title="<?= htmlspecialchars(sprintf($GLOBAL['cotiReminderAlreadySent'], date('d.m.Y', strtotime($sentAt))), ENT_QUOTES, $charset) ?>">
-            <i class="fas fa-check me-1" aria-hidden="true"></i><?= date('d.m.Y', strtotime($sentAt)) ?>
-          </span>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge text-bg-secondary" title="<?= htmlspecialchars(sprintf($GLOBAL['cotiReminderAlreadySent'], date('d.m.Y', strtotime($sentAt))), ENT_QUOTES, $charset) ?>">
+              <i class="fas fa-check me-1" aria-hidden="true"></i><?= date('d.m.Y', strtotime($sentAt)) ?>
+            </span>
+            <?php if ($hasEmail): ?>
+            <button type="button" class="btn btn-outline-secondary btn-sm js-send-one"
+                    data-user-id="<?= (int)$m->id ?>"
+                    data-year="<?= $year ?>"
+                    data-confirm="<?= htmlspecialchars(sprintf($GLOBAL['cotiReminderResendConfirm'], trim(($m->firstname ?? $m->society ?? '') . ' ' . ($m->lastname ?? '')), date('d.m.Y', strtotime($sentAt))), ENT_QUOTES, $charset) ?>"
+                    data-msg-ok="<?= htmlspecialchars($GLOBAL['cotiReminderSentOk'], ENT_QUOTES, $charset) ?>"
+                    data-msg-fail="<?= htmlspecialchars($GLOBAL['cotiReminderSentFail'], ENT_QUOTES, $charset) ?>"
+                    data-label-sending="<?= htmlspecialchars($GLOBAL['sendCotiRemindersSending'], ENT_QUOTES, $charset) ?>">
+              <i class="fas fa-rotate-right me-1" aria-hidden="true"></i><?= htmlspecialchars($GLOBAL['cotiReminderResendBtn'], ENT_QUOTES, $charset) ?>
+            </button>
+            <?php endif ?>
+          </div>
         <?php elseif ($hasEmail): ?>
           <button type="button" class="btn btn-outline-primary btn-sm js-send-one"
                   data-user-id="<?= (int)$m->id ?>"
@@ -185,43 +198,76 @@ include __DIR__ . '/../partials/donor_table.php';
 <?php endif ?>
 
 <?php if (isManager() && $count > 0): ?>
+<!-- Confirm modal for individual send/resend -->
+<div class="modal fade" id="sendOneModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><?= htmlspecialchars($GLOBAL['sendCotiRemindersTitle'], ENT_QUOTES, $charset) ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= htmlspecialchars($GLOBAL['close'], ENT_QUOTES, $charset) ?>"></button>
+      </div>
+      <div class="modal-body" id="sendOneModalBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= htmlspecialchars($GLOBAL['cancel'], ENT_QUOTES, $charset) ?></button>
+        <button type="button" class="btn btn-primary" id="sendOneModalConfirm">
+          <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= htmlspecialchars($GLOBAL['sendCotiRemindersBtnOne'], ENT_QUOTES, $charset) ?>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
 (function () {
-    // Per-row individual send buttons
+    var modal        = new bootstrap.Modal(document.getElementById('sendOneModal'));
+    var modalBody    = document.getElementById('sendOneModalBody');
+    var modalConfirm = document.getElementById('sendOneModalConfirm');
+    var pendingBtn   = null;
+
+    // Per-row individual send / resend buttons
     document.querySelectorAll('.js-send-one').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            if (!confirm(btn.dataset.confirm)) return;
-            var orig = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + btn.dataset.labelSending;
-            fetch(<?= json_encode($_SERVER['PHP_SELF']) ?>, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : ''
-                },
-                body: 'action=sendCotisationReminderOne&user_id=' + encodeURIComponent(btn.dataset.userId)
-                    + '&year=' + encodeURIComponent(btn.dataset.year)
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data.ok) {
-                    var today = new Date();
-                    var d = String(today.getDate()).padStart(2,'0') + '.'
-                          + String(today.getMonth()+1).padStart(2,'0') + '.'
-                          + today.getFullYear();
-                    btn.closest('td').innerHTML =
-                        '<span class="badge text-bg-secondary"><i class="fas fa-check me-1" aria-hidden="true"></i>' + d + '</span>';
-                } else {
-                    btn.innerHTML = '<i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>' + btn.dataset.msgFail;
-                    btn.classList.replace('btn-outline-primary', 'btn-outline-danger');
-                    btn.disabled = false;
-                }
-            })
-            .catch(function () {
-                btn.innerHTML = orig;
+            pendingBtn = btn;
+            modalBody.textContent = btn.dataset.confirm;
+            modal.show();
+        });
+    });
+
+    modalConfirm.addEventListener('click', function () {
+        modal.hide();
+        var btn = pendingBtn;
+        if (!btn) return;
+        pendingBtn = null;
+        var orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + btn.dataset.labelSending;
+        fetch(<?= json_encode($_SERVER['PHP_SELF']) ?>, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : ''
+            },
+            body: 'action=sendCotisationReminderOne&user_id=' + encodeURIComponent(btn.dataset.userId)
+                + '&year=' + encodeURIComponent(btn.dataset.year)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.ok) {
+                var today = new Date();
+                var d = String(today.getDate()).padStart(2,'0') + '.'
+                      + String(today.getMonth()+1).padStart(2,'0') + '.'
+                      + today.getFullYear();
+                btn.closest('td').innerHTML =
+                    '<span class="badge text-bg-secondary"><i class="fas fa-check me-1" aria-hidden="true"></i>' + d + '</span>';
+            } else {
+                btn.innerHTML = '<i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>' + btn.dataset.msgFail;
+                btn.classList.replace('btn-outline-primary', 'btn-outline-danger');
+                btn.classList.replace('btn-outline-secondary', 'btn-outline-danger');
                 btn.disabled = false;
-            });
+            }
+        })
+        .catch(function () {
+            btn.innerHTML = orig;
+            btn.disabled = false;
         });
     });
 

@@ -291,6 +291,8 @@ $GLOBAL['cotiReminderNeverSent']    = "Pas encore contacté";
 $GLOBAL['sendCotiRemindersSkipAlready'] = "%d déjà contacté%s cette année (ignoré%s).";
 $GLOBAL['cotiReminderSentOk']       = "Rappel envoyé.";
 $GLOBAL['cotiReminderSentFail']     = "Échec de l'envoi.";
+$GLOBAL['cotiReminderResendBtn']     = "Renvoyer";
+$GLOBAL['cotiReminderResendConfirm'] = "Un rappel a déjà été envoyé à %s le %s. Envoyer quand même ?";
 
 // --- donors_summary ---
 $GLOBAL['activeQuestion'] = "Actif?";
