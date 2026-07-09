@@ -40,7 +40,10 @@ test.describe.serial('Groups (teams)', () => {
 
     // Get the team id from the gear link next to 'Membre E2E'
     const row = page.locator('#tab-groups tr').filter({ hasText: 'Membre E2E' }).first();
-    const gearHref = await row.locator('a[href*="view=updateTeam"]').getAttribute('href');
+    await expect(row).toBeVisible({ timeout: 10_000 });
+    const gearLink = row.locator('a[href*="view=updateTeam"]');
+    await expect(gearLink).toBeVisible({ timeout: 10_000 });
+    const gearHref = await gearLink.getAttribute('href');
     if (!gearHref) throw new Error('Gear link not found for Membre E2E');
 
     // Navigate directly to updateTeam page and fill the form
