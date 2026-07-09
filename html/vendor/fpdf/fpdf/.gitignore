@@ -1,0 +1,23 @@
+composer.lock
+/var/
+!var/cache/.gitkeep
+!var/logs/.gitkeep
+/vendor/
+/build/
+/.idea/
+.buildpath
+.project
+/.settings/
+/nbproject/
+/node_modules/*
+files
+*@eaDir*
+.DS_Store
+*~
+
+###> symfony/framework-bundle ###
+.env
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
