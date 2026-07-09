@@ -2,6 +2,30 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [5.0.0] — 2026-07-09
+
+### ⚠️ Changements majeurs (breaking)
+
+Cette version renomme en profondeur le vocabulaire du domaine (tables, classes PHP, endpoints API REST). **Aucune rétrocompatibilité n'est assurée** — les migrations `0013` à `0015` doivent être appliquées, et toute intégration externe (scripts, exports, API REST) doit être mise à jour.
+
+- **Table `users` → `contact`**, `user_properties` → `contact_properties` (migration `0015`). Classe PHP `User` → `Contact` (`html/classes/user_class.php` → `contact_class.php`).
+- **Table `team` → `segment`**, `user_team` → `user_segment` (migration `0014`, colonne `team_id` → `segment_id`, `metagroup.teamid` → `metagroup.segmentid`). Classe PHP `Team` → `Segment` (`team_class.php` → `segment_class.php`).
+- **API REST** : `/api/members` → `/api/contacts`, `/api/groups` → `/api/segments`. Réponses JSON et corps de requête inchangés à part le renommage des routes elles-mêmes.
+- **Adhésion aux segments** : l'ancien stockage EAV (`user_properties`, clé `team_N`) est remplacé par une vraie table de jointure `contact_segment` (migration `0013`, backfill automatique depuis l'EAV existant).
+- Toute vue, action ou script personnalisé référençant les anciens noms de table/classe/route doit être adapté avant la mise à jour.
+
+### Nouveautés
+
+- **Bulletin de versement QR suisse (QR-facture)** joint en PDF aux rappels de cotisation, généré via `sprain/swiss-qr-bill` à partir de l'IBAN de l'organisation (nouveau champ **Réglages → IBAN**).
+- **Description du montant configurable** pour les rappels de cotisation (**Réglages → `org_coti_amount_desc`**) : affichée dans l'email de rappel et sur le bulletin QR (champ « Montant »), avec repli sur une valeur par défaut si laissée vide.
+- **Rappel individuel — confirmation** : le bouton « Envoyer un rappel » de la vue Membres perdus affiche désormais une modale de confirmation nommant le membre (au lieu d'envoyer immédiatement), alignée sur le comportement de l'envoi groupé.
+- **Renvoi forcé** : possibilité de renvoyer un rappel à un membre déjà relancé (garde anti-doublon contournable explicitement) depuis la vue Membres perdus.
+
+### Technique
+
+- **Singleton `db()`** remplace la variable globale `$pdo` dans les fonctions et méthodes de classe — signature stable pour tout code appelant la couche DB (#125).
+- Dépendances runtime PHP (`sprain/swiss-qr-bill`, `fpdf/fpdf`) vendorisées dans `html/vendor/` (committées, pas de `composer install` requis en prod ; extension **GD** requise sur le serveur).
+
 ## [4.0.0] — 2026-07-08
 
 ### Nouveautés
