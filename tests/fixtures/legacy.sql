@@ -57,6 +57,17 @@ CREATE TABLE `app_users` (
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- metagroup table → migration 0014 renames teamid column to segmentid
+CREATE TABLE `metagroup` (
+  `id`         int(11)      NOT NULL,
+  `name`       varchar(255) DEFAULT NULL,
+  `teamid`     int(11)      DEFAULT NULL,
+  `is_filter`  tinyint(1)   NOT NULL DEFAULT 1,
+  `sort_order` int(11)      NOT NULL DEFAULT 0,
+  KEY `idx_teamid`   (`teamid`),
+  KEY `idx_id_name`  (`id`, `name`(64))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- team table → migration 0014 renames it to segment
 CREATE TABLE `team` (
   `id`     int(11)      NOT NULL AUTO_INCREMENT,
