@@ -293,32 +293,32 @@ class Contact
         $orderColumn = $opts['orderColumn'] ?? 'lastname';
         $orderSort   = $opts['orderSort'] ?? 'ASC';
 
-        $query = "SELECT DISTINCT users.id, users.firstname, users.lastname, users.society,"
-               . " users.sexe, users.address, users.npa, users.email, users.creationDate"
+        $query = "SELECT DISTINCT contact.id, contact.firstname, contact.lastname, contact.society,"
+               . " contact.sexe, contact.address, contact.npa, contact.email, contact.creationDate"
                . " FROM contact";
         if ($metagroup > 0) {
-            $query .= ",user_segment ";
+            $query .= ",contact_segment ";
         } else {
             // Virtual filter IDs (resolved via MemberFilter) and team=0 (all members)
             // do not need a contact_segment join
             if ($team != 0 && $team != -1 && !MemberFilter::isVirtual($team)) {
-                $query .= ",user_segment ";
+                $query .= ",contact_segment ";
             }
         }
-        $query .= " WHERE 1=1 AND users.status=1 ";
+        $query .= " WHERE 1=1 AND contact.status=1 ";
 
         $queryParams = [];
         if (($opts['action'] ?? '') === 'search') {
             $like = '%' . ($opts['searchString'] ?? '') . '%';
-            $query .= " AND (users.firstname LIKE ?"
-                    . " OR users.lastname LIKE ?"
-                    . " OR CONCAT(users.firstname, ' ', users.lastname) LIKE ?"
-                    . " OR CONCAT(users.lastname, ' ', users.firstname) LIKE ?"
-                    . " OR users.society LIKE ?"
-                    . " OR users.npa LIKE ?"
-                    . " OR users.email LIKE ?"
-                    . " OR users.comment LIKE ?"
-                    . " OR users.address LIKE ?)";
+            $query .= " AND (contact.firstname LIKE ?"
+                    . " OR contact.lastname LIKE ?"
+                    . " OR CONCAT(contact.firstname, ' ', contact.lastname) LIKE ?"
+                    . " OR CONCAT(contact.lastname, ' ', contact.firstname) LIKE ?"
+                    . " OR contact.society LIKE ?"
+                    . " OR contact.npa LIKE ?"
+                    . " OR contact.email LIKE ?"
+                    . " OR contact.comment LIKE ?"
+                    . " OR contact.address LIKE ?)";
             $queryParams = array_fill(0, 9, $like);
         }
 
@@ -326,7 +326,7 @@ class Contact
             $mgSegmentIds = Metagroup::segmentIds($metagroup);
             if (count($mgSegmentIds) > 0) {
                 $placeholders = implode(',', array_fill(0, count($mgSegmentIds), '?'));
-                $query .= " AND users.id=contact_segment.user_id AND contact_segment.segment_id IN ($placeholders)";
+                $query .= " AND contact.id=contact_segment.user_id AND contact_segment.segment_id IN ($placeholders)";
                 $queryParams = array_merge($queryParams, $mgSegmentIds);
             } else {
                 $query .= " AND 1=0"; // metagroup has no segments — return empty
@@ -337,10 +337,10 @@ class Contact
                 // via the MemberFilter ID set applied by the caller
             } else if ($team == -1234) {
                 $membreSegment = (int)($opts['membreTeam'] ?? 0);
-                $query .= " AND users.id=contact_segment.user_id AND contact_segment.segment_id=? ";
+                $query .= " AND contact.id=contact_segment.user_id AND contact_segment.segment_id=? ";
                 $queryParams[] = $membreSegment;
             } else {
-                $query .= " AND users.id=contact_segment.user_id AND contact_segment.segment_id=?";
+                $query .= " AND contact.id=contact_segment.user_id AND contact_segment.segment_id=?";
                 $queryParams[] = $team;
             }
         }

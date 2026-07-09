@@ -162,15 +162,15 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
 
     $year = (int)date('Y');
 
-    $baseSelect = "SELECT users.id, users.firstname, users.lastname, users.society,
-                          users.email, users.npa, users.address, users.sexe, users.creationDate
+    $baseSelect = "SELECT contact.id, contact.firstname, contact.lastname, contact.society,
+                          contact.email, contact.npa, contact.address, contact.sexe, contact.creationDate
                    FROM contact";
-    $orderBy    = "ORDER BY users.lastname ASC, users.firstname ASC";
+    $orderBy    = "ORDER BY contact.lastname ASC, contact.firstname ASC";
 
     // All active members — no ID restriction needed
     if ($filterId === FILTER_ALL_EXCEPT_ARCHIVES) {
         $total = (int)db()->query("SELECT COUNT(*) FROM contact WHERE status = 1")->fetchColumn();
-        $stmt = db()->prepare("$baseSelect WHERE users.status = 1 $orderBy LIMIT ? OFFSET ?");
+        $stmt = db()->prepare("$baseSelect WHERE contact.status = 1 $orderBy LIMIT ? OFFSET ?");
         $stmt->bindValue(1, $limit,  PDO::PARAM_INT);
         $stmt->bindValue(2, $offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -192,7 +192,7 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
     }
 
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $stmt = db()->prepare("$baseSelect WHERE users.id IN ($placeholders) $orderBy LIMIT ? OFFSET ?");
+    $stmt = db()->prepare("$baseSelect WHERE contact.id IN ($placeholders) $orderBy LIMIT ? OFFSET ?");
     $i = 1;
     foreach ($ids as $uid) { $stmt->bindValue($i++, $uid, PDO::PARAM_INT); }
     $stmt->bindValue($i++, $limit,  PDO::PARAM_INT);
@@ -222,23 +222,23 @@ function handleList(): void
     }
 
     $joins  = '';
-    $where  = 'WHERE users.status = 1';
+    $where  = 'WHERE contact.status = 1';
     $params = [];
 
     if ($search !== '') {
         $like    = '%' . $search . '%';
         $where  .= ' AND (
-            users.firstname LIKE ? OR users.lastname LIKE ?
-            OR CONCAT(users.firstname, " ", users.lastname) LIKE ?
-            OR CONCAT(users.lastname,  " ", users.firstname) LIKE ?
-            OR users.society LIKE ? OR users.npa LIKE ?
-            OR users.email   LIKE ? OR users.address LIKE ?
+            contact.firstname LIKE ? OR contact.lastname LIKE ?
+            OR CONCAT(contact.firstname, " ", contact.lastname) LIKE ?
+            OR CONCAT(contact.lastname,  " ", contact.firstname) LIKE ?
+            OR contact.society LIKE ? OR contact.npa LIKE ?
+            OR contact.email   LIKE ? OR contact.address LIKE ?
         )';
         $params = array_fill(0, 8, $like);
     }
 
     if ($segmentId !== null && $segmentId > 0) {
-        $joins  .= ' JOIN contact_segment up_t ON up_t.user_id = users.id AND up_t.segment_id = ?';
+        $joins  .= ' JOIN contact_segment up_t ON up_t.user_id = contact.id AND up_t.segment_id = ?';
         // rebuild flat params list
         $params = array_merge(
             $search !== '' ? array_fill(0, 8, '%' . $search . '%') : [],
@@ -260,20 +260,20 @@ function handleList(): void
         }
         $mgParams  = $mgSegmentIds;
         $mgPh      = implode(',', array_fill(0, count($mgParams), '?'));
-        $joins    .= ' JOIN contact_segment up_mg ON up_mg.user_id = users.id AND up_mg.segment_id IN (' . $mgPh . ')';
+        $joins    .= ' JOIN contact_segment up_mg ON up_mg.user_id = contact.id AND up_mg.segment_id IN (' . $mgPh . ')';
         $params    = array_merge($search !== '' ? array_fill(0, 8, '%' . $search . '%') : [], $mgParams);
     }
 
-    $stmtCount = db()->prepare("SELECT COUNT(DISTINCT users.id) FROM contact $joins $where");
+    $stmtCount = db()->prepare("SELECT COUNT(DISTINCT contact.id) FROM contact $joins $where");
     $stmtCount->execute($params);
     $total = (int)$stmtCount->fetchColumn();
 
     $sql = "SELECT DISTINCT
-                users.id, users.firstname, users.lastname, users.society,
-                users.email, users.npa, users.address, users.sexe,
-                users.creationDate
+                contact.id, contact.firstname, contact.lastname, contact.society,
+                contact.email, contact.npa, contact.address, contact.sexe,
+                contact.creationDate
             FROM contact $joins $where
-            ORDER BY users.lastname ASC, users.firstname ASC
+            ORDER BY contact.lastname ASC, contact.firstname ASC
             LIMIT ? OFFSET ?";
 
     $stmt = db()->prepare($sql);

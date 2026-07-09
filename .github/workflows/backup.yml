@@ -51,10 +51,10 @@ jobs:
 
       - name: Capture baseline
         run: |
-          mysql -h127.0.0.1 -umembers members -N -e "SELECT COUNT(*) FROM users"                > /tmp/base_users
+          mysql -h127.0.0.1 -umembers members -N -e "SELECT COUNT(*) FROM contact"                > /tmp/base_users
           mysql -h127.0.0.1 -umembers members -N -e "SELECT COUNT(*) FROM compta"               > /tmp/base_compta
           mysql -h127.0.0.1 -umembers members -N -e "SELECT COALESCE(SUM(sum),0) FROM compta"   > /tmp/base_sum
-          echo "baseline: $(cat /tmp/base_users) users, $(cat /tmp/base_compta) compta, sum=$(cat /tmp/base_sum)"
+          echo "baseline: $(cat /tmp/base_users) contacts, $(cat /tmp/base_compta) compta, sum=$(cat /tmp/base_sum)"
 
       - name: Backup
         run: bash html/tools/backup.sh /tmp/dump.sql
@@ -72,10 +72,10 @@ jobs:
 
       - name: Verify restored data matches baseline
         run: |
-          u=$(mysql -h127.0.0.1 -umembers members -N -e "SELECT COUNT(*) FROM users")
+          u=$(mysql -h127.0.0.1 -umembers members -N -e "SELECT COUNT(*) FROM contact")
           c=$(mysql -h127.0.0.1 -umembers members -N -e "SELECT COUNT(*) FROM compta")
           s=$(mysql -h127.0.0.1 -umembers members -N -e "SELECT COALESCE(SUM(sum),0) FROM compta")
-          [ "$u" = "$(cat /tmp/base_users)" ]  || { echo "FAIL: users $u != $(cat /tmp/base_users)"; exit 1; }
+          [ "$u" = "$(cat /tmp/base_users)" ]  || { echo "FAIL: contacts $u != $(cat /tmp/base_users)"; exit 1; }
           [ "$c" = "$(cat /tmp/base_compta)" ] || { echo "FAIL: compta $c != $(cat /tmp/base_compta)"; exit 1; }
           [ "$s" = "$(cat /tmp/base_sum)" ]    || { echo "FAIL: sum $s != $(cat /tmp/base_sum)"; exit 1; }
-          echo "Backup/restore OK ($u users, $c compta, sum=$s)"
+          echo "Backup/restore OK ($u contacts, $c compta, sum=$s)"
