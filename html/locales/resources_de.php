@@ -239,6 +239,7 @@ $GLOBAL['migrationFailed'] = "FEHLGESCHLAGEN";
 
 // --- Shared form / chart labels ---
 $GLOBAL['numericAmountHint'] = "Numerischer Betrag (z. B. 50 oder 12.50)";
+$GLOBAL['sumRequired'] = "Bitte einen Betrag eingeben.";
 $GLOBAL['allTypesFull'] = "Alle Typen";
 $GLOBAL['monthlyVsCumulative'] = "Monatlich vs. kumuliert";
 $GLOBAL['annual'] = "Jährlich";

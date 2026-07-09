@@ -79,6 +79,8 @@ $_cotiTypeIdsEdit = array_values(array_map('intval',
         <div class="col-8 col-sm-5">
           <input type="text" class="form-control form-control-sm" id="sum" name="sum"
                  inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" title="<?= $GLOBAL['numericAmountHint'] ?>"
+                 required oninvalid="this.setCustomValidity(this.validity.valueMissing ? <?= json_encode($GLOBAL['sumRequired']) ?> : <?= json_encode($GLOBAL['numericAmountHint']) ?>)"
+                 oninput="this.setCustomValidity('')"
                  value="<?= htmlentities($compta->getSum(), ENT_COMPAT, $charset) ?>">
         </div>
       </div>
