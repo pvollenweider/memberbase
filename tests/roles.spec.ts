@@ -475,7 +475,7 @@ test.describe('Server — suivi action guards', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Server enforcement — actions/groups.php (HTTP 403)
+// Server enforcement — actions/segments.php (HTTP 403)
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Server — group action guards', () => {

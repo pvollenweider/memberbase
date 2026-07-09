@@ -60,7 +60,7 @@ $UA_VIEW_ROUTES = [
 
     // Réglages & administration
     'settings'            => ['settings_general.php'],
-    'updateSegment'          => ['settings_general.php',      null, ['tab' => 'groups']],
+    'updateSegment'          => ['settings_general.php',      null, ['tab' => 'segments']],
     'updateMetagroup'     => ['settings_general.php',      null, ['tab' => 'filters']],
     'manageComptaTypes'   => ['settings_compta_types.php'],
     'manageAppUsers'      => ['settings_app_users.php'],
@@ -70,9 +70,9 @@ $UA_VIEW_ROUTES = [
 
 $uaRequestedView = $_REQUEST['view'] ?? 'list';
 
-// Legacy view — redirect to settings groups tab
+// Legacy view — redirect to settings segments tab
 if ($uaRequestedView === 'manageTeam') {
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=groups');
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=segments');
     exit;
 }
 
