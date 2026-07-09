@@ -15,7 +15,7 @@
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 require_once __DIR__ . '/_bootstrap.php';
-require_once __DIR__ . '/../classes/team_class.php';
+require_once __DIR__ . '/../classes/segment_class.php';
 require_once __DIR__ . '/../classes/user_class.php';
 
 $method = $_SERVER['REQUEST_METHOD'];

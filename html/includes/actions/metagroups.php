@@ -22,13 +22,13 @@ if ($action == 'updateCategoryOrder') {
     }
 
 } elseif ($action == 'updateTeamCategory') {
-    $teamId = (int)$_REQUEST['id'];
+    $segmentId = (int)$_REQUEST['id'];
     $categoryId = (int)($_REQUEST['categoryId'] ?? 0);
-    $pdo->prepare("DELETE FROM metagroup WHERE teamid=? AND id IN (
+    $pdo->prepare("DELETE FROM metagroup WHERE segmentid=? AND id IN (
         SELECT id FROM (SELECT id FROM metagroup WHERE name IS NOT NULL AND is_filter=0) AS cats
-    )")->execute([$teamId]);
+    )")->execute([$segmentId]);
     if ($categoryId > 0) {
-        $pdo->prepare("INSERT INTO metagroup (id, teamid) VALUES (?, ?)")->execute([$categoryId, $teamId]);
+        $pdo->prepare("INSERT INTO metagroup (id, segmentid) VALUES (?, ?)")->execute([$categoryId, $segmentId]);
     }
 
 } elseif ($action == 'updateMetagroupTeams') {
@@ -40,16 +40,16 @@ if ($action == 'updateCategoryOrder') {
     $_mgIsCategory = ((int)$_mgIsFilterRow->fetchColumn() === 0);
     if ($_mgIsCategory && !empty($selected)) {
         $_stmtEvict = $pdo->prepare(
-            "DELETE FROM metagroup WHERE teamid=? AND id!=? AND id IN (SELECT id FROM (SELECT id FROM metagroup WHERE name IS NOT NULL AND is_filter=0) AS _cats)"
+            "DELETE FROM metagroup WHERE segmentid=? AND id!=? AND id IN (SELECT id FROM (SELECT id FROM metagroup WHERE name IS NOT NULL AND is_filter=0) AS _cats)"
         );
-        foreach ($selected as $teamId) {
-            if ($teamId > 0) $_stmtEvict->execute([$teamId, $mgId]);
+        foreach ($selected as $segmentId) {
+            if ($segmentId > 0) $_stmtEvict->execute([$segmentId, $mgId]);
         }
     }
-    $pdo->prepare("DELETE FROM metagroup WHERE id=? AND teamid IS NOT NULL")->execute([$mgId]);
-    $stmt = $pdo->prepare("INSERT INTO metagroup (id, teamid) VALUES (?, ?)");
-    foreach ($selected as $teamId) {
-        if ($teamId > 0) $stmt->execute([$mgId, $teamId]);
+    $pdo->prepare("DELETE FROM metagroup WHERE id=? AND segmentid IS NOT NULL")->execute([$mgId]);
+    $stmt = $pdo->prepare("INSERT INTO metagroup (id, segmentid) VALUES (?, ?)");
+    foreach ($selected as $segmentId) {
+        if ($segmentId > 0) $stmt->execute([$mgId, $segmentId]);
     }
     $_auMgName = $pdo->prepare("SELECT name FROM metagroup WHERE id=? AND name IS NOT NULL LIMIT 1");
     $_auMgName->execute([$mgId]);

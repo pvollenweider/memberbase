@@ -119,22 +119,22 @@ if ($_REQUEST['action'] === 'importUpload') {
     $segTeamName = '';
     if ($segMode === 'existing') {
         $segTeamId = (int)($_POST['segment_existing_id'] ?? 0);
-        $_chk = $pdo->prepare("SELECT name FROM team WHERE id=?");
+        $_chk = $pdo->prepare("SELECT name FROM segment WHERE id=?");
         $_chk->execute([$segTeamId]);
         $segTeamName = (string)($_chk->fetchColumn() ?: '');
         if ($segTeamName === '') { $segTeamId = 0; } // stale id → skip
     } elseif ($segMode === 'new' || $segMode === 'auto') {
         $segTeamName = $segMode === 'new' ? trim((string)($_POST['segment_new_name'] ?? '')) : '';
         if ($segTeamName === '') { $segTeamName = sprintf($GLOBAL['importSegmentName'], date('d.m.Y H:i')); }
-        $team = new Team();
-        $team->name = $segTeamName;
-        $team->setHidden(0);
-        $team->save();
-        $segTeamId = (int)$team->id;
+        $segment = new Segment();
+        $segment->name = $segTeamName;
+        $segment->setHidden(0);
+        $segment->save();
+        $segTeamId = (int)$segment->id;
         // Attach to a category (metagroup) when one was chosen for a brand-new segment
         $segCatId = $segMode === 'new' ? (int)($_POST['segment_new_category'] ?? 0) : 0;
         if ($segTeamId > 0 && $segCatId > 0) {
-            $team->addMetagroupMembership($segCatId);
+            $segment->addMetagroupMembership($segCatId);
         }
     }
     $segStmt = ($segTeamId > 0)
