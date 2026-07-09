@@ -634,7 +634,14 @@ a.crumb-link:hover { color: var(--ink); text-decoration: underline; }
         </button>
         <div class="faq-body" id="q24-body" role="region" aria-labelledby="q24">
           <div class="faq-body-inner">
-            <p>L'import CSV (wizard en 3 étapes) accepte les colonnes <code>compta_amount</code>, <code>compta_type</code>, <code>compta_date</code> et <code>compta_cotisation_year</code> — vous pouvez donc importer des lignes datées de 2015 avec l'année de cotisation correcte. Créez d'abord vos types compta, puis importez vos contacts avec l'historique financier inclus. Le wizard affiche un échantillon des 25 premières lignes à chaque étape pour valider la correspondance des colonnes.</p>
+            <p>L'import CSV (wizard en 3 étapes) importe uniquement les données <strong>contact</strong> (nom, prénom, email, adresse, téléphone…). L'historique financier — versements passés, cotisations antérieures — ne peut pas être importé via le wizard.</p>
+            <p>Pour récupérer 10 ans d'historique, la marche à suivre est :</p>
+            <ol>
+              <li>Importez d'abord vos contacts via le wizard CSV.</li>
+              <li>Pour l'historique comptable, passez par un <strong>INSERT SQL direct</strong> dans la table <code>compta</code> (champs : <code>contact_id</code>, <code>amount</code>, <code>type_id</code>, <code>date</code>, <code>cotisation_year</code>). Utilisez <strong>Réglages → Santé → Exporter la base</strong> pour obtenir la structure exacte des tables.</li>
+              <li>Si le volume est limité, la saisie manuelle fiche par fiche reste possible.</li>
+            </ol>
+            <p>Créez vos types compta (<strong>Réglages → Types compta</strong>) avant d'insérer les données, afin d'avoir les bons <code>type_id</code> à référencer.</p>
           </div>
         </div>
       </div>
