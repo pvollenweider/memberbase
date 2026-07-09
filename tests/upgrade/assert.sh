@@ -74,9 +74,21 @@ NULL_COTI="$(q "SELECT COUNT(*) FROM compta WHERE cotisation_year IS NULL AND da
 [ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='email_log' AND column_name='tpl_key'")" = "1" ] \
   || fail "email_log.tpl_key column missing (0012 not applied)"
 
-# 15. All 12 migrations recorded in schema_migrations, with checksums
+# 15b. Migration 0013 created user_team join table
+[ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='user_team'")" = "1" ] \
+  || fail "user_team table missing (0013 not applied)"
+
+# 15c. Migration 0014 renamed team→segment, user_team→user_segment, teamid→segmentid
+[ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='segment'")" = "1" ] \
+  || fail "segment table missing (0014 not applied)"
+[ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='user_segment'")" = "1" ] \
+  || fail "user_segment table missing (0014 not applied)"
+[ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='metagroup' AND column_name='segmentid'")" = "1" ] \
+  || fail "metagroup.segmentid column missing (0014 not applied)"
+
+# 16. All 14 migrations recorded in schema_migrations, with checksums
 N="$(q "SELECT COUNT(*) FROM schema_migrations")"
-[ "$N" = "12" ] || fail "schema_migrations has $N rows, expected 12"
+[ "$N" = "14" ] || fail "schema_migrations has $N rows, expected 14"
 BAD="$(q "SELECT COUNT(*) FROM schema_migrations WHERE checksum='' OR checksum IS NULL")"
 [ "$BAD" = "0" ] || fail "$BAD applied migration(s) missing a checksum"
 
