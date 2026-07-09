@@ -4,7 +4,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * Minimal pure-PHP SMTP client.
  * Supports plain, STARTTLS, SSL/TLS, AUTH LOGIN, AUTH PLAIN, no-auth.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 

@@ -21,7 +21,7 @@ declare(strict_types=1);
  * DDL ne peut PAS être annulée par un ROLLBACK. Faire une sauvegarde avant de
  * migrer en production. La transaction ci-dessous protège les migrations DML.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 

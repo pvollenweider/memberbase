@@ -3,7 +3,7 @@
  * Shared bootstrap for all API endpoints.
  * Handles JSON headers, DB/session init, and auth guard.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 define('APP_ENTRY', true);

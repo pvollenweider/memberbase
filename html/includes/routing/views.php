@@ -12,7 +12,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * A route missing from this table renders a "view not found" warning — a new
  * view MUST be declared here, which forces the guard decision to be explicit.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 

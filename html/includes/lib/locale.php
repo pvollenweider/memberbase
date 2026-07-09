@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * of it, so any key missing from a translation transparently falls back to
  * French instead of breaking the page.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 

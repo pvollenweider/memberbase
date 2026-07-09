@@ -4,7 +4,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * Reusable email log section — shows sent emails for a given member.
  * Expects $user to be set in the calling scope.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 $_elMemberId = (int)$user->getId();

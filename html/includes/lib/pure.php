@@ -7,7 +7,7 @@
  * Intentionally NOT guarded by APP_ENTRY: it defines functions only and
  * emits nothing, so it is safe to include from anywhere (app or tests).
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 

@@ -11,7 +11,7 @@
  * POST   /api/segments/{id}/members           add a member to a segment (manager)
  * DELETE /api/segments/{id}/members           remove a member from a segment (manager)
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 require_once __DIR__ . '/_bootstrap.php';

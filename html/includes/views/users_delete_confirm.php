@@ -3,7 +3,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * Confirmation dialog: archive (deactivate) or permanently delete a member.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 $user = new Contact();

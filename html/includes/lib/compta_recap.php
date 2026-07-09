@@ -7,7 +7,7 @@
  * contains HTML generation that depends on the entry data shape, not a
  * standalone pure transformation worth unit-testing in isolation.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 

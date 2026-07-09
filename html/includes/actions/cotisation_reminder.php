@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  *   sendCotisationReminders    — bulk send to all un-reminded lapsed members
  *   sendCotisationReminderOne  — send to a single member (per-row button)
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 $_cotiAction = $_REQUEST['action'] ?? '';

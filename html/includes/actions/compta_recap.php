@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  *
  * Future: this action will be triggerable as a scheduled task (issue #117).
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 require_once __DIR__ . '/../lib/mailer.php';

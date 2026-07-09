@@ -6,7 +6,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * Read-only system status to diagnose without SSH: app version, runtime, DB
  * server + schema/migration state, a few volume counters, and last activity.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 

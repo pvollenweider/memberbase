@@ -6,7 +6,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * Loaded at the very top of every protected page, before any output.
  * login.php handles session_start() itself; all other pages go through here.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 

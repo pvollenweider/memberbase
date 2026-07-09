@@ -2,7 +2,7 @@
  * TipTap rich text editor wiring for the member comment field.
  * Loaded as an ES module; re-initialized on every htmx swap.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 // Self-hosted bundle (no external CDN) — see html/js/vendor/README.tiptap.md

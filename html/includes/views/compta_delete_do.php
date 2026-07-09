@@ -3,7 +3,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * Deletes an accounting entry (with audit log), then re-renders the member's compta tab.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 $compta = new Compta();

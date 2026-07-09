@@ -10,7 +10,7 @@
  * window.__dirtyOverride = true before changing window.location, and
  * navigation-only selects/inputs must carry data-no-dirty.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 

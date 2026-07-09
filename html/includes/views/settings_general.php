@@ -3,7 +3,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * Application settings form covering groups, filters, and accounting types.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 // Guard: segment table may not exist yet if migrations are pending.

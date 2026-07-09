@@ -5,7 +5,7 @@
  * Generates a PDF attachment containing the Swiss payment slip (bulletin de versement QR)
  * with an open amount, no reference number (TYPE_NON), and the cotisation year as message.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 

@@ -5,7 +5,7 @@
  * Data is passed via data-* attributes on the root element:
  *   data-member-id, data-initial (JSON), data-gender-labels (JSON)
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 function memberGeneralForm() {

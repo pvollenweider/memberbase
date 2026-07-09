@@ -5,7 +5,7 @@
  * All functions use Unix timestamp ranges computed by the caller to remain
  * consistent with the existing mktime()-based date arithmetic in the views.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 

@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * lib/bootstrap.php) that selects members by business rules on their
  * accounting history instead of segment membership.
  *
- * @copyright 2024 Philippe Vollenweider
+ * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 class MemberFilter
