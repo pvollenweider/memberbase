@@ -447,11 +447,11 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <tr><th scope="col">Méthode</th><th scope="col">Endpoint</th><th scope="col">Description</th></tr>
       </thead>
       <tbody>
-        <tr><td class="m">GET</td><td><code>/api/members</code></td><td>Liste des membres — filtres <code>search</code>, <code>team</code>, <code>metagroup</code>, pagination</td></tr>
-        <tr><td class="m">POST</td><td><code>/api/members</code></td><td>Créer un membre</td></tr>
-        <tr><td class="m">PUT</td><td><code>/api/members/{id}</code></td><td>Modifier un membre — audit log des différences</td></tr>
-        <tr><td class="m">GET</td><td><code>/api/groups</code></td><td>Liste des groupes avec comptage des membres</td></tr>
-        <tr><td class="m">POST</td><td><code>/api/groups/{id}/members</code></td><td>Ajouter un membre à un groupe</td></tr>
+        <tr><td class="m">GET</td><td><code>/api/contacts</code></td><td>Liste des membres — filtres <code>search</code>, <code>team</code>, <code>metagroup</code>, pagination</td></tr>
+        <tr><td class="m">POST</td><td><code>/api/contacts</code></td><td>Créer un membre</td></tr>
+        <tr><td class="m">PUT</td><td><code>/api/contacts/{id}</code></td><td>Modifier un membre — audit log des différences</td></tr>
+        <tr><td class="m">GET</td><td><code>/api/segments</code></td><td>Liste des groupes avec comptage des membres</td></tr>
+        <tr><td class="m">POST</td><td><code>/api/segments/{id}/members</code></td><td>Ajouter un membre à un groupe</td></tr>
         <tr><td class="m">GET</td><td><code>/api/compta</code></td><td>Écritures comptables — filtres <code>memberId</code>, <code>year</code></td></tr>
         <tr><td class="m">POST</td><td><code>/api/compta</code></td><td>Créer une écriture comptable</td></tr>
       </tbody>
@@ -486,7 +486,7 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li><strong>Récapitulatifs comptables groupés</strong> (<code class="inline">comptaRecap</code>) : un email par membre récapitulant ses entrées non notifiées, aperçu avant envoi (rendu HTML réel), envoi individuel ou en masse, filtre par année, mode étendu pour renvoyer aux membres déjà notifiés.</li>
         <li><strong>Rappels de cotisation impayée</strong> : envoi manuel individuel ou en masse depuis la vue Membres perdus, avec garde anti-doublon par année.</li>
         <li><strong>Journal des emails</strong> (Réglages → Email → Journal) : historique paginé, statut envoyé/erreur, renvoi d'une entrée en erreur, purge.</li>
-        <li><strong>Année de cotisation</strong> (<code class="inline">compta.cotisation_year</code>) : distingue l'année de paiement de l'année de cotisation couverte (ex. cotisation N+1 payée en décembre N) ; champ validé côté serveur, reflété dans les emails et exposé par l'API REST (<code class="inline">GET /api/members/{id}?sub=compta</code>).</li>
+        <li><strong>Année de cotisation</strong> (<code class="inline">compta.cotisation_year</code>) : distingue l'année de paiement de l'année de cotisation couverte (ex. cotisation N+1 payée en décembre N) ; champ validé côté serveur, reflété dans les emails et exposé par l'API REST (<code class="inline">GET /api/contacts/{id}?sub=compta</code>).</li>
         <li><strong>Champs organisation</strong> : numéro IDE suisse avec vérification automatique via Zefix (préremplissage nom/adresse/but statutaire), but statutaire, statut d'exonération fiscale.</li>
         <li>Lien PDF d'attestation non cliquable dans une ligne cliquable (<code class="inline">ca-row-link</code>) : le plugin <code class="inline">datahref</code> interceptait les clics sur les liens imbriqués.</li>
         <li>Lookup Zefix : bascule vers le flux d'API réel (<code class="inline">search.json</code> → <code class="inline">firm/{ehraid}.json</code>), l'ancien endpoint étant décommissionné.</li>

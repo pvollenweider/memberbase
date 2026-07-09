@@ -268,15 +268,17 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
       </ul>
     </nav>
     <div class="prose">
-<p>MemberBase <strong>v4.0.0</strong> — application PHP 8.2 de gestion des membres pour ONG.
+<p>MemberBase <strong>v5.0.0</strong> — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.</p>
 <blockquote>
 <p><strong>Terminologie.</strong> Depuis la v3.5.4, l&#39;interface parle de <strong>Segment</strong> (au lieu de
-« groupe ») et de <strong>Segment combiné</strong> (au lieu de « métagroupe »). Ce sont des
-libellés uniquement : le code et l&#39;API conservent les noms techniques d&#39;origine
-— table <code>team</code>, table <code>metagroup</code>, endpoints <code>/api/groups</code>. Dans tout ce document,
-<strong>« Segment » (UI) = entité <code>team</code> (technique)</strong> et <strong>« Segment combiné » (UI) =
-entité <code>metagroup</code></strong>.</p>
+« groupe ») et de <strong>Segment combiné</strong> (au lieu de « métagroupe »). Depuis la
+<strong>v5.0.0</strong>, le code et l&#39;API suivent le même vocabulaire : table <code>segment</code>
+(anciennement <code>team</code>), table <code>metagroup</code>, endpoints <code>/api/segments</code>
+(anciennement <code>/api/groups</code>). De même, la table <code>users</code> est renommée <code>contact</code>
+et la classe <code>User</code> devient <code>Contact</code>. Dans tout ce document, <strong>« Segment »
+(UI) = entité <code>segment</code> (technique)</strong> et <strong>« Segment combiné » (UI) = entité
+<code>metagroup</code></strong>.</p>
 </blockquote>
 <hr>
 <h2 id="1-vue-densemble--principes">1. Vue d&#39;ensemble &amp; principes<a class="anchor" href="#1-vue-densemble--principes" aria-label="Lien d'ancrage">#</a></h2>
@@ -297,8 +299,8 @@ CSP <code>self</code>.</li>
 <li><strong>API REST séparée</strong> : le répertoire <code>html/api/</code> expose des endpoints JSON
 machine-to-machine, distincts de l&#39;interface htmx mais partageant la même session.</li>
 </ul>
-<p>Garde constante des listings : la colonne <code>users.status</code> (<code>1</code> = actif, <code>0</code> = archivé)
-est filtrée partout via <code>WHERE users.status = 1</code>.</p>
+<p>Garde constante des listings : la colonne <code>contact.status</code> (<code>1</code> = actif, <code>0</code> = archivé)
+est filtrée partout via <code>WHERE contact.status = 1</code>.</p>
 <hr>
 <h2 id="2-flux-dune-requête-get-navigation-htmx">2. Flux d&#39;une requête GET (navigation htmx)<a class="anchor" href="#2-flux-dune-requête-get-navigation-htmx" aria-label="Lien d'ancrage">#</a></h2>
 <pre><code>Navigateur
@@ -327,8 +329,8 @@ deux <code>include</code> de routing dans les deux chemins.</p>
   |  POST index.php  body: action=updateUser&amp;id=42&amp;…   [HX-Request: true]
   v
 html/index.php → include routing/actions.php
-  |-- $ACTION_MAP[&#39;updateUser&#39;] = &#39;members&#39;
-  |-- require includes/actions/members.php
+  |-- $ACTION_MAP[&#39;updateUser&#39;] = &#39;contacts&#39;
+  |-- require includes/actions/contacts.php
   |       vérifie le rôle (canWrite/isManager/isAdmin selon l&#39;action)
   |       valide, $user-&gt;save(), auditLog(...)
   |       if ($isHtmx) { header(&#39;HX-Location: …?view=generalData&amp;id=42&#39;); exit; }
@@ -367,10 +369,11 @@ correspondaient pas au graphe réel.</p>
 déclarée</strong> : l&#39;intégrité référentielle est assurée par le code (<code>SET foreign_key_checks = 0</code>
 dans <code>schema.sql</code>). Les dates métier sont stockées en <strong>timestamp Unix</strong> (<code>int(16)</code>),
 pas en <code>DATE</code> SQL ; conversions via <code>formatedDateToTimeStamp()</code> / <code>timeStampToformatedDate()</code>.</p>
-<div class="table-scroll" role="region" aria-label="Tableau — 5. Schéma de base de données" tabindex="0"><table><thead><tr><th scope="col">Table</th><th scope="col">Rôle</th><th scope="col">Clé / séquence</th></tr></thead><tbody><tr><td><code>users</code></td><td>Membres : identité, coordonnées (dont <strong><code>email_alt</code></strong>), <code>sexe</code> (na/f/m/hf), <code>status</code> (1/0), dates Unix</td><td><code>id</code> AUTO_INCREMENT</td></tr>
-<tr><td><code>team</code></td><td>Segments : <code>name</code>, <code>hidden</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
-<tr><td><code>user_properties</code></td><td>EAV : appartenance segment (<code>parameter=&#39;team_&lt;id&gt;&#39;</code>, <code>value=&#39;true&#39;</code>) et notes de suivi</td><td>pas de PK, <code>id</code> legacy</td></tr>
-<tr><td><code>metagroup</code></td><td>Segments combinés / catégories : <code>name</code>, <code>teamid</code>, <code>is_filter</code>, <code>sort_order</code></td><td><code>id</code> via <code>maxval</code></td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — 5. Schéma de base de données" tabindex="0"><table><thead><tr><th scope="col">Table</th><th scope="col">Rôle</th><th scope="col">Clé / séquence</th></tr></thead><tbody><tr><td><code>contact</code></td><td>Membres (<strong>anciennement <code>users</code></strong>, renommée v5.0.0) : identité, coordonnées (dont <strong><code>email_alt</code></strong>), <code>sexe</code> (na/f/m/hf), <code>status</code> (1/0), dates Unix</td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>segment</code></td><td>Segments (<strong>anciennement <code>team</code></strong>, renommée v5.0.0) : <code>name</code>, <code>hidden</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>contact_segment</code></td><td>Appartenance segment (<strong>anciennement EAV dans <code>user_properties</code></strong>, table de jointure depuis v5.0.0) : <code>user_id</code> (contact), <code>segment_id</code></td><td>PK <code>(user_id, segment_id)</code></td></tr>
+<tr><td><code>contact_properties</code></td><td>EAV : notes de suivi (<strong>anciennement <code>user_properties</code></strong>, renommée v5.0.0)</td><td>pas de PK, <code>id</code> legacy</td></tr>
+<tr><td><code>metagroup</code></td><td>Segments combinés / catégories : <code>name</code>, <code>segmentid</code>, <code>is_filter</code>, <code>sort_order</code></td><td><code>id</code> via <code>maxval</code></td></tr>
 <tr><td><code>compta_type</code></td><td>Types d&#39;écriture : <code>label</code>, <code>color</code>, <code>sort_order</code>, <code>is_cotisation</code>, <code>is_excluded_from_donation</code>, <code>is_institutional</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>compta</code></td><td>Écritures : <code>user_id</code>, <code>date</code> (Unix), <code>libele</code>, <code>sum</code> (<strong>decimal(10,2)</strong>, CHF), <code>quittance</code>, <code>type_id</code>, <code>wants_attestation</code>, <strong><code>notified_at</code></strong> (dernier envoi du récapitulatif email, <code>NULL</code> = non notifiée), <strong><code>cotisation_year</code></strong> (année de cotisation si différente de l&#39;année de paiement)</td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>maxval</code></td><td>Compteur de séquence manuel (clé/valeur)</td><td>PK <code>parameter</code></td></tr>
@@ -380,37 +383,45 @@ pas en <code>DATE</code> SQL ; conversions via <code>formatedDateToTimeStamp()</
 <h3 id="relations">Relations<a class="anchor" href="#relations" aria-label="Lien d'ancrage">#</a></h3>
 <pre><code>app_users ── session ──&gt; index.php ── actions/* ── auditLog() ──&gt; audit_log
 
-users (id)
-  ├── user_properties (user_id)
-  │        parameter = &#39;team_&lt;N&gt;&#39;  → appartenance au segment team(id=N)
+contact (id)
+  ├── contact_segment (user_id, segment_id) ──&gt; segment (id)
+  ├── contact_properties (user_id)
   │        parameter = &#39;suivi_*&#39;   → notes de suivi (UserProperty)
   └── compta (user_id) ── type_id ──&gt; compta_type
                                         (is_cotisation / is_excluded_from_donation / is_institutional)
 
-team (id) ──&gt; metagroup (teamid)   [1 ligne header (teamid NULL) + N lignes membres]
+segment (id) ──&gt; metagroup (segmentid)   [1 ligne header (segmentid NULL) + N lignes membres]
 </code></pre>
 <h3 id="notes-sur-le-modèle">Notes sur le modèle<a class="anchor" href="#notes-sur-le-modèle" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
-<li><strong>L&#39;appartenance à un segment n&#39;a pas de table de jointure</strong> : elle vit dans
-<code>user_properties</code> (<code>parameter = &#39;team_&lt;teamId&gt;&#39;</code>, <code>value = &#39;true&#39;</code>).</li>
-<li><code>metagroup.id</code> est <strong>partagé</strong> entre la ligne header (<code>teamid IS NULL</code>, portant
-<code>name</code>) et les lignes membres (<code>teamid = N</code>), d&#39;où l&#39;usage de <code>maxval</code> plutôt que
+<li><strong>L&#39;appartenance à un segment a une vraie table de jointure</strong> (<code>contact_segment</code>,
+PK <code>(user_id, segment_id)</code>) depuis la v5.0.0. Avant cette version, elle vivait
+dans le stockage EAV <code>user_properties</code> (<code>parameter = &#39;team_&lt;teamId&gt;&#39;</code>,
+<code>value = &#39;true&#39;</code>) ; la migration <code>0013</code> a fait la bascule avec backfill
+automatique, puis <code>0014</code>/<code>0015</code> ont renommé les tables (<code>team</code> → <code>segment</code>,
+<code>users</code> → <code>contact</code>).</li>
+<li><code>metagroup.id</code> est <strong>partagé</strong> entre la ligne header (<code>segmentid IS NULL</code>, portant
+<code>name</code>) et les lignes membres (<code>segmentid = N</code>), d&#39;où l&#39;usage de <code>maxval</code> plutôt que
 d&#39;<code>AUTO_INCREMENT</code>.</li>
-<li><code>user_properties.id</code> est une colonne héritée non fiable (nombreuses lignes à <code>0</code>) ;
+<li><code>contact_properties.id</code> est une colonne héritée non fiable (nombreuses lignes à <code>0</code>) ;
 l&#39;identité d&#39;une propriété repose sur <code>user_id</code> + <code>parameter</code>. Le commentaire de
 <code>bootstrap.php</code> mentionne ~83k lignes concernées.</li>
 </ul>
 <hr>
 <h2 id="6-classes-de-domaine">6. Classes de domaine<a class="anchor" href="#6-classes-de-domaine" aria-label="Lien d'ancrage">#</a></h2>
-<p>Fichiers dans <code>html/classes/</code>, style <em>active-record</em>, sans namespace, <code>global $pdo</code>.</p>
-<h3 id="user-userclassphp--54-méthodes"><code>User</code> (<code>user_class.php</code>) — 54 méthodes<a class="anchor" href="#user-userclassphp--54-méthodes" aria-label="Lien d'ancrage">#</a></h3>
+<p>Fichiers dans <code>html/classes/</code>, style <em>active-record</em>, sans namespace. Depuis la
+v5.0.0, toutes les méthodes lisent/écrivent la base via le singleton <code>db(): PDO</code>
+(<code>html/includes/lib/bootstrap.php</code>) au lieu d&#39;une variable globale <code>$pdo</code> (#125).</p>
+<h3 id="user-userclassphp--54-méthodes"><code>Contact</code> (<code>contact_class.php</code>, anciennement <code>User</code>/<code>user_class.php</code>) — 54 méthodes<a class="anchor" href="#user-userclassphp--54-méthodes" aria-label="Lien d'ancrage">#</a></h3>
 <p>Classe centrale. Regroupe :</p>
 <ul>
 <li><strong>Chargement</strong> : <code>lookupUser(int $id)</code>, <code>lookupUserByEmail(string $email)</code>,
 <code>hydrateFromRow()</code> (privé).</li>
-<li><strong>Getters/setters</strong> pour chaque colonne de <code>users</code> (dont <code>getEmailAlt</code>/<code>setEmailAlt</code>,
+<li><strong>Getters/setters</strong> pour chaque colonne de <code>contact</code> (dont <code>getEmailAlt</code>/<code>setEmailAlt</code>,
 <code>setBirthDay</code> qui parse une date d/m/Y).</li>
-<li><strong>Segments</strong> : <code>getProperty()</code>, <code>isMemberOfTeam()</code>, <code>addMembership()</code>, <code>removeMembership()</code>.</li>
+<li><strong>Segments</strong> : <code>getProperty()</code>, <code>isMemberOfSegment()</code>, <code>assignSegment()</code>,
+<code>unassignSegment()</code> (via la table de jointure <code>contact_segment</code>, anciennement
+<code>isMemberOfTeam()</code>/<code>addMembership()</code>/<code>removeMembership()</code> sur l&#39;EAV).</li>
 <li><strong>Persistance</strong> : <code>save()</code> (retourne l&#39;id, insert ou update selon présence d&#39;id),
 <code>remove()</code>.</li>
 <li><strong>Requêtes comptables par année</strong> (utilisées par les vues donateurs) :</li>
@@ -422,8 +433,8 @@ public function hasAnyEntry(int $year): int        // n&#39;importe quelle écri
 public function hasComptaEntries(int $year, int $number): bool
 public function hasComptaEntry(): bool
 </code></pre>
-<h3 id="team-teamclassphp"><code>Team</code> (<code>team_class.php</code>)<a class="anchor" href="#team-teamclassphp" aria-label="Lien d'ancrage">#</a></h3>
-<p><code>lookupTeam()</code>, <code>save()</code>, <code>remove()</code>, <code>isUsed()</code>, et gestion de l&#39;appartenance aux
+<h3 id="team-teamclassphp"><code>Segment</code> (<code>segment_class.php</code>, anciennement <code>Team</code>/<code>team_class.php</code>)<a class="anchor" href="#team-teamclassphp" aria-label="Lien d'ancrage">#</a></h3>
+<p><code>lookupSegment()</code>, <code>save()</code>, <code>remove()</code>, <code>isUsed()</code>, et gestion de l&#39;appartenance aux
 segments combinés : <code>isMemberOfMetagroup()</code>, <code>addMetagroupMembership()</code>,
 <code>removeMetagroupMembership()</code>.</p>
 <h3 id="compta-comptaclassphp"><code>Compta</code> (<code>compta_class.php</code>)<a class="anchor" href="#compta-comptaclassphp" aria-label="Lien d'ancrage">#</a></h3>
@@ -439,7 +450,7 @@ les chaînes numériques en entier. Testé dans <code>tests/unit/ComptaYearTest.
 getters/setters (<code>parameter</code>, <code>date</code>, <code>value</code>).</p>
 <hr>
 <h2 id="7-authentification--rôles">7. Authentification &amp; rôles<a class="anchor" href="#7-authentification--rôles" aria-label="Lien d'ancrage">#</a></h2>
-<h3 id="comptes-appusers-distincte-de-users">Comptes (<code>app_users</code>, distincte de <code>users</code>)<a class="anchor" href="#comptes-appusers-distincte-de-users" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="comptes-appusers-distincte-de-users">Comptes (<code>app_users</code>, distincte de <code>contact</code>)<a class="anchor" href="#comptes-appusers-distincte-de-users" aria-label="Lien d'ancrage">#</a></h3>
 <p><code>auth.php</code> gère session, login (<code>authLogin</code>), logout (<code>authLogout</code>) et gardes. Le login
 vérifie <code>is_active = 1</code>, <code>password_verify()</code> contre le hash bcrypt, appelle
 <code>session_regenerate_id(true)</code>, alimente <code>$_SESSION[&#39;app_user_*&#39;]</code> et met <code>last_login = NOW()</code>.
@@ -472,12 +483,13 @@ un bloc <code>alert-danger</code> (« Accès refusé ») ; une vue absente de la
 <hr>
 <h2 id="8-api-rest-htmlapi">8. API REST (<code>html/api/</code>)<a class="anchor" href="#8-api-rest-htmlapi" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="structure-et-routage">Structure et routage<a class="anchor" href="#structure-et-routage" aria-label="Lien d'ancrage">#</a></h3>
-<p><code>html/api/.htaccess</code> réécrit les URL REST vers les scripts (ex. <code>members/42/groups</code> →
-<code>members.php?id=42&amp;sub=groups</code>). Endpoints :</p>
-<div class="table-scroll" role="region" aria-label="Tableau — Structure et routage" tabindex="0"><table><thead><tr><th scope="col">Fichier</th><th scope="col">Ressource</th><th scope="col">Méthodes</th></tr></thead><tbody><tr><td><code>members.php</code></td><td><code>/api/members</code></td><td>GET (liste + <code>{id}</code> + <code>{id}/groups</code>), POST, PUT/PATCH, DELETE</td></tr>
+<p><code>html/api/.htaccess</code> réécrit les URL REST vers les scripts (ex. <code>contacts/42/groups</code> →
+<code>contacts.php?id=42&amp;sub=groups</code>). Endpoints (routes renommées en v5.0.0 :
+<code>members</code> → <code>contacts</code>, <code>groups</code> → <code>segments</code>) :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Structure et routage" tabindex="0"><table><thead><tr><th scope="col">Fichier</th><th scope="col">Ressource</th><th scope="col">Méthodes</th></tr></thead><tbody><tr><td><code>contacts.php</code></td><td><code>/api/contacts</code></td><td>GET (liste + <code>{id}</code> + <code>{id}/groups</code>), POST, PUT/PATCH, DELETE</td></tr>
 <tr><td><code>compta.php</code></td><td><code>/api/compta</code></td><td>GET, POST, PUT/PATCH, DELETE</td></tr>
 <tr><td><code>compta-types.php</code></td><td><code>/api/compta-types</code></td><td>GET uniquement (sinon 405)</td></tr>
-<tr><td><code>groups.php</code></td><td><code>/api/groups</code></td><td>GET, POST, PUT/PATCH, DELETE, membres</td></tr>
+<tr><td><code>segments.php</code></td><td><code>/api/segments</code></td><td>GET, POST, PUT/PATCH, DELETE, membres</td></tr>
 <tr><td><code>suivi.php</code></td><td><code>/api/suivi</code></td><td>GET, POST, PUT/PATCH, DELETE</td></tr></tbody></table></div>
 <h3 id="middleware-bootstrapphp">Middleware <code>_bootstrap.php</code><a class="anchor" href="#middleware-bootstrapphp" aria-label="Lien d'ancrage">#</a></h3>
 <p>Chaque endpoint commence par <code>require_once &#39;_bootstrap.php&#39;</code>, qui pose l&#39;en-tête JSON,
@@ -489,20 +501,20 @@ pas de JWT ni de clé API.</p>
 <ul>
 <li><strong>Lectures</strong> (GET) : <code>canRead()</code> sinon <code>403</code>.</li>
 <li><strong>Écritures membres/compta/suivi</strong> (POST/PUT/PATCH/DELETE) : <code>canWrite()</code> sinon <code>403</code>.</li>
-<li><strong>Écritures segments</strong> (<code>groups.php</code> create/update/delete/add-member/remove-member) :
+<li><strong>Écritures segments</strong> (<code>segments.php</code> create/update/delete/add-member/remove-member) :
 <code>isManager()</code> sinon <code>403</code>.</li>
-<li><strong>Suppression définitive d&#39;un membre</strong> (<code>DELETE /api/members/{id}?dispose=delete</code>) :
+<li><strong>Suppression définitive d&#39;un membre</strong> (<code>DELETE /api/contacts/{id}?dispose=delete</code>) :
 <code>isAdmin()</code>. Par défaut (<code>dispose=deactivate</code>) le membre est seulement archivé
 (<code>status=0</code>).</li>
 </ul>
-<h3 id="membersphp-en-détail"><code>members.php</code> en détail<a class="anchor" href="#membersphp-en-détail" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="membersphp-en-détail"><code>contacts.php</code> en détail<a class="anchor" href="#membersphp-en-détail" aria-label="Lien d'ancrage">#</a></h3>
 <p>Dispatch par <code>match (true)</code> sur <code>REQUEST_METHOD</code> + présence de <code>id</code>/<code>sub</code> :</p>
-<div class="table-scroll" role="region" aria-label="Tableau — members.php en détail" tabindex="0"><table><thead><tr><th scope="col">Méthode</th><th scope="col">URL</th><th scope="col">Handler</th></tr></thead><tbody><tr><td>GET</td><td>/api/members</td><td><code>handleList()</code></td></tr>
-<tr><td>GET</td><td>/api/members/{id}</td><td><code>handleGet()</code></td></tr>
-<tr><td>GET</td><td>/api/members/{id}/groups</td><td><code>handleGetGroups()</code></td></tr>
-<tr><td>POST</td><td>/api/members</td><td><code>handleCreate()</code> (201, <code>lastName</code> requis)</td></tr>
-<tr><td>PUT / PATCH</td><td>/api/members/{id}</td><td><code>handleUpdate()</code></td></tr>
-<tr><td>DELETE</td><td>/api/members/{id}</td><td><code>handleDelete()</code> (204)</td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — contacts.php en détail" tabindex="0"><table><thead><tr><th scope="col">Méthode</th><th scope="col">URL</th><th scope="col">Handler</th></tr></thead><tbody><tr><td>GET</td><td>/api/contacts</td><td><code>handleList()</code></td></tr>
+<tr><td>GET</td><td>/api/contacts/{id}</td><td><code>handleGet()</code></td></tr>
+<tr><td>GET</td><td>/api/contacts/{id}/groups</td><td><code>handleGetGroups()</code></td></tr>
+<tr><td>POST</td><td>/api/contacts</td><td><code>handleCreate()</code> (201, <code>lastName</code> requis)</td></tr>
+<tr><td>PUT / PATCH</td><td>/api/contacts/{id}</td><td><code>handleUpdate()</code></td></tr>
+<tr><td>DELETE</td><td>/api/contacts/{id}</td><td><code>handleDelete()</code> (204)</td></tr>
 <tr><td>(autre)</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td><code>apiError(405)</code></td></tr></tbody></table></div>
 <p><code>handleList()</code> supporte <code>?search=</code>, <code>?team=</code>, <code>?metagroup=</code>, <code>?page=</code>, <code>?limit=</code>
 (max 2000), <code>?types=</code>. <code>handleUpdate()</code> charge l&#39;avant, applique le patch, recharge
@@ -511,7 +523,7 @@ l&#39;après, calcule un diff lisible et l&#39;écrit dans <code>audit_log</code
 <p>Un <code>?team=</code> <strong>négatif</strong> déclenche des requêtes métier dédiées, résolues par la classe
 partagée <code>MemberFilter</code> (<code>html/classes/member_filter_class.php</code>) — seule source de
 vérité consommée à la fois par la liste des membres (<code>users_list.php</code>) et par l&#39;API
-(<code>api/members.php</code>). <code>MemberFilter::resolveIds()</code> retourne la map <code>id =&gt; true</code> des
+(<code>api/contacts.php</code>). <code>MemberFilter::resolveIds()</code> retourne la map <code>id =&gt; true</code> des
 membres correspondants ; <code>MemberFilter::isVirtual()</code> teste si un ID de segment est
 un filtre virtuel. Constantes définies dans <code>bootstrap.php</code> :</p>
 <div class="table-scroll" role="region" aria-label="Tableau — Filtres virtuels (MemberFilter)" tabindex="0"><table><thead><tr><th scope="col">Constante</th><th scope="col">Valeur</th><th scope="col">Sémantique</th></tr></thead><tbody><tr><td><code>FILTER_ALL_EXCEPT_ARCHIVES</code></td><td>-3</td><td>Tous les membres actifs</td></tr>
@@ -592,7 +604,7 @@ navigation ou de filtre.</p>
 <p>Chargé avant Alpine, initialisé via <code>x-data=&quot;memberGeneralForm()&quot;</code>. Données passées par
 attributs <code>data-*</code> (pas de <code>fetch</code> initial, compatible CSP <code>self</code>). États : <code>editing</code>,
 <code>saving</code>, <code>saved</code>, <code>error</code>. <code>save()</code> n&#39;envoie que les champs modifiés
-(<code>draft[k] !== data[k]</code>) via <code>PATCH /api/members/{id}</code>, d&#39;où un diff serveur trivial.</p>
+(<code>draft[k] !== data[k]</code>) via <code>PATCH /api/contacts/{id}</code>, d&#39;où un diff serveur trivial.</p>
 <hr>
 <h2 id="11-génération-de-documents-attestations-pdf">11. Génération de documents (attestations PDF)<a class="anchor" href="#11-génération-de-documents-attestations-pdf" aria-label="Lien d'ancrage">#</a></h2>
 <p>Les attestations fiscales de dons sont générées <strong>côté serveur avec <code>pdftk</code></strong> :</p>
@@ -657,9 +669,9 @@ tête. Appellent <code>auditLog()</code> pour toute opération sensible. Termine
 </ul>
 <h3 id="séquences">Séquences<a class="anchor" href="#séquences" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
-<li><code>AUTO_INCREMENT</code> natif pour <code>users</code>, <code>team</code>, <code>compta</code>, <code>compta_type</code>, <code>app_users</code>,
+<li><code>AUTO_INCREMENT</code> natif pour <code>contact</code>, <code>segment</code>, <code>compta</code>, <code>compta_type</code>, <code>app_users</code>,
 <code>audit_log</code>. <code>maxval</code> (<code>getMaxVal()</code> / <code>updateAndGetMaxVal()</code>) uniquement pour
-<code>metagroup.id</code> (id partagé header/membres) et l&#39;<code>id</code> legacy de <code>user_properties</code>.</li>
+<code>metagroup.id</code> (id partagé header/membres) et l&#39;<code>id</code> legacy de <code>contact_properties</code>.</li>
 </ul>
 <h3 id="audit-log">Audit log<a class="anchor" href="#audit-log" aria-label="Lien d'ancrage">#</a></h3>
 <ul>

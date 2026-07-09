@@ -274,7 +274,7 @@ curl -c cookies.txt \
   -d &quot;username=alice&amp;password=secret&quot;
 
 # Toutes les requêtes API suivantes portent ce cookie
-curl -b cookies.txt https://votre-domaine/api/members
+curl -b cookies.txt https://votre-domaine/api/contacts
 </code></pre>
 <hr>
 <h2 id="rôles-et-permissions">Rôles et permissions<a class="anchor" href="#rôles-et-permissions" aria-label="Lien d'ancrage">#</a></h2>
@@ -286,20 +286,20 @@ curl -b cookies.txt https://votre-domaine/api/members
 <p>Règles réelles appliquées <strong>par endpoint</strong> (vérifiées dans le code — elles ne sont pas homogènes entre ressources) :</p>
 <ul>
 <li><strong>Membres, Compta, Suivi</strong> : les lectures appellent explicitement <code>canRead()</code> (403 si rôle insuffisant) ; les écritures appellent <code>canWrite()</code>.</li>
-<li><strong>Suppression définitive d&#39;un membre</strong> (<code>DELETE /api/members/{id}?dispose=delete</code>) : <code>isAdmin()</code> requis (403 sinon). La désactivation simple ne requiert que <code>canWrite()</code> implicite (aucun contrôle de rôle explicite au-delà de l&#39;authentification pour la désactivation — voir la note de l&#39;endpoint).</li>
+<li><strong>Suppression définitive d&#39;un membre</strong> (<code>DELETE /api/contacts/{id}?dispose=delete</code>) : <code>isAdmin()</code> requis (403 sinon). La désactivation simple ne requiert que <code>canWrite()</code> implicite (aucun contrôle de rôle explicite au-delà de l&#39;authentification pour la désactivation — voir la note de l&#39;endpoint).</li>
 <li><strong>Segments / groups</strong> : toutes les écritures (création, mise à jour, suppression, ajout/retrait de membre) appellent <code>isManager()</code> (403 sinon). <strong>Les lectures (<code>GET</code>) n&#39;effectuent AUCUN contrôle de rôle</strong> : elles ne requièrent que l&#39;authentification (n&#39;importe quel rôle connecté, y compris <code>readonly</code>).</li>
 <li><strong>Types de compta</strong> (<code>GET /api/compta-types</code>) : <strong>aucun contrôle de rôle</strong> au-delà de l&#39;authentification.</li>
 </ul>
 <p>Un rôle insuffisant retourne <code>403</code> avec <code>{ &quot;error&quot;: &quot;Forbidden&quot; }</code> (ou un message spécifique, ex. <code>&quot;Manager role required&quot;</code>, <code>&quot;Admin role required to permanently delete a member&quot;</code>).</p>
 <blockquote>
-<p><strong>Terminologie.</strong> L&#39;interface parle désormais de <strong>Segment</strong> ; l&#39;API conserve les chemins <code>/api/groups</code> et le vocabulaire « groupe » d&#39;origine (entité SQL <code>team</code>). Dans ce document, « Segment » et « groupe » sont synonymes.</p>
+<p><strong>Terminologie.</strong> L&#39;interface parle désormais de <strong>Segment</strong> ; l&#39;API parlent désormais de <strong>Segment</strong> (chemins <code>/api/segments</code>, entité SQL <code>segment</code>, depuis la v5.0.0). Le champ de filtre <code>team</code> sur <code>GET /api/contacts</code> garde son nom historique par rétrocompatibilité de paramètre. Dans ce document, « Segment » et « groupe » sont synonymes.</p>
 </blockquote>
 <hr>
 <h2 id="format-des-réponses">Format des réponses<a class="anchor" href="#format-des-réponses" aria-label="Lien d'ancrage">#</a></h2>
 <ul>
 <li><strong>Content-Type</strong> : <code>application/json; charset=utf-8</code></li>
 <li><strong>Envelope succès</strong> : <code>{ &quot;data&quot;: … }</code> (objet ou tableau)</li>
-<li><strong>Envelope liste paginée</strong> : <code>{ &quot;data&quot;: […], &quot;meta&quot;: { &quot;page&quot;: 1, &quot;limit&quot;: 25, &quot;total&quot;: 142 } }</code> (uniquement <code>GET /api/members</code>)</li>
+<li><strong>Envelope liste paginée</strong> : <code>{ &quot;data&quot;: […], &quot;meta&quot;: { &quot;page&quot;: 1, &quot;limit&quot;: 25, &quot;total&quot;: 142 } }</code> (uniquement <code>GET /api/contacts</code>)</li>
 <li><strong>Envelope liste simple</strong> : <code>{ &quot;data&quot;: […] }</code> (compta, suivi, groups, compta-types, members/{id}/groups, groups/{id}/members)</li>
 <li><strong>Erreur</strong> : <code>{ &quot;error&quot;: &quot;message lisible&quot; }</code></li>
 </ul>
@@ -319,23 +319,23 @@ curl -b cookies.txt https://votre-domaine/api/members
 <hr>
 <h2 id="routage-htaccess">Routage (.htaccess)<a class="anchor" href="#routage-htaccess" aria-label="Lien d'ancrage">#</a></h2>
 <p>Le routage est assuré par <code>html/api/.htaccess</code>. Chemins exposés :</p>
-<div class="table-scroll" role="region" aria-label="Tableau — Routage (.htaccess)" tabindex="0"><table><thead><tr><th scope="col">Méthode + chemin</th><th scope="col">Script cible</th></tr></thead><tbody><tr><td><code>/api/members</code></td><td><code>members.php</code></td></tr>
-<tr><td><code>/api/members/{id}</code></td><td><code>members.php?id={id}</code></td></tr>
-<tr><td><code>/api/members/{id}/groups</code></td><td><code>members.php?id={id}&amp;sub=groups</code></td></tr>
-<tr><td><code>/api/members/{id}?sub=compta</code></td><td><code>members.php?id={id}&amp;sub=compta</code> (pas de clean-URL dédiée)</td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — Routage (.htaccess)" tabindex="0"><table><thead><tr><th scope="col">Méthode + chemin</th><th scope="col">Script cible</th></tr></thead><tbody><tr><td><code>/api/contacts</code></td><td><code>contacts.php</code></td></tr>
+<tr><td><code>/api/contacts/{id}</code></td><td><code>contacts.php?id={id}</code></td></tr>
+<tr><td><code>/api/contacts/{id}/groups</code></td><td><code>contacts.php?id={id}&amp;sub=groups</code></td></tr>
+<tr><td><code>/api/contacts/{id}?sub=compta</code></td><td><code>contacts.php?id={id}&amp;sub=compta</code> (pas de clean-URL dédiée)</td></tr>
 <tr><td><code>/api/compta</code></td><td><code>compta.php</code></td></tr>
 <tr><td><code>/api/compta/{id}</code></td><td><code>compta.php?id={id}</code></td></tr>
 <tr><td><code>/api/compta-types</code></td><td><code>compta-types.php</code></td></tr>
 <tr><td><code>/api/suivi</code></td><td><code>suivi.php</code></td></tr>
 <tr><td><code>/api/suivi/{id}</code></td><td><code>suivi.php?id={id}</code></td></tr>
-<tr><td><code>/api/groups</code></td><td><code>groups.php</code></td></tr>
-<tr><td><code>/api/groups/{id}</code></td><td><code>groups.php?id={id}</code></td></tr>
-<tr><td><code>/api/groups/{id}/members</code></td><td><code>groups.php?id={id}&amp;sub=members</code></td></tr></tbody></table></div>
+<tr><td><code>/api/segments</code></td><td><code>segments.php</code></td></tr>
+<tr><td><code>/api/segments/{id}</code></td><td><code>segments.php?id={id}</code></td></tr>
+<tr><td><code>/api/segments/{id}/members</code></td><td><code>segments.php?id={id}&amp;sub=members</code></td></tr></tbody></table></div>
 <p>Toute combinaison méthode/chemin non prévue par le dispatcher d&#39;un script retourne <code>405 Method Not Allowed</code>.</p>
 <hr>
 <h2 id="membres">Membres<a class="anchor" href="#membres" aria-label="Lien d'ancrage">#</a></h2>
-<p>Ressource : <code>html/api/members.php</code>. Entité SQL : <code>users</code>.</p>
-<h3 id="get-apimembers"><code>GET /api/members</code><a class="anchor" href="#get-apimembers" aria-label="Lien d'ancrage">#</a></h3>
+<p>Ressource : <code>html/api/contacts.php</code>. Entité SQL : <code>contact</code>.</p>
+<h3 id="get-apimembers"><code>GET /api/contacts</code><a class="anchor" href="#get-apimembers" aria-label="Lien d'ancrage">#</a></h3>
 <p>Liste paginée des membres <strong>actifs</strong> (<code>users.status = 1</code>), triée par <code>lastName ASC, firstName ASC</code>.
 Rôle : <code>canRead()</code>.</p>
 <h4 id="paramètres-de-query">Paramètres de query<a class="anchor" href="#paramètres-de-query" aria-label="Lien d'ancrage">#</a></h4>
@@ -375,26 +375,26 @@ Rôle : <code>canRead()</code>.</p>
 </ul>
 <h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
 <pre><code class="language-bash">curl -b cookies.txt \
-  &quot;https://votre-domaine/api/members?search=dupont&amp;limit=10&amp;types=1&quot;
+  &quot;https://votre-domaine/api/contacts?search=dupont&amp;limit=10&amp;types=1&quot;
 </code></pre>
 <hr>
-<h3 id="filtres-virtuels-sur-get-apimembers">Filtres virtuels sur <code>GET /api/members</code><a class="anchor" href="#filtres-virtuels-sur-get-apimembers" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="filtres-virtuels-sur-get-apimembers">Filtres virtuels sur <code>GET /api/contacts</code><a class="anchor" href="#filtres-virtuels-sur-get-apimembers" aria-label="Lien d'ancrage">#</a></h3>
 <p>Activés en passant une valeur <strong>négative</strong> au paramètre <code>team</code>. La résolution est déléguée à la classe partagée <code>MemberFilter</code> (<code>html/classes/member_filter_class.php</code>) — la même que celle utilisée par la liste des membres dans l&#39;interface, ce qui garantit des résultats identiques entre la vue et l&#39;API. Pagination standard (<code>page</code>, <code>limit</code>) et <code>types</code> supportés. Une valeur négative non reconnue retourne <code>400 Unknown virtual filter</code>.</p>
 <p>Constantes définies dans <code>html/includes/lib/bootstrap.php</code> :</p>
-<div class="table-scroll" role="region" aria-label="Tableau — Filtres virtuels sur GET /api/members" tabindex="0"><table><thead><tr><th scope="col">Valeur <code>team</code></th><th scope="col">Constante</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>-3</code></td><td><code>FILTER_ALL_EXCEPT_ARCHIVES</code></td><td>Tous les membres actifs (équivalent à l&#39;absence de filtre)</td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — Filtres virtuels sur GET /api/contacts" tabindex="0"><table><thead><tr><th scope="col">Valeur <code>team</code></th><th scope="col">Constante</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>-3</code></td><td><code>FILTER_ALL_EXCEPT_ARCHIVES</code></td><td>Tous les membres actifs (équivalent à l&#39;absence de filtre)</td></tr>
 <tr><td><code>-4</code></td><td><code>FILTER_UNPAID_COTI_CURRENT</code></td><td>Membres du groupe « membre » (paramètre <code>membre_team</code>) sans cotisation payée dans l&#39;année civile en cours. Exclut le groupe « no_coti » (<code>member_no_coti_team</code>) si configuré. Retourne un tableau vide si <code>membre_team</code> n&#39;est pas configuré</td></tr>
 <tr><td><code>-3333</code></td><td><code>FILTER_UNPAID_COTI_3Y</code></td><td>Membres ayant payé au moins une cotisation dans l&#39;historique, mais aucune depuis le début de l&#39;année N-2. Exclut le groupe « no_coti » si configuré</td></tr>
 <tr><td><code>-5555</code></td><td><code>FILTER_NO_ACTIVITY_10Y</code></td><td>Membres actifs sans aucune écriture comptable (<code>compta</code>) dans les 10 dernières années</td></tr>
 <tr><td><code>-6666</code></td><td><code>FILTER_NON_INSTIT_LAST_YEAR</code></td><td>Membres actifs ayant effectué au moins un paiement non-institutionnel (type <code>is_institutional = 0</code>, ou sans type) durant l&#39;année civile précédente</td></tr></tbody></table></div>
-<p>Une cotisation est une écriture dont le type a <code>is_cotisation = 1</code>. La réponse a le même format que <code>GET /api/members</code> (envelope <code>data</code> + <code>meta</code>).</p>
+<p>Une cotisation est une écriture dont le type a <code>is_cotisation = 1</code>. La réponse a le même format que <code>GET /api/contacts</code> (envelope <code>data</code> + <code>meta</code>).</p>
 <pre><code class="language-bash"># Cotisation en retard depuis plus de 3 ans
-curl -b cookies.txt &quot;https://votre-domaine/api/members?team=-3333&amp;limit=50&quot;
+curl -b cookies.txt &quot;https://votre-domaine/api/contacts?team=-3333&amp;limit=50&quot;
 
 # Membres du groupe « membre » sans cotisation cette année
-curl -b cookies.txt &quot;https://votre-domaine/api/members?team=-4&quot;
+curl -b cookies.txt &quot;https://votre-domaine/api/contacts?team=-4&quot;
 </code></pre>
 <hr>
-<h3 id="get-apimembersid"><code>GET /api/members/{id}</code><a class="anchor" href="#get-apimembersid" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="get-apimembersid"><code>GET /api/contacts/{id}</code><a class="anchor" href="#get-apimembersid" aria-label="Lien d'ancrage">#</a></h3>
 <p>Fiche complète d&#39;un membre. Rôle : <code>canRead()</code>.</p>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
 <pre><code class="language-json">{
@@ -427,10 +427,10 @@ curl -b cookies.txt &quot;https://votre-domaine/api/members?team=-4&quot;
 <li><code>404</code> — membre introuvable. Note : <code>lookupUser()</code> ne filtre pas sur <code>status</code>, un membre désactivé peut donc être retourné par son id.</li>
 </ul>
 <h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
-<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/members/42&quot;
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/contacts/42&quot;
 </code></pre>
 <hr>
-<h3 id="post-apimembers"><code>POST /api/members</code><a class="anchor" href="#post-apimembers" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="post-apimembers"><code>POST /api/contacts</code><a class="anchor" href="#post-apimembers" aria-label="Lien d'ancrage">#</a></h3>
 <p>Créer un membre. Rôle : <code>canWrite()</code>.</p>
 <h4 id="corps-de-requête-json">Corps de requête (JSON)<a class="anchor" href="#corps-de-requête-json" aria-label="Lien d'ancrage">#</a></h4>
 <p>Champs de la liste blanche (<code>applyFields</code>). <strong>Seul <code>lastName</code> est obligatoire</strong> (rejet <code>422</code> si vide) ; tous les autres champs sont facultatifs.</p>
@@ -451,7 +451,7 @@ curl -b cookies.txt &quot;https://votre-domaine/api/members?team=-4&quot;
 <tr><td><code>birthDate</code></td><td>string</td><td>non</td><td>Date de naissance <code>YYYY-MM-DD</code></td></tr>
 <tr><td><code>comment</code></td><td>string</td><td>non</td><td>Commentaire interne</td></tr></tbody></table></div>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
-<p><code>201 Created</code> — objet membre complet (même structure que <code>GET /api/members/{id}</code>).</p>
+<p><code>201 Created</code> — objet membre complet (même structure que <code>GET /api/contacts/{id}</code>).</p>
 <h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
 <ul>
 <li><code>400</code> — corps JSON invalide</li>
@@ -460,16 +460,16 @@ curl -b cookies.txt &quot;https://votre-domaine/api/members?team=-4&quot;
 </ul>
 <h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
 <pre><code class="language-bash">curl -b cookies.txt \
-  -X POST &quot;https://votre-domaine/api/members&quot; \
+  -X POST &quot;https://votre-domaine/api/contacts&quot; \
   -H &quot;Content-Type: application/json&quot; \
   -d &#39;{&quot;lastName&quot;: &quot;Dupont&quot;, &quot;firstName&quot;: &quot;Marie&quot;, &quot;email&quot;: &quot;marie@example.com&quot;}&#39;
 </code></pre>
 <hr>
-<h3 id="put-apimembersid--patch-apimembersid"><code>PUT /api/members/{id}</code> / <code>PATCH /api/members/{id}</code><a class="anchor" href="#put-apimembersid--patch-apimembersid" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="put-apimembersid--patch-apimembersid"><code>PUT /api/contacts/{id}</code> / <code>PATCH /api/contacts/{id}</code><a class="anchor" href="#put-apimembersid--patch-apimembersid" aria-label="Lien d'ancrage">#</a></h3>
 <p>Modification partielle : seuls les champs présents dans le corps sont appliqués. Chaque modification est journalisée dans l&#39;audit log (valeur avant → après). Rôle : <code>canWrite()</code>.</p>
 <p>Champs acceptés : identiques à <code>POST</code> (tous facultatifs). <code>birthDate: &quot;&quot;</code> efface la date de naissance.</p>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
-<p>Objet membre complet après modification (structure de <code>GET /api/members/{id}</code>).</p>
+<p>Objet membre complet après modification (structure de <code>GET /api/contacts/{id}</code>).</p>
 <h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
 <ul>
 <li><code>400</code> — corps JSON invalide</li>
@@ -478,12 +478,12 @@ curl -b cookies.txt &quot;https://votre-domaine/api/members?team=-4&quot;
 </ul>
 <h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
 <pre><code class="language-bash">curl -b cookies.txt \
-  -X PATCH &quot;https://votre-domaine/api/members/42&quot; \
+  -X PATCH &quot;https://votre-domaine/api/contacts/42&quot; \
   -H &quot;Content-Type: application/json&quot; \
   -d &#39;{&quot;email&quot;: &quot;nouveau@example.com&quot;, &quot;portable&quot;: &quot;+41 79 111 11 11&quot;}&#39;
 </code></pre>
 <hr>
-<h3 id="delete-apimembersid"><code>DELETE /api/members/{id}</code><a class="anchor" href="#delete-apimembersid" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="delete-apimembersid"><code>DELETE /api/contacts/{id}</code><a class="anchor" href="#delete-apimembersid" aria-label="Lien d'ancrage">#</a></h3>
 <p>Par défaut : <strong>désactivation</strong> (<code>UPDATE users SET status = 0</code>). Avec <code>?dispose=delete</code> : <strong>suppression définitive</strong> de l&#39;enregistrement (<code>isAdmin()</code> requis).</p>
 <h4 id="paramètres-de-query">Paramètres de query<a class="anchor" href="#paramètres-de-query" aria-label="Lien d'ancrage">#</a></h4>
 <div class="table-scroll" role="region" aria-label="Tableau — Paramètres de query" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>dispose</code></td><td>string</td><td><code>&quot;delete&quot;</code> : suppression définitive (admin uniquement). Toute autre valeur (ou absente) : désactivation</td></tr></tbody></table></div>
@@ -499,13 +499,13 @@ curl -b cookies.txt &quot;https://votre-domaine/api/members?team=-4&quot;
 </blockquote>
 <h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
 <pre><code class="language-bash"># Désactivation (status=0)
-curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42&quot;
+curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/contacts/42&quot;
 
 # Suppression définitive (admin)
-curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose=delete&quot;
+curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/contacts/42?dispose=delete&quot;
 </code></pre>
 <hr>
-<h3 id="get-apimembersidgroups"><code>GET /api/members/{id}/groups</code><a class="anchor" href="#get-apimembersidgroups" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="get-apimembersidgroups"><code>GET /api/contacts/{id}/groups</code><a class="anchor" href="#get-apimembersidgroups" aria-label="Lien d'ancrage">#</a></h3>
 <p>Groupes (segments) auxquels appartient un membre, triés par catégorie (<code>sort_order</code>, <code>name</code>) puis par nom de groupe. Rôle : <code>canRead()</code>.</p>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
 <pre><code class="language-json">{
@@ -518,13 +518,13 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 <p><code>categoryId</code>/<code>categoryName</code> sont <code>null</code> si le groupe n&#39;appartient à aucune catégorie non-filtre (<code>metagroup</code> avec <code>is_filter = 0</code>).</p>
 <h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
 <ul>
-<li><code>404</code> — membre introuvable <strong>ou inactif</strong> (contrôle <code>status = 1</code> ici, contrairement à <code>GET /api/members/{id}</code>)</li>
+<li><code>404</code> — membre introuvable <strong>ou inactif</strong> (contrôle <code>status = 1</code> ici, contrairement à <code>GET /api/contacts/{id}</code>)</li>
 </ul>
 <h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
-<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/members/42/groups&quot;
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/contacts/42/groups&quot;
 </code></pre>
 <hr>
-<h3 id="get-apimembersidsubcompta"><code>GET /api/members/{id}?sub=compta</code><a class="anchor" href="#get-apimembersidsubcompta" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="get-apimembersidsubcompta"><code>GET /api/contacts/{id}?sub=compta</code><a class="anchor" href="#get-apimembersidsubcompta" aria-label="Lien d'ancrage">#</a></h3>
 <p>Écritures comptables d&#39;un membre, triées par date décroissante (<code>date DESC, id DESC</code>). Rôle : <code>canRead()</code>.</p>
 <blockquote>
 <p>Pas de route clean-URL dédiée dans <code>html/api/.htaccess</code> (contrairement à <code>sub=groups</code> → <code>/members/{id}/groups</code>) : seule la forme en query string fonctionne.</p>
@@ -556,15 +556,15 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 <li><code>404</code> — membre introuvable ou inactif (<code>status = 1</code>)</li>
 </ul>
 <h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
-<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/members/42?sub=compta&quot;
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/contacts/42?sub=compta&quot;
 </code></pre>
 <hr>
-<h2 id="segments-groups">Segments (groups)<a class="anchor" href="#segments-groups" aria-label="Lien d'ancrage">#</a></h2>
-<p>Ressource : <code>html/api/groups.php</code>. Entité SQL : <code>team</code>. Rappel : « groups » (technique) = « Segment » (UI).</p>
+<h2 id="segments-groups">Segments<a class="anchor" href="#segments-groups" aria-label="Lien d'ancrage">#</a></h2>
+<p>Ressource : <code>html/api/segments.php</code>. Entité SQL : <code>segment</code> (renommée depuis <code>team</code> en v5.0.0).</p>
 <blockquote>
 <p><strong>Contrôle d&#39;accès.</strong> Les lectures (<code>GET</code>) ne vérifient <strong>que</strong> l&#39;authentification (aucun <code>canRead()</code>). Toutes les écritures vérifient <code>isManager()</code> → <code>403 &quot;Manager role required&quot;</code> sinon.</p>
 </blockquote>
-<h3 id="get-apigroups"><code>GET /api/groups</code><a class="anchor" href="#get-apigroups" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="get-apigroups"><code>GET /api/segments</code><a class="anchor" href="#get-apigroups" aria-label="Lien d'ancrage">#</a></h3>
 <p>Liste de tous les groupes avec leur nombre de membres actifs, triés par catégorie puis nom.</p>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
 <pre><code class="language-json">{
@@ -575,19 +575,19 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 }
 </code></pre>
 <p><code>memberCount</code> ne compte que les membres <code>status = 1</code>.</p>
-<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/groups&quot;
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/segments&quot;
 </code></pre>
 <hr>
-<h3 id="get-apigroupsid"><code>GET /api/groups/{id}</code><a class="anchor" href="#get-apigroupsid" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="get-apigroupsid"><code>GET /api/segments/{id}</code><a class="anchor" href="#get-apigroupsid" aria-label="Lien d'ancrage">#</a></h3>
 <p>Détail d&#39;un groupe avec nombre de membres actifs. Même structure d&#39;objet que dans la liste.</p>
 <h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
 <ul>
 <li><code>404</code> — groupe introuvable</li>
 </ul>
-<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/groups/7&quot;
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/segments/7&quot;
 </code></pre>
 <hr>
-<h3 id="post-apigroups"><code>POST /api/groups</code><a class="anchor" href="#post-apigroups" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="post-apigroups"><code>POST /api/segments</code><a class="anchor" href="#post-apigroups" aria-label="Lien d'ancrage">#</a></h3>
 <p>Créer un groupe. Rôle : <code>isManager()</code>.</p>
 <h4 id="corps-de-requête-json">Corps de requête (JSON)<a class="anchor" href="#corps-de-requête-json" aria-label="Lien d'ancrage">#</a></h4>
 <div class="table-scroll" role="region" aria-label="Tableau — Corps de requête (JSON)" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>name</code></td><td>string</td><td><strong>oui</strong></td><td>Nom du groupe (rejet <code>422</code> si vide)</td></tr>
@@ -600,14 +600,14 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 <li><code>422</code> — <code>name</code> manquant/vide</li>
 </ul>
 <pre><code class="language-bash">curl -b cookies.txt \
-  -X POST &quot;https://votre-domaine/api/groups&quot; \
+  -X POST &quot;https://votre-domaine/api/segments&quot; \
   -H &quot;Content-Type: application/json&quot; \
   -d &#39;{&quot;name&quot;: &quot;Nouveaux membres 2025&quot;}&#39;
 </code></pre>
 <hr>
-<h3 id="put-apigroupsid"><code>PUT /api/groups/{id}</code><a class="anchor" href="#put-apigroupsid" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="put-apigroupsid"><code>PUT /api/segments/{id}</code><a class="anchor" href="#put-apigroupsid" aria-label="Lien d'ancrage">#</a></h3>
 <p>Renommer un groupe et/ou basculer sa visibilité. Rôle : <code>isManager()</code>. Seuls les champs présents sont appliqués.</p>
-<div class="table-scroll" role="region" aria-label="Tableau — PUT /api/groups/{id}" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>name</code></td><td>string</td><td>Nouveau nom</td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — PUT /api/segments/{id}" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>name</code></td><td>string</td><td>Nouveau nom</td></tr>
 <tr><td><code>hidden</code></td><td>boolean</td><td><code>true</code> pour masquer, <code>false</code> pour afficher</td></tr></tbody></table></div>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
 <p>Objet groupe mis à jour.</p>
@@ -617,12 +617,12 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 <li><code>404</code> — groupe introuvable</li>
 </ul>
 <pre><code class="language-bash">curl -b cookies.txt \
-  -X PUT &quot;https://votre-domaine/api/groups/7&quot; \
+  -X PUT &quot;https://votre-domaine/api/segments/7&quot; \
   -H &quot;Content-Type: application/json&quot; \
   -d &#39;{&quot;name&quot;: &quot;Conseil 2025&quot;, &quot;hidden&quot;: false}&#39;
 </code></pre>
 <hr>
-<h3 id="delete-apigroupsid"><code>DELETE /api/groups/{id}</code><a class="anchor" href="#delete-apigroupsid" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="delete-apigroupsid"><code>DELETE /api/segments/{id}</code><a class="anchor" href="#delete-apigroupsid" aria-label="Lien d'ancrage">#</a></h3>
 <p>Supprimer un groupe. Rôle : <code>isManager()</code>. Refusé (<code>409</code>) si le groupe contient encore des membres.</p>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
 <p><code>204 No Content</code></p>
@@ -632,10 +632,10 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 <li><code>404</code> — groupe introuvable</li>
 <li><code>409</code> — groupe non vide (message : « Group still has members — remove them first or use force=true ». Note : le paramètre <code>force=true</code> évoqué dans le message <strong>n&#39;est pas implémenté</strong> dans le code actuel)</li>
 </ul>
-<pre><code class="language-bash">curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/groups/7&quot;
+<pre><code class="language-bash">curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/segments/7&quot;
 </code></pre>
 <hr>
-<h3 id="get-apigroupsidmembers"><code>GET /api/groups/{id}/members</code><a class="anchor" href="#get-apigroupsidmembers" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="get-apigroupsidmembers"><code>GET /api/segments/{id}/members</code><a class="anchor" href="#get-apigroupsidmembers" aria-label="Lien d'ancrage">#</a></h3>
 <p>Membres actifs (<code>status = 1</code>) d&#39;un groupe, triés par <code>lastName, firstName</code>.</p>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
 <pre><code class="language-json">{
@@ -648,12 +648,12 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 <ul>
 <li><code>404</code> — groupe introuvable</li>
 </ul>
-<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/groups/7/members&quot;
+<pre><code class="language-bash">curl -b cookies.txt &quot;https://votre-domaine/api/segments/7/members&quot;
 </code></pre>
 <hr>
-<h3 id="post-apigroupsidmembers"><code>POST /api/groups/{id}/members</code><a class="anchor" href="#post-apigroupsidmembers" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="post-apigroupsidmembers"><code>POST /api/segments/{id}/members</code><a class="anchor" href="#post-apigroupsidmembers" aria-label="Lien d'ancrage">#</a></h3>
 <p>Ajouter un membre à un groupe (<code>INSERT IGNORE</code> — idempotent). Rôle : <code>isManager()</code>.</p>
-<div class="table-scroll" role="region" aria-label="Tableau — POST /api/groups/{id}/members" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>integer</td><td><strong>oui</strong></td><td>Membre à ajouter</td></tr></tbody></table></div>
+<div class="table-scroll" role="region" aria-label="Tableau — POST /api/segments/{id}/members" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>integer</td><td><strong>oui</strong></td><td>Membre à ajouter</td></tr></tbody></table></div>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
 <p><code>204 No Content</code></p>
 <h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
@@ -663,14 +663,14 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 <li><code>422</code> — <code>memberId</code> manquant, ou membre inexistant/inactif</li>
 </ul>
 <pre><code class="language-bash">curl -b cookies.txt \
-  -X POST &quot;https://votre-domaine/api/groups/7/members&quot; \
+  -X POST &quot;https://votre-domaine/api/segments/7/members&quot; \
   -H &quot;Content-Type: application/json&quot; \
   -d &#39;{&quot;memberId&quot;: 42}&#39;
 </code></pre>
 <hr>
-<h3 id="delete-apigroupsidmembers"><code>DELETE /api/groups/{id}/members</code><a class="anchor" href="#delete-apigroupsidmembers" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="delete-apigroupsidmembers"><code>DELETE /api/segments/{id}/members</code><a class="anchor" href="#delete-apigroupsidmembers" aria-label="Lien d'ancrage">#</a></h3>
 <p>Retirer un membre d&#39;un groupe. Rôle : <code>isManager()</code>.</p>
-<div class="table-scroll" role="region" aria-label="Tableau — DELETE /api/groups/{id}/members" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>integer</td><td><strong>oui</strong></td><td>Membre à retirer</td></tr></tbody></table></div>
+<div class="table-scroll" role="region" aria-label="Tableau — DELETE /api/segments/{id}/members" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>integer</td><td><strong>oui</strong></td><td>Membre à retirer</td></tr></tbody></table></div>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
 <p><code>204 No Content</code> (aucune erreur si l&#39;appartenance n&#39;existait pas).</p>
 <h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
@@ -679,7 +679,7 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 <li><code>422</code> — <code>memberId</code> manquant</li>
 </ul>
 <pre><code class="language-bash">curl -b cookies.txt \
-  -X DELETE &quot;https://votre-domaine/api/groups/7/members&quot; \
+  -X DELETE &quot;https://votre-domaine/api/segments/7/members&quot; \
   -H &quot;Content-Type: application/json&quot; \
   -d &#39;{&quot;memberId&quot;: 42}&#39;
 </code></pre>
@@ -798,7 +798,7 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 </code></pre>
 <hr>
 <h2 id="suivi">Suivi<a class="anchor" href="#suivi" aria-label="Lien d'ancrage">#</a></h2>
-<p>Ressource : <code>html/api/suivi.php</code>. Entité SQL : <code>user_properties</code> avec <code>parameter = &#39;suivi&#39;</code>.</p>
+<p>Ressource : <code>html/api/suivi.php</code>. Entité SQL : <code>contact_properties</code> avec <code>parameter = &#39;suivi&#39;</code>.</p>
 <h3 id="get-apisuivi"><code>GET /api/suivi</code><a class="anchor" href="#get-apisuivi" aria-label="Lien d'ancrage">#</a></h3>
 <p>Notes de suivi d&#39;un membre, triées par <code>date DESC, id DESC</code>. Rôle : <code>canRead()</code>.</p>
 <h4 id="paramètres-de-query">Paramètres de query<a class="anchor" href="#paramètres-de-query" aria-label="Lien d'ancrage">#</a></h4>
@@ -826,7 +826,7 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/members/42?dispose
 <p>Détail d&#39;une note. Rôle : <code>canRead()</code>. Même structure qu&#39;un élément de liste.</p>
 <h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
 <ul>
-<li><code>404</code> — note introuvable (l&#39;id doit correspondre à une <code>user_properties</code> avec <code>parameter = &#39;suivi&#39;</code>)</li>
+<li><code>404</code> — note introuvable (l&#39;id doit correspondre à une <code>contact_properties</code> avec <code>parameter = &#39;suivi&#39;</code>)</li>
 </ul>
 <hr>
 <h3 id="post-apisuivi"><code>POST /api/suivi</code><a class="anchor" href="#post-apisuivi" aria-label="Lien d'ancrage">#</a></h3>

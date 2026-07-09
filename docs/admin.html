@@ -326,7 +326,7 @@ chmod 750 /var/www/votre-domaine/conf
 <tr><td>Mot de passe</td><td><code>***</code></td><td></td></tr></tbody></table></div>
 <p><strong>Étape 3 — Initialisation du schéma</strong></p>
 <p>Crée les tables suivantes (toutes avec <code>CREATE TABLE IF NOT EXISTS</code> — idempotent) :</p>
-<p><code>users</code> <code>team</code> <code>user_properties</code> <code>metagroup</code> <code>compta</code> <code>compta_type</code> <code>maxval</code> <code>app_settings</code> <code>app_users</code> <code>audit_log</code></p>
+<p><code>contact</code> <code>segment</code> <code>contact_properties</code> <code>contact_segment</code> <code>metagroup</code> <code>compta</code> <code>compta_type</code> <code>maxval</code> <code>app_settings</code> <code>app_users</code> <code>audit_log</code> <code>email_templates</code> <code>email_log</code></p>
 <p>Un clic suffit. Les tables existantes ne sont pas modifiées.</p>
 <p><strong>Étape 4 — Configuration de l&#39;organisation</strong></p>
 <p>Saisir les informations de l&#39;association (nom, adresse, NPA, ville, pays). Ces données apparaissent dans le titre de l&#39;application et sur les attestations de dons PDF.</p>
@@ -445,9 +445,9 @@ find $WEBROOT/html -type d -exec chmod 755 {} \;
 find $WEBROOT/html -type f -exec chmod 644 {} \;
 </code></pre>
 <h3 id="routes-api-modrewrite">Routes API (mod_rewrite)<a class="anchor" href="#routes-api-modrewrite" aria-label="Lien d'ancrage">#</a></h3>
-<p>Les endpoints REST utilisent des URLs propres (<code>/api/members/42</code>). <code>mod_rewrite</code> doit être actif (<code>a2enmod rewrite</code>) <strong>et</strong> les règles <code>RewriteRule</code> déclarées <strong>dans le vhost</strong>, pas via <code>.htaccess</code> (l&#39;<code>AllowOverride</code> du dossier <code>api/</code> bloque les directives Rewrite en <code>.htaccess</code>). Le bloc <code>&lt;Directory .../html/api&gt;</code> complet avec toutes les <code>RewriteRule</code> figure dans <a href="https://github.com/pvollenweider/memberbase/blob/main/MIGRATION_PROD.md"><code>MIGRATION_PROD.md</code></a> (section <code>feature/api-members</code>). Vérification :</p>
+<p>Les endpoints REST utilisent des URLs propres (<code>/api/contacts/42</code>). <code>mod_rewrite</code> doit être actif (<code>a2enmod rewrite</code>) <strong>et</strong> les règles <code>RewriteRule</code> déclarées <strong>dans le vhost</strong>, pas via <code>.htaccess</code> (l&#39;<code>AllowOverride</code> du dossier <code>api/</code> bloque les directives Rewrite en <code>.htaccess</code>). Le bloc <code>&lt;Directory .../html/api&gt;</code> complet avec toutes les <code>RewriteRule</code> figure dans <a href="https://github.com/pvollenweider/memberbase/blob/main/MIGRATION_PROD.md"><code>MIGRATION_PROD.md</code></a> (section <code>feature/api-members</code>). Vérification :</p>
 <pre><code class="language-bash"># URL propre → doit retourner 401 (auth requise), pas 404
-curl -s -o /dev/null -w &quot;%{http_code}&quot; https://membres.votre-domaine.ch/api/members/1
+curl -s -o /dev/null -w &quot;%{http_code}&quot; https://membres.votre-domaine.ch/api/contacts/1
 </code></pre>
 <h3 id="pdftk">pdftk<a class="anchor" href="#pdftk" aria-label="Lien d'ancrage">#</a></h3>
 <p>La génération d&#39;attestations PDF appelle <code>pdftk</code> via <code>exec()</code>. Le binaire doit être accessible dans le PATH du process Apache :</p>
@@ -666,20 +666,20 @@ curl -c cookies.txt -b cookies.txt \
   https://membres.votre-domaine.ch/login.php
 
 # 2. Utiliser le cookie pour les appels API suivants
-curl -b cookies.txt https://membres.votre-domaine.ch/api/members
+curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
 </code></pre>
 <h3 id="83-endpoints-disponibles">8.3 Endpoints disponibles<a class="anchor" href="#83-endpoints-disponibles" aria-label="Lien d'ancrage">#</a></h3>
-<div class="table-scroll" role="region" aria-label="Tableau — 8.3 Endpoints disponibles" tabindex="0"><table><thead><tr><th scope="col">Méthode</th><th scope="col">Endpoint</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>GET</code></td><td><code>/api/members</code></td><td>Liste des membres</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/members/{id}</code></td><td>Fiche membre complète</td></tr>
-<tr><td><code>PATCH</code></td><td><code>/api/members/{id}</code></td><td>Modification partielle (génère un audit log)</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/members/{id}/groups</code></td><td>Groupes du membre</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/groups</code></td><td>Liste des groupes avec comptage membres</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/groups/{id}</code></td><td>Groupe avec ses membres</td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — 8.3 Endpoints disponibles" tabindex="0"><table><thead><tr><th scope="col">Méthode</th><th scope="col">Endpoint</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>GET</code></td><td><code>/api/contacts</code></td><td>Liste des membres</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/contacts/{id}</code></td><td>Fiche membre complète</td></tr>
+<tr><td><code>PATCH</code></td><td><code>/api/contacts/{id}</code></td><td>Modification partielle (génère un audit log)</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/contacts/{id}/groups</code></td><td>Groupes du membre</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/segments</code></td><td>Liste des groupes avec comptage membres</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/segments/{id}</code></td><td>Groupe avec ses membres</td></tr>
 <tr><td><code>GET</code></td><td><code>/api/compta</code></td><td>Entrées comptables</td></tr>
 <tr><td><code>GET</code></td><td><code>/api/compta-types</code></td><td>Types de compta configurés</td></tr>
 <tr><td><code>GET</code></td><td><code>/api/suivi</code></td><td>Notes de suivi</td></tr></tbody></table></div>
 <h3 id="84-paramètres-de-filtrage">8.4 Paramètres de filtrage<a class="anchor" href="#84-paramètres-de-filtrage" aria-label="Lien d'ancrage">#</a></h3>
-<p><strong><code>GET /api/members</code></strong></p>
+<p><strong><code>GET /api/contacts</code></strong></p>
 <div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>group</code></td><td>int</td><td>Filtrer par ID de groupe</td></tr>
 <tr><td><code>metagroup</code></td><td>int</td><td>Filtrer par ID de métagroupe</td></tr>
 <tr><td><code>active</code></td><td>bool</td><td><code>1</code> = membres actifs uniquement</td></tr>
@@ -698,22 +698,22 @@ curl -b cookies.txt https://membres.votre-domaine.ch/api/members
 COOKIES=cookies.txt
 
 # Liste des membres du groupe 3, actifs
-curl -b $COOKIES &quot;$BASE/api/members?group=3&amp;active=1&quot;
+curl -b $COOKIES &quot;$BASE/api/contacts?group=3&amp;active=1&quot;
 
 # Fiche complète du membre 42
-curl -b $COOKIES &quot;$BASE/api/members/42&quot;
+curl -b $COOKIES &quot;$BASE/api/contacts/42&quot;
 
 # Modifier le prénom du membre 42
 curl -b $COOKIES -X PATCH \
   -H &quot;Content-Type: application/json&quot; \
   -d &#39;{&quot;firstname&quot;: &quot;Jean-Pierre&quot;}&#39; \
-  &quot;$BASE/api/members/42&quot;
+  &quot;$BASE/api/contacts/42&quot;
 
 # Entrées compta du membre 42 pour 2024
 curl -b $COOKIES &quot;$BASE/api/compta?member=42&amp;year=2024&quot;
 
 # Liste des groupes
-curl -b $COOKIES &quot;$BASE/api/groups&quot;
+curl -b $COOKIES &quot;$BASE/api/segments&quot;
 </code></pre>
 <h3 id="86-format-des-réponses">8.6 Format des réponses<a class="anchor" href="#86-format-des-réponses" aria-label="Lien d'ancrage">#</a></h3>
 <p>Toutes les réponses sont en JSON UTF-8. Les erreurs retournent un objet <code>{&quot;error&quot;: &quot;message descriptif&quot;}</code> avec le code HTTP approprié :</p>
@@ -868,13 +868,13 @@ SELECT * FROM schema_migrations ORDER BY id;
 <tr><td><code>created_at</code></td><td>datetime</td><td>Horodatage (timezone Europe/Zurich)</td></tr>
 <tr><td><code>app_user_id</code></td><td>int</td><td>ID du compte applicatif auteur</td></tr>
 <tr><td><code>username</code></td><td>varchar(100)</td><td>Nom d&#39;utilisateur au moment de l&#39;action</td></tr>
-<tr><td><code>action</code></td><td>varchar(100)</td><td>Code de l&#39;action (ex. <code>PATCH /api/members/{id}</code>)</td></tr>
+<tr><td><code>action</code></td><td>varchar(100)</td><td>Code de l&#39;action (ex. <code>PATCH /api/contacts/{id}</code>)</td></tr>
 <tr><td><code>detail</code></td><td>text</td><td>Détail JSON (diff avant/après pour les PATCH)</td></tr>
 <tr><td><code>subject_user_id</code></td><td>int unsigned</td><td>ID du membre concerné</td></tr></tbody></table></div>
 <h3 id="ce-qui-est-tracé">Ce qui est tracé<a class="anchor" href="#ce-qui-est-tracé" aria-label="Lien d'ancrage">#</a></h3>
 <p>La fonction <code>auditLog()</code> dans <code>bootstrap.php</code> est appelée par les endpoints API qui modifient des données :</p>
 <ul>
-<li><strong><code>PATCH /api/members/{id}</code></strong> : enregistre un diff des champs modifiés (valeur avant / valeur après) au format JSON dans la colonne <code>detail</code>.</li>
+<li><strong><code>PATCH /api/contacts/{id}</code></strong> : enregistre un diff des champs modifiés (valeur avant / valeur après) au format JSON dans la colonne <code>detail</code>.</li>
 </ul>
 <p>Les actions de gestion des comptes (création, suppression, réinitialisation de mot de passe) transitent par les actions POST de l&#39;interface web et ne passent pas par l&#39;API — elles ne génèrent pas d&#39;entrée <code>audit_log</code> à ce stade.</p>
 <h3 id="consulter-les-logs">Consulter les logs<a class="anchor" href="#consulter-les-logs" aria-label="Lien d'ancrage">#</a></h3>
