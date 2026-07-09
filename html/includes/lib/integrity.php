@@ -20,6 +20,42 @@
  */
 function mbRunIntegrityChecks(PDO $db): array
 {
+    // Queries referencing segment/user_segment may fail before migrations 0013/0014 are applied.
+    try {
+        $hiddenInCats = $db->query("
+            SELECT DISTINCT t.id AS team_id, t.name AS team_name,
+                   m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
+            FROM segment t
+            JOIN metagroup j ON j.segmentid = t.id
+            JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
+            WHERE t.hidden = 1
+            ORDER BY m.sort_order, m.name, t.name
+        ")->fetchAll(PDO::FETCH_OBJ);
+        $hiddenInMeta = $db->query("
+            SELECT DISTINCT t.id AS team_id, t.name AS team_name,
+                   m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
+            FROM segment t
+            JOIN metagroup j ON j.segmentid = t.id
+            JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 1
+            WHERE t.hidden = 1
+            ORDER BY m.sort_order, m.name, t.name
+        ")->fetchAll(PDO::FETCH_OBJ);
+        $hiddenWithMembers = $db->query("
+            SELECT t.id AS team_id, t.name AS team_name,
+                   COUNT(us.user_id) AS member_count
+            FROM segment t
+            JOIN contact_segment us ON us.segment_id = t.id
+            JOIN contact u ON u.id = us.user_id AND u.status = 1
+            WHERE t.hidden = 1
+            GROUP BY t.id, t.name
+            ORDER BY t.name
+        ")->fetchAll(PDO::FETCH_OBJ);
+    } catch (PDOException $e) {
+        $hiddenInCats = [];
+        $hiddenInMeta = [];
+        $hiddenWithMembers = [];
+    }
+
     return [
         'dupNames' => $db->query("
             SELECT firstName, lastName, COUNT(*) AS cnt,
@@ -41,36 +77,9 @@ function mbRunIntegrityChecks(PDO $db): array
             ORDER BY email
         ")->fetchAll(PDO::FETCH_OBJ),
 
-        'hiddenInCats' => $db->query("
-            SELECT DISTINCT t.id AS team_id, t.name AS team_name,
-                   m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
-            FROM segment t
-            JOIN metagroup j ON j.segmentid = t.id
-            JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
-            WHERE t.hidden = 1
-            ORDER BY m.sort_order, m.name, t.name
-        ")->fetchAll(PDO::FETCH_OBJ),
-
-        'hiddenInMeta' => $db->query("
-            SELECT DISTINCT t.id AS team_id, t.name AS team_name,
-                   m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
-            FROM segment t
-            JOIN metagroup j ON j.segmentid = t.id
-            JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 1
-            WHERE t.hidden = 1
-            ORDER BY m.sort_order, m.name, t.name
-        ")->fetchAll(PDO::FETCH_OBJ),
-
-        'hiddenWithMembers' => $db->query("
-            SELECT t.id AS team_id, t.name AS team_name,
-                   COUNT(us.user_id) AS member_count
-            FROM segment t
-            JOIN contact_segment us ON us.segment_id = t.id
-            JOIN contact u ON u.id = us.user_id AND u.status = 1
-            WHERE t.hidden = 1
-            GROUP BY t.id, t.name
-            ORDER BY t.name
-        ")->fetchAll(PDO::FETCH_OBJ),
+        'hiddenInCats'     => $hiddenInCats,
+        'hiddenInMeta'     => $hiddenInMeta,
+        'hiddenWithMembers' => $hiddenWithMembers,
 
         'dateInvalid' => $db->query("
             SELECT c.id, c.date, c.user_id, u.firstname, u.lastname, c.libele

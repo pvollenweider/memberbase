@@ -16,7 +16,11 @@ try {
 }
 $segmentCounts = [];
 foreach ($countRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
-$categories  = $pdo->query("SELECT DISTINCT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+try {
+    $categories = $pdo->query("SELECT DISTINCT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+} catch (PDOException $e) {
+    $categories = [];
+}
 
 // Category map for import grouping: segmentid → category name (guard: column may not exist yet)
 $_importCatRows = [];
@@ -215,7 +219,7 @@ while ($stmt && $row = $stmt->fetchObject()) {
         <?php
     }
     ?>
-        <tr class="<?= $isHidden ? 'text-muted' : '' ?>" data-team-id="<?= $id ?>">
+        <tr class="<?= $isHidden ? 'text-muted' : '' ?>" data-team-id="<?= $id ?>" data-segment-id="<?= $id ?>">
           <td style="width:1.5rem">
             <input type="checkbox" class="form-check-input bulk-cb" name="ids[]" value="<?= $id ?>">
           </td>
