@@ -503,7 +503,7 @@ $GLOBAL['deleteNameConfirm'] = "Delete “%s”?";
 $GLOBAL['memberSegmentsNotDeleted'] = "The member segments will not be deleted.";
 
 // --- settings_filters ---
-$GLOBAL['filtersHelp'] = "Group several segments into one dynamic filter — accessible from the navigation bar.";
+$GLOBAL['filtersHelp'] = "Create a quick view by checking multiple segments to combine. Example: a combined segment "Members Geneva + Vaud" merges two regional segments into a single shortcut in the navigation bar — always up to date, no data copy.";
 $GLOBAL['noFilters'] = "No filters.";
 $GLOBAL['filterNamePlaceholder'] = "Filter name";
 

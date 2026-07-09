@@ -503,7 +503,7 @@ $GLOBAL['deleteNameConfirm'] = "¿Eliminar «%s»?";
 $GLOBAL['memberSegmentsNotDeleted'] = "Los segmentos miembros no serán eliminados.";
 
 // --- settings_filters ---
-$GLOBAL['filtersHelp'] = "Agrupan varios segmentos en un filtro dinámico — accesible desde la barra de navegación.";
+$GLOBAL['filtersHelp'] = "Cree una vista rápida combinando varios segmentos. Ejemplo: un segmento combinado «Miembros Ginebra + Vaud» agrupa dos segmentos regionales en un acceso directo en la barra de navegación — siempre actualizado, sin copia de datos.";
 $GLOBAL['noFilters'] = "Ningún filtro.";
 $GLOBAL['filterNamePlaceholder'] = "Nombre del filtro";
 
