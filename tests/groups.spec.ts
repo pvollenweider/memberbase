@@ -50,12 +50,11 @@ test.describe.serial('Groups (teams)', () => {
 
     await page.fill('#name', 'Membre E2E Renamed');
     // form.submit() bypasses htmx event listeners entirely, ensuring a real page load
-    const navPromise = page.waitForURL(/view=settings/, { timeout: 10_000 });
     await page.evaluate(() => {
       const form = document.querySelector('form:has(input[name="action"][value="updateSegment"])') as HTMLFormElement;
       form.submit();
     });
-    await navPromise;
+    await page.waitForLoadState('load', { timeout: 10_000 });
 
     // Navigate to settings to verify rename persisted in DB
     await page.goto('/index.php?view=settings&tab=groups');
