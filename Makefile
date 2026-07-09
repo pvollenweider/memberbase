@@ -1,4 +1,4 @@
-.PHONY: up down logs shell db import backup restore open test test-ui test-reset-db test-unit migrate migrate-status release publish-site composer-install
+.PHONY: up down logs shell db import backup restore open test test-ui test-reset-db test-unit migrate migrate-status release publish-site
 
 ## release VERSION=x.y.z — bump version, commit, tag, GitHub release, site changelog
 ## (CHANGELOG.md must already contain the "## [x.y.z]" entry)
@@ -16,11 +16,6 @@ open:
 
 up:
 	docker compose up -d --build
-	@docker compose exec php bash -c "cd /var/www/html && composer install --no-dev --no-interaction 2>&1 | tail -3" || true
-
-## composer-install — (re)install html/ runtime deps inside the running container
-composer-install:
-	docker compose exec php bash -c "cd /var/www/html && composer install --no-dev --no-interaction"
 
 down:
 	docker compose down
