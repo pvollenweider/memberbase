@@ -307,11 +307,11 @@ test.describe('UI — view access guards', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Server enforcement — actions/members.php (HTTP 403)
+// Server enforcement — actions/contacts.php (HTTP 403)
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Server — members action guards', () => {
-  // readonly blocked by top-level canWrite() guard in members.php
+  // readonly blocked by top-level canWrite() guard in contacts.php
   test('readonly: action=updateUser → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'readonly');
     const csrf = await csrfFor(api);
@@ -497,51 +497,51 @@ test.describe('Server — group action guards', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Server enforcement — REST API /api/members (HTTP 403)
+// Server enforcement — REST API /api/contacts (HTTP 403)
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('Server — REST API /api/members guards', () => {
-  test('readonly: PUT /api/members/{id} → 403', async ({ playwright }) => {
+test.describe('Server — REST API /api/contacts guards', () => {
+  test('readonly: PUT /api/contacts/{id} → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'readonly');
-    const r = await api.put(`/api/members/${ACTIVE_MEMBER_ID}`, { data: { firstName: 'Hacked' } });
+    const r = await api.put(`/api/contacts/${ACTIVE_MEMBER_ID}`, { data: { firstName: 'Hacked' } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
 
-  test('readonly: POST /api/members → 403', async ({ playwright }) => {
+  test('readonly: POST /api/contacts → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'readonly');
-    const r = await api.post('/api/members', { data: { firstName: 'X', lastName: 'Y' } });
+    const r = await api.post('/api/contacts', { data: { firstName: 'X', lastName: 'Y' } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });
 
-  test('user: DELETE /api/members/{id} with dispose=delete → 403', async ({ playwright }) => {
+  test('user: DELETE /api/contacts/{id} with dispose=delete → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'user');
-    const r = await api.delete(`/api/members/${ARCHIVED_MEMBER_ID}?dispose=delete`);
+    const r = await api.delete(`/api/contacts/${ARCHIVED_MEMBER_ID}?dispose=delete`);
     expect(r.status()).toBe(403);
     await api.dispose();
   });
 
-  test('manager: DELETE /api/members/{id} with dispose=delete → 403', async ({ playwright }) => {
+  test('manager: DELETE /api/contacts/{id} with dispose=delete → 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'manager');
-    const r = await api.delete(`/api/members/${ARCHIVED_MEMBER_ID}?dispose=delete`);
+    const r = await api.delete(`/api/contacts/${ARCHIVED_MEMBER_ID}?dispose=delete`);
     expect(r.status()).toBe(403);
     await api.dispose();
   });
 
   // positive: user CAN update a member via REST API
-  test('user: PUT /api/members/{id} → not 403', async ({ playwright }) => {
+  test('user: PUT /api/contacts/{id} → not 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'user');
-    const r = await api.put(`/api/members/${ACTIVE_MEMBER_ID}`, { data: { firstName: 'Alice' } });
+    const r = await api.put(`/api/contacts/${ACTIVE_MEMBER_ID}`, { data: { firstName: 'Alice' } });
     expect(r.status()).not.toBe(403);
     await api.dispose();
   });
 
   // positive: manager CAN delete (deactivate, not permanent) via REST API
-  test('manager: DELETE /api/members/{id} (deactivate) → not 403', async ({ playwright }) => {
+  test('manager: DELETE /api/contacts/{id} (deactivate) → not 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'manager');
     // Member 2 (Bob) — deactivate only (no dispose=delete)
-    const r = await api.delete(`/api/members/2`);
+    const r = await api.delete(`/api/contacts/2`);
     expect(r.status()).not.toBe(403);
     await api.dispose();
     // Restore

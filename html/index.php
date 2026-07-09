@@ -22,7 +22,7 @@ header("Content-Type: text/html; charset=$charset");
 require_once __DIR__ . "/includes/lib/locale.php";
 mbLoadLocale($_SESSION['app_user_locale'] ?? null);
 include __DIR__ . "/includes/lib/bootstrap.php";
-include "classes/user_class.php";
+include "classes/contact_class.php";
 include "classes/segment_class.php";
 include "classes/compta_class.php";
 include "classes/property_class.php";

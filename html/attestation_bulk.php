@@ -16,7 +16,7 @@ set_time_limit(120);
 
 include __DIR__ . "/includes/lib/bootstrap.php";
 require_once __DIR__ . '/locales/resources_fr.php';
-include "classes/user_class.php";
+include "classes/contact_class.php";
 
 $year   = isset($_GET['year'])   ? (int)$_GET['year']   : (int)date('Y');
 $minSum = isset($_GET['minSum']) ? (int)$_GET['minSum'] : 1;

@@ -5,7 +5,7 @@
  * install has no external file dependency. That copy MUST stay in sync
  * with schema.sql: in v3.5.4 the users.email_alt column was added to
  * schema.sql only, and every fresh install produced a database where
- * User::save() crashed on INSERT (Unknown column 'email_alt').
+ * Contact::save() crashed on INSERT (Unknown column 'email_alt').
  *
  * Pure Node test — no browser, no database. Parses both files and
  * compares table lists and per-table column definitions.

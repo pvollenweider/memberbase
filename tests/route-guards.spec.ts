@@ -89,7 +89,7 @@ test.describe('regression #56 — deleteUserConfirm requires isAdmin', () => {
         baseURL: 'http://localhost:8080',
         storageState: stateFile('admin'),
       });
-      const res = await api.get(`/api/members/${ACTIVE_MEMBER_ID}`);
+      const res = await api.get(`/api/contacts/${ACTIVE_MEMBER_ID}`);
       expect(res.ok()).toBeTruthy();
       await api.dispose();
     });

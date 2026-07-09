@@ -19,7 +19,7 @@ if ($action == 'addSuivi') {
     $userProperty->date = formatedDateToTimeStamp($_REQUEST['date']);
     $userProperty->value = unquote(str_replace(',','.',$_REQUEST['value']));
     $userProperty->save();
-    auditLog($pdo, 'addSuivi', "membre: " . User::getMemberName((int)$_REQUEST['userid']) . " | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})", (int)$_REQUEST['userid']);
+    auditLog($pdo, 'addSuivi', "membre: " . Contact::getMemberName((int)$_REQUEST['userid']) . " | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})", (int)$_REQUEST['userid']);
 
 } elseif ($action == 'updateSuivi') {
     $userProperty = new UserProperty();
@@ -29,5 +29,5 @@ if ($action == 'addSuivi') {
     $userProperty->parameter = $_REQUEST['parameter'];
     $userProperty->value = unquote($_REQUEST['value']);
     $userProperty->save();
-    auditLog($pdo, 'updateSuivi', "membre: " . User::getMemberName((int)$_REQUEST['userid']) . " | suivi#={$_REQUEST['suiviid']} | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})", (int)$_REQUEST['userid']);
+    auditLog($pdo, 'updateSuivi', "membre: " . Contact::getMemberName((int)$_REQUEST['userid']) . " | suivi#={$_REQUEST['suiviid']} | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})", (int)$_REQUEST['userid']);
 }

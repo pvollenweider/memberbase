@@ -6,7 +6,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-$user = new User();
+$user = new Contact();
 $user->lookupUser((int)$_REQUEST['id']);
 $pdo->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([(int)$_REQUEST['id']]);
 auditLog($pdo, 'deactivateUser', "id={$_REQUEST['id']} {$user->firstName} {$user->lastName}");

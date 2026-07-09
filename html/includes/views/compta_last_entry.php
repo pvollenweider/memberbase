@@ -173,7 +173,7 @@ while ($row = $stmt->fetchObject()) {
     $sum = (float) $row->sum;
     $quittance = $row->quittance;
     $userId = $row->user_id;
-    $user = new User();
+    $user = new Contact();
     $user->lookupUser($userId);
     $email   = $row->email;
     $address = $row->address;

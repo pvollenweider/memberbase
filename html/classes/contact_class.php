@@ -7,7 +7,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
-class User
+class Contact
 {
     public $id;
     // NOT NULL columns — default to '' so a freshly-built User is always safe to save,

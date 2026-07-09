@@ -376,7 +376,7 @@ if ($action == 'deleteSegment') {
     }
 
 } elseif ($action == 'assignSegment') {
-    $user = new User();
+    $user = new Contact();
     $user->lookupUser((int)$_REQUEST['id']);
     $user->assignSegment((int)$_REQUEST['segmentId']);
     $_auSeg = $pdo->prepare("SELECT name FROM segment WHERE id=?");
@@ -384,7 +384,7 @@ if ($action == 'deleteSegment') {
     auditLog($pdo, 'assignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) → groupe: " . ($_auSeg->fetchColumn() ?: "id={$_REQUEST['segmentId']}"), (int)$_REQUEST['id']);
 
 } elseif ($action == 'unassignSegment') {
-    $user = new User();
+    $user = new Contact();
     $user->lookupUser((int)$_REQUEST['id']);
     $user->unassignSegment((int)$_REQUEST['segmentId']);
     $_auSeg = $pdo->prepare("SELECT name FROM segment WHERE id=?");

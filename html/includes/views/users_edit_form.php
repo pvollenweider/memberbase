@@ -13,7 +13,7 @@ if ($userid == -1) {
         $userid = (int)$_REQUEST['id'];
     }
 }
-$user = new User();
+$user = new Contact();
 $user->lookupUser($userid);
 
 // Stats for badges + mini-dashboard

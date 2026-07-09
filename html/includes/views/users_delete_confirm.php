@@ -6,7 +6,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-$user = new User();
+$user = new Contact();
 $user->lookupUser((int)$_REQUEST['id']);
 $userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
 ?>

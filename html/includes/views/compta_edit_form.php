@@ -13,7 +13,7 @@ if ($userid == -1) {
         $userid = $_REQUEST['id'];
     }
 }
-$user = new User();
+$user = new Contact();
 $user->lookupUser($userid);
 
 $comptaid = $_REQUEST['comptaid'];

@@ -177,7 +177,7 @@ if ($_REQUEST['action'] === 'importUpload') {
             continue;
         }
 
-        $user            = new User();
+        $user            = new Contact();
         $user->firstName = unquote($firstName);
         $user->lastName  = unquote($lastName);
         $user->society   = unquote($data['society'] ?? '');
@@ -237,7 +237,7 @@ if ($_REQUEST['action'] === 'importUpload') {
         $choice = $choices[$i] ?? 'ignore';
         if ($choice === 'ignore') continue;
 
-        $user = new User();
+        $user = new Contact();
         $user->lookupUser($dup['existingId']);
         if (!$user->getId()) continue;
 

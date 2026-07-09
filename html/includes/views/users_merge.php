@@ -15,8 +15,8 @@ if ($_muIdA <= 0 || $_muIdB <= 0 || $_muIdA === $_muIdB) { ?>
 </div>
 <?php return; }
 
-$_muUserA = new User(); $_muUserA->lookupUser($_muIdA);
-$_muUserB = new User(); $_muUserB->lookupUser($_muIdB);
+$_muUserA = new Contact(); $_muUserA->lookupUser($_muIdA);
+$_muUserB = new Contact(); $_muUserB->lookupUser($_muIdB);
 
 if (!$_muUserA->getId() || !$_muUserB->getId()) { ?>
 <div class="alert alert-danger mt-4" role="alert">

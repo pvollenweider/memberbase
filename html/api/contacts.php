@@ -1,18 +1,18 @@
 <?php
 /**
- * /api/members — REST endpoint for member records.
+ * /api/contacts — REST endpoint for member records.
  *
- * GET    /api/members          list (paginated, optional ?search=)
- * GET    /api/members/{id}     single member detail
- * POST   /api/members          create a member
- * PUT    /api/members/{id}     update a member
- * DELETE /api/members/{id}     deactivate (default) or delete (?dispose=delete, admin only)
+ * GET    /api/contacts          list (paginated, optional ?search=)
+ * GET    /api/contacts/{id}     single member detail
+ * POST   /api/contacts          create a member
+ * PUT    /api/contacts/{id}     update a member
+ * DELETE /api/contacts/{id}     deactivate (default) or delete (?dispose=delete, admin only)
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 require_once __DIR__ . '/_bootstrap.php';
-require_once __DIR__ . '/../classes/user_class.php';
+require_once __DIR__ . '/../classes/contact_class.php';
 require_once __DIR__ . '/../classes/member_filter_class.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -316,7 +316,7 @@ function handleList(): void
 function handleGet(int $id): void
 {
     if (!canRead()) apiError(403, 'Forbidden');
-    $user = new User();
+    $user = new Contact();
     $user->lookupUser($id);
     if (!$user->getId()) apiError(404, 'Member not found');
 
@@ -333,7 +333,7 @@ function handleCreate(): void
         apiError(422, 'lastName is required');
     }
 
-    $user = new User();
+    $user = new Contact();
     // Initialize all string fields to '' to avoid NOT NULL constraint on INSERT
     foreach (['firstName','lastName','society','title','address','npa','tel','telProf',
               'portable','fax','email','emailAlt','web','comment'] as $_f) {
@@ -357,7 +357,7 @@ function handleUpdate(int $id): void
     if (!canWrite()) apiError(403, 'Forbidden');
     $body = requestBody();
 
-    $user = new User();
+    $user = new Contact();
     $user->lookupUser($id);
     if (!$user->getId()) apiError(404, 'Member not found');
 
@@ -366,7 +366,7 @@ function handleUpdate(int $id): void
     $user->save();
 
     // Reload from DB for accurate after state
-    $freshUser = new User();
+    $freshUser = new Contact();
     $freshUser->lookupUser($id);
     $after = memberFieldsForDiff($freshUser);
 
@@ -389,7 +389,7 @@ function handleUpdate(int $id): void
 function handleDelete(int $id): void
 {
 
-    $user = new User();
+    $user = new Contact();
     $user->lookupUser($id);
     if (!$user->getId()) apiError(404, 'Member not found');
 

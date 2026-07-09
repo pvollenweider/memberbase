@@ -12,14 +12,14 @@ requireLogin();
 ob_start();
 include __DIR__ . "/includes/lib/bootstrap.php";
 require_once __DIR__ . '/locales/resources_fr.php';
-include "classes/user_class.php";
+include "classes/contact_class.php";
 
 $userid = isset($_GET['userid']) ? (int)$_GET['userid'] : 0;
 $year   = isset($_GET['year'])   ? (int)$_GET['year']   : (int)date('Y');
 
 if (!$userid) { http_response_code(400); die('Missing userid'); }
 
-$user = new User();
+$user = new Contact();
 $user->lookupUser($userid);
 
 // Total donations for the year (excluding types flagged is_excluded_from_donation)

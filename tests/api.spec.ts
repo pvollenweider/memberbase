@@ -16,7 +16,7 @@ const BASE = 'http://localhost:8080';
 
 test('API returns 401 without session', async ({ playwright }) => {
   const unauth = await playwright.request.newContext({ baseURL: BASE, storageState: { cookies: [], origins: [] } });
-  const resp = await unauth.get('/api/members');
+  const resp = await unauth.get('/api/contacts');
   expect(resp.status()).toBe(401);
   const body = await resp.json();
   expect(body).toHaveProperty('error');
@@ -47,13 +47,13 @@ test.describe('compta-types API', () => {
   });
 });
 
-// ── /api/members ─────────────────────────────────────────────────────────────
+// ── /api/contacts ─────────────────────────────────────────────────────────────
 
 test.describe.serial('members API', () => {
   let createdId: number;
 
-  test('GET /api/members — paginated list', async ({ request }) => {
-    const resp = await request.get('/api/members');
+  test('GET /api/contacts — paginated list', async ({ request }) => {
+    const resp = await request.get('/api/contacts');
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data).toBeInstanceOf(Array);
@@ -61,24 +61,24 @@ test.describe.serial('members API', () => {
     expect(body.meta.total).toBeGreaterThanOrEqual(2);
   });
 
-  test('GET /api/members?search=Dupont — search filter', async ({ request }) => {
-    const resp = await request.get('/api/members?search=Dupont');
+  test('GET /api/contacts?search=Dupont — search filter', async ({ request }) => {
+    const resp = await request.get('/api/contacts?search=Dupont');
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data.length).toBeGreaterThanOrEqual(1);
     expect(body.data[0].lastName).toBe('Dupont');
   });
 
-  test('GET /api/members?search=zzznomatch — empty result', async ({ request }) => {
-    const resp = await request.get('/api/members?search=zzznomatch');
+  test('GET /api/contacts?search=zzznomatch — empty result', async ({ request }) => {
+    const resp = await request.get('/api/contacts?search=zzznomatch');
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data).toEqual([]);
     expect(body.meta.total).toBe(0);
   });
 
-  test('POST /api/members — creates a member', async ({ request }) => {
-    const resp = await request.post('/api/members', {
+  test('POST /api/contacts — creates a member', async ({ request }) => {
+    const resp = await request.post('/api/contacts', {
       data: { lastName: 'ApiTest', firstName: 'Playwright', email: 'apitest@example.com' },
     });
     expect(resp.status()).toBe(201);
@@ -87,23 +87,23 @@ test.describe.serial('members API', () => {
     createdId = body.data.id;
   });
 
-  test('POST /api/members — 422 when lastName missing', async ({ request }) => {
-    const resp = await request.post('/api/members', { data: { firstName: 'NoName' } });
+  test('POST /api/contacts — 422 when lastName missing', async ({ request }) => {
+    const resp = await request.post('/api/contacts', { data: { firstName: 'NoName' } });
     expect(resp.status()).toBe(422);
   });
 
   // CSRF hardening (#89): a mutation without Content-Type application/json is
   // rejected (a cross-site "simple" POST can't set that header without preflight).
-  test('POST /api/members — 415 when body is not application/json', async ({ request }) => {
-    const resp = await request.post('/api/members', {
+  test('POST /api/contacts — 415 when body is not application/json', async ({ request }) => {
+    const resp = await request.post('/api/contacts', {
       headers: { 'Content-Type': 'text/plain' },
       data: JSON.stringify({ lastName: 'X', firstName: 'Y' }),
     });
     expect(resp.status()).toBe(415);
   });
 
-  test('GET /api/members/{id} — returns created member', async ({ request }) => {
-    const resp = await request.get(`/api/members/${createdId}`);
+  test('GET /api/contacts/{id} — returns created member', async ({ request }) => {
+    const resp = await request.get(`/api/contacts/${createdId}`);
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data.id).toBe(createdId);
@@ -111,13 +111,13 @@ test.describe.serial('members API', () => {
     expect(body.data.firstName).toBe('Playwright');
   });
 
-  test('GET /api/members/999999 — 404 for unknown id', async ({ request }) => {
-    const resp = await request.get('/api/members/999999');
+  test('GET /api/contacts/999999 — 404 for unknown id', async ({ request }) => {
+    const resp = await request.get('/api/contacts/999999');
     expect(resp.status()).toBe(404);
   });
 
-  test('PUT /api/members/{id} — updates a field', async ({ request }) => {
-    const resp = await request.put(`/api/members/${createdId}`, {
+  test('PUT /api/contacts/{id} — updates a field', async ({ request }) => {
+    const resp = await request.put(`/api/contacts/${createdId}`, {
       data: { firstName: 'Updated' },
     });
     expect(resp.status()).toBe(200);
@@ -126,28 +126,28 @@ test.describe.serial('members API', () => {
     expect(body.data.lastName).toBe('ApiTest');
   });
 
-  test('GET /api/members/{id}/groups — empty for new member', async ({ request }) => {
-    const resp = await request.get(`/api/members/${createdId}/groups`);
+  test('GET /api/contacts/{id}/groups — empty for new member', async ({ request }) => {
+    const resp = await request.get(`/api/contacts/${createdId}/groups`);
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data).toEqual([]);
   });
 
-  test('GET /api/members/1/groups — seeded member has 2 groups', async ({ request }) => {
-    const resp = await request.get('/api/members/1/groups');
+  test('GET /api/contacts/1/groups — seeded member has 2 groups', async ({ request }) => {
+    const resp = await request.get('/api/contacts/1/groups');
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data.length).toBeGreaterThanOrEqual(2);
     expect(body.data[0]).toMatchObject({ id: expect.any(Number), name: expect.any(String) });
   });
 
-  test('DELETE /api/members/{id} — deactivates member (204)', async ({ request }) => {
-    const resp = await request.delete(`/api/members/${createdId}`);
+  test('DELETE /api/contacts/{id} — deactivates member (204)', async ({ request }) => {
+    const resp = await request.delete(`/api/contacts/${createdId}`);
     expect(resp.status()).toBe(204);
   });
 
-  test('GET /api/members — deactivated member absent from list', async ({ request }) => {
-    const resp = await request.get('/api/members?search=ApiTest');
+  test('GET /api/contacts — deactivated member absent from list', async ({ request }) => {
+    const resp = await request.get('/api/contacts?search=ApiTest');
     expect(resp.status()).toBe(200);
     const body = await resp.json();
     expect(body.data.find((m: { id: number }) => m.id === createdId)).toBeUndefined();

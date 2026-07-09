@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 if (!canWrite()) { http_response_code(403); exit; }
 
 if ($_REQUEST['action'] == 'updateUser') {
-    $user = new User();
+    $user = new Contact();
     $user->lookupUser($_REQUEST['id']);
     $_auBefore = [
         'firstName' => (string)$user->firstName,
@@ -88,8 +88,8 @@ if ($_REQUEST['action'] == 'updateUser') {
     $idB = (int)($_REQUEST['idB'] ?? 0);
     if ($idA <= 0 || $idB <= 0 || $idA === $idB) { return; }
 
-    $userA = new User(); $userA->lookupUser($idA);
-    $userB = new User(); $userB->lookupUser($idB);
+    $userA = new Contact(); $userA->lookupUser($idA);
+    $userB = new Contact(); $userB->lookupUser($idB);
     if (!$userA->getId() || !$userB->getId()) { return; }
 
     $survivorSide = ($_REQUEST['survivor'] ?? 'a') === 'b' ? 'b' : 'a';
@@ -200,7 +200,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     if (!isAdmin()) { http_response_code(403); exit; }
     $uid = (int)($_REQUEST['id'] ?? 0);
     if ($uid <= 0) { return; }
-    $user = new User(); $user->lookupUser($uid);
+    $user = new Contact(); $user->lookupUser($uid);
     $dispose = $_REQUEST['dispose'] ?? 'deactivate';
     if ($dispose === 'delete') {
         // Suppression irréversible : on trace dans le journal toutes les données
@@ -263,7 +263,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     header('Location: ' . $_SERVER['PHP_SELF'] . $redirectTarget); exit;
 
 } elseif ($_REQUEST['action'] == 'addUser') {
-    $user = new User();
+    $user = new Contact();
     $user->firstName = unquote($_REQUEST['firstName'] ?? '');
     $user->lastName = unquote($_REQUEST['lastName'] ?? '');
     $user->society = unquote($_REQUEST['society'] ?? '');

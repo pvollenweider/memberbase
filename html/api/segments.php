@@ -16,7 +16,7 @@
  */
 require_once __DIR__ . '/_bootstrap.php';
 require_once __DIR__ . '/../classes/segment_class.php';
-require_once __DIR__ . '/../classes/user_class.php';
+require_once __DIR__ . '/../classes/contact_class.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
