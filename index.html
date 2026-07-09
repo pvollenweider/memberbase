@@ -463,6 +463,22 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap">
     <h2 id="changelog-h">Dernières versions</h2>
     <article class="release">
+      <h3 class="v">5.0.0 <span class="d">9 juillet 2026</span></h3>
+      <ul>
+        <li><strong>Table <code class="inline">users</code> → <code class="inline">contact</code></strong>, <code class="inline">user_properties</code> → <code class="inline">contact_properties</code> (migration <code class="inline">0015</code>). Classe PHP <code class="inline">User</code> → <code class="inline">Contact</code> (<code class="inline">html/classes/user_class.php</code> → <code class="inline">contact_class.php</code>).</li>
+        <li><strong>Table <code class="inline">team</code> → <code class="inline">segment</code></strong>, <code class="inline">user_team</code> → <code class="inline">user_segment</code> (migration <code class="inline">0014</code>, colonne <code class="inline">team_id</code> → <code class="inline">segment_id</code>, <code class="inline">metagroup.teamid</code> → <code class="inline">metagroup.segmentid</code>). Classe PHP <code class="inline">Team</code> → <code class="inline">Segment</code> (<code class="inline">team_class.php</code> → <code class="inline">segment_class.php</code>).</li>
+        <li><strong>API REST</strong> : <code class="inline">/api/members</code> → <code class="inline">/api/contacts</code>, <code class="inline">/api/groups</code> → <code class="inline">/api/segments</code>. Réponses JSON et corps de requête inchangés à part le renommage des routes elles-mêmes.</li>
+        <li><strong>Adhésion aux segments</strong> : l'ancien stockage EAV (<code class="inline">user_properties</code>, clé <code class="inline">team_N</code>) est remplacé par une vraie table de jointure <code class="inline">contact_segment</code> (migration <code class="inline">0013</code>, backfill automatique depuis l'EAV existant).</li>
+        <li>Toute vue, action ou script personnalisé référençant les anciens noms de table/classe/route doit être adapté avant la mise à jour.</li>
+        <li><strong>Bulletin de versement QR suisse (QR-facture)</strong> joint en PDF aux rappels de cotisation, généré via <code class="inline">sprain/swiss-qr-bill</code> à partir de l'IBAN de l'organisation (nouveau champ <strong>Réglages → IBAN</strong>).</li>
+        <li><strong>Description du montant configurable</strong> pour les rappels de cotisation (<strong>Réglages → <code class="inline">org_coti_amount_desc</code></strong>) : affichée dans l'email de rappel et sur le bulletin QR (champ « Montant »), avec repli sur une valeur par défaut si laissée vide.</li>
+        <li><strong>Rappel individuel — confirmation</strong> : le bouton « Envoyer un rappel » de la vue Membres perdus affiche désormais une modale de confirmation nommant le membre (au lieu d'envoyer immédiatement), alignée sur le comportement de l'envoi groupé.</li>
+        <li><strong>Renvoi forcé</strong> : possibilité de renvoyer un rappel à un membre déjà relancé (garde anti-doublon contournable explicitement) depuis la vue Membres perdus.</li>
+        <li><strong>Singleton <code class="inline">db()</code></strong> remplace la variable globale <code class="inline">$pdo</code> dans les fonctions et méthodes de classe — signature stable pour tout code appelant la couche DB (#125).</li>
+        <li>Dépendances runtime PHP (<code class="inline">sprain/swiss-qr-bill</code>, <code class="inline">fpdf/fpdf</code>) vendorisées dans <code class="inline">html/vendor/</code> (committées, pas de <code class="inline">composer install</code> requis en prod ; extension <strong>GD</strong> requise sur le serveur).</li>
+      </ul>
+    </article>
+    <article class="release">
       <h3 class="v">4.0.0 <span class="d">8 juillet 2026</span></h3>
       <ul>
         <li><strong>Configuration SMTP</strong> (Réglages → Email) : client SMTP pur PHP sans dépendance externe (plain / STARTTLS / SSL-TLS, AUTH LOGIN/PLAIN ou sans auth), mot de passe chiffré au repos, envoi de test avec message d'erreur SMTP détaillé.</li>
@@ -488,14 +504,6 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li>Nouvelle architecture de locale par bundles PHP (<code class="inline">html/locales/resources_{fr,en,de,es}.php</code>), chargés par <code class="inline">mbLoadLocale()</code> — la base française reste la source complète, les autres langues sont des surcharges.</li>
         <li>Migration <code class="inline">0003_app_users_locale</code> (colonne <code class="inline">locale</code> sur <code class="inline">app_users</code>).</li>
         <li><code class="inline">tools/release.sh</code> / <code class="inline">tools/publish-site.sh</code> : processus de release allégé (bump/tag/GitHub release + patch du changelog sur le site, sans régénération complète).</li>
-      </ul>
-    </article>
-    <article class="release">
-      <h3 class="v">3.7.0 <span class="d">3 juillet 2026</span></h3>
-      <ul>
-        <li><strong>Lien vers la documentation en ligne</strong> : le pied de page de l'application et celui de l'installateur (<code class="inline">install.php</code>) pointent désormais vers le site du projet et la documentation en ligne (https://pvollenweider.github.io/memberbase/) au lieu du dépôt GitHub brut. Nouveau libellé <code class="inline">documentation</code> dans la locale.</li>
-        <li>Site de documentation public GitHub Pages (https://pvollenweider.github.io/memberbase/) : workflow de maintenance documenté dans <code class="inline">CLAUDE.md</code> (régénération du knowledge graph et du site à chaque release).</li>
-        <li>Nettoyage de balises parasites en fin de <code class="inline">doc/user.md</code> et <code class="inline">doc/architecture.md</code>.</li>
       </ul>
     </article>
     <p class="changelog-more"><a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md">Historique complet des versions</a></p>
