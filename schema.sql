@@ -55,13 +55,13 @@ CREATE TABLE IF NOT EXISTS `contact_segment` (
 
 -- Contact extra properties (EAV data)
 CREATE TABLE IF NOT EXISTS `contact_properties` (
-  `id`        int(8)       NOT NULL DEFAULT 0,
+  `id`        int(8)       NOT NULL AUTO_INCREMENT,
   `user_id`   int(8)       NOT NULL DEFAULT 0,
   `parameter` varchar(64)  NOT NULL DEFAULT '',
   `date`      int(16)      NOT NULL DEFAULT 0,
   `value`     varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
   KEY `parameter`    (`parameter`),
-  KEY `id`           (`id`),
   KEY `idx_contact_param` (`user_id`, `parameter`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -183,6 +183,15 @@ CREATE TABLE IF NOT EXISTS `email_log` (
   KEY `idx_tpl_key`   (`tpl_key`),
   KEY `idx_created_at` (`created_at`),
   KEY `idx_status`     (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- API rate limiting (fixed-window counter per user+IP)
+CREATE TABLE IF NOT EXISTS `api_rate_limit` (
+  `bucket`       varchar(190) NOT NULL,
+  `hits`         int(11)      NOT NULL DEFAULT 0,
+  `window_start` int(11)      NOT NULL DEFAULT 0,
+  PRIMARY KEY (`bucket`),
+  KEY `idx_window_start` (`window_start`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `schema_migrations` (

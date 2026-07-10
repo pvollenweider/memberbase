@@ -28,9 +28,8 @@ class UserProperty
             $this->parameter = $row->parameter;
             $this->date      = $row->date;
             $this->value     = $row->value;
-        } else {
-            print "Could not find user property with id [$id]";
         }
+        // Not found: the object stays empty ($id === null) — callers check id.
     }
 
     public function getId()        { return $this->id; }
@@ -51,10 +50,10 @@ class UserProperty
                 "UPDATE contact_properties SET user_id=?,parameter=?,date=?,value=? WHERE id=?"
             )->execute([$this->userId, $this->parameter, $this->date, $this->value, $this->id]);
         } else {
-            $pid = updateAndGetMaxVal("userpropertiesid");
             db()->prepare(
-                "INSERT INTO contact_properties (id,user_id,parameter,date,value) VALUES (?,?,?,?,?)"
-            )->execute([$pid, $this->userId, $this->parameter, $this->date, $this->value]);
+                "INSERT INTO contact_properties (user_id,parameter,date,value) VALUES (?,?,?,?)"
+            )->execute([$this->userId, $this->parameter, $this->date, $this->value]);
+            $this->id = (int) db()->lastInsertId();
         }
     }
 

@@ -67,13 +67,13 @@ CREATE TABLE IF NOT EXISTS `segment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `contact_properties` (
-  `id`        int(8)       NOT NULL DEFAULT 0,
+  `id`        int(8)       NOT NULL AUTO_INCREMENT,
   `user_id`   int(8)       NOT NULL DEFAULT 0,
   `parameter` varchar(64)  NOT NULL DEFAULT '',
   `date`      int(16)      NOT NULL DEFAULT 0,
   `value`     varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
   KEY `parameter`      (`parameter`),
-  KEY `id`             (`id`),
   KEY `idx_user_param` (`user_id`, `parameter`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -195,6 +195,15 @@ CREATE TABLE IF NOT EXISTS `email_log` (
   KEY `idx_tpl_key`   (`tpl_key`),
   KEY `idx_created_at` (`created_at`),
   KEY `idx_status`     (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- API rate limiting (fixed-window counter per user+IP)
+CREATE TABLE IF NOT EXISTS `api_rate_limit` (
+  `bucket`       varchar(190) NOT NULL,
+  `hits`         int(11)      NOT NULL DEFAULT 0,
+  `window_start` int(11)      NOT NULL DEFAULT 0,
+  PRIMARY KEY (`bucket`),
+  KEY `idx_window_start` (`window_start`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `schema_migrations` (
@@ -415,7 +424,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
             // Seed maxval if empty
             $mvCount = (int)$pdo->query("SELECT COUNT(*) FROM maxval")->fetchColumn();
             if ($mvCount === 0) {
-                $pdo->exec("INSERT INTO maxval (parameter, value) VALUES ('userpropertiesid', 0), ('metagroup_id', 0)");
+                $pdo->exec("INSERT INTO maxval (parameter, value) VALUES ('metagroup_id', 0)");
             }
 
             header('Location: install.php?step=5');
