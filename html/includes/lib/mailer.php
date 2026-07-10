@@ -237,27 +237,45 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $bodyText, s
 
 /**
  * Encrypt SMTP password for storage in app_settings.
+ * AES-256-GCM (authenticated): a tampered ciphertext decrypts to '' instead
+ * of silently yielding garbage. Format: "gcm:" . base64(iv . tag . ciphertext).
  */
 function mbSmtpEncryptPassword(string $password, string $encKey): string
 {
     if ($password === '' || $encKey === '') return '';
-    $iv = random_bytes(16);
+    $iv  = random_bytes(12);
     $key = hash('sha256', $encKey, true);
-    $encrypted = openssl_encrypt($password, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
-    return base64_encode($iv . $encrypted);
+    $tag = '';
+    $encrypted = openssl_encrypt($password, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
+    return 'gcm:' . base64_encode($iv . $tag . $encrypted);
 }
 
 /**
  * Decrypt SMTP password from app_settings.
+ * Reads the current "gcm:" format; falls back to the legacy unauthenticated
+ * AES-256-CBC format for values stored before the GCM switch (they are
+ * re-encrypted the next time the SMTP settings are saved).
  */
 function mbSmtpDecryptPassword(string $encrypted, string $encKey): string
 {
     if ($encrypted === '' || $encKey === '') return '';
+    $key = hash('sha256', $encKey, true);
+
+    if (str_starts_with($encrypted, 'gcm:')) {
+        $data = base64_decode(substr($encrypted, 4));
+        if ($data === false || strlen($data) < 29) return ''; // 12 iv + 16 tag + >=1
+        $iv  = substr($data, 0, 12);
+        $tag = substr($data, 12, 16);
+        $enc = substr($data, 28);
+        $result = openssl_decrypt($enc, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
+        return $result === false ? '' : $result;
+    }
+
+    // Legacy AES-256-CBC value
     $data = base64_decode($encrypted);
-    if (strlen($data) < 17) return '';
+    if ($data === false || strlen($data) < 17) return '';
     $iv  = substr($data, 0, 16);
     $enc = substr($data, 16);
-    $key = hash('sha256', $encKey, true);
     $result = openssl_decrypt($enc, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
     return $result === false ? '' : $result;
 }
