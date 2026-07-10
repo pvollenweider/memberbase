@@ -223,6 +223,8 @@ Stockés en base, modifiables dans Réglages → Général. Clés principales :
 | `org_ide` | Numéro IDE suisse (CHE-XXX.XXX.XXX) — figure sur les attestations de dons. Bouton **Vérifier via Zefix** dans l'UI : interroge le registre du commerce suisse (`zefix.ch`, flux `search.json` → `firm/{ehraid}.json`) pour préremplir nom/adresse/but statutaire à partir du numéro IDE |
 | `org_purpose` | But statutaire (extrait des statuts) — préremplissable via Zefix |
 | `org_tax_status` | Statut d'exonération fiscale — saisie manuelle uniquement (aucun registre fédéral consulté automatiquement) |
+| `org_iban` | IBAN de l'association — requis pour générer le bulletin de versement QR joint aux rappels de cotisation (voir [§14.4](#144-rappels-de-cotisation)) |
+| `org_coti_amount_desc` | Description libre du montant de cotisation, affichée dans l'email de rappel et sur le bulletin QR (champ « Montant ») — repli sur une valeur par défaut si vide |
 | `smtp_*` | Configuration SMTP — voir [§14.1](#141-configuration-smtp) |
 
 Modification directe en SQL si nécessaire :
@@ -959,7 +961,9 @@ Interpolation par `{{placeholder}}` (pas `%s`/`sprintf`). Une modale « Variable
 
 ### 14.4 Rappels de cotisation
 
-Depuis la vue **Membres perdus** (`lapsedMembers`), envoi manuel — individuel ou en masse — d'un rappel aux membres ayant cotisé l'année précédente mais pas l'année en cours. Anti-doublon : un membre déjà relancé cette année (`email_log.tpl_key = 'tpl_cotisation_reminder'` + année) n'est pas re-sollicité tant que l'option de forçage n'est pas utilisée.
+Depuis la vue **Membres perdus** (`lapsedMembers`), envoi manuel — individuel ou en masse — d'un rappel aux membres ayant cotisé l'année précédente mais pas l'année en cours. Anti-doublon : un membre déjà relancé cette année (`email_log.tpl_key = 'tpl_cotisation_reminder'` + année) n'est pas re-sollicité tant que l'option de forçage n'est pas utilisée (bouton **Renvoyer**, confirmation via modale Bootstrap rappelant la date du premier envoi — pas de `window.confirm()` natif).
+
+Chaque rappel embarque en pièce jointe un **bulletin de versement QR** suisse (`sprain/swiss-qr-bill`, cf. `html/includes/lib/qr_bill.php`), généré à partir de l'IBAN configuré (`app_settings.org_iban`) et de la description de montant configurable (`app_settings.org_coti_amount_desc`, avec repli sur une valeur par défaut si vide). Nécessite l'extension PHP **GD** côté serveur (cf. section Dépendances du `CLAUDE.md`).
 
 ### 14.5 Récapitulatifs comptables (compta recap)
 
@@ -979,9 +983,10 @@ Accès : **Réglages** → section **Général**
 
 | Réglage | Description |
 |---------|-------------|
-| Groupe par défaut | Groupe affiché à l'ouverture de la liste membres |
-| Groupe membres de référence | Référence pour les filtres cotisation non payée |
-| Groupe archives | Exclu des vues "tous sauf archives" |
+| Segment par défaut | Segment affiché à l'ouverture de la liste membres |
+| Segment membres de référence | Référence pour les filtres cotisation non payée |
+| Segment archives | Exclu des vues "tous sauf archives" |
+| IBAN / Description du montant | Voir [§3.3](#33-paramètres-applicatifs-table-app_settings) — utilisés pour le bulletin QR des rappels de cotisation |
 
 ### Types de compta
 

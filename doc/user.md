@@ -474,7 +474,7 @@ les sections disponibles dépendent du rôle.
 | Segments combinés | Manager / Admin | Filtres regroupant plusieurs segments |
 | Types compta | Manager / Admin | Types de versements |
 | Réglages | Admin | Paramètres généraux de l'organisation |
-| Email | Admin | Configuration SMTP, templates d'email, journal des envois (voir §15) |
+| Email | Admin | Configuration SMTP, templates d'email, journal des envois |
 | Utilisateurs | Admin | Comptes de connexion à l'application |
 | Journal | Admin | Journal d'activité |
 | Intégrité | Admin | Vérification et correction des données |
@@ -504,6 +504,8 @@ Pour chaque type de versement :
 | Numéro IDE | Identifiant d'entreprise suisse — bouton **Vérifier via Zefix** pour préremplir nom/adresse/but statutaire automatiquement |
 | But statutaire | Extrait des statuts, utilisé dans les documents officiels |
 | Statut d'exonération fiscale | Saisie manuelle (ex. « Exonérée AFC-GE depuis 2018 ») |
+| IBAN | Numéro IBAN de l'association, utilisé pour générer le bulletin de versement QR joint aux rappels de cotisation (voir §16) |
+| Description du montant (rappels de cotisation) | Texte affiché dans l'email de rappel et sur le bulletin QR (champ « Montant »), ex. « min. CHF 50.- / pers. · CHF 80.- / famille » — laissé vide, une valeur par défaut est utilisée |
 
 ### Utilisateurs (Admin)
 
@@ -520,6 +522,12 @@ Gestion des comptes de connexion :
 
 Trace les actions effectuées (création, modification, suppression) avec date, utilisateur et
 détail.
+
+### Journal des emails (Réglages → Email, Admin)
+
+Sous l'onglet **Email**, un journal liste tous les emails envoyés par l'application (récapitulatifs
+comptables, rappels de cotisation, tests SMTP…) avec date, destinataire, template utilisé et
+statut (envoyé / erreur).
 
 ### Intégrité (Admin)
 
@@ -612,6 +620,13 @@ Liste les membres ayant cotisé l'année précédente mais pas encore l'année e
 
 - **Envoyer un rappel** sur une ligne individuelle, ou en masse pour toute la liste.
 - Un membre déjà relancé cette année n'est pas resollicité automatiquement (anti-doublon) —
-  le statut « Rappel envoyé le [date] » apparaît sur sa ligne.
+  le statut « Rappel envoyé le [date] » apparaît sur sa ligne. Un bouton **Renvoyer** reste
+  disponible sur ces lignes pour forcer un second envoi (une modale de confirmation rappelle
+  la date du premier envoi).
 - Le contenu de l'email est celui configuré dans Réglages → Email → Templates
-  (`tpl_cotisation_reminder`).
+  (`tpl_cotisation_reminder`), avec en pièce jointe un **bulletin de versement QR** suisse
+  (généré automatiquement à partir de l'IBAN de l'organisation, voir §11 — Réglages
+  généraux) mentionnant la description de montant configurée et « Cotisation AAAA » comme
+  message.
+- La vue propose aussi un bouton **Créer segment « Membres à relancer AAAA »** pour extraire
+  la liste dans un nouveau segment (même principe que pour les donateurs perdus, voir §8).

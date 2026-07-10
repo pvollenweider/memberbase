@@ -379,7 +379,7 @@ segment est journalisée (`auditLog`).
 
 ## 10. Frontend
 
-### Bibliothèques (auto-hébergées, sauf TipTap)
+### Bibliothèques (toutes auto-hébergées)
 
 | Bibliothèque                 | Version | Usage                                     |
 |------------------------------|---------|-------------------------------------------|
@@ -392,11 +392,12 @@ segment est journalisée (`auditLog`).
 | Chart.js                     | —       | Graphiques (vue résumé)                    |
 | pdfmake + jszip              | —       | Exports DataTables (PDF/Excel)            |
 | Font Awesome                 | —       | Icônes                                     |
-| TipTap 2 (via `esm.sh`)      | 2.x     | Éditeur rich-text du champ commentaire     |
+| TipTap 2 (`html/js/vendor/tiptap.bundle.js`) | 2.x | Éditeur rich-text du champ commentaire |
 | Inter                        | —       | Police auto-hébergée                       |
 
-TipTap est le **seul** module chargé depuis un CDN (`esm.sh`) ; tout le reste est dans
-`html/js/vendor/` et `html/css/vendor/`.
+Toutes les bibliothèques sont vendorisées dans `html/js/vendor/` et `html/css/vendor/` —
+aucun chargement depuis un CDN externe (#102), ce qui permet une CSP stricte `self`
+(cf. section CSP ci-dessous / #93).
 
 ### htmx — configuration
 
