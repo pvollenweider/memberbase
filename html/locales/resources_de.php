@@ -503,7 +503,7 @@ $GLOBAL['deleteNameConfirm'] = "„%s“ löschen?";
 $GLOBAL['memberSegmentsNotDeleted'] = "Die Mitglieder-Segmente werden nicht gelöscht.";
 
 // --- settings_filters ---
-$GLOBAL['filtersHelp'] = "Erstellen Sie eine Schnellansicht, indem Sie mehrere Segmente kombinieren. Beispiel: Ein kombiniertes Segment „Mitglieder Genf + Waadt" fasst zwei regionale Segmente zu einer Verknüpfung in der Navigationsleiste zusammen — stets aktuell, keine Datenkopie.";
+$GLOBAL['filtersHelp'] = "Erstellen Sie eine Schnellansicht, indem Sie mehrere Segmente kombinieren. Beispiel: Ein kombiniertes Segment „Mitglieder Genf + Waadt“ fasst zwei regionale Segmente zu einer Verknüpfung in der Navigationsleiste zusammen — stets aktuell, keine Datenkopie.";
 $GLOBAL['noFilters'] = "Keine Filter.";
 $GLOBAL['filterNamePlaceholder'] = "Name des Filters";
 
