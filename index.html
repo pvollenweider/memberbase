@@ -463,6 +463,18 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap">
     <h2 id="changelog-h">Dernières versions</h2>
     <article class="release">
+      <h3 class="v">5.0.1 <span class="d">10 juillet 2026</span></h3>
+      <ul>
+        <li><strong>Envoi des attestations de dons par email</strong> (individuel depuis la fiche membre / résumé</li>
+        <li><strong>Tampon et signature</strong> sur les attestations de dons (téléchargées ou envoyées par email) :</li>
+        <li><strong>Envoi en masse des attestations</strong> : détection des personnes déjà notifiées cette</li>
+        <li><strong>Régénération d'une attestation déjà envoyée</strong> depuis le détail de l'email (journal des</li>
+        <li><strong>Aperçu de l'email avant envoi</strong> pour les rappels de cotisation individuels (et renvois),</li>
+        <li><strong>Copie (BCC)</strong> vers l'adresse de contact (<code class="inline">smtp_reply_to</code>) si configurée, sur les rappels</li>
+        <li>Nouveau modèle par défaut pour <code class="inline">tpl_attestation_don</code> : salutation formelle genrée</li>
+      </ul>
+    </article>
+    <article class="release">
       <h3 class="v">5.0.0 <span class="d">9 juillet 2026</span></h3>
       <ul>
         <li><strong>Table <code class="inline">users</code> → <code class="inline">contact</code></strong>, <code class="inline">user_properties</code> → <code class="inline">contact_properties</code> (migration <code class="inline">0015</code>). Classe PHP <code class="inline">User</code> → <code class="inline">Contact</code> (<code class="inline">html/classes/user_class.php</code> → <code class="inline">contact_class.php</code>).</li>
@@ -494,16 +506,6 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li><code class="inline">assert.sh</code> (test CI d'upgrade) n'attendait que 9 migrations appliquées au lieu de 12.</li>
         <li><code class="inline">email_templates.body_html</code> manquant dans <code class="inline">schema.sql</code>/<code class="inline">install.php</code> — un fresh install ne créait pas cette colonne pourtant utilisée par les templates HTML.</li>
         <li>Test de convergence CI depuis une base de données legacy étendu aux migrations 0010-0012 (<code class="inline">tests/upgrade/</code>).</li>
-      </ul>
-    </article>
-    <article class="release">
-      <h3 class="v">3.8.0 <span class="d">3 juillet 2026</span></h3>
-      <ul>
-        <li><strong>Interface multilingue (FR/EN/DE/ES)</strong> : chaque utilisateur choisit sa langue d'interface (carte « Langue » sur la page Mot de passe), stockée sur son compte (<code class="inline">app_users.locale</code>, défaut français) et appliquée immédiatement. Traductions complètes en anglais, allemand (orthographe suisse) et espagnol ; toute clé manquante retombe automatiquement sur le français.</li>
-        <li><strong>Externalisation complète des chaînes UI</strong> : les ~650 dernières chaînes codées en dur (messages d'erreur, boutons, titres, aide contextuelle…) sont passées dans le fichier de locale, conformément à la règle « aucun label en dur ».</li>
-        <li>Nouvelle architecture de locale par bundles PHP (<code class="inline">html/locales/resources_{fr,en,de,es}.php</code>), chargés par <code class="inline">mbLoadLocale()</code> — la base française reste la source complète, les autres langues sont des surcharges.</li>
-        <li>Migration <code class="inline">0003_app_users_locale</code> (colonne <code class="inline">locale</code> sur <code class="inline">app_users</code>).</li>
-        <li><code class="inline">tools/release.sh</code> / <code class="inline">tools/publish-site.sh</code> : processus de release allégé (bump/tag/GitHub release + patch du changelog sur le site, sans régénération complète).</li>
       </ul>
     </article>
     <p class="changelog-more"><a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md">Historique complet des versions</a></p>
