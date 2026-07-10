@@ -113,14 +113,18 @@ function mbRecapBuildVars(array $entries, array $appSettings): array
         // Build description: always show type label; append free-text libele when it adds info.
         if ($libele === '' || $libele === $typeLabel) {
             $desc = $typeLabel;
+            // For cotisation entries with no libele, always append the cotisation year.
+            if (!empty($e['ct_coti']) && !empty($e['cotisation_year'])) {
+                $desc .= ' ' . (int)$e['cotisation_year'];
+            }
         } else {
             $desc = $typeLabel . ' — ' . $libele;
-        }
-        // Append cotisation year when it differs from the payment year.
-        if (!empty($e['ct_coti']) && !empty($e['cotisation_year'])) {
-            $payYear = $e['date'] ? (int)date('Y', (int)$e['date']) : 0;
-            if ((int)$e['cotisation_year'] !== $payYear) {
-                $desc .= ' (' . (int)$e['cotisation_year'] . ')';
+            // Append cotisation year only when it differs from the payment year.
+            if (!empty($e['ct_coti']) && !empty($e['cotisation_year'])) {
+                $payYear = $e['date'] ? (int)date('Y', (int)$e['date']) : 0;
+                if ((int)$e['cotisation_year'] !== $payYear) {
+                    $desc .= ' (' . (int)$e['cotisation_year'] . ')';
+                }
             }
         }
         $descHtml = htmlspecialchars($desc, ENT_QUOTES, 'UTF-8');
