@@ -122,11 +122,12 @@ if ($action == 'addCompta') {
 
 } elseif ($action == 'deleteComptaEntry') {
     $comptaid = (int)$_REQUEST['comptaid'];
-    $_auDel = $pdo->prepare("SELECT CONCAT(u.firstName,' ',u.lastName), c.sum FROM compta c JOIN contact u ON u.id=c.user_id WHERE c.id=?");
+    $_auDel = $pdo->prepare("SELECT user_id, sum FROM compta WHERE id=?");
     $_auDel->execute([$comptaid]);
-    $_auDelRow = $_auDel->fetch(PDO::FETCH_NUM);
+    $_auDelRow = $_auDel->fetch(PDO::FETCH_OBJ);
     $pdo->prepare("DELETE FROM compta WHERE id=?")->execute([$comptaid]);
-    auditLog($pdo, 'deleteComptaEntry', "compta#=$comptaid | " . ($_auDelRow[0] ?? '') . " | sum={$_auDelRow[1]}");
+    $_auDelName = $_auDelRow ? Contact::getMemberName((int)$_auDelRow->user_id) : '';
+    auditLog($pdo, 'deleteComptaEntry', "compta#=$comptaid | " . $_auDelName . " | sum=" . ($_auDelRow->sum ?? ''));
     // With a userid the delete came from the member's compta tab; otherwise
     // from the integrity screen — go back to where the user was.
     $_delUserId = (int)($_REQUEST['userid'] ?? 0);
@@ -141,9 +142,7 @@ if ($action == 'addCompta') {
     $comptaid = (int)$_REQUEST['comptaid'];
     $value    = isset($_REQUEST['wants_attestation']) ? 1 : 0;
     $pdo->prepare("UPDATE compta SET wants_attestation=? WHERE id=?")->execute([$value, $comptaid]);
-    $_auTwa = $pdo->prepare("SELECT CONCAT(u.firstName,' ',u.lastName) FROM compta c JOIN contact u ON u.id=c.user_id WHERE c.id=?");
-    $_auTwa->execute([$comptaid]);
-    auditLog($pdo, 'toggleWantsAttestation', "compta#=$comptaid | " . ($_auTwa->fetchColumn() ?: '') . " | attestation: " . ($value ? 'oui' : 'non'), (int)$_REQUEST['userid']);
+    auditLog($pdo, 'toggleWantsAttestation', "compta#=$comptaid | " . Contact::getMemberName((int)$_REQUEST['userid']) . " | attestation: " . ($value ? 'oui' : 'non'), (int)$_REQUEST['userid']);
     $year   = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
     $userid = (int)$_REQUEST['userid'];
     header('Location: ' . appUrl() . '?view=compta&userid=' . $userid . '&year=' . $year);
