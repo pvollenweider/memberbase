@@ -438,14 +438,18 @@ function mbDefaultTemplates(): array
 <p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
 <p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
+        // {{year}}         = fiscal year of the attestation (e.g. 2025)
+        // {{total}}        = total attestable amount formatted (e.g. CHF 1'200.00)
         'tpl_attestation_don' => [
-            'subject'   => 'Attestation de don',
-            'body_text' => "{{greeting_text}}\n\nVeuillez trouver ci-joint votre attestation de don.\n\nCordialement,\n{{org_name}}",
+            'subject'   => 'Attestation de don {{year}} — {{org_name}}',
+            'body_text' => "Concerne : Attestation de don {{year}}\n\n{{greeting_text}}\n\nNous tenons à vous remercier sincèrement pour le soutien que vous avez apporté à {{org_name}} tout au long de l'année {{year}}. Votre engagement fidèle représente un appui essentiel pour notre mission.\n\nVous trouverez ci-joint votre attestation fiscale pour un montant total de {{total}}, qui vous permettra de déduire vos dons de vos impôts. Nous vous rappelons toutefois que ces déductions ne s'appliquent pas aux éventuelles cotisations.\n\nEn vous remerciant une nouvelle fois pour votre précieux engagement, nous vous adressons nos salutations les meilleures.\n\n{{org_name}}\n{{org_address}}\n{{org_city}}\nContact : {{contact_email}}",
             'body_html' => $htmlWrap(
-                '<p>{{greeting}}</p>
-<p>Veuillez trouver ci-joint votre attestation de don pour l\'année fiscale écoulée.</p>
-<p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
-<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
+                '<p style="color:#555;font-size:13px;margin-bottom:20px"><strong>Concerne : Attestation de don {{year}}</strong></p>
+<p>{{greeting}}</p>
+<p>Nous tenons à vous remercier sincèrement pour le soutien que vous avez apporté à <strong>{{org_name}}</strong> tout au long de l\'année <strong>{{year}}</strong>. Votre engagement fidèle représente un appui essentiel pour notre mission.</p>
+<p>Vous trouverez ci-joint votre attestation fiscale pour un montant total de <strong>{{total}}</strong>, qui vous permettra de déduire vos dons de vos impôts. Nous vous rappelons toutefois que ces déductions ne s\'appliquent pas aux éventuelles cotisations.</p>
+<p>En vous remerciant une nouvelle fois pour votre précieux engagement, nous vous adressons nos salutations les meilleures.</p>
+<p style="margin-top:24px"><strong>{{org_name}}</strong><br>{{org_address}}<br>{{org_city}}<br><a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>', '{{org_name}}'),
         ],
         // {{entries}}      = plain-text block, one line per entry (date · type · description · amount)
         // {{entries_html}} = HTML <table> of entries (built by the action)
