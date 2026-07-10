@@ -128,9 +128,9 @@ pas en `DATE` SQL ; conversions via `formatedDateToTimeStamp()` / `timeStampTofo
 | `contact`         | Membres (**anciennement `users`**, renommée v5.0.0) : identité, coordonnées (dont **`email_alt`**), `sexe` (na/f/m/hf), `status` (1/0), dates Unix | `id` AUTO_INCREMENT    |
 | `segment`         | Segments (**anciennement `team`**, renommée v5.0.0) : `name`, `hidden`                   | `id` AUTO_INCREMENT    |
 | `contact_segment` | Appartenance segment (**anciennement EAV dans `user_properties`**, table de jointure depuis v5.0.0) : `user_id` (contact), `segment_id` | PK `(user_id, segment_id)` |
-| `contact_properties` | EAV : notes de suivi (**anciennement `user_properties`**, renommée v5.0.0)             | pas de PK, `id` legacy |
+| `contact_properties` | EAV : notes de suivi (**anciennement `user_properties`**, renommée v5.0.0)             | `id` AUTO_INCREMENT (PK depuis la migration 0020) |
 | `metagroup`       | Segments combinés / catégories : `name`, `segmentid`, `is_filter`, `sort_order`          | `id` via `maxval`      |
-| `compta_type`     | Types d'écriture : `label`, `color`, `sort_order`, `is_cotisation`, `is_excluded_from_donation`, `is_institutional` | `id` AUTO_INCREMENT |
+| `compta_type`     | Types d'écriture : `label`, `color`, **`default_libele`** (libellé pré-rempli à la saisie, migration 0021), `sort_order`, `is_cotisation`, `is_excluded_from_donation`, `is_institutional` | `id` AUTO_INCREMENT |
 | `compta`          | Écritures : `user_id`, `date` (Unix), `libele`, `sum` (**decimal(10,2)**, CHF), `quittance`, `type_id`, `wants_attestation`, **`notified_at`** (dernier envoi du récapitulatif email, `NULL` = non notifiée), **`cotisation_year`** (année de cotisation si différente de l'année de paiement) | `id` AUTO_INCREMENT |
 | `maxval`          | Compteur de séquence manuel (clé/valeur)                                                  | PK `parameter`         |
 | `app_settings`    | Configuration organisation (clé/valeur : `org_name`, `membre_team`, `archive_id`, `org_ide`, `org_purpose`, `org_tax_status`, `smtp_*`, etc. — `value` en `TEXT` depuis la migration 0004 pour les champs multi-lignes) | PK `key`               |
@@ -166,9 +166,10 @@ segment (id) ──> metagroup (segmentid)   [1 ligne header (segmentid NULL) + 
 - `metagroup.id` est **partagé** entre la ligne header (`segmentid IS NULL`, portant
   `name`) et les lignes membres (`segmentid = N`), d'où l'usage de `maxval` plutôt que
   d'`AUTO_INCREMENT`.
-- `contact_properties.id` est une colonne héritée non fiable (nombreuses lignes à `0`) ;
-  l'identité d'une propriété repose sur `user_id` + `parameter`. Le commentaire de
-  `bootstrap.php` mentionne ~83k lignes concernées.
+- `contact_properties.id` est une vraie clé primaire `AUTO_INCREMENT` depuis la
+  migration `0020` : la colonne héritée (≈83k lignes à `0`, doublons possibles) a été
+  renumérotée séquentiellement — l'id n'était référencé nulle part ailleurs, seulement
+  comme paramètre d'URL transitoire.
 
 ---
 
@@ -218,7 +219,7 @@ les chaînes numériques en entier. Testé dans `tests/unit/ComptaYearTest.php`.
 
 ### `Metagroup` (`metagroup_class.php`)
 
-`lookupMetagroup()`, `save()`, `remove()`, `isUsed()`. `id` alloué via `maxval`.
+`lookupMetagroup()`, `save()`, `filterList()`, `segmentNames()`, `segmentIds()`. `id` alloué via `maxval`.
 
 ### `UserProperty` (`property_class.php`)
 
@@ -261,9 +262,10 @@ function canRead(): bool     // role ∈ {admin, manager, user, readonly}
 - `requirePasswordChange()` : si `force_password_change`, bloque toute vue/action sauf
   `changePassword` et `logout` (redirige vers `?view=changePassword`).
 - `routing/views.php` déclare une **table de routes** (`$UA_VIEW_ROUTES`) associant
-  chaque vue à son fichier et sa garde : `addUser`/`removeCompta`/`deleteComptaConfirm`/
-  `removeSuivi`/`removeSuiviConfirm`→`canWrite`, `importStep1/2/3`/`mergeUsers`→`isManager`,
-  `deleteUser`/`deleteUserConfirm`/`anonymizeUser`→`isAdmin`. Une garde refusée renvoie
+  chaque vue à son fichier et sa garde : `addUser`/`removeCompta`/`removeSuivi`→`canWrite`,
+  `importStep1/2/3`/`mergeUsers`→`isManager`, `deleteUser`/`anonymizeUser`→`isAdmin`.
+  **Aucune route de vue ne modifie de données** : toute mutation (y compris les
+  suppressions compta/suivi) passe par une action POST gardée par le jeton CSRF. Une garde refusée renvoie
   un bloc `alert-danger` (« Accès refusé ») ; une vue absente de la table renvoie
   « Vue introuvable ». Ajouter une route force donc une décision de garde explicite.
 - La force brute est déléguée à Fail2Ban (logs Apache), pas au code PHP.
@@ -507,9 +509,11 @@ base (DDL + `tests/fixtures/seed.sql`).
   (installation classique) ou variables d'environnement `DB_*` (Docker).
 
 ### Séquences
-- `AUTO_INCREMENT` natif pour `contact`, `segment`, `compta`, `compta_type`, `app_users`,
-  `audit_log`. `maxval` (`getMaxVal()` / `updateAndGetMaxVal()`) uniquement pour
-  `metagroup.id` (id partagé header/membres) et l'`id` legacy de `contact_properties`.
+- `AUTO_INCREMENT` natif pour `contact`, `segment`, `compta`, `compta_type`,
+  `contact_properties` (depuis la migration 0020), `app_users`, `audit_log`.
+  `maxval` (`updateAndGetMaxVal()`) uniquement pour `metagroup.id` (id partagé
+  header/membres). L'incrément est atomique via `LAST_INSERT_ID(expr)` — deux
+  requêtes parallèles ne peuvent pas obtenir le même compteur.
 
 ### Audit log
 - `auditLog(PDO $pdo, string $action, string $detail = '', ?int $subjectUserId = null)`

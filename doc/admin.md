@@ -104,7 +104,7 @@ Saisir les paramètres de connexion. L'installeur teste la connexion et, si elle
 
 Crée les tables suivantes (toutes avec `CREATE TABLE IF NOT EXISTS` — idempotent) :
 
-`contact` `segment` `contact_properties` `contact_segment` `metagroup` `compta` `compta_type` `maxval` `app_settings` `app_users` `audit_log` `email_templates` `email_log`
+`contact` `segment` `contact_properties` `contact_segment` `metagroup` `compta` `compta_type` `maxval` `app_settings` `app_users` `audit_log` `email_templates` `email_log` `api_rate_limit` `schema_migrations`
 
 Un clic suffit. Les tables existantes ne sont pas modifiées.
 

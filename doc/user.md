@@ -299,7 +299,10 @@ Le formulaire est en haut du tableau :
 3. **Année de cotisation** — n'apparaît que pour un type marqué « cotisation » ; utile quand le
    paiement d'une année tombe dans une autre (ex. cotisation 2027 payée en décembre 2026).
    Pré-rempli sur l'année de la date de paiement.
-4. **Libellé** — description libre.
+4. **Libellé** — description libre. Pré-rempli automatiquement si le type définit un
+   **libellé par défaut** (Réglages → Types compta) ; pour un type cotisation, l'année
+   sélectionnée est ajoutée (ex. « Cotisation 2026 ») et suit les changements d'année.
+   Dès que vous modifiez le libellé à la main, il n'est plus écrasé.
 5. **Somme** — montant en CHF (ex. `50` ou `12.50`).
 6. **Quittance** — numéro de quittance / référence.
 7. **Attestation** (case à cocher) — cocher si le donateur souhaite une attestation fiscale.
@@ -483,6 +486,8 @@ les sections disponibles dépendent du rôle.
 Pour chaque type de versement :
 
 - **Nom** et **Couleur** (badge dans la liste et la compta) ;
+- **Libellé par défaut** : pré-remplit le champ Libellé du formulaire de saisie ; pour un
+  type cotisation, l'année sélectionnée est concaténée (ex. « Cotisation 2026 ») ;
 - **Est une cotisation** : pris en compte par les filtres de cotisation ;
 - **Exclu des dons** : non comptabilisé dans les totaux de dons ni les attestations ;
 - **Institutionnel** : exclu du filtre « donateurs non institutionnels ».
