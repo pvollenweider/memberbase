@@ -117,7 +117,7 @@ function mbRecapBuildVars(array $entries, array $appSettings): array
                 $desc .= ' ' . (int)$e['cotisation_year'];
             }
         } else {
-            $desc = $typeLabel . ' — ' . $libele;
+            $desc = $libele;
             // Append cotisation year only when it differs from the payment year.
             if (!empty($e['ct_coti']) && !empty($e['cotisation_year'])) {
                 $payYear = $e['date'] ? (int)date('Y', (int)$e['date']) : 0;
