@@ -373,9 +373,9 @@ pas en <code>DATE</code> SQL ; conversions via <code>formatedDateToTimeStamp()</
 <div class="table-scroll" role="region" aria-label="Tableau — 5. Schéma de base de données" tabindex="0"><table><thead><tr><th scope="col">Table</th><th scope="col">Rôle</th><th scope="col">Clé / séquence</th></tr></thead><tbody><tr><td><code>contact</code></td><td>Membres (<strong>anciennement <code>users</code></strong>, renommée v5.0.0) : identité, coordonnées (dont <strong><code>email_alt</code></strong>), <code>sexe</code> (na/f/m/hf), <code>status</code> (1/0), dates Unix</td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>segment</code></td><td>Segments (<strong>anciennement <code>team</code></strong>, renommée v5.0.0) : <code>name</code>, <code>hidden</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>contact_segment</code></td><td>Appartenance segment (<strong>anciennement EAV dans <code>user_properties</code></strong>, table de jointure depuis v5.0.0) : <code>user_id</code> (contact), <code>segment_id</code></td><td>PK <code>(user_id, segment_id)</code></td></tr>
-<tr><td><code>contact_properties</code></td><td>EAV : notes de suivi (<strong>anciennement <code>user_properties</code></strong>, renommée v5.0.0)</td><td>pas de PK, <code>id</code> legacy</td></tr>
+<tr><td><code>contact_properties</code></td><td>EAV : notes de suivi (<strong>anciennement <code>user_properties</code></strong>, renommée v5.0.0)</td><td><code>id</code> AUTO_INCREMENT (PK depuis la migration 0020)</td></tr>
 <tr><td><code>metagroup</code></td><td>Segments combinés / catégories : <code>name</code>, <code>segmentid</code>, <code>is_filter</code>, <code>sort_order</code></td><td><code>id</code> via <code>maxval</code></td></tr>
-<tr><td><code>compta_type</code></td><td>Types d&#39;écriture : <code>label</code>, <code>color</code>, <code>sort_order</code>, <code>is_cotisation</code>, <code>is_excluded_from_donation</code>, <code>is_institutional</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>compta_type</code></td><td>Types d&#39;écriture : <code>label</code>, <code>color</code>, <strong><code>default_libele</code></strong> (libellé pré-rempli à la saisie, migration 0021), <code>sort_order</code>, <code>is_cotisation</code>, <code>is_excluded_from_donation</code>, <code>is_institutional</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>compta</code></td><td>Écritures : <code>user_id</code>, <code>date</code> (Unix), <code>libele</code>, <code>sum</code> (<strong>decimal(10,2)</strong>, CHF), <code>quittance</code>, <code>type_id</code>, <code>wants_attestation</code>, <strong><code>notified_at</code></strong> (dernier envoi du récapitulatif email, <code>NULL</code> = non notifiée), <strong><code>cotisation_year</code></strong> (année de cotisation si différente de l&#39;année de paiement)</td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>maxval</code></td><td>Compteur de séquence manuel (clé/valeur)</td><td>PK <code>parameter</code></td></tr>
 <tr><td><code>app_settings</code></td><td>Configuration organisation (clé/valeur : <code>org_name</code>, <code>membre_team</code>, <code>archive_id</code>, <code>org_ide</code>, <code>org_purpose</code>, <code>org_tax_status</code>, <code>smtp_*</code>, etc. — <code>value</code> en <code>TEXT</code> depuis la migration 0004 pour les champs multi-lignes)</td><td>PK <code>key</code></td></tr>
@@ -404,9 +404,10 @@ automatique, puis <code>0014</code>/<code>0015</code> ont renommé les tables (<
 <li><code>metagroup.id</code> est <strong>partagé</strong> entre la ligne header (<code>segmentid IS NULL</code>, portant
 <code>name</code>) et les lignes membres (<code>segmentid = N</code>), d&#39;où l&#39;usage de <code>maxval</code> plutôt que
 d&#39;<code>AUTO_INCREMENT</code>.</li>
-<li><code>contact_properties.id</code> est une colonne héritée non fiable (nombreuses lignes à <code>0</code>) ;
-l&#39;identité d&#39;une propriété repose sur <code>user_id</code> + <code>parameter</code>. Le commentaire de
-<code>bootstrap.php</code> mentionne ~83k lignes concernées.</li>
+<li><code>contact_properties.id</code> est une vraie clé primaire <code>AUTO_INCREMENT</code> depuis la
+migration <code>0020</code> : la colonne héritée (≈83k lignes à <code>0</code>, doublons possibles) a été
+renumérotée séquentiellement — l&#39;id n&#39;était référencé nulle part ailleurs, seulement
+comme paramètre d&#39;URL transitoire.</li>
 </ul>
 <hr>
 <h2 id="6-classes-de-domaine">6. Classes de domaine<a class="anchor" href="#6-classes-de-domaine" aria-label="Lien d'ancrage">#</a></h2>
@@ -474,9 +475,10 @@ function canRead(): bool     // role ∈ {admin, manager, user, readonly}
 <li><code>requirePasswordChange()</code> : si <code>force_password_change</code>, bloque toute vue/action sauf
 <code>changePassword</code> et <code>logout</code> (redirige vers <code>?view=changePassword</code>).</li>
 <li><code>routing/views.php</code> déclare une <strong>table de routes</strong> (<code>$UA_VIEW_ROUTES</code>) associant
-chaque vue à son fichier et sa garde : <code>addUser</code>/<code>removeCompta</code>/<code>deleteComptaConfirm</code>/
-<code>removeSuivi</code>/<code>removeSuiviConfirm</code>→<code>canWrite</code>, <code>importStep1/2/3</code>/<code>mergeUsers</code>→<code>isManager</code>,
-<code>deleteUser</code>/<code>deleteUserConfirm</code>/<code>anonymizeUser</code>→<code>isAdmin</code>. Une garde refusée renvoie
+chaque vue à son fichier et sa garde : <code>addUser</code>/<code>removeCompta</code>/<code>removeSuivi</code>→<code>canWrite</code>,
+<code>importStep1/2/3</code>/<code>mergeUsers</code>→<code>isManager</code>, <code>deleteUser</code>/<code>anonymizeUser</code>→<code>isAdmin</code>.
+<strong>Aucune route de vue ne modifie de données</strong> : toute mutation (y compris les
+suppressions compta/suivi) passe par une action POST gardée par le jeton CSRF. Une garde refusée renvoie
 un bloc <code>alert-danger</code> (« Accès refusé ») ; une vue absente de la table renvoie
 « Vue introuvable ». Ajouter une route force donc une décision de garde explicite.</li>
 <li>La force brute est déléguée à Fail2Ban (logs Apache), pas au code PHP.</li>
@@ -670,9 +672,11 @@ tête. Appellent <code>auditLog()</code> pour toute opération sensible. Termine
 </ul>
 <h3 id="séquences">Séquences<a class="anchor" href="#séquences" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
-<li><code>AUTO_INCREMENT</code> natif pour <code>contact</code>, <code>segment</code>, <code>compta</code>, <code>compta_type</code>, <code>app_users</code>,
-<code>audit_log</code>. <code>maxval</code> (<code>getMaxVal()</code> / <code>updateAndGetMaxVal()</code>) uniquement pour
-<code>metagroup.id</code> (id partagé header/membres) et l&#39;<code>id</code> legacy de <code>contact_properties</code>.</li>
+<li><code>AUTO_INCREMENT</code> natif pour <code>contact</code>, <code>segment</code>, <code>compta</code>, <code>compta_type</code>,
+<code>contact_properties</code> (depuis la migration 0020), <code>app_users</code>, <code>audit_log</code>.
+<code>maxval</code> (<code>updateAndGetMaxVal()</code>) uniquement pour <code>metagroup.id</code> (id partagé
+header/membres). L&#39;incrément est atomique via <code>LAST_INSERT_ID(expr)</code> — deux
+requêtes parallèles ne peuvent pas obtenir le même compteur.</li>
 </ul>
 <h3 id="audit-log">Audit log<a class="anchor" href="#audit-log" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
