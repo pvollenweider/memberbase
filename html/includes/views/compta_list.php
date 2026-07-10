@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $year = -2; // default: all years
 if (isset($_REQUEST['year'])) {
-    $year = $_REQUEST['year'];
+    $year = (int)$_REQUEST['year']; // int cast: echoed in HTML/JS and used in queries
 }
 $donsOnly = !empty($_REQUEST['dons_only']);
 $filterTypeId = isset($_REQUEST['type_id']) ? (int)$_REQUEST['type_id'] : 0;
@@ -23,14 +23,14 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     </button>
     <ul class="dropdown-menu">
       <li><a class="dropdown-item<?= $year == -2 ? ' active' : '' ?>"
-             href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=$user->getId()?>&amp;year=-2"><?=$GLOBAL['allYear']?></a></li>
+             href="<?=appUrl()?>?view=compta&amp;userid=<?=$user->getId()?>&amp;year=-2"><?=$GLOBAL['allYear']?></a></li>
       <li><hr class="dropdown-divider"></li>
       <?php
       $currentYear = date("Y");
       for ($i = 0; $i < 10; $i++) {
           $y = $currentYear - $i;
           ?><li><a class="dropdown-item<?= $year == $y ? ' active' : '' ?>"
-               href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=$user->getId()?>&amp;year=<?=$y?>"><?=$y?></a></li><?php
+               href="<?=appUrl()?>?view=compta&amp;userid=<?=$user->getId()?>&amp;year=<?=$y?>"><?=$y?></a></li><?php
       }
       ?>
     </ul>
@@ -40,19 +40,20 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <input class="form-check-input" type="checkbox" role="switch" id="dons-only-toggle"
            <?= $donsOnly ? 'checked' : '' ?>
            data-no-dirty
-           onchange="window.__dirtyOverride=true;window.location='<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>&amp;year=<?= $year ?>'+(this.checked?'&amp;dons_only=1':'')">
+           onchange="window.__dirtyOverride=true;window.location='<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?>&amp;year=<?= $year ?>'+(this.checked?'&amp;dons_only=1':'')">
     <label class="form-check-label small" for="dons-only-toggle"><?= $GLOBAL['donationsOnly'] ?></label>
   </div>
 
   <?php if ($year != -2): ?>
   <?php
   // Count excluded-from-donation entries in the current year view (without type filter to give full picture)
-  $_exclWhere = "FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id"
-      . " WHERE c.user_id = " . $user->getId()
-      . " AND c.date > $from AND c.date < $to"
-      . " AND COALESCE(ct.is_excluded_from_donation,0) = 1"
-      . " AND c.sum <> 0";
-  $_exclCount = (int)$pdo->query("SELECT COUNT(*) " . $_exclWhere)->fetchColumn();
+  $_exclStmt = $pdo->prepare(
+      "SELECT COUNT(*) FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id
+       WHERE c.user_id = ? AND c.date > ? AND c.date < ?
+         AND COALESCE(ct.is_excluded_from_donation,0) = 1 AND c.sum <> 0"
+  );
+  $_exclStmt->execute([(int)$user->getId(), $from, $to]);
+  $_exclCount = (int)$_exclStmt->fetchColumn();
   ?>
   <div class="dropdown ms-auto">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -70,7 +71,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
   </div>
   <?php endif ?>
   <?php if ($filterTypeId > 0 && isset($comptaTypes[$filterTypeId])): ?>
-  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>&amp;year=<?= $year ?>"
+  <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?>&amp;year=<?= $year ?>"
      class="ca-filter-btn text-decoration-none" data-no-dirty
      title="<?= $GLOBAL['removeTypeFilter'] ?>">
     <?= htmlentities($comptaTypes[$filterTypeId]->label, ENT_COMPAT, $charset) ?> <span aria-hidden="true">×</span>
@@ -94,7 +95,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
 </div>
 <?php endif ?>
 
-<form action="<?=$_SERVER['PHP_SELF']?>" method="post" name="addCompta">
+<form action="<?=appUrl()?>" method="post" name="addCompta">
 <input type="hidden" name="action" value="addCompta"/>
 <input type="hidden" name="view" value="compta"/>
 <input type="hidden" name="userid" value="<?=$user->getId()?>"/>
@@ -158,20 +159,27 @@ $_cotiTypeIds = array_values(array_map('intval',
 </tr>
 <?php endif ?>
 <?php
-defined('APP_ENTRY') or die('Direct access not permitted.');
 $_showZero = isset($_REQUEST['showZero']);
-$_baseWhere = "FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE c.user_id=" . $user->getId() . " ";
+// Filter clauses are static SQL; every user-influenced value goes through a
+// bound parameter.
+$_baseWhere  = "FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE c.user_id = ? ";
+$_baseParams = [(int)$user->getId()];
 if ($year != -2) {
-    $_baseWhere .= " AND c.date > $from AND c.date < $to ";
+    $_baseWhere .= " AND c.date > ? AND c.date < ? ";
+    $_baseParams[] = $from;
+    $_baseParams[] = $to;
 }
 if ($donsOnly) {
     $_baseWhere .= " AND COALESCE(ct.is_excluded_from_donation,0) = 0 ";
 }
 if ($filterTypeId > 0) {
-    $_baseWhere .= " AND c.type_id = " . $filterTypeId . " ";
+    $_baseWhere .= " AND c.type_id = ? ";
+    $_baseParams[] = $filterTypeId;
 }
 // Count zero-sum entries so we can offer a "show all" toggle
-$_zeroCount = (int)$pdo->query("SELECT COUNT(*) " . $_baseWhere . " AND c.sum = 0")->fetchColumn();
+$_zeroStmt = $pdo->prepare("SELECT COUNT(*) " . $_baseWhere . " AND c.sum = 0");
+$_zeroStmt->execute($_baseParams);
+$_zeroCount = (int)$_zeroStmt->fetchColumn();
 $_selectCols = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, c.cotisation_year, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl, COALESCE(ct.is_cotisation,0) AS ct_coti ";
 $query  = $_selectCols . $_baseWhere;
 $query2 = $_selectCols . $_baseWhere;
@@ -181,7 +189,8 @@ if (!$_showZero) {
 }
 $query  .= " ORDER BY c.date DESC";
 $query2 .= " ORDER BY c.date ASC";
-$stmt = $pdo->query($query);
+$stmt = $pdo->prepare($query);
+$stmt->execute($_baseParams);
 $total = 0;
 while ($row = $stmt->fetchObject()) {
     $id = $row->id;
@@ -209,7 +218,7 @@ while ($row = $stmt->fetchObject()) {
     ];
     $rowStyle = isset($bgVarMap[$ctColor]) ? '--bs-table-bg:' . $bgVarMap[$ctColor] : '';
     ?>
-     <tr <?= canWrite() ? 'class="ca-row-link" data-href="' . $_SERVER['PHP_SELF'] . '?view=updateCompta&comptaid=' . (int)$id . '&userid=' . (int)$user->getId() . '" style="cursor:pointer;' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' : 'style="' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' ?>>
+     <tr <?= canWrite() ? 'class="ca-row-link" data-href="' . appUrl() . '?view=updateCompta&comptaid=' . (int)$id . '&userid=' . (int)$user->getId() . '" style="cursor:pointer;' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' : 'style="' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' ?>>
         <td>
             <?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>
             <?php if ($row->ct_coti && $row->cotisation_year): ?>
@@ -235,7 +244,7 @@ while ($row = $stmt->fetchObject()) {
         </td>
         <td>
             <?php if (canWrite()): ?>
-            <a href="<?=$_SERVER['PHP_SELF']?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>"
+            <a href="<?=appUrl()?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>"
                class="ca-row-link-anchor" hx-boost="false" tabindex="-1" aria-hidden="true"></a>
             <?php endif ?>
         </td>
@@ -265,11 +274,11 @@ while ($row = $stmt->fetchObject()) {
   $_qp = $_GET;
   unset($_qp['showZero']);
   if ($_showZero) {
-      $GLOBAL['__toggleZeroUrl'] = $_SERVER['PHP_SELF'] . '?' . http_build_query($_qp);
+      $GLOBAL['__toggleZeroUrl'] = appUrl() . '?' . http_build_query($_qp);
       $GLOBAL['__toggleZeroLabel'] = sprintf($GLOBAL['hideZeroEntries'], $_zeroCount);
   } else {
       $_qp['showZero'] = '1';
-      $GLOBAL['__toggleZeroUrl'] = $_SERVER['PHP_SELF'] . '?' . http_build_query($_qp);
+      $GLOBAL['__toggleZeroUrl'] = appUrl() . '?' . http_build_query($_qp);
       $GLOBAL['__toggleZeroLabel'] = sprintf($GLOBAL['showZeroEntries'], $_zeroCount);
   }
   ?>
@@ -370,7 +379,7 @@ if (document.readyState === 'loading') {
 <script>
 (function () {
   function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
-  var baseUrl    = <?= json_encode($_SERVER['PHP_SELF']) ?>;
+  var baseUrl    = <?= json_encode(appUrl()) ?>;
   var userId     = <?= (int)$user->getId() ?>;
   var recapYear  = <?= (int)date('Y') ?>;
   var currentYear = recapYear;
@@ -513,7 +522,6 @@ if (document.readyState === 'loading') {
 </script>
 <?php endif ?>
 <?php
-defined('APP_ENTRY') or die('Direct access not permitted.');
 $_ctBg = [
     'bg-primary-subtle'   => 'rgba(13,110,253,0.7)',
     'bg-secondary-subtle' => 'rgba(108,117,125,0.7)',
@@ -549,7 +557,8 @@ $_ctBorder = [
 $_frMonths = $GLOBAL['monthsShort'];
 $_typeAgg  = [];
 $_periodAgg = []; // period key => amount
-$_stmt2 = $pdo->query($query2);
+$_stmt2 = $pdo->prepare($query2);
+$_stmt2->execute($_baseParams);
 while ($_r = $_stmt2->fetchObject()) {
     // Donut: aggregate by type
     $_lbl = $_r->ct_label ?? $GLOBAL['withoutType'];

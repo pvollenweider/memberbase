@@ -20,13 +20,13 @@ $suivi_user->lookupUser($userProperty->getUserId());
       <h6 class="text-muted mb-0" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em">
         <?= $GLOBAL['updateSuivi'] ?>
       </h6>
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= $suivi_user->getId() ?>"
+      <a href="<?= appUrl() ?>?view=suivi&amp;userid=<?= $suivi_user->getId() ?>"
          class="text-muted small text-decoration-none">
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= htmlentities($suivi_user->getFirstName(), ENT_COMPAT, $charset) ?> <?= htmlentities($suivi_user->getLastName(), ENT_COMPAT, $charset) ?>
       </a>
     </div>
 
-    <form role="form" action="<?= $_SERVER['PHP_SELF'] ?>" method="post" name="updateSuivi">
+    <form role="form" action="<?= appUrl() ?>" method="post" name="updateSuivi">
       <input type="hidden" name="suiviid"   value="<?= $userProperty->getId() ?>"/>
       <input type="hidden" name="parameter" value="<?= $userProperty->getParameter() ?>"/>
       <input type="hidden" name="action"    value="updateSuivi"/>
@@ -45,14 +45,14 @@ $suivi_user->lookupUser($userProperty->getUserId());
         <label for="comment" class="col-sm-3 col-form-label col-form-label-sm text-sm-end"><?= $GLOBAL['comment'] ?></label>
         <div class="col-sm-9">
           <textarea id="comment" name="value" rows="5"
-                    class="form-control form-control-sm"><?= html_entity_decode($userProperty->getValue(), ENT_COMPAT, $charset) ?></textarea>
+                    class="form-control form-control-sm"><?= htmlspecialchars(html_entity_decode($userProperty->getValue(), ENT_COMPAT, $charset), ENT_QUOTES, $charset) ?></textarea>
         </div>
       </div>
 
       <div class="row">
         <div class="col-sm-9 offset-sm-3 d-flex align-items-center gap-3">
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?userid=<?= $userProperty->getUserId() ?>&amp;view=removeSuivi&amp;suiviid=<?= $suiviid ?>"
+          <a href="<?= appUrl() ?>?userid=<?= $userProperty->getUserId() ?>&amp;view=removeSuivi&amp;suiviid=<?= $suiviid ?>"
              class="btn btn-outline-danger btn-sm">
             <i class="fas fa-xmark me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
           </a>

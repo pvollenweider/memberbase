@@ -68,15 +68,16 @@ usort($allRows, fn($a, $b) => (int)$b->ts - (int)$a->ts);
             <?php if ($isEmail): ?>
             <i class="fas fa-envelope me-1 text-primary" aria-hidden="true" title="<?= $GLOBAL['emailSent'] ?>"></i>
             <?php endif ?>
-            <?= html_entity_decode($row->content, ENT_COMPAT, $charset) ?>
+            <!-- Legacy rows store entity-encoded text: decode first, then escape for output -->
+            <?= htmlspecialchars(html_entity_decode($row->content, ENT_COMPAT, $charset), ENT_QUOTES, $charset) ?>
         </td>
         <td class="text-end" style="white-space:nowrap">
             <?php if ($isEmail && $row->email_log_id): ?>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=emailDetail&amp;emailid=<?= (int)$row->email_log_id ?>"
+            <a href="<?= appUrl() ?>?view=emailDetail&amp;emailid=<?= (int)$row->email_log_id ?>"
                class="stretched-link" hx-boost="false"
                title="<?= $GLOBAL['viewEmail'] ?>"></a>
             <?php else: ?>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= (int)$row->user_id ?>"
+            <a href="<?= appUrl() ?>?view=suivi&amp;userid=<?= (int)$row->user_id ?>"
                class="stretched-link" hx-boost="false"
                aria-label="<?= sprintf($GLOBAL['viewSuiviOf'], htmlspecialchars($row->firstname . ' ' . $row->lastname, ENT_QUOTES, $charset)) ?>"></a>
             <?php endif ?>

@@ -7,7 +7,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 ?>
-<form action="<?=$_SERVER['PHP_SELF']?>" method="post" name="addSuivi">
+<form action="<?=appUrl()?>" method="post" name="addSuivi">
 <input type="hidden" name="action" value="addSuivi"/>
 <input type="hidden" name="view" value="suivi"/>
 <input type="hidden" name="userid" value="<?=$user->getId()?>"/>
@@ -31,12 +31,11 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 </tr>
 <?php endif ?>
 <?php
-defined('APP_ENTRY') or die('Direct access not permitted.');
-$query = "SELECT id,user_id,parameter,date,value FROM contact_properties ".
-         "WHERE user_id=" . $user->getId() . " " .
-         "AND parameter='suivi' ".
-         "ORDER BY date DESC";
-$stmt = $pdo->query($query);
+$stmt = $pdo->prepare(
+    "SELECT id,user_id,parameter,date,value FROM contact_properties
+     WHERE user_id = ? AND parameter = 'suivi' ORDER BY date DESC"
+);
+$stmt->execute([(int)$user->getId()]);
 while ($row = $stmt->fetchObject()) {
     $id = $row->id;
     $userid = $row->user_id;
@@ -44,12 +43,13 @@ while ($row = $stmt->fetchObject()) {
     $parameter = $row->parameter;
     $value = $row->value;
     ?>
-     <tr <?= canWrite() ? 'class="ca-row-link" data-href="' . $_SERVER['PHP_SELF'] . '?view=updateSuivi&suiviid=' . (int)$id . '&userid=' . (int)$userid . '" style="cursor:pointer"' : '' ?>>
+     <tr <?= canWrite() ? 'class="ca-row-link" data-href="' . appUrl() . '?view=updateSuivi&suiviid=' . (int)$id . '&userid=' . (int)$userid . '" style="cursor:pointer"' : '' ?>>
         <td><?=timeStampToformatedDate($date)?></td>
-        <td><?=html_entity_decode($value,ENT_COMPAT,$charset)?></td>
+        <!-- Legacy rows store entity-encoded text: decode first, then escape for output -->
+        <td><?= htmlspecialchars(html_entity_decode($value, ENT_COMPAT, $charset), ENT_QUOTES, $charset) ?></td>
         <td class="text-end" style="white-space:nowrap">
             <?php if (canWrite()): ?>
-            <a href="<?=$_SERVER['PHP_SELF']?>?view=removeSuivi&amp;suiviid=<?=(int)$id?>&amp;userid=<?=(int)$userid?>"
+            <a href="<?=appUrl()?>?view=removeSuivi&amp;suiviid=<?=(int)$id?>&amp;userid=<?=(int)$userid?>"
                class="btn btn-sm py-0 px-1 text-muted"
                style="position:relative;z-index:2"
                title="<?= $GLOBAL['deleteThisEntry'] ?>"
