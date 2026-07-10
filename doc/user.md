@@ -394,27 +394,38 @@ segment pour faciliter la relance.
 ## 9. Attestations de dons
 
 Une attestation de don est un PDF officiel remis au donateur pour sa déclaration fiscale. Elle
-reprend les versements de l'année (hors types marqués « exclu des dons »).
+reprend les versements de l'année (hors types marqués « exclu des dons »), avec en option le
+tampon et la signature de l'organisation (images déposées sur le serveur par l'administrateur
+système — pas de réglage dans l'interface, voir la documentation d'administration).
 
-### Depuis la fiche d'un membre
+### Télécharger le PDF
 
-1. Ouvrir l'onglet **Compta**, choisir une **année**.
-2. Cliquer le menu **Attestation** et choisir l'année.
-3. Le PDF s'ouvre dans un nouvel onglet.
+- **Depuis la fiche d'un membre** : onglet **Compta**, choisir une année, menu **Attestation**.
+  Chaque année propose une case à cocher **Inclure tampon/signature** (décochée par défaut).
+- **Depuis l'aperçu des dons** : icône **PDF** sur la ligne du donateur (sans tampon/signature).
+- **En masse (toute l'année)** : dans **Aperçu des dons**, menu **Attestations AAAA** →
+  **Télécharger le PDF (toutes)** ou **... avec tampon/signature**. Un PDF unique regroupant
+  toutes les attestations est généré (peut prendre plusieurs minutes, se poursuit dans l'onglet
+  ouvert). Sont inclus tous les donateurs dont le total de versements de l'année dépasse le
+  montant minimum sélectionné (mêmes critères que le tableau **Aperçu des dons**).
 
-### Depuis l'aperçu des dons (individuelle)
+### Envoyer par email (rôles Manager et Admin)
 
-Sur la ligne du donateur, cliquer l'icône **PDF**.
-
-### En masse (toute l'année)
-
-1. Dans **Aperçu des dons**, sélectionner l'année.
-2. Cliquer **Attestations AAAA**.
-3. Confirmer : un PDF unique regroupant toutes les attestations est généré (la génération peut
-   prendre plusieurs minutes et se poursuit dans l'onglet ouvert).
-
-Seuls les donateurs ayant coché **Souhaite une attestation** sur au moins une entrée de l'année
-sont inclus dans la génération en masse.
+- **Individuel** : bouton enveloppe à côté du PDF (fiche membre onglet Compta, ou ligne du
+  donateur dans l'Aperçu des dons). Un **aperçu de l'email** (sujet + rendu tel qu'il sera reçu)
+  s'affiche avant l'envoi. Le tampon/signature est **toujours inclus** dans les envois par email
+  (contrairement au téléchargement, où c'est optionnel).
+- **En masse** : menu **Attestations AAAA** → **Envoyer par email**. Les personnes ayant déjà
+  reçu leur attestation cette année sont listées séparément avec une case à cocher (**décochée
+  par défaut**) permettant de forcer un renvoi ; les autres sont ignorées automatiquement.
+- **Copie (BCC)** : si un email de contact est configuré dans Réglages → Email, une case
+  **Envoyer une copie à [adresse]** propose d'en recevoir une copie silencieuse, pour l'envoi
+  individuel comme en masse.
+- **Hors saison** : les attestations se font normalement en janvier. En dehors de cette période,
+  une case de confirmation explicite est requise avant l'envoi.
+- **Régénérer une attestation déjà envoyée** : depuis le détail d'un email envoyé (journal des
+  emails, Réglages → Email), un bouton **Régénérer l'attestation (PDF)** reproduit le PDF avec
+  la date d'envoi d'origine (pas la date du jour).
 
 ---
 
@@ -618,15 +629,20 @@ décembre 2026), l'email le précise explicitement.
 Accès : vue **Membres perdus** (menu principal ou Réglages → sections liées aux membres).
 Liste les membres ayant cotisé l'année précédente mais pas encore l'année en cours.
 
-- **Envoyer un rappel** sur une ligne individuelle, ou en masse pour toute la liste.
+- **Envoyer un rappel** sur une ligne individuelle, ou en masse pour toute la liste. L'envoi
+  individuel (et le renvoi) affiche d'abord un **aperçu de l'email** (sujet + rendu tel qu'il
+  sera reçu) avant confirmation.
 - Un membre déjà relancé cette année n'est pas resollicité automatiquement (anti-doublon) —
   le statut « Rappel envoyé le [date] » apparaît sur sa ligne. Un bouton **Renvoyer** reste
-  disponible sur ces lignes pour forcer un second envoi (une modale de confirmation rappelle
-  la date du premier envoi).
+  disponible sur ces lignes pour forcer un second envoi (l'aperçu rappelle la date du premier
+  envoi).
 - Le contenu de l'email est celui configuré dans Réglages → Email → Templates
   (`tpl_cotisation_reminder`), avec en pièce jointe un **bulletin de versement QR** suisse
   (généré automatiquement à partir de l'IBAN de l'organisation, voir §11 — Réglages
   généraux) mentionnant la description de montant configurée et « Cotisation AAAA » comme
   message.
+- **Copie (BCC)** : si un email de contact est configuré dans Réglages → Email, une case
+  **Envoyer une copie à [adresse]** propose d'en recevoir une copie silencieuse, à l'envoi
+  individuel comme en masse.
 - La vue propose aussi un bouton **Créer segment « Membres à relancer AAAA »** pour extraire
   la liste dans un nouveau segment (même principe que pour les donateurs perdus, voir §8).

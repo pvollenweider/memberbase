@@ -933,7 +933,7 @@ Client SMTP pur PHP (`html/includes/lib/mailer.php`, sans dépendance externe) s
 | Authentification | Case à cocher — si activée, expose utilisateur + mot de passe |
 | Utilisateur / Mot de passe | Identifiants SMTP. Le mot de passe est **chiffré au repos** dans `app_settings` avec une clé générée automatiquement par installation (`mbSmtpGetOrCreateEncKey()`) |
 | Nom / Email d'expéditeur | En-têtes `From` des emails sortants |
-| Répondre à | En-tête `Reply-To` (optionnel) |
+| Répondre à | En-tête `Reply-To` (optionnel). Si renseigné, propose aussi une case **BCC** (copie silencieuse à cette adresse, pas d'en-tête `Bcc:` visible) sur les envois de rappels de cotisation et d'attestations de dons, individuels comme en masse |
 
 Un bouton **Envoi de test** permet de vérifier la configuration sans passer par une action métier (`sendTestEmail`) — affiche le message d'erreur SMTP brut en cas d'échec (utile pour diagnostiquer un souci d'auth ou de certificat SSL).
 
@@ -954,14 +954,14 @@ Trois templates éditables (objet + corps texte + corps HTML) stockés dans `ema
 | Clé | Usage |
 |-----|-------|
 | `tpl_cotisation_reminder` | Rappel de cotisation impayée |
-| `tpl_attestation_don` | Envoi de l'attestation de don (template configuré, pas encore d'action d'envoi câblée dans l'UI) |
+| `tpl_attestation_don` | Envoi de l'attestation de don. Placeholders spécifiques : `{{formal_greeting}}`/`{{formal_greeting_text}}` (salutation genrée depuis `contact.sexe`), `{{year}}`, `{{cotisation_note}}`/`{{cotisation_note_html}}` (mention affichée seulement si le membre a payé une cotisation cette année-là) |
 | `tpl_payment_receipt` | Récapitulatif comptable groupé (compta recap) |
 
 Interpolation par `{{placeholder}}` (pas `%s`/`sprintf`). Une modale « Variables disponibles » liste les placeholders utilisables par template (ex. `{{firstname}}`, `{{entries}}`, `{{total}}`, `{{org_name}}`).
 
 ### 14.4 Rappels de cotisation
 
-Depuis la vue **Membres perdus** (`lapsedMembers`), envoi manuel — individuel ou en masse — d'un rappel aux membres ayant cotisé l'année précédente mais pas l'année en cours. Anti-doublon : un membre déjà relancé cette année (`email_log.tpl_key = 'tpl_cotisation_reminder'` + année) n'est pas re-sollicité tant que l'option de forçage n'est pas utilisée (bouton **Renvoyer**, confirmation via modale Bootstrap rappelant la date du premier envoi — pas de `window.confirm()` natif).
+Depuis la vue **Membres perdus** (`lapsedMembers`), envoi manuel — individuel ou en masse — d'un rappel aux membres ayant cotisé l'année précédente mais pas l'année en cours. Anti-doublon : un membre déjà relancé cette année (`email_log.tpl_key = 'tpl_cotisation_reminder'` + année) n'est pas re-sollicité tant que l'option de forçage n'est pas utilisée (bouton **Renvoyer**). L'envoi individuel (et le renvoi) passe par une modale d'**aperçu** (action `previewCotisationReminder`, sujet + rendu HTML réel du template) avant confirmation — pas de `window.confirm()` natif.
 
 Chaque rappel embarque en pièce jointe un **bulletin de versement QR** suisse (`sprain/swiss-qr-bill`, cf. `html/includes/lib/qr_bill.php`), généré à partir de l'IBAN configuré (`app_settings.org_iban`) et de la description de montant configurable (`app_settings.org_coti_amount_desc`, avec repli sur une valeur par défaut si vide). Nécessite l'extension PHP **GD** côté serveur (cf. section Dépendances du `CLAUDE.md`).
 
@@ -974,6 +974,16 @@ Vue **`comptaRecap`** : envoi groupé d'un email par membre récapitulant ses en
 - Annotation automatique de l'année de cotisation dans l'email quand elle diffère de l'année de paiement (`compta.cotisation_year` — ex. cotisation 2027 payée en décembre 2026), validée côté serveur dans une plage raisonnable (année N-50 à N+1)
 
 Après envoi, les entrées incluses sont marquées `notified_at = NOW()` et ne réapparaissent plus dans le lot suivant.
+
+### 14.6 Envoi des attestations de dons par email
+
+Handler `html/includes/actions/attestation_email.php`, lib `html/includes/lib/attestation.php`. Actions : `previewAttestation`, `sendAttestationOne` (fiche membre / ligne du résumé dons), `previewAttestationsBulkList`, `sendAttestationsBulk` (résumé dons).
+
+- **Tampon/signature** (`html/includes/lib/attestation_stamp.php`) : overlay généré via FPDF et fusionné sur le PDF aplati via `pdftk stamp`. Images non commitées, déposées manuellement par l'admin système dans `conf/attestation_stamp.png` et `conf/attestation_signature.png` (hors `html/`, comme `conf/db.php` — absentes = pas de tampon, aucune erreur). Toujours appliqué sur les PDF envoyés par email ; opt-in (`?stamp=1`) sur le téléchargement direct (`attestation_don.php`/`attestation_bulk.php`).
+- **Déjà envoyé cette année** : `mbGetAlreadySentAttestationIds()` matche `email_log.tpl_key='tpl_attestation_don'` sur l'**année dans le sujet** (pas `YEAR(created_at)`, car une attestation peut être envoyée l'année suivant celle qu'elle couvre). L'envoi en masse liste ces personnes séparément (`previewAttestationsBulkList`) ; seules celles explicitement cochées (`force_ids`, liste d'ids séparés par des virgules) sont resendues, les autres comptent dans `already` (distinct de `skipped` = pas d'email / échec pdftk).
+- **Avertissement hors-saison** : si le mois courant n'est pas janvier, une case de confirmation est requise côté client avant l'envoi (individuel et en masse) — aucune vérification serveur, purement UX.
+- **Régénération depuis le journal** : `attestation_don.php?emailid=N` relit `email_log` (user_id, sujet pour l'année, `created_at` pour la date « Lieu / Date » du PDF), régénère et stampe le PDF avec la date d'envoi d'origine plutôt que la date du jour. Lien affiché dans `email_detail.php` pour toute entrée `tpl_attestation_don`.
+- **BCC** : voir §14.1.
 
 ## Réglages de l'application
 

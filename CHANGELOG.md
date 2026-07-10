@@ -2,6 +2,29 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [5.0.1] — 2026-07-10
+
+### Nouveautés
+
+- **Envoi des attestations de dons par email** (individuel depuis la fiche membre / résumé
+  dons, et en masse) : aperçu de l'email avant envoi, tampon/signature de l'organisation
+  toujours inclus (contrairement au téléchargement direct, où c'est optionnel), avertissement
+  si l'envoi a lieu hors janvier.
+- **Tampon et signature** sur les attestations de dons (téléchargées ou envoyées par email) :
+  overlay généré via FPDF, images déposées manuellement par l'administrateur système dans
+  `conf/attestation_stamp.png` / `conf/attestation_signature.png` (non commitées).
+- **Envoi en masse des attestations** : détection des personnes déjà notifiées cette
+  année-là, avec choix explicite (case décochée par défaut) de forcer le renvoi ou d'ignorer.
+- **Régénération d'une attestation déjà envoyée** depuis le détail de l'email (journal des
+  emails), en conservant la date d'envoi d'origine plutôt que la date du jour.
+- **Aperçu de l'email avant envoi** pour les rappels de cotisation individuels (et renvois),
+  comme pour les récapitulatifs comptables et attestations.
+- **Copie (BCC)** vers l'adresse de contact (`smtp_reply_to`) si configurée, sur les rappels
+  de cotisation et attestations de dons, individuels comme en masse.
+- Nouveau modèle par défaut pour `tpl_attestation_don` : salutation formelle genrée
+  (`contact.sexe`), mention sur les cotisations affichée uniquement si pertinente pour
+  l'année de l'attestation.
+
 ## [5.0.0] — 2026-07-09
 
 ### ⚠️ Changements majeurs (breaking)

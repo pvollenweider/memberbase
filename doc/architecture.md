@@ -581,19 +581,37 @@ Mot de passe SMTP et secrets ne transitent jamais en clair dans les logs (`mbSmt
 |---|---|
 | `includes/actions/settings.php` | `saveSmtp`, `sendTestEmail`, `saveEmailTemplate`, `purgeEmailLog`, `resendEmail`, `zefixLookup` |
 | `includes/actions/compta_recap.php` | `sendComptaRecap`, `sendComptaRecapOne`, `previewComptaRecap` (JSON, rendu HTML réel du template pour la modale), `markAllComptaNotified` |
-| `includes/actions/cotisation_reminder.php` | `sendCotisationReminders`, `sendCotisationReminderOne` |
+| `includes/actions/cotisation_reminder.php` | `previewCotisationReminder` (JSON), `sendCotisationReminders`, `sendCotisationReminderOne` |
+| `includes/actions/attestation_email.php` | `previewAttestation` (JSON), `previewAttestationsBulkList` (JSON, liste + déjà-envoyés), `sendAttestationOne`, `sendAttestationsBulk` (`force_ids` pour forcer un renvoi ciblé) |
 
 `compta_recap.php` factorise le chargement des entrées et la construction des
-variables de template dans des fonctions privées (`_recapLoadEntries()`,
-`_recapBuildVars()`, `_recapSinceLine()`) partagées entre l'envoi réel et
-l'aperçu JSON — garantit que la prévisualisation correspond exactement à
-l'email effectivement envoyé.
+variables de template dans des fonctions `mbRecapLoadEntries()`,
+`mbRecapBuildVars()`, `mbRecapSinceLine()` (`includes/lib/compta_recap.php`)
+partagées entre l'envoi réel et l'aperçu JSON — garantit que la
+prévisualisation correspond exactement à l'email effectivement envoyé. Même
+principe pour `cotisation_reminder.php` (`mbBuildCotiReminderVars()`) et
+`attestation_email.php` (`mbBuildAttestationVarsForUser()`,
+`includes/lib/attestation.php`).
 
-### Anti-doublon des rappels
+### Anti-doublon des rappels / envois
 
-`cotisation_reminder.php` interroge `email_log` (`tpl_key = 'tpl_cotisation_reminder'`,
-filtré par année) avant d'envoyer, pour ne pas relancer deux fois le même
-membre la même année sans forçage explicite.
+- `cotisation_reminder.php` interroge `email_log` (`tpl_key = 'tpl_cotisation_reminder'`,
+  filtré par `YEAR(created_at)`) avant d'envoyer, pour ne pas relancer deux fois le même
+  membre la même année sans forçage explicite (`sendCotisationReminderOne` sur une ligne
+  déjà relancée).
+- `attestation_email.php` fait de même pour `tpl_attestation_don`, mais matche l'année dans
+  le **sujet** de l'email plutôt que `created_at` (`mbGetAlreadySentAttestationIds()`) — une
+  attestation est souvent envoyée l'année suivant celle qu'elle couvre. L'envoi en masse
+  liste les destinataires déjà servis (`previewAttestationsBulkList`) et ne les renvoie que
+  si leur id figure dans `force_ids`.
+
+### BCC (copie silencieuse)
+
+`mbSmtpSend()` accepte un flag `$bcc` : si `true` et `app_settings.smtp_reply_to` non vide,
+un second `RCPT TO` est ajouté à l'enveloppe SMTP (pas d'en-tête `Bcc:` dans le message,
+comportement BCC standard). Câblé sur les rappels de cotisation et attestations de dons,
+individuels comme en masse (case à cocher côté UI, visible seulement si `smtp_reply_to`
+est configuré).
 
 ### Zefix (registre du commerce suisse)
 
