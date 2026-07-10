@@ -141,6 +141,9 @@ if ($rc !== 0 || !file_exists($mergedPdf) || filesize($mergedPdf) === 0) {
     exit;
 }
 
+require_once __DIR__ . '/includes/lib/attestation_stamp.php';
+mbStampAttestation($mergedPdf);
+
 $filename = 'attestations_dons_' . $year . '_minCHF' . $minSum . '.pdf';
 header('Content-Type: application/pdf');
 header('Content-Disposition: attachment; filename="' . $filename . '"');

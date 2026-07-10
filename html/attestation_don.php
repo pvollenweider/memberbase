@@ -112,6 +112,9 @@ if ($returnCode !== 0 || !file_exists($tmpPdf) || filesize($tmpPdf) === 0) {
     exit;
 }
 
+require_once __DIR__ . '/includes/lib/attestation_stamp.php';
+mbStampAttestation($tmpPdf);
+
 $filename = 'attestation_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $user->getLastName() . '_' . $year) . '.pdf';
 header('Content-Type: application/pdf');
 header('Content-Disposition: attachment; filename="' . $filename . '"');

@@ -1,5 +1,7 @@
 .DS_Store
 conf/db.php
+conf/attestation_stamp.png
+conf/attestation_signature.png
 logs/
 apache-log4php-2.3.0/
 docker/initdb/*.sql
