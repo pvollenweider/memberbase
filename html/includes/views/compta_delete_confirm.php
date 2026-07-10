@@ -23,12 +23,15 @@ $compta->lookupCompta($_REQUEST['comptaid']);
         <div><span class="text-muted"><?= $GLOBAL['amount'] ?>&nbsp;:</span> <strong><?=$compta->sum?> CHF</strong></div>
       </div>
       <div class="d-flex gap-2 justify-content-center">
-        <a href="<?=$_SERVER['PHP_SELF']?>?view=updateUser&amp;userid=<?=(int)$_REQUEST['userid']?>" class="btn btn-outline-secondary">
+        <a href="<?=appUrl()?>?view=updateUser&amp;userid=<?=(int)$_REQUEST['userid']?>" class="btn btn-outline-secondary">
           <?= $GLOBAL['cancel'] ?>
         </a>
-        <a href="<?=$_SERVER['PHP_SELF']?>?view=deleteComptaConfirm&amp;userid=<?=(int)$_REQUEST['userid']?>&comptaid=<?=$compta->getId()?>" class="btn btn-danger">
-          <?= $GLOBAL['delete'] ?>
-        </a>
+        <form method="post" action="<?=appUrl()?>">
+          <input type="hidden" name="action"   value="deleteComptaEntry">
+          <input type="hidden" name="userid"   value="<?=(int)$_REQUEST['userid']?>">
+          <input type="hidden" name="comptaid" value="<?=(int)$compta->getId()?>">
+          <button type="submit" class="btn btn-danger"><?= $GLOBAL['delete'] ?></button>
+        </form>
       </div>
     </div>
   </div>

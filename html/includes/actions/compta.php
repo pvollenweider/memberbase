@@ -109,9 +109,15 @@ if ($action == 'addCompta') {
     $_auDelRow = $_auDel->fetch(PDO::FETCH_NUM);
     $pdo->prepare("DELETE FROM compta WHERE id=?")->execute([$comptaid]);
     auditLog($pdo, 'deleteComptaEntry', "compta#=$comptaid | " . ($_auDelRow[0] ?? '') . " | sum={$_auDelRow[1]}");
+    // With a userid the delete came from the member's compta tab; otherwise
+    // from the integrity screen — go back to where the user was.
+    $_delUserId = (int)($_REQUEST['userid'] ?? 0);
+    $_delTarget = $_delUserId > 0
+        ? '?view=compta&userid=' . $_delUserId
+        : '?view=settings&tab=integrity';
     $isHtmx = isset($_SERVER['HTTP_HX_REQUEST']);
-    if ($isHtmx) { header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=integrity'); exit; }
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=integrity'); exit;
+    if ($isHtmx) { header('HX-Location: ' . appUrl() . $_delTarget); exit; }
+    header('Location: ' . appUrl() . $_delTarget); exit;
 
 } elseif ($action == 'toggleWantsAttestation') {
     $comptaid = (int)$_REQUEST['comptaid'];
@@ -122,6 +128,6 @@ if ($action == 'addCompta') {
     auditLog($pdo, 'toggleWantsAttestation', "compta#=$comptaid | " . ($_auTwa->fetchColumn() ?: '') . " | attestation: " . ($value ? 'oui' : 'non'), (int)$_REQUEST['userid']);
     $year   = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
     $userid = (int)$_REQUEST['userid'];
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=compta&userid=' . $userid . '&year=' . $year);
+    header('Location: ' . appUrl() . '?view=compta&userid=' . $userid . '&year=' . $year);
     exit;
 }

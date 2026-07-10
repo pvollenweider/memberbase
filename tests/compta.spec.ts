@@ -66,10 +66,10 @@ test.describe('Compta (accounting)', () => {
     // Click delete link on edit form → goes to removeCompta confirmation page
     await page.locator('a[href*="view=removeCompta"]').click();
 
-    // On removeCompta confirmation, click the danger confirm button
-    await page.locator('a.btn-danger').click();
+    // On removeCompta confirmation, submit the POST delete form (action=deleteComptaEntry)
+    await page.locator('button.btn-danger').click();
 
-    // After deleteComptaConfirm, page renders compta view inline (no redirect)
+    // After deletion the action redirects back to the member's compta view
     await expect(page.locator('form[name="addCompta"]')).toBeVisible({ timeout: 15_000 });
   });
 });

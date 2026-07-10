@@ -96,13 +96,25 @@ test.describe('regression #56 — deleteUserConfirm requires isAdmin', () => {
   }
 });
 
-test.describe('regression #56 — removeSuiviConfirm requires canWrite', () => {
-  test('readonly: denied', async ({ browser }) => {
+test.describe('regression #56 — suivi deletion requires canWrite', () => {
+  test('readonly: removeSuivi confirm view denied', async ({ browser }) => {
     const { page, ctx } = await openAs(browser, 'readonly');
-    await page.goto(`/index.php?view=removeSuiviConfirm&userid=${ACTIVE_MEMBER_ID}&suiviid=999999`);
+    await page.goto(`/index.php?view=removeSuivi&userid=${ACTIVE_MEMBER_ID}&suiviid=999999`);
     await expect(page.locator('#main-content')).toContainText(DENIED_TEXT);
     await ctx.close();
   });
+
+  // The legacy GET routes that performed the deletion no longer exist:
+  // deletion is a POST action (deleteSuiviEntry / deleteComptaEntry) gated
+  // by CSRF + canWrite. A GET on the old route must be inert.
+  for (const legacy of ['removeSuiviConfirm', 'deleteComptaConfirm']) {
+    test(`admin: legacy GET route ${legacy} is gone (no side effect)`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, 'admin');
+      await page.goto(`/index.php?view=${legacy}&userid=${ACTIVE_MEMBER_ID}&suiviid=999999&comptaid=999999`);
+      await expect(page.locator('#main-content')).toContainText('Vue introuvable');
+      await ctx.close();
+    });
+  }
 });
 
 // Unknown view — the router renders an explicit warning instead of a blank page

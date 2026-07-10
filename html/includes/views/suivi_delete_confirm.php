@@ -22,12 +22,15 @@ $userProperty->lookupUserProperty($_REQUEST['suiviid']);
         <div><span class="text-muted"><?= $GLOBAL['content'] ?>&nbsp;:</span> <strong><?= htmlentities($userProperty->getValue(), ENT_COMPAT, $charset) ?></strong></div>
       </div>
       <div class="d-flex gap-2 justify-content-center">
-        <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= (int)$_REQUEST['userid'] ?>" class="btn btn-outline-secondary">
+        <a href="<?= appUrl() ?>?view=suivi&amp;userid=<?= (int)$_REQUEST['userid'] ?>" class="btn btn-outline-secondary">
           <?= $GLOBAL['cancel'] ?>
         </a>
-        <a href="<?= $_SERVER['PHP_SELF'] ?>?view=removeSuiviConfirm&amp;userid=<?= (int)$_REQUEST['userid'] ?>&amp;suiviid=<?= $userProperty->getId() ?>" class="btn btn-danger">
-          <?= $GLOBAL['delete'] ?>
-        </a>
+        <form method="post" action="<?= appUrl() ?>">
+          <input type="hidden" name="action"  value="deleteSuiviEntry">
+          <input type="hidden" name="userid"  value="<?= (int)$_REQUEST['userid'] ?>">
+          <input type="hidden" name="suiviid" value="<?= (int)$userProperty->getId() ?>">
+          <button type="submit" class="btn btn-danger"><?= $GLOBAL['delete'] ?></button>
+        </form>
       </div>
     </div>
   </div>

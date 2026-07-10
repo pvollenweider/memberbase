@@ -59,11 +59,11 @@ test.describe.serial('Suivi (notes)', () => {
     if (!deleteHref) throw new Error('Delete link href not found');
     await page.goto(deleteHref.startsWith('/') ? deleteHref : '/' + deleteHref);
 
-    // Confirmation page — click the danger confirm link (view=removeSuiviConfirm)
-    await expect(page.locator('a.btn-danger')).toBeVisible({ timeout: 10_000 });
+    // Confirmation page — submit the POST delete form (action=deleteSuiviEntry)
+    await expect(page.locator('button.btn-danger')).toBeVisible({ timeout: 10_000 });
     await Promise.all([
       page.waitForNavigation({ timeout: 10_000 }),
-      page.locator('a.btn-danger').click(),
+      page.locator('button.btn-danger').click(),
     ]);
     // After delete, renders suivi list (view=suivi inside update_user_form.php)
     await expect(page.locator('form[name="addSuivi"]')).toBeVisible({ timeout: 15_000 });

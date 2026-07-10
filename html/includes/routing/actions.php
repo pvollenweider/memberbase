@@ -77,6 +77,7 @@ if (isset($_REQUEST['action'])) {
         'importResolveDuplicates' => 'import',
         'addSuivi'             => 'suivi',
         'updateSuivi'          => 'suivi',
+        'deleteSuiviEntry'     => 'suivi',
         'logout'               => 'auth',
         'changePassword'       => 'auth',
         'changeLocale'         => 'auth',

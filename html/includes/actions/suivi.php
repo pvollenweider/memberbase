@@ -6,7 +6,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// actions: addSuivi, updateSuivi
+// actions: addSuivi, updateSuivi, deleteSuiviEntry
 
 if (!canWrite()) { http_response_code(403); exit; }
 
@@ -30,4 +30,15 @@ if ($action == 'addSuivi') {
     $userProperty->value = unquote($_REQUEST['value']);
     $userProperty->save();
     auditLog($pdo, 'updateSuivi', "membre: " . Contact::getMemberName((int)$_REQUEST['userid']) . " | suivi#={$_REQUEST['suiviid']} | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})", (int)$_REQUEST['userid']);
+
+} elseif ($action == 'deleteSuiviEntry') {
+    $suiviid = (int)$_REQUEST['suiviid'];
+    $userid  = (int)$_REQUEST['userid'];
+    $userProperty = new UserProperty();
+    $userProperty->lookupUserProperty($suiviid);
+    auditLog($pdo, 'deleteSuivi', "suivi#=$suiviid | membre: " . Contact::getMemberName($userid) . " | {$userProperty->parameter}: {$userProperty->getValue()}", $userid);
+    $userProperty->remove();
+    $_delTarget = '?view=suivi&userid=' . $userid;
+    if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_delTarget); exit; }
+    header('Location: ' . appUrl() . $_delTarget); exit;
 }

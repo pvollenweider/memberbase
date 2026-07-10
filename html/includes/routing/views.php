@@ -27,7 +27,8 @@ $UA_VIEW_ROUTES = [
     'suivi'               => ['users_edit_form.php'],
     'userHistory'         => ['users_edit_form.php'],
     'deleteUser'          => ['users_delete_confirm.php',  'isAdmin'],
-    'deleteUserConfirm'   => ['users_deactivate_legacy.php', 'isAdmin'],
+    // Legacy direct-link alias — shows the confirm dialog (state changes are POST-only).
+    'deleteUserConfirm'   => ['users_delete_confirm.php',  'isAdmin'],
     'anonymizeUser'       => ['users_anonymize.php',       'isAdmin'],
     'mergeUsers'          => ['users_merge.php',           'isManager'],
     'inactiveUsers'       => ['users_inactive.php'],
@@ -43,7 +44,6 @@ $UA_VIEW_ROUTES = [
     'lastEntryCompta'     => ['compta_last_entry.php'],
     'comptaRecap'         => ['compta_recap.php',         'isManager'],
     'removeCompta'        => ['compta_delete_confirm.php', 'canWrite'],
-    'deleteComptaConfirm' => ['compta_delete_do.php',      'canWrite'],
 
     // Donateurs
     'resume'              => ['donors_summary.php'],
@@ -56,7 +56,6 @@ $UA_VIEW_ROUTES = [
     'lastEntrySuivi'      => ['suivi_last_entry.php'],
     'emailDetail'         => ['email_detail.php',         'isManager'],
     'removeSuivi'         => ['suivi_delete_confirm.php',  'canWrite'],
-    'removeSuiviConfirm'  => ['suivi_delete_do.php',       'canWrite'],
 
     // Réglages & administration
     'settings'            => ['settings_general.php'],
@@ -72,7 +71,7 @@ $uaRequestedView = $_REQUEST['view'] ?? 'list';
 
 // Legacy view — redirect to settings segments tab
 if ($uaRequestedView === 'manageTeam') {
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=segments');
+    header('Location: ' . appUrl() . '?view=settings&tab=segments');
     exit;
 }
 
