@@ -432,25 +432,21 @@ function mbDefaultTemplates(): array
         // {{entries}}      = plain-text block, one line per entry (date · type · description · amount)
         // {{entries_html}} = HTML <table> of entries (built by the action)
         // {{total}}        = formatted sum of included entries
-        // {{send_date}}    = date of the batch send (DD mois YYYY)
-        // {{since_line}}   = "depuis votre dernier récapitulatif du DD.MM.YYYY" or "depuis votre adhésion"
+        // {{send_date}}        = date of the batch send (DD mois YYYY)
+        // {{since_line}}       = "en YYYY" or "depuis votre dernier récapitulatif du DD.MM.YYYY"
+        // {{total_lines}}      = total line(s) for plain text (includes donation sub-total when mixed)
+        // {{attest_note}}      = fiscal attestation sentence (empty when no attestable amounts)
+        // {{attest_note_html}} = same, HTML version with styling
         'tpl_compta_recap' => [
-            'subject'   => 'Récapitulatif de vos versements — {{org_name}}',
-            'body_text' => "{{greeting_text}}\n\nVoici le récapitulatif de vos versements enregistrés{{display_name_line}} {{since_line}} :\n\n{{entries}}\nTotal : CHF {{total}}\n\nUne attestation de don vous sera envoyée en début d'année prochaine pour votre déclaration fiscale.\n\nPour toute question, n'hésitez pas à nous contacter : {{contact_email}}\n\nCordialement,\n{{org_name}}",
+            'subject'   => 'Confirmation de versements {{since_line}} — {{org_name}}',
+            'body_text' => "{{greeting_text}}\n\nNous vous confirmons l'enregistrement des versements suivants{{display_name_line}} {{since_line}} :\n\n{{entries}}\n\n{{total_lines}}\n\n{{attest_note}}\nPour toute question ou pour nous signaler une erreur, écrivez-nous à : {{contact_email}}\n\nNous vous remercions chaleureusement pour votre soutien.\n\nCordialement,\n{{org_name}}",
             'body_html' => $htmlWrap(
                 '<p>{{greeting}}</p>
-<p>Voici le récapitulatif de vos versements enregistrés{{display_name_line}} <em>{{since_line}}</em> :</p>
+<p>Nous vous confirmons l\'enregistrement des versements suivants{{display_name_line}} <em>{{since_line}}</em> :</p>
 {{entries_html}}
-<table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;margin-top:0;font-size:14px">
-  <tr style="background:#1a5276;color:#ffffff">
-    <td colspan="3" style="border:1px solid #154360;text-align:right"><strong>Total : CHF {{total}}</strong></td>
-  </tr>
-</table>
-<p style="margin-top:20px;padding:14px 16px;background:#eaf4fb;border-left:4px solid #1a5276;font-size:14px;color:#1a5276">
-  <strong>Attestation de don :</strong> Un document officiel vous sera envoyé en début d\'année prochaine pour votre déclaration fiscale cantonale et fédérale.
-</p>
-<p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
-<p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
+{{attest_note_html}}
+<p>Pour toute question ou pour nous signaler une erreur : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
+<p style="margin-top:24px">Nous vous remercions chaleureusement pour votre soutien.<br><br>Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
     ];
 }
