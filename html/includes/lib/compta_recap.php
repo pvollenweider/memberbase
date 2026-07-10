@@ -90,7 +90,6 @@ function mbRecapSinceLine(PDO $db, int $year, bool $force): string
 function mbRecapBuildVars(array $entries, array $appSettings): array
 {
     $sendDate    = date('d.m.Y');
-    $nextYear    = (int)date('Y') + 1;
     $lines       = [];
     $htmlRows    = '';
     $ids         = [];
@@ -170,13 +169,12 @@ function mbRecapBuildVars(array $entries, array $appSettings): array
     }
 
     // Fiscal note: only mention attestation when there are attestable amounts.
-    $attestNextYear     = 'au début de l\'année ' . $nextYear;
     $attestNote         = $sumDonation > 0.0
-        ? "Une attestation fiscale récapitulant vos dons attestables vous sera envoyée $attestNextYear."
+        ? "Attestation de dons : Une attestation de dons vous sera envoyée au début de l'année prochaine pour votre déclaration fiscale."
         : '';
     $attestNoteHtml     = $sumDonation > 0.0
         ? '<p style="margin-top:20px;padding:14px 16px;background:#eaf4fb;border-left:4px solid #1a5276;font-size:14px;color:#1a5276">'
-          . '<strong>Attestation fiscale :</strong> Un document récapitulant vos dons attestables vous sera envoyé ' . $attestNextYear . '.'
+          . '<strong>Attestation de dons :</strong> Une attestation de dons vous sera envoyée au début de l\'année prochaine pour votre déclaration fiscale.'
           . '</p>'
         : '';
 
