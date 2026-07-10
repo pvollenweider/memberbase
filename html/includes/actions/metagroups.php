@@ -15,7 +15,7 @@ $action = $_REQUEST['action'];
 
 if ($action == 'updateCategoryOrder') {
     if (!empty($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
-        $stmt = $pdo->prepare("UPDATE metagroup SET sort_order=? WHERE id=? AND is_filter=0");
+        $stmt = db()->prepare("UPDATE metagroup SET sort_order=? WHERE id=? AND is_filter=0");
         foreach ($_REQUEST['ids'] as $i => $id) {
             $stmt->execute([$i, (int)$id]);
         }
@@ -24,46 +24,46 @@ if ($action == 'updateCategoryOrder') {
 } elseif ($action == 'updateSegmentCategory') {
     $segmentId = (int)$_REQUEST['id'];
     $categoryId = (int)($_REQUEST['categoryId'] ?? 0);
-    $pdo->prepare("DELETE FROM metagroup_member WHERE segment_id=? AND metagroup_id IN (
+    db()->prepare("DELETE FROM metagroup_member WHERE segment_id=? AND metagroup_id IN (
         SELECT id FROM metagroup WHERE is_filter=0
     )")->execute([$segmentId]);
     if ($categoryId > 0) {
-        $pdo->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)")->execute([$categoryId, $segmentId]);
+        db()->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)")->execute([$categoryId, $segmentId]);
     }
 
 } elseif ($action == 'updateMetagroupTeams') {
     $mgId = (int)$_REQUEST['id'];
     $selected = !empty($_REQUEST['teams']) && is_array($_REQUEST['teams'])
         ? array_map('intval', $_REQUEST['teams']) : [];
-    $_mgIsFilterRow = $pdo->prepare("SELECT is_filter FROM metagroup WHERE id=? LIMIT 1");
+    $_mgIsFilterRow = db()->prepare("SELECT is_filter FROM metagroup WHERE id=? LIMIT 1");
     $_mgIsFilterRow->execute([$mgId]);
     $_mgIsCategory = ((int)$_mgIsFilterRow->fetchColumn() === 0);
     if ($_mgIsCategory && !empty($selected)) {
-        $_stmtEvict = $pdo->prepare(
+        $_stmtEvict = db()->prepare(
             "DELETE FROM metagroup_member WHERE segment_id=? AND metagroup_id!=? AND metagroup_id IN (SELECT id FROM metagroup WHERE is_filter=0)"
         );
         foreach ($selected as $segmentId) {
             if ($segmentId > 0) $_stmtEvict->execute([$segmentId, $mgId]);
         }
     }
-    $pdo->prepare("DELETE FROM metagroup_member WHERE metagroup_id=?")->execute([$mgId]);
-    $stmt = $pdo->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)");
+    db()->prepare("DELETE FROM metagroup_member WHERE metagroup_id=?")->execute([$mgId]);
+    $stmt = db()->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)");
     foreach ($selected as $segmentId) {
         if ($segmentId > 0) $stmt->execute([$mgId, $segmentId]);
     }
-    $_auMgName = $pdo->prepare("SELECT name FROM metagroup WHERE id=? LIMIT 1");
+    $_auMgName = db()->prepare("SELECT name FROM metagroup WHERE id=? LIMIT 1");
     $_auMgName->execute([$mgId]);
     $_auMgNameVal = $_auMgName->fetchColumn() ?: "id=$mgId";
     $selectedStr = empty($selected) ? 'aucun' : implode(', ', $selected);
-    auditLog($pdo, 'updateMetagroupTeams', "groupe filtre: {$_auMgNameVal} (id={$mgId}) | " . count($selected) . " groupes: [{$selectedStr}]");
+    auditLog(db(), 'updateMetagroupTeams', "groupe filtre: {$_auMgNameVal} (id={$mgId}) | " . count($selected) . " groupes: [{$selectedStr}]");
 
 } elseif ($action == 'deleteMetagroup') {
     $mgId = (int)$_REQUEST['id'];
-    $_auMgDel = $pdo->prepare("SELECT name FROM metagroup WHERE id=? LIMIT 1");
+    $_auMgDel = db()->prepare("SELECT name FROM metagroup WHERE id=? LIMIT 1");
     $_auMgDel->execute([$mgId]);
-    auditLog($pdo, 'deleteMetagroup', "id=$mgId | " . ($_auMgDel->fetchColumn() ?: ''));
-    $pdo->prepare("DELETE FROM metagroup_member WHERE metagroup_id=?")->execute([$mgId]);
-    $pdo->prepare("DELETE FROM metagroup WHERE id=?")->execute([$mgId]);
+    auditLog(db(), 'deleteMetagroup', "id=$mgId | " . ($_auMgDel->fetchColumn() ?: ''));
+    db()->prepare("DELETE FROM metagroup_member WHERE metagroup_id=?")->execute([$mgId]);
+    db()->prepare("DELETE FROM metagroup WHERE id=?")->execute([$mgId]);
 
 } elseif ($action == 'addMetagroup') {
     $mg = new Metagroup();
@@ -72,9 +72,9 @@ if ($action == 'updateCategoryOrder') {
     $newMgId = $mg->id;
     $isFilter = isset($_REQUEST['is_filter']) ? ((int)$_REQUEST['is_filter'] === 0 ? 0 : 1) : 1;
     if ($newMgId) {
-        $pdo->prepare("UPDATE metagroup SET is_filter=? WHERE id=?")->execute([$isFilter, $newMgId]);
+        db()->prepare("UPDATE metagroup SET is_filter=? WHERE id=?")->execute([$isFilter, $newMgId]);
     }
-    auditLog($pdo, 'addMetagroup', "id=$newMgId | {$_REQUEST['name']} | filtre: " . ($isFilter ? 'oui' : 'non'));
+    auditLog(db(), 'addMetagroup', "id=$newMgId | {$_REQUEST['name']} | filtre: " . ($isFilter ? 'oui' : 'non'));
     $_amUrl = appUrl() . '?view=updateMetagroup&id=' . $newMgId . '&created=1';
     if ($isHtmx) { header('HX-Location: ' . $_amUrl); } else { echo '<script>window.location.replace(' . json_encode($_amUrl) . ');</script>'; }
     exit;
@@ -86,15 +86,15 @@ if ($action == 'updateCategoryOrder') {
     $mg->name = $_REQUEST['name'];
     $mg->save();
     $isFilter = isset($_REQUEST['is_filter']) ? ((int)$_REQUEST['is_filter'] === 1 ? 1 : 0) : 1;
-    $_auMgOldRow = $pdo->prepare("SELECT is_filter FROM metagroup WHERE id=? LIMIT 1");
+    $_auMgOldRow = db()->prepare("SELECT is_filter FROM metagroup WHERE id=? LIMIT 1");
     $_auMgOldRow->execute([(int)$_REQUEST['id']]);
     $_auMgOldFilter = (int)$_auMgOldRow->fetchColumn();
-    $pdo->prepare("UPDATE metagroup SET is_filter=? WHERE id=?")->execute([$isFilter, (int)$_REQUEST['id']]);
+    db()->prepare("UPDATE metagroup SET is_filter=? WHERE id=?")->execute([$isFilter, (int)$_REQUEST['id']]);
     $_auMgChanges = [];
     if ($_auMgOldName !== $mg->name) $_auMgChanges[] = "nom: «{$_auMgOldName}» → «{$mg->name}»";
     if ($_auMgOldFilter !== $isFilter) $_auMgChanges[] = "filtre: " . ($_auMgOldFilter ? 'oui' : 'non') . " → " . ($isFilter ? 'oui' : 'non');
     $auMgDetail = "id={$_REQUEST['id']} | {$mg->name}" . (count($_auMgChanges) ? ' | ' . implode(', ', $_auMgChanges) : ' | aucun changement');
-    auditLog($pdo, 'updateMetagroup', $auMgDetail);
+    auditLog(db(), 'updateMetagroup', $auMgDetail);
     $_mgRedirectTab = $isFilter ? 'filters' : 'categories';
     $_umUrl = appUrl() . '?view=settings&tab=' . $_mgRedirectTab;
     if ($isHtmx) { header('HX-Location: ' . $_umUrl); } else { header('Location: ' . $_umUrl); }

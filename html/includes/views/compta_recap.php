@@ -21,7 +21,7 @@ $_recapOk   = isset($_GET['recapOk'])   ? (int)$_GET['recapOk']   : null;
 $_recapSkip = isset($_GET['recapSkip']) ? (int)$_GET['recapSkip'] : 0;
 
 // Pending stats for the selected year (zero-sum excluded)
-$_pending = $pdo->prepare(
+$_pending = db()->prepare(
     "SELECT COUNT(DISTINCT c.user_id) AS members, COUNT(*) AS entries
      FROM compta c
      JOIN contact u ON u.id = c.user_id AND u.status = 1
@@ -35,7 +35,7 @@ $_pendingMembers = (int)$_pending->members;
 $_pendingEntries = (int)$_pending->entries;
 
 // Last batch date (global, not year-filtered — shows when last send happened)
-$_lastBatch = $pdo->query(
+$_lastBatch = db()->query(
     "SELECT MAX(notified_at) FROM compta WHERE notified_at IS NOT NULL"
 )->fetchColumn();
 
@@ -43,7 +43,7 @@ $_lastBatch = $pdo->query(
 $_withEmail = [];
 $_noEmail   = [];
 if ($_pendingMembers > 0) {
-    $stmt = $pdo->prepare(
+    $stmt = db()->prepare(
         "SELECT c.user_id, u.firstname, u.lastname, u.email,
                 COUNT(*) AS nb_entries,
                 SUM(c.sum) AS total,
@@ -70,7 +70,7 @@ $_sendableCount = count($_withEmail);
 // Extended mode: load already-notified members for the year
 $_alreadySent = [];
 if ($_extended) {
-    $stmtSent = $pdo->prepare(
+    $stmtSent = db()->prepare(
         "SELECT c.user_id, u.firstname, u.lastname, u.email,
                 COUNT(*) AS nb_entries,
                 SUM(c.sum) AS total,

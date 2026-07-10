@@ -7,7 +7,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 require_once __DIR__ . '/../lib/integrity.php';
-$_ic = mbRunIntegrityChecks($pdo);
+$_ic = mbRunIntegrityChecks(db());
 [
     'dupNames'          => $dupNames,
     'dupEmails'         => $dupEmails,

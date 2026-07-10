@@ -12,7 +12,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 try {
-    $allFilters = $pdo->query("SELECT m.id, m.name, COUNT(mm.segment_id) AS team_count FROM metagroup m LEFT JOIN metagroup_member mm ON mm.metagroup_id=m.id WHERE m.is_filter=1 GROUP BY m.id, m.name ORDER BY m.name")->fetchAll(PDO::FETCH_OBJ);
+    $allFilters = db()->query("SELECT m.id, m.name, COUNT(mm.segment_id) AS team_count FROM metagroup m LEFT JOIN metagroup_member mm ON mm.metagroup_id=m.id WHERE m.is_filter=1 GROUP BY m.id, m.name ORDER BY m.name")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {
     $allFilters = [];
 }

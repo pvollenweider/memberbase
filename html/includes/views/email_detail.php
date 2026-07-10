@@ -18,7 +18,7 @@ if ($emailId <= 0) { ?>
 <?php return; }
 
 try {
-    $stmt = $pdo->prepare(
+    $stmt = db()->prepare(
         "SELECT el.id, el.created_at, el.to_email, el.subject, el.status,
                 el.error_msg, el.body_text, el.body_html, el.tpl_key,
                 u.id AS user_id, u.firstname, u.lastname

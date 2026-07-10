@@ -27,7 +27,7 @@ $colorOptions = [
 // embeds this view — must keep rendering so the admin can reach the Health
 // tab and apply the pending migration.
 try {
-    $types = $pdo->query("
+    $types = db()->query("
         SELECT ct.id, ct.label, ct.color, ct.default_libele, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, COUNT(c.id) AS cnt
         FROM compta_type ct
         LEFT JOIN compta c ON c.type_id = ct.id
@@ -35,7 +35,7 @@ try {
         ORDER BY ct.sort_order ASC, ct.label ASC
     ")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {
-    $types = $pdo->query("
+    $types = db()->query("
         SELECT ct.id, ct.label, ct.color, '' AS default_libele, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, COUNT(c.id) AS cnt
         FROM compta_type ct
         LEFT JOIN compta c ON c.type_id = ct.id

@@ -11,7 +11,7 @@ $_msAction  = $_REQUEST['action'] ?? '';
 $_msTeamId  = (int)($_REQUEST['segmentId'] ?? 0);
 $_msUserId  = (int)($_REQUEST['id']     ?? 0);
 if (($_msAction === 'assignSegment' || $_msAction === 'unassignSegment') && $_msTeamId > 0 && $_msUserId > 0) {
-    $_msTeamNameStmt = $pdo->prepare("SELECT name FROM segment WHERE id=?");
+    $_msTeamNameStmt = db()->prepare("SELECT name FROM segment WHERE id=?");
     $_msTeamNameStmt->execute([$_msTeamId]);
     $_msTeamName = $_msTeamNameStmt->fetchColumn() ?: sprintf($GLOBAL['segmentNumber'], $_msTeamId);
     if ($_msAction === 'assignSegment') {
@@ -32,7 +32,7 @@ if (isset($_GET['viewall']) && ($_GET['viewall'] === 'true' || $_GET['viewall'] 
 $whereHidden = $viewall ? "" : "AND t.hidden = 0";
 
 // Fetch teams with category info
-$stmtAll = $pdo->query("
+$stmtAll = db()->query("
     SELECT t.id, t.name, t.hidden,
            COALESCE(cat.name, '') AS cat_name,
            COALESCE(cat.id, 0) AS cat_id,

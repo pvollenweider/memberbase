@@ -35,13 +35,13 @@ if ($_attAction === 'previewAttestation') {
     $userId = (int)($_REQUEST['user_id'] ?? 0);
     if ($userId <= 0) { echo json_encode(['ok' => false, 'error' => 'missing_user_id']); exit; }
 
-    $m = $pdo->prepare("SELECT id, firstname, lastname, society, sexe, email FROM contact WHERE id = ? AND status = 1");
+    $m = db()->prepare("SELECT id, firstname, lastname, society, sexe, email FROM contact WHERE id = ? AND status = 1");
     $m->execute([$userId]);
     $member = $m->fetch(PDO::FETCH_OBJ);
     if (!$member) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }
 
-    $vars     = mbBuildAttestationVarsForUser($pdo, $member, $appSettings, $year);
-    $tpl      = mbGetTemplate($pdo, 'tpl_attestation_don');
+    $vars     = mbBuildAttestationVarsForUser(db(), $member, $appSettings, $year);
+    $tpl      = mbGetTemplate(db(), 'tpl_attestation_don');
     $subject  = mbRenderTemplate($tpl->subject,   $vars);
     $bodyText = mbRenderTemplate($tpl->body_text, $vars);
     $bodyHtml = isset($tpl->body_html) ? mbRenderTemplate($tpl->body_html, $vars) : '';
@@ -54,7 +54,7 @@ if ($_attAction === 'sendAttestationOne') {
     $userId = (int)($_REQUEST['user_id'] ?? 0);
     if ($userId <= 0) { echo json_encode(['ok' => false, 'error' => 'missing_user_id']); exit; }
 
-    $m = $pdo->prepare("SELECT id, firstname, lastname, society, sexe, email FROM contact WHERE id = ? AND status = 1");
+    $m = db()->prepare("SELECT id, firstname, lastname, society, sexe, email FROM contact WHERE id = ? AND status = 1");
     $m->execute([$userId]);
     $member = $m->fetch(PDO::FETCH_OBJ);
     if (!$member) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }
@@ -62,15 +62,15 @@ if ($_attAction === 'sendAttestationOne') {
 
     $user = new Contact();
     $user->lookupUser($userId);
-    $pdf = mbGenerateAttestationForUser($pdo, $appSettings, $user, $year, true);
+    $pdf = mbGenerateAttestationForUser(db(), $appSettings, $user, $year, true);
     if ($pdf === null) { echo json_encode(['ok' => false, 'error' => 'pdf_generation_failed']); exit; }
 
-    $vars        = mbBuildAttestationVarsForUser($pdo, $member, $appSettings, $year);
+    $vars        = mbBuildAttestationVarsForUser(db(), $member, $appSettings, $year);
     $attachments = [['name' => "attestation-don-$year.pdf", 'mime' => 'application/pdf', 'data' => $pdf]];
-    $result      = mbSendTemplateWithAttachment($pdo, $member->email, 'tpl_attestation_don', $vars, $userId, $attachments, $bcc);
+    $result      = mbSendTemplateWithAttachment(db(), $member->email, 'tpl_attestation_don', $vars, $userId, $attachments, $bcc);
 
     if ($result === true) {
-        auditLog($pdo, 'attestationSent',
+        auditLog(db(), 'attestationSent',
             "sent to {$member->firstname} {$member->lastname} <{$member->email}> year=$year");
         echo json_encode(['ok' => true]);
     } else {
@@ -84,9 +84,9 @@ $minSum = isset($_REQUEST['minSum']) ? (int)$_REQUEST['minSum'] : 1;
 if (!in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 1; }
 
 if ($_attAction === 'previewAttestationsBulkList') {
-    $donors      = mbGetQualifyingDonors($pdo, $year, $minSum);
+    $donors      = mbGetQualifyingDonors(db(), $year, $minSum);
     $donorIds    = array_map(fn($d) => (int)$d->id, $donors);
-    $alreadyMap  = mbGetAlreadySentAttestationIds($pdo, $year, $donorIds);
+    $alreadyMap  = mbGetAlreadySentAttestationIds(db(), $year, $donorIds);
 
     $list = array_map(function ($d) use ($alreadyMap) {
         $uid = (int)$d->id;
@@ -105,9 +105,9 @@ if ($_attAction === 'previewAttestationsBulkList') {
 // ── sendAttestationsBulk ──────────────────────────────────────────────────────
 $forceIds = array_filter(array_map('intval', explode(',', (string)($_REQUEST['force_ids'] ?? ''))));
 
-$donors     = mbGetQualifyingDonors($pdo, $year, $minSum);
+$donors     = mbGetQualifyingDonors(db(), $year, $minSum);
 $donorIds   = array_map(fn($d) => (int)$d->id, $donors);
-$alreadyMap = mbGetAlreadySentAttestationIds($pdo, $year, $donorIds);
+$alreadyMap = mbGetAlreadySentAttestationIds(db(), $year, $donorIds);
 
 $sentCount    = 0;
 $skipCount    = 0;
@@ -118,12 +118,12 @@ foreach ($donors as $row) {
 
     if (isset($alreadyMap[$uid]) && !in_array($uid, $forceIds, true)) {
         $alreadyCount++;
-        auditLog($pdo, 'attestationSent', "skip id=$uid (already sent this year)");
+        auditLog(db(), 'attestationSent', "skip id=$uid (already sent this year)");
         continue;
     }
     if (trim($row->email) === '') {
         $skipCount++;
-        auditLog($pdo, 'attestationSent', "skip id=$uid (no email)");
+        auditLog(db(), 'attestationSent', "skip id=$uid (no email)");
         continue;
     }
 
@@ -134,28 +134,28 @@ foreach ($donors as $row) {
     $pdf = mbGenerateAttestationPdf($fields);
     if ($pdf === null) {
         $skipCount++;
-        auditLog($pdo, 'attestationSent', "FAILED (pdf) id=$uid");
+        auditLog(db(), 'attestationSent', "FAILED (pdf) id=$uid");
         continue;
     }
 
     require_once __DIR__ . '/../lib/attestation_stamp.php';
     $pdf = mbStampAttestationBytes($pdf);
 
-    $vars        = mbBuildAttestationVarsForUser($pdo, $row, $appSettings, $year);
+    $vars        = mbBuildAttestationVarsForUser(db(), $row, $appSettings, $year);
     $attachments = [['name' => "attestation-don-$year.pdf", 'mime' => 'application/pdf', 'data' => $pdf]];
-    $result      = mbSendTemplateWithAttachment($pdo, $row->email, 'tpl_attestation_don', $vars, $uid, $attachments, $bcc);
+    $result      = mbSendTemplateWithAttachment(db(), $row->email, 'tpl_attestation_don', $vars, $uid, $attachments, $bcc);
 
     if ($result === true) {
         $sentCount++;
-        auditLog($pdo, 'attestationSent',
+        auditLog(db(), 'attestationSent',
             "sent to {$row->firstname} {$row->lastname} <{$row->email}> year=$year" . (isset($alreadyMap[$uid]) ? ' (forced resend)' : ''));
     } else {
         $skipCount++;
-        auditLog($pdo, 'attestationSent',
+        auditLog(db(), 'attestationSent',
             "FAILED for {$row->firstname} {$row->lastname} <{$row->email}> year=$year: $result");
     }
 }
 
-auditLog($pdo, 'attestationSent', "bulk year=$year minSum=$minSum sent=$sentCount skipped=$skipCount already=$alreadyCount");
+auditLog(db(), 'attestationSent', "bulk year=$year minSum=$minSum sent=$sentCount skipped=$skipCount already=$alreadyCount");
 echo json_encode(['ok' => true, 'sent' => $sentCount, 'skipped' => $skipCount, 'already' => $alreadyCount]);
 exit;

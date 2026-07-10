@@ -8,8 +8,8 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 // Member counts per segment (guard: tables may not exist if migration is pending)
 try {
-    $countRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
-    $allSegments = $pdo->query("SELECT id, name FROM segment WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+    $countRows = db()->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
+    $allSegments = db()->query("SELECT id, name FROM segment WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {
     $countRows = [];
     $allSegments = [];
@@ -17,7 +17,7 @@ try {
 $segmentCounts = [];
 foreach ($countRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 try {
-    $categories = $pdo->query("SELECT id, name FROM metagroup WHERE is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+    $categories = db()->query("SELECT id, name FROM metagroup WHERE is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {
     $categories = [];
 }
@@ -25,7 +25,7 @@ try {
 // Category map for import grouping: segment_id → category name (guard: table may not exist yet)
 $_importCatRows = [];
 try {
-    $_importCatRows = $pdo->query("
+    $_importCatRows = db()->query("
         SELECT mm.segment_id AS segmentid, m.name AS cat_name, MIN(m.sort_order) AS sort_order
         FROM metagroup_member mm
         JOIN metagroup m ON m.id = mm.metagroup_id AND m.is_filter = 0
@@ -165,7 +165,7 @@ if (!empty($_SESSION['group_toast'])) {
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 try {
-    $stmt = $pdo->query("
+    $stmt = db()->query("
         SELECT t.id, t.name, t.hidden,
                COALESCE(cat.name, '') AS cat_name,
                COALESCE(cat.id, 0) AS cat_id,

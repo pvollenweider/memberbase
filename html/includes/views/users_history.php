@@ -9,7 +9,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 if (!isAdmin()) { echo '<div class="alert alert-danger">' . $GLOBAL['accessDenied'] . '</div>'; return; }
 $memberId = (int)$user->getId();
 
-$histRows = $pdo->prepare("
+$histRows = db()->prepare("
     SELECT created_at, username, action, detail
     FROM audit_log
     WHERE subject_user_id = ?

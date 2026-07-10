@@ -24,7 +24,7 @@ if ($action == 'saveSettings') {
     $strKeys = ['org_name', 'org_address', 'org_npa', 'org_city', 'org_country',
                 'org_ide', 'org_iban', 'org_coti_amount_desc', 'org_purpose', 'org_tax_status',
                 'membre_team_prefix', 'membership_url'];
-    $stmt = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
+    $stmt = db()->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
     foreach ($intKeys as $key) {
         if (isset($_REQUEST[$key])) {
             $stmt->execute([$key, (int)$_REQUEST[$key]]);
@@ -116,9 +116,9 @@ if ($action == 'saveSettings') {
 
 } elseif ($action === 'saveSmtp') {
     require_once __DIR__ . '/../lib/mailer.php';
-    $encKey = mbSmtpGetOrCreateEncKey($pdo);
+    $encKey = mbSmtpGetOrCreateEncKey(db());
     $strKeys = ['smtp_host', 'smtp_encryption', 'smtp_user', 'smtp_from_email', 'smtp_from_name', 'smtp_reply_to'];
-    $stmt = $pdo->prepare("INSERT INTO app_settings (`key`,`value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
+    $stmt = db()->prepare("INSERT INTO app_settings (`key`,`value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
     foreach ($strKeys as $key) {
         if (isset($_REQUEST[$key])) {
             $stmt->execute([$key, trim((string)$_REQUEST[$key])]);
@@ -147,22 +147,22 @@ if ($action == 'saveSettings') {
         exit;
     }
     // Re-fetch fresh settings (request may arrive before bootstrap appSettings populated)
-    $rows = $pdo->query("SELECT `key`,`value` FROM app_settings")->fetchAll(PDO::FETCH_KEY_PAIR);
+    $rows = db()->query("SELECT `key`,`value` FROM app_settings")->fetchAll(PDO::FETCH_KEY_PAIR);
     $cfg  = array_merge($appSettings, $rows);
-    $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
+    $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey(db());
     $subject = 'Test SMTP — memberbase';
     $body    = "Ceci est un email de test envoyé depuis memberbase.\nSi vous recevez ce message, la configuration SMTP est correcte.";
     $result  = mbSmtpSend($cfg, $to, $subject, $body);
     // Log the test send attempt
     $logStatus = $result['ok'] ? 'sent' : 'error';
     $logErr    = $result['ok'] ? null : ($result['error'] ?? '');
-    try { $pdo->prepare("INSERT INTO email_log (to_email, subject, status, error_msg) VALUES (?,?,?,?)")->execute([$to, $subject, $logStatus, $logErr]); } catch (\Throwable $e) {}
+    try { db()->prepare("INSERT INTO email_log (to_email, subject, status, error_msg) VALUES (?,?,?,?)")->execute([$to, $subject, $logStatus, $logErr]); } catch (\Throwable $e) {}
     echo json_encode($result);
     exit;
 
 } elseif ($action == 'updateComptaTypeOrder') {
     if (!empty($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
-        $stmt = $pdo->prepare("UPDATE compta_type SET sort_order=? WHERE id=?");
+        $stmt = db()->prepare("UPDATE compta_type SET sort_order=? WHERE id=?");
         foreach ($_REQUEST['ids'] as $i => $id) {
             $stmt->execute([$i, (int)$id]);
         }
@@ -175,9 +175,9 @@ if ($action == 'saveSettings') {
     if (!in_array($color, $allowed)) $color = 'bg-light';
     if ($label !== '') {
         $defaultLibele = trim((string)($_REQUEST['default_libele'] ?? ''));
-        $maxOrder = (int)$pdo->query("SELECT COALESCE(MAX(sort_order),0) FROM compta_type")->fetchColumn();
-        $pdo->prepare("INSERT INTO compta_type (label, color, default_libele, sort_order) VALUES (?, ?, ?, ?)")->execute([$label, $color, $defaultLibele, $maxOrder + 1]);
-        auditLog($pdo, 'addComptaType', "label: $label | couleur: $color");
+        $maxOrder = (int)db()->query("SELECT COALESCE(MAX(sort_order),0) FROM compta_type")->fetchColumn();
+        db()->prepare("INSERT INTO compta_type (label, color, default_libele, sort_order) VALUES (?, ?, ?, ?)")->execute([$label, $color, $defaultLibele, $maxOrder + 1]);
+        auditLog(db(), 'addComptaType', "label: $label | couleur: $color");
     }
     $_rvAllowed = ['settings','manageComptaTypes'];
     $rv  = in_array($_REQUEST['returnView'] ?? '', $_rvAllowed) ? $_REQUEST['returnView'] : 'settings';
@@ -194,7 +194,7 @@ if ($action == 'saveSettings') {
     // Flags absent from the request keep their current value: the inline edit
     // form only sends label/color/order — it must not reset the flags to 0
     // (only the flag-toggle mini-forms send them explicitly).
-    $_ctCur = $pdo->prepare("SELECT is_cotisation, is_excluded_from_donation, is_institutional FROM compta_type WHERE id=?");
+    $_ctCur = db()->prepare("SELECT is_cotisation, is_excluded_from_donation, is_institutional FROM compta_type WHERE id=?");
     $_ctCur->execute([$id]);
     $_ctCurRow = $_ctCur->fetchObject();
     $isCotisation    = isset($_REQUEST['is_cotisation']) ? (int)$_REQUEST['is_cotisation'] : (int)($_ctCurRow->is_cotisation ?? 0);
@@ -203,13 +203,13 @@ if ($action == 'saveSettings') {
     $allowed = ['bg-primary-subtle','bg-secondary-subtle','bg-success-subtle','bg-danger-subtle','bg-warning-subtle','bg-info-subtle','bg-light','bg-dark-subtle','ca-orange-subtle','ca-teal-subtle','ca-pink-subtle','ca-purple-subtle','ca-indigo-subtle','ca-lime-subtle'];
     if (!in_array($color, $allowed)) $color = 'bg-light';
     if ($id > 0 && $label !== '') {
-        $pdo->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=?, is_institutional=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $isInstitutional, $id]);
+        db()->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=?, is_institutional=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $isInstitutional, $id]);
         // Only sent by the edit form — the flag-toggle mini-forms omit it and
         // must not wipe the stored value.
         if (isset($_REQUEST['default_libele'])) {
-            $pdo->prepare("UPDATE compta_type SET default_libele=? WHERE id=?")->execute([trim((string)$_REQUEST['default_libele']), $id]);
+            db()->prepare("UPDATE compta_type SET default_libele=? WHERE id=?")->execute([trim((string)$_REQUEST['default_libele']), $id]);
         }
-        auditLog($pdo, 'updateComptaType', "id=$id | label: $label");
+        auditLog(db(), 'updateComptaType', "id=$id | label: $label");
     }
     $_rvAllowed = ['settings','manageComptaTypes'];
     $rv  = in_array($_REQUEST['returnView'] ?? '', $_rvAllowed) ? $_REQUEST['returnView'] : 'settings';
@@ -221,12 +221,12 @@ if ($action == 'saveSettings') {
 } elseif ($action == 'deleteComptaType') {
     $id = (int)($_REQUEST['id'] ?? 0);
     if ($id > 0) {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE type_id=?");
+        $stmt = db()->prepare("SELECT COUNT(*) FROM compta WHERE type_id=?");
         $stmt->execute([$id]);
         if ((int)$stmt->fetchColumn() === 0) {
-            $_auCtLabel = $pdo->prepare("SELECT label FROM compta_type WHERE id=?"); $_auCtLabel->execute([$id]);
-            auditLog($pdo, 'deleteComptaType', "id=$id | label: " . ($_auCtLabel->fetchColumn() ?: ''));
-            $pdo->prepare("DELETE FROM compta_type WHERE id=?")->execute([$id]);
+            $_auCtLabel = db()->prepare("SELECT label FROM compta_type WHERE id=?"); $_auCtLabel->execute([$id]);
+            auditLog(db(), 'deleteComptaType', "id=$id | label: " . ($_auCtLabel->fetchColumn() ?: ''));
+            db()->prepare("DELETE FROM compta_type WHERE id=?")->execute([$id]);
         }
     }
     $_rvAllowed = ['settings','manageComptaTypes'];
@@ -239,8 +239,8 @@ if ($action == 'saveSettings') {
 } elseif ($action === 'purgeEmailLog') {
     header('Content-Type: application/json; charset=utf-8');
     try {
-        $pdo->exec("DELETE FROM email_log");
-        auditLog($pdo, 'purgeEmailLog', '');
+        db()->exec("DELETE FROM email_log");
+        auditLog(db(), 'purgeEmailLog', '');
         echo json_encode(['ok' => true]);
     } catch (PDOException $e) {
         echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
@@ -255,18 +255,18 @@ if ($action == 'saveSettings') {
     $allowed  = ['tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don', 'tpl_compta_recap'];
     if (in_array($key, $allowed, true) && $subject !== '' && $body !== '') {
         try {
-            $pdo->prepare(
+            db()->prepare(
                 "INSERT INTO email_templates (`key`, subject, body_text, body_html) VALUES (?,?,?,?)
                  ON DUPLICATE KEY UPDATE subject=VALUES(subject), body_text=VALUES(body_text), body_html=VALUES(body_html)"
             )->execute([$key, $subject, $body, $bodyHtml]);
         } catch (\PDOException $e) {
             // body_html column may not exist yet (migration pending) — fall back
-            $pdo->prepare(
+            db()->prepare(
                 "INSERT INTO email_templates (`key`, subject, body_text) VALUES (?,?,?)
                  ON DUPLICATE KEY UPDATE subject=VALUES(subject), body_text=VALUES(body_text)"
             )->execute([$key, $subject, $body]);
         }
-        auditLog($pdo, 'saveEmailTemplate', "key=$key");
+        auditLog(db(), 'saveEmailTemplate', "key=$key");
     }
     if ($isHtmx) {
         echo '<div id="casa-save-ok" hidden></div>';
@@ -279,8 +279,8 @@ if ($action == 'saveSettings') {
     $key     = trim($_REQUEST['tpl_key'] ?? '');
     $allowed = ['tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don', 'tpl_compta_recap'];
     if (in_array($key, $allowed, true)) {
-        $pdo->prepare("DELETE FROM email_templates WHERE `key` = ?")->execute([$key]);
-        auditLog($pdo, 'resetEmailTemplate', "key=$key");
+        db()->prepare("DELETE FROM email_templates WHERE `key` = ?")->execute([$key]);
+        auditLog(db(), 'resetEmailTemplate', "key=$key");
     }
     if ($isHtmx) {
         header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=email&subtab=templates&reset=1');
@@ -294,18 +294,18 @@ if ($action == 'saveSettings') {
     header('Content-Type: application/json; charset=utf-8');
     $id  = (int)($_REQUEST['id'] ?? 0);
     if ($id <= 0) { echo json_encode(['ok' => false, 'error' => 'invalid_id']); exit; }
-    $row = $pdo->prepare("SELECT to_email, subject FROM email_log WHERE id=? LIMIT 1");
+    $row = db()->prepare("SELECT to_email, subject FROM email_log WHERE id=? LIMIT 1");
     $row->execute([$id]);
     $entry = $row->fetchObject();
     if (!$entry) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }
     $cfg = $appSettings;
-    $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
+    $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey(db());
     $result = mbSmtpSend($cfg, $entry->to_email, $entry->subject, '(message original non disponible — renvoi depuis le journal)');
     if ($result['ok']) {
-        $pdo->prepare("UPDATE email_log SET status='sent', error_msg=NULL WHERE id=?")->execute([$id]);
-        auditLog($pdo, 'resendEmail', "id=$id to={$entry->to_email}");
+        db()->prepare("UPDATE email_log SET status='sent', error_msg=NULL WHERE id=?")->execute([$id]);
+        auditLog(db(), 'resendEmail', "id=$id to={$entry->to_email}");
     } else {
-        $pdo->prepare("UPDATE email_log SET status='error', error_msg=? WHERE id=?")->execute([$result['error'] ?? '', $id]);
+        db()->prepare("UPDATE email_log SET status='error', error_msg=? WHERE id=?")->execute([$result['error'] ?? '', $id]);
     }
     echo json_encode($result);
     exit;

@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 if (!isAdmin()) { echo '<div class="alert alert-danger">' . $GLOBAL['accessDenied'] . '</div>'; return; }
 
-$_auRows = $pdo->query(
+$_auRows = db()->query(
     "SELECT id, username, display_name, email, role, is_active, force_password_change, created_at, last_login, reset_token, token_expires_at
      FROM app_users ORDER BY role DESC, username ASC"
 )->fetchAll(PDO::FETCH_OBJ);
@@ -19,7 +19,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $__invFlash = $_SESSION['invite_token_flash'] ?? null;
 unset($_SESSION['invite_token_flash']);
 if ($__invFlash):
-  $__invUser = $pdo->prepare("SELECT username FROM app_users WHERE id=?");
+  $__invUser = db()->prepare("SELECT username FROM app_users WHERE id=?");
   $__invUser->execute([(int)$__invFlash['uid']]);
   $__invUsername = $__invUser->fetchColumn() ?: '?';
   $__invLink = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/set-password.php?token=' . urlencode($__invFlash['token']);
@@ -39,7 +39,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $__flash = $_SESSION['reset_pw_flash'] ?? null;
 unset($_SESSION['reset_pw_flash']);
 if ($__flash):
-  $__resetUser = $pdo->prepare("SELECT username FROM app_users WHERE id=?");
+  $__resetUser = db()->prepare("SELECT username FROM app_users WHERE id=?");
   $__resetUser->execute([(int)$__flash['uid']]);
   $__resetUsername = $__resetUser->fetchColumn() ?: '?';
 ?>

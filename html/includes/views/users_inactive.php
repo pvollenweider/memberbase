@@ -6,13 +6,13 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-$inactiveUsers = $pdo->query(
+$inactiveUsers = db()->query(
     "SELECT id, firstName, lastName, society, email
      FROM contact
      WHERE status=0
      ORDER BY society, lastName, firstName"
 )->fetchAll(PDO::FETCH_OBJ);
-$allSegments = $pdo->query("SELECT id, name, hidden FROM segment ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
+$allSegments = db()->query("SELECT id, name, hidden FROM segment ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
 ?>
 <div class="row justify-content-center mt-4">
   <div class="col-12 col-xl-10">

@@ -315,7 +315,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 // class (same source of truth as /api/contacts, see issue #57)
 $_virtualIds = null;
 if (in_array((int)$team, MemberFilter::RESOLVABLE, true)) {
-    $_virtualIds = MemberFilter::resolveIds((int)$team, $pdo, (int)$year, $appSettings);
+    $_virtualIds = MemberFilter::resolveIds((int)$team, db(), (int)$year, $appSettings);
 }
 
 // Pre-fetch compta summary for the FILTER_NO_ACTIVITY_10Y history column

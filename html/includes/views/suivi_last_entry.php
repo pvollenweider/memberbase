@@ -9,7 +9,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 
 // Suivi entries (manual notes)
-$stmtSuivi = $pdo->query(
+$stmtSuivi = db()->query(
     "SELECT u.id AS user_id, u.firstname, u.lastname, u.society,
             up.date AS ts, up.value AS content,
             'suivi' AS kind, NULL AS email_log_id
@@ -22,7 +22,7 @@ $rows = $stmtSuivi->fetchAll(PDO::FETCH_OBJ);
 // Sent emails linked to a member
 $emailRows = [];
 try {
-    $stmtEmail = $pdo->query(
+    $stmtEmail = db()->query(
         "SELECT u.id AS user_id, u.firstname, u.lastname, u.society,
                 UNIX_TIMESTAMP(el.created_at) AS ts, el.subject AS content,
                 'email' AS kind, el.id AS email_log_id

@@ -96,7 +96,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     // Preload existing members once — O(1) in-memory lookups instead of 2 queries per row
     $byEmail = [];
     $byName  = [];
-    $stmtAll = $pdo->query("
+    $stmtAll = db()->query("
         SELECT id, firstName, lastName, society, email
         FROM contact WHERE status=1
     ");
@@ -111,7 +111,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     $created    = 0;
     $duplicates = [];
 
-    $pdo->beginTransaction();
+    db()->beginTransaction();
 
     // Resolve the target segment (team) the imported contacts should join.
     $segMode     = $_POST['segment_mode'] ?? 'auto';
@@ -119,7 +119,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     $segTeamName = '';
     if ($segMode === 'existing') {
         $segTeamId = (int)($_POST['segment_existing_id'] ?? 0);
-        $_chk = $pdo->prepare("SELECT name FROM segment WHERE id=?");
+        $_chk = db()->prepare("SELECT name FROM segment WHERE id=?");
         $_chk->execute([$segTeamId]);
         $segTeamName = (string)($_chk->fetchColumn() ?: '');
         if ($segTeamName === '') { $segTeamId = 0; } // stale id → skip
@@ -138,7 +138,7 @@ if ($_REQUEST['action'] === 'importUpload') {
         }
     }
     $segStmt = ($segTeamId > 0)
-        ? $pdo->prepare("INSERT IGNORE INTO contact_properties (user_id, parameter, value) VALUES (?, ?, 'true')")
+        ? db()->prepare("INSERT IGNORE INTO contact_properties (user_id, parameter, value) VALUES (?, ?, 'true')")
         : null;
     $segParam = 'team_' . $segTeamId;
     $segAdded = 0;
@@ -198,7 +198,7 @@ if ($_REQUEST['action'] === 'importUpload') {
         $user->birthDay  = $_bd !== '' ? (string)(int)formatedDateToTimeStamp($_bd) : '0';
 
         $newId = (int)$user->save();
-        auditLog($pdo, 'importUser', 'import CSV | ' . trim("$firstName $lastName") . ' | email: ' . $email, $newId);
+        auditLog(db(), 'importUser', 'import CSV | ' . trim("$firstName $lastName") . ' | email: ' . $email, $newId);
         $created++;
 
         if ($segStmt) { $segStmt->execute([$newId, $segParam]); $segAdded += $segStmt->rowCount(); }
@@ -211,10 +211,10 @@ if ($_REQUEST['action'] === 'importUpload') {
             $byName[mb_strtolower($firstName) . '|' . mb_strtolower($lastName)] ??= $_new;
         }
     }
-    $pdo->commit();
+    db()->commit();
 
     if ($segTeamId > 0) {
-        auditLog($pdo, 'importSegment', "segment: {$segTeamName} (id={$segTeamId}) | {$segAdded} membre(s) ajouté(s) | mode: {$segMode}");
+        auditLog(db(), 'importSegment', "segment: {$segTeamName} (id={$segTeamId}) | {$segAdded} membre(s) ajouté(s) | mode: {$segMode}");
     }
 
     // Parsed rows are no longer needed — free the session (can hold MBs for large files)
@@ -253,7 +253,7 @@ if ($_REQUEST['action'] === 'importUpload') {
             }
         }
         $user->save();
-        auditLog($pdo, 'importUserUpdate', 'import CSV | #' . $dup['existingId'] . ' ' . $dup['existingName'] . ' | mode: ' . $choice, $dup['existingId']);
+        auditLog(db(), 'importUserUpdate', 'import CSV | #' . $dup['existingId'] . ' ' . $dup['existingName'] . ' | mode: ' . $choice, $dup['existingId']);
         $resolved++;
     }
 

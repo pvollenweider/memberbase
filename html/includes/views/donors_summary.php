@@ -18,7 +18,7 @@ $type = "allTypes";
 $membreTeamId = (int)($appSettings['default_team'] ?? 0);
 $membreTeamLabel = $GLOBAL['activeQuestion'];
 if ($membreTeamId > 0) {
-    $r = $pdo->prepare("SELECT name FROM segment WHERE id = ?");
+    $r = db()->prepare("SELECT name FROM segment WHERE id = ?");
     $r->execute([$membreTeamId]);
     $membreTeamLabel = $r->fetchColumn() ?: $GLOBAL['activeQuestion'];
 }
@@ -56,27 +56,27 @@ if ($year != -2) {
 
     $_excl = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
 
-    $_s = $pdo->prepare("SELECT COALESCE(SUM(c.sum),0) FROM compta c WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($_excl)");
+    $_s = db()->prepare("SELECT COALESCE(SUM(c.sum),0) FROM compta c WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($_excl)");
     $_s->execute([$_kFrom,$_kTo]);   $_kTotal  = (float)$_s->fetchColumn();
     $_s->execute([$_kFrom1,$_kTo1]); $_kTotal1 = (float)$_s->fetchColumn();
 
-    $_sDon = $pdo->prepare("SELECT COUNT(DISTINCT c.user_id) FROM compta c WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($_excl)");
+    $_sDon = db()->prepare("SELECT COUNT(DISTINCT c.user_id) FROM compta c WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($_excl)");
     $_sDon->execute([$_kFrom,$_kTo]);   $_kDonateurs  = (int)$_sDon->fetchColumn();
     $_sDon->execute([$_kFrom1,$_kTo1]); $_kDonateurs1 = (int)$_sDon->fetchColumn();
     $_kDonDelta = $_kDonateurs1 > 0 ? (($_kDonateurs - $_kDonateurs1) / $_kDonateurs1 * 100) : null;
 
-    $_sAtt = $pdo->prepare("SELECT COUNT(DISTINCT c.user_id) FROM compta c WHERE c.date>? AND c.date<? AND c.wants_attestation=1");
+    $_sAtt = db()->prepare("SELECT COUNT(DISTINCT c.user_id) FROM compta c WHERE c.date>? AND c.date<? AND c.wants_attestation=1");
     $_sAtt->execute([$_kFrom,$_kTo]); $_kAttestations = (int)$_sAtt->fetchColumn();
 
     $_kDonMoyen = $_kDonateurs > 0 ? $_kTotal / $_kDonateurs : 0;
 
-    $_sRec = $pdo->prepare("SELECT COUNT(DISTINCT c.user_id) FROM compta c WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($_excl) AND c.user_id IN (SELECT DISTINCT user_id FROM compta WHERE date>? AND date<? AND type_id NOT IN ($_excl))");
+    $_sRec = db()->prepare("SELECT COUNT(DISTINCT c.user_id) FROM compta c WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($_excl) AND c.user_id IN (SELECT DISTINCT user_id FROM compta WHERE date>? AND date<? AND type_id NOT IN ($_excl))");
     $_sRec->execute([$_kFrom, $_kTo, $_kFrom1, $_kTo1]);
     $_kRecurrents = (int)$_sRec->fetchColumn();
     $_kNouveaux   = $_kDonateurs - $_kRecurrents;
     $_kLapsed     = $_kDonateurs1 - $_kRecurrents;
 
-    $_sTypeBreak = $pdo->prepare("SELECT ct.label, ct.color, COALESCE(SUM(c.sum),0) AS total FROM compta c JOIN compta_type ct ON ct.id=c.type_id WHERE c.date>? AND c.date<? AND ct.is_excluded_from_donation=0 GROUP BY ct.id, ct.label, ct.color ORDER BY total DESC");
+    $_sTypeBreak = db()->prepare("SELECT ct.label, ct.color, COALESCE(SUM(c.sum),0) AS total FROM compta c JOIN compta_type ct ON ct.id=c.type_id WHERE c.date>? AND c.date<? AND ct.is_excluded_from_donation=0 GROUP BY ct.id, ct.label, ct.color ORDER BY total DESC");
     $_sTypeBreak->execute([$_kFrom, $_kTo]);
     $_typeBreakdown = $_sTypeBreak->fetchAll(PDO::FETCH_OBJ);
     $_typeTotal = array_sum(array_map(fn($r) => (float)$r->total, $_typeBreakdown));
@@ -93,14 +93,14 @@ if ($year != -2) {
     $_kMembresLapsed = 0;
     if (!empty($_cotiTypeIds)) {
         $_ph = implode(',', array_fill(0, count($_cotiTypeIds), '?'));
-        $_sM = $pdo->prepare("SELECT COUNT(DISTINCT u.id) FROM contact u JOIN compta c ON c.user_id=u.id WHERE u.status=1 $_noCotiJoin AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?");
+        $_sM = db()->prepare("SELECT COUNT(DISTINCT u.id) FROM contact u JOIN compta c ON c.user_id=u.id WHERE u.status=1 $_noCotiJoin AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?");
         $_sM->execute(array_merge(array_values($_cotiTypeIds), [$year]));
         $_kMembres = (int)$_sM->fetchColumn();
         $_sM->execute(array_merge(array_values($_cotiTypeIds), [$year - 1]));
         $_kMembresPrev = (int)$_sM->fetchColumn();
         $_kMembresDelta = $_kMembresPrev > 0 ? (($_kMembres - $_kMembresPrev) / $_kMembresPrev * 100) : null;
 
-        $_sLapsedM = $pdo->prepare("
+        $_sLapsedM = db()->prepare("
             SELECT COUNT(*) FROM contact u
             WHERE u.status=1
               $_noCotiJoin
@@ -122,12 +122,12 @@ if ($year != -2) {
         $_kToYtd  = mktime(23, 59, 59, (int)date("m"), (int)date("d"), $year);
         $_kToYtd1 = mktime(23, 59, 59, (int)date("m"), (int)date("d"), $year - 1);
         // total CHF same period last year
-        $_sYtd = $pdo->prepare("SELECT COALESCE(SUM(c.sum),0) FROM compta c WHERE c.date>? AND c.date<=? AND c.type_id NOT IN ($_excl)");
+        $_sYtd = db()->prepare("SELECT COALESCE(SUM(c.sum),0) FROM compta c WHERE c.date>? AND c.date<=? AND c.type_id NOT IN ($_excl)");
         $_sYtd->execute([$_kFrom1, $_kToYtd1]);
         $_kTotalYtd1 = (float)$_sYtd->fetchColumn();
         $_kYtd = $_kTotalYtd1 > 0 ? (($_kTotal - $_kTotalYtd1) / $_kTotalYtd1 * 100) : null;
         // donateurs same period last year
-        $_sDonYtd = $pdo->prepare("SELECT COUNT(DISTINCT c.user_id) FROM compta c WHERE c.date>? AND c.date<=? AND c.type_id NOT IN ($_excl)");
+        $_sDonYtd = db()->prepare("SELECT COUNT(DISTINCT c.user_id) FROM compta c WHERE c.date>? AND c.date<=? AND c.type_id NOT IN ($_excl)");
         $_sDonYtd->execute([$_kFrom1, $_kToYtd1]);
         $_kDonateursYtd1 = (int)$_sDonYtd->fetchColumn();
         // membres same period: just use prev team count (membership doesn't change intra-year)
@@ -550,7 +550,7 @@ if (!$showAll) {
 }
 $sql .= " ORDER BY u.lastname, u.firstname, u.society";
 
-$stmt = $pdo->prepare($sql);
+$stmt = db()->prepare($sql);
 $stmt->execute($params);
 $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
 $i = count($rows);

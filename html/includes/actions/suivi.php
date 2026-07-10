@@ -19,7 +19,7 @@ if ($action == 'addSuivi') {
     $userProperty->date = formatedDateToTimeStamp($_REQUEST['date']);
     $userProperty->value = unquote(str_replace(',','.',$_REQUEST['value']));
     $userProperty->save();
-    auditLog($pdo, 'addSuivi', "membre: " . Contact::getMemberName((int)$_REQUEST['userid']) . " | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})", (int)$_REQUEST['userid']);
+    auditLog(db(), 'addSuivi', "membre: " . Contact::getMemberName((int)$_REQUEST['userid']) . " | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})", (int)$_REQUEST['userid']);
 
 } elseif ($action == 'updateSuivi') {
     $userProperty = new UserProperty();
@@ -29,14 +29,14 @@ if ($action == 'addSuivi') {
     $userProperty->parameter = $_REQUEST['parameter'];
     $userProperty->value = unquote($_REQUEST['value']);
     $userProperty->save();
-    auditLog($pdo, 'updateSuivi', "membre: " . Contact::getMemberName((int)$_REQUEST['userid']) . " | suivi#={$_REQUEST['suiviid']} | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})", (int)$_REQUEST['userid']);
+    auditLog(db(), 'updateSuivi', "membre: " . Contact::getMemberName((int)$_REQUEST['userid']) . " | suivi#={$_REQUEST['suiviid']} | {$_REQUEST['parameter']}: {$_REQUEST['value']} ({$_REQUEST['date']})", (int)$_REQUEST['userid']);
 
 } elseif ($action == 'deleteSuiviEntry') {
     $suiviid = (int)$_REQUEST['suiviid'];
     $userid  = (int)$_REQUEST['userid'];
     $userProperty = new UserProperty();
     $userProperty->lookupUserProperty($suiviid);
-    auditLog($pdo, 'deleteSuivi', "suivi#=$suiviid | membre: " . Contact::getMemberName($userid) . " | {$userProperty->parameter}: {$userProperty->getValue()}", $userid);
+    auditLog(db(), 'deleteSuivi', "suivi#=$suiviid | membre: " . Contact::getMemberName($userid) . " | {$userProperty->parameter}: {$userProperty->getValue()}", $userid);
     $userProperty->remove();
     $_delTarget = '?view=suivi&userid=' . $userid;
     if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_delTarget); exit; }

@@ -16,7 +16,7 @@ require_once __DIR__ . '/../lib/mailer.php';
 $defaults   = mbDefaultTemplates();
 $dbTemplates = [];
 try {
-    $rows = $pdo->query("SELECT `key`, subject, body_text, body_html FROM email_templates")->fetchAll(PDO::FETCH_ASSOC);
+    $rows = db()->query("SELECT `key`, subject, body_text, body_html FROM email_templates")->fetchAll(PDO::FETCH_ASSOC);
     foreach ($rows as $r) {
         $dbTemplates[$r['key']] = $r;
     }

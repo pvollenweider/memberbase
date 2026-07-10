@@ -17,15 +17,15 @@ if (!isAdmin()): ?>
 endif;
 
 /** Safe single-scalar query — returns null on any error (never breaks the page). */
-$_hScalar = static function (PDO $pdo, string $sql) {
-    try { return $pdo->query($sql)->fetchColumn(); }
+$_hScalar = static function (string $sql) {
+    try { return db()->query($sql)->fetchColumn(); }
     catch (Throwable) { return null; }
 };
 
 // --- Application / runtime ---
 $dbServer = null;
-try { $dbServer = $pdo->getAttribute(PDO::ATTR_SERVER_VERSION); } catch (Throwable) {}
-$dbName = $_hScalar($pdo, 'SELECT DATABASE()');
+try { $dbServer = db()->getAttribute(PDO::ATTR_SERVER_VERSION); } catch (Throwable) {}
+$dbName = $_hScalar('SELECT DATABASE()');
 
 // Git commit — best effort; exec is often disabled in prod, so fail silently.
 $gitCommit = null;
@@ -35,24 +35,24 @@ if (function_exists('shell_exec') && !in_array('shell_exec', array_map('trim', e
 }
 
 // --- Migrations (see #68) ---
-$pending      = pendingMigrations($pdo);
-$drift        = migrationDrift($pdo);
-$appliedCount = $_hScalar($pdo, 'SELECT COUNT(*) FROM schema_migrations');
+$pending      = pendingMigrations(db());
+$drift        = migrationDrift(db());
+$appliedCount = $_hScalar('SELECT COUNT(*) FROM schema_migrations');
 $lastMigration = null;
 try {
-    $lastMigration = $pdo->query('SELECT version, applied_at FROM schema_migrations ORDER BY version DESC LIMIT 1')->fetchObject();
+    $lastMigration = db()->query('SELECT version, applied_at FROM schema_migrations ORDER BY version DESC LIMIT 1')->fetchObject();
 } catch (Throwable) {}
 
 // --- Volume counters ---
-$nbTables  = $_hScalar($pdo, 'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()');
-$nbMembers = $_hScalar($pdo, 'SELECT COUNT(*) FROM contact WHERE status = 1');
-$nbCompta  = $_hScalar($pdo, 'SELECT COUNT(*) FROM compta');
-$nbAppUsers = $_hScalar($pdo, 'SELECT COUNT(*) FROM app_users WHERE is_active = 1');
+$nbTables  = $_hScalar('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()');
+$nbMembers = $_hScalar('SELECT COUNT(*) FROM contact WHERE status = 1');
+$nbCompta  = $_hScalar('SELECT COUNT(*) FROM compta');
+$nbAppUsers = $_hScalar('SELECT COUNT(*) FROM app_users WHERE is_active = 1');
 
 // --- Last activity (audit log) ---
 $lastAudit = null;
 try {
-    $lastAudit = $pdo->query('SELECT action, created_at FROM audit_log ORDER BY id DESC LIMIT 1')->fetchObject();
+    $lastAudit = db()->query('SELECT action, created_at FROM audit_log ORDER BY id DESC LIMIT 1')->fetchObject();
 } catch (Throwable) {}
 
 // --- Overall status ---
@@ -219,7 +219,7 @@ $_bulkComptaErr  = $_GET['bulkComptaErr'] ?? null;
 // Count compta entries not yet included in any recap batch.
 // Guard against missing column (migration 0007 not yet applied).
 try {
-    $_comptaUntouched = (int)$pdo->query(
+    $_comptaUntouched = (int)db()->query(
         "SELECT COUNT(*) FROM compta WHERE notified_at IS NULL"
     )->fetchColumn();
 } catch (PDOException $e) {

@@ -10,7 +10,7 @@ $user = new Contact();
 $user->lookupUser((int)($_REQUEST['id'] ?? 0));
 if (!$user->getId()) { echo '<div class="alert alert-danger">' . $GLOBAL['memberNotFound'] . '</div>'; return; }
 
-$_stC = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
+$_stC = db()->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
 $_stC->execute([$user->getId()]);
 $_comptaCount = (int)$_stC->fetchColumn();
 $_userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;

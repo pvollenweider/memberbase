@@ -11,18 +11,18 @@ $mg = new Metagroup();
 $mg->lookupMetagroup($mgId);
 
 // Read is_filter for this metagroup entity row
-$stmtIsFilter = $pdo->prepare("SELECT is_filter FROM metagroup WHERE id=?");
+$stmtIsFilter = db()->prepare("SELECT is_filter FROM metagroup WHERE id=?");
 $stmtIsFilter->execute([$mgId]);
 $isFilter = (int)($stmtIsFilter->fetchColumn() ?? 1);
 
 // Segments currently in this metagroup
-$stmtIn = $pdo->prepare("SELECT segment_id FROM metagroup_member WHERE metagroup_id=?");
+$stmtIn = db()->prepare("SELECT segment_id FROM metagroup_member WHERE metagroup_id=?");
 $stmtIn->execute([$mgId]);
 $memberTeamIds = $stmtIn->fetchAll(PDO::FETCH_COLUMN);
 $memberTeamIds = array_map('intval', $memberTeamIds);
 
 // All segments (including hidden) — members first, then non-members, each alphabetically
-$allTeamsRaw = $pdo->query("SELECT id, name, hidden FROM segment ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+$allTeamsRaw = db()->query("SELECT id, name, hidden FROM segment ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 // Only keep visible segments + hidden segments that are already members
 $allTeams = array_filter($allTeamsRaw, fn($t) => !(int)$t->hidden || in_array((int)$t->id, $memberTeamIds));
 usort($allTeams, function($a, $b) use ($memberTeamIds) {
@@ -33,7 +33,7 @@ usort($allTeams, function($a, $b) use ($memberTeamIds) {
 });
 
 // Category map: segment_id → [category_id, category_name]
-$stmtCats = $pdo->query(
+$stmtCats = db()->query(
     "SELECT mm.segment_id, m.id AS cat_id, m.name AS cat_name
      FROM metagroup_member mm
      JOIN metagroup m ON m.id = mm.metagroup_id AND m.is_filter = 0"
@@ -57,7 +57,7 @@ foreach ($allTeams as $t) {
 ksort($catGroups);
 
 // Member counts per segment
-$cntRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
+$cntRows = db()->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
 $teamCounts = [];
 foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 ?>

@@ -13,13 +13,13 @@ if ($year <= 0) { $year = (int)date("Y"); }
 require_once __DIR__ . '/../lib/cotisation.php';
 $cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
 $_noCotiTeam = (int)($appSettings['member_no_coti_team'] ?? 0);
-$rows        = mbGetLapsedMembers($pdo, $year, $cotiTypeIds, $_noCotiTeam);
+$rows        = mbGetLapsedMembers(db(), $year, $cotiTypeIds, $_noCotiTeam);
 
 // Map: user_id → last reminder sent_at (this year) from email_log.
 $reminderSentMap = [];
 if (!empty($rows)) {
     $rowIds          = array_map(fn($r) => (int)$r->id, $rows);
-    $reminderSentMap = mbGetAlreadyRemindedIds($pdo, $year, $rowIds);
+    $reminderSentMap = mbGetAlreadyRemindedIds(db(), $year, $rowIds);
 }
 
 $count       = count($rows);

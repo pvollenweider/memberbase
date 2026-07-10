@@ -40,7 +40,7 @@ if ($action === 'applyMigrations') {
     }
 
     @set_time_limit(120);
-    $res = mbRunPendingMigrations($pdo);
+    $res = mbRunPendingMigrations(db());
 
     flock($lock, LOCK_UN);
     fclose($lock);
@@ -48,7 +48,7 @@ if ($action === 'applyMigrations') {
 
     $detail = 'applied: ' . (implode(',', $res['applied']) ?: '(none)');
     if ($res['error']) { $detail .= ' | FAILED ' . $res['failed'] . ': ' . $res['error']; }
-    auditLog($pdo, 'applyMigrations', $detail);
+    auditLog(db(), 'applyMigrations', $detail);
 
     $redirect($res['error'] ? 'migErr=1' : 'migOk=' . count($res['applied']));
 

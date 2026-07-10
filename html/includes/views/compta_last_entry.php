@@ -160,7 +160,7 @@ if ($year != -2) {
 $query2 = $query;
 $query .= " ORDER BY $sort DESC LIMIT 0,20000";
 $query2 .= " ORDER BY $sort ASC LIMIT 0,20000";
-$stmt = $pdo->query($query);
+$stmt = db()->query($query);
 $i = 0;
 $total = 0.0;
 while ($row = $stmt->fetchObject()) {
@@ -297,7 +297,7 @@ $_ctBorderL = [
     'ca-indigo-subtle'    => 'rgba(102,16,242,1)',
     'ca-lime-subtle'      => 'rgba(128,189,64,1)',
 ];
-$_stmt2 = $pdo->query($query2);
+$_stmt2 = db()->query($query2);
 while ($_r = $_stmt2->fetchObject()) {
     // Timeline
     $_ts  = (int)$_r->date;

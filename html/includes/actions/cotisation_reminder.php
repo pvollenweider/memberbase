@@ -40,13 +40,13 @@ if ($_cotiAction === 'previewCotisationReminder') {
     $userId = (int)($_REQUEST['user_id'] ?? 0);
     if ($userId <= 0) { echo json_encode(['ok' => false, 'error' => 'missing_user_id']); exit; }
 
-    $m = $pdo->prepare("SELECT id, firstname, lastname, society, email FROM contact WHERE id = ? AND status = 1");
+    $m = db()->prepare("SELECT id, firstname, lastname, society, email FROM contact WHERE id = ? AND status = 1");
     $m->execute([$userId]);
     $member = $m->fetch(PDO::FETCH_OBJ);
     if (!$member) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }
 
     $vars     = mbBuildCotiReminderVars($member, $year, $appSettings);
-    $tpl      = mbGetTemplate($pdo, 'tpl_cotisation_reminder');
+    $tpl      = mbGetTemplate(db(), 'tpl_cotisation_reminder');
     $subject  = mbRenderTemplate($tpl->subject,   $vars);
     $bodyText = mbRenderTemplate($tpl->body_text, $vars);
     $bodyHtml = isset($tpl->body_html) ? mbRenderTemplate($tpl->body_html, $vars) : '';
@@ -59,7 +59,7 @@ if ($_cotiAction === 'sendCotisationReminderOne') {
     $userId = (int)($_REQUEST['user_id'] ?? 0);
     if ($userId <= 0) { echo json_encode(['ok' => false, 'error' => 'missing_user_id']); exit; }
 
-    $m = $pdo->prepare("SELECT id, firstname, lastname, society, email FROM contact WHERE id = ? AND status = 1");
+    $m = db()->prepare("SELECT id, firstname, lastname, society, email FROM contact WHERE id = ? AND status = 1");
     $m->execute([$userId]);
     $member = $m->fetch(PDO::FETCH_OBJ);
     if (!$member) { echo json_encode(['ok' => false, 'error' => 'not_found']); exit; }
@@ -71,9 +71,9 @@ if ($_cotiAction === 'sendCotisationReminderOne') {
     if ($qrPdf !== null) {
         $attachments[] = ['name' => "bulletin-versement-$year.pdf", 'mime' => 'application/pdf', 'data' => $qrPdf];
     }
-    $result = mbSendTemplateWithAttachment($pdo, $member->email, 'tpl_cotisation_reminder', $vars, $userId, $attachments, $bcc);
+    $result = mbSendTemplateWithAttachment(db(), $member->email, 'tpl_cotisation_reminder', $vars, $userId, $attachments, $bcc);
     if ($result === true) {
-        auditLog($pdo, 'sendCotisationReminderOne',
+        auditLog(db(), 'sendCotisationReminderOne',
             "sent to {$member->firstname} {$member->lastname} <{$member->email}> year=$year");
         echo json_encode(['ok' => true]);
     } else {
@@ -84,7 +84,7 @@ if ($_cotiAction === 'sendCotisationReminderOne') {
 
 // ── sendCotisationReminders (bulk) ────────────────────────────────────────────
 $_noCotiTeam = (int)($appSettings['member_no_coti_team'] ?? 0);
-$members     = mbGetLapsedMembers($pdo, $year, $cotiTypeIds, $_noCotiTeam);
+$members     = mbGetLapsedMembers(db(), $year, $cotiTypeIds, $_noCotiTeam);
 
 if (empty($members)) {
     echo json_encode(['ok' => true, 'sent' => 0, 'skipped' => 0, 'already' => 0]);
@@ -93,7 +93,7 @@ if (empty($members)) {
 
 $force      = !empty($_REQUEST['force']);
 $memberIds  = array_map(fn($m) => (int)$m->id, $members);
-$alreadyMap = $force ? [] : mbGetAlreadyRemindedIds($pdo, $year, $memberIds);
+$alreadyMap = $force ? [] : mbGetAlreadyRemindedIds(db(), $year, $memberIds);
 
 // Generate QR bill PDF once — the same slip is attached to every reminder
 $qrPdf = mbGenerateQrBillPdf($appSettings, $year);
@@ -105,12 +105,12 @@ $alreadyCount = 0;
 foreach ($members as $m) {
     if (isset($alreadyMap[(int)$m->id])) {
         $alreadyCount++;
-        auditLog($pdo, 'sendCotisationReminders', "skip id={$m->id} (already reminded this year)");
+        auditLog(db(), 'sendCotisationReminders', "skip id={$m->id} (already reminded this year)");
         continue;
     }
     if (trim($m->email) === '') {
         $skipCount++;
-        auditLog($pdo, 'sendCotisationReminders', "skip id={$m->id} (no email)");
+        auditLog(db(), 'sendCotisationReminders', "skip id={$m->id} (no email)");
         continue;
     }
 
@@ -119,19 +119,19 @@ foreach ($members as $m) {
     if ($qrPdf !== null) {
         $attachments[] = ['name' => "bulletin-versement-$year.pdf", 'mime' => 'application/pdf', 'data' => $qrPdf];
     }
-    $result = mbSendTemplateWithAttachment($pdo, $m->email, 'tpl_cotisation_reminder', $vars, (int)$m->id, $attachments, $bcc);
+    $result = mbSendTemplateWithAttachment(db(), $m->email, 'tpl_cotisation_reminder', $vars, (int)$m->id, $attachments, $bcc);
     if ($result === true) {
         $sentCount++;
-        auditLog($pdo, 'sendCotisationReminders',
+        auditLog(db(), 'sendCotisationReminders',
             "sent to {$m->firstname} {$m->lastname} <{$m->email}> year=$year");
     } else {
         $skipCount++;
-        auditLog($pdo, 'sendCotisationReminders',
+        auditLog(db(), 'sendCotisationReminders',
             "FAILED for {$m->firstname} {$m->lastname} <{$m->email}> year=$year: $result");
     }
 }
 
-auditLog($pdo, 'sendCotisationReminders',
+auditLog(db(), 'sendCotisationReminders',
     "year=$year sent=$sentCount skipped=$skipCount already=$alreadyCount");
 echo json_encode(['ok' => true, 'sent' => $sentCount, 'skipped' => $skipCount, 'already' => $alreadyCount]);
 exit;

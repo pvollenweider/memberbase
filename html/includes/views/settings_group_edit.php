@@ -16,7 +16,7 @@ $segment = new Segment();
 $segment->lookupSegment($id);
 
 // Fetch members of this segment
-$stmtMembers = $pdo->prepare(
+$stmtMembers = db()->prepare(
     "SELECT u.id, u.lastname, u.firstname, u.society
      FROM contact u
      INNER JOIN contact_segment us ON us.user_id = u.id
@@ -28,12 +28,12 @@ $members = $stmtMembers->fetchAll(PDO::FETCH_OBJ);
 $memberCount = count($members);
 
 // Fetch other segments for reassignment + import
-$stmtSegments = $pdo->query("SELECT id, name FROM segment WHERE id != $id AND hidden = 0 ORDER BY name");
+$stmtSegments = db()->query("SELECT id, name FROM segment WHERE id != $id AND hidden = 0 ORDER BY name");
 $otherSegments = $stmtSegments->fetchAll(PDO::FETCH_OBJ);
 
 // Fetch categories and current category for this segment
-$allCats = $pdo->query("SELECT id, name FROM metagroup WHERE is_filter=0 ORDER BY name ASC")->fetchAll(PDO::FETCH_OBJ);
-$stmtCurrentCat = $pdo->prepare("SELECT c.id FROM metagroup_member mm JOIN metagroup c ON c.id=mm.metagroup_id AND c.is_filter=0 WHERE mm.segment_id=? LIMIT 1");
+$allCats = db()->query("SELECT id, name FROM metagroup WHERE is_filter=0 ORDER BY name ASC")->fetchAll(PDO::FETCH_OBJ);
+$stmtCurrentCat = db()->prepare("SELECT c.id FROM metagroup_member mm JOIN metagroup c ON c.id=mm.metagroup_id AND c.is_filter=0 WHERE mm.segment_id=? LIMIT 1");
 $stmtCurrentCat->execute([$id]);
 $currentCatId = (int)($stmtCurrentCat->fetchColumn() ?: 0);
 
@@ -47,10 +47,10 @@ $institutionalTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)($
 $nonInstTypeIds      = array_keys(array_filter($comptaTypes, fn($ct) => (int)($ct->is_institutional ?? 0) === 0 && (int)($ct->is_excluded_from_donation ?? 0) === 0));
 
 /** Helper: count distinct donors for a given set of allowed type IDs */
-$countDonors = function(array $allowedTypeIds, int $from, int $to) use ($pdo, $id): int {
+$countDonors = function(array $allowedTypeIds, int $from, int $to) use ($id): int {
     if (empty($allowedTypeIds)) return 0;
     $ph = implode(',', array_fill(0, count($allowedTypeIds), '?'));
-    $r = $pdo->prepare("
+    $r = db()->prepare("
         SELECT COUNT(DISTINCT u.id)
         FROM contact u JOIN compta c ON c.user_id = u.id
         WHERE c.type_id IN ($ph)
@@ -79,7 +79,7 @@ for ($yi = 0; $yi < 10; $yi++) {
     // Cotisants count
     if (!empty($cotisTypeIds)) {
         $cotisPlaceholders = implode(',', array_fill(0, count($cotisTypeIds), '?'));
-        $r2 = $pdo->prepare("
+        $r2 = db()->prepare("
             SELECT COUNT(DISTINCT u.id)
             FROM contact u JOIN compta c ON c.user_id = u.id
             WHERE c.type_id IN ($cotisPlaceholders)
@@ -92,7 +92,7 @@ for ($yi = 0; $yi < 10; $yi++) {
 }
 
 // Member counts per segment (for badges)
-$cntRows = $pdo->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
+$cntRows = db()->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
 $segmentCounts = [];
 foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 ?>

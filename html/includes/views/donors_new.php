@@ -10,7 +10,7 @@ $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year <= 0) { $year = (int)date("Y"); }
 
 require_once __DIR__ . '/../lib/donor.php';
-$rows  = mbGetNewDonors($pdo, $year);
+$rows  = mbGetNewDonors(db(), $year);
 $count = count($rows);
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">

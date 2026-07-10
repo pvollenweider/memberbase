@@ -56,12 +56,12 @@ if (!isAdmin()) { echo '<div class="alert alert-danger">' . $GLOBAL['accessDenie
 
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-$rows = $pdo->query(
+$rows = db()->query(
     "SELECT created_at, username, action, detail FROM audit_log ORDER BY created_at DESC LIMIT 2000"
 )->fetchAll(PDO::FETCH_OBJ);
-$total = (int)$pdo->query("SELECT COUNT(*) FROM audit_log")->fetchColumn();
-$auditUsers   = $pdo->query("SELECT DISTINCT username FROM audit_log WHERE username IS NOT NULL ORDER BY username")->fetchAll(PDO::FETCH_COLUMN);
-$auditActions = $pdo->query("SELECT DISTINCT action FROM audit_log ORDER BY action")->fetchAll(PDO::FETCH_COLUMN);
+$total = (int)db()->query("SELECT COUNT(*) FROM audit_log")->fetchColumn();
+$auditUsers   = db()->query("SELECT DISTINCT username FROM audit_log WHERE username IS NOT NULL ORDER BY username")->fetchAll(PDO::FETCH_COLUMN);
+$auditActions = db()->query("SELECT DISTINCT action FROM audit_log ORDER BY action")->fetchAll(PDO::FETCH_COLUMN);
 ?>
 
 <div class="d-flex gap-2 align-items-end flex-wrap mb-3" style="font-size:0.82rem">

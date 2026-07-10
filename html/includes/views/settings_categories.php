@@ -12,7 +12,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 try {
-    $allCats = $pdo->query("
+    $allCats = db()->query("
         SELECT m.id, m.name,
                COUNT(DISTINCT mm.segment_id) AS team_count
         FROM metagroup m

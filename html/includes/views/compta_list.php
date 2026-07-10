@@ -47,7 +47,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
   <?php if ($year != -2): ?>
   <?php
   // Count excluded-from-donation entries in the current year view (without type filter to give full picture)
-  $_exclStmt = $pdo->prepare(
+  $_exclStmt = db()->prepare(
       "SELECT COUNT(*) FROM compta c LEFT JOIN compta_type ct ON ct.id = c.type_id
        WHERE c.user_id = ? AND c.date > ? AND c.date < ?
          AND COALESCE(ct.is_excluded_from_donation,0) = 1 AND c.sum <> 0"
@@ -351,7 +351,7 @@ if ($filterTypeId > 0) {
     $_baseParams[] = $filterTypeId;
 }
 // Count zero-sum entries so we can offer a "show all" toggle
-$_zeroStmt = $pdo->prepare("SELECT COUNT(*) " . $_baseWhere . " AND c.sum = 0");
+$_zeroStmt = db()->prepare("SELECT COUNT(*) " . $_baseWhere . " AND c.sum = 0");
 $_zeroStmt->execute($_baseParams);
 $_zeroCount = (int)$_zeroStmt->fetchColumn();
 $_selectCols = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, c.cotisation_year, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl, COALESCE(ct.is_cotisation,0) AS ct_coti ";
@@ -363,7 +363,7 @@ if (!$_showZero) {
 }
 $query  .= " ORDER BY c.date DESC";
 $query2 .= " ORDER BY c.date ASC";
-$stmt = $pdo->prepare($query);
+$stmt = db()->prepare($query);
 $stmt->execute($_baseParams);
 $total = 0;
 while ($row = $stmt->fetchObject()) {
@@ -762,7 +762,7 @@ $_ctBorder = [
 $_frMonths = $GLOBAL['monthsShort'];
 $_typeAgg  = [];
 $_periodAgg = []; // period key => amount
-$_stmt2 = $pdo->prepare($query2);
+$_stmt2 = db()->prepare($query2);
 $_stmt2->execute($_baseParams);
 while ($_r = $_stmt2->fetchObject()) {
     // Donut: aggregate by type

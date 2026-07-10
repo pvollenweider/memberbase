@@ -21,10 +21,10 @@ if ($action === 'logout') {
     // the session immediately.
     $currentUser = authUser();
     $newLocale   = mbNormalizeLocale($_POST['locale'] ?? '');
-    $pdo->prepare("UPDATE app_users SET locale = ? WHERE id = ?")
+    db()->prepare("UPDATE app_users SET locale = ? WHERE id = ?")
         ->execute([$newLocale, $currentUser->id]);
     $_SESSION['app_user_locale'] = $newLocale;
-    auditLog($pdo, 'changeLocale', 'locale=' . $newLocale);
+    auditLog(db(), 'changeLocale', 'locale=' . $newLocale);
     header('Location: ' . appUrl() . '?view=changePassword');
     exit;
 
@@ -41,7 +41,7 @@ if ($action === 'logout') {
     } elseif ($pwNew !== $pwConfirm) {
         $errParam = urlencode($GLOBAL['passwordMismatch']);
     } elseif (!$forced) {
-        $row = $pdo->prepare("SELECT password_hash FROM app_users WHERE id = ?");
+        $row = db()->prepare("SELECT password_hash FROM app_users WHERE id = ?");
         $row->execute([$currentUser->id]);
         $hash = $row->fetchColumn();
         if (!$hash || !password_verify($pwCurrent, $hash)) {
@@ -55,10 +55,10 @@ if ($action === 'logout') {
     }
 
     $newHash = password_hash($pwNew, PASSWORD_DEFAULT);
-    $pdo->prepare("UPDATE app_users SET password_hash=?, force_password_change=0 WHERE id=?")
+    db()->prepare("UPDATE app_users SET password_hash=?, force_password_change=0 WHERE id=?")
         ->execute([$newHash, $currentUser->id]);
     $_SESSION['force_password_change'] = false;
-    auditLog($pdo, 'changePassword', "user={$currentUser->username}");
+    auditLog(db(), 'changePassword', "user={$currentUser->username}");
     header('Location: ' . appUrl());
     exit;
 
@@ -78,21 +78,21 @@ if ($action === 'logout') {
             if ($auPasswordRaw === '') {
                 $token     = bin2hex(random_bytes(32));
                 $expires   = date('Y-m-d H:i:s', strtotime('+7 days'));
-                $pdo->prepare(
+                db()->prepare(
                     "INSERT INTO app_users (username, display_name, email, password_hash, role, force_password_change, reset_token, token_expires_at)
                      VALUES (?, ?, ?, '', ?, 1, ?, ?)"
                 )->execute([$auUsername, $auDisplayName ?: null, $auEmail ?: null, $auRole, $token, $expires]);
-                $newId = (int)$pdo->lastInsertId();
+                $newId = (int)db()->lastInsertId();
                 $_SESSION['invite_token_flash'] = ['uid' => $newId, 'token' => $token];
-                auditLog($pdo, 'createAppUser', "id=$newId username=$auUsername role=$auRole mode=invitation");
+                auditLog(db(), 'createAppUser', "id=$newId username=$auUsername role=$auRole mode=invitation");
             } else {
-                $pdo->prepare(
+                db()->prepare(
                     "INSERT INTO app_users (username, display_name, email, password_hash, role, force_password_change)
                      VALUES (?, ?, ?, ?, ?, 1)"
                 )->execute([$auUsername, $auDisplayName ?: null, $auEmail ?: null,
                             password_hash($auPasswordRaw, PASSWORD_DEFAULT), $auRole]);
-                $newId = (int)$pdo->lastInsertId();
-                auditLog($pdo, 'createAppUser', "id=$newId username=$auUsername role=$auRole mode=password");
+                $newId = (int)db()->lastInsertId();
+                auditLog(db(), 'createAppUser', "id=$newId username=$auUsername role=$auRole mode=password");
             }
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
@@ -124,17 +124,17 @@ if ($action === 'logout') {
     }
     // Prevent removing last admin
     if ($role !== 'admin') {
-        $adminCount = (int)$pdo->query("SELECT COUNT(*) FROM app_users WHERE role='admin' AND is_active=1")->fetchColumn();
-        $curRole    = $pdo->prepare("SELECT role FROM app_users WHERE id=?");
+        $adminCount = (int)db()->query("SELECT COUNT(*) FROM app_users WHERE role='admin' AND is_active=1")->fetchColumn();
+        $curRole    = db()->prepare("SELECT role FROM app_users WHERE id=?");
         $curRole->execute([$targetId]);
         if ($curRole->fetchColumn() === 'admin' && $adminCount <= 1) {
             header('Location: ' . appUrl() . '?view=manageAppUsers&au_error=' . urlencode($GLOBAL['cannotDemoteLastAdmin']));
             exit;
         }
     }
-    $pdo->prepare("UPDATE app_users SET display_name=?, email=?, role=?, is_active=? WHERE id=?")
+    db()->prepare("UPDATE app_users SET display_name=?, email=?, role=?, is_active=? WHERE id=?")
         ->execute([$displayName ?: null, $email ?: null, $role, $isActive, $targetId]);
-    auditLog($pdo, 'updateAppUser', "id=$targetId role=$role active=$isActive");
+    auditLog(db(), 'updateAppUser', "id=$targetId role=$role active=$isActive");
     header('Location: ' . appUrl() . '?view=manageAppUsers');
     exit;
 
@@ -145,18 +145,18 @@ if ($action === 'logout') {
         header('Location: ' . appUrl() . '?view=manageAppUsers');
         exit;
     }
-    $adminCount = (int)$pdo->query("SELECT COUNT(*) FROM app_users WHERE role='admin' AND is_active=1")->fetchColumn();
-    $targetRole = $pdo->prepare("SELECT role FROM app_users WHERE id=?");
+    $adminCount = (int)db()->query("SELECT COUNT(*) FROM app_users WHERE role='admin' AND is_active=1")->fetchColumn();
+    $targetRole = db()->prepare("SELECT role FROM app_users WHERE id=?");
     $targetRole->execute([$targetId]);
     $role = $targetRole->fetchColumn();
     if ($role === 'admin' && $adminCount <= 1) {
         header('Location: ' . appUrl() . '?view=manageAppUsers&au_error=' . urlencode($GLOBAL['cannotDeleteLastAdmin']));
         exit;
     }
-    $deletedUsername = $pdo->prepare("SELECT username FROM app_users WHERE id=?");
+    $deletedUsername = db()->prepare("SELECT username FROM app_users WHERE id=?");
     $deletedUsername->execute([$targetId]);
-    auditLog($pdo, 'deleteAppUser', "id=$targetId username=" . ($deletedUsername->fetchColumn() ?: ''));
-    $pdo->prepare("DELETE FROM app_users WHERE id=?")->execute([$targetId]);
+    auditLog(db(), 'deleteAppUser', "id=$targetId username=" . ($deletedUsername->fetchColumn() ?: ''));
+    db()->prepare("DELETE FROM app_users WHERE id=?")->execute([$targetId]);
     header('Location: ' . appUrl() . '?view=manageAppUsers');
     exit;
 
@@ -164,12 +164,12 @@ if ($action === 'logout') {
     if (!isAdmin()) { http_response_code(403); exit; }
     $targetId  = (int)($_POST['target_id'] ?? 0);
     $tempPw    = bin2hex(random_bytes(6));
-    $pdo->prepare("UPDATE app_users SET password_hash=?, force_password_change=1 WHERE id=?")
+    db()->prepare("UPDATE app_users SET password_hash=?, force_password_change=1 WHERE id=?")
         ->execute([password_hash($tempPw, PASSWORD_DEFAULT), $targetId]);
     $_SESSION['reset_pw_flash'] = ['uid' => $targetId, 'pw' => $tempPw];
-    $resetUsername = $pdo->prepare("SELECT username FROM app_users WHERE id=?");
+    $resetUsername = db()->prepare("SELECT username FROM app_users WHERE id=?");
     $resetUsername->execute([$targetId]);
-    auditLog($pdo, 'resetUserPassword', "id=$targetId username=" . ($resetUsername->fetchColumn() ?: ''));
+    auditLog(db(), 'resetUserPassword', "id=$targetId username=" . ($resetUsername->fetchColumn() ?: ''));
     header('Location: ' . appUrl() . '?view=manageAppUsers');
     exit;
 
@@ -177,11 +177,11 @@ if ($action === 'logout') {
     if (!isAdmin()) { http_response_code(403); exit; }
     $days = isset($_POST['keep_days']) ? (int)$_POST['keep_days'] : 0;
     if ($days > 0) {
-        $pdo->prepare("DELETE FROM audit_log WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)")->execute([$days]);
-        auditLog($pdo, 'flushAuditLog', "kept_last={$days}_days");
+        db()->prepare("DELETE FROM audit_log WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)")->execute([$days]);
+        auditLog(db(), 'flushAuditLog', "kept_last={$days}_days");
     } else {
-        auditLog($pdo, 'flushAuditLog', 'all');
-        $pdo->exec("DELETE FROM audit_log");
+        auditLog(db(), 'flushAuditLog', 'all');
+        db()->exec("DELETE FROM audit_log");
     }
     header('Location: ' . appUrl() . '?view=auditLog&flushed=1');
     exit;

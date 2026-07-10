@@ -21,7 +21,7 @@ $_year = (int)date('Y');
 $_tsThisYear = mktime(0,0,0,1,1,$_year);
 $_tsNextYear = mktime(0,0,0,1,1,$_year+1);
 $_tsLastYear = mktime(0,0,0,1,1,$_year-1);
-$_stStats = $pdo->prepare("
+$_stStats = db()->prepare("
     SELECT
         COUNT(*) AS compta_count,
         -- dons (is_excluded_from_donation = 0)
@@ -65,7 +65,7 @@ $_stStats->execute([
 ]);
 $_stats = $_stStats->fetchObject();
 // Per-type breakdown of "autres versements" — this year / last year / total
-$_stOtherTypes = $pdo->prepare("
+$_stOtherTypes = db()->prepare("
     SELECT ct.label,
         COUNT(*) AS cnt,
         COALESCE(SUM(c.`sum`),0) AS amount,
@@ -87,7 +87,7 @@ $_stOtherTypes->execute([
     $user->getId()
 ]);
 $_otherTypes = $_stOtherTypes->fetchAll(PDO::FETCH_OBJ);
-$_suiviStmt = $pdo->prepare("SELECT COUNT(*) FROM contact_properties WHERE user_id=? AND parameter='suivi'");
+$_suiviStmt = db()->prepare("SELECT COUNT(*) FROM contact_properties WHERE user_id=? AND parameter='suivi'");
 $_suiviStmt->execute([$user->getId()]);
 $_suiviCount = (int)$_suiviStmt->fetchColumn();
 ?>

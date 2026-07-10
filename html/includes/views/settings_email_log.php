@@ -13,7 +13,7 @@ if (!isAdmin()) { ?>
 // Fetch latest 200 entries (most recent first)
 $_logRows = [];
 try {
-    $_logRows = $pdo->query(
+    $_logRows = db()->query(
         "SELECT id, created_at, to_email, subject, status, error_msg FROM email_log ORDER BY created_at DESC LIMIT 200"
     )->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {

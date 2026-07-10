@@ -79,7 +79,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     $auDetail = "id={$_REQUEST['id']} | {$user->firstName} {$user->lastName}";
     if ($_auDiffs) { $auDetail .= ' | ' . implode(' ; ', $_auDiffs); }
     else           { $auDetail .= ' | (aucune modification)'; }
-    auditLog($pdo, 'updateUser', $auDetail, (int)$_REQUEST['id']);
+    auditLog(db(), 'updateUser', $auDetail, (int)$_REQUEST['id']);
     $_savedOk = true;
 
 } elseif ($_REQUEST['action'] == 'mergeUsers') {
@@ -118,30 +118,30 @@ if ($_REQUEST['action'] == 'updateUser') {
         $survivor->$k = $from->$k;
     }
     // All writes must succeed or none — otherwise moved compta/properties are orphaned
-    $pdo->beginTransaction();
+    db()->beginTransaction();
     try {
         $survivor->save();
 
         // Move compta
-        $pdo->prepare("UPDATE compta SET user_id=? WHERE user_id=?")->execute([$survivorId, $sourceId]);
+        db()->prepare("UPDATE compta SET user_id=? WHERE user_id=?")->execute([$survivorId, $sourceId]);
 
         // Move non-segment user_properties
-        $pdo->prepare("UPDATE contact_properties SET user_id=? WHERE user_id=? AND parameter NOT LIKE 'team_%'")->execute([$survivorId, $sourceId]);
+        db()->prepare("UPDATE contact_properties SET user_id=? WHERE user_id=? AND parameter NOT LIKE 'team_%'")->execute([$survivorId, $sourceId]);
 
         // Move segment memberships (dedup)
-        $pdo->prepare("INSERT IGNORE INTO contact_segment (user_id, segment_id) SELECT ?, segment_id FROM contact_segment WHERE user_id=?")->execute([$survivorId, $sourceId]);
-        $pdo->prepare("DELETE FROM contact_segment WHERE user_id=?")->execute([$sourceId]);
+        db()->prepare("INSERT IGNORE INTO contact_segment (user_id, segment_id) SELECT ?, segment_id FROM contact_segment WHERE user_id=?")->execute([$survivorId, $sourceId]);
+        db()->prepare("DELETE FROM contact_segment WHERE user_id=?")->execute([$sourceId]);
 
         // Dispose source
         if ($disposal === 'delete') {
-            $pdo->prepare("DELETE FROM contact WHERE id=?")->execute([$sourceId]);
+            db()->prepare("DELETE FROM contact WHERE id=?")->execute([$sourceId]);
         } else {
-            $pdo->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$sourceId]);
+            db()->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$sourceId]);
         }
 
-        $pdo->commit();
+        db()->commit();
     } catch (\Throwable $e) {
-        $pdo->rollBack();
+        db()->rollBack();
         throw $e;
     }
 
@@ -153,7 +153,7 @@ if ($_REQUEST['action'] == 'updateUser') {
 
     $auDetail = "source=#{$sourceId} {$sourceName} → survivant=#{$survivorId} {$survivorName} | disposition: {$disposal}";
     if ($changedFields) { $auDetail .= ' | champs: ' . implode(', ', $changedFields); }
-    auditLog($pdo, 'mergeUsers', $auDetail, $survivorId);
+    auditLog(db(), 'mergeUsers', $auDetail, $survivorId);
 
     if ($isHtmx) {
         header('HX-Location: ' . appUrl() . '?view=settings&tab=integrity');
@@ -166,17 +166,17 @@ if ($_REQUEST['action'] == 'updateUser') {
     if (!isAdmin()) { http_response_code(403); exit; }
     $uid = (int)($_REQUEST['id'] ?? 0);
     if ($uid <= 0) { return; }
-    $chk = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
+    $chk = db()->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
     $chk->execute([$uid]);
     if ((int)$chk->fetchColumn() === 0) { return; } // safety: only anonymize if has compta
     // Stored data marker, intentionally NOT localized: the DB value must stay
     // stable regardless of the UI language of whoever anonymizes.
-    $pdo->prepare("UPDATE contact SET
+    db()->prepare("UPDATE contact SET
         firstName='Anonymisé', lastName='', society='', sexe='na', title='',
         address='', npa='', tel='', telprof='', portable='', fax='',
         email='', web='', birthday=0, comment='', status=0
         WHERE id=?")->execute([$uid]);
-    auditLog($pdo, 'anonymizeUser', 'id=' . $uid, $uid);
+    auditLog(db(), 'anonymizeUser', 'id=' . $uid, $uid);
     if ($isHtmx) { header('HX-Location: ' . appUrl() . '?view=updateUser&id=' . $uid); exit; }
     header('Location: ' . appUrl() . '?view=updateUser&id=' . $uid); exit;
 
@@ -184,10 +184,10 @@ if ($_REQUEST['action'] == 'updateUser') {
     if (!isManager()) { http_response_code(403); exit; }
     $uid = (int)($_REQUEST['id'] ?? 0);
     if ($uid > 0) {
-        $pdo->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$uid]);
-        $auUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM contact WHERE id=?");
+        db()->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$uid]);
+        $auUser = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM contact WHERE id=?");
         $auUser->execute([$uid]);
-        auditLog($pdo, 'deactivateUser', 'id=' . $uid . ' | ' . ($auUser->fetchColumn() ?: "id=$uid"), $uid);
+        auditLog(db(), 'deactivateUser', 'id=' . $uid . ' | ' . ($auUser->fetchColumn() ?: "id=$uid"), $uid);
     }
     if ($isHtmx) {
         header('HX-Location: ' . appUrl() . '?view=updateUser&id=' . $uid);
@@ -229,7 +229,7 @@ if ($_REQUEST['action'] == 'updateUser') {
             $_delParts[] = "{$_k}: {$_v}";
         }
         // contact_properties non vides (appartenances aux segments, suivi, etc.)
-        $_delProps = $pdo->prepare("SELECT parameter, value FROM contact_properties WHERE user_id=? AND TRIM(value) != '' ORDER BY parameter");
+        $_delProps = db()->prepare("SELECT parameter, value FROM contact_properties WHERE user_id=? AND TRIM(value) != '' ORDER BY parameter");
         $_delProps->execute([$uid]);
         while ($_p = $_delProps->fetchObject()) {
             $_pv = trim((string)$_p->value);
@@ -238,11 +238,11 @@ if ($_REQUEST['action'] == 'updateUser') {
         }
         $_delDetail = 'id=' . $uid . ' | ' . trim($user->firstName . ' ' . $user->lastName);
         if ($_delParts) { $_delDetail .= ' | ' . implode(' ; ', $_delParts); }
-        auditLog($pdo, 'deleteUser', $_delDetail);
+        auditLog(db(), 'deleteUser', $_delDetail);
         $user->remove();
     } else {
-        $pdo->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$uid]);
-        auditLog($pdo, 'deactivateUser', 'id=' . $uid . ' | ' . trim($user->firstName . ' ' . $user->lastName), $uid);
+        db()->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$uid]);
+        auditLog(db(), 'deactivateUser', 'id=' . $uid . ' | ' . trim($user->firstName . ' ' . $user->lastName), $uid);
     }
     if ($isHtmx) { header('HX-Location: ' . appUrl()); exit; }
     header('Location: ' . appUrl()); exit;
@@ -251,10 +251,10 @@ if ($_REQUEST['action'] == 'updateUser') {
     if (!isManager()) { http_response_code(403); exit; }
     $uid = (int)($_REQUEST['id'] ?? 0);
     if ($uid > 0) {
-        $pdo->prepare("UPDATE contact SET status=1 WHERE id=?")->execute([$uid]);
-        $auUser = $pdo->prepare("SELECT CONCAT(firstName,' ',lastName) FROM contact WHERE id=?");
+        db()->prepare("UPDATE contact SET status=1 WHERE id=?")->execute([$uid]);
+        $auUser = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM contact WHERE id=?");
         $auUser->execute([$uid]);
-        auditLog($pdo, 'reactivateUser', 'id=' . $uid . ' | ' . ($auUser->fetchColumn() ?: "id=$uid"), $uid);
+        auditLog(db(), 'reactivateUser', 'id=' . $uid . ' | ' . ($auUser->fetchColumn() ?: "id=$uid"), $uid);
     }
     $redirectTarget = ($_REQUEST['redirect'] ?? '') === 'inactiveUsers'
         ? '?view=inactiveUsers'
@@ -281,13 +281,13 @@ if ($_REQUEST['action'] == 'updateUser') {
     $user->birthDay = unquote((string)formatedDateToTimeStamp($_REQUEST['birthDay'] ?? ''));
     $user->comment = unquote($_REQUEST['comment'] ?? '');
     $userid = $user->save();
-    auditLog($pdo, 'addUser', "id=$userid | {$user->firstName} {$user->lastName} | email: {$user->email}", (int)$userid);
+    auditLog(db(), 'addUser', "id=$userid | {$user->firstName} {$user->lastName} | email: {$user->email}", (int)$userid);
     $fromTeam = (int)($_REQUEST['fromTeam'] ?? 0);
     if ($fromTeam > 0 && !empty($_REQUEST['addToFromTeam'])) {
-        $chk = $pdo->prepare("SELECT COUNT(*) FROM segment WHERE id=?");
+        $chk = db()->prepare("SELECT COUNT(*) FROM segment WHERE id=?");
         $chk->execute([$fromTeam]);
         if ($chk->fetchColumn() > 0) {
-            $ins = $pdo->prepare("INSERT IGNORE INTO contact_properties (user_id, parameter, value) VALUES (?, ?, 'true')");
+            $ins = db()->prepare("INSERT IGNORE INTO contact_properties (user_id, parameter, value) VALUES (?, ?, 'true')");
             $ins->execute([$userid, 'team_' . $fromTeam]);
         }
     }

@@ -35,7 +35,7 @@ if ($action == 'addCompta') {
     $compta->save();
     $_auType = $comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}";
     $_auCotiYear = $compta->cotisation_year ? " | annee coti: {$compta->cotisation_year}" : '';
-    auditLog($pdo, 'addCompta', "membre: " . Contact::getMemberName((int)$compta->userId) . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}{$_auCotiYear}", (int)$compta->userId);
+    auditLog(db(), 'addCompta', "membre: " . Contact::getMemberName((int)$compta->userId) . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}{$_auCotiYear}", (int)$compta->userId);
 
     // Optional receipt email — only when the checkbox is checked
     if (!empty($_REQUEST['send_receipt'])) {
@@ -47,7 +47,7 @@ if ($action == 'addCompta') {
             $_rcpLibele = trim((string)$compta->libele);
             $_rcpLibeleLine = $_rcpLibele !== '' ? "  Note    : {$_rcpLibele}\n" : '';
             $_rcpSoc = trim($_rcpUser->getSociety());
-            mbSendTemplate($pdo, $_rcpEmail, 'tpl_payment_receipt', array_merge(
+            mbSendTemplate(db(), $_rcpEmail, 'tpl_payment_receipt', array_merge(
                 mbBuildSalutation($_rcpUser->getFirstName(), $_rcpUser->getLastName(), $_rcpSoc),
             [
                 'firstname'    => $_rcpUser->getFirstName(),
@@ -118,16 +118,16 @@ if ($action == 'addCompta') {
     $auDetail2 = "compta#={$_REQUEST['comptaid']} | membre: " . Contact::getMemberName((int)$compta->userId);
     if ($_auDiffs2) { $auDetail2 .= ' | ' . implode(' ; ', $_auDiffs2); }
     else            { $auDetail2 .= ' | (aucune modification)'; }
-    auditLog($pdo, 'updateCompta', $auDetail2, (int)$compta->userId);
+    auditLog(db(), 'updateCompta', $auDetail2, (int)$compta->userId);
 
 } elseif ($action == 'deleteComptaEntry') {
     $comptaid = (int)$_REQUEST['comptaid'];
-    $_auDel = $pdo->prepare("SELECT user_id, sum FROM compta WHERE id=?");
+    $_auDel = db()->prepare("SELECT user_id, sum FROM compta WHERE id=?");
     $_auDel->execute([$comptaid]);
     $_auDelRow = $_auDel->fetch(PDO::FETCH_OBJ);
-    $pdo->prepare("DELETE FROM compta WHERE id=?")->execute([$comptaid]);
+    db()->prepare("DELETE FROM compta WHERE id=?")->execute([$comptaid]);
     $_auDelName = $_auDelRow ? Contact::getMemberName((int)$_auDelRow->user_id) : '';
-    auditLog($pdo, 'deleteComptaEntry', "compta#=$comptaid | " . $_auDelName . " | sum=" . ($_auDelRow->sum ?? ''));
+    auditLog(db(), 'deleteComptaEntry', "compta#=$comptaid | " . $_auDelName . " | sum=" . ($_auDelRow->sum ?? ''));
     // With a userid the delete came from the member's compta tab; otherwise
     // from the integrity screen — go back to where the user was.
     $_delUserId = (int)($_REQUEST['userid'] ?? 0);
@@ -141,8 +141,8 @@ if ($action == 'addCompta') {
 } elseif ($action == 'toggleWantsAttestation') {
     $comptaid = (int)$_REQUEST['comptaid'];
     $value    = isset($_REQUEST['wants_attestation']) ? 1 : 0;
-    $pdo->prepare("UPDATE compta SET wants_attestation=? WHERE id=?")->execute([$value, $comptaid]);
-    auditLog($pdo, 'toggleWantsAttestation', "compta#=$comptaid | " . Contact::getMemberName((int)$_REQUEST['userid']) . " | attestation: " . ($value ? 'oui' : 'non'), (int)$_REQUEST['userid']);
+    db()->prepare("UPDATE compta SET wants_attestation=? WHERE id=?")->execute([$value, $comptaid]);
+    auditLog(db(), 'toggleWantsAttestation', "compta#=$comptaid | " . Contact::getMemberName((int)$_REQUEST['userid']) . " | attestation: " . ($value ? 'oui' : 'non'), (int)$_REQUEST['userid']);
     $year   = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
     $userid = (int)$_REQUEST['userid'];
     header('Location: ' . appUrl() . '?view=compta&userid=' . $userid . '&year=' . $year);

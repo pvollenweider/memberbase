@@ -27,10 +27,10 @@ if ($action === 'sendComptaRecap') {
         exit;
     };
 
-    $byMember = mbRecapLoadEntries($pdo, null, $recapYear);
+    $byMember = mbRecapLoadEntries(db(), null, $recapYear);
     if (empty($byMember)) { $redirect('recapOk=0'); }
 
-    $sinceLine = mbRecapSinceLine($pdo, $recapYear, false);
+    $sinceLine = mbRecapSinceLine(db(), $recapYear, false);
 
     $sentCount = 0; $skipCount = 0; $notifiedIds = [];
 
@@ -39,30 +39,30 @@ if ($action === 'sendComptaRecap') {
         if (trim($first['email']) === '') {
             $skipCount++;
             foreach ($entries as $e) { $notifiedIds[] = (int)$e['id']; }
-            auditLog($pdo, 'sendComptaRecap', "skip id=$userId (no email) — " . count($entries) . ' entries marked');
+            auditLog(db(), 'sendComptaRecap', "skip id=$userId (no email) — " . count($entries) . ' entries marked');
             continue;
         }
         [$vars, $ids, $total] = mbRecapBuildVars($entries, $appSettings);
         $vars['since_line']   = $sinceLine;
-        $ok = mbSendTemplate($pdo, $first['email'], 'tpl_compta_recap', $vars, (int)$userId) === true;
+        $ok = mbSendTemplate(db(), $first['email'], 'tpl_compta_recap', $vars, (int)$userId) === true;
         if ($ok) {
             $sentCount++;
             $notifiedIds = array_merge($notifiedIds, $ids);
-            auditLog($pdo, 'sendComptaRecap',
+            auditLog(db(), 'sendComptaRecap',
                 "sent to {$first['firstname']} {$first['lastname']} <{$first['email']}> — "
                 . count($entries) . ' entr(ies), CHF ' . $total);
         } else {
-            auditLog($pdo, 'sendComptaRecap',
+            auditLog(db(), 'sendComptaRecap',
                 "FAILED for {$first['firstname']} {$first['lastname']} <{$first['email']}>");
         }
     }
 
     if (!empty($notifiedIds)) {
         $ph = implode(',', array_fill(0, count($notifiedIds), '?'));
-        $pdo->prepare("UPDATE compta SET notified_at = NOW() WHERE id IN ($ph)")->execute($notifiedIds);
+        db()->prepare("UPDATE compta SET notified_at = NOW() WHERE id IN ($ph)")->execute($notifiedIds);
     }
-    $pdo->exec("UPDATE compta SET notified_at = NOW() WHERE notified_at IS NULL AND sum = 0");
-    auditLog($pdo, 'sendComptaRecap', "sent=$sentCount skipped=$skipCount entries_marked=" . count($notifiedIds));
+    db()->exec("UPDATE compta SET notified_at = NOW() WHERE notified_at IS NULL AND sum = 0");
+    auditLog(db(), 'sendComptaRecap', "sent=$sentCount skipped=$skipCount entries_marked=" . count($notifiedIds));
     $redirect('recapOk=' . $sentCount . '&recapSkip=' . $skipCount);
 
 } elseif ($action === 'previewComptaRecap') {
@@ -73,16 +73,16 @@ if ($action === 'sendComptaRecap') {
     $userId    = (int)($_REQUEST['user_id'] ?? 0);
     $recapYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
     $force     = !empty($_REQUEST['force']);
-    $byMember  = mbRecapLoadEntries($pdo, $userId, $recapYear, $force);
+    $byMember  = mbRecapLoadEntries(db(), $userId, $recapYear, $force);
     if (empty($byMember)) { echo json_encode(['ok' => false, 'error' => 'no_entries']); exit; }
     $entries = reset($byMember);
 
-    $sinceLine = mbRecapSinceLine($pdo, $recapYear, $force);
+    $sinceLine = mbRecapSinceLine(db(), $recapYear, $force);
 
     [$vars, , ] = mbRecapBuildVars($entries, $appSettings);
     $vars['since_line'] = $sinceLine;
 
-    $tpl      = mbGetTemplate($pdo, 'tpl_compta_recap');
+    $tpl      = mbGetTemplate(db(), 'tpl_compta_recap');
     $subject  = mbRenderTemplate($tpl->subject,   $vars);
     $bodyText = mbRenderTemplate($tpl->body_text, $vars);
     $bodyHtml = isset($tpl->body_html) ? mbRenderTemplate($tpl->body_html, $vars) : '';
@@ -97,7 +97,7 @@ if ($action === 'sendComptaRecap') {
     $userId    = (int)($_REQUEST['user_id'] ?? 0);
     $recapYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
     $force     = !empty($_REQUEST['force']);
-    $byMember  = mbRecapLoadEntries($pdo, $userId, $recapYear, $force);
+    $byMember  = mbRecapLoadEntries(db(), $userId, $recapYear, $force);
     if (empty($byMember)) { echo json_encode(['ok' => false, 'error' => 'no_entries']); exit; }
     $entries = reset($byMember);
     $first   = $entries[0];
@@ -107,17 +107,17 @@ if ($action === 'sendComptaRecap') {
         exit;
     }
 
-    $sinceLine = mbRecapSinceLine($pdo, $recapYear, $force);
+    $sinceLine = mbRecapSinceLine(db(), $recapYear, $force);
 
     [$vars, $ids, $total] = mbRecapBuildVars($entries, $appSettings);
     $vars['since_line'] = $sinceLine;
-    $result = mbSendTemplate($pdo, $first['email'], 'tpl_compta_recap', $vars, $userId);
+    $result = mbSendTemplate(db(), $first['email'], 'tpl_compta_recap', $vars, $userId);
     $ok     = $result === true;
 
     if ($ok) {
         $ph = implode(',', array_fill(0, count($ids), '?'));
-        $pdo->prepare("UPDATE compta SET notified_at = NOW() WHERE id IN ($ph)")->execute($ids);
-        auditLog($pdo, 'sendComptaRecapOne',
+        db()->prepare("UPDATE compta SET notified_at = NOW() WHERE id IN ($ph)")->execute($ids);
+        auditLog(db(), 'sendComptaRecapOne',
             "sent to {$first['firstname']} {$first['lastname']} <{$first['email']}> (year=$recapYear force=" . ($force ? '1' : '0') . ") — "
             . count($entries) . ' entr(ies), CHF ' . $total);
         echo json_encode(['ok' => true]);
@@ -142,8 +142,8 @@ if ($action === 'sendComptaRecap') {
         $redirect('bulkComptaErr=noConfirm');
     }
 
-    $pdo->exec("UPDATE compta SET notified_at = NOW() WHERE notified_at IS NULL");
-    $n = (int)$pdo->query("SELECT COUNT(*) FROM compta WHERE notified_at IS NOT NULL")->fetchColumn();
-    auditLog($pdo, 'markAllComptaNotified', "marked $n entries");
+    db()->exec("UPDATE compta SET notified_at = NOW() WHERE notified_at IS NULL");
+    $n = (int)db()->query("SELECT COUNT(*) FROM compta WHERE notified_at IS NOT NULL")->fetchColumn();
+    auditLog(db(), 'markAllComptaNotified', "marked $n entries");
     $redirect('bulkComptaOk=' . $n);
 }

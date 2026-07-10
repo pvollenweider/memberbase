@@ -25,13 +25,13 @@ if (!$_muUserA->getId() || !$_muUserB->getId()) { ?>
 <?php return; }
 
 // Stats
-$_muSt = $pdo->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
+$_muSt = db()->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
 $_muSt->execute([$_muIdA]); $cComptaA = (int)$_muSt->fetchColumn();
 $_muSt->execute([$_muIdB]); $cComptaB = (int)$_muSt->fetchColumn();
-$_muSt = $pdo->prepare("SELECT COUNT(*) FROM contact_properties WHERE user_id=? AND parameter='suivi'");
+$_muSt = db()->prepare("SELECT COUNT(*) FROM contact_properties WHERE user_id=? AND parameter='suivi'");
 $_muSt->execute([$_muIdA]); $cSuiviA = (int)$_muSt->fetchColumn();
 $_muSt->execute([$_muIdB]); $cSuiviB = (int)$_muSt->fetchColumn();
-$_muSt = $pdo->prepare("SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ', ') FROM contact_segment us JOIN segment t ON t.id = us.segment_id WHERE us.user_id=?");
+$_muSt = db()->prepare("SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ', ') FROM contact_segment us JOIN segment t ON t.id = us.segment_id WHERE us.user_id=?");
 $_muSt->execute([$_muIdA]); $groupsA = $_muSt->fetchColumn() ?: '—';
 $_muSt->execute([$_muIdB]); $groupsB = $_muSt->fetchColumn() ?: '—';
 

@@ -31,7 +31,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 </tr>
 <?php endif ?>
 <?php
-$stmt = $pdo->prepare(
+$stmt = db()->prepare(
     "SELECT id,user_id,parameter,date,value FROM contact_properties
      WHERE user_id = ? AND parameter = 'suivi' ORDER BY date DESC"
 );
