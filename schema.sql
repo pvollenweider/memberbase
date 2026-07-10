@@ -50,7 +50,9 @@ CREATE TABLE IF NOT EXISTS `contact_segment` (
   `user_id`    INT NOT NULL,
   `segment_id` INT NOT NULL,
   PRIMARY KEY (`user_id`, `segment_id`),
-  KEY `idx_contact_segment_segment_id` (`segment_id`)
+  KEY `idx_contact_segment_segment_id` (`segment_id`),
+  CONSTRAINT `fk_contact_segment_user` FOREIGN KEY (`user_id`) REFERENCES `contact` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_contact_segment_segment` FOREIGN KEY (`segment_id`) REFERENCES `segment` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Contact extra properties (EAV data)
@@ -62,7 +64,8 @@ CREATE TABLE IF NOT EXISTS `contact_properties` (
   `value`     varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `parameter`    (`parameter`),
-  KEY `idx_contact_param` (`user_id`, `parameter`)
+  KEY `idx_contact_param` (`user_id`, `parameter`),
+  CONSTRAINT `fk_contact_properties_user` FOREIGN KEY (`user_id`) REFERENCES `contact` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Smart filters (metagroups) — header row only, one per filter/category
@@ -80,7 +83,9 @@ CREATE TABLE IF NOT EXISTS `metagroup_member` (
   `metagroup_id` int(11) NOT NULL,
   `segment_id`   int(11) NOT NULL,
   PRIMARY KEY (`metagroup_id`, `segment_id`),
-  KEY `idx_metagroup_member_segment_id` (`segment_id`)
+  KEY `idx_metagroup_member_segment_id` (`segment_id`),
+  CONSTRAINT `fk_metagroup_member_metagroup` FOREIGN KEY (`metagroup_id`) REFERENCES `metagroup` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_metagroup_member_segment` FOREIGN KEY (`segment_id`) REFERENCES `segment` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Accounting types
@@ -114,7 +119,9 @@ CREATE TABLE IF NOT EXISTS `compta` (
   KEY `idx_type_id`        (`type_id`),
   KEY `idx_date`           (`date`),
   KEY `idx_notified_at`    (`notified_at`),
-  KEY `idx_cotisation_year` (`cotisation_year`)
+  KEY `idx_cotisation_year` (`cotisation_year`),
+  CONSTRAINT `fk_compta_user` FOREIGN KEY (`user_id`) REFERENCES `contact` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_compta_type` FOREIGN KEY (`type_id`) REFERENCES `compta_type` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Auto-increment helper
@@ -158,10 +165,11 @@ CREATE TABLE IF NOT EXISTS `audit_log` (
   `username`        varchar(100) DEFAULT NULL,
   `action`          varchar(100) NOT NULL,
   `detail`          text         DEFAULT NULL,
-  `subject_user_id` int(10) unsigned DEFAULT NULL,
+  `subject_user_id` int(11)      DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_created_at`   (`created_at`),
-  KEY `idx_subject_user` (`subject_user_id`)
+  KEY `idx_subject_user` (`subject_user_id`),
+  CONSTRAINT `fk_audit_log_subject` FOREIGN KEY (`subject_user_id`) REFERENCES `contact` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 -- Configurable email templates
@@ -190,7 +198,8 @@ CREATE TABLE IF NOT EXISTS `email_log` (
   KEY `idx_user_id`   (`user_id`),
   KEY `idx_tpl_key`   (`tpl_key`),
   KEY `idx_created_at` (`created_at`),
-  KEY `idx_status`     (`status`)
+  KEY `idx_status`     (`status`),
+  CONSTRAINT `fk_email_log_user` FOREIGN KEY (`user_id`) REFERENCES `contact` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- API rate limiting (fixed-window counter per user+IP)
