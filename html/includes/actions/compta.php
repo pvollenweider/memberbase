@@ -23,6 +23,11 @@ if ($action == 'addCompta') {
     $compta->sum = $_rawSum;
     $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);
     $compta->setCotisationYear($_REQUEST['cotisation_year'] ?? null);
+    // Auto-fill libele for cotisation entries when user left it blank.
+    if (trim((string)$compta->libele) === '' && !empty($comptaTypes[(int)$_REQUEST['type_id']]->is_cotisation)) {
+        $_cotiYear = $compta->cotisation_year ?: (int)date('Y', (int)$compta->date ?: time());
+        $compta->libele = ($comptaTypes[(int)$_REQUEST['type_id']]->label ?? '') . ' ' . $_cotiYear;
+    }
     $compta->save();
     $_auType = $comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}";
     $_auCotiYear = $compta->cotisation_year ? " | annee coti: {$compta->cotisation_year}" : '';
@@ -81,6 +86,11 @@ if ($action == 'addCompta') {
     $compta->setTypeId((int)$_REQUEST['type_id']);
     $compta->setWantsAttestation(isset($_REQUEST['wants_attestation']));
     $compta->setCotisationYear($_REQUEST['cotisation_year'] ?? null);
+    // Auto-fill libele for cotisation entries when user left it blank.
+    if (trim((string)$compta->libele) === '' && !empty($comptaTypes[(int)$_REQUEST['type_id']]->is_cotisation)) {
+        $_cotiYear2 = $compta->cotisation_year ?: (int)date('Y', $compta->date ?: time());
+        $compta->libele = ($comptaTypes[(int)$_REQUEST['type_id']]->label ?? '') . ' ' . $_cotiYear2;
+    }
     $_auAfter2 = [
         'type'           => ($comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}"),
         'date'           => $mydate,

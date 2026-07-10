@@ -109,8 +109,14 @@ function mbRecapBuildVars(array $entries, array $appSettings): array
 
         $d         = $e['date'] ? date('d.m.Y', (int)$e['date']) : '--';
         $typeLabel = $e['type_label'] !== '' ? $e['type_label'] : '--';
-        $desc      = $e['libele'] !== '' ? $e['libele'] : $typeLabel;
-        // Append cotisation year to description when it differs from payment year.
+        $libele    = trim((string)$e['libele']);
+        // Build description: always show type label; append free-text libele when it adds info.
+        if ($libele === '' || $libele === $typeLabel) {
+            $desc = $typeLabel;
+        } else {
+            $desc = $typeLabel . ' — ' . $libele;
+        }
+        // Append cotisation year when it differs from the payment year.
         if (!empty($e['ct_coti']) && !empty($e['cotisation_year'])) {
             $payYear = $e['date'] ? (int)date('Y', (int)$e['date']) : 0;
             if ((int)$e['cotisation_year'] !== $payYear) {
