@@ -111,13 +111,17 @@ class Segment
         return $result;
     }
 
-    public function remove(): void
+    /**
+     * Deletes the segment unless it still has members (use deleteSegmentForce
+     * for that). Returns whether the row was deleted — no output here, the
+     * caller decides how to surface a refusal.
+     */
+    public function remove(): bool
     {
-        if (!$this->isUsed()) {
-            db()->prepare("DELETE FROM segment WHERE id=?")->execute([$this->id]);
-        } else {
-            print "Could not remove $this->name because some users are members.<br/>";
-            print "Click <a href='" . $_SERVER['PHP_SELF'] . "?action=search&amp;segment=" . $this->id . "'>here</a> to see the user list";
+        if ($this->isUsed()) {
+            return false;
         }
+        db()->prepare("DELETE FROM segment WHERE id=?")->execute([$this->id]);
+        return true;
     }
 }

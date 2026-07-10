@@ -78,7 +78,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                         if ($_noCotiTeamId3 > 0) {
                             try { $_noCotiTeamNameStr = Segment::nameById($_noCotiTeamId3); } catch (PDOException $e) { $_noCotiTeamNameStr = null; }
                             if ($_noCotiTeamNameStr) {
-                                $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) . '?team=' . $_noCotiTeamId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiTeamNameStr, ENT_QUOTES, $charset) . '</a>');
+                                $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars(appUrl(), ENT_QUOTES, $charset) . '?team=' . $_noCotiTeamId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiTeamNameStr, ENT_QUOTES, $charset) . '</a>');
                             }
                         }
                         $currentFilterDesc = sprintf($GLOBAL['filterDescCotiUnpaid3y'], $year-2, $year) . $_noCotiExclusion;
@@ -120,7 +120,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                     <h6 class="dropdown-header" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em"><?= $GLOBAL['combinedSegments'] ?></h6>
                     <?php foreach ($metagroups as $mg): ?>
                     <a class="dropdown-item team-filterable <?= ($metagroup === (int)$mg->id) ? 'active' : '' ?>"
-                       href="<?= $_SERVER['PHP_SELF'] ?>?metagroup=<?= (int)$mg->id ?>"
+                       href="<?= appUrl() ?>?metagroup=<?= (int)$mg->id ?>"
                        data-label="<?= htmlentities(mb_strtolower($mg->name), ENT_COMPAT, $charset) ?>">
                         <i class="fas fa-layer-group me-1 text-muted" aria-hidden="true" style="font-size:0.75rem"></i><?= htmlentities($mg->name, ENT_COMPAT, $charset) ?>
                     </a>
@@ -132,15 +132,15 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                       <i class="fas fa-bolt me-1" aria-hidden="true"></i><?= $GLOBAL['quickFilters'] ?>
                     </h6>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_ALL_EXCEPT_ARCHIVES ?>"><?= $GLOBAL['allExceptArchives'] ?></a>
+                       href="<?= appUrl() . '?team=' . FILTER_ALL_EXCEPT_ARCHIVES ?>"><?= $GLOBAL['allExceptArchives'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_UNPAID_COTI_3Y ?>"><?= $GLOBAL['cotiUnpayedLast3Years'] ?></a>
+                       href="<?= appUrl() . '?team=' . FILTER_UNPAID_COTI_3Y ?>"><?= $GLOBAL['cotiUnpayedLast3Years'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_NO_ACTIVITY_10Y ?>"><?= $GLOBAL['nothingLast10Years'] ?></a>
+                       href="<?= appUrl() . '?team=' . FILTER_NO_ACTIVITY_10Y ?>"><?= $GLOBAL['nothingLast10Years'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_UNPAID_COTI_CURRENT ?>"><?= $GLOBAL['cotiUnpayed'] ?></a>
+                       href="<?= appUrl() . '?team=' . FILTER_UNPAID_COTI_CURRENT ?>"><?= $GLOBAL['cotiUnpayed'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= $_SERVER['PHP_SELF'] . '?team=' . FILTER_NON_INSTIT_LAST_YEAR ?>"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
+                       href="<?= appUrl() . '?team=' . FILTER_NON_INSTIT_LAST_YEAR ?>"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
 
                         <?php
                         $prevCatId = -1;
@@ -154,7 +154,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                             }
                             ?>
                             <a class="dropdown-item team-filterable d-flex align-items-center justify-content-between <?php if ($team == $row->id) { ?>active<?php } ?>"
-                               href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= (int)$row->id ?>"
+                               href="<?= appUrl() ?>?team=<?= (int)$row->id ?>"
                                data-label="<?= htmlentities(mb_strtolower($row->name), ENT_COMPAT, $charset) ?>"
                                data-cat="<?= $catId ?>"
                                style="padding-left:1.5rem">
@@ -170,7 +170,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
   </div>
 
   <?php if (isManager()): ?>
-  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=importStep1"
+  <a href="<?= appUrl() ?>?view=importStep1"
      class="ms-auto ca-filter-btn text-decoration-none"
      title="<?= $GLOBAL['importContacts'] ?>">
     <i class="fas fa-file-import" aria-hidden="true"></i>
@@ -178,7 +178,7 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
   </a>
   <?php endif ?>
   <?php if (canWrite()): ?>
-  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=addUser&searchString=<?= $searchString ?><?= $team > 0 ? '&fromTeam=' . $team : '' ?>"
+  <a href="<?= appUrl() ?>?view=addUser&searchString=<?= $searchString ?><?= $team > 0 ? '&fromTeam=' . $team : '' ?>"
      class="<?= isManager() ? '' : 'ms-auto ' ?>ca-filter-btn text-decoration-none"
      title="<?= $GLOBAL['addUser'] ?>">
     <i class="fas fa-user-plus" aria-hidden="true"></i>
@@ -266,7 +266,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
 ?>
 <?php if ($metagroup > 0):
-    $mgTeamNames = Metagroup::teamNames($metagroup);
+    $mgTeamNames = Metagroup::segmentNames($metagroup);
     if ($mgTeamNames): ?>
 <p class="text-muted mb-2" style="font-size:0.8rem">
     <i class="fas fa-layer-group me-1" aria-hidden="true"></i>
@@ -402,7 +402,7 @@ foreach ($_allRows as $row) {
         #}
         $emailStr = str_replace(",","<br/>",$emailStr);
         ?>
-        <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=generalData&id=<?=(int)$id?>" style="cursor:pointer">
+        <tr class="ca-row-link" data-href="<?=appUrl()?>?view=generalData&id=<?=(int)$id?>" style="cursor:pointer">
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=$sexe?></td>
             <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
             <td class="text-nowrap"><?=$lastName?></td>
@@ -413,7 +413,7 @@ foreach ($_allRows as $row) {
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate((int)$row->creationDate)?></td>
             <td class="d-none d-sm-table-cell" style="white-space:nowrap">
               <?php if (!empty($_userComptaTypes[$id])): ?>
-              <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&userid=<?= (int)$id ?>" class="text-decoration-none">
+              <a href="<?= appUrl() ?>?view=compta&userid=<?= (int)$id ?>" class="text-decoration-none">
               <?php foreach ($_userComptaTypes[$id] as $_ct):
                   $_bgClass  = $_ct->color ?: 'bg-secondary-subtle';
                   $_txtColor = (str_contains($_bgClass, '-subtle') || $_bgClass === 'bg-light') ? '#212529' : '#fff';
@@ -492,7 +492,7 @@ function caInitDT() {
 $(document).ready(caInitDT);
 
 (function () {
-  var BASE_PATH        = <?= json_encode($_SERVER['PHP_SELF']) ?>;
+  var BASE_PATH        = <?= json_encode(appUrl()) ?>;
   var SEARCH_AJAX_OK   = <?= $_ajaxSearchOk ? 'true' : 'false' ?>;
   var INITIAL_METAGROUP = <?= (int)$metagroup ?>;
   <?php $_jsYear = (int)date('Y'); // Year values are built server-side so JS reuses the same locale keys ?>

@@ -24,9 +24,8 @@ class Metagroup
         if ($row) {
             $this->id   = $row->id;
             $this->name = $row->name;
-        } else {
-            print "Could not find metagroup with id [$id]";
         }
+        // Not found: the object stays empty ($id === null) — callers check id.
     }
 
     public function getId()     { return $this->id; }
@@ -80,26 +79,4 @@ class Metagroup
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
-    /** @deprecated Use segmentNames() instead. */
-    public static function teamNames(int $id): array { return self::segmentNames($id); }
-    /** @deprecated Use segmentIds() instead. */
-    public static function teamIds(int $id): array { return self::segmentIds($id); }
-
-    public function isUsed(): bool
-    {
-        $stmt = db()->prepare("SELECT 1 FROM metagroup WHERE id=? LIMIT 1");
-        $stmt->execute([$this->id]);
-        $result = $stmt->fetchObject() !== false;
-        return $result;
-    }
-
-    public function remove(): void
-    {
-        if (!$this->isUsed()) {
-            db()->prepare("DELETE FROM metagroup WHERE id=?")->execute([$this->id]);
-        } else {
-            print "Could not remove $this->name because there is a segment inside.<br/>";
-            print "Click <a href='" . $_SERVER['PHP_SELF'] . "?action=viewgroups&amp;metagroup=" . $this->id . "'>here</a> to see the segment list";
-        }
-    }
 }

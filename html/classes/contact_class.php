@@ -63,15 +63,6 @@ class Contact
 
     private const SELECT_COLS = "id,firstname,lastname,society,sexe,title,address,npa,tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,modificationDate,status";
 
-    public function lookupUserByEmail(string $email): void
-    {
-        $stmt = db()->prepare("SELECT " . self::SELECT_COLS . " FROM contact WHERE email LIKE ?");
-        $stmt->execute(["%" . $email . "%"]);
-        foreach ($stmt as $row) {
-            $this->hydrateFromRow($row);
-        }
-    }
-
     public function lookupUser(int $id): void
     {
         $stmt = db()->prepare("SELECT " . self::SELECT_COLS . " FROM contact WHERE id=?");
