@@ -1,13 +1,14 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * Metagroup entity — loads and holds a filter group (group of groups).
+ * CombinedSegment entity — loads and holds a combined segment (union filter
+ * of several real segments), formerly called "metagroup".
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
-class Metagroup
+class CombinedSegment
 {
     public $id;
     public $name;
@@ -16,9 +17,9 @@ class Metagroup
     {
     }
 
-    public function lookupMetagroup(int $id): void
+    public function lookupCombinedSegment(int $id): void
     {
-        $stmt = db()->prepare("SELECT id,name FROM metagroup WHERE id=? AND name IS NOT NULL LIMIT 1");
+        $stmt = db()->prepare("SELECT id,name FROM combined_segment WHERE id=? AND name IS NOT NULL LIMIT 1");
         $stmt->execute([$id]);
         $row = $stmt->fetchObject();
         if ($row) {
@@ -35,45 +36,45 @@ class Metagroup
     public function save(): void
     {
         if ($this->id) {
-            db()->prepare("UPDATE metagroup SET name=? WHERE id=?")->execute([$this->name, $this->id]);
+            db()->prepare("UPDATE combined_segment SET name=? WHERE id=?")->execute([$this->name, $this->id]);
         } else {
-            db()->prepare("INSERT INTO metagroup (name) VALUES (?)")->execute([$this->name]);
+            db()->prepare("INSERT INTO combined_segment (name) VALUES (?)")->execute([$this->name]);
             $this->id = (int)db()->lastInsertId();
         }
     }
 
     /**
-     * Named filter metagroups that contain at least one team, for the
-     * members list filter dropdown.
+     * Named filter combined segments that contain at least one segment, for
+     * the members list filter dropdown.
      *
      * @return object[] rows: id, name
      */
     public static function filterList(): array
     {
         return db()->query(
-            "SELECT DISTINCT m.id, m.name FROM metagroup m
+            "SELECT DISTINCT m.id, m.name FROM combined_segment m
              WHERE m.name IS NOT NULL AND m.is_filter = 1
-               AND EXISTS (SELECT 1 FROM metagroup_member mm WHERE mm.metagroup_id=m.id)
+               AND EXISTS (SELECT 1 FROM combined_segment_member mm WHERE mm.combined_segment_id=m.id)
              ORDER BY m.name"
         )->fetchAll(PDO::FETCH_OBJ);
     }
 
-    /** Names of the segments belonging to a metagroup, sorted. @return string[] */
+    /** Names of the segments belonging to a combined segment, sorted. @return string[] */
     public static function segmentNames(int $id): array
     {
         $stmt = db()->prepare(
             "SELECT t.name FROM segment t
-             JOIN metagroup_member mm ON mm.segment_id = t.id
-             WHERE mm.metagroup_id = ? ORDER BY t.name"
+             JOIN combined_segment_member mm ON mm.segment_id = t.id
+             WHERE mm.combined_segment_id = ? ORDER BY t.name"
         );
         $stmt->execute([$id]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    /** IDs of the segments belonging to a metagroup. @return int[] */
+    /** IDs of the segments belonging to a combined segment. @return int[] */
     public static function segmentIds(int $id): array
     {
-        $stmt = db()->prepare("SELECT segment_id FROM metagroup_member WHERE metagroup_id=?");
+        $stmt = db()->prepare("SELECT segment_id FROM combined_segment_member WHERE combined_segment_id=?");
         $stmt->execute([$id]);
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }

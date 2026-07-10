@@ -168,7 +168,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         </td>
         <td><?= htmlentities($row->mg_name, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
-          <a href="<?= appUrl() ?>?view=updateMetagroup&amp;id=<?= (int)$row->mg_id ?>"
+          <a href="<?= appUrl() ?>?view=updateCombinedSegment&amp;id=<?= (int)$row->mg_id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
@@ -202,7 +202,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         </td>
         <td><?= htmlentities($row->mg_name, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
-          <a href="<?= appUrl() ?>?view=updateMetagroup&amp;id=<?= (int)$row->mg_id ?>"
+          <a href="<?= appUrl() ?>?view=updateCombinedSegment&amp;id=<?= (int)$row->mg_id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>

@@ -39,7 +39,7 @@ $GLOBAL['archiveMember']        = "Archivar este miembro";
 $GLOBAL['anonymizeProfile']     = "Anonimizar este perfil";
 $GLOBAL['editGroup']            = "Modificar el segmento";
 $GLOBAL['editCompta']           = "Modificar asiento contable";
-$GLOBAL['editMetagroup']        = "Modificar";
+$GLOBAL['editCombinedSegment']        = "Modificar";
 
 // --- Dashboard / resume ---
 $GLOBAL['donors']          = "Donantes";
@@ -72,7 +72,7 @@ $GLOBAL['adminOnly']       = "Acceso reservado a los administradores.";
 $GLOBAL['add']             = "<i class=\"fas fa-plus\"></i> Agregar";
 $GLOBAL['addBtn']          = "Agregar";
 $GLOBAL['addGroups']       = "Agregar segmentos";
-$GLOBAL['addMetagroup']    = "Agregar un segmento combinado";
+$GLOBAL['addCombinedSegment']    = "Agregar un segmento combinado";
 $GLOBAL['addTeam']         = "Agregar un segmento";
 $GLOBAL['addSegment']      = "Agregar un segmento";
 $GLOBAL['addUser']         = "Agregar";
@@ -108,7 +108,7 @@ $GLOBAL['lastName']        = "Apellido";
 $GLOBAL['libele']          = "Concepto";
 $GLOBAL['list']            = "Listas";
 $GLOBAL['m']               = "Hombre";
-$GLOBAL['manageMategroups']= "Gestión de segmentos combinados";
+$GLOBAL['manageCombinedSegments']= "Gestión de segmentos combinados";
 $GLOBAL['manageTeam']      = "Segmentos";
 $GLOBAL['memberOf']        = "Pertenencia a los segmentos";
 $GLOBAL['na']              = "-";
@@ -513,7 +513,7 @@ $GLOBAL['moveNameToCategory'] = "Mover %s a %s";
 $GLOBAL['undoLastAction'] = "Deshacer la última acción";
 $GLOBAL['saveError'] = "Error al guardar";
 $GLOBAL['actionUndone'] = "Acción deshecha";
-$GLOBAL['deleteMetagroupHelp'] = "Elimina el segmento combinado. Los segmentos miembros no se ven afectados.";
+$GLOBAL['deleteCombinedSegmentHelp'] = "Elimina el segmento combinado. Los segmentos miembros no se ven afectados.";
 $GLOBAL['deleteNameConfirm'] = "¿Eliminar «%s»?";
 $GLOBAL['memberSegmentsNotDeleted'] = "Los segmentos miembros no serán eliminados.";
 

@@ -17,7 +17,7 @@ try {
 $segmentCounts = [];
 foreach ($countRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 try {
-    $categories = db()->query("SELECT id, name FROM metagroup WHERE is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+    $categories = db()->query("SELECT id, name FROM combined_segment WHERE is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {
     $categories = [];
 }
@@ -27,8 +27,8 @@ $_importCatRows = [];
 try {
     $_importCatRows = db()->query("
         SELECT mm.segment_id AS segmentid, m.name AS cat_name, MIN(m.sort_order) AS sort_order
-        FROM metagroup_member mm
-        JOIN metagroup m ON m.id = mm.metagroup_id AND m.is_filter = 0
+        FROM combined_segment_member mm
+        JOIN combined_segment m ON m.id = mm.combined_segment_id AND m.is_filter = 0
         GROUP BY mm.segment_id, m.name
     ")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {}
@@ -146,7 +146,7 @@ if (!empty($_SESSION['group_toast'])) {
     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="bulkAction('bulkShow')">
       <i class="fas fa-eye me-1" aria-hidden="true"></i><?= $GLOBAL['show'] ?>
     </button>
-    <button type="button" class="btn btn-sm btn-outline-primary" onclick="openMetagroupModal()">
+    <button type="button" class="btn btn-sm btn-outline-primary" onclick="openCombinedSegmentModal()">
       <i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['createFilter'] ?>
     </button>
     <button type="button" class="btn btn-sm btn-link text-muted p-0" onclick="clearSelection()"><?= $GLOBAL['deselect'] ?></button>
@@ -173,8 +173,8 @@ try {
         FROM segment t
         LEFT JOIN (
             SELECT mm.segment_id, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
-            FROM metagroup_member mm
-            JOIN metagroup c ON c.id = mm.metagroup_id AND c.is_filter = 0
+            FROM combined_segment_member mm
+            JOIN combined_segment c ON c.id = mm.combined_segment_id AND c.is_filter = 0
             GROUP BY mm.segment_id
         ) cat ON cat.segment_id = t.id
         ORDER BY t.hidden ASC, cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
@@ -275,7 +275,7 @@ function toggleHiddenSection(btn) {
 }
 </script>
 
-<!-- Metagroup name modal -->
+<!-- Combined segment name modal -->
 <div class="modal fade" id="mg-name-modal" tabindex="-1" aria-labelledby="mg-name-modal-label" aria-modal="true" role="dialog">
   <div class="modal-dialog modal-sm modal-dialog-centered">
     <div class="modal-content">
@@ -287,7 +287,7 @@ function toggleHiddenSection(btn) {
         <input type="text" id="mg-name-input" class="form-control form-control-sm" placeholder="<?= $GLOBAL['filterNameExample'] ?>" maxlength="255"/>
       </div>
       <div class="modal-footer py-2">
-        <button type="button" class="btn btn-primary btn-sm" onclick="submitMetagroup()"><?= $GLOBAL['create'] ?></button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="submitCombinedSegment()"><?= $GLOBAL['create'] ?></button>
       </div>
     </div>
   </div>
@@ -331,18 +331,18 @@ function toggleHiddenSection(btn) {
   };
 
   var mgModal = new bootstrap.Modal(document.getElementById('mg-name-modal'));
-  window.openMetagroupModal = function() {
+  window.openCombinedSegmentModal = function() {
     document.getElementById('mg-name-input').value = '';
     mgModal.show();
     setTimeout(function() { document.getElementById('mg-name-input').focus(); }, 300);
   };
 
-  window.submitMetagroup = function() {
+  window.submitCombinedSegment = function() {
     var name = document.getElementById('mg-name-input').value.trim();
     if (!name) { document.getElementById('mg-name-input').focus(); return; }
-    document.getElementById('bulk-action').value = 'bulkCreateMetagroup';
+    document.getElementById('bulk-action').value = 'bulkCreateCombinedSegment';
     var input = document.createElement('input');
-    input.type = 'hidden'; input.name = 'metagroupName'; input.value = name;
+    input.type = 'hidden'; input.name = 'combinedSegmentName'; input.value = name;
     document.getElementById('bulk-form').appendChild(input);
     mgModal.hide();
     window.__dirtyOverride = true;
@@ -350,7 +350,7 @@ function toggleHiddenSection(btn) {
   };
 
   document.getElementById('mg-name-input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') { e.preventDefault(); submitMetagroup(); }
+    if (e.key === 'Enter') { e.preventDefault(); submitCombinedSegment(); }
   });
 
   // Live region for rename confirmations (screen readers)

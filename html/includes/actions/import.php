@@ -131,10 +131,10 @@ if ($_REQUEST['action'] === 'importUpload') {
         $segment->setHidden(0);
         $segment->save();
         $segTeamId = (int)$segment->id;
-        // Attach to a category (metagroup) when one was chosen for a brand-new segment
+        // Attach to a category (combined segment) when one was chosen for a brand-new segment
         $segCatId = $segMode === 'new' ? (int)($_POST['segment_new_category'] ?? 0) : 0;
         if ($segTeamId > 0 && $segCatId > 0) {
-            $segment->addMetagroupMembership($segCatId);
+            $segment->addCombinedSegmentMembership($segCatId);
         }
     }
     $segStmt = ($segTeamId > 0)

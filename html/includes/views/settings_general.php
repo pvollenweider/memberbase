@@ -14,7 +14,7 @@ try {
 }
 $saved = isset($_GET['saved']);
 $_activeTab = $_REQUEST['tab'] ?? null;
-$_settingsDrillDown = in_array($_REQUEST['view'] ?? '', ['updateSegment', 'updateMetagroup']);
+$_settingsDrillDown = in_array($_REQUEST['view'] ?? '', ['updateSegment', 'updateCombinedSegment']);
 
 $_paneClass = function(string $tab) use ($_activeTab): string {
     $active = $_activeTab ?? '';
@@ -333,7 +333,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           <!-- Segments combinés -->
           <div class="tab-pane fade<?= $_paneClass('filters') ?>" id="tab-filters" role="tabpanel" aria-labelledby="tab-filters-btn">
             <div class="mt-1 col-md-9">
-            <?php if (($_REQUEST['view'] ?? '') === 'updateMetagroup'): include __DIR__ . '/settings_filter_edit.php'; else: ?>
+            <?php if (($_REQUEST['view'] ?? '') === 'updateCombinedSegment'): include __DIR__ . '/settings_filter_edit.php'; else: ?>
             <p class="form-section-title" style="margin-top:0"><i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['combinedSegments'] ?></p>
             <?php include __DIR__ . '/settings_filters.php'; endif; ?>
             </div>

@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 // actions: deleteSegment, deleteSegmentForce, reassignSegment, importSegmentMembers,
 //          importCotisants, importDonors, bulkHide, bulkShow,
-//          undoSegmentVisibility, bulkCreateMetagroup, createLapsedSegment,
+//          undoSegmentVisibility, bulkCreateCombinedSegment, createLapsedSegment,
 //          addSegment, addSegmentWithImport, renameSegment, updateSegment,
 //          assignSegment, unassignSegment
 
@@ -186,18 +186,18 @@ if ($action == 'deleteSegment') {
     }
     exit;
 
-} elseif ($action == 'bulkCreateMetagroup') {
-    $name = trim($_REQUEST['metagroupName'] ?? '');
+} elseif ($action == 'bulkCreateCombinedSegment') {
+    $name = trim($_REQUEST['combinedSegmentName'] ?? '');
     if ($name && !empty($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
-        db()->prepare("INSERT INTO metagroup (name) VALUES (?)")->execute([$name]);
+        db()->prepare("INSERT INTO combined_segment (name) VALUES (?)")->execute([$name]);
         $mid = (int)db()->lastInsertId();
-        $stmt = db()->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)");
+        $stmt = db()->prepare("INSERT IGNORE INTO combined_segment_member (combined_segment_id, segment_id) VALUES (?, ?)");
         foreach ($_REQUEST['ids'] as $tid) {
             $tid = (int)$tid;
             if ($tid > 0) $stmt->execute([$mid, $tid]);
         }
-        auditLog(db(), 'bulkCreateMetagroup', "nouveau groupe filtre: $name (id=$mid) | " . count($_REQUEST['ids']) . " groupes");
-        $_bmUrl = appUrl() . '?view=updateMetagroup&id=' . $mid;
+        auditLog(db(), 'bulkCreateCombinedSegment', "nouveau segment combiné: $name (id=$mid) | " . count($_REQUEST['ids']) . " segments");
+        $_bmUrl = appUrl() . '?view=updateCombinedSegment&id=' . $mid;
         if ($isHtmx) { header('HX-Location: ' . $_bmUrl); } else { echo '<script>window.location.replace(' . json_encode($_bmUrl) . ');</script>'; }
         exit;
     }
@@ -285,7 +285,7 @@ if ($action == 'deleteSegment') {
     $newSegmentId = $segment->id;
     $categoryId = (int)($_REQUEST['categoryId'] ?? 0);
     if ($newSegmentId && $categoryId > 0) {
-        db()->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)")->execute([$categoryId, $newSegmentId]);
+        db()->prepare("INSERT IGNORE INTO combined_segment_member (combined_segment_id, segment_id) VALUES (?, ?)")->execute([$categoryId, $newSegmentId]);
     }
     if ($newSegmentId && !empty($_REQUEST['importFrom']) && is_array($_REQUEST['importFrom'])) {
         foreach ($_REQUEST['importFrom'] as $srcId) {
@@ -330,7 +330,7 @@ if ($action == 'deleteSegment') {
     $_auTOldName   = $segment->name;
     $_auTOldHidden = (int)$segment->getHidden();
     $segmentId = (int)$_REQUEST['id'];
-    $_auTOldCatRow = db()->prepare("SELECT m.name FROM metagroup m JOIN metagroup_member mm ON mm.metagroup_id=m.id WHERE mm.segment_id=? AND m.is_filter=0 LIMIT 1");
+    $_auTOldCatRow = db()->prepare("SELECT m.name FROM combined_segment m JOIN combined_segment_member mm ON mm.combined_segment_id=m.id WHERE mm.segment_id=? AND m.is_filter=0 LIMIT 1");
     $_auTOldCatRow->execute([$segmentId]);
     $_auTOldCat = $_auTOldCatRow->fetchColumn() ?: '—';
     $segment->name = $_REQUEST['name'];
@@ -339,15 +339,15 @@ if ($action == 'deleteSegment') {
     $categoryId = (int)($_REQUEST['categoryId'] ?? 0);
     $_auTNewCat = '—';
     if ($categoryId > 0) {
-        $_auTCatNameRow = db()->prepare("SELECT name FROM metagroup WHERE id=? LIMIT 1");
+        $_auTCatNameRow = db()->prepare("SELECT name FROM combined_segment WHERE id=? LIMIT 1");
         $_auTCatNameRow->execute([$categoryId]);
         $_auTNewCat = $_auTCatNameRow->fetchColumn() ?: "id=$categoryId";
     }
-    db()->prepare("DELETE FROM metagroup_member WHERE segment_id=? AND metagroup_id IN (
-        SELECT id FROM metagroup WHERE is_filter=0
+    db()->prepare("DELETE FROM combined_segment_member WHERE segment_id=? AND combined_segment_id IN (
+        SELECT id FROM combined_segment WHERE is_filter=0
     )")->execute([$segmentId]);
     if ($categoryId > 0) {
-        db()->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)")->execute([$categoryId, $segmentId]);
+        db()->prepare("INSERT IGNORE INTO combined_segment_member (combined_segment_id, segment_id) VALUES (?, ?)")->execute([$categoryId, $segmentId]);
     }
     $_auTChanges = [];
     if ($_auTOldName !== $segment->name) $_auTChanges[] = "nom: «{$_auTOldName}» → «{$segment->name}»";

@@ -15,9 +15,9 @@ $membre = (int)($appSettings['membre_team'] ?? 245);
 if (isset ($_REQUEST["team"])) {
     $team = $_REQUEST["team"];
 }
-$metagroup = 0;
-if (isset($_REQUEST['metagroup']) && (int)$_REQUEST['metagroup'] > 0) {
-    $metagroup = (int)$_REQUEST['metagroup'];
+$combinedSegment = 0;
+if (isset($_REQUEST['combinedSegment']) && (int)$_REQUEST['combinedSegment'] > 0) {
+    $combinedSegment = (int)$_REQUEST['combinedSegment'];
 }
 $assignSegment = -1;
 if (isset ($_REQUEST["assignSegment"])) {
@@ -46,7 +46,7 @@ if (isset($_REQUEST['year'])) {
 }
 
 // AJAX search is safe when no complex server-side filter is active
-$_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
+$_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
 
 ?>
 <?php if (!empty($_GET['import_done'])): ?>
@@ -65,9 +65,9 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                     <?php
                     $currentTeamTitle = "";
                     $currentFilterDesc = "";
-                    if ($metagroup > 0) {
-                        $mg = new Metagroup();
-                        $mg->lookupMetagroup($metagroup);
+                    if ($combinedSegment > 0) {
+                        $mg = new CombinedSegment();
+                        $mg->lookupCombinedSegment($combinedSegment);
                         $currentTeamTitle = $mg->getName();
                     } else if ($team == FILTER_ALL_EXCEPT_ARCHIVES) {
                         $currentTeamTitle = $GLOBAL['allExceptArchives'];
@@ -114,13 +114,13 @@ $_ajaxSearchOk = ($metagroup === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT
                     <div class="dropdown-divider mt-1 mb-0"></div>
 
                     <?php
-                    $metagroups = Metagroup::filterList();
-                    if (count($metagroups) > 0):
+                    $combinedSegments = CombinedSegment::filterList();
+                    if (count($combinedSegments) > 0):
                     ?>
                     <h6 class="dropdown-header" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em"><?= $GLOBAL['combinedSegments'] ?></h6>
-                    <?php foreach ($metagroups as $mg): ?>
-                    <a class="dropdown-item team-filterable <?= ($metagroup === (int)$mg->id) ? 'active' : '' ?>"
-                       href="<?= appUrl() ?>?metagroup=<?= (int)$mg->id ?>"
+                    <?php foreach ($combinedSegments as $mg): ?>
+                    <a class="dropdown-item team-filterable <?= ($combinedSegment === (int)$mg->id) ? 'active' : '' ?>"
+                       href="<?= appUrl() ?>?combinedSegment=<?= (int)$mg->id ?>"
                        data-label="<?= htmlentities(mb_strtolower($mg->name), ENT_COMPAT, $charset) ?>">
                         <i class="fas fa-layer-group me-1 text-muted" aria-hidden="true" style="font-size:0.75rem"></i><?= htmlentities($mg->name, ENT_COMPAT, $charset) ?>
                     </a>
@@ -265,8 +265,8 @@ if (!window._caTeamFilterInit) {
 defined('APP_ENTRY') or die('Direct access not permitted.');
 $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
 ?>
-<?php if ($metagroup > 0):
-    $mgTeamNames = Metagroup::segmentNames($metagroup);
+<?php if ($combinedSegment > 0):
+    $mgTeamNames = CombinedSegment::segmentNames($combinedSegment);
     if ($mgTeamNames): ?>
 <p class="text-muted mb-2" style="font-size:0.8rem">
     <i class="fas fa-layer-group me-1" aria-hidden="true"></i>
@@ -327,7 +327,7 @@ if ($team == FILTER_NO_ACTIVITY_10Y) {
 // Fetch — query construction and execution live in Contact::listWithFilters()
 $_allRows = Contact::listWithFilters([
     'team'         => (int)$team,
-    'metagroup'    => $metagroup,
+    'combinedSegment'    => $combinedSegment,
     'searchString' => $searchString,
     'action'       => $action,
     'membreTeam'   => $membre,
@@ -494,7 +494,7 @@ $(document).ready(caInitDT);
 (function () {
   var BASE_PATH        = <?= json_encode(appUrl()) ?>;
   var SEARCH_AJAX_OK   = <?= $_ajaxSearchOk ? 'true' : 'false' ?>;
-  var INITIAL_METAGROUP = <?= (int)$metagroup ?>;
+  var INITIAL_COMBINED_SEGMENT = <?= (int)$combinedSegment ?>;
   <?php $_jsYear = (int)date('Y'); // Year values are built server-side so JS reuses the same locale keys ?>
   var FILTER_DESCS = {
     '-4':    <?= json_encode(sprintf($GLOBAL['filterDescCotiUnpaidCurrent'], $_jsYear), JSON_UNESCAPED_UNICODE) ?>,
@@ -683,16 +683,16 @@ $(document).ready(caInitDT);
     });
   }
 
-  // Intercept team/metagroup dropdown links (skip virtual filters)
+  // Intercept team/combined-segment dropdown links (skip virtual filters)
   document.addEventListener('click', function(e) {
     var link = e.target.closest('.dropdown-item[href]');
     if (!link) return;
     var href = link.getAttribute('href') || '';
     var usp  = new URLSearchParams(href.split('?')[1] || '');
     var teamVal = usp.has('team') ? parseInt(usp.get('team'), 10) : null;
-    var mgVal   = usp.has('metagroup') ? parseInt(usp.get('metagroup'), 10) : null;
+    var mgVal   = usp.has('combinedSegment') ? parseInt(usp.get('combinedSegment'), 10) : null;
 
-    // Let non-team/non-metagroup links navigate normally
+    // Let non-team/non-combined-segment links navigate normally
     if (teamVal === null && mgVal === null) return;
 
     e.preventDefault();
@@ -701,7 +701,7 @@ $(document).ready(caInitDT);
 
     var apiUrl = '/api/contacts?limit=2000&types=1';
     if (teamVal !== null && teamVal !== 0) apiUrl += '&team=' + teamVal;
-    if (mgVal   !== null && mgVal   > 0)  apiUrl += '&metagroup=' + mgVal;
+    if (mgVal   !== null && mgVal   > 0)  apiUrl += '&combinedSegment=' + mgVal;
 
     // team=0 = all members, no extra param needed
     doFetch(apiUrl, href, '');
@@ -735,10 +735,10 @@ $(document).ready(caInitDT);
     }
   });
 
-  // On metagroup page load, replace PHP-rendered table with API result (includes groups column)
-  if (INITIAL_METAGROUP > 0) {
+  // On combined-segment page load, replace PHP-rendered table with API result (includes groups column)
+  if (INITIAL_COMBINED_SEGMENT > 0) {
     doFetch(
-      '/api/contacts?limit=2000&types=1&metagroup=' + INITIAL_METAGROUP,
+      '/api/contacts?limit=2000&types=1&combinedSegment=' + INITIAL_COMBINED_SEGMENT,
       window.location.href,
       ''
     );

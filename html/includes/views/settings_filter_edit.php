@@ -1,22 +1,22 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * Form for creating or editing a metagroup (category or filter).
+ * Form for creating or editing a combined segment (category or filter).
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 $mgId = (int)$_REQUEST['id'];
-$mg = new Metagroup();
-$mg->lookupMetagroup($mgId);
+$mg = new CombinedSegment();
+$mg->lookupCombinedSegment($mgId);
 
-// Read is_filter for this metagroup entity row
-$stmtIsFilter = db()->prepare("SELECT is_filter FROM metagroup WHERE id=?");
+// Read is_filter for this combined segment entity row
+$stmtIsFilter = db()->prepare("SELECT is_filter FROM combined_segment WHERE id=?");
 $stmtIsFilter->execute([$mgId]);
 $isFilter = (int)($stmtIsFilter->fetchColumn() ?? 1);
 
-// Segments currently in this metagroup
-$stmtIn = db()->prepare("SELECT segment_id FROM metagroup_member WHERE metagroup_id=?");
+// Segments currently in this combined segment
+$stmtIn = db()->prepare("SELECT segment_id FROM combined_segment_member WHERE combined_segment_id=?");
 $stmtIn->execute([$mgId]);
 $memberTeamIds = $stmtIn->fetchAll(PDO::FETCH_COLUMN);
 $memberTeamIds = array_map('intval', $memberTeamIds);
@@ -35,8 +35,8 @@ usort($allTeams, function($a, $b) use ($memberTeamIds) {
 // Category map: segment_id → [category_id, category_name]
 $stmtCats = db()->query(
     "SELECT mm.segment_id, m.id AS cat_id, m.name AS cat_name
-     FROM metagroup_member mm
-     JOIN metagroup m ON m.id = mm.metagroup_id AND m.is_filter = 0"
+     FROM combined_segment_member mm
+     JOIN combined_segment m ON m.id = mm.combined_segment_id AND m.is_filter = 0"
 );
 $teamCategory = [];
 foreach ($stmtCats->fetchAll(PDO::FETCH_OBJ) as $row) {
@@ -85,9 +85,9 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 
     <!-- Rename + type form -->
     <div>
-      <p class="form-section-title"><?= $GLOBAL['editMetagroup'] ?></p>
+      <p class="form-section-title"><?= $GLOBAL['editCombinedSegment'] ?></p>
       <form action="<?= appUrl() ?>" method="post">
-        <input type="hidden" name="action" value="updateMetagroup"/>
+        <input type="hidden" name="action" value="updateCombinedSegment"/>
         <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="<?= $_mgBackTab ?>"/>
         <input type="hidden" name="id" value="<?= $mgId ?>"/>
@@ -116,7 +116,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
       <!-- SEGMENT COMBINÉ: all teams grouped by category, checkboxes -->
       <div class="d-flex align-items-baseline justify-content-between mb-1">
         <p class="form-section-title mb-0"><?= $GLOBAL['memberSegments'] ?></p>
-        <a href="<?= appUrl() ?>?metagroup=<?= $mgId ?>" class="small">
+        <a href="<?= appUrl() ?>?combinedSegment=<?= $mgId ?>" class="small">
           <?= $GLOBAL['viewFilteredList'] ?> <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
         </a>
       </div>
@@ -324,10 +324,10 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 
       function saveMembers(memberIds, onSuccess, onError) {
         var body = new URLSearchParams();
-        body.append('action', 'updateMetagroupTeams');
+        body.append('action', 'updateCombinedSegmentMembers');
         body.append('view', 'settings');
         body.append('id', mgId);
-        memberIds.forEach(function(id) { body.append('teams[]', id); });
+        memberIds.forEach(function(id) { body.append('segments[]', id); });
         fetch(window.location.pathname, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true', 'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : '' },
@@ -424,14 +424,14 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
     <!-- Delete -->
     <div>
       <p class="form-section-title" style="color:var(--ca-danger)"><?= $GLOBAL['delete'] ?></p>
-      <p class="small text-muted mb-2"><?= $GLOBAL['deleteMetagroupHelp'] ?></p>
+      <p class="small text-muted mb-2"><?= $GLOBAL['deleteCombinedSegmentHelp'] ?></p>
       <form action="<?= appUrl() ?>" method="post" hx-boost="false">
-        <input type="hidden" name="action" value="deleteMetagroup"/>
+        <input type="hidden" name="action" value="deleteCombinedSegment"/>
         <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="<?= $_mgBackTab ?>"/>
         <input type="hidden" name="id" value="<?= $mgId ?>"/>
         <button type="button" class="btn btn-sm btn-danger"
-                data-bs-toggle="modal" data-bs-target="#modal-delete-metagroup">
+                data-bs-toggle="modal" data-bs-target="#modal-delete-combined-segment">
           <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
         </button>
       </form>
@@ -440,11 +440,11 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
   </div>
 </div>
 
-<div class="modal fade" id="modal-delete-metagroup" tabindex="-1" aria-labelledby="modal-delete-metagroup-label" aria-modal="true">
+<div class="modal fade" id="modal-delete-combined-segment" tabindex="-1" aria-labelledby="modal-delete-combined-segment-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-delete-metagroup-label"><?= $GLOBAL['delete'] ?></h5>
+        <h5 class="modal-title" id="modal-delete-combined-segment-label"><?= $GLOBAL['delete'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
@@ -454,7 +454,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <button type="button" class="btn btn-danger"
-                onclick="document.querySelector('form [name=action][value=deleteMetagroup]').closest('form').submit()">
+                onclick="document.querySelector('form [name=action][value=deleteCombinedSegment]').closest('form').submit()">
           <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
         </button>
       </div>

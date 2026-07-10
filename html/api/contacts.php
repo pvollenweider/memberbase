@@ -209,7 +209,7 @@ function handleList(): void
 
     $search       = trim($_GET['search'] ?? '');
     $segmentId    = isset($_GET['team']) ? (int)$_GET['team'] : null;
-    $metagroupId  = isset($_GET['metagroup']) ? (int)$_GET['metagroup'] : null;
+    $combinedSegmentId = isset($_GET['combinedSegment']) ? (int)$_GET['combinedSegment'] : null;
     $page         = max(1, (int)($_GET['page']  ?? 1));
     $limit        = min(2000, max(1, (int)($_GET['limit'] ?? 25)));
     $offset       = ($page - 1) * $limit;
@@ -249,9 +249,9 @@ function handleList(): void
     $mgSegmentIds = [];
     $mgParams     = [];
 
-    if ($metagroupId !== null && $metagroupId > 0) {
-        $stmtMg = db()->prepare("SELECT segment_id FROM metagroup_member WHERE metagroup_id=?");
-        $stmtMg->execute([$metagroupId]);
+    if ($combinedSegmentId !== null && $combinedSegmentId > 0) {
+        $stmtMg = db()->prepare("SELECT segment_id FROM combined_segment_member WHERE combined_segment_id=?");
+        $stmtMg->execute([$combinedSegmentId]);
         $mgSegmentIds = $stmtMg->fetchAll(PDO::FETCH_COLUMN);
         if (empty($mgSegmentIds)) {
             echo json_encode(['data' => [], 'meta' => ['page' => 1, 'limit' => $limit, 'total' => 0]],
@@ -284,7 +284,7 @@ function handleList(): void
     $stmt->execute();
     $rows = $stmt->fetchAll();
 
-    // Pre-fetch metagroup segment membership for each result user
+    // Pre-fetch combined segment membership for each result user
     $groupsByUser = [];
     if (!empty($mgSegmentIds) && !empty($rows)) {
         $resultIds    = array_map(fn($r) => (int)$r->id, $rows);
@@ -422,8 +422,8 @@ function handleGetGroups(int $id): void
          JOIN contact_segment us ON us.segment_id = t.id AND us.user_id = ?
          LEFT JOIN (
              SELECT mm.segment_id, c.id, c.name, c.sort_order
-             FROM metagroup_member mm
-             JOIN metagroup c ON c.id = mm.metagroup_id AND c.is_filter = 0
+             FROM combined_segment_member mm
+             JOIN combined_segment c ON c.id = mm.combined_segment_id AND c.is_filter = 0
              GROUP BY mm.segment_id
          ) cat ON cat.segment_id = t.id
          ORDER BY COALESCE(cat.sort_order, 99999) ASC,

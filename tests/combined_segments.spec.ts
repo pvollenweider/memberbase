@@ -1,5 +1,5 @@
 /**
- * E2E tests — metagroupe / filter management (create, rename, delete)
+ * E2E tests — combined segment / filter management (create, rename, delete)
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -7,7 +7,7 @@
 
 import { test, expect } from '@playwright/test';
 
-test.describe.serial('Métagroupes / filtres', () => {
+test.describe.serial('Segments combinés / filtres', () => {
   let createdId: string;
 
   test('view filters tab', async ({ page }) => {
@@ -20,17 +20,17 @@ test.describe.serial('Métagroupes / filtres', () => {
     await expect(page.locator('#tab-filters')).toBeVisible();
 
     // Add form inside #tab-filters
-    const addForm = page.locator('#tab-filters form:has(input[name="action"][value="addMetagroup"])');
+    const addForm = page.locator('#tab-filters form:has(input[name="action"][value="addCombinedSegment"])');
     await addForm.locator('input[name="name"]').fill('FiltreE2ETest');
     await addForm.locator('button[type="submit"]').click();
 
-    // addMetagroup sends HX-Location to updateMetagroup?id=N&created=1
-    await page.waitForURL(/view=updateMetagroup/, { timeout: 10_000 });
+    // addCombinedSegment sends HX-Location to updateCombinedSegment?id=N&created=1
+    await page.waitForURL(/view=updateCombinedSegment/, { timeout: 10_000 });
 
     // Extract id from URL
     const url = new URL(page.url());
     createdId = url.searchParams.get('id') ?? '';
-    if (!createdId) throw new Error('Could not get metagroup id from URL');
+    if (!createdId) throw new Error('Could not get combined segment id from URL');
 
     // Navigate back to filters tab to verify it appears
     await page.goto('/index.php?view=settings&tab=filters');
@@ -39,8 +39,8 @@ test.describe.serial('Métagroupes / filtres', () => {
   });
 
   test('rename the filter', async ({ page }) => {
-    if (!createdId) throw new Error('No metagroup id');
-    await page.goto(`/index.php?view=updateMetagroup&id=${createdId}`);
+    if (!createdId) throw new Error('No combined segment id');
+    await page.goto(`/index.php?view=updateCombinedSegment&id=${createdId}`);
     await expect(page.locator('#mgname')).toBeVisible({ timeout: 10_000 });
     await page.fill('#mgname', 'FiltreE2ERenomme');
     // Use form.submit() to bypass htmx event listeners (hx-boost attribute removal
@@ -48,8 +48,8 @@ test.describe.serial('Métagroupes / filtres', () => {
     await Promise.all([
       page.waitForNavigation({ timeout: 10_000 }),
       page.evaluate(() => {
-        const form = document.querySelector<HTMLFormElement>('form:has(input[name="action"][value="updateMetagroup"])');
-        if (!form) throw new Error('updateMetagroup form not found');
+        const form = document.querySelector<HTMLFormElement>('form:has(input[name="action"][value="updateCombinedSegment"])');
+        if (!form) throw new Error('updateCombinedSegment form not found');
         form.submit();
       }),
     ]);
@@ -58,11 +58,11 @@ test.describe.serial('Métagroupes / filtres', () => {
   });
 
   test('delete the filter', async ({ page }) => {
-    if (!createdId) throw new Error('No metagroup id');
+    if (!createdId) throw new Error('No combined segment id');
     await page.goto('/index.php?view=settings&tab=filters');
     await expect(page.locator('#tab-filters')).toBeVisible();
 
-    // Submit deleteMetagroup via programmatic form
+    // Submit deleteCombinedSegment via programmatic form
     await page.evaluate(() => document.body.removeAttribute('hx-boost'));
     await Promise.all([
       page.waitForNavigation({ timeout: 10_000 }),
@@ -71,7 +71,7 @@ test.describe.serial('Métagroupes / filtres', () => {
         form.method = 'POST';
         form.action = '/index.php';
         const csrfTok = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
-        for (const [n, v] of [['action', 'deleteMetagroup'], ['id', id], ['view', 'settings'], ['tab', 'filters'], ['csrf', csrfTok]] as [string, string][]) {
+        for (const [n, v] of [['action', 'deleteCombinedSegment'], ['id', id], ['view', 'settings'], ['tab', 'filters'], ['csrf', csrfTok]] as [string, string][]) {
           const el = document.createElement('input');
           el.name = n; el.value = v;
           form.appendChild(el);

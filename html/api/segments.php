@@ -26,8 +26,8 @@ $sub    = $_GET['sub'] ?? null; // 'members' for /api/segments/{id}/members
 define('CAT_JOIN',
     "LEFT JOIN (
         SELECT mm.segment_id, c.id, c.name, c.sort_order
-        FROM metagroup_member mm
-        JOIN metagroup c ON c.id = mm.metagroup_id AND c.is_filter = 0
+        FROM combined_segment_member mm
+        JOIN combined_segment c ON c.id = mm.combined_segment_id AND c.is_filter = 0
         GROUP BY mm.segment_id
     ) cat ON cat.segment_id = t.id"
 );

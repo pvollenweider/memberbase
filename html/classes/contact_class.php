@@ -261,33 +261,33 @@ class Contact
 
     /**
      * Active member rows for the members list view, filtered by segment,
-     * combined segment (metagroup) or text search. Virtual filters
+     * combined segment or text search. Virtual filters
      * (negative team IDs) are NOT applied here — the caller restricts rows
      * via MemberFilter::resolveIds().
      *
      * @param array $opts {
-     *     team:         int     segment ID, 0 = all, virtual IDs pass through unfiltered
-     *     metagroup:    int     combined segment ID (0 = none; takes precedence over team)
-     *     searchString: string  text search (applied when action == 'search')
-     *     action:       string  request action ('search' enables the text filter)
-     *     membreTeam:   int     "membre" segment ID (legacy -1234 filter)
-     *     orderColumn:  string  MUST be pre-validated against a whitelist
-     *     orderSort:    string  'ASC' | 'DESC' (pre-validated)
+     *     team:            int     segment ID, 0 = all, virtual IDs pass through unfiltered
+     *     combinedSegment: int     combined segment ID (0 = none; takes precedence over team)
+     *     searchString:    string  text search (applied when action == 'search')
+     *     action:          string  request action ('search' enables the text filter)
+     *     membreTeam:      int     "membre" segment ID (legacy -1234 filter)
+     *     orderColumn:     string  MUST be pre-validated against a whitelist
+     *     orderSort:       string  'ASC' | 'DESC' (pre-validated)
      * }
      * @return object[] rows: id, firstname, lastname, society, sexe, address, npa, email, creationDate
      */
     public static function listWithFilters(array $opts): array
     {
 
-        $team        = (int)($opts['team'] ?? 0);
-        $metagroup   = (int)($opts['metagroup'] ?? 0);
+        $team            = (int)($opts['team'] ?? 0);
+        $combinedSegment = (int)($opts['combinedSegment'] ?? 0);
         $orderColumn = $opts['orderColumn'] ?? 'lastname';
         $orderSort   = $opts['orderSort'] ?? 'ASC';
 
         $query = "SELECT DISTINCT contact.id, contact.firstname, contact.lastname, contact.society,"
                . " contact.sexe, contact.address, contact.npa, contact.email, contact.creationDate"
                . " FROM contact";
-        if ($metagroup > 0) {
+        if ($combinedSegment > 0) {
             $query .= ",contact_segment ";
         } else {
             // Virtual filter IDs (resolved via MemberFilter) and team=0 (all members)
@@ -313,14 +313,14 @@ class Contact
             $queryParams = array_fill(0, 9, $like);
         }
 
-        if ($metagroup > 0) {
-            $mgSegmentIds = Metagroup::segmentIds($metagroup);
+        if ($combinedSegment > 0) {
+            $mgSegmentIds = CombinedSegment::segmentIds($combinedSegment);
             if (count($mgSegmentIds) > 0) {
                 $placeholders = implode(',', array_fill(0, count($mgSegmentIds), '?'));
                 $query .= " AND contact.id=contact_segment.user_id AND contact_segment.segment_id IN ($placeholders)";
                 $queryParams = array_merge($queryParams, $mgSegmentIds);
             } else {
-                $query .= " AND 1=0"; // metagroup has no segments — return empty
+                $query .= " AND 1=0"; // combined segment has no segments — return empty
             }
         } else if ($team != -1) {
             if ($team == 0 || MemberFilter::isVirtual($team)) {

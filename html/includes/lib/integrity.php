@@ -26,8 +26,8 @@ function mbRunIntegrityChecks(PDO $db): array
             SELECT DISTINCT t.id AS team_id, t.name AS team_name,
                    m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
             FROM segment t
-            JOIN metagroup_member mm ON mm.segment_id = t.id
-            JOIN metagroup m ON m.id = mm.metagroup_id AND m.is_filter = 0
+            JOIN combined_segment_member mm ON mm.segment_id = t.id
+            JOIN combined_segment m ON m.id = mm.combined_segment_id AND m.is_filter = 0
             WHERE t.hidden = 1
             ORDER BY m.sort_order, m.name, t.name
         ")->fetchAll(PDO::FETCH_OBJ);
@@ -35,8 +35,8 @@ function mbRunIntegrityChecks(PDO $db): array
             SELECT DISTINCT t.id AS team_id, t.name AS team_name,
                    m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
             FROM segment t
-            JOIN metagroup_member mm ON mm.segment_id = t.id
-            JOIN metagroup m ON m.id = mm.metagroup_id AND m.is_filter = 1
+            JOIN combined_segment_member mm ON mm.segment_id = t.id
+            JOIN combined_segment m ON m.id = mm.combined_segment_id AND m.is_filter = 1
             WHERE t.hidden = 1
             ORDER BY m.sort_order, m.name, t.name
         ")->fetchAll(PDO::FETCH_OBJ);

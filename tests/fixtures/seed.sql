@@ -81,7 +81,6 @@ INSERT INTO `contact_segment` (`user_id`, `segment_id`) VALUES
 
 -- maxval rows
 INSERT INTO `maxval` (`parameter`, `value`) VALUES
-  ('userpropertiesid', 0),
-  ('metagroup_id', 0);
+  ('userpropertiesid', 0);
 
 SET foreign_key_checks = 1;

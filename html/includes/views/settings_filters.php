@@ -1,7 +1,7 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * Admin UI for managing navigation filters (metagroups).
+ * Admin UI for managing navigation filters (combined segments).
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -12,7 +12,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 try {
-    $allFilters = db()->query("SELECT m.id, m.name, COUNT(mm.segment_id) AS team_count FROM metagroup m LEFT JOIN metagroup_member mm ON mm.metagroup_id=m.id WHERE m.is_filter=1 GROUP BY m.id, m.name ORDER BY m.name")->fetchAll(PDO::FETCH_OBJ);
+    $allFilters = db()->query("SELECT m.id, m.name, COUNT(mm.segment_id) AS team_count FROM combined_segment m LEFT JOIN combined_segment_member mm ON mm.combined_segment_id=m.id WHERE m.is_filter=1 GROUP BY m.id, m.name ORDER BY m.name")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {
     $allFilters = [];
 }
@@ -23,13 +23,13 @@ try {
   <?php foreach ($allFilters as $mg): ?>
     <tr>
       <td>
-        <a href="<?= appUrl() ?>?metagroup=<?= (int)$mg->id ?>" class="text-decoration-none">
+        <a href="<?= appUrl() ?>?combinedSegment=<?= (int)$mg->id ?>" class="text-decoration-none">
           <?= htmlentities($mg->name, ENT_COMPAT, $charset) ?>
         </a>
       </td>
       <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= sprintf($GLOBAL['segmentCount'], (int)$mg->team_count, $mg->team_count != 1 ? 's' : '') ?></td>
       <td class="text-end" style="width:2rem">
-        <a href="<?= appUrl() ?>?view=updateMetagroup&amp;id=<?= (int)$mg->id ?>" class="text-decoration-none text-muted" title="<?= $GLOBAL['edit'] ?>">
+        <a href="<?= appUrl() ?>?view=updateCombinedSegment&amp;id=<?= (int)$mg->id ?>" class="text-decoration-none text-muted" title="<?= $GLOBAL['edit'] ?>">
           <i class="fas fa-pen" style="font-size:0.75rem"></i>
         </a>
       </td>
@@ -42,7 +42,7 @@ try {
 <?php endif ?>
 
 <form action="<?= appUrl() ?>" method="post">
-  <input type="hidden" name="action" value="addMetagroup"/>
+  <input type="hidden" name="action" value="addCombinedSegment"/>
   <input type="hidden" name="view" value="settings"/>
   <input type="hidden" name="tab" value="filters"/>
   <input type="hidden" name="is_filter" value="1"/>

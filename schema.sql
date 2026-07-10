@@ -68,8 +68,8 @@ CREATE TABLE IF NOT EXISTS `contact_properties` (
   CONSTRAINT `fk_contact_properties_user` FOREIGN KEY (`user_id`) REFERENCES `contact` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Smart filters (metagroups) — header row only, one per filter/category
-CREATE TABLE IF NOT EXISTS `metagroup` (
+-- Combined segments (formerly "metagroups") — header row only, one per filter/category
+CREATE TABLE IF NOT EXISTS `combined_segment` (
   `id`         int(11)      NOT NULL AUTO_INCREMENT,
   `name`       varchar(255) DEFAULT NULL,
   `is_filter`  tinyint(1)   NOT NULL DEFAULT 1,
@@ -78,14 +78,14 @@ CREATE TABLE IF NOT EXISTS `metagroup` (
   KEY `idx_name` (`name`(64))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Metagroup → segment membership join table
-CREATE TABLE IF NOT EXISTS `metagroup_member` (
-  `metagroup_id` int(11) NOT NULL,
-  `segment_id`   int(11) NOT NULL,
-  PRIMARY KEY (`metagroup_id`, `segment_id`),
-  KEY `idx_metagroup_member_segment_id` (`segment_id`),
-  CONSTRAINT `fk_metagroup_member_metagroup` FOREIGN KEY (`metagroup_id`) REFERENCES `metagroup` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_metagroup_member_segment` FOREIGN KEY (`segment_id`) REFERENCES `segment` (`id`) ON DELETE CASCADE
+-- Combined segment → segment membership join table
+CREATE TABLE IF NOT EXISTS `combined_segment_member` (
+  `combined_segment_id` int(11) NOT NULL,
+  `segment_id`          int(11) NOT NULL,
+  PRIMARY KEY (`combined_segment_id`, `segment_id`),
+  KEY `idx_combined_segment_member_segment_id` (`segment_id`),
+  CONSTRAINT `fk_combined_segment_member_combined_segment` FOREIGN KEY (`combined_segment_id`) REFERENCES `combined_segment` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_combined_segment_member_segment` FOREIGN KEY (`segment_id`) REFERENCES `segment` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Accounting types

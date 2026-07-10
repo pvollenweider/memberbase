@@ -39,7 +39,7 @@ $GLOBAL['archiveMember']        = "Dieses Mitglied archivieren";
 $GLOBAL['anonymizeProfile']     = "Dieses Profil anonymisieren";
 $GLOBAL['editGroup']            = "Segment bearbeiten";
 $GLOBAL['editCompta']           = "Buchung bearbeiten";
-$GLOBAL['editMetagroup']        = "Bearbeiten";
+$GLOBAL['editCombinedSegment']        = "Bearbeiten";
 
 // --- Dashboard / resume ---
 $GLOBAL['donors']          = "Spender";
@@ -72,7 +72,7 @@ $GLOBAL['adminOnly']       = "Zugriff nur für Administratoren.";
 $GLOBAL['add']             = "<i class=\"fas fa-plus\"></i> Hinzufügen";
 $GLOBAL['addBtn']          = "Hinzufügen";
 $GLOBAL['addGroups']       = "Segmente hinzufügen";
-$GLOBAL['addMetagroup']    = "Kombiniertes Segment hinzufügen";
+$GLOBAL['addCombinedSegment']    = "Kombiniertes Segment hinzufügen";
 $GLOBAL['addTeam']         = "Segment hinzufügen";
 $GLOBAL['addSegment']      = "Segment hinzufügen";
 $GLOBAL['addUser']         = "Hinzufügen";
@@ -108,7 +108,7 @@ $GLOBAL['lastName']        = "Name";
 $GLOBAL['libele']          = "Bezeichnung";
 $GLOBAL['list']            = "Listen";
 $GLOBAL['m']               = "Mann";
-$GLOBAL['manageMategroups']= "Verwaltung der kombinierten Segmente";
+$GLOBAL['manageCombinedSegments']= "Verwaltung der kombinierten Segmente";
 $GLOBAL['manageTeam']      = "Segmente";
 $GLOBAL['memberOf']        = "Segmentzugehörigkeit";
 $GLOBAL['na']              = "-";
@@ -513,7 +513,7 @@ $GLOBAL['moveNameToCategory'] = "%s nach %s verschieben";
 $GLOBAL['undoLastAction'] = "Letzte Aktion rückgängig machen";
 $GLOBAL['saveError'] = "Fehler beim Speichern";
 $GLOBAL['actionUndone'] = "Aktion rückgängig gemacht";
-$GLOBAL['deleteMetagroupHelp'] = "Löscht das kombinierte Segment. Die Mitglieder-Segmente sind nicht betroffen.";
+$GLOBAL['deleteCombinedSegmentHelp'] = "Löscht das kombinierte Segment. Die Mitglieder-Segmente sind nicht betroffen.";
 $GLOBAL['deleteNameConfirm'] = "„%s“ löschen?";
 $GLOBAL['memberSegmentsNotDeleted'] = "Die Mitglieder-Segmente werden nicht gelöscht.";
 

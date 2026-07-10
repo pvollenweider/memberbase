@@ -15,9 +15,9 @@ try {
     $allCats = db()->query("
         SELECT m.id, m.name,
                COUNT(DISTINCT mm.segment_id) AS team_count
-        FROM metagroup m
-        LEFT JOIN metagroup_member mm
-            ON mm.metagroup_id = m.id
+        FROM combined_segment m
+        LEFT JOIN combined_segment_member mm
+            ON mm.combined_segment_id = m.id
             AND mm.segment_id IN (SELECT id FROM segment WHERE hidden = 0)
         WHERE m.is_filter = 0
         GROUP BY m.id, m.name
@@ -38,7 +38,7 @@ try {
       <td><?= htmlentities($cat->name, ENT_COMPAT, $charset) ?></td>
       <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= sprintf($GLOBAL['segmentCount'], (int)$cat->team_count, $cat->team_count != 1 ? 's' : '') ?></td>
       <td class="text-end" style="width:2rem">
-        <a href="<?= appUrl() ?>?view=updateMetagroup&amp;id=<?= (int)$cat->id ?>" class="text-decoration-none text-muted" title="<?= $GLOBAL['edit'] ?>">
+        <a href="<?= appUrl() ?>?view=updateCombinedSegment&amp;id=<?= (int)$cat->id ?>" class="text-decoration-none text-muted" title="<?= $GLOBAL['edit'] ?>">
           <i class="fas fa-pen" style="font-size:0.75rem"></i>
         </a>
       </td>
@@ -101,7 +101,7 @@ try {
 <?php endif ?>
 
 <form action="<?= appUrl() ?>" method="post">
-  <input type="hidden" name="action" value="addMetagroup"/>
+  <input type="hidden" name="action" value="addCombinedSegment"/>
   <input type="hidden" name="view" value="settings"/>
   <input type="hidden" name="tab" value="categories"/>
   <input type="hidden" name="is_filter" value="0"/>

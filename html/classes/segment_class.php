@@ -73,8 +73,8 @@ class Segment
             FROM segment t
             LEFT JOIN (
                 SELECT mm.segment_id, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
-                FROM metagroup_member mm
-                JOIN metagroup c ON c.id = mm.metagroup_id AND c.name IS NOT NULL AND c.is_filter = 0
+                FROM combined_segment_member mm
+                JOIN combined_segment c ON c.id = mm.combined_segment_id AND c.name IS NOT NULL AND c.is_filter = 0
                 GROUP BY mm.segment_id
             ) cat ON cat.segment_id = t.id
             WHERE t.hidden = 0
@@ -82,22 +82,22 @@ class Segment
         ")->fetchAll(PDO::FETCH_OBJ);
     }
 
-    public function isMemberOfMetagroup(int $metagroupId): bool
+    public function isMemberOfCombinedSegment(int $combinedSegmentId): bool
     {
-        $stmt = db()->prepare("SELECT 1 FROM metagroup_member WHERE metagroup_id=? AND segment_id=? LIMIT 1");
-        $stmt->execute([$metagroupId, $this->id]);
+        $stmt = db()->prepare("SELECT 1 FROM combined_segment_member WHERE combined_segment_id=? AND segment_id=? LIMIT 1");
+        $stmt->execute([$combinedSegmentId, $this->id]);
         $result = $stmt->fetchObject() !== false;
         return $result;
     }
 
-    public function addMetagroupMembership(int $metagroupId): void
+    public function addCombinedSegmentMembership(int $combinedSegmentId): void
     {
-        db()->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?,?)")->execute([$metagroupId, $this->id]);
+        db()->prepare("INSERT IGNORE INTO combined_segment_member (combined_segment_id, segment_id) VALUES (?,?)")->execute([$combinedSegmentId, $this->id]);
     }
 
-    public function removeMetagroupMembership(int $metagroupId): void
+    public function removeCombinedSegmentMembership(int $combinedSegmentId): void
     {
-        db()->prepare("DELETE FROM metagroup_member WHERE segment_id=? AND metagroup_id=?")->execute([$this->id, $metagroupId]);
+        db()->prepare("DELETE FROM combined_segment_member WHERE segment_id=? AND combined_segment_id=?")->execute([$this->id, $combinedSegmentId]);
     }
 
     public function isUsed(): bool

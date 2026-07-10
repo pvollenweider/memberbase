@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS `contact_segment` (
   CONSTRAINT `fk_contact_segment_segment` FOREIGN KEY (`segment_id`) REFERENCES `segment` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `metagroup` (
+CREATE TABLE IF NOT EXISTS `combined_segment` (
   `id`         int(11)      NOT NULL AUTO_INCREMENT,
   `name`       varchar(255) DEFAULT NULL,
   `is_filter`  tinyint(1)   NOT NULL DEFAULT 1,
@@ -96,13 +96,13 @@ CREATE TABLE IF NOT EXISTS `metagroup` (
   KEY `idx_name` (`name`(64))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `metagroup_member` (
-  `metagroup_id` int(11) NOT NULL,
-  `segment_id`   int(11) NOT NULL,
-  PRIMARY KEY (`metagroup_id`, `segment_id`),
-  KEY `idx_metagroup_member_segment_id` (`segment_id`),
-  CONSTRAINT `fk_metagroup_member_metagroup` FOREIGN KEY (`metagroup_id`) REFERENCES `metagroup` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_metagroup_member_segment` FOREIGN KEY (`segment_id`) REFERENCES `segment` (`id`) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS `combined_segment_member` (
+  `combined_segment_id` int(11) NOT NULL,
+  `segment_id`          int(11) NOT NULL,
+  PRIMARY KEY (`combined_segment_id`, `segment_id`),
+  KEY `idx_combined_segment_member_segment_id` (`segment_id`),
+  CONSTRAINT `fk_combined_segment_member_combined_segment` FOREIGN KEY (`combined_segment_id`) REFERENCES `combined_segment` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_combined_segment_member_segment` FOREIGN KEY (`segment_id`) REFERENCES `segment` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `compta_type` (
@@ -413,12 +413,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
             $setTeam->execute(['default_team', (string)$defaultTeamId]);
             $setTeam->execute(['membre_team',  (string)$defaultTeamId]);
 
-            // Create "Membres" metagroup category and assign both teams
-            $existingMeta = (int)$pdo->query("SELECT COUNT(*) FROM metagroup WHERE name='Membres'")->fetchColumn();
+            // Create "Membres" combined segment category and assign both teams
+            $existingMeta = (int)$pdo->query("SELECT COUNT(*) FROM combined_segment WHERE name='Membres'")->fetchColumn();
             if (!$existingMeta) {
-                $pdo->prepare("INSERT INTO metagroup (name, is_filter, sort_order) VALUES (?, 0, 1)")->execute(['Membres']);
+                $pdo->prepare("INSERT INTO combined_segment (name, is_filter, sort_order) VALUES (?, 0, 1)")->execute(['Membres']);
                 $metaId = (int)$pdo->lastInsertId();
-                $insMember = $pdo->prepare("INSERT INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)");
+                $insMember = $pdo->prepare("INSERT INTO combined_segment_member (combined_segment_id, segment_id) VALUES (?, ?)");
                 $insMember->execute([$metaId, $prevTeamId]);
                 $insMember->execute([$metaId, $defaultTeamId]);
             }
@@ -617,7 +617,7 @@ $steps = ['1' => $GLOBAL['stepPrereqs'], '2' => $GLOBAL['stepDatabase'], '3' => 
       <h2 class="h5 mb-1"><?= $GLOBAL['schemaInitTitle'] ?></h2>
       <p class="text-muted small mb-2"><?= $GLOBAL['schemaInitHint'] ?></p>
       <div class="alert alert-light small mb-3">
-        <strong><?= $GLOBAL['tablesCreated'] ?></strong> contact, segment, contact_properties, contact_segment, metagroup, metagroup_member, compta, compta_type, maxval, app_settings, app_users, audit_log
+        <strong><?= $GLOBAL['tablesCreated'] ?></strong> contact, segment, contact_properties, contact_segment, combined_segment, combined_segment_member, compta, compta_type, maxval, app_settings, app_users, audit_log
       </div>
       <form method="post" action="install.php?step=3">
         <button type="submit" class="btn btn-primary w-100"><?= $GLOBAL['createTablesBtn'] ?></button>

@@ -40,7 +40,7 @@ $GLOBAL['archiveMember']        = "Archive this member";
 $GLOBAL['anonymizeProfile']     = "Anonymize this profile";
 $GLOBAL['editGroup']            = "Edit segment";
 $GLOBAL['editCompta']           = "Edit accounting entry";
-$GLOBAL['editMetagroup']        = "Edit";
+$GLOBAL['editCombinedSegment']        = "Edit";
 
 // --- Dashboard / resume ---
 $GLOBAL['donors']          = "Donors";
@@ -73,7 +73,7 @@ $GLOBAL['adminOnly']       = "Access restricted to administrators.";
 $GLOBAL['add']             = "<i class=\"fas fa-plus\"></i> Add";
 $GLOBAL['addBtn']          = "Add";
 $GLOBAL['addGroups']       = "Add segments";
-$GLOBAL['addMetagroup']    = "Add a combined segment";
+$GLOBAL['addCombinedSegment']    = "Add a combined segment";
 $GLOBAL['addTeam']         = "Add a segment";
 $GLOBAL['addSegment']      = "Add a segment";
 $GLOBAL['addUser']         = "Add";
@@ -109,7 +109,7 @@ $GLOBAL['lastName']        = "Name";
 $GLOBAL['libele']          = "Label";
 $GLOBAL['list']            = "Lists";
 $GLOBAL['m']               = "Male";
-$GLOBAL['manageMategroups']= "Combined segments management";
+$GLOBAL['manageCombinedSegments']= "Combined segments management";
 $GLOBAL['manageTeam']      = "Segments";
 $GLOBAL['memberOf']        = "Segment membership";
 $GLOBAL['na']              = "-";
@@ -513,7 +513,7 @@ $GLOBAL['moveNameToCategory'] = "Move %s to %s";
 $GLOBAL['undoLastAction'] = "Undo the last action";
 $GLOBAL['saveError'] = "Error while saving";
 $GLOBAL['actionUndone'] = "Action undone";
-$GLOBAL['deleteMetagroupHelp'] = "Deletes the combined segment. The member segments are not affected.";
+$GLOBAL['deleteCombinedSegmentHelp'] = "Deletes the combined segment. The member segments are not affected.";
 $GLOBAL['deleteNameConfirm'] = "Delete “%s”?";
 $GLOBAL['memberSegmentsNotDeleted'] = "The member segments will not be deleted.";
 
