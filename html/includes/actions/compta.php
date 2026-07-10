@@ -24,9 +24,13 @@ if ($action == 'addCompta') {
     $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);
     $compta->setCotisationYear($_REQUEST['cotisation_year'] ?? null);
     // Auto-fill libele for cotisation entries when user left it blank.
+    // Prefer the type's default_libele (same source as the client-side
+    // prefill), falling back to the type label.
     if (trim((string)$compta->libele) === '' && !empty($comptaTypes[(int)$_REQUEST['type_id']]->is_cotisation)) {
         $_cotiYear = $compta->cotisation_year ?: (int)date('Y', (int)$compta->date ?: time());
-        $compta->libele = ($comptaTypes[(int)$_REQUEST['type_id']]->label ?? '') . ' ' . $_cotiYear;
+        $_cotiBase = trim((string)($comptaTypes[(int)$_REQUEST['type_id']]->default_libele ?? ''))
+            ?: ($comptaTypes[(int)$_REQUEST['type_id']]->label ?? '');
+        $compta->libele = $_cotiBase . ' ' . $_cotiYear;
     }
     $compta->save();
     $_auType = $comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}";
@@ -87,9 +91,13 @@ if ($action == 'addCompta') {
     $compta->setWantsAttestation(isset($_REQUEST['wants_attestation']));
     $compta->setCotisationYear($_REQUEST['cotisation_year'] ?? null);
     // Auto-fill libele for cotisation entries when user left it blank.
+    // Prefer the type's default_libele (same source as the client-side
+    // prefill), falling back to the type label.
     if (trim((string)$compta->libele) === '' && !empty($comptaTypes[(int)$_REQUEST['type_id']]->is_cotisation)) {
         $_cotiYear2 = $compta->cotisation_year ?: (int)date('Y', $compta->date ?: time());
-        $compta->libele = ($comptaTypes[(int)$_REQUEST['type_id']]->label ?? '') . ' ' . $_cotiYear2;
+        $_cotiBase2 = trim((string)($comptaTypes[(int)$_REQUEST['type_id']]->default_libele ?? ''))
+            ?: ($comptaTypes[(int)$_REQUEST['type_id']]->label ?? '');
+        $compta->libele = $_cotiBase2 . ' ' . $_cotiYear2;
     }
     $_auAfter2 = [
         'type'           => ($comptaTypes[(int)$_REQUEST['type_id']]->label ?? "type={$_REQUEST['type_id']}"),
