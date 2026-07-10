@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -240,7 +240,7 @@ if ($action == 'saveSettings') {
     $subject  = trim($_REQUEST['tpl_subject']   ?? '');
     $body     = trim($_REQUEST['tpl_body']      ?? '');
     $bodyHtml = trim($_REQUEST['tpl_body_html'] ?? '');
-    $allowed  = ['tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don'];
+    $allowed  = ['tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don', 'tpl_compta_recap'];
     if (in_array($key, $allowed, true) && $subject !== '' && $body !== '') {
         try {
             $pdo->prepare(
@@ -260,6 +260,20 @@ if ($action == 'saveSettings') {
         echo '<div id="casa-save-ok" hidden></div>';
     } else {
         echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=email&saved=1') . ');</script>';
+    }
+    exit;
+
+} elseif ($action === 'resetEmailTemplate') {
+    $key     = trim($_REQUEST['tpl_key'] ?? '');
+    $allowed = ['tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don', 'tpl_compta_recap'];
+    if (in_array($key, $allowed, true)) {
+        $pdo->prepare("DELETE FROM email_templates WHERE `key` = ?")->execute([$key]);
+        auditLog($pdo, 'resetEmailTemplate', "key=$key");
+    }
+    if ($isHtmx) {
+        header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=email&subtab=templates&reset=1');
+    } else {
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=email&subtab=templates&reset=1');
     }
     exit;
 

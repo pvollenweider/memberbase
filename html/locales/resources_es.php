@@ -1020,6 +1020,9 @@ $GLOBAL['comptaBulkOk']              = "%d entrada(s) marcada(s) como tratadas."
 $GLOBAL['comptaBulkErrConfirm']      = "Por favor, marque la casilla de confirmación.";
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Confirmación de recepción de pago";
+$GLOBAL['emailTemplateComptaRecap']    = "Resumen de versamentos";
+$GLOBAL['resetToDefault']              = "Restablecer al valor por defecto";
+$GLOBAL['resetToDefaultConfirm']       = "¿Restablecer esta plantilla al valor por defecto? Los cambios se perderán.";
 $GLOBAL['sendReceiptLabel']            = "Enviar confirmación al miembro";
 $GLOBAL['sendReceiptNoEmail']          = "Sin dirección de correo registrada";
 // Zero-sum compta entries toggle

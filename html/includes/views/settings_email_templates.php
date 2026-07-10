@@ -27,6 +27,7 @@ $allTemplates = array_merge($defaults, $dbTemplates); // DB overrides defaults
 
 // Map template key → display label
 $tplLabels = [
+    'tpl_compta_recap'        => $GLOBAL['emailTemplateComptaRecap'],
     'tpl_payment_receipt'     => $GLOBAL['emailTemplatePaymentReceipt'],
     'tpl_cotisation_reminder' => $GLOBAL['emailTemplateCotiReminder'],
     'tpl_attestation_don'     => $GLOBAL['emailTemplateAttestationDon'],
@@ -114,9 +115,23 @@ $tplLabels = [
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-sm">
-        <i class="fas fa-floppy-disk me-1" aria-hidden="true"></i><?= $GLOBAL['save'] ?>
-      </button>
+      <div class="d-flex align-items-center gap-2">
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i class="fas fa-floppy-disk me-1" aria-hidden="true"></i><?= $GLOBAL['save'] ?>
+        </button>
+        <?php if (isset($dbTemplates[$key])): ?>
+        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline" hx-boost="false">
+          <input type="hidden" name="action"  value="resetEmailTemplate"/>
+          <input type="hidden" name="view"    value="settings"/>
+          <input type="hidden" name="tab"     value="email"/>
+          <input type="hidden" name="tpl_key" value="<?= $safeKey ?>"/>
+          <button type="submit" class="btn btn-outline-secondary btn-sm"
+                  onclick="return confirm(<?= json_encode($GLOBAL['resetToDefaultConfirm']) ?>)">
+            <i class="fas fa-rotate-left me-1" aria-hidden="true"></i><?= htmlspecialchars($GLOBAL['resetToDefault'], ENT_QUOTES, $charset) ?>
+          </button>
+        </form>
+        <?php endif ?>
+      </div>
     </form>
   </div>
 </div>

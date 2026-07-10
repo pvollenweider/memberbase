@@ -1018,6 +1018,9 @@ $GLOBAL['comptaBulkOk']              = "%d Eintrag/Eintr\u{00E4}ge als erledigt 
 $GLOBAL['comptaBulkErrConfirm']      = "Bitte Best\u{00E4}tigungs-Checkbox ankreuzen.";
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Zahlungseingangsbestätigung";
+$GLOBAL['emailTemplateComptaRecap']    = "Zahlungsübersicht";
+$GLOBAL['resetToDefault']              = "Auf Standard zurücksetzen";
+$GLOBAL['resetToDefaultConfirm']       = "Dieses Template auf den Standard zurücksetzen? Ihre Änderungen gehen verloren.";
 $GLOBAL['sendReceiptLabel']            = "Best\u{00E4}tigung an Mitglied senden";
 $GLOBAL['sendReceiptNoEmail']          = "Keine E-Mail-Adresse hinterlegt";
 // Zero-sum compta entries toggle

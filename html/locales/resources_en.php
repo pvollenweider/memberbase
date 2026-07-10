@@ -1018,6 +1018,9 @@ $GLOBAL['comptaBulkOk']              = "%d entry/entries marked as handled.";
 $GLOBAL['comptaBulkErrConfirm']      = "Please check the confirmation checkbox.";
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Payment receipt confirmation";
+$GLOBAL['emailTemplateComptaRecap']    = "Payment summary";
+$GLOBAL['resetToDefault']              = "Reset to default";
+$GLOBAL['resetToDefaultConfirm']       = "Reset this template to the built-in default? Your changes will be lost.";
 $GLOBAL['sendReceiptLabel']            = "Send a confirmation to the member";
 $GLOBAL['sendReceiptNoEmail']          = "No e-mail address on file";
 // Zero-sum compta entries toggle
