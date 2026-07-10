@@ -269,7 +269,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
       </ul>
     </nav>
     <div class="prose">
-<p>MemberBase <strong>v5.0.0</strong> — application PHP 8.2 de gestion des membres pour ONG.
+<p>MemberBase <strong>v5.0.1</strong> — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.</p>
 <blockquote>
 <p><strong>Terminologie.</strong> Depuis la v3.5.4, l&#39;interface parle de <strong>Segment</strong> (au lieu de
@@ -736,16 +736,34 @@ mbSmtpEncryptPassword() / mbSmtpDecryptPassword() / mbSmtpGetOrCreateEncKey()
 <h3 id="handlers-daction">Handlers d&#39;action<a class="anchor" href="#handlers-daction" aria-label="Lien d'ancrage">#</a></h3>
 <div class="table-scroll" role="region" aria-label="Tableau — Handlers d&#39;action" tabindex="0"><table><thead><tr><th scope="col">Fichier</th><th scope="col">Rôle</th></tr></thead><tbody><tr><td><code>includes/actions/settings.php</code></td><td><code>saveSmtp</code>, <code>sendTestEmail</code>, <code>saveEmailTemplate</code>, <code>purgeEmailLog</code>, <code>resendEmail</code>, <code>zefixLookup</code></td></tr>
 <tr><td><code>includes/actions/compta_recap.php</code></td><td><code>sendComptaRecap</code>, <code>sendComptaRecapOne</code>, <code>previewComptaRecap</code> (JSON, rendu HTML réel du template pour la modale), <code>markAllComptaNotified</code></td></tr>
-<tr><td><code>includes/actions/cotisation_reminder.php</code></td><td><code>sendCotisationReminders</code>, <code>sendCotisationReminderOne</code></td></tr></tbody></table></div>
+<tr><td><code>includes/actions/cotisation_reminder.php</code></td><td><code>previewCotisationReminder</code> (JSON), <code>sendCotisationReminders</code>, <code>sendCotisationReminderOne</code></td></tr>
+<tr><td><code>includes/actions/attestation_email.php</code></td><td><code>previewAttestation</code> (JSON), <code>previewAttestationsBulkList</code> (JSON, liste + déjà-envoyés), <code>sendAttestationOne</code>, <code>sendAttestationsBulk</code> (<code>force_ids</code> pour forcer un renvoi ciblé)</td></tr></tbody></table></div>
 <p><code>compta_recap.php</code> factorise le chargement des entrées et la construction des
-variables de template dans des fonctions privées (<code>_recapLoadEntries()</code>,
-<code>_recapBuildVars()</code>, <code>_recapSinceLine()</code>) partagées entre l&#39;envoi réel et
-l&#39;aperçu JSON — garantit que la prévisualisation correspond exactement à
-l&#39;email effectivement envoyé.</p>
-<h3 id="anti-doublon-des-rappels">Anti-doublon des rappels<a class="anchor" href="#anti-doublon-des-rappels" aria-label="Lien d'ancrage">#</a></h3>
-<p><code>cotisation_reminder.php</code> interroge <code>email_log</code> (<code>tpl_key = &#39;tpl_cotisation_reminder&#39;</code>,
-filtré par année) avant d&#39;envoyer, pour ne pas relancer deux fois le même
-membre la même année sans forçage explicite.</p>
+variables de template dans des fonctions <code>mbRecapLoadEntries()</code>,
+<code>mbRecapBuildVars()</code>, <code>mbRecapSinceLine()</code> (<code>includes/lib/compta_recap.php</code>)
+partagées entre l&#39;envoi réel et l&#39;aperçu JSON — garantit que la
+prévisualisation correspond exactement à l&#39;email effectivement envoyé. Même
+principe pour <code>cotisation_reminder.php</code> (<code>mbBuildCotiReminderVars()</code>) et
+<code>attestation_email.php</code> (<code>mbBuildAttestationVarsForUser()</code>,
+<code>includes/lib/attestation.php</code>).</p>
+<h3 id="anti-doublon-des-rappels">Anti-doublon des rappels / envois<a class="anchor" href="#anti-doublon-des-rappels" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li><code>cotisation_reminder.php</code> interroge <code>email_log</code> (<code>tpl_key = &#39;tpl_cotisation_reminder&#39;</code>,
+filtré par <code>YEAR(created_at)</code>) avant d&#39;envoyer, pour ne pas relancer deux fois le même
+membre la même année sans forçage explicite (<code>sendCotisationReminderOne</code> sur une ligne
+déjà relancée).</li>
+<li><code>attestation_email.php</code> fait de même pour <code>tpl_attestation_don</code>, mais matche l&#39;année dans
+le <strong>sujet</strong> de l&#39;email plutôt que <code>created_at</code> (<code>mbGetAlreadySentAttestationIds()</code>) — une
+attestation est souvent envoyée l&#39;année suivant celle qu&#39;elle couvre. L&#39;envoi en masse
+liste les destinataires déjà servis (<code>previewAttestationsBulkList</code>) et ne les renvoie que
+si leur id figure dans <code>force_ids</code>.</li>
+</ul>
+<h3 id="bcc-copie-silencieuse">BCC (copie silencieuse)<a class="anchor" href="#bcc-copie-silencieuse" aria-label="Lien d'ancrage">#</a></h3>
+<p><code>mbSmtpSend()</code> accepte un flag <code>$bcc</code> : si <code>true</code> et <code>app_settings.smtp_reply_to</code> non vide,
+un second <code>RCPT TO</code> est ajouté à l&#39;enveloppe SMTP (pas d&#39;en-tête <code>Bcc:</code> dans le message,
+comportement BCC standard). Câblé sur les rappels de cotisation et attestations de dons,
+individuels comme en masse (case à cocher côté UI, visible seulement si <code>smtp_reply_to</code>
+est configuré).</p>
 <h3 id="zefix-registre-du-commerce-suisse">Zefix (registre du commerce suisse)<a class="anchor" href="#zefix-registre-du-commerce-suisse" aria-label="Lien d'ancrage">#</a></h3>
 <p><code>zefixLookup</code> (action <code>settings.php</code>) interroge l&#39;API REST publique de Zefix
 en deux temps (l&#39;ancien endpoint <code>GET /firm/{uid}</code> est décommissionné) :</p>

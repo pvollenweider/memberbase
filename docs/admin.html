@@ -270,7 +270,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
       </ul>
     </nav>
     <div class="prose">
-<p>Ce guide s&#39;adresse à l&#39;administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 4.0.0). Il couvre l&#39;installation, la configuration, la sécurité, l&#39;API et la maintenance.</p>
+<p>Ce guide s&#39;adresse à l&#39;administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.0.1). Il couvre l&#39;installation, la configuration, la sécurité, l&#39;API et la maintenance.</p>
 <hr>
 <hr>
 <h2 id="1-prérequis">1. Prérequis<a class="anchor" href="#1-prérequis" aria-label="Lien d'ancrage">#</a></h2>
@@ -912,7 +912,7 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 <tr><td>Authentification</td><td>Case à cocher — si activée, expose utilisateur + mot de passe</td></tr>
 <tr><td>Utilisateur / Mot de passe</td><td>Identifiants SMTP. Le mot de passe est <strong>chiffré au repos</strong> dans <code>app_settings</code> avec une clé générée automatiquement par installation (<code>mbSmtpGetOrCreateEncKey()</code>)</td></tr>
 <tr><td>Nom / Email d&#39;expéditeur</td><td>En-têtes <code>From</code> des emails sortants</td></tr>
-<tr><td>Répondre à</td><td>En-tête <code>Reply-To</code> (optionnel)</td></tr></tbody></table></div>
+<tr><td>Répondre à</td><td>En-tête <code>Reply-To</code> (optionnel). Si renseigné, propose aussi une case <strong>BCC</strong> (copie silencieuse à cette adresse, pas d&#39;en-tête <code>Bcc:</code> visible) sur les envois de rappels de cotisation et d&#39;attestations de dons, individuels comme en masse</td></tr></tbody></table></div>
 <p>Un bouton <strong>Envoi de test</strong> permet de vérifier la configuration sans passer par une action métier (<code>sendTestEmail</code>) — affiche le message d&#39;erreur SMTP brut en cas d&#39;échec (utile pour diagnostiquer un souci d&#39;auth ou de certificat SSL).</p>
 <p>Si le SMTP n&#39;est pas configuré ou que l&#39;envoi échoue, les fonctionnalités email (rappels, récapitulatifs) échouent silencieusement côté utilisateur final (pas de blocage de l&#39;action déclenchante) mais l&#39;échec est visible dans le journal des emails.</p>
 <h3 id="142-journal-des-emails-email_log">14.2 Journal des emails (<code>email_log</code>)<a class="anchor" href="#142-journal-des-emails-email_log" aria-label="Lien d'ancrage">#</a></h3>
@@ -925,11 +925,11 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 <h3 id="143-templates-demail">14.3 Templates d&#39;email<a class="anchor" href="#143-templates-demail" aria-label="Lien d'ancrage">#</a></h3>
 <p>Trois templates éditables (objet + corps texte + corps HTML) stockés dans <code>email_templates</code>, avec repli sur un template intégré par défaut si absent :</p>
 <div class="table-scroll" role="region" aria-label="Tableau — Templates d&#39;email" tabindex="0"><table><thead><tr><th scope="col">Clé</th><th scope="col">Usage</th></tr></thead><tbody><tr><td><code>tpl_cotisation_reminder</code></td><td>Rappel de cotisation impayée</td></tr>
-<tr><td><code>tpl_attestation_don</code></td><td>Envoi de l&#39;attestation de don (template configuré, pas encore d&#39;action d&#39;envoi câblée dans l&#39;UI)</td></tr>
+<tr><td><code>tpl_attestation_don</code></td><td>Envoi de l&#39;attestation de don. Placeholders spécifiques : <code>{{formal_greeting}}</code>/<code>{{formal_greeting_text}}</code> (salutation genrée depuis <code>contact.sexe</code>), <code>{{year}}</code>, <code>{{cotisation_note}}</code>/<code>{{cotisation_note_html}}</code> (mention affichée seulement si le membre a payé une cotisation cette année-là)</td></tr>
 <tr><td><code>tpl_payment_receipt</code></td><td>Récapitulatif comptable groupé (compta recap)</td></tr></tbody></table></div>
 <p>Interpolation par <code>{{placeholder}}</code> (pas <code>%s</code>/<code>sprintf</code>). Une modale « Variables disponibles » liste les placeholders utilisables par template (ex. <code>{{firstname}}</code>, <code>{{entries}}</code>, <code>{{total}}</code>, <code>{{org_name}}</code>).</p>
 <h3 id="144-rappels-de-cotisation">14.4 Rappels de cotisation<a class="anchor" href="#144-rappels-de-cotisation" aria-label="Lien d'ancrage">#</a></h3>
-<p>Depuis la vue <strong>Membres perdus</strong> (<code>lapsedMembers</code>), envoi manuel — individuel ou en masse — d&#39;un rappel aux membres ayant cotisé l&#39;année précédente mais pas l&#39;année en cours. Anti-doublon : un membre déjà relancé cette année (<code>email_log.tpl_key = &#39;tpl_cotisation_reminder&#39;</code> + année) n&#39;est pas re-sollicité tant que l&#39;option de forçage n&#39;est pas utilisée.</p>
+<p>Depuis la vue <strong>Membres perdus</strong> (<code>lapsedMembers</code>), envoi manuel — individuel ou en masse — d&#39;un rappel aux membres ayant cotisé l&#39;année précédente mais pas l&#39;année en cours. Anti-doublon : un membre déjà relancé cette année (<code>email_log.tpl_key = &#39;tpl_cotisation_reminder&#39;</code> + année) n&#39;est pas re-sollicité tant que l&#39;option de forçage n&#39;est pas utilisée (bouton <strong>Renvoyer</strong>). L&#39;envoi individuel (et le renvoi) passe par une modale d&#39;<strong>aperçu</strong> (action <code>previewCotisationReminder</code>, sujet + rendu HTML réel du template) avant confirmation — pas de <code>window.confirm()</code> natif.</p>
 <h3 id="145-récapitulatifs-comptables-compta-recap">14.5 Récapitulatifs comptables (compta recap)<a class="anchor" href="#145-récapitulatifs-comptables-compta-recap" aria-label="Lien d'ancrage">#</a></h3>
 <p>Vue <strong><code>comptaRecap</code></strong> : envoi groupé d&#39;un email par membre récapitulant ses entrées comptables non encore notifiées (<code>compta.notified_at IS NULL</code>), filtrable par année. Fonctionnalités :</p>
 <ul>
@@ -939,6 +939,15 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 <li>Annotation automatique de l&#39;année de cotisation dans l&#39;email quand elle diffère de l&#39;année de paiement (<code>compta.cotisation_year</code> — ex. cotisation 2027 payée en décembre 2026), validée côté serveur dans une plage raisonnable (année N-50 à N+1)</li>
 </ul>
 <p>Après envoi, les entrées incluses sont marquées <code>notified_at = NOW()</code> et ne réapparaissent plus dans le lot suivant.</p>
+<h3 id="146-envoi-des-attestations-de-dons-par-email">14.6 Envoi des attestations de dons par email<a class="anchor" href="#146-envoi-des-attestations-de-dons-par-email" aria-label="Lien d'ancrage">#</a></h3>
+<p>Handler <code>html/includes/actions/attestation_email.php</code>, lib <code>html/includes/lib/attestation.php</code>. Actions : <code>previewAttestation</code>, <code>sendAttestationOne</code> (fiche membre / ligne du résumé dons), <code>previewAttestationsBulkList</code>, <code>sendAttestationsBulk</code> (résumé dons).</p>
+<ul>
+<li><strong>Tampon/signature</strong> (<code>html/includes/lib/attestation_stamp.php</code>) : overlay généré via FPDF et fusionné sur le PDF aplati via <code>pdftk stamp</code>. Images non commitées, déposées manuellement par l&#39;admin système dans <code>conf/attestation_stamp.png</code> et <code>conf/attestation_signature.png</code> (hors <code>html/</code>, comme <code>conf/db.php</code> — absentes = pas de tampon, aucune erreur). Toujours appliqué sur les PDF envoyés par email ; opt-in (<code>?stamp=1</code>) sur le téléchargement direct (<code>attestation_don.php</code>/<code>attestation_bulk.php</code>).</li>
+<li><strong>Déjà envoyé cette année</strong> : <code>mbGetAlreadySentAttestationIds()</code> matche <code>email_log.tpl_key=&#39;tpl_attestation_don&#39;</code> sur l&#39;<strong>année dans le sujet</strong> (pas <code>YEAR(created_at)</code>, car une attestation peut être envoyée l&#39;année suivant celle qu&#39;elle couvre). L&#39;envoi en masse liste ces personnes séparément (<code>previewAttestationsBulkList</code>) ; seules celles explicitement cochées (<code>force_ids</code>, liste d&#39;ids séparés par des virgules) sont resendues, les autres comptent dans <code>already</code> (distinct de <code>skipped</code> = pas d&#39;email / échec pdftk).</li>
+<li><strong>Avertissement hors-saison</strong> : si le mois courant n&#39;est pas janvier, une case de confirmation est requise côté client avant l&#39;envoi (individuel et en masse) — aucune vérification serveur, purement UX.</li>
+<li><strong>Régénération depuis le journal</strong> : <code>attestation_don.php?emailid=N</code> relit <code>email_log</code> (user_id, sujet pour l&#39;année, <code>created_at</code> pour la date « Lieu / Date » du PDF), régénère et stampe le PDF avec la date d&#39;envoi d&#39;origine plutôt que la date du jour. Lien affiché dans <code>email_detail.php</code> pour toute entrée <code>tpl_attestation_don</code>.</li>
+<li><strong>BCC</strong> : voir §14.1.</li>
+</ul>
 <hr>
 <h2 id="réglages-de-lapplication">Réglages de l&#39;application<a class="anchor" href="#réglages-de-lapplication" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="général">Général<a class="anchor" href="#général" aria-label="Lien d'ancrage">#</a></h3>

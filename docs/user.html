@@ -577,24 +577,38 @@ segment pour faciliter la relance.</p>
 <hr>
 <h2 id="9-attestations-de-dons">9. Attestations de dons<a class="anchor" href="#9-attestations-de-dons" aria-label="Lien d'ancrage">#</a></h2>
 <p>Une attestation de don est un PDF officiel remis au donateur pour sa déclaration fiscale. Elle
-reprend les versements de l&#39;année (hors types marqués « exclu des dons »).</p>
-<h3 id="depuis-la-fiche-dun-membre">Depuis la fiche d&#39;un membre<a class="anchor" href="#depuis-la-fiche-dun-membre" aria-label="Lien d'ancrage">#</a></h3>
-<ol>
-<li>Ouvrir l&#39;onglet <strong>Compta</strong>, choisir une <strong>année</strong>.</li>
-<li>Cliquer le menu <strong>Attestation</strong> et choisir l&#39;année.</li>
-<li>Le PDF s&#39;ouvre dans un nouvel onglet.</li>
-</ol>
-<h3 id="depuis-laperçu-des-dons-individuelle">Depuis l&#39;aperçu des dons (individuelle)<a class="anchor" href="#depuis-laperçu-des-dons-individuelle" aria-label="Lien d'ancrage">#</a></h3>
-<p>Sur la ligne du donateur, cliquer l&#39;icône <strong>PDF</strong>.</p>
-<h3 id="en-masse-toute-lannée">En masse (toute l&#39;année)<a class="anchor" href="#en-masse-toute-lannée" aria-label="Lien d'ancrage">#</a></h3>
-<ol>
-<li>Dans <strong>Aperçu des dons</strong>, sélectionner l&#39;année.</li>
-<li>Cliquer <strong>Attestations AAAA</strong>.</li>
-<li>Confirmer : un PDF unique regroupant toutes les attestations est généré (la génération peut
-prendre plusieurs minutes et se poursuit dans l&#39;onglet ouvert).</li>
-</ol>
-<p>Seuls les donateurs ayant coché <strong>Souhaite une attestation</strong> sur au moins une entrée de l&#39;année
-sont inclus dans la génération en masse.</p>
+reprend les versements de l&#39;année (hors types marqués « exclu des dons »), avec en option le
+tampon et la signature de l&#39;organisation (images déposées sur le serveur par l&#39;administrateur
+système — pas de réglage dans l&#39;interface, voir la documentation d&#39;administration).</p>
+<h3 id="télécharger-le-pdf">Télécharger le PDF<a class="anchor" href="#télécharger-le-pdf" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li><strong>Depuis la fiche d&#39;un membre</strong> : onglet <strong>Compta</strong>, choisir une année, menu <strong>Attestation</strong>.
+Chaque année propose une case à cocher <strong>Inclure tampon/signature</strong> (décochée par défaut).</li>
+<li><strong>Depuis l&#39;aperçu des dons</strong> : icône <strong>PDF</strong> sur la ligne du donateur (sans tampon/signature).</li>
+<li><strong>En masse (toute l&#39;année)</strong> : dans <strong>Aperçu des dons</strong>, menu <strong>Attestations AAAA</strong> →
+<strong>Télécharger le PDF (toutes)</strong> ou <strong>... avec tampon/signature</strong>. Un PDF unique regroupant
+toutes les attestations est généré (peut prendre plusieurs minutes, se poursuit dans l&#39;onglet
+ouvert). Sont inclus tous les donateurs dont le total de versements de l&#39;année dépasse le
+montant minimum sélectionné (mêmes critères que le tableau <strong>Aperçu des dons</strong>).</li>
+</ul>
+<h3 id="envoyer-par-email-rôles-manager-et-admin">Envoyer par email (rôles Manager et Admin)<a class="anchor" href="#envoyer-par-email-rôles-manager-et-admin" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li><strong>Individuel</strong> : bouton enveloppe à côté du PDF (fiche membre onglet Compta, ou ligne du
+donateur dans l&#39;Aperçu des dons). Un <strong>aperçu de l&#39;email</strong> (sujet + rendu tel qu&#39;il sera reçu)
+s&#39;affiche avant l&#39;envoi. Le tampon/signature est <strong>toujours inclus</strong> dans les envois par email
+(contrairement au téléchargement, où c&#39;est optionnel).</li>
+<li><strong>En masse</strong> : menu <strong>Attestations AAAA</strong> → <strong>Envoyer par email</strong>. Les personnes ayant déjà
+reçu leur attestation cette année sont listées séparément avec une case à cocher (<strong>décochée
+par défaut</strong>) permettant de forcer un renvoi ; les autres sont ignorées automatiquement.</li>
+<li><strong>Copie (BCC)</strong> : si un email de contact est configuré dans Réglages → Email, une case
+<strong>Envoyer une copie à [adresse]</strong> propose d&#39;en recevoir une copie silencieuse, pour l&#39;envoi
+individuel comme en masse.</li>
+<li><strong>Hors saison</strong> : les attestations se font normalement en janvier. En dehors de cette période,
+une case de confirmation explicite est requise avant l&#39;envoi.</li>
+<li><strong>Régénérer une attestation déjà envoyée</strong> : depuis le détail d&#39;un email envoyé (journal des
+emails, Réglages → Email), un bouton <strong>Régénérer l&#39;attestation (PDF)</strong> reproduit le PDF avec
+la date d&#39;envoi d&#39;origine (pas la date du jour).</li>
+</ul>
 <hr>
 <h2 id="10-segments">10. Segments<a class="anchor" href="#10-segments" aria-label="Lien d'ancrage">#</a></h2>
 <p>Les segments découpent les membres en sous-ensembles (membres d&#39;une année, comité, partenaires,
@@ -639,7 +653,7 @@ les sections disponibles dépendent du rôle.</p>
 <tr><td>Segments combinés</td><td>Manager / Admin</td><td>Filtres regroupant plusieurs segments</td></tr>
 <tr><td>Types compta</td><td>Manager / Admin</td><td>Types de versements</td></tr>
 <tr><td>Réglages</td><td>Admin</td><td>Paramètres généraux de l&#39;organisation</td></tr>
-<tr><td>Email</td><td>Admin</td><td>Configuration SMTP, templates d&#39;email, journal des envois (voir §15)</td></tr>
+<tr><td>Email</td><td>Admin</td><td>Configuration SMTP, templates d&#39;email, journal des envois</td></tr>
 <tr><td>Utilisateurs</td><td>Admin</td><td>Comptes de connexion à l&#39;application</td></tr>
 <tr><td>Journal</td><td>Admin</td><td>Journal d&#39;activité</td></tr>
 <tr><td>Intégrité</td><td>Admin</td><td>Vérification et correction des données</td></tr>
@@ -660,7 +674,7 @@ type cotisation, l&#39;année sélectionnée est concaténée (ex. « Cotisation
 <tr><td>Préfixe des segments membres</td><td>Préfixe pour retrouver les segments membres des années (ex. « Membre »)</td></tr>
 <tr><td>Segment affiché par défaut</td><td>Segment ouvert à l&#39;arrivée sur la liste — <strong>à mettre à jour chaque année</strong></td></tr>
 <tr><td>Segment membres (année de référence)</td><td>Utilisé pour les filtres cotisations et l&#39;aperçu des dons — <strong>à mettre à jour chaque année</strong></td></tr>
-<tr><td>Segment membres sans cotisation</td><td>Membres actifs exemptés de cotisation (bénévoles, comité…)</td></tr><tr><td>Numéro IDE</td><td>Identifiant d&#39;entreprise suisse — bouton <strong>Vérifier via Zefix</strong> pour préremplir nom/adresse/but statutaire automatiquement</td></tr><tr><td>But statutaire</td><td>Extrait des statuts, utilisé dans les documents officiels</td></tr><tr><td>Statut d&#39;exonération fiscale</td><td>Saisie manuelle (ex. « Exonérée AFC-GE depuis 2018 »)</td></tr></tbody></table></div>
+<tr><td>Segment membres sans cotisation</td><td>Membres actifs exemptés de cotisation (bénévoles, comité…)</td></tr><tr><td>Numéro IDE</td><td>Identifiant d&#39;entreprise suisse — bouton <strong>Vérifier via Zefix</strong> pour préremplir nom/adresse/but statutaire automatiquement</td></tr><tr><td>But statutaire</td><td>Extrait des statuts, utilisé dans les documents officiels</td></tr><tr><td>Statut d&#39;exonération fiscale</td><td>Saisie manuelle (ex. « Exonérée AFC-GE depuis 2018 »)</td></tr><tr><td>IBAN</td><td>Numéro IBAN de l&#39;association, utilisé pour générer le bulletin de versement QR joint aux rappels de cotisation (voir §16)</td></tr><tr><td>Description du montant (rappels de cotisation)</td><td>Texte affiché dans l&#39;email de rappel et sur le bulletin QR (champ « Montant »), ex. « min. CHF 50.- / pers. · CHF 80.- / famille » — laissé vide, une valeur par défaut est utilisée</td></tr></tbody></table></div>
 <h3 id="utilisateurs-admin">Utilisateurs (Admin)<a class="anchor" href="#utilisateurs-admin" aria-label="Lien d'ancrage">#</a></h3>
 <p>Gestion des comptes de connexion :</p>
 <ul>
@@ -674,6 +688,10 @@ prochaine connexion), <strong>Supprimer</strong>, activer / désactiver un compt
 <h3 id="journal-admin">Journal (Admin)<a class="anchor" href="#journal-admin" aria-label="Lien d'ancrage">#</a></h3>
 <p>Trace les actions effectuées (création, modification, suppression) avec date, utilisateur et
 détail.</p>
+<h3 id="journal-des-emails-réglages-→-email-admin">Journal des emails (Réglages → Email, Admin)<a class="anchor" href="#journal-des-emails-réglages-→-email-admin" aria-label="Lien d'ancrage">#</a></h3>
+<p>Sous l&#39;onglet <strong>Email</strong>, un journal liste tous les emails envoyés par l&#39;application (récapitulatifs
+comptables, rappels de cotisation, tests SMTP…) avec date, destinataire, template utilisé et
+statut (envoyé / erreur).</p>
 <h3 id="intégrité-admin">Intégrité (Admin)<a class="anchor" href="#intégrité-admin" aria-label="Lien d'ancrage">#</a></h3>
 <p>Détecte et aide à corriger les incohérences : membres en double (même nom ou même e-mail, avec
 bouton <strong>Fusionner</strong>), segments masqués encore assignés à une catégorie / un segment combiné /
@@ -743,11 +761,23 @@ décembre 2026), l&#39;email le précise explicitement.</p>
 <p>Accès : vue <strong>Membres perdus</strong> (menu principal ou Réglages → sections liées aux membres).
 Liste les membres ayant cotisé l&#39;année précédente mais pas encore l&#39;année en cours.</p>
 <ul>
-<li><strong>Envoyer un rappel</strong> sur une ligne individuelle, ou en masse pour toute la liste.</li>
+<li><strong>Envoyer un rappel</strong> sur une ligne individuelle, ou en masse pour toute la liste. L&#39;envoi
+individuel (et le renvoi) affiche d&#39;abord un <strong>aperçu de l&#39;email</strong> (sujet + rendu tel qu&#39;il
+sera reçu) avant confirmation.</li>
 <li>Un membre déjà relancé cette année n&#39;est pas resollicité automatiquement (anti-doublon) —
-le statut « Rappel envoyé le [date] » apparaît sur sa ligne.</li>
+le statut « Rappel envoyé le [date] » apparaît sur sa ligne. Un bouton <strong>Renvoyer</strong> reste
+disponible sur ces lignes pour forcer un second envoi (l&#39;aperçu rappelle la date du premier
+envoi).</li>
 <li>Le contenu de l&#39;email est celui configuré dans Réglages → Email → Templates
-(<code>tpl_cotisation_reminder</code>).</li>
+(<code>tpl_cotisation_reminder</code>), avec en pièce jointe un <strong>bulletin de versement QR</strong> suisse
+(généré automatiquement à partir de l&#39;IBAN de l&#39;organisation, voir §11 — Réglages
+généraux) mentionnant la description de montant configurée et « Cotisation AAAA » comme
+message.</li>
+<li><strong>Copie (BCC)</strong> : si un email de contact est configuré dans Réglages → Email, une case
+<strong>Envoyer une copie à [adresse]</strong> propose d&#39;en recevoir une copie silencieuse, à l&#39;envoi
+individuel comme en masse.</li>
+<li>La vue propose aussi un bouton <strong>Créer segment « Membres à relancer AAAA »</strong> pour extraire
+la liste dans un nouveau segment (même principe que pour les donateurs perdus, voir §8).</li>
 </ul>
 
     </div>
