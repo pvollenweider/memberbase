@@ -189,9 +189,9 @@ if ($action == 'deleteSegment') {
 } elseif ($action == 'bulkCreateMetagroup') {
     $name = trim($_REQUEST['metagroupName'] ?? '');
     if ($name && !empty($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
-        $mid = updateAndGetMaxVal("metagroup_id");
-        $pdo->prepare("INSERT INTO metagroup (id, name) VALUES (?, ?)")->execute([$mid, $name]);
-        $stmt = $pdo->prepare("INSERT INTO metagroup (id, segmentid) VALUES (?, ?)");
+        $pdo->prepare("INSERT INTO metagroup (name) VALUES (?)")->execute([$name]);
+        $mid = (int)$pdo->lastInsertId();
+        $stmt = $pdo->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)");
         foreach ($_REQUEST['ids'] as $tid) {
             $tid = (int)$tid;
             if ($tid > 0) $stmt->execute([$mid, $tid]);
@@ -285,7 +285,7 @@ if ($action == 'deleteSegment') {
     $newSegmentId = $segment->id;
     $categoryId = (int)($_REQUEST['categoryId'] ?? 0);
     if ($newSegmentId && $categoryId > 0) {
-        $pdo->prepare("INSERT INTO metagroup (id, segmentid) VALUES (?, ?)")->execute([$categoryId, $newSegmentId]);
+        $pdo->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)")->execute([$categoryId, $newSegmentId]);
     }
     if ($newSegmentId && !empty($_REQUEST['importFrom']) && is_array($_REQUEST['importFrom'])) {
         foreach ($_REQUEST['importFrom'] as $srcId) {
@@ -330,7 +330,7 @@ if ($action == 'deleteSegment') {
     $_auTOldName   = $segment->name;
     $_auTOldHidden = (int)$segment->getHidden();
     $segmentId = (int)$_REQUEST['id'];
-    $_auTOldCatRow = $pdo->prepare("SELECT m.name FROM metagroup m JOIN metagroup j ON j.id=m.id WHERE j.segmentid=? AND m.name IS NOT NULL AND m.is_filter=0 LIMIT 1");
+    $_auTOldCatRow = $pdo->prepare("SELECT m.name FROM metagroup m JOIN metagroup_member mm ON mm.metagroup_id=m.id WHERE mm.segment_id=? AND m.is_filter=0 LIMIT 1");
     $_auTOldCatRow->execute([$segmentId]);
     $_auTOldCat = $_auTOldCatRow->fetchColumn() ?: '—';
     $segment->name = $_REQUEST['name'];
@@ -339,15 +339,15 @@ if ($action == 'deleteSegment') {
     $categoryId = (int)($_REQUEST['categoryId'] ?? 0);
     $_auTNewCat = '—';
     if ($categoryId > 0) {
-        $_auTCatNameRow = $pdo->prepare("SELECT name FROM metagroup WHERE id=? AND name IS NOT NULL LIMIT 1");
+        $_auTCatNameRow = $pdo->prepare("SELECT name FROM metagroup WHERE id=? LIMIT 1");
         $_auTCatNameRow->execute([$categoryId]);
         $_auTNewCat = $_auTCatNameRow->fetchColumn() ?: "id=$categoryId";
     }
-    $pdo->prepare("DELETE FROM metagroup WHERE segmentid=? AND id IN (
-        SELECT id FROM (SELECT id FROM metagroup WHERE name IS NOT NULL AND is_filter=0) AS cats
+    $pdo->prepare("DELETE FROM metagroup_member WHERE segment_id=? AND metagroup_id IN (
+        SELECT id FROM metagroup WHERE is_filter=0
     )")->execute([$segmentId]);
     if ($categoryId > 0) {
-        $pdo->prepare("INSERT INTO metagroup (id, segmentid) VALUES (?, ?)")->execute([$categoryId, $segmentId]);
+        $pdo->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)")->execute([$categoryId, $segmentId]);
     }
     $_auTChanges = [];
     if ($_auTOldName !== $segment->name) $_auTChanges[] = "nom: «{$_auTOldName}» → «{$segment->name}»";

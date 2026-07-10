@@ -17,20 +17,19 @@ try {
 $segmentCounts = [];
 foreach ($countRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 try {
-    $categories = $pdo->query("SELECT DISTINCT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+    $categories = $pdo->query("SELECT id, name FROM metagroup WHERE is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {
     $categories = [];
 }
 
-// Category map for import grouping: segmentid → category name (guard: column may not exist yet)
+// Category map for import grouping: segment_id → category name (guard: table may not exist yet)
 $_importCatRows = [];
 try {
     $_importCatRows = $pdo->query("
-        SELECT j.segmentid, m.name AS cat_name, MIN(m.sort_order) AS sort_order
-        FROM metagroup j
-        JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
-        WHERE j.segmentid IS NOT NULL
-        GROUP BY j.segmentid, m.name
+        SELECT mm.segment_id AS segmentid, m.name AS cat_name, MIN(m.sort_order) AS sort_order
+        FROM metagroup_member mm
+        JOIN metagroup m ON m.id = mm.metagroup_id AND m.is_filter = 0
+        GROUP BY mm.segment_id, m.name
     ")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {}
 $_importSegCat = [];
@@ -173,12 +172,11 @@ try {
                COALESCE(cat.sort_order, 99999) AS cat_sort
         FROM segment t
         LEFT JOIN (
-            SELECT j.segmentid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
-            FROM metagroup j
-            JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-            WHERE j.segmentid IS NOT NULL
-            GROUP BY j.segmentid
-        ) cat ON cat.segmentid = t.id
+            SELECT mm.segment_id, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
+            FROM metagroup_member mm
+            JOIN metagroup c ON c.id = mm.metagroup_id AND c.is_filter = 0
+            GROUP BY mm.segment_id
+        ) cat ON cat.segment_id = t.id
         ORDER BY t.hidden ASC, cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
     ");
 } catch (PDOException $e) { $stmt = null; }

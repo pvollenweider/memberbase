@@ -15,7 +15,7 @@ $action = $_REQUEST['action'];
 
 if ($action == 'updateCategoryOrder') {
     if (!empty($_REQUEST['ids']) && is_array($_REQUEST['ids'])) {
-        $stmt = $pdo->prepare("UPDATE metagroup SET sort_order=? WHERE id=? AND name IS NOT NULL AND is_filter=0");
+        $stmt = $pdo->prepare("UPDATE metagroup SET sort_order=? WHERE id=? AND is_filter=0");
         foreach ($_REQUEST['ids'] as $i => $id) {
             $stmt->execute([$i, (int)$id]);
         }
@@ -24,34 +24,34 @@ if ($action == 'updateCategoryOrder') {
 } elseif ($action == 'updateSegmentCategory') {
     $segmentId = (int)$_REQUEST['id'];
     $categoryId = (int)($_REQUEST['categoryId'] ?? 0);
-    $pdo->prepare("DELETE FROM metagroup WHERE segmentid=? AND id IN (
-        SELECT id FROM (SELECT id FROM metagroup WHERE name IS NOT NULL AND is_filter=0) AS cats
+    $pdo->prepare("DELETE FROM metagroup_member WHERE segment_id=? AND metagroup_id IN (
+        SELECT id FROM metagroup WHERE is_filter=0
     )")->execute([$segmentId]);
     if ($categoryId > 0) {
-        $pdo->prepare("INSERT INTO metagroup (id, segmentid) VALUES (?, ?)")->execute([$categoryId, $segmentId]);
+        $pdo->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)")->execute([$categoryId, $segmentId]);
     }
 
 } elseif ($action == 'updateMetagroupTeams') {
     $mgId = (int)$_REQUEST['id'];
     $selected = !empty($_REQUEST['teams']) && is_array($_REQUEST['teams'])
         ? array_map('intval', $_REQUEST['teams']) : [];
-    $_mgIsFilterRow = $pdo->prepare("SELECT is_filter FROM metagroup WHERE id=? AND name IS NOT NULL LIMIT 1");
+    $_mgIsFilterRow = $pdo->prepare("SELECT is_filter FROM metagroup WHERE id=? LIMIT 1");
     $_mgIsFilterRow->execute([$mgId]);
     $_mgIsCategory = ((int)$_mgIsFilterRow->fetchColumn() === 0);
     if ($_mgIsCategory && !empty($selected)) {
         $_stmtEvict = $pdo->prepare(
-            "DELETE FROM metagroup WHERE segmentid=? AND id!=? AND id IN (SELECT id FROM (SELECT id FROM metagroup WHERE name IS NOT NULL AND is_filter=0) AS _cats)"
+            "DELETE FROM metagroup_member WHERE segment_id=? AND metagroup_id!=? AND metagroup_id IN (SELECT id FROM metagroup WHERE is_filter=0)"
         );
         foreach ($selected as $segmentId) {
             if ($segmentId > 0) $_stmtEvict->execute([$segmentId, $mgId]);
         }
     }
-    $pdo->prepare("DELETE FROM metagroup WHERE id=? AND segmentid IS NOT NULL")->execute([$mgId]);
-    $stmt = $pdo->prepare("INSERT INTO metagroup (id, segmentid) VALUES (?, ?)");
+    $pdo->prepare("DELETE FROM metagroup_member WHERE metagroup_id=?")->execute([$mgId]);
+    $stmt = $pdo->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)");
     foreach ($selected as $segmentId) {
         if ($segmentId > 0) $stmt->execute([$mgId, $segmentId]);
     }
-    $_auMgName = $pdo->prepare("SELECT name FROM metagroup WHERE id=? AND name IS NOT NULL LIMIT 1");
+    $_auMgName = $pdo->prepare("SELECT name FROM metagroup WHERE id=? LIMIT 1");
     $_auMgName->execute([$mgId]);
     $_auMgNameVal = $_auMgName->fetchColumn() ?: "id=$mgId";
     $selectedStr = empty($selected) ? 'aucun' : implode(', ', $selected);
@@ -59,9 +59,10 @@ if ($action == 'updateCategoryOrder') {
 
 } elseif ($action == 'deleteMetagroup') {
     $mgId = (int)$_REQUEST['id'];
-    $_auMgDel = $pdo->prepare("SELECT name FROM metagroup WHERE id=? AND name IS NOT NULL LIMIT 1");
+    $_auMgDel = $pdo->prepare("SELECT name FROM metagroup WHERE id=? LIMIT 1");
     $_auMgDel->execute([$mgId]);
     auditLog($pdo, 'deleteMetagroup', "id=$mgId | " . ($_auMgDel->fetchColumn() ?: ''));
+    $pdo->prepare("DELETE FROM metagroup_member WHERE metagroup_id=?")->execute([$mgId]);
     $pdo->prepare("DELETE FROM metagroup WHERE id=?")->execute([$mgId]);
 
 } elseif ($action == 'addMetagroup') {
@@ -71,7 +72,7 @@ if ($action == 'updateCategoryOrder') {
     $newMgId = $mg->id;
     $isFilter = isset($_REQUEST['is_filter']) ? ((int)$_REQUEST['is_filter'] === 0 ? 0 : 1) : 1;
     if ($newMgId) {
-        $pdo->prepare("UPDATE metagroup SET is_filter=? WHERE id=? AND name IS NOT NULL")->execute([$isFilter, $newMgId]);
+        $pdo->prepare("UPDATE metagroup SET is_filter=? WHERE id=?")->execute([$isFilter, $newMgId]);
     }
     auditLog($pdo, 'addMetagroup', "id=$newMgId | {$_REQUEST['name']} | filtre: " . ($isFilter ? 'oui' : 'non'));
     $_amUrl = appUrl() . '?view=updateMetagroup&id=' . $newMgId . '&created=1';
@@ -85,10 +86,10 @@ if ($action == 'updateCategoryOrder') {
     $mg->name = $_REQUEST['name'];
     $mg->save();
     $isFilter = isset($_REQUEST['is_filter']) ? ((int)$_REQUEST['is_filter'] === 1 ? 1 : 0) : 1;
-    $_auMgOldRow = $pdo->prepare("SELECT is_filter FROM metagroup WHERE id=? AND name IS NOT NULL LIMIT 1");
+    $_auMgOldRow = $pdo->prepare("SELECT is_filter FROM metagroup WHERE id=? LIMIT 1");
     $_auMgOldRow->execute([(int)$_REQUEST['id']]);
     $_auMgOldFilter = (int)$_auMgOldRow->fetchColumn();
-    $pdo->prepare("UPDATE metagroup SET is_filter=? WHERE id=? AND name IS NOT NULL")->execute([$isFilter, (int)$_REQUEST['id']]);
+    $pdo->prepare("UPDATE metagroup SET is_filter=? WHERE id=?")->execute([$isFilter, (int)$_REQUEST['id']]);
     $_auMgChanges = [];
     if ($_auMgOldName !== $mg->name) $_auMgChanges[] = "nom: «{$_auMgOldName}» → «{$mg->name}»";
     if ($_auMgOldFilter !== $isFilter) $_auMgChanges[] = "filtre: " . ($_auMgOldFilter ? 'oui' : 'non') . " → " . ($isFilter ? 'oui' : 'non');

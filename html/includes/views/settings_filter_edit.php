@@ -11,12 +11,12 @@ $mg = new Metagroup();
 $mg->lookupMetagroup($mgId);
 
 // Read is_filter for this metagroup entity row
-$stmtIsFilter = $pdo->prepare("SELECT is_filter FROM metagroup WHERE id=? AND name IS NOT NULL");
+$stmtIsFilter = $pdo->prepare("SELECT is_filter FROM metagroup WHERE id=?");
 $stmtIsFilter->execute([$mgId]);
 $isFilter = (int)($stmtIsFilter->fetchColumn() ?? 1);
 
 // Segments currently in this metagroup
-$stmtIn = $pdo->prepare("SELECT segmentid FROM metagroup WHERE id=? AND segmentid IS NOT NULL");
+$stmtIn = $pdo->prepare("SELECT segment_id FROM metagroup_member WHERE metagroup_id=?");
 $stmtIn->execute([$mgId]);
 $memberTeamIds = $stmtIn->fetchAll(PDO::FETCH_COLUMN);
 $memberTeamIds = array_map('intval', $memberTeamIds);
@@ -32,16 +32,15 @@ usort($allTeams, function($a, $b) use ($memberTeamIds) {
     return strcmp($a->name, $b->name);
 });
 
-// Category map: segmentid → [category_id, category_name]
+// Category map: segment_id → [category_id, category_name]
 $stmtCats = $pdo->query(
-    "SELECT j.segmentid, m.id AS cat_id, m.name AS cat_name
-     FROM metagroup j
-     JOIN metagroup m ON m.id = j.id AND m.name IS NOT NULL AND m.is_filter = 0
-     WHERE j.segmentid IS NOT NULL"
+    "SELECT mm.segment_id, m.id AS cat_id, m.name AS cat_name
+     FROM metagroup_member mm
+     JOIN metagroup m ON m.id = mm.metagroup_id AND m.is_filter = 0"
 );
 $teamCategory = [];
 foreach ($stmtCats->fetchAll(PDO::FETCH_OBJ) as $row) {
-    $teamCategory[(int)$row->segmentid] = ['id' => (int)$row->cat_id, 'name' => $row->cat_name];
+    $teamCategory[(int)$row->segment_id] = ['id' => (int)$row->cat_id, 'name' => $row->cat_name];
 }
 
 // Build ordered groups: members-in-category, then unassigned members, then non-members

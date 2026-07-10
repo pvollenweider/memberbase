@@ -32,8 +32,8 @@ $stmtSegments = $pdo->query("SELECT id, name FROM segment WHERE id != $id AND hi
 $otherSegments = $stmtSegments->fetchAll(PDO::FETCH_OBJ);
 
 // Fetch categories and current category for this segment
-$allCats = $pdo->query("SELECT id, name FROM metagroup WHERE name IS NOT NULL AND is_filter=0 GROUP BY id ORDER BY name ASC")->fetchAll(PDO::FETCH_OBJ);
-$stmtCurrentCat = $pdo->prepare("SELECT c.id FROM metagroup junc JOIN metagroup c ON c.id=junc.id AND c.name IS NOT NULL AND c.is_filter=0 WHERE junc.segmentid=? LIMIT 1");
+$allCats = $pdo->query("SELECT id, name FROM metagroup WHERE is_filter=0 ORDER BY name ASC")->fetchAll(PDO::FETCH_OBJ);
+$stmtCurrentCat = $pdo->prepare("SELECT c.id FROM metagroup_member mm JOIN metagroup c ON c.id=mm.metagroup_id AND c.is_filter=0 WHERE mm.segment_id=? LIMIT 1");
 $stmtCurrentCat->execute([$id]);
 $currentCatId = (int)($stmtCurrentCat->fetchColumn() ?: 0);
 

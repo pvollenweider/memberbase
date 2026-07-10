@@ -39,12 +39,11 @@ $stmtAll = $pdo->query("
            COALESCE(cat.sort_order, 99999) AS cat_sort
     FROM segment t
     LEFT JOIN (
-        SELECT j.segmentid, c.id, c.name, c.sort_order
-        FROM metagroup j
-        JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-        WHERE j.segmentid IS NOT NULL
-        GROUP BY j.segmentid
-    ) cat ON cat.segmentid = t.id
+        SELECT mm.segment_id, c.id, c.name, c.sort_order
+        FROM metagroup_member mm
+        JOIN metagroup c ON c.id = mm.metagroup_id AND c.is_filter = 0
+        GROUP BY mm.segment_id
+    ) cat ON cat.segment_id = t.id
     WHERE 1=1 $whereHidden
     ORDER BY cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
 ");

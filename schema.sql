@@ -65,15 +65,22 @@ CREATE TABLE IF NOT EXISTS `contact_properties` (
   KEY `idx_contact_param` (`user_id`, `parameter`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Smart filters (metagroups)
+-- Smart filters (metagroups) — header row only, one per filter/category
 CREATE TABLE IF NOT EXISTS `metagroup` (
-  `id`         int(11)      NOT NULL,
+  `id`         int(11)      NOT NULL AUTO_INCREMENT,
   `name`       varchar(255) DEFAULT NULL,
-  `segmentid`  int(11)      DEFAULT NULL,
   `is_filter`  tinyint(1)   NOT NULL DEFAULT 1,
   `sort_order` int(11)      NOT NULL DEFAULT 0,
-  KEY `idx_segmentid` (`segmentid`),
-  KEY `idx_id_name`   (`id`, `name`(64))
+  PRIMARY KEY (`id`),
+  KEY `idx_name` (`name`(64))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Metagroup → segment membership join table
+CREATE TABLE IF NOT EXISTS `metagroup_member` (
+  `metagroup_id` int(11) NOT NULL,
+  `segment_id`   int(11) NOT NULL,
+  PRIMARY KEY (`metagroup_id`, `segment_id`),
+  KEY `idx_metagroup_member_segment_id` (`segment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Accounting types

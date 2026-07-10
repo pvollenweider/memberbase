@@ -128,9 +128,9 @@ const FILTER_UNPAID_COTI_CURRENT  = -4;
 const FILTER_UNPAID_COTI_3Y       = -3333;
 const FILTER_NO_ACTIVITY_10Y      = -5555;
 const FILTER_NON_INSTIT_LAST_YEAR = -6666;
-// Sequence counter — still used for metagroup_id only.
-// segment/contact/compta/contact_properties are native AUTO_INCREMENT.
-// metagroup cannot use AUTO_INCREMENT (id shared across header + member rows).
+// Generic sequence counter (see maxval table). No callers left as of the
+// metagroup_member split (#142) and the contact_properties AUTO_INCREMENT
+// migration (#20) — kept as a reusable primitive for any future need.
 function updateAndGetMaxVal(string $parameter): int
 {
     // Atomic under concurrency: LAST_INSERT_ID(expr) records the incremented

@@ -25,12 +25,11 @@ $sub    = $_GET['sub'] ?? null; // 'members' for /api/segments/{id}/members
 // Subquery: resolves the non-filter category (is_filter=0) for each segment.
 define('CAT_JOIN',
     "LEFT JOIN (
-        SELECT j.segmentid, c.id, c.name, c.sort_order
-        FROM metagroup j
-        JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-        WHERE j.segmentid IS NOT NULL
-        GROUP BY j.segmentid
-    ) cat ON cat.segmentid = t.id"
+        SELECT mm.segment_id, c.id, c.name, c.sort_order
+        FROM metagroup_member mm
+        JOIN metagroup c ON c.id = mm.metagroup_id AND c.is_filter = 0
+        GROUP BY mm.segment_id
+    ) cat ON cat.segment_id = t.id"
 );
 
 match (true) {

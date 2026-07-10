@@ -85,13 +85,19 @@ CREATE TABLE IF NOT EXISTS `contact_segment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `metagroup` (
-  `id`         int(11)      NOT NULL,
+  `id`         int(11)      NOT NULL AUTO_INCREMENT,
   `name`       varchar(255) DEFAULT NULL,
-  `segmentid`  int(11)      DEFAULT NULL,
   `is_filter`  tinyint(1)   NOT NULL DEFAULT 1,
   `sort_order` int(11)      NOT NULL DEFAULT 0,
-  KEY `idx_segmentid` (`segmentid`),
-  KEY `idx_id_name` (`id`, `name`(64))
+  PRIMARY KEY (`id`),
+  KEY `idx_name` (`name`(64))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `metagroup_member` (
+  `metagroup_id` int(11) NOT NULL,
+  `segment_id`   int(11) NOT NULL,
+  PRIMARY KEY (`metagroup_id`, `segment_id`),
+  KEY `idx_metagroup_member_segment_id` (`segment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `compta_type` (
@@ -399,14 +405,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
             $setTeam->execute(['membre_team',  (string)$defaultTeamId]);
 
             // Create "Membres" metagroup category and assign both teams
-            $mvRow = $pdo->query("SELECT value FROM maxval WHERE parameter='metagroup_id'")->fetch(PDO::FETCH_OBJ);
-            $metaId = $mvRow ? (int)$mvRow->value + 1 : 1;
             $existingMeta = (int)$pdo->query("SELECT COUNT(*) FROM metagroup WHERE name='Membres'")->fetchColumn();
             if (!$existingMeta) {
-                $pdo->prepare("INSERT INTO metagroup (id, name, segmentid, is_filter, sort_order) VALUES (?, ?, NULL, 0, 1)")->execute([$metaId, 'Membres']);
-                $pdo->prepare("INSERT INTO metagroup (id, name, segmentid, is_filter, sort_order) VALUES (?, NULL, ?, 0, 0)")->execute([$metaId, $prevTeamId]);
-                $pdo->prepare("INSERT INTO metagroup (id, name, segmentid, is_filter, sort_order) VALUES (?, NULL, ?, 0, 0)")->execute([$metaId, $defaultTeamId]);
-                $pdo->prepare("UPDATE maxval SET value=? WHERE parameter='metagroup_id'")->execute([$metaId]);
+                $pdo->prepare("INSERT INTO metagroup (name, is_filter, sort_order) VALUES (?, 0, 1)")->execute(['Membres']);
+                $metaId = (int)$pdo->lastInsertId();
+                $insMember = $pdo->prepare("INSERT INTO metagroup_member (metagroup_id, segment_id) VALUES (?, ?)");
+                $insMember->execute([$metaId, $prevTeamId]);
+                $insMember->execute([$metaId, $defaultTeamId]);
             }
 
             // Seed minimal compta_type if table is empty
@@ -420,12 +425,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
                 ];
                 $ins = $pdo->prepare("INSERT INTO compta_type (label, color, sort_order, is_cotisation, is_excluded_from_donation, is_institutional) VALUES (?,?,?,?,?,?)");
                 foreach ($seedTypes as $t) $ins->execute($t);
-            }
-
-            // Seed maxval if empty
-            $mvCount = (int)$pdo->query("SELECT COUNT(*) FROM maxval")->fetchColumn();
-            if ($mvCount === 0) {
-                $pdo->exec("INSERT INTO maxval (parameter, value) VALUES ('metagroup_id', 0)");
             }
 
             header('Location: install.php?step=5');
@@ -609,7 +608,7 @@ $steps = ['1' => $GLOBAL['stepPrereqs'], '2' => $GLOBAL['stepDatabase'], '3' => 
       <h2 class="h5 mb-1"><?= $GLOBAL['schemaInitTitle'] ?></h2>
       <p class="text-muted small mb-2"><?= $GLOBAL['schemaInitHint'] ?></p>
       <div class="alert alert-light small mb-3">
-        <strong><?= $GLOBAL['tablesCreated'] ?></strong> contact, segment, contact_properties, contact_segment, metagroup, compta, compta_type, maxval, app_settings, app_users, audit_log
+        <strong><?= $GLOBAL['tablesCreated'] ?></strong> contact, segment, contact_properties, contact_segment, metagroup, metagroup_member, compta, compta_type, maxval, app_settings, app_users, audit_log
       </div>
       <form method="post" action="install.php?step=3">
         <button type="submit" class="btn btn-primary w-100"><?= $GLOBAL['createTablesBtn'] ?></button>

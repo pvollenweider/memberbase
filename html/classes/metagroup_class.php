@@ -37,9 +37,8 @@ class Metagroup
         if ($this->id) {
             db()->prepare("UPDATE metagroup SET name=? WHERE id=?")->execute([$this->name, $this->id]);
         } else {
-            $mid = updateAndGetMaxVal("metagroup_id");
-            db()->prepare("INSERT INTO metagroup (id,name) VALUES (?,?)")->execute([$mid, $this->name]);
-            $this->id = $mid;
+            db()->prepare("INSERT INTO metagroup (name) VALUES (?)")->execute([$this->name]);
+            $this->id = (int)db()->lastInsertId();
         }
     }
 
@@ -54,7 +53,7 @@ class Metagroup
         return db()->query(
             "SELECT DISTINCT m.id, m.name FROM metagroup m
              WHERE m.name IS NOT NULL AND m.is_filter = 1
-               AND EXISTS (SELECT 1 FROM metagroup j WHERE j.id=m.id AND j.segmentid IS NOT NULL)
+               AND EXISTS (SELECT 1 FROM metagroup_member mm WHERE mm.metagroup_id=m.id)
              ORDER BY m.name"
         )->fetchAll(PDO::FETCH_OBJ);
     }
@@ -64,8 +63,8 @@ class Metagroup
     {
         $stmt = db()->prepare(
             "SELECT t.name FROM segment t
-             JOIN metagroup j ON j.segmentid = t.id
-             WHERE j.id = ? ORDER BY t.name"
+             JOIN metagroup_member mm ON mm.segment_id = t.id
+             WHERE mm.metagroup_id = ? ORDER BY t.name"
         );
         $stmt->execute([$id]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -74,7 +73,7 @@ class Metagroup
     /** IDs of the segments belonging to a metagroup. @return int[] */
     public static function segmentIds(int $id): array
     {
-        $stmt = db()->prepare("SELECT segmentid FROM metagroup WHERE id=? AND segmentid IS NOT NULL");
+        $stmt = db()->prepare("SELECT segment_id FROM metagroup_member WHERE metagroup_id=?");
         $stmt->execute([$id]);
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }

@@ -80,27 +80,32 @@ test.describe('Lapsed members view', () => {
     const sendOneBtn = page.locator('.js-send-one').first();
     await expect(sendOneBtn).toBeVisible();
 
-    // No request should be sent when the confirmation modal is cancelled.
-    let requestFired = false;
+    // Opening the modal fires a previewCotisationReminder POST (to render the
+    // email) — only a sendCotisationReminderOne POST must NOT fire when cancelled.
+    let sendRequestFired = false;
     const onRequest = (req: any) => {
-      if (req.url().includes('index.php') && req.method() === 'POST') requestFired = true;
+      if (req.url().includes('index.php') && req.method() === 'POST'
+          && (req.postData() ?? '').includes('action=sendCotisationReminderOne')) {
+        sendRequestFired = true;
+      }
     };
     page.on('request', onRequest);
 
-    // Clicking opens the Bootstrap confirm modal (#sendOneModal) — the
-    // native confirm() was replaced by this modal in 7037ba0.
+    // Clicking opens the email preview modal (#cotiPreviewModal) — the
+    // native confirm() was replaced by a Bootstrap modal in 7037ba0, then
+    // upgraded to a full email preview (subject + rendered HTML) before send.
     await sendOneBtn.click();
-    const modal = page.locator('#sendOneModal');
+    const modal = page.locator('#cotiPreviewModal');
     await expect(modal).toBeVisible();
-    await expect(page.locator('#sendOneModalBody')).not.toHaveText('');
+    await expect(page.locator('#coti-modal-frame')).toBeVisible();
 
     // Cancel → modal closes, nothing sent
-    await modal.locator('button[data-bs-dismiss="modal"].btn-secondary').click();
+    await modal.locator('button[data-bs-dismiss="modal"].btn-outline-secondary').click();
     await expect(modal).toBeHidden();
     await page.waitForTimeout(300);
     page.off('request', onRequest);
 
-    expect(requestFired).toBe(false);
+    expect(sendRequestFired).toBe(false);
     await expect(sendOneBtn).toBeEnabled();
   });
 

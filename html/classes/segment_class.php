@@ -72,12 +72,11 @@ class Segment
                    (SELECT COUNT(*) FROM contact_segment us WHERE us.segment_id = t.id) AS member_count
             FROM segment t
             LEFT JOIN (
-                SELECT j.segmentid, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
-                FROM metagroup j
-                JOIN metagroup c ON c.id = j.id AND c.name IS NOT NULL AND c.is_filter = 0
-                WHERE j.segmentid IS NOT NULL
-                GROUP BY j.segmentid
-            ) cat ON cat.segmentid = t.id
+                SELECT mm.segment_id, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
+                FROM metagroup_member mm
+                JOIN metagroup c ON c.id = mm.metagroup_id AND c.name IS NOT NULL AND c.is_filter = 0
+                GROUP BY mm.segment_id
+            ) cat ON cat.segment_id = t.id
             WHERE t.hidden = 0
             ORDER BY cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
         ")->fetchAll(PDO::FETCH_OBJ);
@@ -85,7 +84,7 @@ class Segment
 
     public function isMemberOfMetagroup(int $metagroupId): bool
     {
-        $stmt = db()->prepare("SELECT 1 FROM metagroup WHERE id=? AND segmentid=? LIMIT 1");
+        $stmt = db()->prepare("SELECT 1 FROM metagroup_member WHERE metagroup_id=? AND segment_id=? LIMIT 1");
         $stmt->execute([$metagroupId, $this->id]);
         $result = $stmt->fetchObject() !== false;
         return $result;
@@ -93,14 +92,12 @@ class Segment
 
     public function addMetagroupMembership(int $metagroupId): void
     {
-        if (!$this->isMemberOfMetagroup($metagroupId)) {
-            db()->prepare("INSERT INTO metagroup (id,segmentid) VALUES (?,?)")->execute([$metagroupId, $this->id]);
-        }
+        db()->prepare("INSERT IGNORE INTO metagroup_member (metagroup_id, segment_id) VALUES (?,?)")->execute([$metagroupId, $this->id]);
     }
 
     public function removeMetagroupMembership(int $metagroupId): void
     {
-        db()->prepare("DELETE FROM metagroup WHERE segmentid=? AND id=?")->execute([$this->id, $metagroupId]);
+        db()->prepare("DELETE FROM metagroup_member WHERE segment_id=? AND metagroup_id=?")->execute([$this->id, $metagroupId]);
     }
 
     public function isUsed(): bool
