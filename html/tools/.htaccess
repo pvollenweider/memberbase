@@ -1,0 +1,3 @@
+# Maintenance scripts (migrate.php, backup.sh, restore.sh) are CLI-only.
+# Deny all HTTP access to this directory.
+Require all denied
