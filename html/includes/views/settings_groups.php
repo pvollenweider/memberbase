@@ -50,9 +50,9 @@ ksort($_importByCat);
 
 // Emit undo toast sentinel if set by previous bulk action
 if (!isset($_SESSION)) session_start();
-if (!empty($_SESSION['group_toast'])) {
-    $_gt = $_SESSION['group_toast'];
-    unset($_SESSION['group_toast']);
+if (!empty($_SESSION['segment_toast'])) {
+    $_gt = $_SESSION['segment_toast'];
+    unset($_SESSION['segment_toast']);
     $_gtHidden  = ($_gt['undo_act'] === 'bulkHide') ? 1 : 0;
     $_gtIdsStr  = implode(',', $_gt['undo_ids']);
     $_gtUndoUrl = appUrl() . '?action=undoSegmentVisibility&hidden=' . $_gtHidden . '&ids=' . urlencode($_gtIdsStr) . '&view=settings&tab=groups';

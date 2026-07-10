@@ -4,7 +4,7 @@
  *
  * Loaded at the end of <body> — the DOM (and jQuery) are available.
  * Localized toast messages are read from data attributes on #casaToast
- * (data-msg-saved, data-msg-group-modified) rendered by index.php.
+ * (data-msg-saved, data-msg-segment-modified) rendered by index.php.
  *
  * Dirty-form contract (see CLAUDE.md): inline JS navigation must set
  * window.__dirtyOverride = true before changing window.location, and
@@ -185,7 +185,7 @@ document.addEventListener('htmx:afterSwap', function (e) {
 
     var membership = e.target.querySelector('#casa-membership-toast');
     if (membership) {
-        var msg     = membership.dataset.msg     || toastEl.dataset.msgGroupModified || '';
+        var msg     = membership.dataset.msg     || toastEl.dataset.msgSegmentModified || '';
         var undoUrl = membership.dataset.undoUrl || '';
         msgEl.textContent = msg;
         if (undoEl) {

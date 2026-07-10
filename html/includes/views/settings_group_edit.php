@@ -108,7 +108,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
     <!-- Edit form -->
     <div>
       <div class="d-flex align-items-baseline justify-content-between mb-1">
-        <p class="form-section-title mb-0"><?= $GLOBAL['editGroup'] ?></p>
+        <p class="form-section-title mb-0"><?= $GLOBAL['editSegment'] ?></p>
         <a href="<?= appUrl() ?>?team=<?= (int)$id ?>" class="small">
           <?= $GLOBAL['viewList'] ?> <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
         </a>

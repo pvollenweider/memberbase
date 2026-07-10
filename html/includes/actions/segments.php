@@ -36,7 +36,7 @@ if ($action == 'deleteSegment') {
     if ($targetSegmentId > 0 && $targetSegmentId !== $segmentId) {
         $_auSrc = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auSrc->execute([$segmentId]);
         $_auDst = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auDst->execute([$targetSegmentId]);
-        auditLog(db(), 'reassignSegment', "groupe source: " . ($_auSrc->fetchColumn() ?: "id=$segmentId") . " → groupe cible: " . ($_auDst->fetchColumn() ?: "id=$targetSegmentId"));
+        auditLog(db(), 'reassignSegment', "segment source: " . ($_auSrc->fetchColumn() ?: "id=$segmentId") . " → segment cible: " . ($_auDst->fetchColumn() ?: "id=$targetSegmentId"));
         db()->prepare(
             "INSERT IGNORE INTO contact_segment (user_id, segment_id)
              SELECT user_id, ?
@@ -64,7 +64,7 @@ if ($action == 'deleteSegment') {
         }
     }
     $_auSegN = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auSegN->execute([$segmentId]);
-    auditLog(db(), 'importSegmentMembers', "vers groupe: " . ($_auSegN->fetchColumn() ?: "id=$segmentId") . " | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
+    auditLog(db(), 'importSegmentMembers', "vers segment: " . ($_auSegN->fetchColumn() ?: "id=$segmentId") . " | depuis segments: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
     $_itUrl = appUrl() . '?view=updateSegment&id=' . $segmentId;
     if ($isHtmx) { header('HX-Location: ' . $_itUrl); } else { echo '<script>window.location.replace(' . json_encode($_itUrl) . ');</script>'; }
     exit;
@@ -88,7 +88,7 @@ if ($action == 'deleteSegment') {
         ")->execute($params);
     }
     $_auSegC = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auSegC->execute([$segmentId]);
-    auditLog(db(), 'importCotisants', "vers groupe: " . ($_auSegC->fetchColumn() ?: "id=$segmentId") . " | année: $year");
+    auditLog(db(), 'importCotisants', "vers segment: " . ($_auSegC->fetchColumn() ?: "id=$segmentId") . " | année: $year");
     $_icUrl = appUrl() . '?view=updateSegment&id=' . $segmentId . '&imported=cotisants';
     if ($isHtmx) { header('HX-Location: ' . $_icUrl); } else { echo '<script>window.location.replace(' . json_encode($_icUrl) . ');</script>'; }
     exit;
@@ -124,7 +124,7 @@ if ($action == 'deleteSegment') {
     }
     $_auSegD = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auSegD->execute([$segmentId]);
     $typeLabel = ['institutional' => 'institutionnels', 'non_institutional' => 'non-institutionnels', 'all' => 'tous'][$donorType];
-    auditLog(db(), 'importDonors', "vers groupe: " . ($_auSegD->fetchColumn() ?: "id=$segmentId") . " | année: $year | min: {$minSum} CHF | type: $typeLabel");
+    auditLog(db(), 'importDonors', "vers segment: " . ($_auSegD->fetchColumn() ?: "id=$segmentId") . " | année: $year | min: {$minSum} CHF | type: $typeLabel");
     $_idUrl = appUrl() . '?view=updateSegment&id=' . $segmentId . '&imported=donors';
     if ($isHtmx) { header('HX-Location: ' . $_idUrl); } else { echo '<script>window.location.replace(' . json_encode($_idUrl) . ');</script>'; }
     exit;
@@ -134,11 +134,11 @@ if ($action == 'deleteSegment') {
     if ($ids) {
         $stmt = db()->prepare("UPDATE segment SET hidden=1 WHERE id=?");
         foreach ($ids as $tid) { $stmt->execute([$tid]); }
-        auditLog(db(), 'bulkHide', count($ids) . " groupes masqués");
+        auditLog(db(), 'bulkHide', count($ids) . " segments masqués");
         $n = count($ids);
         if (!isset($_SESSION)) session_start();
-        $_SESSION['group_toast'] = [
-            'msg'      => $n === 1 ? $GLOBAL['oneGroupHidden'] : sprintf($GLOBAL['groupsHidden'], $n),
+        $_SESSION['segment_toast'] = [
+            'msg'      => $n === 1 ? $GLOBAL['oneSegmentHidden'] : sprintf($GLOBAL['segmentsHidden'], $n),
             'undo_ids' => $ids,
             'undo_act' => 'bulkShow',
         ];
@@ -155,11 +155,11 @@ if ($action == 'deleteSegment') {
     if ($ids) {
         $stmt = db()->prepare("UPDATE segment SET hidden=0 WHERE id=?");
         foreach ($ids as $tid) { $stmt->execute([$tid]); }
-        auditLog(db(), 'bulkShow', count($ids) . " groupes affichés");
+        auditLog(db(), 'bulkShow', count($ids) . " segments affichés");
         $n = count($ids);
         if (!isset($_SESSION)) session_start();
-        $_SESSION['group_toast'] = [
-            'msg'      => $n === 1 ? $GLOBAL['oneGroupShown'] : sprintf($GLOBAL['groupsShown'], $n),
+        $_SESSION['segment_toast'] = [
+            'msg'      => $n === 1 ? $GLOBAL['oneSegmentShown'] : sprintf($GLOBAL['segmentsShown'], $n),
             'undo_ids' => $ids,
             'undo_act' => 'bulkHide',
         ];
@@ -177,7 +177,7 @@ if ($action == 'deleteSegment') {
     if ($ids) {
         $stmt = db()->prepare("UPDATE segment SET hidden=? WHERE id=?");
         foreach ($ids as $tid) { $stmt->execute([$hidden, $tid]); }
-        auditLog(db(), $hidden ? 'bulkHide' : 'bulkShow', count($ids) . " groupes (undo) " . ($hidden ? "masqués" : "affichés"));
+        auditLog(db(), $hidden ? 'bulkHide' : 'bulkShow', count($ids) . " segments (undo) " . ($hidden ? "masqués" : "affichés"));
     }
     if ($isHtmx) {
         header('HX-Location: ' . appUrl() . '?view=settings&tab=groups');
@@ -212,11 +212,11 @@ if ($action == 'deleteSegment') {
     $kTo       = mktime(0,0,0,1,1,$yr+1);
 
     if ($groupType === 'donors') {
-        $groupName = sprintf($GLOBAL['lapsedDonorsGroupName'], $yr, date("d.m.Y"));
+        $groupName = sprintf($GLOBAL['lapsedDonorsSegmentName'], $yr, date("d.m.Y"));
         $stmt = db()->prepare("SELECT DISTINCT c.user_id FROM compta c WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($excl) AND c.user_id NOT IN (SELECT DISTINCT user_id FROM compta WHERE date>? AND date<? AND type_id NOT IN ($excl))");
         $stmt->execute([$kFrom1, $kTo1, $kFrom, $kTo]);
     } else {
-        $groupName = sprintf($GLOBAL['lapsedMembersGroupName'], $yr, date("d.m.Y"));
+        $groupName = sprintf($GLOBAL['lapsedMembersSegmentName'], $yr, date("d.m.Y"));
         $cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
         if (empty($cotiTypeIds)) {
             echo '<script>alert("' . addslashes($GLOBAL['noComptaCotiType']) . '");history.back();</script>';
@@ -261,7 +261,7 @@ if ($action == 'deleteSegment') {
             $ins->execute([(int)$uid, $newSegmentId]);
         }
     }
-    auditLog(db(), 'createLapsedSegment', "type: $groupType | année: $yr | groupe créé: $groupName (id=$newSegmentId) | " . count($userIds) . " membres");
+    auditLog(db(), 'createLapsedSegment', "type: $groupType | année: $yr | segment créé: $groupName (id=$newSegmentId) | " . count($userIds) . " membres");
     $_clUrl = appUrl() . '?team=' . $newSegmentId;
     if ($isHtmx) { header('HX-Location: ' . $_clUrl); } else { echo '<script>window.location.replace(' . json_encode($_clUrl) . ');</script>'; }
     exit;
@@ -299,7 +299,7 @@ if ($action == 'deleteSegment') {
             )->execute([$newSegmentId, $srcId]);
         }
     }
-    auditLog(db(), 'addSegmentWithImport', "id=$newSegmentId | {$_REQUEST['name']} | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
+    auditLog(db(), 'addSegmentWithImport', "id=$newSegmentId | {$_REQUEST['name']} | depuis segments: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
     $_atwUrl = appUrl() . '?view=updateSegment&id=' . (int)$newSegmentId;
     if ($isHtmx) { header('HX-Location: ' . $_atwUrl); } else { header('Location: ' . $_atwUrl); }
     exit;
@@ -316,7 +316,7 @@ if ($action == 'deleteSegment') {
     $row->execute([$segmentId]);
     $oldName = $row->fetchColumn();
     if ($oldName === false) {
-        echo json_encode(['ok' => false, 'error' => $GLOBAL['groupNotFound']]);
+        echo json_encode(['ok' => false, 'error' => $GLOBAL['segmentNotFound']]);
         exit;
     }
     db()->prepare("UPDATE segment SET name=? WHERE id=?")->execute([$newName, $segmentId]);
@@ -371,7 +371,7 @@ if ($action == 'deleteSegment') {
             $_auImpSrc = db()->prepare("SELECT name FROM segment WHERE id=?");
             $srcNames = [];
             foreach ($importedFrom as $sid) { $_auImpSrc->execute([$sid]); $srcNames[] = $_auImpSrc->fetchColumn() ?: "id=$sid"; }
-            auditLog(db(), 'importSegmentMembers', "vers groupe: {$segment->name} (id=$segmentId) | depuis: " . implode(', ', $srcNames));
+            auditLog(db(), 'importSegmentMembers', "vers segment: {$segment->name} (id=$segmentId) | depuis: " . implode(', ', $srcNames));
         }
     }
 
@@ -381,7 +381,7 @@ if ($action == 'deleteSegment') {
     $user->assignSegment((int)$_REQUEST['segmentId']);
     $_auSeg = db()->prepare("SELECT name FROM segment WHERE id=?");
     $_auSeg->execute([(int)$_REQUEST['segmentId']]);
-    auditLog(db(), 'assignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) → groupe: " . ($_auSeg->fetchColumn() ?: "id={$_REQUEST['segmentId']}"), (int)$_REQUEST['id']);
+    auditLog(db(), 'assignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) → segment: " . ($_auSeg->fetchColumn() ?: "id={$_REQUEST['segmentId']}"), (int)$_REQUEST['id']);
 
 } elseif ($action == 'unassignSegment') {
     $user = new Contact();
@@ -389,5 +389,5 @@ if ($action == 'deleteSegment') {
     $user->unassignSegment((int)$_REQUEST['segmentId']);
     $_auSeg = db()->prepare("SELECT name FROM segment WHERE id=?");
     $_auSeg->execute([(int)$_REQUEST['segmentId']]);
-    auditLog(db(), 'unassignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) ← groupe: " . ($_auSeg->fetchColumn() ?: "id={$_REQUEST['segmentId']}"), (int)$_REQUEST['id']);
+    auditLog(db(), 'unassignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) ← segment: " . ($_auSeg->fetchColumn() ?: "id={$_REQUEST['segmentId']}"), (int)$_REQUEST['id']);
 }

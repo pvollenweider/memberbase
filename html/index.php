@@ -181,7 +181,7 @@ if ($_pendingMigrations):
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100" aria-live="polite" aria-atomic="true">
     <div id="casaToast" class="toast text-bg-success border-0" role="status" aria-live="polite" aria-atomic="true"
          data-msg-saved="<?= htmlspecialchars($GLOBAL['saved'], ENT_QUOTES, $charset) ?>"
-         data-msg-group-modified="<?= htmlspecialchars($GLOBAL['groupModified'], ENT_QUOTES, $charset) ?>">
+         data-msg-segment-modified="<?= htmlspecialchars($GLOBAL['segmentModified'], ENT_QUOTES, $charset) ?>">
         <div class="d-flex align-items-center px-3 py-2 gap-2">
             <i class="fas fa-check-circle flex-shrink-0" aria-hidden="true"></i>
             <span id="casaToastMsg" class="flex-grow-1"><?= $GLOBAL['saved'] ?></span>

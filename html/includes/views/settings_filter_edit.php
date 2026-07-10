@@ -216,7 +216,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
         <details class="mt-3" style="font-size:0.82rem" id="mg-add-details">
           <summary class="text-muted" style="cursor:pointer;list-style:none;user-select:none;display:flex;align-items:center;gap:0.35rem">
             <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
-            <?= $GLOBAL['addGroups'] ?>
+            <?= $GLOBAL['addSegments'] ?>
           </summary>
           <script>
             document.getElementById('mg-add-details').addEventListener('toggle', function() {
