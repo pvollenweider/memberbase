@@ -164,7 +164,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
       <tr>
         <td class="text-muted">
           <i class="fas fa-eye-slash me-1" style="font-size:0.7rem" aria-hidden="true"></i>
-          <?= htmlentities($row->team_name, ENT_COMPAT, $charset) ?>
+          <?= htmlentities($row->segment_name, ENT_COMPAT, $charset) ?>
         </td>
         <td><?= htmlentities($row->mg_name, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
@@ -198,7 +198,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
       <tr>
         <td class="text-muted">
           <i class="fas fa-eye-slash me-1" style="font-size:0.7rem" aria-hidden="true"></i>
-          <?= htmlentities($row->team_name, ENT_COMPAT, $charset) ?>
+          <?= htmlentities($row->segment_name, ENT_COMPAT, $charset) ?>
         </td>
         <td><?= htmlentities($row->mg_name, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
@@ -232,11 +232,11 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
       <tr>
         <td class="text-muted">
           <i class="fas fa-eye-slash me-1" style="font-size:0.7rem" aria-hidden="true"></i>
-          <?= htmlentities($row->team_name, ENT_COMPAT, $charset) ?>
+          <?= htmlentities($row->segment_name, ENT_COMPAT, $charset) ?>
         </td>
         <td><?= (int)$row->member_count ?></td>
         <td class="text-end">
-          <a href="<?= appUrl() ?>?view=updateSegment&amp;id=<?= (int)$row->team_id ?>"
+          <a href="<?= appUrl() ?>?view=updateSegment&amp;id=<?= (int)$row->segment_id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>

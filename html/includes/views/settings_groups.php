@@ -1,7 +1,7 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * Admin UI for managing groups (teams) and their members.
+ * Admin UI for managing segments and their members.
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -69,7 +69,7 @@ if (!empty($_SESSION['segment_toast'])) {
 
   <div class="d-flex align-items-center gap-2 mb-2">
     <input type="text" class="form-control form-control-sm" id="name" name="name"
-           placeholder="<?= htmlentities($GLOBAL['teamName'], ENT_COMPAT, $charset) ?>" required/>
+           placeholder="<?= htmlentities($GLOBAL['segmentName'], ENT_COMPAT, $charset) ?>" required/>
     <button type="submit" class="btn btn-primary btn-sm flex-shrink-0"><?= $GLOBAL['addBtn'] ?></button>
   </div>
   <?php if (count($categories) > 0): ?>
@@ -113,11 +113,11 @@ if (!empty($_SESSION['segment_toast'])) {
         </div>
         <?php }
 
-        foreach ($_importByCat as $_catName => $_catTeams): ?>
+        foreach ($_importByCat as $_catName => $_catSegments): ?>
         <p class="text-muted mb-0 mt-2" style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em">
           <?= htmlentities($_catName, ENT_COMPAT, $charset) ?>
         </p>
-        <?php foreach ($_catTeams as $t): _renderImportCb($t, $segmentCounts, $charset); endforeach;
+        <?php foreach ($_catSegments as $t): _renderImportCb($t, $segmentCounts, $charset); endforeach;
         endforeach;
 
         if (!empty($_importNoCat)):
@@ -217,14 +217,14 @@ while ($stmt && $row = $stmt->fetchObject()) {
         <?php
     }
     ?>
-        <tr class="<?= $isHidden ? 'text-muted' : '' ?>" data-team-id="<?= $id ?>" data-segment-id="<?= $id ?>">
+        <tr class="<?= $isHidden ? 'text-muted' : '' ?>" data-segment-id="<?= $id ?>">
           <td style="width:1.5rem">
             <input type="checkbox" class="form-check-input bulk-cb" name="ids[]" value="<?= $id ?>">
           </td>
           <td>
             <!-- Static view -->
-            <span class="team-name-view">
-              <a href="<?= appUrl() ?>?team=<?= $id ?>"
+            <span class="segment-name-view">
+              <a href="<?= appUrl() ?>?segment=<?= $id ?>"
                  class="text-decoration-none <?= $isHidden ? 'text-muted' : '' ?>">
                 <?= $name ?>
               </a>
@@ -233,16 +233,16 @@ while ($stmt && $row = $stmt->fetchObject()) {
               <?php endif ?>
             </span>
             <!-- Inline rename input (hidden by default) -->
-            <span class="team-name-edit" style="display:none">
-              <input type="text" class="form-control form-control-sm d-inline-block team-rename-input"
+            <span class="segment-name-edit" style="display:none">
+              <input type="text" class="form-control form-control-sm d-inline-block segment-rename-input"
                      value="<?= $name ?>" maxlength="255"
                      style="width:auto;max-width:220px;font-size:0.82rem;padding:0.15rem 0.4rem;height:auto"
                      aria-label="<?= sprintf($GLOBAL['renameSegmentAria'], $name) ?>"/>
-              <button type="button" class="btn btn-sm btn-success team-rename-save ms-1 px-2 py-0"
+              <button type="button" class="btn btn-sm btn-success segment-rename-save ms-1 px-2 py-0"
                       aria-label="<?= $GLOBAL['saveEnterAria'] ?>" style="font-size:0.75rem;line-height:1.6">
                 <i class="fas fa-check" aria-hidden="true"></i>
               </button>
-              <button type="button" class="btn btn-sm btn-outline-secondary team-rename-cancel px-2 py-0"
+              <button type="button" class="btn btn-sm btn-outline-secondary segment-rename-cancel px-2 py-0"
                       aria-label="<?= $GLOBAL['cancelEscapeAria'] ?>" style="font-size:0.75rem;line-height:1.6">
                 <i class="fas fa-xmark" aria-hidden="true"></i>
               </button>
@@ -250,7 +250,7 @@ while ($stmt && $row = $stmt->fetchObject()) {
           </td>
           <td class="text-end" style="width:4rem;white-space:nowrap">
             <button type="button"
-                    class="btn btn-link btn-sm team-rename-btn p-0 me-2 text-muted"
+                    class="btn btn-link btn-sm segment-rename-btn p-0 me-2 text-muted"
                     aria-label="<?= sprintf($GLOBAL['renameNameAria'], $name) ?>" style="font-size:0.78rem;line-height:1">
               <i class="fas fa-i-cursor" aria-hidden="true"></i>
             </button>
@@ -361,13 +361,13 @@ function toggleHiddenSection(btn) {
   document.body.appendChild(_renameStatus);
 
   // Inline rename
-  document.querySelectorAll('.team-rename-btn').forEach(function(btn) {
+  document.querySelectorAll('.segment-rename-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var row   = btn.closest('tr');
       row._renameTriggerBtn = btn; // store for focus return
-      var view  = row.querySelector('.team-name-view');
-      var edit  = row.querySelector('.team-name-edit');
-      var input = row.querySelector('.team-rename-input');
+      var view  = row.querySelector('.segment-name-view');
+      var edit  = row.querySelector('.segment-name-edit');
+      var input = row.querySelector('.segment-rename-input');
       view.style.display = 'none';
       edit.style.display = '';
       input.focus();
@@ -377,7 +377,7 @@ function toggleHiddenSection(btn) {
 
   function doRename(row) {
     var segmentId = row.dataset.segmentId;
-    var input  = row.querySelector('.team-rename-input');
+    var input  = row.querySelector('.segment-rename-input');
     var name   = input.value.trim();
     if (!name) { input.focus(); return; }
 
@@ -397,12 +397,12 @@ function toggleHiddenSection(btn) {
       });
     }).then(function(data) {
       if (data.ok) {
-        var view = row.querySelector('.team-name-view');
+        var view = row.querySelector('.segment-name-view');
         var link = view.querySelector('a');
         link.textContent = data.name;
         input.value = data.name;
         input.setAttribute('aria-label', <?= json_encode($GLOBAL['renameSegmentAria']) ?>.replace('%s', data.name));
-        row.querySelector('.team-rename-btn').setAttribute('aria-label', <?= json_encode($GLOBAL['renameNameAria']) ?>.replace('%s', data.name));
+        row.querySelector('.segment-rename-btn').setAttribute('aria-label', <?= json_encode($GLOBAL['renameNameAria']) ?>.replace('%s', data.name));
         cancelRename(row);
         _renameStatus.textContent = <?= json_encode($GLOBAL['segmentRenamedTo']) ?>.replace('%s', data.name);
       } else {
@@ -412,23 +412,23 @@ function toggleHiddenSection(btn) {
   }
 
   function cancelRename(row) {
-    var view  = row.querySelector('.team-name-view');
-    var edit  = row.querySelector('.team-name-edit');
+    var view  = row.querySelector('.segment-name-view');
+    var edit  = row.querySelector('.segment-name-edit');
     edit.style.display = 'none';
     view.style.display = '';
     // Return focus to trigger button
     if (row._renameTriggerBtn) { row._renameTriggerBtn.focus(); }
   }
 
-  document.querySelectorAll('.team-rename-save').forEach(function(btn) {
+  document.querySelectorAll('.segment-rename-save').forEach(function(btn) {
     btn.addEventListener('click', function() { doRename(btn.closest('tr')); });
   });
 
-  document.querySelectorAll('.team-rename-cancel').forEach(function(btn) {
+  document.querySelectorAll('.segment-rename-cancel').forEach(function(btn) {
     btn.addEventListener('click', function() { cancelRename(btn.closest('tr')); });
   });
 
-  document.querySelectorAll('.team-rename-input').forEach(function(input) {
+  document.querySelectorAll('.segment-rename-input').forEach(function(input) {
     input.addEventListener('keydown', function(e) {
       if (e.key === 'Enter')  { e.preventDefault(); doRename(input.closest('tr')); }
       if (e.key === 'Escape') { cancelRename(input.closest('tr')); }

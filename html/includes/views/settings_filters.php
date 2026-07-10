@@ -12,7 +12,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 try {
-    $allFilters = db()->query("SELECT m.id, m.name, COUNT(mm.segment_id) AS team_count FROM combined_segment m LEFT JOIN combined_segment_member mm ON mm.combined_segment_id=m.id WHERE m.is_filter=1 GROUP BY m.id, m.name ORDER BY m.name")->fetchAll(PDO::FETCH_OBJ);
+    $allFilters = db()->query("SELECT m.id, m.name, COUNT(mm.segment_id) AS segment_count FROM combined_segment m LEFT JOIN combined_segment_member mm ON mm.combined_segment_id=m.id WHERE m.is_filter=1 GROUP BY m.id, m.name ORDER BY m.name")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {
     $allFilters = [];
 }
@@ -27,7 +27,7 @@ try {
           <?= htmlentities($mg->name, ENT_COMPAT, $charset) ?>
         </a>
       </td>
-      <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= sprintf($GLOBAL['segmentCount'], (int)$mg->team_count, $mg->team_count != 1 ? 's' : '') ?></td>
+      <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= sprintf($GLOBAL['segmentCount'], (int)$mg->segment_count, $mg->segment_count != 1 ? 's' : '') ?></td>
       <td class="text-end" style="width:2rem">
         <a href="<?= appUrl() ?>?view=updateCombinedSegment&amp;id=<?= (int)$mg->id ?>" class="text-decoration-none text-muted" title="<?= $GLOBAL['edit'] ?>">
           <i class="fas fa-pen" style="font-size:0.75rem"></i>

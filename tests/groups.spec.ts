@@ -1,5 +1,5 @@
 /**
- * E2E tests — group (team) management (view, create, rename, delete)
+ * E2E tests — group (segment) management (view, create, rename, delete)
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -8,12 +8,12 @@
 import { test, expect } from '@playwright/test';
 
 // Sequential because rename/delete depend on create
-test.describe.serial('Groups (teams)', () => {
+test.describe.serial('Groups (segments)', () => {
   test('view group list in settings', async ({ page }) => {
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
-    // Team name links use ?team=N href
-    await expect(page.locator('#tab-groups a[href*="?team="]').first()).toBeVisible();
+    // Segment name links use ?segment=N href
+    await expect(page.locator('#tab-groups a[href*="?segment="]').first()).toBeVisible();
   });
 
   test('create a new group', async ({ page }) => {
@@ -28,9 +28,9 @@ test.describe.serial('Groups (teams)', () => {
     await page.waitForURL(/view=updateSegment/, { timeout: 10_000 });
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
-    // Team name link uses ?team=N
+    // Segment name link uses ?segment=N
     await expect(
-      page.locator('#tab-groups a[href*="?team="]').filter({ hasText: 'Membre E2E' }).first()
+      page.locator('#tab-groups a[href*="?segment="]').filter({ hasText: 'Membre E2E' }).first()
     ).toBeVisible({ timeout: 10_000 });
   });
 
@@ -38,11 +38,11 @@ test.describe.serial('Groups (teams)', () => {
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
 
-    // Get the team id from data-team-id on the row
-    const row = page.locator('#tab-groups tr[data-team-id]').filter({ hasText: 'Membre E2E' }).first();
+    // Get the segment id from data-segment-id on the row
+    const row = page.locator('#tab-groups tr[data-segment-id]').filter({ hasText: 'Membre E2E' }).first();
     await expect(row).toBeVisible({ timeout: 10_000 });
-    const segmentId = await row.getAttribute('data-team-id');
-    if (!segmentId) throw new Error('data-team-id not found for Membre E2E');
+    const segmentId = await row.getAttribute('data-segment-id');
+    if (!segmentId) throw new Error('data-segment-id not found for Membre E2E');
 
     // Read CSRF token from the meta tag (same cookie jar = same session)
     const csrf = await page.evaluate(() => {
@@ -58,17 +58,17 @@ test.describe.serial('Groups (teams)', () => {
     // Navigate to settings to verify rename persisted in DB
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
-    await expect(page.locator('#tab-groups a[href*="?team="]').filter({ hasText: 'Membre E2E Renamed' }).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('#tab-groups a[href*="?segment="]').filter({ hasText: 'Membre E2E Renamed' }).first()).toBeVisible({ timeout: 10_000 });
   });
 
   test('delete a group via POST', async ({ page }) => {
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
 
-    const row = page.locator('#tab-groups tr[data-team-id]').filter({ hasText: 'Membre E2E Renamed' }).first();
+    const row = page.locator('#tab-groups tr[data-segment-id]').filter({ hasText: 'Membre E2E Renamed' }).first();
     await expect(row).toBeVisible({ timeout: 10_000 });
-    const segmentId = await row.getAttribute('data-team-id');
-    if (!segmentId) throw new Error('data-team-id not found for Membre E2E Renamed');
+    const segmentId = await row.getAttribute('data-segment-id');
+    if (!segmentId) throw new Error('data-segment-id not found for Membre E2E Renamed');
 
     // Submit deleteSegment — regular form submit (full page)
     const [deleteResponse] = await Promise.all([
@@ -89,14 +89,14 @@ test.describe.serial('Groups (teams)', () => {
     ]);
     await page.goto('/index.php?view=settings&tab=groups');
     await expect(page.locator('#tab-groups')).toBeVisible();
-    await expect(page.locator('#tab-groups a[href*="?team="]').filter({ hasText: 'Membre E2E Renamed' })).toHaveCount(0);
+    await expect(page.locator('#tab-groups a[href*="?segment="]').filter({ hasText: 'Membre E2E Renamed' })).toHaveCount(0);
   });
 
   test('open a group settings page', async ({ page }) => {
     await page.goto('/index.php?view=updateSegment&id=1');
     // updateSegment is inside the settings page at #tab-groups
     await expect(page.locator('#tab-groups')).toBeVisible({ timeout: 10_000 });
-    // The update team form should be present
+    // The update segment form should be present
     await expect(page.locator('#name')).toBeVisible({ timeout: 10_000 });
   });
 });

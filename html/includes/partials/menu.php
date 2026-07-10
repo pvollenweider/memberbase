@@ -78,7 +78,7 @@ if (isset ($_REQUEST["searchString"])) {
             <ul class="navbar-nav me-auto">
                 <li class="nav-item<?= $view == 'list' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>"
-                       title="<?= $GLOBAL['manageTeam'] ?>"><i class="fas fa-list"></i> <?= $GLOBAL['list'] ?></a>
+                       title="<?= $GLOBAL['manageSegments'] ?>"><i class="fas fa-list"></i> <?= $GLOBAL['list'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'lastEntryCompta' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=lastEntryCompta"><i class="fas fa-coins me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?></a>
@@ -124,7 +124,7 @@ if (isset ($_REQUEST["searchString"])) {
 
             <form class="d-flex gap-2 my-2 my-lg-0" role="search" action="<?= appUrl() ?>" method="get" data-no-dirty id="main-search-form">
                 <input type="hidden" name="action" value="search"/>
-                <input type="hidden" name="team" value="<?= FILTER_ALL_EXCEPT_ARCHIVES ?>"/>
+                <input type="hidden" name="segment" value="<?= FILTER_ALL_EXCEPT_ARCHIVES ?>"/>
                 <input class="form-control me-sm-2" id="search" type="search" aria-label="<?= $GLOBAL['search'] ?>" placeholder="<?= $GLOBAL['search'] ?>"
                        name="searchString" value="<?= htmlentities($searchString, ENT_COMPAT, $charset) ?>"
                        autocomplete="off">
@@ -160,7 +160,7 @@ if (isset ($_REQUEST["searchString"])) {
 <div id="mobile-search-bar" class="d-lg-none bg-primary px-3 pb-2" style="display:none!important">
     <form class="d-flex" role="search" action="<?= appUrl() ?>" method="get" data-no-dirty id="mobile-search-form">
         <input type="hidden" name="action" value="search"/>
-        <input type="hidden" name="team" value="-3"/>
+        <input type="hidden" name="segment" value="-3"/>
         <input class="form-control form-control-sm me-2" id="mobile-search" type="search" aria-label="Rechercher"
                placeholder="Chercher…" name="searchString"
                value="<?= htmlentities($searchString, ENT_COMPAT, $charset) ?>"

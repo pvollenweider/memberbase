@@ -208,7 +208,7 @@ function handleList(): void
     if (!canRead()) apiError(403, 'Forbidden');
 
     $search       = trim($_GET['search'] ?? '');
-    $segmentId    = isset($_GET['team']) ? (int)$_GET['team'] : null;
+    $segmentId    = isset($_GET['segment']) ? (int)$_GET['segment'] : null;
     $combinedSegmentId = isset($_GET['combinedSegment']) ? (int)$_GET['combinedSegment'] : null;
     $page         = max(1, (int)($_GET['page']  ?? 1));
     $limit        = min(2000, max(1, (int)($_GET['limit'] ?? 25)));

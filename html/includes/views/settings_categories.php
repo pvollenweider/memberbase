@@ -14,7 +14,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 try {
     $allCats = db()->query("
         SELECT m.id, m.name,
-               COUNT(DISTINCT mm.segment_id) AS team_count
+               COUNT(DISTINCT mm.segment_id) AS segment_count
         FROM combined_segment m
         LEFT JOIN combined_segment_member mm
             ON mm.combined_segment_id = m.id
@@ -36,7 +36,7 @@ try {
         <i class="fas fa-grip-vertical" style="font-size:0.75rem" aria-hidden="true"></i>
       </td>
       <td><?= htmlentities($cat->name, ENT_COMPAT, $charset) ?></td>
-      <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= sprintf($GLOBAL['segmentCount'], (int)$cat->team_count, $cat->team_count != 1 ? 's' : '') ?></td>
+      <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= sprintf($GLOBAL['segmentCount'], (int)$cat->segment_count, $cat->segment_count != 1 ? 's' : '') ?></td>
       <td class="text-end" style="width:2rem">
         <a href="<?= appUrl() ?>?view=updateCombinedSegment&amp;id=<?= (int)$cat->id ?>" class="text-decoration-none text-muted" title="<?= $GLOBAL['edit'] ?>">
           <i class="fas fa-pen" style="font-size:0.75rem"></i>

@@ -1,7 +1,7 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * Form for creating or editing a group (team).
+ * Form for creating or editing a segment.
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -37,7 +37,7 @@ $stmtCurrentCat = db()->prepare("SELECT c.id FROM combined_segment_member mm JOI
 $stmtCurrentCat->execute([$id]);
 $currentCatId = (int)($stmtCurrentCat->fetchColumn() ?: 0);
 
-// Precompute import counts per year (donors + cotisants not yet in team)
+// Precompute import counts per year (donors + cotisants not yet in segment)
 $importCountsPerYear = [];
 $currentYear = (int)date('Y');
 
@@ -109,7 +109,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
     <div>
       <div class="d-flex align-items-baseline justify-content-between mb-1">
         <p class="form-section-title mb-0"><?= $GLOBAL['editSegment'] ?></p>
-        <a href="<?= appUrl() ?>?team=<?= (int)$id ?>" class="small">
+        <a href="<?= appUrl() ?>?segment=<?= (int)$id ?>" class="small">
           <?= $GLOBAL['viewList'] ?> <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
         </a>
       </div>
@@ -155,7 +155,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
         <?php endif ?>
 
         <div class="d-flex gap-2">
-          <button type="submit" id="btn-update-team" class="btn btn-primary btn-sm"><?=$GLOBAL['update']?></button>
+          <button type="submit" id="btn-update-segment" class="btn btn-primary btn-sm"><?=$GLOBAL['update']?></button>
           <a href="<?=appUrl()?>?view=settings&amp;tab=groups" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
         </div>
       </form>
@@ -170,7 +170,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
         <details style="font-size:0.8rem">
           <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem">
             <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
-            <?= $GLOBAL['importMembersFromOtherTeams'] ?>
+            <?= $GLOBAL['importMembersFromOtherSegments'] ?>
           </summary>
           <script>
             document.currentScript.closest('details').addEventListener('toggle', function() {
@@ -393,7 +393,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
-              <select name="targetTeamId" class="form-select form-select-sm" style="width:auto" required>
+              <select name="targetSegmentId" class="form-select form-select-sm" style="width:auto" required>
                 <option value=""><?= $GLOBAL['chooseSegmentOption'] ?></option>
                 <?php foreach ($otherSegments as $t): ?>
                   <?php $cnt = $segmentCounts[(int)$t->id] ?? 0; ?>
@@ -401,7 +401,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
                 <?php endforeach ?>
               </select>
               <button type="button" class="btn btn-sm btn-warning"
-                      data-bs-toggle="modal" data-bs-target="#modal-reassign-team">
+                      data-bs-toggle="modal" data-bs-target="#modal-reassign-segment">
                 <?= $GLOBAL['transferAndDissolve'] ?>
               </button>
             </form>
@@ -418,7 +418,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
         <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
               <button type="button" class="btn btn-sm btn-danger"
-                      data-bs-toggle="modal" data-bs-target="#modal-delete-team-members">
+                      data-bs-toggle="modal" data-bs-target="#modal-delete-segment-members">
                 <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['removeMembersAndDelete'] ?>
               </button>
             </form>
@@ -434,7 +434,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
         <input type="hidden" name="tab"  value="groups"/>
               <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
               <button type="button" class="btn btn-sm btn-danger"
-                      data-bs-toggle="modal" data-bs-target="#modal-delete-team-empty">
+                      data-bs-toggle="modal" data-bs-target="#modal-delete-segment-empty">
                 <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
               </button>
             </form>
@@ -449,11 +449,11 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
 </div>
 
 <?php if ($memberCount > 0): ?>
-<div class="modal fade" id="modal-reassign-team" tabindex="-1" aria-labelledby="modal-reassign-team-label" aria-modal="true">
+<div class="modal fade" id="modal-reassign-segment" tabindex="-1" aria-labelledby="modal-reassign-segment-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-reassign-team-label"><?= $GLOBAL['transferAndDissolve'] ?></h5>
+        <h5 class="modal-title" id="modal-reassign-segment-label"><?= $GLOBAL['transferAndDissolve'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
@@ -470,11 +470,11 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
   </div>
 </div>
 
-<div class="modal fade" id="modal-delete-team-members" tabindex="-1" aria-labelledby="modal-delete-team-members-label" aria-modal="true">
+<div class="modal fade" id="modal-delete-segment-members" tabindex="-1" aria-labelledby="modal-delete-segment-members-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-delete-team-members-label"><?= $GLOBAL['delete'] ?></h5>
+        <h5 class="modal-title" id="modal-delete-segment-members-label"><?= $GLOBAL['delete'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
@@ -491,11 +491,11 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
   </div>
 </div>
 <?php else: ?>
-<div class="modal fade" id="modal-delete-team-empty" tabindex="-1" aria-labelledby="modal-delete-team-empty-label" aria-modal="true">
+<div class="modal fade" id="modal-delete-segment-empty" tabindex="-1" aria-labelledby="modal-delete-segment-empty-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-delete-team-empty-label"><?= $GLOBAL['delete'] ?></h5>
+        <h5 class="modal-title" id="modal-delete-segment-empty-label"><?= $GLOBAL['delete'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">

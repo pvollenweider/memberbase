@@ -8,18 +8,18 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 // Membership toast sentinel
 $_msAction  = $_REQUEST['action'] ?? '';
-$_msTeamId  = (int)($_REQUEST['segmentId'] ?? 0);
+$_msSegmentId  = (int)($_REQUEST['segmentId'] ?? 0);
 $_msUserId  = (int)($_REQUEST['id']     ?? 0);
-if (($_msAction === 'assignSegment' || $_msAction === 'unassignSegment') && $_msTeamId > 0 && $_msUserId > 0) {
-    $_msTeamNameStmt = db()->prepare("SELECT name FROM segment WHERE id=?");
-    $_msTeamNameStmt->execute([$_msTeamId]);
-    $_msTeamName = $_msTeamNameStmt->fetchColumn() ?: sprintf($GLOBAL['segmentNumber'], $_msTeamId);
+if (($_msAction === 'assignSegment' || $_msAction === 'unassignSegment') && $_msSegmentId > 0 && $_msUserId > 0) {
+    $_msSegmentNameStmt = db()->prepare("SELECT name FROM segment WHERE id=?");
+    $_msSegmentNameStmt->execute([$_msSegmentId]);
+    $_msSegmentName = $_msSegmentNameStmt->fetchColumn() ?: sprintf($GLOBAL['segmentNumber'], $_msSegmentId);
     if ($_msAction === 'assignSegment') {
-        $_msMsg     = sprintf($GLOBAL['membershipAdded'], htmlspecialchars($_msTeamName, ENT_QUOTES, $charset));
-        $_msUndoUrl = appUrl() . '?view=generalData&action=unassignSegment&id=' . $_msUserId . '&segmentId=' . $_msTeamId;
+        $_msMsg     = sprintf($GLOBAL['membershipAdded'], htmlspecialchars($_msSegmentName, ENT_QUOTES, $charset));
+        $_msUndoUrl = appUrl() . '?view=generalData&action=unassignSegment&id=' . $_msUserId . '&segmentId=' . $_msSegmentId;
     } else {
-        $_msMsg     = sprintf($GLOBAL['membershipRemoved'], htmlspecialchars($_msTeamName, ENT_QUOTES, $charset));
-        $_msUndoUrl = appUrl() . '?view=generalData&action=assignSegment&id=' . $_msUserId . '&segmentId=' . $_msTeamId;
+        $_msMsg     = sprintf($GLOBAL['membershipRemoved'], htmlspecialchars($_msSegmentName, ENT_QUOTES, $charset));
+        $_msUndoUrl = appUrl() . '?view=generalData&action=assignSegment&id=' . $_msUserId . '&segmentId=' . $_msSegmentId;
     }
     echo '<div id="casa-membership-toast" hidden data-msg="' . htmlspecialchars($_msMsg, ENT_QUOTES, $charset) . '" data-undo-url="' . htmlspecialchars($_msUndoUrl, ENT_QUOTES, $charset) . '"></div>';
 }
@@ -31,7 +31,7 @@ if (isset($_GET['viewall']) && ($_GET['viewall'] === 'true' || $_GET['viewall'] 
 
 $whereHidden = $viewall ? "" : "AND t.hidden = 0";
 
-// Fetch teams with category info
+// Fetch segments with category info
 $stmtAll = db()->query("
     SELECT t.id, t.name, t.hidden,
            COALESCE(cat.name, '') AS cat_name,
@@ -48,13 +48,13 @@ $stmtAll = db()->query("
     ORDER BY cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
 ");
 
-$memberTeams    = [];
-$nonMemberTeams = [];
+$memberSegments    = [];
+$nonMemberSegments = [];
 while ($row = $stmtAll->fetchObject()) {
     if ($user->isMemberOfSegment($row->id)) {
-        $memberTeams[] = $row;
+        $memberSegments[] = $row;
     } elseif (!$row->hidden) {
-        $nonMemberTeams[] = $row;
+        $nonMemberSegments[] = $row;
     }
 }
 
@@ -65,32 +65,32 @@ $_catSortFn = function($a, $b) {
     return $s !== 0 ? $s : strcmp($a['cat_name'], $b['cat_name']);
 };
 
-// Group member teams by category
+// Group member segments by category
 $memberBycat = [];
-foreach ($memberTeams as $t) {
+foreach ($memberSegments as $t) {
     $key = $t->cat_id . '|' . ($t->cat_name ?: '');
     if (!isset($memberBycat[$key])) {
-        $memberBycat[$key] = ['cat_id' => $t->cat_id, 'cat_name' => $t->cat_name, 'cat_sort' => (int)$t->cat_sort, 'teams' => []];
+        $memberBycat[$key] = ['cat_id' => $t->cat_id, 'cat_name' => $t->cat_name, 'cat_sort' => (int)$t->cat_sort, 'segments' => []];
     }
-    $memberBycat[$key]['teams'][] = $t;
+    $memberBycat[$key]['segments'][] = $t;
 }
 uasort($memberBycat, $_catSortFn);
 
-// Group non-member teams by category
+// Group non-member segments by category
 $nonMemberBycat = [];
-foreach ($nonMemberTeams as $t) {
+foreach ($nonMemberSegments as $t) {
     $key = $t->cat_id . '|' . ($t->cat_name ?: '');
     if (!isset($nonMemberBycat[$key])) {
-        $nonMemberBycat[$key] = ['cat_id' => $t->cat_id, 'cat_name' => $t->cat_name, 'cat_sort' => (int)$t->cat_sort, 'teams' => []];
+        $nonMemberBycat[$key] = ['cat_id' => $t->cat_id, 'cat_name' => $t->cat_name, 'cat_sort' => (int)$t->cat_sort, 'segments' => []];
     }
-    $nonMemberBycat[$key]['teams'][] = $t;
+    $nonMemberBycat[$key]['segments'][] = $t;
 }
 uasort($nonMemberBycat, $_catSortFn);
 ?>
 
 <p class="form-section-title" style="margin-top:0"><?= $GLOBAL['groups'] ?></p>
 
-<?php if (empty($memberTeams)): ?>
+<?php if (empty($memberSegments)): ?>
     <p class="text-muted small"><?= $GLOBAL['noSegments'] ?></p>
 <?php else: ?>
     <?php foreach ($memberBycat as $group): ?>
@@ -102,7 +102,7 @@ uasort($nonMemberBycat, $_catSortFn);
         <div class="d-flex flex-wrap gap-1 mb-3">
             <?php
             $_justAdded = (($_REQUEST['action'] ?? '') === 'assignSegment') ? (int)($_REQUEST['segmentId'] ?? 0) : 0;
-            foreach ($group['teams'] as $t):
+            foreach ($group['segments'] as $t):
                 $isNew = $_justAdded === (int)$t->id;
             ?>
                 <?php if (isManager()): ?>
@@ -138,7 +138,7 @@ uasort($nonMemberBycat, $_catSortFn);
         </p>
         <?php endif ?>
         <div class="group-add-list mb-1">
-            <?php foreach ($group['teams'] as $t): ?>
+            <?php foreach ($group['segments'] as $t): ?>
                 <a href="<?= appUrl() ?>?view=generalData&amp;action=assignSegment&amp;id=<?= $user->id ?>&amp;segmentId=<?= $t->id ?>">
                     <i class="far fa-square-plus" aria-hidden="true"></i>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
@@ -206,7 +206,7 @@ uasort($nonMemberBycat, $_catSortFn);
     });
   }
 
-  function _doMembership(action, segmentId, teamName) {
+  function _doMembership(action, segmentId, segmentName) {
     if (_busy) return;
     _busy = true;
     fetch('/api/segments/' + segmentId + '/members', {
@@ -221,9 +221,9 @@ uasort($nonMemberBycat, $_catSortFn);
     })
     .then(function () {
       _busy = false;
-      if (teamName) {
+      if (segmentName) {
         var undoAct = action === 'add' ? 'remove' : 'add';
-        _showToast((action === 'add' ? ADDED_TPL : REMOVED_TPL).replace('%s', teamName), undoAct, segmentId);
+        _showToast((action === 'add' ? ADDED_TPL : REMOVED_TPL).replace('%s', segmentName), undoAct, segmentId);
       }
     })
     .catch(function (err) { _busy = false; console.error('membership error', err); });
@@ -241,8 +241,8 @@ uasort($nonMemberBycat, $_catSortFn);
       e.stopPropagation();
       e.stopImmediatePropagation();
       var segmentId   = _segmentIdFromHref(pill.getAttribute('href'));
-      var teamName = (pill.textContent || '').replace(/✕/g, '').trim();
-      if (segmentId > 0) _doMembership('remove', segmentId, teamName);
+      var segmentName = (pill.textContent || '').replace(/✕/g, '').trim();
+      if (segmentId > 0) _doMembership('remove', segmentId, segmentName);
       return;
     }
     var addLink = e.target.closest('#ca-member-panel .group-add-list a');
@@ -251,8 +251,8 @@ uasort($nonMemberBycat, $_catSortFn);
       e.stopPropagation();
       e.stopImmediatePropagation();
       var segmentId   = _segmentIdFromHref(addLink.getAttribute('href'));
-      var teamName = (addLink.textContent || '').trim();
-      if (segmentId > 0) _doMembership('add', segmentId, teamName);
+      var segmentName = (addLink.textContent || '').trim();
+      if (segmentId > 0) _doMembership('add', segmentId, segmentName);
       return;
     }
   }, true); // capture phase — fires before htmx body bubble listener

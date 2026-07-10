@@ -10,10 +10,10 @@ $searchString = "";
 if (isset ($_REQUEST["searchString"])) {
     $searchString = trim($_REQUEST["searchString"]);
 }
-$team = (int)($appSettings['default_segment'] ?? 0);
+$segment = (int)($appSettings['default_segment'] ?? 0);
 $membre = (int)($appSettings['membre_segment'] ?? 245);
-if (isset ($_REQUEST["team"])) {
-    $team = $_REQUEST["team"];
+if (isset ($_REQUEST["segment"])) {
+    $segment = $_REQUEST["segment"];
 }
 $combinedSegment = 0;
 if (isset($_REQUEST['combinedSegment']) && (int)$_REQUEST['combinedSegment'] > 0) {
@@ -46,7 +46,7 @@ if (isset($_REQUEST['year'])) {
 }
 
 // AJAX search is safe when no complex server-side filter is active
-$_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$team, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
+$_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$segment, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
 
 ?>
 <?php if (!empty($_GET['import_done'])): ?>
@@ -63,53 +63,53 @@ $_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$team, [0, FILTER_ALL_
     <button class="ca-filter-btn dropdown-toggle" id="navbarDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 
                     <?php
-                    $currentTeamTitle = "";
+                    $currentSegmentTitle = "";
                     $currentFilterDesc = "";
                     if ($combinedSegment > 0) {
                         $mg = new CombinedSegment();
                         $mg->lookupCombinedSegment($combinedSegment);
-                        $currentTeamTitle = $mg->getName();
-                    } else if ($team == FILTER_ALL_EXCEPT_ARCHIVES) {
-                        $currentTeamTitle = $GLOBAL['allExceptArchives'];
-                    } else if ($team == FILTER_UNPAID_COTI_3Y) {
-                        $currentTeamTitle = $GLOBAL['cotiUnpayedLast3Years'];
+                        $currentSegmentTitle = $mg->getName();
+                    } else if ($segment == FILTER_ALL_EXCEPT_ARCHIVES) {
+                        $currentSegmentTitle = $GLOBAL['allExceptArchives'];
+                    } else if ($segment == FILTER_UNPAID_COTI_3Y) {
+                        $currentSegmentTitle = $GLOBAL['cotiUnpayedLast3Years'];
                         $_noCotiSegmentId3 = (int)($appSettings['member_no_coti_segment'] ?? 0);
                         $_noCotiExclusion = '';
                         if ($_noCotiSegmentId3 > 0) {
                             try { $_noCotiSegmentNameStr = Segment::nameById($_noCotiSegmentId3); } catch (PDOException $e) { $_noCotiSegmentNameStr = null; }
                             if ($_noCotiSegmentNameStr) {
-                                $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars(appUrl(), ENT_QUOTES, $charset) . '?team=' . $_noCotiSegmentId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiSegmentNameStr, ENT_QUOTES, $charset) . '</a>');
+                                $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars(appUrl(), ENT_QUOTES, $charset) . '?segment=' . $_noCotiSegmentId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiSegmentNameStr, ENT_QUOTES, $charset) . '</a>');
                             }
                         }
                         $currentFilterDesc = sprintf($GLOBAL['filterDescCotiUnpaid3y'], $year-2, $year) . $_noCotiExclusion;
-                    } else if ($team == FILTER_NO_ACTIVITY_10Y) {
-                        $currentTeamTitle = $GLOBAL['nothingLast10Years'];
+                    } else if ($segment == FILTER_NO_ACTIVITY_10Y) {
+                        $currentSegmentTitle = $GLOBAL['nothingLast10Years'];
                         $currentFilterDesc = sprintf($GLOBAL['filterDescNoActivity10y'], $year-10);
-                    } else if ($team == FILTER_NON_INSTIT_LAST_YEAR) {
-                        $currentTeamTitle = $GLOBAL['nonInstitPayedSomethingLastYear'];
+                    } else if ($segment == FILTER_NON_INSTIT_LAST_YEAR) {
+                        $currentSegmentTitle = $GLOBAL['nonInstitPayedSomethingLastYear'];
                         $currentFilterDesc = sprintf($GLOBAL['filterDescNonInstitLastYear'], $year-1);
-                    } else if ($team == FILTER_UNPAID_COTI_CURRENT) {
-                        $currentTeamTitle = $GLOBAL['cotiUnpayed'];
+                    } else if ($segment == FILTER_UNPAID_COTI_CURRENT) {
+                        $currentSegmentTitle = $GLOBAL['cotiUnpayed'];
                         $currentFilterDesc = sprintf($GLOBAL['filterDescCotiUnpaidCurrent'], $year);
-                    } else if ($team > 0) {
+                    } else if ($segment > 0) {
                         try {
-                            $currentteam = new Segment();
-                            $currentteam->lookupSegment($team);
-                            $currentTeamTitle = $currentteam->getName();
+                            $currentsegment = new Segment();
+                            $currentsegment->lookupSegment($segment);
+                            $currentSegmentTitle = $currentsegment->getName();
                         } catch (PDOException $e) {
-                            $currentTeamTitle = $GLOBAL['list'];
+                            $currentSegmentTitle = $GLOBAL['list'];
                         }
                     } else {
-                        $currentTeamTitle = $GLOBAL['list'];
+                        $currentSegmentTitle = $GLOBAL['list'];
                     }
                     ?>
 
-                    <?=$currentTeamTitle?>
+                    <?=$currentSegmentTitle?>
     </button>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="min-width:220px;max-height:80vh;overflow-y:auto;font-size:0.75rem">
 
                     <div class="px-2 pb-1">
-                      <input type="text" id="team-filter-input" class="form-control form-control-sm" placeholder="<?= $GLOBAL['filterPlaceholder'] ?>" autocomplete="off" oninput="filterTeamDropdown(this.value)">
+                      <input type="text" id="segment-filter-input" class="form-control form-control-sm" placeholder="<?= $GLOBAL['filterPlaceholder'] ?>" autocomplete="off" oninput="filterSegmentDropdown(this.value)">
                     </div>
                     <div class="dropdown-divider mt-1 mb-0"></div>
 
@@ -119,7 +119,7 @@ $_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$team, [0, FILTER_ALL_
                     ?>
                     <h6 class="dropdown-header" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em"><?= $GLOBAL['combinedSegments'] ?></h6>
                     <?php foreach ($combinedSegments as $mg): ?>
-                    <a class="dropdown-item team-filterable <?= ($combinedSegment === (int)$mg->id) ? 'active' : '' ?>"
+                    <a class="dropdown-item segment-filterable <?= ($combinedSegment === (int)$mg->id) ? 'active' : '' ?>"
                        href="<?= appUrl() ?>?combinedSegment=<?= (int)$mg->id ?>"
                        data-label="<?= htmlentities(mb_strtolower($mg->name), ENT_COMPAT, $charset) ?>">
                         <i class="fas fa-layer-group me-1 text-muted" aria-hidden="true" style="font-size:0.75rem"></i><?= htmlentities($mg->name, ENT_COMPAT, $charset) ?>
@@ -132,29 +132,29 @@ $_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$team, [0, FILTER_ALL_
                       <i class="fas fa-bolt me-1" aria-hidden="true"></i><?= $GLOBAL['quickFilters'] ?>
                     </h6>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?team=' . FILTER_ALL_EXCEPT_ARCHIVES ?>"><?= $GLOBAL['allExceptArchives'] ?></a>
+                       href="<?= appUrl() . '?segment=' . FILTER_ALL_EXCEPT_ARCHIVES ?>"><?= $GLOBAL['allExceptArchives'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?team=' . FILTER_UNPAID_COTI_3Y ?>"><?= $GLOBAL['cotiUnpayedLast3Years'] ?></a>
+                       href="<?= appUrl() . '?segment=' . FILTER_UNPAID_COTI_3Y ?>"><?= $GLOBAL['cotiUnpayedLast3Years'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?team=' . FILTER_NO_ACTIVITY_10Y ?>"><?= $GLOBAL['nothingLast10Years'] ?></a>
+                       href="<?= appUrl() . '?segment=' . FILTER_NO_ACTIVITY_10Y ?>"><?= $GLOBAL['nothingLast10Years'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?team=' . FILTER_UNPAID_COTI_CURRENT ?>"><?= $GLOBAL['cotiUnpayed'] ?></a>
+                       href="<?= appUrl() . '?segment=' . FILTER_UNPAID_COTI_CURRENT ?>"><?= $GLOBAL['cotiUnpayed'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?team=' . FILTER_NON_INSTIT_LAST_YEAR ?>"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
+                       href="<?= appUrl() . '?segment=' . FILTER_NON_INSTIT_LAST_YEAR ?>"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
 
                         <?php
                         $prevCatId = -1;
                         foreach ((function() { try { return Segment::listForDropdown(); } catch (PDOException $e) { return []; } })() as $row) {
                             $catId = (int)$row->cat_id;
                             if ($catId !== $prevCatId) {
-                                if ($prevCatId !== -1) echo '<div class="dropdown-divider my-0 team-cat-divider" data-cat="' . $catId . '"></div>';
+                                if ($prevCatId !== -1) echo '<div class="dropdown-divider my-0 segment-cat-divider" data-cat="' . $catId . '"></div>';
                                 $prevCatId = $catId;
                                 $label = $row->cat_name ?: $GLOBAL['noCategoryLabel'];
-                                echo '<h6 class="dropdown-header team-cat-header" data-cat="' . $catId . '" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">' . htmlentities($label, ENT_COMPAT, $charset) . '</h6>';
+                                echo '<h6 class="dropdown-header segment-cat-header" data-cat="' . $catId . '" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em">' . htmlentities($label, ENT_COMPAT, $charset) . '</h6>';
                             }
                             ?>
-                            <a class="dropdown-item team-filterable d-flex align-items-center justify-content-between <?php if ($team == $row->id) { ?>active<?php } ?>"
-                               href="<?= appUrl() ?>?team=<?= (int)$row->id ?>"
+                            <a class="dropdown-item segment-filterable d-flex align-items-center justify-content-between <?php if ($segment == $row->id) { ?>active<?php } ?>"
+                               href="<?= appUrl() ?>?segment=<?= (int)$row->id ?>"
                                data-label="<?= htmlentities(mb_strtolower($row->name), ENT_COMPAT, $charset) ?>"
                                data-cat="<?= $catId ?>"
                                style="padding-left:1.5rem">
@@ -178,7 +178,7 @@ $_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$team, [0, FILTER_ALL_
   </a>
   <?php endif ?>
   <?php if (canWrite()): ?>
-  <a href="<?= appUrl() ?>?view=addUser&searchString=<?= $searchString ?><?= $team > 0 ? '&fromSegment=' . $team : '' ?>"
+  <a href="<?= appUrl() ?>?view=addUser&searchString=<?= $searchString ?><?= $segment > 0 ? '&fromSegment=' . $segment : '' ?>"
      class="<?= isManager() ? '' : 'ms-auto ' ?>ca-filter-btn text-decoration-none"
      title="<?= $GLOBAL['addUser'] ?>">
     <i class="fas fa-user-plus" aria-hidden="true"></i>
@@ -187,41 +187,41 @@ $_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$team, [0, FILTER_ALL_
   <?php endif ?>
 </div>
 <script>
-function filterTeamDropdown(q) {
+function filterSegmentDropdown(q) {
   var val = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  document.querySelectorAll('.team-filterable').forEach(function(el) {
+  document.querySelectorAll('.segment-filterable').forEach(function(el) {
     var label = (el.dataset.label || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
-    el.classList.toggle('team-hidden', !label.includes(val));
+    el.classList.toggle('segment-hidden', !label.includes(val));
   });
-  document.querySelectorAll('.team-cat-header').forEach(function(h) {
+  document.querySelectorAll('.segment-cat-header').forEach(function(h) {
     var cat = h.dataset.cat;
-    var hasVisible = Array.from(document.querySelectorAll('.team-filterable[data-cat="' + cat + '"]')).some(function(el) {
-      return !el.classList.contains('team-hidden');
+    var hasVisible = Array.from(document.querySelectorAll('.segment-filterable[data-cat="' + cat + '"]')).some(function(el) {
+      return !el.classList.contains('segment-hidden');
     });
     var display = hasVisible ? '' : 'none';
     h.style.display = display;
-    var divider = document.querySelector('.team-cat-divider[data-cat="' + cat + '"]');
+    var divider = document.querySelector('.segment-cat-divider[data-cat="' + cat + '"]');
     if (divider) divider.style.display = display;
   });
-  document.querySelectorAll('.team-filterable.kb-focus').forEach(function(el) { el.classList.remove('kb-focus'); });
+  document.querySelectorAll('.segment-filterable.kb-focus').forEach(function(el) { el.classList.remove('kb-focus'); });
 }
 
 function visibleItems() {
-  return Array.from(document.querySelectorAll('.team-filterable')).filter(function(el) {
-    return !el.classList.contains('team-hidden');
+  return Array.from(document.querySelectorAll('.segment-filterable')).filter(function(el) {
+    return !el.classList.contains('segment-hidden');
   });
 }
 
 // Use document-level delegation so these listeners survive htmx content swaps.
 // One-time init guard prevents duplicates when the script re-executes on boost navigation.
-if (!window._caTeamFilterInit) {
-  window._caTeamFilterInit = true;
+if (!window._caSegmentFilterInit) {
+  window._caSegmentFilterInit = true;
 
   document.addEventListener('keydown', function(e) {
-    if (!e.target || e.target.id !== 'team-filter-input') return;
+    if (!e.target || e.target.id !== 'segment-filter-input') return;
     var items = visibleItems();
     if (!items.length) return;
-    var focused = document.querySelector('.team-filterable.kb-focus');
+    var focused = document.querySelector('.segment-filterable.kb-focus');
 
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
@@ -243,17 +243,17 @@ if (!window._caTeamFilterInit) {
 
   document.addEventListener('shown.bs.dropdown', function(e) {
     if (!e.target || e.target.id !== 'navbarDropdown') return;
-    var input = document.getElementById('team-filter-input');
+    var input = document.getElementById('segment-filter-input');
     if (!input) return;
     input.value = '';
-    filterTeamDropdown('');
+    filterSegmentDropdown('');
     setTimeout(function() { input.focus(); }, 0);
   });
 }
 </script>
 <style>
-.team-filterable.kb-focus { background: var(--ca-primary-light) !important; color: var(--ca-primary-dark) !important; }
-.team-filterable.team-hidden { display: none !important; }
+.segment-filterable.kb-focus { background: var(--ca-primary-light) !important; color: var(--ca-primary-dark) !important; }
+.segment-filterable.segment-hidden { display: none !important; }
 .text-bg-ca-orange  { background-color: rgba(253,126,20,0.85)  !important; color:#fff !important; }
 .text-bg-ca-teal    { background-color: rgba(32,201,151,0.85)  !important; color:#fff !important; }
 .text-bg-ca-pink    { background-color: rgba(214,51,132,0.85)  !important; color:#fff !important; }
@@ -266,11 +266,11 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
 ?>
 <?php if ($combinedSegment > 0):
-    $mgTeamNames = CombinedSegment::segmentNames($combinedSegment);
-    if ($mgTeamNames): ?>
+    $mgSegmentNames = CombinedSegment::segmentNames($combinedSegment);
+    if ($mgSegmentNames): ?>
 <p class="text-muted mb-2" style="font-size:0.8rem">
     <i class="fas fa-layer-group me-1" aria-hidden="true"></i>
-    <?= implode(' · ', array_map(fn($n) => htmlspecialchars($n, ENT_QUOTES, $charset), $mgTeamNames)) ?>
+    <?= implode(' · ', array_map(fn($n) => htmlspecialchars($n, ENT_QUOTES, $charset), $mgSegmentNames)) ?>
 </p>
     <?php endif; endif; ?>
 <p id="ca-filter-desc" class="text-muted mb-2" style="font-size:0.78rem<?= empty($currentFilterDesc) ? ';display:none' : '' ?>">
@@ -303,7 +303,7 @@ $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
             <?=$GLOBAL['creationDate']?>
     </th>
     <th class="d-none d-sm-table-cell"><?= $GLOBAL['typesHeader'] ?></th>
-    <?php if ($team == FILTER_NO_ACTIVITY_10Y): ?>
+    <?php if ($segment == FILTER_NO_ACTIVITY_10Y): ?>
     <th class="d-none d-sm-table-cell" style="font-size:0.75rem;white-space:nowrap"><?= $GLOBAL['comptaHistory'] ?></th>
     <?php endif ?>
 </tr>
@@ -314,23 +314,23 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 // Virtual filters — matching IDs resolved once via the shared MemberFilter
 // class (same source of truth as /api/contacts, see issue #57)
 $_virtualIds = null;
-if (in_array((int)$team, MemberFilter::RESOLVABLE, true)) {
-    $_virtualIds = MemberFilter::resolveIds((int)$team, db(), (int)$year, $appSettings);
+if (in_array((int)$segment, MemberFilter::RESOLVABLE, true)) {
+    $_virtualIds = MemberFilter::resolveIds((int)$segment, db(), (int)$year, $appSettings);
 }
 
 // Pre-fetch compta summary for the FILTER_NO_ACTIVITY_10Y history column
 $_compta5555 = [];
-if ($team == FILTER_NO_ACTIVITY_10Y) {
+if ($segment == FILTER_NO_ACTIVITY_10Y) {
     $_compta5555 = Compta::activitySummaryByUser((int)$year);
 }
 
 // Fetch — query construction and execution live in Contact::listWithFilters()
 $_allRows = Contact::listWithFilters([
-    'team'         => (int)$team,
+    'segment'         => (int)$segment,
     'combinedSegment'    => $combinedSegment,
     'searchString' => $searchString,
     'action'       => $action,
-    'membreTeam'   => $membre,
+    'membreSegment' => $membre,
     'orderColumn'  => $orderColumn,
     'orderSort'    => $orderSort,
 ]);
@@ -350,7 +350,7 @@ foreach ($_allRows as $row) {
     $user = new Contact();
     $user->id = $id;
 
-    if ($team == -1234) {
+    if ($segment == -1234) {
         $displayLine = false;
         if ($user->isCotisationPayed(2004) != -1 ||
             $user->isCotisationPayed(2005) != -1 ||
@@ -426,7 +426,7 @@ foreach ($_allRows as $row) {
               </a>
               <?php endif ?>
             </td>
-            <?php if ($team == FILTER_NO_ACTIVITY_10Y):
+            <?php if ($segment == FILTER_NO_ACTIVITY_10Y):
                 $_c5 = $_compta5555[$user->getId()] ?? null; ?>
             <td class="d-none d-sm-table-cell text-muted" style="font-size:0.72rem;line-height:1.3">
                 <?php if ($_c5 && (int)$_c5->total > 0):
@@ -458,7 +458,7 @@ if ($searchString) {
     <?php
 
 }
-if ($team == FILTER_UNPAID_COTI_CURRENT) {
+if ($segment == FILTER_UNPAID_COTI_CURRENT) {
     ?><span style="color:red"><?= sprintf($GLOBAL['missedRevenue'], $rowCount*50, $year) ?></span><br/><?php
 }
 ?>
@@ -558,7 +558,7 @@ $(document).ready(caInitDT);
   var _abortCtrl  = null;
   var _loaderTimer = null;
 
-  // Virtual filter team IDs — must fall back to server-side render
+  // Virtual filter segment IDs — must fall back to server-side render
   var VIRTUAL_FILTERS = [-3, -4, -3333, -5555, -6666];
 
   // Loader — after 200 ms replaces tbody with a spinner row; hidden on resolve/reject
@@ -644,8 +644,8 @@ $(document).ready(caInitDT);
 
         // Update filter description for virtual filters
         var _usp  = new URLSearchParams(apiUrl.split('?')[1] || '');
-        var _team = _usp.has('team') ? _usp.get('team') : null;
-        setFilterDesc(_team ? (FILTER_DESCS[_team] || '') : '');
+        var _segment = _usp.has('segment') ? _usp.get('segment') : null;
+        setFilterDesc(_segment ? (FILTER_DESCS[_segment] || '') : '');
 
         history.pushState({caState: {apiUrl: apiUrl, pushUrl: pushUrl, searchTerm: searchTerm}}, '', pushUrl);
       })
@@ -659,7 +659,7 @@ $(document).ready(caInitDT);
   function doSearch(q) {
     var apiUrl  = '/api/contacts?limit=2000&types=1' + (q ? '&search=' + encodeURIComponent(q) : '');
     var pushUrl = window.location.pathname + (q
-      ? '?action=search&team=<?= FILTER_ALL_EXCEPT_ARCHIVES ?>&searchString=' + encodeURIComponent(q)
+      ? '?action=search&segment=<?= FILTER_ALL_EXCEPT_ARCHIVES ?>&searchString=' + encodeURIComponent(q)
       : '?view=usersList');
     doFetch(apiUrl, pushUrl, q);
   }
@@ -683,27 +683,27 @@ $(document).ready(caInitDT);
     });
   }
 
-  // Intercept team/combined-segment dropdown links (skip virtual filters)
+  // Intercept segment/combined-segment dropdown links (skip virtual filters)
   document.addEventListener('click', function(e) {
     var link = e.target.closest('.dropdown-item[href]');
     if (!link) return;
     var href = link.getAttribute('href') || '';
     var usp  = new URLSearchParams(href.split('?')[1] || '');
-    var teamVal = usp.has('team') ? parseInt(usp.get('team'), 10) : null;
+    var segmentVal = usp.has('segment') ? parseInt(usp.get('segment'), 10) : null;
     var mgVal   = usp.has('combinedSegment') ? parseInt(usp.get('combinedSegment'), 10) : null;
 
-    // Let non-team/non-combined-segment links navigate normally
-    if (teamVal === null && mgVal === null) return;
+    // Let non-segment/non-combined-segment links navigate normally
+    if (segmentVal === null && mgVal === null) return;
 
     e.preventDefault();
     e.stopPropagation();       // prevent event reaching htmx bubble listener on body
     e.stopImmediatePropagation();
 
     var apiUrl = '/api/contacts?limit=2000&types=1';
-    if (teamVal !== null && teamVal !== 0) apiUrl += '&team=' + teamVal;
+    if (segmentVal !== null && segmentVal !== 0) apiUrl += '&segment=' + segmentVal;
     if (mgVal   !== null && mgVal   > 0)  apiUrl += '&combinedSegment=' + mgVal;
 
-    // team=0 = all members, no extra param needed
+    // segment=0 = all members, no extra param needed
     doFetch(apiUrl, href, '');
 
     // Update active state in dropdown

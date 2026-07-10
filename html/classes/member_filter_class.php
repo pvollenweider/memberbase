@@ -4,7 +4,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * Virtual member filters — single source of truth shared by the members
  * list view (users_list.php) and the REST API (api/contacts.php).
  *
- * A "virtual filter" is a negative team ID (constants FILTER_* in
+ * A "virtual filter" is a negative segment ID (constants FILTER_* in
  * lib/bootstrap.php) that selects members by business rules on their
  * accounting history instead of segment membership.
  *

@@ -1,7 +1,7 @@
 /**
  * E2E tests — vue/API parity for virtual filters
  *
- * The virtual filters (negative team IDs) are resolved by the shared
+ * The virtual filters (negative segment IDs) are resolved by the shared
  * MemberFilter class (issue #57). The members list view and /api/contacts
  * MUST return the same member set for every filter. This spec locks that
  * invariant: it compares the API total against the number of rows the
@@ -29,11 +29,11 @@ test.use({ storageState: ADMIN_STATE });
 
 for (const [name, filterId] of Object.entries(VIRTUAL_FILTERS)) {
   test(`${name} (${filterId}): view row count matches API total`, async ({ page, request }) => {
-    const res = await request.get(`/api/contacts?team=${filterId}&limit=1`);
+    const res = await request.get(`/api/contacts?segment=${filterId}&limit=1`);
     expect(res.ok()).toBeTruthy();
     const apiTotal = (await res.json()).meta.total;
 
-    await page.goto(`/index.php?team=${filterId}`);
+    await page.goto(`/index.php?segment=${filterId}`);
     const viewRows = await page.locator('tbody tr.ca-row-link').count();
 
     expect(viewRows, `view rows should equal API total for ${name}`).toBe(apiTotal);

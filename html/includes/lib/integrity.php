@@ -23,7 +23,7 @@ function mbRunIntegrityChecks(PDO $db): array
     // Queries referencing segment/user_segment may fail before migrations 0013/0014 are applied.
     try {
         $hiddenInCats = $db->query("
-            SELECT DISTINCT t.id AS team_id, t.name AS team_name,
+            SELECT DISTINCT t.id AS segment_id, t.name AS segment_name,
                    m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
             FROM segment t
             JOIN combined_segment_member mm ON mm.segment_id = t.id
@@ -32,7 +32,7 @@ function mbRunIntegrityChecks(PDO $db): array
             ORDER BY m.sort_order, m.name, t.name
         ")->fetchAll(PDO::FETCH_OBJ);
         $hiddenInMeta = $db->query("
-            SELECT DISTINCT t.id AS team_id, t.name AS team_name,
+            SELECT DISTINCT t.id AS segment_id, t.name AS segment_name,
                    m.id AS mg_id, m.name AS mg_name, m.sort_order AS mg_sort
             FROM segment t
             JOIN combined_segment_member mm ON mm.segment_id = t.id
@@ -41,7 +41,7 @@ function mbRunIntegrityChecks(PDO $db): array
             ORDER BY m.sort_order, m.name, t.name
         ")->fetchAll(PDO::FETCH_OBJ);
         $hiddenWithMembers = $db->query("
-            SELECT t.id AS team_id, t.name AS team_name,
+            SELECT t.id AS segment_id, t.name AS segment_name,
                    COUNT(us.user_id) AS member_count
             FROM segment t
             JOIN contact_segment us ON us.segment_id = t.id

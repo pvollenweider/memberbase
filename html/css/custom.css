@@ -265,13 +265,13 @@ div.dataTables_info {
     padding-top: 0.5rem;
 }
 
-/* Compact team dropdown */
+/* Compact segment dropdown */
 .navbar .dropdown-menu .dropdown-item {
     padding-top: 0.15rem;
     padding-bottom: 0.15rem;
     font-size: 0.82rem;
 }
-.navbar .dropdown-menu .team-filterable {
+.navbar .dropdown-menu .segment-filterable {
     padding-left: 1.75rem;
 }
 .navbar .dropdown-menu .dropdown-header {

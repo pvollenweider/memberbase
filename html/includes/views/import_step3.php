@@ -43,7 +43,7 @@ $_fieldLabels = importFieldLabels();
     <div class="alert alert-info py-2 px-3 mb-4" style="font-size:0.85rem">
       <i class="fas fa-users me-1" aria-hidden="true"></i>
       <?= sprintf($GLOBAL['contactsAddedToSegment'], (int)$_segment['added'], (int)$_segment['added'] > 1 ? 's' : '', (int)$_segment['added'] > 1 ? 's' : '') ?>
-      <a href="<?= appUrl() ?>?team=<?= (int)$_segment['id'] ?>" class="alert-link"><?= htmlspecialchars($_segment['name'], ENT_QUOTES, $charset) ?></a>.
+      <a href="<?= appUrl() ?>?segment=<?= (int)$_segment['id'] ?>" class="alert-link"><?= htmlspecialchars($_segment['name'], ENT_QUOTES, $charset) ?></a>.
     </div>
     <?php endif ?>
 

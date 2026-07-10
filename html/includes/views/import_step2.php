@@ -17,8 +17,8 @@ if (empty($_headers) || empty($_rows)) {
 // Scan up to 25 rows for examples — the first row is often sparse
 $_preview = array_slice($_rows, 0, 25);
 
-// Segments (teams) and categories for the "add to segment" section
-$_segTeams  = db()->query("SELECT id, name FROM segment WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+// Segments and categories for the "add to segment" section
+$_segSegments  = db()->query("SELECT id, name FROM segment WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 $_segCats   = db()->query("SELECT id, name FROM combined_segment WHERE is_filter = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 $_segAutoName = sprintf($GLOBAL['importSegmentName'], date('d.m.Y H:i'));
 
@@ -122,11 +122,11 @@ $_autoMap = [
           </label>
         </div>
         <div class="form-check">
-          <input class="form-check-input" type="radio" name="segment_mode" id="seg-existing" value="existing" x-model="mode" data-no-dirty <?= empty($_segTeams) ? 'disabled' : '' ?>>
+          <input class="form-check-input" type="radio" name="segment_mode" id="seg-existing" value="existing" x-model="mode" data-no-dirty <?= empty($_segSegments) ? 'disabled' : '' ?>>
           <label class="form-check-label" for="seg-existing" style="font-size:0.85rem"><?= $GLOBAL['addToExistingSegment'] ?></label>
           <div class="mt-1" x-show="mode === 'existing'" x-cloak>
             <select name="segment_existing_id" class="form-select form-select-sm" data-no-dirty style="max-width:320px">
-              <?php foreach ($_segTeams as $_t): ?>
+              <?php foreach ($_segSegments as $_t): ?>
               <option value="<?= (int)$_t->id ?>"><?= htmlspecialchars($_t->name, ENT_QUOTES, $charset) ?></option>
               <?php endforeach ?>
             </select>
@@ -137,7 +137,7 @@ $_autoMap = [
           <label class="form-check-label" for="seg-new" style="font-size:0.85rem"><?= $GLOBAL['createNewSegment'] ?></label>
           <div class="mt-1 d-flex flex-column gap-2" x-show="mode === 'new'" x-cloak style="max-width:320px">
             <input type="text" name="segment_new_name" class="form-control form-control-sm" data-no-dirty
-                   placeholder="<?= $GLOBAL['teamName'] ?>" maxlength="64">
+                   placeholder="<?= $GLOBAL['segmentName'] ?>" maxlength="64">
             <?php if (!empty($_segCats)): ?>
             <select name="segment_new_category" class="form-select form-select-sm" data-no-dirty>
               <option value="0"><?= $GLOBAL['noCategoryOption'] ?></option>

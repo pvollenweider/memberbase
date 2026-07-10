@@ -24,7 +24,7 @@ if (!empty($rows)) {
 
 $count       = count($rows);
 $alreadySent = count($reminderSentMap);
-$prevTeamId  = 1; // non-zero so the table renders
+$prevSegmentId  = 1; // non-zero so the table renders
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
   <a href="<?= appUrl() ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">

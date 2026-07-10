@@ -32,7 +32,7 @@ if ($action == 'deleteSegment') {
 
 } elseif ($action == 'reassignSegment') {
     $segmentId       = (int) $_REQUEST['id'];
-    $targetSegmentId = (int) $_REQUEST['targetTeamId'];
+    $targetSegmentId = (int) $_REQUEST['targetSegmentId'];
     if ($targetSegmentId > 0 && $targetSegmentId !== $segmentId) {
         $_auSrc = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auSrc->execute([$segmentId]);
         $_auDst = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auDst->execute([$targetSegmentId]);
@@ -262,7 +262,7 @@ if ($action == 'deleteSegment') {
         }
     }
     auditLog(db(), 'createLapsedSegment', "type: $groupType | année: $yr | segment créé: $groupName (id=$newSegmentId) | " . count($userIds) . " membres");
-    $_clUrl = appUrl() . '?team=' . $newSegmentId;
+    $_clUrl = appUrl() . '?segment=' . $newSegmentId;
     if ($isHtmx) { header('HX-Location: ' . $_clUrl); } else { echo '<script>window.location.replace(' . json_encode($_clUrl) . ');</script>'; }
     exit;
 

@@ -18,16 +18,16 @@ $isFilter = (int)($stmtIsFilter->fetchColumn() ?? 1);
 // Segments currently in this combined segment
 $stmtIn = db()->prepare("SELECT segment_id FROM combined_segment_member WHERE combined_segment_id=?");
 $stmtIn->execute([$mgId]);
-$memberTeamIds = $stmtIn->fetchAll(PDO::FETCH_COLUMN);
-$memberTeamIds = array_map('intval', $memberTeamIds);
+$memberSegmentIds = $stmtIn->fetchAll(PDO::FETCH_COLUMN);
+$memberSegmentIds = array_map('intval', $memberSegmentIds);
 
 // All segments (including hidden) — members first, then non-members, each alphabetically
-$allTeamsRaw = db()->query("SELECT id, name, hidden FROM segment ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+$allSegmentsRaw = db()->query("SELECT id, name, hidden FROM segment ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 // Only keep visible segments + hidden segments that are already members
-$allTeams = array_filter($allTeamsRaw, fn($t) => !(int)$t->hidden || in_array((int)$t->id, $memberTeamIds));
-usort($allTeams, function($a, $b) use ($memberTeamIds) {
-    $aIn = in_array((int)$a->id, $memberTeamIds);
-    $bIn = in_array((int)$b->id, $memberTeamIds);
+$allSegments = array_filter($allSegmentsRaw, fn($t) => !(int)$t->hidden || in_array((int)$t->id, $memberSegmentIds));
+usort($allSegments, function($a, $b) use ($memberSegmentIds) {
+    $aIn = in_array((int)$a->id, $memberSegmentIds);
+    $bIn = in_array((int)$b->id, $memberSegmentIds);
     if ($aIn !== $bIn) return $bIn - $aIn;
     return strcmp($a->name, $b->name);
 });
@@ -38,17 +38,17 @@ $stmtCats = db()->query(
      FROM combined_segment_member mm
      JOIN combined_segment m ON m.id = mm.combined_segment_id AND m.is_filter = 0"
 );
-$teamCategory = [];
+$segmentCategory = [];
 foreach ($stmtCats->fetchAll(PDO::FETCH_OBJ) as $row) {
-    $teamCategory[(int)$row->segment_id] = ['id' => (int)$row->cat_id, 'name' => $row->cat_name];
+    $segmentCategory[(int)$row->segment_id] = ['id' => (int)$row->cat_id, 'name' => $row->cat_name];
 }
 
 // Build ordered groups: members-in-category, then unassigned members, then non-members
 $catGroups = []; // cat_name => [segments]
 $uncategorized = [];
-foreach ($allTeams as $t) {
-    if (isset($teamCategory[(int)$t->id])) {
-        $cn = $teamCategory[(int)$t->id]['name'];
+foreach ($allSegments as $t) {
+    if (isset($segmentCategory[(int)$t->id])) {
+        $cn = $segmentCategory[(int)$t->id]['name'];
         $catGroups[$cn][] = $t;
     } else {
         $uncategorized[] = $t;
@@ -58,8 +58,8 @@ ksort($catGroups);
 
 // Member counts per segment
 $cntRows = db()->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
-$teamCounts = [];
-foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
+$segmentCounts = [];
+foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 ?>
 <?php if (!empty($_GET['created'])): ?>
 <div class="alert alert-success alert-dismissible fade show d-flex align-items-start gap-2" role="alert">
@@ -109,11 +109,11 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
       </form>
     </div>
 
-    <!-- Team membership -->
+    <!-- Segment membership -->
     <div>
       <?php if ($isFilter): ?>
 
-      <!-- SEGMENT COMBINÉ: all teams grouped by category, checkboxes -->
+      <!-- SEGMENT COMBINÉ: all segments grouped by category, checkboxes -->
       <div class="d-flex align-items-baseline justify-content-between mb-1">
         <p class="form-section-title mb-0"><?= $GLOBAL['memberSegments'] ?></p>
         <a href="<?= appUrl() ?>?combinedSegment=<?= $mgId ?>" class="small">
@@ -122,41 +122,41 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
       </div>
       <p class="small text-muted mb-3"><?= $GLOBAL['autoSaveOnCheck'] ?></p>
 
-      <div id="mg-team-list" class="d-flex flex-column gap-1" style="font-size:0.85rem">
+      <div id="mg-segment-list" class="d-flex flex-column gap-1" style="font-size:0.85rem">
         <?php
-        function renderTeamCb($t, $memberTeamIds, $charset, $teamCounts) {
+        function renderSegmentCb($t, $memberSegmentIds, $charset, $segmentCounts) {
           global $GLOBAL;
           $isHidden = (int)$t->hidden; ?>
         <div class="form-check form-check-sm <?= $isHidden ? 'text-muted' : '' ?>">
-          <input class="form-check-input mg-team-cb" type="checkbox"
-                 data-teamid="<?= (int)$t->id ?>"
-                 id="mgteam_<?= (int)$t->id ?>"
-                 <?= in_array((int)$t->id, $memberTeamIds) ? 'checked' : '' ?>>
-          <label class="form-check-label" for="mgteam_<?= (int)$t->id ?>">
+          <input class="form-check-input mg-segment-cb" type="checkbox"
+                 data-segmentid="<?= (int)$t->id ?>"
+                 id="mgsegment_<?= (int)$t->id ?>"
+                 <?= in_array((int)$t->id, $memberSegmentIds) ? 'checked' : '' ?>>
+          <label class="form-check-label" for="mgsegment_<?= (int)$t->id ?>">
             <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
             <?php if ($isHidden): ?>
             <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="<?= $GLOBAL['hiddenSegmentLower'] ?>" title="<?= $GLOBAL['hiddenSegment'] ?>"></i>
             <?php endif ?>
-            <?php if (isset($teamCounts[(int)$t->id])): ?>
-            <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
+            <?php if (isset($segmentCounts[(int)$t->id])): ?>
+            <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $segmentCounts[(int)$t->id] ?></span>
             <?php endif ?>
           </label>
         </div>
         <?php }
 
         if (!empty($catGroups)):
-            foreach ($catGroups as $catName => $teams): ?>
+            foreach ($catGroups as $catName => $segments): ?>
           <p class="text-muted mb-0 mt-2" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600">
             <?= htmlentities($catName, ENT_COMPAT, $charset) ?>
           </p>
-          <?php foreach ($teams as $t): renderTeamCb($t, $memberTeamIds, $charset, $teamCounts); endforeach;
+          <?php foreach ($segments as $t): renderSegmentCb($t, $memberSegmentIds, $charset, $segmentCounts); endforeach;
             endforeach;
             if (!empty($uncategorized)): ?>
           <p class="text-muted mb-0 mt-2" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600"><?= $GLOBAL['noCategoryLabel'] ?></p>
-          <?php foreach ($uncategorized as $t): renderTeamCb($t, $memberTeamIds, $charset, $teamCounts); endforeach;
+          <?php foreach ($uncategorized as $t): renderSegmentCb($t, $memberSegmentIds, $charset, $segmentCounts); endforeach;
             endif;
         else:
-            foreach ($allTeams as $t): renderTeamCb($t, $memberTeamIds, $charset, $teamCounts); endforeach;
+            foreach ($allSegments as $t): renderSegmentCb($t, $memberSegmentIds, $charset, $segmentCounts); endforeach;
         endif;
         ?>
       </div>
@@ -165,21 +165,21 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 
       <!-- CATÉGORIE: members listed, then collapsible list to add others -->
       <?php
-      $memberTeams    = array_filter($allTeams, fn($t) => in_array((int)$t->id, $memberTeamIds));
-      $nonMemberTeams = array_filter($allTeams, fn($t) => !in_array((int)$t->id, $memberTeamIds) && !(int)$t->hidden);
+      $memberSegments    = array_filter($allSegments, fn($t) => in_array((int)$t->id, $memberSegmentIds));
+      $nonMemberSegments = array_filter($allSegments, fn($t) => !in_array((int)$t->id, $memberSegmentIds) && !(int)$t->hidden);
       ?>
 
       <p class="form-section-title mb-1"><?= $GLOBAL['segmentsInThisCategory'] ?></p>
 
-      <div id="mg-team-list">
-        <?php if (empty($memberTeams)): ?>
+      <div id="mg-segment-list">
+        <?php if (empty($memberSegments)): ?>
         <p class="text-muted small mb-2" id="mg-empty-msg"><?= $GLOBAL['noSegmentsInCategory'] ?></p>
         <?php else: ?>
         <p class="text-muted small mb-2" id="mg-empty-msg" style="display:none"><?= $GLOBAL['noSegmentsInCategory'] ?></p>
         <?php endif ?>
 
         <ul class="list-unstyled mb-0 d-flex flex-column gap-1" id="mg-member-list" style="font-size:0.85rem">
-        <?php foreach ($memberTeams as $t): ?>
+        <?php foreach ($memberSegments as $t): ?>
           <?php $_mHidden = (int)$t->hidden; ?>
           <li class="d-flex align-items-center justify-content-between gap-2 <?= $_mHidden ? 'text-muted' : '' ?>" id="mg-row-<?= (int)$t->id ?>">
             <span>
@@ -187,27 +187,27 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
               <?php if ($_mHidden): ?>
               <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="<?= $GLOBAL['hiddenSegmentLower'] ?>" title="<?= $GLOBAL['hiddenSegment'] ?>"></i>
               <?php endif ?>
-              <?php if (isset($teamCounts[(int)$t->id])): ?>
-              <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
+              <?php if (isset($segmentCounts[(int)$t->id])): ?>
+              <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $segmentCounts[(int)$t->id] ?></span>
               <?php endif ?>
             </span>
-            <button type="button" class="btn btn-sm py-0 px-1 text-muted mg-team-cb mg-remove-btn"
-                    data-teamid="<?= (int)$t->id ?>" data-checked="1"
+            <button type="button" class="btn btn-sm py-0 px-1 text-muted mg-segment-cb mg-remove-btn"
+                    data-segmentid="<?= (int)$t->id ?>" data-checked="1"
                     title="<?= $GLOBAL['removeFromCategory'] ?>" aria-label="<?= sprintf($GLOBAL['removeName'], htmlentities($t->name, ENT_QUOTES, $charset)) ?>">
               <i class="fas fa-xmark" style="font-size:0.75rem" aria-hidden="true"></i>
             </button>
-            <input type="hidden" class="mg-cat-member" data-teamid="<?= (int)$t->id ?>" value="1"/>
+            <input type="hidden" class="mg-cat-member" data-segmentid="<?= (int)$t->id ?>" value="1"/>
           </li>
         <?php endforeach ?>
         </ul>
 
-        <?php if (!empty($nonMemberTeams)):
+        <?php if (!empty($nonMemberSegments)):
           // Group non-members by current category
-          $_nmByCat = []; // catName => [teams]
+          $_nmByCat = []; // catName => [segments]
           $_nmNoCat = [];
           $_currentCatName = htmlentities($mg->getName(), ENT_COMPAT, $charset);
-          foreach ($nonMemberTeams as $t) {
-              $_tCat = $teamCategory[(int)$t->id] ?? null;
+          foreach ($nonMemberSegments as $t) {
+              $_tCat = $segmentCategory[(int)$t->id] ?? null;
               if ($_tCat) { $_nmByCat[$_tCat['name']][] = $t; }
               else        { $_nmNoCat[] = $t; }
           }
@@ -226,7 +226,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
           <div class="mt-2 d-flex flex-column gap-3 ps-1">
           <?php
           // Helper to render one add-row
-          function renderAddRow($t, $charset, $teamCounts, $currentCatName) {
+          function renderAddRow($t, $charset, $segmentCounts, $currentCatName) {
               global $GLOBAL;
               $_nmHidden = (int)$t->hidden; ?>
             <li class="d-flex align-items-center justify-content-between gap-2" id="mg-row-<?= (int)$t->id ?>">
@@ -235,28 +235,28 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
                 <?php if ($_nmHidden): ?>
                 <i class="fas fa-eye-slash ms-1" style="font-size:0.7rem" aria-label="<?= $GLOBAL['hiddenSegmentLower'] ?>" title="<?= $GLOBAL['hiddenSegment'] ?>"></i>
                 <?php endif ?>
-                <?php if (isset($teamCounts[(int)$t->id])): ?>
-                <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $teamCounts[(int)$t->id] ?></span>
+                <?php if (isset($segmentCounts[(int)$t->id])): ?>
+                <span class="badge text-bg-light border ms-1" style="font-size:0.7rem;font-weight:500"><?= $segmentCounts[(int)$t->id] ?></span>
                 <?php endif ?>
               </span>
-              <button type="button" class="btn btn-sm py-0 px-1 text-muted mg-team-cb mg-add-btn"
-                      data-teamid="<?= (int)$t->id ?>" data-checked="0"
+              <button type="button" class="btn btn-sm py-0 px-1 text-muted mg-segment-cb mg-add-btn"
+                      data-segmentid="<?= (int)$t->id ?>" data-checked="0"
                       data-dest="<?= $currentCatName ?>"
                       title="<?= sprintf($GLOBAL['moveToCategory'], $currentCatName) ?>"
                       aria-label="<?= sprintf($GLOBAL['moveNameToCategory'], htmlentities($t->name, ENT_QUOTES, $charset), $currentCatName) ?>">
                 <i class="fas fa-arrow-right" style="font-size:0.75rem" aria-hidden="true"></i>
               </button>
-              <input type="hidden" class="mg-cat-member" data-teamid="<?= (int)$t->id ?>" value="0"/>
+              <input type="hidden" class="mg-cat-member" data-segmentid="<?= (int)$t->id ?>" value="0"/>
             </li>
           <?php }
 
-          foreach ($_nmByCat as $_catLabel => $_catTeams): ?>
+          foreach ($_nmByCat as $_catLabel => $_catSegments): ?>
           <div>
             <p class="text-muted mb-1" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600">
               <?= htmlentities($_catLabel, ENT_COMPAT, $charset) ?>
             </p>
             <ul class="list-unstyled mb-0 d-flex flex-column gap-1">
-            <?php foreach ($_catTeams as $t): renderAddRow($t, $charset, $teamCounts, $_currentCatName); endforeach ?>
+            <?php foreach ($_catSegments as $t): renderAddRow($t, $charset, $segmentCounts, $_currentCatName); endforeach ?>
             </ul>
           </div>
           <?php endforeach ?>
@@ -264,7 +264,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
           <div>
             <p class="text-muted mb-1" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600"><?= $GLOBAL['noCategoryLabel'] ?></p>
             <ul class="list-unstyled mb-0 d-flex flex-column gap-1">
-            <?php foreach ($_nmNoCat as $t): renderAddRow($t, $charset, $teamCounts, $_currentCatName); endforeach ?>
+            <?php foreach ($_nmNoCat as $t): renderAddRow($t, $charset, $segmentCounts, $_currentCatName); endforeach ?>
             </ul>
           </div>
           <?php endif ?>
@@ -319,7 +319,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
       function getCurrentMemberIds() {
         return Array.from(document.querySelectorAll('.mg-cat-member'))
           .filter(function(h) { return h.value === '1'; })
-          .map(function(h) { return h.dataset.teamid; });
+          .map(function(h) { return h.dataset.segmentid; });
       }
 
       function saveMembers(memberIds, onSuccess, onError) {
@@ -340,16 +340,16 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 
       if (isFilter) {
         // Métagroupe: checkbox mode
-        document.querySelectorAll('.mg-team-cb').forEach(function(cb) {
+        document.querySelectorAll('.mg-segment-cb').forEach(function(cb) {
           cb.addEventListener('change', function() {
             var prevChecked = !cb.checked;
-            var prevIds = Array.from(document.querySelectorAll('.mg-team-cb'))
+            var prevIds = Array.from(document.querySelectorAll('.mg-segment-cb'))
               .filter(function(c) { return c !== cb ? c.checked : prevChecked; })
-              .map(function(c) { return c.dataset.teamid; });
-            var checked = Array.from(document.querySelectorAll('.mg-team-cb:checked'))
-                               .map(function(c) { return c.dataset.teamid; });
+              .map(function(c) { return c.dataset.segmentid; });
+            var checked = Array.from(document.querySelectorAll('.mg-segment-cb:checked'))
+                               .map(function(c) { return c.dataset.segmentid; });
             saveMembers(checked, function() {
-              var label = document.querySelector('label[for="mgteam_' + cb.dataset.teamid + '"]').textContent.trim();
+              var label = document.querySelector('label[for="mgsegment_' + cb.dataset.segmentid + '"]').textContent.trim();
               showToast((cb.checked ? '✓ ' : '✗ ') + label, true, function() {
                 cb.checked = prevChecked;
                 saveMembers(prevIds, function() { showToast(<?= json_encode($GLOBAL['actionUndone']) ?>, true, null); });
@@ -360,8 +360,8 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
       } else {
         // Catégorie: add/remove button mode
         function applyDomMove(btn, addMode) {
-          var teamid = btn.dataset.teamid;
-          var row = document.getElementById('mg-row-' + teamid);
+          var segmentid = btn.dataset.segmentid;
+          var row = document.getElementById('mg-row-' + segmentid);
           var hidden = row.querySelector('.mg-cat-member');
           hidden.value = addMode ? '1' : '0';
           var memberList = document.getElementById('mg-member-list');
@@ -396,15 +396,15 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 
         function moveRow(btn, addMode) {
           var prevIds = getCurrentMemberIds();
-          var teamid = btn.dataset.teamid;
-          var row = document.getElementById('mg-row-' + teamid);
-          var teamName = row.querySelector('span').textContent.trim();
+          var segmentid = btn.dataset.segmentid;
+          var row = document.getElementById('mg-row-' + segmentid);
+          var segmentName = row.querySelector('span').textContent.trim();
           var destName = btn.dataset.dest || '';
 
           applyDomMove(btn, addMode);
           var memberIds = getCurrentMemberIds();
           saveMembers(memberIds, function() {
-            showToast(addMode ? ('→ ' + destName + ' : ' + teamName) : ('✗ ' + teamName), true, function() {
+            showToast(addMode ? ('→ ' + destName + ' : ' + segmentName) : ('✗ ' + segmentName), true, function() {
               applyDomMove(btn, !addMode);
               saveMembers(prevIds, function() { showToast(<?= json_encode($GLOBAL['actionUndone']) ?>, true, null); });
             });

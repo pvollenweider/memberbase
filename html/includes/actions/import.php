@@ -113,34 +113,34 @@ if ($_REQUEST['action'] === 'importUpload') {
 
     db()->beginTransaction();
 
-    // Resolve the target segment (team) the imported contacts should join.
+    // Resolve the target segment the imported contacts should join.
     $segMode     = $_POST['segment_mode'] ?? 'auto';
-    $segTeamId   = 0;
-    $segTeamName = '';
+    $segSegmentId   = 0;
+    $segSegmentName = '';
     if ($segMode === 'existing') {
-        $segTeamId = (int)($_POST['segment_existing_id'] ?? 0);
+        $segSegmentId = (int)($_POST['segment_existing_id'] ?? 0);
         $_chk = db()->prepare("SELECT name FROM segment WHERE id=?");
-        $_chk->execute([$segTeamId]);
-        $segTeamName = (string)($_chk->fetchColumn() ?: '');
-        if ($segTeamName === '') { $segTeamId = 0; } // stale id → skip
+        $_chk->execute([$segSegmentId]);
+        $segSegmentName = (string)($_chk->fetchColumn() ?: '');
+        if ($segSegmentName === '') { $segSegmentId = 0; } // stale id → skip
     } elseif ($segMode === 'new' || $segMode === 'auto') {
-        $segTeamName = $segMode === 'new' ? trim((string)($_POST['segment_new_name'] ?? '')) : '';
-        if ($segTeamName === '') { $segTeamName = sprintf($GLOBAL['importSegmentName'], date('d.m.Y H:i')); }
+        $segSegmentName = $segMode === 'new' ? trim((string)($_POST['segment_new_name'] ?? '')) : '';
+        if ($segSegmentName === '') { $segSegmentName = sprintf($GLOBAL['importSegmentName'], date('d.m.Y H:i')); }
         $segment = new Segment();
-        $segment->name = $segTeamName;
+        $segment->name = $segSegmentName;
         $segment->setHidden(0);
         $segment->save();
-        $segTeamId = (int)$segment->id;
+        $segSegmentId = (int)$segment->id;
         // Attach to a category (combined segment) when one was chosen for a brand-new segment
         $segCatId = $segMode === 'new' ? (int)($_POST['segment_new_category'] ?? 0) : 0;
-        if ($segTeamId > 0 && $segCatId > 0) {
+        if ($segSegmentId > 0 && $segCatId > 0) {
             $segment->addCombinedSegmentMembership($segCatId);
         }
     }
-    $segStmt = ($segTeamId > 0)
+    $segStmt = ($segSegmentId > 0)
         ? db()->prepare("INSERT IGNORE INTO contact_properties (user_id, parameter, value) VALUES (?, ?, 'true')")
         : null;
-    $segParam = 'segment_' . $segTeamId;
+    $segParam = 'segment_' . $segSegmentId;
     $segAdded = 0;
 
     foreach ($rows as $rowIdx => $row) {
@@ -213,8 +213,8 @@ if ($_REQUEST['action'] === 'importUpload') {
     }
     db()->commit();
 
-    if ($segTeamId > 0) {
-        auditLog(db(), 'importSegment', "segment: {$segTeamName} (id={$segTeamId}) | {$segAdded} membre(s) ajouté(s) | mode: {$segMode}");
+    if ($segSegmentId > 0) {
+        auditLog(db(), 'importSegment', "segment: {$segSegmentName} (id={$segSegmentId}) | {$segAdded} membre(s) ajouté(s) | mode: {$segMode}");
     }
 
     // Parsed rows are no longer needed — free the session (can hold MBs for large files)
@@ -222,7 +222,7 @@ if ($_REQUEST['action'] === 'importUpload') {
 
     $_SESSION['_import_created']    = $created;
     $_SESSION['_import_duplicates'] = $duplicates;
-    $_SESSION['_import_segment']    = $segTeamId > 0 ? ['id' => $segTeamId, 'name' => $segTeamName, 'added' => $segAdded] : null;
+    $_SESSION['_import_segment']    = $segSegmentId > 0 ? ['id' => $segSegmentId, 'name' => $segSegmentName, 'added' => $segAdded] : null;
 
     importRedirect(appUrl() . '?view=importStep3');
 

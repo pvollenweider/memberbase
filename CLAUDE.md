@@ -115,7 +115,7 @@ window.location = url;
 
 Exclusions existantes (dans `markDirty`) :
 - `[data-no-dirty]` sur l'élément ou un ancêtre
-- `.mg-team-cb`, `#includeAttestation`, `#team-filter-input`, `.dt-search`, `.modal`, `#bulk-form`
+- `.mg-segment-cb`, `#includeAttestation`, `#segment-filter-input`, `.dt-search`, `.modal`, `#bulk-form`
 
 Couverture : `tests/dirty-guard.spec.ts`.
 

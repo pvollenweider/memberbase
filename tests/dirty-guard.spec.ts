@@ -54,11 +54,11 @@ test('clean page navigates without dialog', async ({ page }) => {
   await expect(page.locator('#firstName')).toHaveCount(0);
 });
 
-test('team filter input (data-no-dirty exclusion) does not mark dirty', async ({ page }) => {
+test('segment filter input (data-no-dirty exclusion) does not mark dirty', async ({ page }) => {
   await page.goto('/index.php');
-  // #team-filter-input is in the guard's exclusion list
+  // #segment-filter-input is in the guard's exclusion list
   await page.click('#navbarDropdown');
-  await page.fill('#team-filter-input', 'xyz');
+  await page.fill('#segment-filter-input', 'xyz');
 
   page.once('dialog', async (dialog) => {
     throw new Error(`unexpected dialog: ${dialog.message()}`);

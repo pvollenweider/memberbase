@@ -262,15 +262,15 @@ class Contact
     /**
      * Active member rows for the members list view, filtered by segment,
      * combined segment or text search. Virtual filters
-     * (negative team IDs) are NOT applied here — the caller restricts rows
+     * (negative segment IDs) are NOT applied here — the caller restricts rows
      * via MemberFilter::resolveIds().
      *
      * @param array $opts {
-     *     team:            int     segment ID, 0 = all, virtual IDs pass through unfiltered
-     *     combinedSegment: int     combined segment ID (0 = none; takes precedence over team)
+     *     segment:         int     segment ID, 0 = all, virtual IDs pass through unfiltered
+     *     combinedSegment: int     combined segment ID (0 = none; takes precedence over segment)
      *     searchString:    string  text search (applied when action == 'search')
      *     action:          string  request action ('search' enables the text filter)
-     *     membreTeam:      int     "membre" segment ID (legacy -1234 filter)
+     *     membreSegment:   int     "membre" segment ID (legacy -1234 filter)
      *     orderColumn:     string  MUST be pre-validated against a whitelist
      *     orderSort:       string  'ASC' | 'DESC' (pre-validated)
      * }
@@ -279,7 +279,7 @@ class Contact
     public static function listWithFilters(array $opts): array
     {
 
-        $team            = (int)($opts['team'] ?? 0);
+        $segment         = (int)($opts['segment'] ?? 0);
         $combinedSegment = (int)($opts['combinedSegment'] ?? 0);
         $orderColumn = $opts['orderColumn'] ?? 'lastname';
         $orderSort   = $opts['orderSort'] ?? 'ASC';
@@ -290,9 +290,9 @@ class Contact
         if ($combinedSegment > 0) {
             $query .= ",contact_segment ";
         } else {
-            // Virtual filter IDs (resolved via MemberFilter) and team=0 (all members)
+            // Virtual filter IDs (resolved via MemberFilter) and segment=0 (all members)
             // do not need a contact_segment join
-            if ($team != 0 && $team != -1 && !MemberFilter::isVirtual($team)) {
+            if ($segment != 0 && $segment != -1 && !MemberFilter::isVirtual($segment)) {
                 $query .= ",contact_segment ";
             }
         }
@@ -322,17 +322,17 @@ class Contact
             } else {
                 $query .= " AND 1=0"; // combined segment has no segments — return empty
             }
-        } else if ($team != -1) {
-            if ($team == 0 || MemberFilter::isVirtual($team)) {
-                // team=0 = all active members; virtual filters restrict rows
+        } else if ($segment != -1) {
+            if ($segment == 0 || MemberFilter::isVirtual($segment)) {
+                // segment=0 = all active members; virtual filters restrict rows
                 // via the MemberFilter ID set applied by the caller
-            } else if ($team == -1234) {
-                $membreSegment = (int)($opts['membreTeam'] ?? 0);
+            } else if ($segment == -1234) {
+                $membreSegment = (int)($opts['membreSegment'] ?? 0);
                 $query .= " AND contact.id=contact_segment.user_id AND contact_segment.segment_id=? ";
                 $queryParams[] = $membreSegment;
             } else {
                 $query .= " AND contact.id=contact_segment.user_id AND contact_segment.segment_id=?";
-                $queryParams[] = $team;
+                $queryParams[] = $segment;
             }
         }
 

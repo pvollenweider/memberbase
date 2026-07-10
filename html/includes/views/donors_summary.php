@@ -130,8 +130,8 @@ if ($year != -2) {
         $_sDonYtd = db()->prepare("SELECT COUNT(DISTINCT c.user_id) FROM compta c WHERE c.date>? AND c.date<=? AND c.type_id NOT IN ($_excl)");
         $_sDonYtd->execute([$_kFrom1, $_kToYtd1]);
         $_kDonateursYtd1 = (int)$_sDonYtd->fetchColumn();
-        // membres same period: just use prev team count (membership doesn't change intra-year)
-        // -- shown as prev team count, already computed as $_kMembresPrev
+        // membres same period: just use prev segment count (membership doesn't change intra-year)
+        // -- shown as prev segment count, already computed as $_kMembresPrev
     }
 }
 ?>
