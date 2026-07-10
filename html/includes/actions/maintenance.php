@@ -16,7 +16,7 @@ if ($action === 'applyMigrations') {
 
     $isHtmx = isset($_SERVER['HTTP_HX_REQUEST']);
     $redirect = static function (string $q) use ($isHtmx): void {
-        $url = $_SERVER['PHP_SELF'] . '?view=settings&tab=health&' . $q;
+        $url = appUrl() . '?view=settings&tab=health&' . $q;
         if ($isHtmx) { header('HX-Location: ' . $url); } else { header('Location: ' . $url); }
         exit;
     };

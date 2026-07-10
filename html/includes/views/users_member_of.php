@@ -16,10 +16,10 @@ if (($_msAction === 'assignSegment' || $_msAction === 'unassignSegment') && $_ms
     $_msTeamName = $_msTeamNameStmt->fetchColumn() ?: sprintf($GLOBAL['segmentNumber'], $_msTeamId);
     if ($_msAction === 'assignSegment') {
         $_msMsg     = sprintf($GLOBAL['membershipAdded'], htmlspecialchars($_msTeamName, ENT_QUOTES, $charset));
-        $_msUndoUrl = $_SERVER['PHP_SELF'] . '?view=generalData&action=unassignSegment&id=' . $_msUserId . '&segmentId=' . $_msTeamId;
+        $_msUndoUrl = appUrl() . '?view=generalData&action=unassignSegment&id=' . $_msUserId . '&segmentId=' . $_msTeamId;
     } else {
         $_msMsg     = sprintf($GLOBAL['membershipRemoved'], htmlspecialchars($_msTeamName, ENT_QUOTES, $charset));
-        $_msUndoUrl = $_SERVER['PHP_SELF'] . '?view=generalData&action=assignSegment&id=' . $_msUserId . '&segmentId=' . $_msTeamId;
+        $_msUndoUrl = appUrl() . '?view=generalData&action=assignSegment&id=' . $_msUserId . '&segmentId=' . $_msTeamId;
     }
     echo '<div id="casa-membership-toast" hidden data-msg="' . htmlspecialchars($_msMsg, ENT_QUOTES, $charset) . '" data-undo-url="' . htmlspecialchars($_msUndoUrl, ENT_QUOTES, $charset) . '"></div>';
 }
@@ -108,7 +108,7 @@ uasort($nonMemberBycat, $_catSortFn);
             ?>
                 <?php if (isManager()): ?>
                 <a class="member-pill<?= $isNew ? ' pill-just-added' : '' ?><?= $t->hidden ? ' pill-hidden' : '' ?>"
-                   href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=unassignSegment&amp;id=<?= $user->id ?>&amp;segmentId=<?= $t->id ?>"
+                   href="<?= appUrl() ?>?view=generalData&amp;action=unassignSegment&amp;id=<?= $user->id ?>&amp;segmentId=<?= $t->id ?>"
                    title="<?= ($t->hidden ? $GLOBAL['hiddenSegmentPrefix'] : '') . sprintf($GLOBAL['removeFromSegment'], htmlentities($t->name, ENT_COMPAT, $charset)) ?>">
                     <?php if ($t->hidden): ?><i class="fas fa-eye-slash me-1" aria-label="<?= $GLOBAL['hiddenSegment'] ?>" style="font-size:0.65rem;opacity:0.6"></i><?php endif ?>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
@@ -140,7 +140,7 @@ uasort($nonMemberBycat, $_catSortFn);
         <?php endif ?>
         <div class="group-add-list mb-1">
             <?php foreach ($group['teams'] as $t): ?>
-                <a href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;action=assignSegment&amp;id=<?= $user->id ?>&amp;segmentId=<?= $t->id ?>">
+                <a href="<?= appUrl() ?>?view=generalData&amp;action=assignSegment&amp;id=<?= $user->id ?>&amp;segmentId=<?= $t->id ?>">
                     <i class="far fa-square-plus" aria-hidden="true"></i>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?>
                 </a>
@@ -150,12 +150,12 @@ uasort($nonMemberBycat, $_catSortFn);
     <div class="mt-2 pt-2" style="border-top:1px solid var(--ca-border)">
         <?php if (!$viewall): ?>
             <a class="btn btn-outline-secondary btn-sm"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&id=<?= $user->id ?>&viewall=true">
+               href="<?= appUrl() ?>?view=generalData&id=<?= $user->id ?>&viewall=true">
                 <i class="fas fa-eye-slash me-1" aria-hidden="true"></i><?= $GLOBAL['hiddenSegments'] ?>
             </a>
         <?php else: ?>
             <a class="btn btn-outline-secondary btn-sm"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&id=<?= $user->id ?>">
+               href="<?= appUrl() ?>?view=generalData&id=<?= $user->id ?>">
                 <i class="fas fa-eye me-1" aria-hidden="true"></i><?= $GLOBAL['hideHiddenSegments'] ?>
             </a>
         <?php endif ?>

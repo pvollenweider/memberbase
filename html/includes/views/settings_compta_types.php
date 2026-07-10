@@ -63,7 +63,7 @@ $types = $pdo->query("
     <div class="d-flex align-items-baseline justify-content-between mb-3">
       <p class="form-section-title mb-0" style="margin-top:0"><?= $GLOBAL['comptaTypesTitle'] ?></p>
       <?php if (!$ctEmbedded): ?>
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings" class="text-muted small text-decoration-none">
+      <a href="<?= appUrl() ?>?view=settings" class="text-muted small text-decoration-none">
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['settings'] ?>
       </a>
       <?php endif ?>
@@ -73,7 +73,7 @@ $types = $pdo->query("
     <div class="card mb-4">
       <div class="card-body py-3">
         <p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['newComptaType'] ?></p>
-        <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
+        <form action="<?= appUrl() ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
           <input type="hidden" name="action" value="addComptaType">
           <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
           <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
@@ -125,7 +125,7 @@ $types = $pdo->query("
           </td>
           <td class="text-end text-muted" style="font-size:0.85rem"><?= $ct->cnt ?></td>
           <td class="text-center">
-            <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+            <form method="post" action="<?= appUrl() ?>">
               <input type="hidden" name="action" value="updateComptaType">
               <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
           <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
@@ -143,7 +143,7 @@ $types = $pdo->query("
             </form>
           </td>
           <td class="text-center">
-            <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+            <form method="post" action="<?= appUrl() ?>">
               <input type="hidden" name="action" value="updateComptaType">
               <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
@@ -161,7 +161,7 @@ $types = $pdo->query("
             </form>
           </td>
           <td class="text-center">
-            <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+            <form method="post" action="<?= appUrl() ?>">
               <input type="hidden" name="action" value="updateComptaType">
               <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
               <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
@@ -184,13 +184,13 @@ $types = $pdo->query("
             <?php if ($ct->cnt == 0): ?>
             <button type="button" class="btn btn-outline-danger btn-sm py-0"
                     data-bs-toggle="modal" data-bs-target="#modal-delete-compta-type"
-                    data-href="<?= htmlspecialchars($_SERVER['PHP_SELF'] . '?action=deleteComptaType&id=' . $ct->id . '&returnView=' . urlencode($ctReturnView) . '&returnTab=' . urlencode($ctReturnTab), ENT_QUOTES, $charset) ?>"><?= $GLOBAL['deleteShort'] ?></button>
+                    data-href="<?= htmlspecialchars(appUrl() . '?action=deleteComptaType&id=' . $ct->id . '&returnView=' . urlencode($ctReturnView) . '&returnTab=' . urlencode($ctReturnTab), ENT_QUOTES, $charset) ?>"><?= $GLOBAL['deleteShort'] ?></button>
             <?php endif ?>
           </td>
         </tr>
         <tr id="edit-<?= $ct->id ?>" style="display:none" class="table-light">
           <td colspan="6" class="py-2">
-            <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
+            <form action="<?= appUrl() ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
               <input type="hidden" name="action" value="updateComptaType">
               <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
           <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">

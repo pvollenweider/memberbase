@@ -156,10 +156,10 @@ if ($_REQUEST['action'] == 'updateUser') {
     auditLog($pdo, 'mergeUsers', $auDetail, $survivorId);
 
     if ($isHtmx) {
-        header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=integrity');
+        header('HX-Location: ' . appUrl() . '?view=settings&tab=integrity');
         exit;
     }
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=integrity');
+    header('Location: ' . appUrl() . '?view=settings&tab=integrity');
     exit;
 
 } elseif ($_REQUEST['action'] == 'anonymizeUser') {
@@ -177,8 +177,8 @@ if ($_REQUEST['action'] == 'updateUser') {
         email='', web='', birthday=0, comment='', status=0
         WHERE id=?")->execute([$uid]);
     auditLog($pdo, 'anonymizeUser', 'id=' . $uid, $uid);
-    if ($isHtmx) { header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=updateUser&id=' . $uid); exit; }
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=updateUser&id=' . $uid); exit;
+    if ($isHtmx) { header('HX-Location: ' . appUrl() . '?view=updateUser&id=' . $uid); exit; }
+    header('Location: ' . appUrl() . '?view=updateUser&id=' . $uid); exit;
 
 } elseif ($_REQUEST['action'] == 'deactivateUser') {
     if (!isManager()) { http_response_code(403); exit; }
@@ -190,10 +190,10 @@ if ($_REQUEST['action'] == 'updateUser') {
         auditLog($pdo, 'deactivateUser', 'id=' . $uid . ' | ' . ($auUser->fetchColumn() ?: "id=$uid"), $uid);
     }
     if ($isHtmx) {
-        header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=updateUser&id=' . $uid);
+        header('HX-Location: ' . appUrl() . '?view=updateUser&id=' . $uid);
         exit;
     }
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=updateUser&id=' . $uid);
+    header('Location: ' . appUrl() . '?view=updateUser&id=' . $uid);
     exit;
 
 } elseif ($_REQUEST['action'] == 'deleteOrDeactivateUser') {
@@ -244,8 +244,8 @@ if ($_REQUEST['action'] == 'updateUser') {
         $pdo->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$uid]);
         auditLog($pdo, 'deactivateUser', 'id=' . $uid . ' | ' . trim($user->firstName . ' ' . $user->lastName), $uid);
     }
-    if ($isHtmx) { header('HX-Location: ' . $_SERVER['PHP_SELF']); exit; }
-    header('Location: ' . $_SERVER['PHP_SELF']); exit;
+    if ($isHtmx) { header('HX-Location: ' . appUrl()); exit; }
+    header('Location: ' . appUrl()); exit;
 
 } elseif ($_REQUEST['action'] == 'reactivateUser') {
     if (!isManager()) { http_response_code(403); exit; }
@@ -259,8 +259,8 @@ if ($_REQUEST['action'] == 'updateUser') {
     $redirectTarget = ($_REQUEST['redirect'] ?? '') === 'inactiveUsers'
         ? '?view=inactiveUsers'
         : '?view=updateUser&id=' . $uid;
-    if ($isHtmx) { header('HX-Location: ' . $_SERVER['PHP_SELF'] . $redirectTarget); exit; }
-    header('Location: ' . $_SERVER['PHP_SELF'] . $redirectTarget); exit;
+    if ($isHtmx) { header('HX-Location: ' . appUrl() . $redirectTarget); exit; }
+    header('Location: ' . appUrl() . $redirectTarget); exit;
 
 } elseif ($_REQUEST['action'] == 'addUser') {
     $user = new Contact();

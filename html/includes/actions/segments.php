@@ -65,7 +65,7 @@ if ($action == 'deleteSegment') {
     }
     $_auSegN = $pdo->prepare("SELECT name FROM segment WHERE id=?"); $_auSegN->execute([$segmentId]);
     auditLog($pdo, 'importSegmentMembers', "vers groupe: " . ($_auSegN->fetchColumn() ?: "id=$segmentId") . " | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
-    $_itUrl = $_SERVER['PHP_SELF'] . '?view=updateSegment&id=' . $segmentId;
+    $_itUrl = appUrl() . '?view=updateSegment&id=' . $segmentId;
     if ($isHtmx) { header('HX-Location: ' . $_itUrl); } else { echo '<script>window.location.replace(' . json_encode($_itUrl) . ');</script>'; }
     exit;
 
@@ -89,7 +89,7 @@ if ($action == 'deleteSegment') {
     }
     $_auSegC = $pdo->prepare("SELECT name FROM segment WHERE id=?"); $_auSegC->execute([$segmentId]);
     auditLog($pdo, 'importCotisants', "vers groupe: " . ($_auSegC->fetchColumn() ?: "id=$segmentId") . " | année: $year");
-    $_icUrl = $_SERVER['PHP_SELF'] . '?view=updateSegment&id=' . $segmentId . '&imported=cotisants';
+    $_icUrl = appUrl() . '?view=updateSegment&id=' . $segmentId . '&imported=cotisants';
     if ($isHtmx) { header('HX-Location: ' . $_icUrl); } else { echo '<script>window.location.replace(' . json_encode($_icUrl) . ');</script>'; }
     exit;
 
@@ -125,7 +125,7 @@ if ($action == 'deleteSegment') {
     $_auSegD = $pdo->prepare("SELECT name FROM segment WHERE id=?"); $_auSegD->execute([$segmentId]);
     $typeLabel = ['institutional' => 'institutionnels', 'non_institutional' => 'non-institutionnels', 'all' => 'tous'][$donorType];
     auditLog($pdo, 'importDonors', "vers groupe: " . ($_auSegD->fetchColumn() ?: "id=$segmentId") . " | année: $year | min: {$minSum} CHF | type: $typeLabel");
-    $_idUrl = $_SERVER['PHP_SELF'] . '?view=updateSegment&id=' . $segmentId . '&imported=donors';
+    $_idUrl = appUrl() . '?view=updateSegment&id=' . $segmentId . '&imported=donors';
     if ($isHtmx) { header('HX-Location: ' . $_idUrl); } else { echo '<script>window.location.replace(' . json_encode($_idUrl) . ');</script>'; }
     exit;
 
@@ -144,9 +144,9 @@ if ($action == 'deleteSegment') {
         ];
     }
     if ($isHtmx) {
-        header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=groups');
+        header('HX-Location: ' . appUrl() . '?view=settings&tab=groups');
     } else {
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=groups') . ');</script>';
+        echo '<script>window.location.replace(' . json_encode(appUrl() . '?view=settings&tab=groups') . ');</script>';
     }
     exit;
 
@@ -165,9 +165,9 @@ if ($action == 'deleteSegment') {
         ];
     }
     if ($isHtmx) {
-        header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=groups');
+        header('HX-Location: ' . appUrl() . '?view=settings&tab=groups');
     } else {
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=groups') . ');</script>';
+        echo '<script>window.location.replace(' . json_encode(appUrl() . '?view=settings&tab=groups') . ');</script>';
     }
     exit;
 
@@ -180,9 +180,9 @@ if ($action == 'deleteSegment') {
         auditLog($pdo, $hidden ? 'bulkHide' : 'bulkShow', count($ids) . " groupes (undo) " . ($hidden ? "masqués" : "affichés"));
     }
     if ($isHtmx) {
-        header('HX-Location: ' . $_SERVER['PHP_SELF'] . '?view=settings&tab=groups');
+        header('HX-Location: ' . appUrl() . '?view=settings&tab=groups');
     } else {
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=groups') . ');</script>';
+        echo '<script>window.location.replace(' . json_encode(appUrl() . '?view=settings&tab=groups') . ');</script>';
     }
     exit;
 
@@ -197,7 +197,7 @@ if ($action == 'deleteSegment') {
             if ($tid > 0) $stmt->execute([$mid, $tid]);
         }
         auditLog($pdo, 'bulkCreateMetagroup', "nouveau groupe filtre: $name (id=$mid) | " . count($_REQUEST['ids']) . " groupes");
-        $_bmUrl = $_SERVER['PHP_SELF'] . '?view=updateMetagroup&id=' . $mid;
+        $_bmUrl = appUrl() . '?view=updateMetagroup&id=' . $mid;
         if ($isHtmx) { header('HX-Location: ' . $_bmUrl); } else { echo '<script>window.location.replace(' . json_encode($_bmUrl) . ');</script>'; }
         exit;
     }
@@ -262,7 +262,7 @@ if ($action == 'deleteSegment') {
         }
     }
     auditLog($pdo, 'createLapsedSegment', "type: $groupType | année: $yr | groupe créé: $groupName (id=$newSegmentId) | " . count($userIds) . " membres");
-    $_clUrl = $_SERVER['PHP_SELF'] . '?team=' . $newSegmentId;
+    $_clUrl = appUrl() . '?team=' . $newSegmentId;
     if ($isHtmx) { header('HX-Location: ' . $_clUrl); } else { echo '<script>window.location.replace(' . json_encode($_clUrl) . ');</script>'; }
     exit;
 
@@ -273,7 +273,7 @@ if ($action == 'deleteSegment') {
     $segment->save();
     $_auNewSegment = $segment->id;
     auditLog($pdo, 'addSegment', "id=$_auNewSegment | {$_REQUEST['name']}");
-    $_addSegmentUrl = $_SERVER['PHP_SELF'] . '?view=updateSegment&id=' . (int)$_auNewSegment;
+    $_addSegmentUrl = appUrl() . '?view=updateSegment&id=' . (int)$_auNewSegment;
     if ($isHtmx) { header('HX-Location: ' . $_addSegmentUrl); } else { header('Location: ' . $_addSegmentUrl); }
     exit;
 
@@ -300,7 +300,7 @@ if ($action == 'deleteSegment') {
         }
     }
     auditLog($pdo, 'addSegmentWithImport', "id=$newSegmentId | {$_REQUEST['name']} | depuis groupes: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
-    $_atwUrl = $_SERVER['PHP_SELF'] . '?view=updateSegment&id=' . (int)$newSegmentId;
+    $_atwUrl = appUrl() . '?view=updateSegment&id=' . (int)$newSegmentId;
     if ($isHtmx) { header('HX-Location: ' . $_atwUrl); } else { header('Location: ' . $_atwUrl); }
     exit;
 

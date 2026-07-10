@@ -63,11 +63,11 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td class="text-center text-muted"><?= (int)$dup->cnt ?></td>
         <td class="text-end">
           <?php foreach ($ids as $uid): ?>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$uid ?>"
+          <a href="<?= appUrl() ?>?view=updateUser&amp;id=<?= (int)$uid ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" style="font-size:0.75rem">#<?= (int)$uid ?></a>
           <?php endforeach ?>
           <?php if (count($ids) === 2): ?>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&amp;a=<?= (int)$ids[0] ?>&amp;b=<?= (int)$ids[1] ?>"
+          <a href="<?= appUrl() ?>?view=mergeUsers&amp;a=<?= (int)$ids[0] ?>&amp;b=<?= (int)$ids[1] ?>"
              class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem"
              hx-boost="false">
             <i class="fas fa-code-merge me-1" aria-hidden="true"></i><?= $GLOBAL['merge'] ?>
@@ -78,7 +78,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
                   data-no-dirty onchange="if(this.value){window.__dirtyOverride=true;window.location=this.value;}this.value=''">
             <option value=""><i class="fas fa-code-merge"></i> <?= $GLOBAL['mergeEllipsis'] ?></option>
             <?php for ($pi=0;$pi<count($ids);$pi++) for ($pj=$pi+1;$pj<count($ids);$pj++): ?>
-            <option value="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&a=<?= (int)$ids[$pi] ?>&b=<?= (int)$ids[$pj] ?>">
+            <option value="<?= appUrl() ?>?view=mergeUsers&a=<?= (int)$ids[$pi] ?>&b=<?= (int)$ids[$pj] ?>">
               #<?= (int)$ids[$pi] ?> + #<?= (int)$ids[$pj] ?>
             </option>
             <?php endfor ?>
@@ -115,11 +115,11 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td class="text-center text-muted"><?= (int)$dup->cnt ?></td>
         <td class="text-end">
           <?php foreach ($ids as $uid): ?>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$uid ?>"
+          <a href="<?= appUrl() ?>?view=updateUser&amp;id=<?= (int)$uid ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" style="font-size:0.75rem">#<?= (int)$uid ?></a>
           <?php endforeach ?>
           <?php if (count($ids) === 2): ?>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&amp;a=<?= (int)$ids[0] ?>&amp;b=<?= (int)$ids[1] ?>"
+          <a href="<?= appUrl() ?>?view=mergeUsers&amp;a=<?= (int)$ids[0] ?>&amp;b=<?= (int)$ids[1] ?>"
              class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem"
              hx-boost="false">
             <i class="fas fa-code-merge me-1" aria-hidden="true"></i><?= $GLOBAL['merge'] ?>
@@ -130,7 +130,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
                   data-no-dirty onchange="if(this.value){window.__dirtyOverride=true;window.location=this.value;}this.value=''">
             <option value=""><?= $GLOBAL['mergeEllipsis'] ?></option>
             <?php for ($pi=0;$pi<count($ids);$pi++) for ($pj=$pi+1;$pj<count($ids);$pj++): ?>
-            <option value="<?= $_SERVER['PHP_SELF'] ?>?view=mergeUsers&a=<?= (int)$ids[$pi] ?>&b=<?= (int)$ids[$pj] ?>">
+            <option value="<?= appUrl() ?>?view=mergeUsers&a=<?= (int)$ids[$pi] ?>&b=<?= (int)$ids[$pj] ?>">
               #<?= (int)$ids[$pi] ?> + #<?= (int)$ids[$pj] ?>
             </option>
             <?php endfor ?>
@@ -168,7 +168,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         </td>
         <td><?= htmlentities($row->mg_name, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateMetagroup&amp;id=<?= (int)$row->mg_id ?>"
+          <a href="<?= appUrl() ?>?view=updateMetagroup&amp;id=<?= (int)$row->mg_id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
@@ -202,7 +202,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         </td>
         <td><?= htmlentities($row->mg_name, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateMetagroup&amp;id=<?= (int)$row->mg_id ?>"
+          <a href="<?= appUrl() ?>?view=updateMetagroup&amp;id=<?= (int)$row->mg_id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
@@ -236,7 +236,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         </td>
         <td><?= (int)$row->member_count ?></td>
         <td class="text-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateSegment&amp;id=<?= (int)$row->team_id ?>"
+          <a href="<?= appUrl() ?>?view=updateSegment&amp;id=<?= (int)$row->team_id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
@@ -261,7 +261,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
       <tr>
         <td><?= htmlentities(trim($r->firstname) ?: '—', ENT_COMPAT, $charset) ?> <span class="text-muted" style="font-size:0.75rem">#<?= (int)$r->id ?></span></td>
         <td class="text-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
+          <a href="<?= appUrl() ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
@@ -288,7 +288,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= htmlentities($r->libele, ENT_COMPAT, $charset) ?></td>
         <td><code class="text-danger"><?= $r->date == 0 ? $GLOBAL['zeroEmpty'] : date('d.m.Y', (int)$r->date) ?></code></td>
         <td class="text-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
+          <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['compta'] ?></a>
         </td>
       </tr>
@@ -315,7 +315,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= htmlentities($r->libele, ENT_COMPAT, $charset) ?></td>
         <td><?= htmlentities($r->sum, ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
+          <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['compta'] ?></a>
         </td>
       </tr>
@@ -340,7 +340,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname), ENT_COMPAT, $charset) ?></td>
         <td><code class="text-warning"><?= htmlentities($r->email, ENT_COMPAT, $charset) ?></code></td>
         <td class="text-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
+          <a href="<?= appUrl() ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
@@ -365,7 +365,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname), ENT_COMPAT, $charset) ?></td>
         <td><code class="text-warning"><?= htmlentities($r->email_alt, ENT_COMPAT, $charset) ?></code></td>
         <td class="text-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
+          <a href="<?= appUrl() ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
@@ -391,7 +391,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname), ENT_COMPAT, $charset) ?></td>
         <td><code class="text-warning"><?= htmlentities($r->sexe, ENT_COMPAT, $charset) ?></code></td>
         <td class="text-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
+          <a href="<?= appUrl() ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>
@@ -416,7 +416,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname), ENT_COMPAT, $charset) ?></td>
         <td><code class="text-warning"><?= date('d.m.Y', (int)$r->birthday) ?></code></td>
         <td class="text-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
+          <a href="<?= appUrl() ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
         </td>
       </tr>

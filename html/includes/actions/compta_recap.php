@@ -22,7 +22,7 @@ if ($action === 'sendComptaRecap') {
     $recapYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
     $isHtmx    = isset($_SERVER['HTTP_HX_REQUEST']);
     $redirect  = static function (string $q) use ($isHtmx, $recapYear): void {
-        $url = $_SERVER['PHP_SELF'] . '?view=comptaRecap&year=' . $recapYear . '&' . $q;
+        $url = appUrl() . '?view=comptaRecap&year=' . $recapYear . '&' . $q;
         if ($isHtmx) { header('HX-Location: ' . $url); } else { header('Location: ' . $url); }
         exit;
     };
@@ -133,7 +133,7 @@ if ($action === 'sendComptaRecap') {
 
     $isHtmx = isset($_SERVER['HTTP_HX_REQUEST']);
     $redirect = static function (string $q) use ($isHtmx): void {
-        $url = $_SERVER['PHP_SELF'] . '?view=settings&tab=health&' . $q;
+        $url = appUrl() . '?view=settings&tab=health&' . $q;
         if ($isHtmx) { header('HX-Location: ' . $url); } else { header('Location: ' . $url); }
         exit;
     };

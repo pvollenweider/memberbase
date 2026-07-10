@@ -191,7 +191,7 @@ $_bulkComptaErr  = $_GET['bulkComptaErr'] ?? null;
         // Check if a DB export was done in the last 30 minutes in this session.
         $hasRecentExport = isset($_SESSION['last_db_export']) && (time() - (int)$_SESSION['last_db_export']) <= 1800;
       ?>
-        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex flex-column gap-1" hx-boost="false">
+        <form method="post" action="<?= appUrl() ?>" class="d-flex flex-column gap-1" hx-boost="false">
           <input type="hidden" name="action" value="applyMigrations">
           <input type="hidden" name="view" value="settings">
           <input type="hidden" name="tab" value="health">
@@ -233,7 +233,7 @@ if ($_comptaUntouched > 0):
       <i class="fas fa-coins me-1" aria-hidden="true"></i><?= $GLOBAL['comptaBulkTitle'] ?>
     </h6>
     <p class="small text-muted mb-2"><?= sprintf($GLOBAL['comptaBulkDesc'], $_comptaUntouched) ?></p>
-    <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex flex-column gap-1" style="max-width:380px" hx-boost="false">
+    <form method="post" action="<?= appUrl() ?>" class="d-flex flex-column gap-1" style="max-width:380px" hx-boost="false">
       <input type="hidden" name="action" value="markAllComptaNotified">
       <input type="hidden" name="view"   value="settings">
       <input type="hidden" name="tab"    value="health">

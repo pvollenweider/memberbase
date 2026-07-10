@@ -56,14 +56,14 @@ if (!empty($_SESSION['group_toast'])) {
     unset($_SESSION['group_toast']);
     $_gtHidden  = ($_gt['undo_act'] === 'bulkHide') ? 1 : 0;
     $_gtIdsStr  = implode(',', $_gt['undo_ids']);
-    $_gtUndoUrl = $_SERVER['PHP_SELF'] . '?action=undoSegmentVisibility&hidden=' . $_gtHidden . '&ids=' . urlencode($_gtIdsStr) . '&view=settings&tab=groups';
+    $_gtUndoUrl = appUrl() . '?action=undoSegmentVisibility&hidden=' . $_gtHidden . '&ids=' . urlencode($_gtIdsStr) . '&view=settings&tab=groups';
     echo '<div id="casa-membership-toast" hidden data-msg="' . htmlspecialchars($_gt['msg'], ENT_QUOTES) . '" data-undo-url="' . htmlspecialchars($_gtUndoUrl, ENT_QUOTES) . '"></div>';
 }
 ?>
 
 <p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['addSegment'] ?></p>
 
-<form role="form" action="<?= $_SERVER['PHP_SELF'] ?>" method="post" name="addSegment" class="mb-4">
+<form role="form" action="<?= appUrl() ?>" method="post" name="addSegment" class="mb-4">
   <input type="hidden" name="action" value="addSegmentWithImport"/>
   <input type="hidden" name="view"   value="settings"/>
   <input type="hidden" name="tab"    value="groups"/>
@@ -133,7 +133,7 @@ if (!empty($_SESSION['group_toast'])) {
   <?php endif ?>
 </form>
 
-<form id="bulk-form" action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
+<form id="bulk-form" action="<?= appUrl() ?>" method="post">
   <input type="hidden" name="action" id="bulk-action" value=""/>
   <input type="hidden" name="view" value="settings"/>
   <input type="hidden" name="tab"  value="groups"/>
@@ -226,7 +226,7 @@ while ($stmt && $row = $stmt->fetchObject()) {
           <td>
             <!-- Static view -->
             <span class="team-name-view">
-              <a href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= $id ?>"
+              <a href="<?= appUrl() ?>?team=<?= $id ?>"
                  class="text-decoration-none <?= $isHidden ? 'text-muted' : '' ?>">
                 <?= $name ?>
               </a>
@@ -256,7 +256,7 @@ while ($stmt && $row = $stmt->fetchObject()) {
                     aria-label="<?= sprintf($GLOBAL['renameNameAria'], $name) ?>" style="font-size:0.78rem;line-height:1">
               <i class="fas fa-i-cursor" aria-hidden="true"></i>
             </button>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateSegment&amp;id=<?= $id ?>"
+            <a href="<?= appUrl() ?>?view=updateSegment&amp;id=<?= $id ?>"
                class="text-decoration-none text-muted" aria-label="<?= sprintf($GLOBAL['segmentSettingsAria'], $name) ?>" style="font-size:0.78rem">
               <i class="fas fa-gear" aria-hidden="true"></i>
             </a>

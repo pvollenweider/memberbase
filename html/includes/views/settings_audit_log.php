@@ -26,7 +26,7 @@ if (!isAdmin()) { echo '<div class="alert alert-danger">' . $GLOBAL['accessDenie
     <div class="card card-body">
         <div class="row g-2 align-items-end">
             <div class="col-auto">
-                <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty>
+                <form method="post" action="<?= appUrl() ?>" data-no-dirty>
                     <input type="hidden" name="action" value="flushAuditLog">
                     <input type="hidden" name="keep_days" value="0">
                     <button type="button" class="btn btn-danger btn-sm"
@@ -36,7 +36,7 @@ if (!isAdmin()) { echo '<div class="alert alert-danger">' . $GLOBAL['accessDenie
                 </form>
             </div>
             <div class="col-auto">
-                <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex gap-2 align-items-end" data-no-dirty>
+                <form method="post" action="<?= appUrl() ?>" class="d-flex gap-2 align-items-end" data-no-dirty>
                     <input type="hidden" name="action" value="flushAuditLog">
                     <div>
                         <label for="keep_days" class="form-label mb-1 small"><?= $GLOBAL['keepLastLabel'] ?></label>
@@ -169,7 +169,7 @@ $(function () {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
-        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty class="d-inline" hx-boost="false">
+        <form method="post" action="<?= appUrl() ?>" data-no-dirty class="d-inline" hx-boost="false">
           <input type="hidden" name="action" value="flushAuditLog">
           <input type="hidden" name="keep_days" value="0">
           <button type="submit" class="btn btn-danger">

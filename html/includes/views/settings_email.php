@@ -12,8 +12,8 @@ if (!isAdmin()) { ?>
 
 <div class="col-md-8">
 <div id="smtp-save-msg"></div>
-<form action="<?= $_SERVER['PHP_SELF'] ?>" method="post"
-      hx-post="<?= $_SERVER['PHP_SELF'] ?>"
+<form action="<?= appUrl() ?>" method="post"
+      hx-post="<?= appUrl() ?>"
       hx-target="#smtp-save-msg"
       hx-swap="innerHTML">
   <input type="hidden" name="action" value="saveSmtp"/>
@@ -145,7 +145,7 @@ if (!isAdmin()) { ?>
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + btn.dataset.labelSending;
     res.innerHTML = '';
-    fetch(<?= json_encode($_SERVER['PHP_SELF']) ?>, {
+    fetch(<?= json_encode(appUrl()) ?>, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

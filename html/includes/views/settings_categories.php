@@ -40,7 +40,7 @@ try {
       <td><?= htmlentities($cat->name, ENT_COMPAT, $charset) ?></td>
       <td class="text-muted" style="font-size:0.75rem;width:5rem"><?= sprintf($GLOBAL['segmentCount'], (int)$cat->team_count, $cat->team_count != 1 ? 's' : '') ?></td>
       <td class="text-end" style="width:2rem">
-        <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateMetagroup&amp;id=<?= (int)$cat->id ?>" class="text-decoration-none text-muted" title="<?= $GLOBAL['edit'] ?>">
+        <a href="<?= appUrl() ?>?view=updateMetagroup&amp;id=<?= (int)$cat->id ?>" class="text-decoration-none text-muted" title="<?= $GLOBAL['edit'] ?>">
           <i class="fas fa-pen" style="font-size:0.75rem"></i>
         </a>
       </td>
@@ -102,7 +102,7 @@ try {
 <p class="text-muted small mb-3"><?= $GLOBAL['noCategories'] ?></p>
 <?php endif ?>
 
-<form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
+<form action="<?= appUrl() ?>" method="post">
   <input type="hidden" name="action" value="addMetagroup"/>
   <input type="hidden" name="view" value="settings"/>
   <input type="hidden" name="tab" value="categories"/>

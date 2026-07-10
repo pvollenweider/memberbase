@@ -25,7 +25,7 @@ if ($action === 'logout') {
         ->execute([$newLocale, $currentUser->id]);
     $_SESSION['app_user_locale'] = $newLocale;
     auditLog($pdo, 'changeLocale', 'locale=' . $newLocale);
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=changePassword');
+    header('Location: ' . appUrl() . '?view=changePassword');
     exit;
 
 } elseif ($action === 'changePassword') {
@@ -50,7 +50,7 @@ if ($action === 'logout') {
     }
 
     if ($errParam) {
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=changePassword&pw_error=' . $errParam);
+        header('Location: ' . appUrl() . '?view=changePassword&pw_error=' . $errParam);
         exit;
     }
 
@@ -59,7 +59,7 @@ if ($action === 'logout') {
         ->execute([$newHash, $currentUser->id]);
     $_SESSION['force_password_change'] = false;
     auditLog($pdo, 'changePassword', "user={$currentUser->username}");
-    header('Location: ' . $_SERVER['PHP_SELF']);
+    header('Location: ' . appUrl());
     exit;
 
 } elseif ($action === 'createAppUser') {
@@ -103,9 +103,9 @@ if ($action === 'logout') {
         }
     }
     if ($errParam) {
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&au_error=' . $errParam);
+        header('Location: ' . appUrl() . '?view=manageAppUsers&au_error=' . $errParam);
     } else {
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
+        header('Location: ' . appUrl() . '?view=manageAppUsers');
     }
     exit;
 
@@ -128,21 +128,21 @@ if ($action === 'logout') {
         $curRole    = $pdo->prepare("SELECT role FROM app_users WHERE id=?");
         $curRole->execute([$targetId]);
         if ($curRole->fetchColumn() === 'admin' && $adminCount <= 1) {
-            header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&au_error=' . urlencode($GLOBAL['cannotDemoteLastAdmin']));
+            header('Location: ' . appUrl() . '?view=manageAppUsers&au_error=' . urlencode($GLOBAL['cannotDemoteLastAdmin']));
             exit;
         }
     }
     $pdo->prepare("UPDATE app_users SET display_name=?, email=?, role=?, is_active=? WHERE id=?")
         ->execute([$displayName ?: null, $email ?: null, $role, $isActive, $targetId]);
     auditLog($pdo, 'updateAppUser', "id=$targetId role=$role active=$isActive");
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
+    header('Location: ' . appUrl() . '?view=manageAppUsers');
     exit;
 
 } elseif ($action === 'deleteAppUser') {
     if (!isAdmin()) { http_response_code(403); exit; }
     $targetId = (int)($_POST['target_id'] ?? 0);
     if ($targetId === (int)$_SESSION['app_user_id']) {
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
+        header('Location: ' . appUrl() . '?view=manageAppUsers');
         exit;
     }
     $adminCount = (int)$pdo->query("SELECT COUNT(*) FROM app_users WHERE role='admin' AND is_active=1")->fetchColumn();
@@ -150,14 +150,14 @@ if ($action === 'logout') {
     $targetRole->execute([$targetId]);
     $role = $targetRole->fetchColumn();
     if ($role === 'admin' && $adminCount <= 1) {
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers&au_error=' . urlencode($GLOBAL['cannotDeleteLastAdmin']));
+        header('Location: ' . appUrl() . '?view=manageAppUsers&au_error=' . urlencode($GLOBAL['cannotDeleteLastAdmin']));
         exit;
     }
     $deletedUsername = $pdo->prepare("SELECT username FROM app_users WHERE id=?");
     $deletedUsername->execute([$targetId]);
     auditLog($pdo, 'deleteAppUser', "id=$targetId username=" . ($deletedUsername->fetchColumn() ?: ''));
     $pdo->prepare("DELETE FROM app_users WHERE id=?")->execute([$targetId]);
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
+    header('Location: ' . appUrl() . '?view=manageAppUsers');
     exit;
 
 } elseif ($action === 'resetUserPassword') {
@@ -170,7 +170,7 @@ if ($action === 'logout') {
     $resetUsername = $pdo->prepare("SELECT username FROM app_users WHERE id=?");
     $resetUsername->execute([$targetId]);
     auditLog($pdo, 'resetUserPassword', "id=$targetId username=" . ($resetUsername->fetchColumn() ?: ''));
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=manageAppUsers');
+    header('Location: ' . appUrl() . '?view=manageAppUsers');
     exit;
 
 } elseif ($action === 'flushAuditLog') {
@@ -183,6 +183,6 @@ if ($action === 'logout') {
         auditLog($pdo, 'flushAuditLog', 'all');
         $pdo->exec("DELETE FROM audit_log");
     }
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=auditLog&flushed=1');
+    header('Location: ' . appUrl() . '?view=auditLog&flushed=1');
     exit;
 }

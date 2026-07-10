@@ -34,7 +34,7 @@ $_err = $_GET['err'] ?? '';
     </div>
     <?php endif ?>
 
-    <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" enctype="multipart/form-data">
+    <form action="<?= appUrl() ?>" method="post" enctype="multipart/form-data">
       <input type="hidden" name="action" value="importUpload">
       <input type="hidden" name="view"   value="importStep1">
 
@@ -53,7 +53,7 @@ $_err = $_GET['err'] ?? '';
         <button type="submit" class="btn btn-primary btn-sm">
           <i class="fas fa-arrow-right me-1" aria-hidden="true"></i><?= $GLOBAL['next'] ?>
         </button>
-        <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
+        <a href="<?= appUrl() ?>" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
       </div>
     </form>
 

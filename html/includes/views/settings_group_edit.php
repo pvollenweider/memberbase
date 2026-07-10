@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $id = (int)($_REQUEST['id'] ?? 0);
 if ($id <= 0) {
-    $url = $_SERVER['PHP_SELF'] . '?view=settings&tab=groups';
+    $url = appUrl() . '?view=settings&tab=groups';
     if (!empty($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . $url); } else { header('Location: ' . $url); }
     exit;
 }
@@ -109,11 +109,11 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
     <div>
       <div class="d-flex align-items-baseline justify-content-between mb-1">
         <p class="form-section-title mb-0"><?= $GLOBAL['editGroup'] ?></p>
-        <a href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= (int)$id ?>" class="small">
+        <a href="<?= appUrl() ?>?team=<?= (int)$id ?>" class="small">
           <?= $GLOBAL['viewList'] ?> <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
         </a>
       </div>
-      <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
+      <form action="<?=appUrl()?>" method="post">
         <input type="hidden" name="id" value="<?=$segment->getId()?>"/>
         <input type="hidden" name="action" value="updateSegment"/>
         <input type="hidden" name="view" value="settings"/>
@@ -156,7 +156,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
 
         <div class="d-flex gap-2">
           <button type="submit" id="btn-update-team" class="btn btn-primary btn-sm"><?=$GLOBAL['update']?></button>
-          <a href="<?=$_SERVER['PHP_SELF']?>?view=settings&amp;tab=groups" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
+          <a href="<?=appUrl()?>?view=settings&amp;tab=groups" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
         </div>
       </form>
     </div>
@@ -164,7 +164,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
     <!-- Import members -->
     <?php if (count($otherSegments) > 0): ?>
     <div>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
+      <form action="<?= appUrl() ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
         <input type="hidden" name="action" value="importSegmentMembers"/>
 
         <details style="font-size:0.8rem">
@@ -183,7 +183,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
               <i class="fas fa-copy mt-1 flex-shrink-0" aria-hidden="true"></i>
               <div>
                 <?= $GLOBAL['oneTimeCopyImportWarning'] ?><br>
-                <span class="text-muted"><?= sprintf($GLOBAL['dynamicFilterHint'], '<a href="' . $_SERVER['PHP_SELF'] . '?view=settings&amp;tab=filters">' . $GLOBAL['combinedSegments'] . '</a>') ?></span>
+                <span class="text-muted"><?= sprintf($GLOBAL['dynamicFilterHint'], '<a href="' . appUrl() . '?view=settings&amp;tab=filters">' . $GLOBAL['combinedSegments'] . '</a>') ?></span>
               </div>
             </div>
             <div class="d-flex flex-column gap-1 mb-3">
@@ -213,7 +213,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
 
     <!-- Import cotisation payers by year -->
     <div>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
+      <form action="<?= appUrl() ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
         <input type="hidden" name="action" value="importCotisants"/>
 
         <details style="font-size:0.8rem">
@@ -235,7 +235,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
                 <?php if (!empty($cotisTypeIds)): ?>
                 <?= sprintf($GLOBAL['typesTakenIntoAccount'], implode(', ', array_map(fn($tid) => '<strong>' . htmlentities($comptaTypes[$tid]->label, ENT_COMPAT, $charset) . '</strong>', $cotisTypeIds))) ?>
                 <?php else: ?>
-                <span class="text-danger"><strong><?= sprintf($GLOBAL['noCotisationTypeWarning'], '<a href="' . $_SERVER['PHP_SELF'] . '?view=manageComptaTypes">' . $GLOBAL['comptaTypes'] . '</a>') ?></strong></span>
+                <span class="text-danger"><strong><?= sprintf($GLOBAL['noCotisationTypeWarning'], '<a href="' . appUrl() . '?view=manageComptaTypes">' . $GLOBAL['comptaTypes'] . '</a>') ?></strong></span>
                 <?php endif ?>
               </div>
             </div>
@@ -260,7 +260,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
 
     <!-- Import donors by year -->
     <div>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
+      <form action="<?= appUrl() ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
         <input type="hidden" name="action" value="importDonors"/>
 
         <details style="font-size:0.8rem">
@@ -372,7 +372,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
             <ul class="list-unstyled mb-0" style="font-size:0.8rem;max-height:200px;overflow-y:auto;border:1px solid var(--ca-border);border-radius:4px;padding:0.4rem 0.75rem">
               <?php foreach ($members as $m): ?>
                 <li>
-                  <a href="<?=$_SERVER['PHP_SELF']?>?view=generalData&id=<?= $m->id ?>" class="text-decoration-none">
+                  <a href="<?=appUrl()?>?view=generalData&id=<?= $m->id ?>" class="text-decoration-none">
                     <?= htmlentities($m->lastname, ENT_COMPAT, $charset) ?>
                     <?= htmlentities($m->firstname, ENT_COMPAT, $charset) ?>
                     <?php if ($m->society): ?>
@@ -388,7 +388,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
           <?php if (count($otherSegments) > 0): ?>
           <div class="p-3" style="background:var(--ca-ground);border-radius:6px">
             <p class="small fw-semibold mb-2"><?= $GLOBAL['transferMembersToOtherSegment'] ?></p>
-            <form action="<?=$_SERVER['PHP_SELF']?>" method="post" class="d-flex align-items-center gap-2 flex-wrap" hx-boost="false">
+            <form action="<?=appUrl()?>" method="post" class="d-flex align-items-center gap-2 flex-wrap" hx-boost="false">
               <input type="hidden" name="action" value="reassignSegment"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
@@ -412,7 +412,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
           <div class="p-3" style="background:var(--ca-danger-light);border-radius:6px">
             <p class="small fw-semibold mb-1" style="color:var(--ca-danger)"><?= $GLOBAL['removeAllMembersAndDelete'] ?></p>
             <p class="small text-muted mb-2"><?= sprintf($GLOBAL['membersWillBeRemoved'], $memberCount, $memberCount > 1 ? 's' : '') ?></p>
-            <form action="<?=$_SERVER['PHP_SELF']?>" method="post" hx-boost="false">
+            <form action="<?=appUrl()?>" method="post" hx-boost="false">
               <input type="hidden" name="action" value="deleteSegmentForce"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>
@@ -428,7 +428,7 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
           <!-- No members — simple delete -->
           <div>
             <p class="small text-muted mb-2"><?= $GLOBAL['segmentHasNoMembers'] ?></p>
-            <form action="<?=$_SERVER['PHP_SELF']?>" method="post" hx-boost="false">
+            <form action="<?=appUrl()?>" method="post" hx-boost="false">
               <input type="hidden" name="action" value="deleteSegmentForce"/>
               <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="groups"/>

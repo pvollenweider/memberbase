@@ -132,7 +132,7 @@ if ($__flash):
       <i class="fas fa-trash" aria-hidden="true"></i>
     </button>
     <?php else: ?>
-    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword" class="btn btn-sm btn-outline-secondary py-0 px-2" title="<?= $GLOBAL['changeMyPassword'] ?>">
+    <a href="<?= appUrl() ?>?view=changePassword" class="btn btn-sm btn-outline-secondary py-0 px-2" title="<?= $GLOBAL['changeMyPassword'] ?>">
       <i class="fas fa-key" aria-hidden="true"></i>
     </a>
     <?php endif ?>

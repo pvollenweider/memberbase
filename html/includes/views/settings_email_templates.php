@@ -55,8 +55,8 @@ $tplLabels = [
     <?= htmlspecialchars($label, ENT_QUOTES, $charset) ?>
   </div>
   <div class="card-body">
-    <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post"
-          hx-post="<?= $_SERVER['PHP_SELF'] ?>"
+    <form action="<?= appUrl() ?>" method="post"
+          hx-post="<?= appUrl() ?>"
           hx-target="#tpl-save-msg"
           hx-swap="innerHTML">
       <input type="hidden" name="action"   value="saveEmailTemplate"/>

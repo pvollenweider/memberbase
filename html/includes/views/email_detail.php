@@ -55,7 +55,7 @@ $isHtml  = isset($log->body_html) && $log->body_html !== '';
       <div class="col-sm-9">
         <?= htmlspecialchars($log->to_email, ENT_QUOTES, $charset) ?>
         <?php if ($log->user_id): ?>
-          — <a href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&userid=<?= (int)$log->user_id ?>">
+          — <a href="<?= appUrl() ?>?view=suivi&userid=<?= (int)$log->user_id ?>">
               <?= htmlspecialchars(trim($log->firstname . ' ' . $log->lastname), ENT_QUOTES, $charset) ?>
             </a>
         <?php endif ?>
@@ -106,7 +106,7 @@ $isHtml  = isset($log->body_html) && $log->body_html !== '';
 <?php endif ?>
 
 <div class="mt-3">
-  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi" class="btn btn-outline-secondary btn-sm">
+  <a href="<?= appUrl() ?>?view=lastEntrySuivi" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['back'] ?>
   </a>
 </div>

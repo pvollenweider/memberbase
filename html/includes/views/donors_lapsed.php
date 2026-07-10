@@ -14,7 +14,7 @@ $rows  = mbGetLapsedDonors($pdo, $year);
 $count = count($rows);
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
+  <a href="<?= appUrl() ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToDonationOverview'] ?>
   </a>
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
@@ -28,7 +28,7 @@ $count = count($rows);
     <ul class="dropdown-menu">
       <?php for ($i = 0; $i < 8; $i++): $y = (int)date("Y") - $i; ?>
       <li><a class="dropdown-item<?= $y === $year ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedDonors&amp;year=<?= $y ?>"><?= $y ?></a></li>
+             href="<?= appUrl() ?>?view=lapsedDonors&amp;year=<?= $y ?>"><?= $y ?></a></li>
       <?php endfor ?>
     </ul>
   </div>
@@ -51,7 +51,7 @@ $count = count($rows);
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
-        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline" hx-boost="false">
+        <form method="post" action="<?= appUrl() ?>" class="d-inline" hx-boost="false">
           <input type="hidden" name="action"    value="createLapsedSegment">
           <input type="hidden" name="groupType" value="donors">
           <input type="hidden" name="year"      value="<?= $year ?>">
@@ -87,6 +87,6 @@ $extra_columns = [
         'footer' => null,
     ],
 ];
-$row_href = fn($row) => $_SERVER['PHP_SELF'] . '?view=compta&userid=' . (int)$row->id;
+$row_href = fn($row) => appUrl() . '?view=compta&userid=' . (int)$row->id;
 include __DIR__ . '/../partials/donor_table.php';
 ?>

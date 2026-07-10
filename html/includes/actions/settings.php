@@ -38,7 +38,7 @@ if ($action == 'saveSettings') {
     if ($isHtmx) {
         echo '<div id="casa-save-ok" hidden></div>';
     } else {
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&saved=1') . ');</script>';
+        echo '<script>window.location.replace(' . json_encode(appUrl() . '?view=settings&saved=1') . ');</script>';
     }
     exit;
 
@@ -134,7 +134,7 @@ if ($action == 'saveSettings') {
     if ($isHtmx) {
         echo '<div id="casa-save-ok" hidden></div>';
     } else {
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=email&saved=1') . ');</script>';
+        echo '<script>window.location.replace(' . json_encode(appUrl() . '?view=settings&tab=email&saved=1') . ');</script>';
     }
     exit;
 
@@ -181,7 +181,7 @@ if ($action == 'saveSettings') {
     $_rvAllowed = ['settings','manageComptaTypes'];
     $rv  = in_array($_REQUEST['returnView'] ?? '', $_rvAllowed) ? $_REQUEST['returnView'] : 'settings';
     $rtb = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnTab'] ?? 'compta');
-    $_ctUrl = $_SERVER['PHP_SELF'] . '?view=' . $rv . '&tab=' . $rtb;
+    $_ctUrl = appUrl() . '?view=' . $rv . '&tab=' . $rtb;
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>'; }
     exit;
 
@@ -202,7 +202,7 @@ if ($action == 'saveSettings') {
     $_rvAllowed = ['settings','manageComptaTypes'];
     $rv  = in_array($_REQUEST['returnView'] ?? '', $_rvAllowed) ? $_REQUEST['returnView'] : 'settings';
     $rtb = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnTab'] ?? 'compta');
-    $_ctUrl = $_SERVER['PHP_SELF'] . '?view=' . $rv . '&tab=' . $rtb;
+    $_ctUrl = appUrl() . '?view=' . $rv . '&tab=' . $rtb;
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>'; }
     exit;
 
@@ -220,7 +220,7 @@ if ($action == 'saveSettings') {
     $_rvAllowed = ['settings','manageComptaTypes'];
     $rv  = in_array($_REQUEST['returnView'] ?? '', $_rvAllowed) ? $_REQUEST['returnView'] : 'settings';
     $rtb = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnTab'] ?? 'compta');
-    $_ctUrl = $_SERVER['PHP_SELF'] . '?view=' . $rv . '&tab=' . $rtb;
+    $_ctUrl = appUrl() . '?view=' . $rv . '&tab=' . $rtb;
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>'; }
     exit;
 
@@ -259,7 +259,7 @@ if ($action == 'saveSettings') {
     if ($isHtmx) {
         echo '<div id="casa-save-ok" hidden></div>';
     } else {
-        echo '<script>window.location.replace(' . json_encode($_SERVER['PHP_SELF'] . '?view=settings&tab=email&saved=1') . ');</script>';
+        echo '<script>window.location.replace(' . json_encode(appUrl() . '?view=settings&tab=email&saved=1') . ');</script>';
     }
     exit;
 

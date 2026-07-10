@@ -100,18 +100,18 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
             <?= htmlentities($_memberLabel, ENT_COMPAT, $charset) ?>
         </span>
         <a class="btn btn-sm <?= $view === 'generalData' ? 'btn-primary' : 'btn-outline-secondary' ?>"
-           href="<?= $_SERVER['PHP_SELF'] ?>?view=generalData&amp;userid=<?= $user->getId() ?>">
+           href="<?= appUrl() ?>?view=generalData&amp;userid=<?= $user->getId() ?>">
             <i class="far fa-id-card me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['generalData'] ?></span><span class="d-sm-none"><?= $GLOBAL['memberSheet'] ?></span>
         </a>
         <a class="btn btn-sm <?= $view === 'compta' ? 'btn-primary' : 'btn-outline-secondary' ?>"
-           href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>">
+           href="<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?>">
             <i class="fas fa-file-contract me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?>
             <?php if ((int)$_stats->compta_count > 0): ?>
             <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= (int)$_stats->compta_count ?></span>
             <?php endif ?>
         </a>
         <a class="btn btn-sm <?= $view === 'suivi' ? 'btn-primary' : 'btn-outline-secondary' ?>"
-           href="<?= $_SERVER['PHP_SELF'] ?>?view=suivi&amp;userid=<?= $user->getId() ?>">
+           href="<?= appUrl() ?>?view=suivi&amp;userid=<?= $user->getId() ?>">
             <i class="far fa-rectangle-list me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?>
             <?php if ($_suiviCount > 0): ?>
             <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= $_suiviCount ?></span>
@@ -119,13 +119,13 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
         </a>
         <?php if (isAdmin()): ?>
         <a class="btn btn-sm <?= $view === 'userHistory' ? 'btn-primary' : 'btn-outline-secondary' ?>"
-           href="<?= $_SERVER['PHP_SELF'] ?>?view=userHistory&amp;userid=<?= $user->getId() ?>">
+           href="<?= appUrl() ?>?view=userHistory&amp;userid=<?= $user->getId() ?>">
             <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['history'] ?></span><span class="d-sm-none"><?= $GLOBAL['historyShort'] ?></span>
         </a>
         <?php endif ?>
     </div>
     <?php if (isManager()): ?>
-    <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-flex align-items-center" data-no-dirty id="status-toggle-form">
+    <form method="post" action="<?= appUrl() ?>" class="d-flex align-items-center" data-no-dirty id="status-toggle-form">
         <input type="hidden" name="action"   value="<?= $user->status ? 'deactivateUser' : 'reactivateUser' ?>">
         <input type="hidden" name="id"       value="<?= (int)$user->getId() ?>">
         <input type="hidden" name="redirect" value="updateUser">
@@ -308,14 +308,14 @@ if ($view == "compta") {
 
           <?php if ($_hasCompta): ?>
           <!-- Has compta → offer anonymize, not delete -->
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=anonymizeUser&amp;id=<?= (int)$user->getId() ?>"
+          <a href="<?= appUrl() ?>?view=anonymizeUser&amp;id=<?= (int)$user->getId() ?>"
              class="btn btn-outline-danger btn-sm"
              title="<?= $GLOBAL['anonymizeTooltip'] ?>">
             <i class="fas fa-user-secret me-1" aria-hidden="true"></i><?= $GLOBAL['anonymize'] ?>
           </a>
           <?php else: ?>
           <!-- No compta → allow delete -->
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=deleteUser&amp;id=<?= (int)$user->getId() ?>"
+          <a href="<?= appUrl() ?>?view=deleteUser&amp;id=<?= (int)$user->getId() ?>"
              class="btn btn-danger btn-sm">
             <i class="fas fa-user-xmark me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
           </a>

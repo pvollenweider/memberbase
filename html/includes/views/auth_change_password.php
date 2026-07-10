@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_REQUEST['action'] ?? '') === 'ch
       </div>
       <?php endif ?>
 
-      <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+      <form method="post" action="<?= appUrl() ?>">
         <input type="hidden" name="action" value="changePassword">
         <?php if (!$_cpForced): ?>
         <div class="mb-3">
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_REQUEST['action'] ?? '') === 'ch
         </div>
         <div class="d-flex gap-2">
           <?php if (!$_cpForced): ?>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
+          <a href="<?= appUrl() ?>" class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
           <?php endif ?>
           <button type="submit" class="btn btn-primary"><?= $GLOBAL['saveButton'] ?></button>
         </div>
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_REQUEST['action'] ?? '') === 'ch
       <h5 class="card-title mb-3"><?= $GLOBAL['language'] ?></h5>
       <?php /* hx-boost off: a locale change must fully reload the page so the
                <html lang> attribute and every layout string refresh. */ ?>
-      <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" hx-boost="false">
+      <form method="post" action="<?= appUrl() ?>" hx-boost="false">
         <input type="hidden" name="action" value="changeLocale">
         <div class="mb-3">
           <label for="locale" class="form-label" style="font-size:0.875rem"><?= $GLOBAL['interfaceLanguage'] ?></label>

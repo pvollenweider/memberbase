@@ -78,11 +78,11 @@ if ($addMem != -1) {
     </button>
     <ul class="dropdown-menu">
       <li><a class="dropdown-item<?= $filterTypeId === 0 ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;year=<?= $year ?>"><?= $GLOBAL['allTypes'] ?></a></li>
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;year=<?= $year ?>"><?= $GLOBAL['allTypes'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
       <?php foreach ($comptaTypes as $ct): ?>
       <li><a class="dropdown-item<?= $filterTypeId === (int)$ct->id ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= (int)$ct->id ?>&amp;year=<?= $year ?>">
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= (int)$ct->id ?>&amp;year=<?= $year ?>">
              <?= _lec_type_swatch($ct->color ?? '', $ct->label, $charset) ?>
       </a></li>
       <?php endforeach ?>
@@ -103,19 +103,19 @@ if ($addMem != -1) {
     </button>
     <ul class="dropdown-menu">
       <li><a class="dropdown-item<?= $year === -2 ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
       <li><a class="dropdown-item<?= $year === -3 ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-3"><?= $GLOBAL['last12Months'] ?></a></li>
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-3"><?= $GLOBAL['last12Months'] ?></a></li>
       <li><a class="dropdown-item<?= $year === -4 ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-4"><?= $GLOBAL['last24Months'] ?></a></li>
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-4"><?= $GLOBAL['last24Months'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
       <?php
       $currentYear = date("Y");
       for ($i = 0; $i < 10; $i++) {
           $y = $currentYear - $i;
           ?><li><a class="dropdown-item<?= $year === $y ? ' active' : '' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
+               href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
       }
       ?>
     </ul>
@@ -207,7 +207,7 @@ while ($row = $stmt->fetchObject()) {
     $_ctBg  = $row->ct_color ?: 'bg-secondary-subtle';
     $_ctTxt = (str_contains($_ctBg, '-subtle') || $_ctBg === 'bg-light') ? '#212529' : '#fff';
     ?>
-    <tr class="ca-row-link" data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&userid=<?=(int)$userId?>" style="cursor:pointer;">
+    <tr class="ca-row-link" data-href="<?=appUrl()?>?view=compta&userid=<?=(int)$userId?>" style="cursor:pointer;">
         <td><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
         <td class="d-none d-xl-table-cell"><div class="text-truncate" style="max-width:125px"><?= htmlentities($society, ENT_COMPAT, $charset) ?></div></td>
         <td class="text-nowrap"><div class="text-truncate" style="max-width:150px"><?= htmlentities($lastName, ENT_COMPAT, $charset) ?></div></td>

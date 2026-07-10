@@ -25,7 +25,7 @@ if ($fromTeam > 0) {
 
     <h6 class="form-section-title" style="margin-top:0"><?= $GLOBAL['addUser'] ?></h6>
 
-    <form action="<?= $_SERVER['PHP_SELF'] ?>?action=addUser&amp;view=updateUser" method="post" id="addUser">
+    <form action="<?= appUrl() ?>?action=addUser&amp;view=updateUser" method="post" id="addUser">
       <?php if ($fromTeam > 0): ?>
       <input type="hidden" name="fromTeam" value="<?= $fromTeam ?>">
       <?php endif ?>

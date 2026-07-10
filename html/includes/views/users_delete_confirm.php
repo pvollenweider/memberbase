@@ -21,7 +21,7 @@ $userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
         <?= htmlspecialchars($userName, ENT_QUOTES, $charset) ?>
         <span class="text-muted ms-1" style="font-size:0.78rem">#<?= (int)$user->getId() ?></span>
       </p>
-      <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
+      <form method="post" action="<?= appUrl() ?>">
         <input type="hidden" name="action" value="deleteOrDeactivateUser">
         <input type="hidden" name="id"     value="<?= (int)$user->getId() ?>">
         <div class="d-flex flex-column gap-2 mb-4">
@@ -37,7 +37,7 @@ $userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
           </label>
         </div>
         <div class="d-flex gap-2 justify-content-end">
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$user->getId() ?>"
+          <a href="<?= appUrl() ?>?view=updateUser&id=<?= (int)$user->getId() ?>"
              class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
           <button type="submit" class="btn btn-danger"><?= $GLOBAL['confirm'] ?></button>
         </div>

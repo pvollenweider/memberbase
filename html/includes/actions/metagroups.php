@@ -74,7 +74,7 @@ if ($action == 'updateCategoryOrder') {
         $pdo->prepare("UPDATE metagroup SET is_filter=? WHERE id=? AND name IS NOT NULL")->execute([$isFilter, $newMgId]);
     }
     auditLog($pdo, 'addMetagroup', "id=$newMgId | {$_REQUEST['name']} | filtre: " . ($isFilter ? 'oui' : 'non'));
-    $_amUrl = $_SERVER['PHP_SELF'] . '?view=updateMetagroup&id=' . $newMgId . '&created=1';
+    $_amUrl = appUrl() . '?view=updateMetagroup&id=' . $newMgId . '&created=1';
     if ($isHtmx) { header('HX-Location: ' . $_amUrl); } else { echo '<script>window.location.replace(' . json_encode($_amUrl) . ');</script>'; }
     exit;
 
@@ -95,7 +95,7 @@ if ($action == 'updateCategoryOrder') {
     $auMgDetail = "id={$_REQUEST['id']} | {$mg->name}" . (count($_auMgChanges) ? ' | ' . implode(', ', $_auMgChanges) : ' | aucun changement');
     auditLog($pdo, 'updateMetagroup', $auMgDetail);
     $_mgRedirectTab = $isFilter ? 'filters' : 'categories';
-    $_umUrl = $_SERVER['PHP_SELF'] . '?view=settings&tab=' . $_mgRedirectTab;
+    $_umUrl = appUrl() . '?view=settings&tab=' . $_mgRedirectTab;
     if ($isHtmx) { header('HX-Location: ' . $_umUrl); } else { header('Location: ' . $_umUrl); }
     exit;
 }

@@ -110,7 +110,7 @@ if ($_extended) {
     <ul class="dropdown-menu">
       <?php for ($i = 0; $i < 10; $i++): $y = (int)date('Y') - $i; ?>
       <li><a class="dropdown-item<?= $y === $_year ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=comptaRecap&amp;year=<?= $y ?><?= $_extended ? '&amp;extended=1' : '' ?>"><?= $y ?></a></li>
+             href="<?= appUrl() ?>?view=comptaRecap&amp;year=<?= $y ?><?= $_extended ? '&amp;extended=1' : '' ?>"><?= $y ?></a></li>
       <?php endfor ?>
     </ul>
   </div>
@@ -146,7 +146,7 @@ if ($_extended) {
 <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
   <span class="text-muted small"><i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapPreviewHint'] ?></span>
   <?php if ($_sendableCount > 0): ?>
-  <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline">
+  <form method="post" action="<?= appUrl() ?>" class="d-inline">
     <input type="hidden" name="action" value="sendComptaRecap">
     <input type="hidden" name="view"   value="comptaRecap">
     <input type="hidden" name="year"   value="<?= $_year ?>">
@@ -212,7 +212,7 @@ if ($_extended) {
       ?>
         <tr>
           <td>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= (int)$_pr->user_id ?>" class="text-nowrap">
+            <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$_pr->user_id ?>" class="text-nowrap">
               <?= htmlspecialchars(trim($_pr->lastname . ' ' . $_pr->firstname), ENT_QUOTES, $charset) ?>
             </a>
           </td>
@@ -307,7 +307,7 @@ if ($_extended) {
 <script>
 (function () {
   function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
-  var baseUrl       = <?= json_encode($_SERVER['PHP_SELF']) ?>;
+  var baseUrl       = <?= json_encode(appUrl()) ?>;
   var recapYear     = <?= (int)$_year ?>;
   var currentUserId   = null;
   var currentForce    = false;

@@ -23,19 +23,19 @@ $allSegments = $pdo->query("SELECT id, name, hidden FROM segment ORDER BY hidden
       <nav class="ca-settings-nav" aria-label="<?= $GLOBAL['settingsSectionsAria'] ?>">
         <ul role="tablist" aria-orientation="vertical" id="settings-tabs">
           <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups"
+            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=groups"
                style="text-decoration:none">
               <i class="fas fa-users fa-fw" aria-hidden="true"></i><?= $GLOBAL['groups'] ?>
             </a>
           </li>
           <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=categories"
+            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=categories"
                style="text-decoration:none">
               <i class="fas fa-tag fa-fw" aria-hidden="true"></i><?= $GLOBAL['categories'] ?>
             </a>
           </li>
           <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=filters"
+            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=filters"
                style="text-decoration:none">
               <i class="fas fa-layer-group fa-fw" aria-hidden="true"></i><?= $GLOBAL['combinedSegments'] ?>
             </a>
@@ -43,37 +43,37 @@ $allSegments = $pdo->query("SELECT id, name, hidden FROM segment ORDER BY hidden
           <?php if (isAdmin()): ?>
           <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['administration'] ?></li>
           <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=compta"
+            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=compta"
                style="text-decoration:none">
               <i class="fas fa-tags fa-fw" aria-hidden="true"></i><?= $GLOBAL['comptaTypes'] ?>
             </a>
           </li>
           <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=settings"
+            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=settings"
                style="text-decoration:none">
               <i class="fas fa-sliders fa-fw" aria-hidden="true"></i><?= $GLOBAL['settings'] ?>
             </a>
           </li>
           <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=users"
+            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=users"
                style="text-decoration:none">
               <i class="fas fa-user-shield fa-fw" aria-hidden="true"></i><?= $GLOBAL['users'] ?>
             </a>
           </li>
           <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=audit"
+            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=audit"
                style="text-decoration:none">
               <i class="fas fa-clock-rotate-left fa-fw" aria-hidden="true"></i><?= $GLOBAL['journal'] ?>
             </a>
           </li>
           <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=integrity"
+            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=integrity"
                style="text-decoration:none">
               <i class="fas fa-stethoscope fa-fw" aria-hidden="true"></i><?= $GLOBAL['integrity'] ?>
             </a>
           </li>
           <li role="presentation">
-            <a class="ca-settings-nav-btn ca-settings-nav-btn--active" href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers"
+            <a class="ca-settings-nav-btn ca-settings-nav-btn--active" href="<?= appUrl() ?>?view=inactiveUsers"
                style="text-decoration:none" aria-current="page">
               <i class="fas fa-archive fa-fw" aria-hidden="true"></i><?= $GLOBAL['archived'] ?>
             </a>
@@ -109,7 +109,7 @@ $allSegments = $pdo->query("SELECT id, name, hidden FROM segment ORDER BY hidden
             <tr>
               <td>
                 <?php $_uLabel = htmlspecialchars(trim(trim($u->lastName . ' ' . $u->firstName) ?: $u->society), ENT_QUOTES, $charset) ?>
-                <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$u->id ?>" class="text-decoration-none">
+                <a href="<?= appUrl() ?>?view=updateUser&id=<?= (int)$u->id ?>" class="text-decoration-none">
                   <?= $_uLabel ?: '<span class="text-muted fst-italic">' . $GLOBAL['noName'] . '</span>' ?>
                 </a>
               </td>
@@ -154,7 +154,7 @@ $allSegments = $pdo->query("SELECT id, name, hidden FROM segment ORDER BY hidden
         </div>
       </div>
 
-      <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" id="unarchive-form" data-no-dirty>
+      <form method="post" action="<?= appUrl() ?>" id="unarchive-form" data-no-dirty>
         <input type="hidden" name="action"   value="reactivateUser">
         <input type="hidden" name="id"       id="unarchive-id" value="">
         <input type="hidden" name="redirect" value="inactiveUsers">

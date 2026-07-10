@@ -93,7 +93,7 @@ try {
       if (!confirm(this.dataset.confirm)) return;
       var btn = this;
       btn.disabled = true;
-      fetch(<?= json_encode($_SERVER['PHP_SELF']) ?>, {
+      fetch(<?= json_encode(appUrl()) ?>, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -125,7 +125,7 @@ try {
       this.disabled = true;
       this.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + this.dataset.labelSending;
       var statusCell = this.closest('tr').querySelector('td:nth-child(4)');
-      fetch(<?= json_encode($_SERVER['PHP_SELF']) ?>, {
+      fetch(<?= json_encode(appUrl()) ?>, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

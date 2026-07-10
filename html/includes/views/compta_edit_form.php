@@ -33,13 +33,13 @@ $_cotiTypeIdsEdit = array_values(array_map('intval',
       <h6 class="text-muted mb-0" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em">
         <?= $GLOBAL['editCompta'] ?>
       </h6>
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&amp;userid=<?= $user->getId() ?>"
+      <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?>"
          class="text-muted small text-decoration-none">
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= htmlentities($user->getFirstName(), ENT_COMPAT, $charset) ?> <?= htmlentities($user->getLastName(), ENT_COMPAT, $charset) ?>
       </a>
     </div>
 
-    <form role="form" action="<?= $_SERVER['PHP_SELF'] ?>" name="updateCompta" method="post">
+    <form role="form" action="<?= appUrl() ?>" name="updateCompta" method="post">
       <input type="hidden" name="comptaid" value="<?= $compta->getId() ?>"/>
       <input type="hidden" name="action"   value="updateCompta"/>
       <input type="hidden" name="view"     value="compta"/>
@@ -123,7 +123,7 @@ $_cotiTypeIdsEdit = array_values(array_map('intval',
       <div class="row">
         <div class="col-8 offset-4 col-sm-9 offset-sm-3 d-flex align-items-center gap-3">
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?userid=<?= $user->getId() ?>&amp;view=removeCompta&amp;comptaid=<?= $comptaid ?>"
+          <a href="<?= appUrl() ?>?userid=<?= $user->getId() ?>&amp;view=removeCompta&amp;comptaid=<?= $comptaid ?>"
              class="btn btn-outline-danger btn-sm">
             <i class="fas fa-xmark me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
           </a>

@@ -30,6 +30,23 @@ $username = defined('DB_USER') ? DB_USER : (getenv('DB_USER') ?: 'members');
 $password = defined('DB_PASS') ? DB_PASS : (getenv('DB_PASS') ?: 'members');
 $database = defined('DB_NAME') ? DB_NAME : (getenv('DB_NAME') ?: 'members');
 
+/**
+ * DB unreachable or schema missing. HTML pages are sent to the installer;
+ * API endpoints (APP_API defined in api/_bootstrap.php) get a JSON 503 —
+ * a JSON client must never receive an HTML redirect.
+ */
+function mbDbUnavailable(): never
+{
+    if (defined('APP_API')) {
+        http_response_code(503);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['error' => 'Service unavailable']);
+        exit;
+    }
+    header('Location: install.php');
+    exit;
+}
+
 $dsn = "mysql:host={$hostname};dbname={$database};charset=utf8mb4";
 try {
     $pdo = new PDO($dsn, $username, $password, [
@@ -38,17 +55,28 @@ try {
         PDO::ATTR_EMULATE_PREPARES   => false,
     ]);
 } catch (PDOException $e) {
-    header('Location: install.php'); exit;
+    mbDbUnavailable();
 }
 
 // Returns the shared PDO connection. Use this instead of `global $pdo` inside functions and methods.
 function db(): PDO { global $pdo; return $pdo; }
 
-// Redirect to installer if schema not yet initialized
+/**
+ * Self-URL for forms, links and redirects. Replaces PHP_SELF,
+ * which reflects attacker-controlled PATH_INFO (/index.php/"><script>...)
+ * straight into the page (XSS). SCRIPT_NAME is server-resolved; basename +
+ * escaping make the value safe in both HTML and Location headers.
+ */
+function appUrl(): string
+{
+    return htmlspecialchars(basename($_SERVER['SCRIPT_NAME'] ?? 'index.php'), ENT_QUOTES, 'UTF-8');
+}
+
+// Schema not yet initialized → installer (HTML) or 503 (API)
 try {
     $pdo->query("SELECT 1 FROM compta_type LIMIT 1");
 } catch (PDOException $e) {
-    header('Location: install.php'); exit;
+    mbDbUnavailable();
 }
 
 // Compta types
@@ -94,27 +122,19 @@ const FILTER_UNPAID_COTI_CURRENT  = -4;
 const FILTER_UNPAID_COTI_3Y       = -3333;
 const FILTER_NO_ACTIVITY_10Y      = -5555;
 const FILTER_NON_INSTIT_LAST_YEAR = -6666;
-// Sequence counter — still used for metagroup_id and userpropertiesid only.
-// segment/users/compta are now native AUTO_INCREMENT.
+// Sequence counter — still used for metagroup_id only.
+// segment/contact/compta/contact_properties are native AUTO_INCREMENT.
 // metagroup cannot use AUTO_INCREMENT (id shared across header + member rows).
-// contact_properties.id is broken (83k rows with id=0), left for later refactor.
-function getMaxVal(PDO $pdo, string $parameter): int
-{
-    $stmt = $pdo->prepare("SELECT value FROM maxval WHERE parameter=?");
-    $stmt->execute([$parameter]);
-    $row = $stmt->fetchObject();
-    if ($row !== false) {
-        return (int) $row->value;
-    }
-    $pdo->prepare("INSERT INTO maxval (parameter,value) VALUES (?,1)")->execute([$parameter]);
-    return 1;
-}
-
 function updateAndGetMaxVal(string $parameter): int
 {
-    $value = getMaxVal(db(), $parameter) + 1;
-    db()->prepare("UPDATE maxval SET value=? WHERE parameter=?")->execute([$value, $parameter]);
-    return $value;
+    // Atomic under concurrency: LAST_INSERT_ID(expr) records the incremented
+    // value for THIS connection, so two parallel requests can never read the
+    // same counter value. The upsert also seeds the row on first use.
+    db()->prepare(
+        "INSERT INTO maxval (parameter, value) VALUES (?, LAST_INSERT_ID(2))
+         ON DUPLICATE KEY UPDATE value = LAST_INSERT_ID(value + 1)"
+    )->execute([$parameter]);
+    return (int) db()->query("SELECT LAST_INSERT_ID()")->fetchColumn();
 }
 
 /**

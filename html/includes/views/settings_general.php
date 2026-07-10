@@ -72,7 +72,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
       <nav class="ca-settings-nav" aria-label="<?= $GLOBAL['settingsSectionsAria'] ?>">
         <ul role="tablist" aria-orientation="vertical" id="settings-tabs">
           <?php
-          $_navSelf = $_SERVER['PHP_SELF'];
+          $_navSelf = appUrl();
           $_navActive = $_activeTab ?? 'groups';
           _settings_nav_item('groups',     'fas fa-users',       $GLOBAL['groups'],           $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('categories', 'fas fa-tag',         $GLOBAL['categories'],       $_navActive, $_settingsDrillDown, $_navSelf);
@@ -95,7 +95,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           _settings_nav_item('health',     'fas fa-heart-pulse', $GLOBAL['health'],    $_navActive, $_settingsDrillDown, $_navSelf);
           ?>
           <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= $_SERVER['PHP_SELF'] ?>?view=inactiveUsers"
+            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=inactiveUsers"
                style="text-decoration:none">
               <i class="fas fa-archive fa-fw" aria-hidden="true"></i><?= $GLOBAL['archived'] ?>
             </a>
@@ -115,8 +115,8 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
             <?php else: ?>
             <div class="col-md-8">
             <div id="settings-save-msg"></div>
-            <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post"
-                  hx-post="<?= $_SERVER['PHP_SELF'] ?>"
+            <form action="<?= appUrl() ?>" method="post"
+                  hx-post="<?= appUrl() ?>"
                   hx-target="#settings-save-msg"
                   hx-swap="innerHTML">
               <input type="hidden" name="action" value="saveSettings"/>
@@ -157,7 +157,7 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
                          placeholder="CHE-123.456.789"
                          value="<?= htmlspecialchars($appSettings['org_ide'] ?? '', ENT_QUOTES, $charset) ?>">
                   <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-zefix-lookup"
-                          data-action="<?= htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, $charset) ?>"
+                          data-action="<?= htmlspecialchars(appUrl(), ENT_QUOTES, $charset) ?>"
                           data-label-checking="<?= htmlspecialchars($GLOBAL['zefixChecking'], ENT_QUOTES, $charset) ?>"
                           data-label-verify="<?= htmlspecialchars($GLOBAL['zefixVerify'], ENT_QUOTES, $charset) ?>">
                     <i class="fas fa-magnifying-glass me-1" aria-hidden="true"></i><span><?= $GLOBAL['zefixVerify'] ?></span>

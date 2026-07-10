@@ -224,20 +224,20 @@ if ($year != -2) {
     </div>
     <?php endif ?>
     <div style="font-size:0.75rem;color:var(--ca-ink-muted);margin-top:0.3rem;display:flex;gap:0.6rem;flex-wrap:wrap">
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=loyalDonors&amp;year=<?= $year ?>"
+      <a href="<?= appUrl() ?>?view=loyalDonors&amp;year=<?= $year ?>"
          title="<?= sprintf($GLOBAL['alsoDonatedIn'], $year-1) ?>"
          style="color:inherit;text-decoration:none"
          onclick="event.stopPropagation()">
         <i class="fas fa-rotate me-1" aria-hidden="true" style="color:var(--bs-success)"></i><?= sprintf($GLOBAL['loyalShort'], $_kRecurrents) ?>
       </a>
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=newDonors&amp;year=<?= $year ?>"
+      <a href="<?= appUrl() ?>?view=newDonors&amp;year=<?= $year ?>"
          title="<?= sprintf($GLOBAL['firstContributionIn'], $year) ?>"
          style="color:inherit;text-decoration:none"
          onclick="event.stopPropagation()">
         <i class="fas fa-star me-1" aria-hidden="true" style="color:var(--bs-warning)"></i><?= $_kNouveaux ?> <?= $GLOBAL['newDonors'] ?>
       </a>
       <?php if ($_kLapsed > 0): ?>
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedDonors&amp;year=<?= $year ?>"
+      <a href="<?= appUrl() ?>?view=lapsedDonors&amp;year=<?= $year ?>"
          title="<?= sprintf($GLOBAL['donatedButNotIn'], $year-1, $year) ?>"
          style="color:var(--bs-danger);text-decoration:none"
          hx-boost="false"
@@ -262,7 +262,7 @@ if ($year != -2) {
     </div>
     <?php if (!empty($_kMembresLapsed) && $_kMembresLapsed > 0): ?>
     <div style="font-size:0.75rem;margin-top:0.3rem">
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedMembers&amp;year=<?= $year ?>"
+      <a href="<?= appUrl() ?>?view=lapsedMembers&amp;year=<?= $year ?>"
          title="<?= sprintf($GLOBAL['membersNotRenewed'], $year-1, $year) ?>"
          style="color:var(--bs-danger);text-decoration:none"
          hx-boost="false"
@@ -371,7 +371,7 @@ if ($_showPie) {
     <ul class="dropdown-menu">
       <?php foreach ([1, 100, 200, 500, 1000] as $_ms): ?>
       <li><a class="dropdown-item<?= (!$showAll && $minSum == $_ms) ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>">
+             href="<?= appUrl() ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>">
         <?= sprintf($GLOBAL['minAmountChf'], number_format($_ms, 0, '.', '\'')) ?>
       </a></li>
       <?php endforeach ?>
@@ -386,13 +386,13 @@ if ($_showPie) {
     </button>
     <ul class="dropdown-menu">
       <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -2) ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
+             href="<?= appUrl() ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
       <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -3) ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-3">
+             href="<?= appUrl() ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-3">
           <i class="fas fa-rotate me-1 text-muted" aria-hidden="true"></i><?= $GLOBAL['last12Months'] ?></a></li>
       <li><a class="dropdown-item<?= (isset($_REQUEST['year']) && (int)$_REQUEST['year'] === -4) ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-4">
+             href="<?= appUrl() ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=-4">
           <i class="fas fa-rotate me-1 text-muted" aria-hidden="true"></i><?= $GLOBAL['last24Months'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
       <?php
@@ -400,7 +400,7 @@ if ($_showPie) {
       for ($i = 0; $i < 10; $i++) {
           $y = $currentYear - $i;
           ?><li><a class="dropdown-item<?= (!isset($_REQUEST['year']) && $y == $year && !$showAll) || (isset($_REQUEST['year']) && $_REQUEST['year'] == $y) ? ' active' : '' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
+               href="<?= appUrl() ?>?view=resume&amp;minSum=<?= $minSum ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
       }
       ?>
     </ul>
@@ -550,7 +550,7 @@ foreach ($rows as $row):
         default => ''
     };
     ?>
-    <tr class="ca-row-link<?= ($showAll && $row->has_excluded) ? ' table-warning' : '' ?>" data-href="<?=$_SERVER['PHP_SELF']?>?view=compta&amp;userid=<?=(int)$row->id?>" style="cursor:pointer">
+    <tr class="ca-row-link<?= ($showAll && $row->has_excluded) ? ' table-warning' : '' ?>" data-href="<?=appUrl()?>?view=compta&amp;userid=<?=(int)$row->id?>" style="cursor:pointer">
         <td><?=$society?></td>
         <td><?=$sexe?><span class="hide"><?=$sexe2?></span></td>
         <td><strong><?=$lastName?></strong></td>
@@ -593,7 +593,7 @@ $(document).ready(function() {
     });
     document.getElementById('extendedMode').addEventListener('change', function() {
         window.__dirtyOverride = true;
-        var url = '<?= $_SERVER['PHP_SELF'] ?>?view=resume&year=<?= $year ?>&includeAttestation=<?= $includeAttestation ? 1 : 0 ?>';
+        var url = '<?= appUrl() ?>?view=resume&year=<?= $year ?>&includeAttestation=<?= $includeAttestation ? 1 : 0 ?>';
         if (this.checked) { url += '&showAll=1'; } else { url += '&minSum=<?= $showAll ? 100 : $minSum ?>'; }
         window.location = url;
     });

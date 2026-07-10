@@ -38,9 +38,9 @@ $_userName = trim($user->firstName . ' ' . $user->lastName) ?: $user->society;
       </p>
 
       <div class="d-flex gap-2 justify-content-end">
-        <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$user->getId() ?>"
+        <a href="<?= appUrl() ?>?view=updateUser&id=<?= (int)$user->getId() ?>"
            class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
-        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline">
+        <form method="post" action="<?= appUrl() ?>" class="d-inline">
           <input type="hidden" name="action" value="anonymizeUser">
           <input type="hidden" name="id"     value="<?= (int)$user->getId() ?>">
           <button type="submit" class="btn btn-danger">

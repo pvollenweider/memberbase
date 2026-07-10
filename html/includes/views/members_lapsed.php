@@ -27,7 +27,7 @@ $alreadySent = count($reminderSentMap);
 $prevTeamId  = 1; // non-zero so the table renders
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
+  <a href="<?= appUrl() ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToDonationOverview'] ?>
   </a>
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
@@ -41,7 +41,7 @@ $prevTeamId  = 1; // non-zero so the table renders
     <ul class="dropdown-menu">
       <?php for ($i = 0; $i < 8; $i++): $y = (int)date("Y") - $i; ?>
       <li><a class="dropdown-item<?= $y === $year ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=lapsedMembers&amp;year=<?= $y ?>"><?= $y ?></a></li>
+             href="<?= appUrl() ?>?view=lapsedMembers&amp;year=<?= $y ?>"><?= $y ?></a></li>
       <?php endfor ?>
     </ul>
   </div>
@@ -79,7 +79,7 @@ $prevTeamId  = 1; // non-zero so the table renders
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
-        <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" class="d-inline" hx-boost="false">
+        <form method="post" action="<?= appUrl() ?>" class="d-inline" hx-boost="false">
           <input type="hidden" name="action"    value="createLapsedSegment">
           <input type="hidden" name="groupType" value="members">
           <input type="hidden" name="year"      value="<?= $year ?>">
@@ -147,7 +147,7 @@ $prevTeamId  = 1; // non-zero so the table renders
     $hasEmail = trim($m->email) !== '';
     ?>
     <tr>
-      <td><a href="<?= $_SERVER['PHP_SELF'] ?>?view=compta&userid=<?= (int)$m->id ?>"><?= htmlspecialchars($m->lastname  ?? '', ENT_QUOTES, $charset) ?></a></td>
+      <td><a href="<?= appUrl() ?>?view=compta&userid=<?= (int)$m->id ?>"><?= htmlspecialchars($m->lastname  ?? '', ENT_QUOTES, $charset) ?></a></td>
       <td><?= htmlspecialchars($m->firstname ?? $m->society ?? '', ENT_QUOTES, $charset) ?></td>
       <td><?= htmlspecialchars($m->email ?? '', ENT_QUOTES, $charset) ?></td>
       <td>
@@ -191,7 +191,7 @@ $prevTeamId  = 1; // non-zero so the table renders
 <?php
 $dt_order      = [[1, 'asc']];
 $extra_columns = [];
-$row_href      = fn($row) => $_SERVER['PHP_SELF'] . '?view=compta&userid=' . (int)$row->id;
+$row_href      = fn($row) => appUrl() . '?view=compta&userid=' . (int)$row->id;
 include __DIR__ . '/../partials/donor_table.php';
 ?>
 <?php endif ?>
@@ -240,7 +240,7 @@ include __DIR__ . '/../partials/donor_table.php';
         var orig = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + btn.dataset.labelSending;
-        fetch(<?= json_encode($_SERVER['PHP_SELF']) ?>, {
+        fetch(<?= json_encode(appUrl()) ?>, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -280,7 +280,7 @@ include __DIR__ . '/../partials/donor_table.php';
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + btn.dataset.labelSending;
         result.style.display = 'none';
-        fetch(<?= json_encode($_SERVER['PHP_SELF']) ?>, {
+        fetch(<?= json_encode(appUrl()) ?>, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',

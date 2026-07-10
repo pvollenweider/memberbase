@@ -75,7 +75,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
 <div class="ca-merge-wrap" x-data="mergeApp()" x-cloak>
 
   <div class="d-flex align-items-center gap-2 mb-4" style="font-size:0.8rem">
-    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=integrity" class="text-muted text-decoration-none">
+    <a href="<?= appUrl() ?>?view=settings&tab=integrity" class="text-muted text-decoration-none">
       <i class="fas fa-stethoscope me-1" aria-hidden="true"></i><?= $GLOBAL['integrity'] ?>
     </a>
     <i class="fas fa-chevron-right text-muted" style="font-size:0.65rem" aria-hidden="true"></i>
@@ -94,7 +94,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
     <?php endif ?>
   </p>
 
-  <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" id="merge-form">
+  <form method="post" action="<?= appUrl() ?>" id="merge-form">
     <input type="hidden" name="action" value="mergeUsers">
     <input type="hidden" name="view"   value="mergeUsers">
     <input type="hidden" name="idA"    value="<?= $_muIdA ?>">
@@ -271,7 +271,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
               :style="!allResolved ? 'opacity:.5;pointer-events:none' : ''">
         <i class="fas fa-code-merge me-1" aria-hidden="true"></i><?= $GLOBAL['merge'] ?>
       </button>
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=integrity" class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
+      <a href="<?= appUrl() ?>?view=settings&tab=integrity" class="btn btn-outline-secondary"><?= $GLOBAL['cancel'] ?></a>
       <span class="text-muted ms-2" style="font-size:0.82rem" x-show="!allResolved" x-cloak>
         <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
         <?= $GLOBAL['resolveAllFields'] ?>

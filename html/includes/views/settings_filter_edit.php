@@ -68,7 +68,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
   <div>
     <strong><?= sprintf($GLOBAL['combinedSegmentCreated'], htmlspecialchars($mg->name, ENT_QUOTES, 'UTF-8')) ?></strong>
     <?= $GLOBAL['assignSegmentsBelowOr'] ?>
-    <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=filters" class="alert-link"><?= $GLOBAL['backToListLink'] ?></a>.
+    <a href="<?= appUrl() ?>?view=settings&amp;tab=filters" class="alert-link"><?= $GLOBAL['backToListLink'] ?></a>.
   </div>
   <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="<?= $GLOBAL['close'] ?>"></button>
 </div>
@@ -78,7 +78,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 
     <?php $_mgBackTab = $isFilter ? 'filters' : 'categories'; $_mgBackLabel = $isFilter ? $GLOBAL['combinedSegmentsLower'] : $GLOBAL['categoriesLower']; ?>
     <div>
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=<?= $_mgBackTab ?>"
+      <a href="<?= appUrl() ?>?view=settings&amp;tab=<?= $_mgBackTab ?>"
          class="btn btn-sm btn-outline-secondary">
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['backToLabel'], $_mgBackLabel) ?>
       </a>
@@ -87,7 +87,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
     <!-- Rename + type form -->
     <div>
       <p class="form-section-title"><?= $GLOBAL['editMetagroup'] ?></p>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
+      <form action="<?= appUrl() ?>" method="post">
         <input type="hidden" name="action" value="updateMetagroup"/>
         <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="<?= $_mgBackTab ?>"/>
@@ -105,7 +105,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
-          <a href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&amp;tab=<?= $_mgBackTab ?>" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
+          <a href="<?= appUrl() ?>?view=settings&amp;tab=<?= $_mgBackTab ?>" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
         </div>
       </form>
     </div>
@@ -117,7 +117,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
       <!-- SEGMENT COMBINÉ: all teams grouped by category, checkboxes -->
       <div class="d-flex align-items-baseline justify-content-between mb-1">
         <p class="form-section-title mb-0"><?= $GLOBAL['memberSegments'] ?></p>
-        <a href="<?= $_SERVER['PHP_SELF'] ?>?metagroup=<?= $mgId ?>" class="small">
+        <a href="<?= appUrl() ?>?metagroup=<?= $mgId ?>" class="small">
           <?= $GLOBAL['viewFilteredList'] ?> <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
         </a>
       </div>
@@ -426,7 +426,7 @@ foreach ($cntRows as $cr) { $teamCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
     <div>
       <p class="form-section-title" style="color:var(--ca-danger)"><?= $GLOBAL['delete'] ?></p>
       <p class="small text-muted mb-2"><?= $GLOBAL['deleteMetagroupHelp'] ?></p>
-      <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post" hx-boost="false">
+      <form action="<?= appUrl() ?>" method="post" hx-boost="false">
         <input type="hidden" name="action" value="deleteMetagroup"/>
         <input type="hidden" name="view" value="settings"/>
         <input type="hidden" name="tab"  value="<?= $_mgBackTab ?>"/>

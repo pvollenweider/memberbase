@@ -22,11 +22,11 @@ if ($_REQUEST['action'] === 'importUpload') {
     $err = $_FILES['csv']['error'] ?? UPLOAD_ERR_NO_FILE;
     if ($err !== UPLOAD_ERR_OK) {
         $msg = $err === UPLOAD_ERR_INI_SIZE ? 'toobig' : 'upload';
-        importRedirect($_SERVER['PHP_SELF'] . '?view=importStep1&err=' . $msg);
+        importRedirect(appUrl() . '?view=importStep1&err=' . $msg);
     }
 
     if (($_FILES['csv']['size'] ?? 0) > 5 * 1024 * 1024) {
-        importRedirect($_SERVER['PHP_SELF'] . '?view=importStep1&err=toobig');
+        importRedirect(appUrl() . '?view=importStep1&err=toobig');
     }
 
     $content = file_get_contents($_FILES['csv']['tmp_name']);
@@ -66,7 +66,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     fclose($tmp);
 
     if (empty($headers) || empty($rows)) {
-        importRedirect($_SERVER['PHP_SELF'] . '?view=importStep1&err=empty');
+        importRedirect(appUrl() . '?view=importStep1&err=empty');
     }
 
     $_SESSION['_import_headers']   = $headers;
@@ -74,7 +74,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     $_SESSION['_import_delimiter'] = $delimiter;
     $_SESSION['_import_truncated'] = $truncated;
 
-    importRedirect($_SERVER['PHP_SELF'] . '?view=importStep2');
+    importRedirect(appUrl() . '?view=importStep2');
 
 // ── Step 2 → 3 : apply mapping, create new, detect duplicates ───────────────
 } elseif ($_REQUEST['action'] === 'importApply') {
@@ -83,14 +83,14 @@ if ($_REQUEST['action'] === 'importUpload') {
     $headers = $_SESSION['_import_headers'] ?? [];
 
     if (empty($rows)) {
-        importRedirect($_SERVER['PHP_SELF'] . '?view=importStep1&err=session');
+        importRedirect(appUrl() . '?view=importStep1&err=session');
     }
 
     $allowed = importAllowedFields();
 
     // At least one column must be mapped to a member field
     if (empty(array_intersect(array_values($mapping), $allowed))) {
-        importRedirect($_SERVER['PHP_SELF'] . '?view=importStep2&err=nomap');
+        importRedirect(appUrl() . '?view=importStep2&err=nomap');
     }
 
     // Preload existing members once — O(1) in-memory lookups instead of 2 queries per row
@@ -224,7 +224,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     $_SESSION['_import_duplicates'] = $duplicates;
     $_SESSION['_import_segment']    = $segTeamId > 0 ? ['id' => $segTeamId, 'name' => $segTeamName, 'added' => $segAdded] : null;
 
-    importRedirect($_SERVER['PHP_SELF'] . '?view=importStep3');
+    importRedirect(appUrl() . '?view=importStep3');
 
 // ── Step 3 : resolve duplicates ──────────────────────────────────────────────
 } elseif ($_REQUEST['action'] === 'importResolveDuplicates') {
@@ -259,5 +259,5 @@ if ($_REQUEST['action'] === 'importUpload') {
 
     unset($_SESSION['_import_created'], $_SESSION['_import_duplicates'], $_SESSION['_import_segment']);
 
-    importRedirect($_SERVER['PHP_SELF'] . '?import_done=1&import_resolved=' . $resolved);
+    importRedirect(appUrl() . '?import_done=1&import_resolved=' . $resolved);
 }

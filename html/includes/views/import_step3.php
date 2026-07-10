@@ -11,7 +11,7 @@ $_duplicates = $_SESSION['_import_duplicates'] ?? [];
 $_segment    = $_SESSION['_import_segment']    ?? null;
 
 if (!isset($_SESSION['_import_created'])) {
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=importStep1&err=session');
+    header('Location: ' . appUrl() . '?view=importStep1&err=session');
     exit;
 }
 
@@ -43,14 +43,14 @@ $_fieldLabels = importFieldLabels();
     <div class="alert alert-info py-2 px-3 mb-4" style="font-size:0.85rem">
       <i class="fas fa-users me-1" aria-hidden="true"></i>
       <?= sprintf($GLOBAL['contactsAddedToSegment'], (int)$_segment['added'], (int)$_segment['added'] > 1 ? 's' : '', (int)$_segment['added'] > 1 ? 's' : '') ?>
-      <a href="<?= $_SERVER['PHP_SELF'] ?>?team=<?= (int)$_segment['id'] ?>" class="alert-link"><?= htmlspecialchars($_segment['name'], ENT_QUOTES, $charset) ?></a>.
+      <a href="<?= appUrl() ?>?team=<?= (int)$_segment['id'] ?>" class="alert-link"><?= htmlspecialchars($_segment['name'], ENT_QUOTES, $charset) ?></a>.
     </div>
     <?php endif ?>
 
     <?php if (empty($_duplicates)): ?>
     <!-- No duplicates — done -->
     <div class="d-flex gap-2">
-      <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-primary btn-sm">
+      <a href="<?= appUrl() ?>" class="btn btn-primary btn-sm">
         <i class="fas fa-list me-1" aria-hidden="true"></i><?= $GLOBAL['viewMemberList'] ?>
       </a>
     </div>
@@ -63,7 +63,7 @@ $_fieldLabels = importFieldLabels();
       <?= $GLOBAL['duplicateResolutionHint'] ?>
     </p>
 
-    <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
+    <form action="<?= appUrl() ?>" method="post">
       <input type="hidden" name="action" value="importResolveDuplicates">
       <input type="hidden" name="view"   value="importStep3">
 
@@ -78,7 +78,7 @@ $_fieldLabels = importFieldLabels();
               ?: ($dup['data']['society'] ?? $GLOBAL['noName']), ENT_QUOTES, $charset) ?></strong>
           <span class="text-muted ms-1" style="font-size:0.75rem">
             <?= $GLOBAL['duplicateOf'] ?>
-            <a href="<?= $_SERVER['PHP_SELF'] ?>?view=updateUser&id=<?= (int)$dup['existingId'] ?>" target="_blank"
+            <a href="<?= appUrl() ?>?view=updateUser&id=<?= (int)$dup['existingId'] ?>" target="_blank"
                class="text-muted">#<?= (int)$dup['existingId'] ?> <?= htmlspecialchars($dup['existingName'], ENT_QUOTES, $charset) ?></a>
           </span>
         </div>
@@ -112,7 +112,7 @@ $_fieldLabels = importFieldLabels();
         <button type="submit" class="btn btn-primary btn-sm">
           <i class="fas fa-check me-1" aria-hidden="true"></i><?= $GLOBAL['applyChoices'] ?>
         </button>
-        <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['finishWithoutApplying'] ?></a>
+        <a href="<?= appUrl() ?>" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['finishWithoutApplying'] ?></a>
       </div>
     </form>
     <?php endif ?>

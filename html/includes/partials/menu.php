@@ -23,19 +23,19 @@ if (isset ($_REQUEST["searchString"])) {
             <!-- Left: navigation views -->
             <div class="d-flex align-items-center gap-1">
                 <a class="nav-link text-white px-2<?= in_array($view, ['list','']) ? ' opacity-100' : ' opacity-75' ?>"
-                   href="<?= $_SERVER['PHP_SELF'] ?>" title="<?= $GLOBAL['list'] ?>" aria-label="<?= $GLOBAL['list'] ?>">
+                   href="<?= appUrl() ?>" title="<?= $GLOBAL['list'] ?>" aria-label="<?= $GLOBAL['list'] ?>">
                     <i class="fas fa-list"></i>
                 </a>
                 <a class="nav-link text-white px-2<?= $view === 'lastEntryCompta' ? ' opacity-100' : ' opacity-75' ?>"
-                   href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta" title="Compta" aria-label="Compta">
+                   href="<?= appUrl() ?>?view=lastEntryCompta" title="Compta" aria-label="Compta">
                     <i class="fas fa-coins"></i>
                 </a>
                 <a class="nav-link text-white px-2<?= $view === 'lastEntrySuivi' ? ' opacity-100' : ' opacity-75' ?>"
-                   href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi" title="Suivi" aria-label="Suivi">
+                   href="<?= appUrl() ?>?view=lastEntrySuivi" title="Suivi" aria-label="Suivi">
                     <i class="fas fa-book-open"></i>
                 </a>
                 <a class="nav-link text-white px-2<?= $view === 'resume' ? ' opacity-100' : ' opacity-75' ?>"
-                   href="<?= $_SERVER['PHP_SELF'] ?>?view=resume" title="<?= $GLOBAL['donationOverview'] ?>" aria-label="<?= $GLOBAL['donationOverview'] ?>">
+                   href="<?= appUrl() ?>?view=resume" title="<?= $GLOBAL['donationOverview'] ?>" aria-label="<?= $GLOBAL['donationOverview'] ?>">
                     <i class="fas fa-chart-pie"></i>
                 </a>
             </div>
@@ -48,7 +48,7 @@ if (isset ($_REQUEST["searchString"])) {
                 </button>
                 <?php if (isManager()): ?>
                 <a class="nav-link text-white px-2<?= $view === 'settings' ? ' opacity-100' : ' opacity-75' ?>"
-                   href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>" aria-label="<?= $GLOBAL['administration'] ?>">
+                   href="<?= appUrl() ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>" aria-label="<?= $GLOBAL['administration'] ?>">
                     <i class="fas fa-gear"></i>
                 </a>
                 <?php endif ?>
@@ -61,10 +61,10 @@ if (isset ($_REQUEST["searchString"])) {
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><span class="dropdown-item-text small text-muted"><?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?></span></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword"><?= $GLOBAL['changePassword'] ?></a></li>
+                        <li><a class="dropdown-item" href="<?= appUrl() ?>?view=changePassword"><?= $GLOBAL['changePassword'] ?></a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                          <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty hx-boost="false">
+                          <form method="post" action="<?= appUrl() ?>" data-no-dirty hx-boost="false">
                             <input type="hidden" name="action" value="logout">
                             <button type="submit" class="dropdown-item text-danger"><?= $GLOBAL['logout'] ?></button>
                           </form>
@@ -77,22 +77,22 @@ if (isset ($_REQUEST["searchString"])) {
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item<?= $view == 'list' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>"
+                    <a class="nav-link" href="<?= appUrl() ?>"
                        title="<?= $GLOBAL['manageTeam'] ?>"><i class="fas fa-list"></i> <?= $GLOBAL['list'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'lastEntryCompta' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntryCompta"><i class="fas fa-coins me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?></a>
+                    <a class="nav-link" href="<?= appUrl() ?>?view=lastEntryCompta"><i class="fas fa-coins me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?></a>
                 </li>
                 <?php if (isManager()): ?>
                 <li class="nav-item<?= $view == 'comptaRecap' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=comptaRecap"><i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapTitle'] ?></a>
+                    <a class="nav-link" href="<?= appUrl() ?>?view=comptaRecap"><i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapTitle'] ?></a>
                 </li>
                 <?php endif ?>
                 <li class="nav-item<?= $view == 'lastEntrySuivi' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=lastEntrySuivi"><i class="fas fa-book-open me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?></a>
+                    <a class="nav-link" href="<?= appUrl() ?>?view=lastEntrySuivi"><i class="fas fa-book-open me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'resume' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= $_SERVER['PHP_SELF'] ?>?view=resume"><i class="fas fa-chart-pie me-1" aria-hidden="true"></i><?= $GLOBAL['donationOverview'] ?></a>
+                    <a class="nav-link" href="<?= appUrl() ?>?view=resume"><i class="fas fa-chart-pie me-1" aria-hidden="true"></i><?= $GLOBAL['donationOverview'] ?></a>
                 </li>
             </ul>
 
@@ -101,7 +101,7 @@ if (isset ($_REQUEST["searchString"])) {
             <!-- Settings cog (right side) -->
             <?php if (isManager()): ?>
             <a class="nav-link text-white my-2 my-lg-0 me-2<?= $view === 'settings' ? ' active' : '' ?>"
-               href="<?= $_SERVER['PHP_SELF'] ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>">
+               href="<?= appUrl() ?>?view=settings&tab=groups" title="<?= $GLOBAL['administration'] ?>">
                 <i class="fas fa-gear"></i>
             </a>
             <?php endif ?>
@@ -111,10 +111,10 @@ if (isset ($_REQUEST["searchString"])) {
                 <?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?>
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="<?= $_SERVER['PHP_SELF'] ?>?view=changePassword">Mot de passe</a></li>
+                <li><a class="dropdown-item" href="<?= appUrl() ?>?view=changePassword">Mot de passe</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                  <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>" data-no-dirty hx-boost="false">
+                  <form method="post" action="<?= appUrl() ?>" data-no-dirty hx-boost="false">
                     <input type="hidden" name="action" value="logout">
                     <button type="submit" class="dropdown-item text-danger"><?= $GLOBAL['logout'] ?></button>
                   </form>
@@ -122,7 +122,7 @@ if (isset ($_REQUEST["searchString"])) {
               </ul>
             </div>
 
-            <form class="d-flex gap-2 my-2 my-lg-0" role="search" action="<?= $_SERVER['PHP_SELF'] ?>" method="get" data-no-dirty id="main-search-form">
+            <form class="d-flex gap-2 my-2 my-lg-0" role="search" action="<?= appUrl() ?>" method="get" data-no-dirty id="main-search-form">
                 <input type="hidden" name="action" value="search"/>
                 <input type="hidden" name="team" value="<?= FILTER_ALL_EXCEPT_ARCHIVES ?>"/>
                 <input class="form-control me-sm-2" id="search" type="search" aria-label="<?= $GLOBAL['search'] ?>" placeholder="<?= $GLOBAL['search'] ?>"
@@ -158,7 +158,7 @@ if (isset ($_REQUEST["searchString"])) {
 
 <!-- Mobile search bar — hidden by default, toggled by loupe button -->
 <div id="mobile-search-bar" class="d-lg-none bg-primary px-3 pb-2" style="display:none!important">
-    <form class="d-flex" role="search" action="<?= $_SERVER['PHP_SELF'] ?>" method="get" data-no-dirty id="mobile-search-form">
+    <form class="d-flex" role="search" action="<?= appUrl() ?>" method="get" data-no-dirty id="mobile-search-form">
         <input type="hidden" name="action" value="search"/>
         <input type="hidden" name="team" value="-3"/>
         <input class="form-control form-control-sm me-2" id="mobile-search" type="search" aria-label="Rechercher"

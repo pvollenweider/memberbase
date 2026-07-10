@@ -10,7 +10,7 @@ $_headers = $_SESSION['_import_headers'] ?? [];
 $_rows    = $_SESSION['_import_rows']    ?? [];
 
 if (empty($_headers) || empty($_rows)) {
-    header('Location: ' . $_SERVER['PHP_SELF'] . '?view=importStep1&err=session');
+    header('Location: ' . appUrl() . '?view=importStep1&err=session');
     exit;
 }
 
@@ -71,7 +71,7 @@ $_autoMap = [
     </div>
     <?php endif ?>
 
-    <form action="<?= $_SERVER['PHP_SELF'] ?>" method="post">
+    <form action="<?= appUrl() ?>" method="post">
       <input type="hidden" name="action" value="importApply">
       <input type="hidden" name="view"   value="importStep2">
 
@@ -158,8 +158,8 @@ $_autoMap = [
         <button type="submit" class="btn btn-primary btn-sm">
           <i class="fas fa-arrow-right me-1" aria-hidden="true"></i><?= $GLOBAL['import'] ?>
         </button>
-        <a href="<?= $_SERVER['PHP_SELF'] ?>?view=importStep1" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['back'] ?></a>
-        <a href="<?= $_SERVER['PHP_SELF'] ?>" class="btn btn-outline-secondary btn-sm ms-auto"><?= $GLOBAL['cancel'] ?></a>
+        <a href="<?= appUrl() ?>?view=importStep1" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['back'] ?></a>
+        <a href="<?= appUrl() ?>" class="btn btn-outline-secondary btn-sm ms-auto"><?= $GLOBAL['cancel'] ?></a>
       </div>
     </form>
 

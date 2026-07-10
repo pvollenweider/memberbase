@@ -160,7 +160,7 @@ if ($_pendingMigrations):
             <strong><?= count($_pendingMigrations) ?>
                 <?= sprintf($GLOBAL['pendingDbMigrationsLabel'], count($_pendingMigrations) > 1 ? 's' : '') ?></strong>
             (<?= htmlspecialchars(implode(', ', $_pendingMigrations), ENT_QUOTES, $charset) ?>).
-            <?= sprintf($GLOBAL['pendingMigrationsBannerBody'], count($_pendingMigrations) > 1 ? 's' : '', $_SERVER['PHP_SELF']) ?>
+            <?= sprintf($GLOBAL['pendingMigrationsBannerBody'], count($_pendingMigrations) > 1 ? 's' : '', appUrl()) ?>
         </div>
     </div>
 </div>

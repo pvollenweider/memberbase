@@ -14,7 +14,7 @@ $rows  = mbGetNewDonors($pdo, $year);
 $count = count($rows);
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-  <a href="<?= $_SERVER['PHP_SELF'] ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
+  <a href="<?= appUrl() ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToDonationOverview'] ?>
   </a>
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
@@ -27,7 +27,7 @@ $count = count($rows);
     <ul class="dropdown-menu">
       <?php for ($i = 0; $i < 8; $i++): $y = (int)date("Y") - $i; ?>
       <li><a class="dropdown-item<?= $y === $year ? ' active' : '' ?>"
-             href="<?= $_SERVER['PHP_SELF'] ?>?view=newDonors&amp;year=<?= $y ?>"><?= $y ?></a></li>
+             href="<?= appUrl() ?>?view=newDonors&amp;year=<?= $y ?>"><?= $y ?></a></li>
       <?php endfor ?>
     </ul>
   </div>
@@ -56,6 +56,6 @@ $extra_columns = [
         'footer' => null,
     ],
 ];
-$row_href = fn($row) => $_SERVER['PHP_SELF'] . '?view=compta&userid=' . (int)$row->id;
+$row_href = fn($row) => appUrl() . '?view=compta&userid=' . (int)$row->id;
 include __DIR__ . '/../partials/donor_table.php';
 ?>
