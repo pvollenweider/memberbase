@@ -438,18 +438,22 @@ function mbDefaultTemplates(): array
 <p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
 <p style="margin-top:24px">Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
-        // {{year}}         = fiscal year of the attestation (e.g. 2025)
-        // {{total}}        = total attestable amount formatted (e.g. CHF 1'200.00)
+        // {{formal_greeting}}      = gender-aware salutation ("Chère Madame X," / "Cher Monsieur X,"),
+        //                            falls back to "Madame, Monsieur," when gender/name is unknown
+        // {{year}}                 = attestation year
+        // {{cotisation_note}}      = extra sentence about cotisations not being deductible,
+        // {{cotisation_note_html}}   shown only if the member paid a cotisation that year (empty otherwise)
         'tpl_attestation_don' => [
             'subject'   => 'Attestation de don {{year}} — {{org_name}}',
-            'body_text' => "Concerne : Attestation de don {{year}}\n\n{{greeting_text}}\n\nNous tenons à vous remercier sincèrement pour le soutien que vous avez apporté à {{org_name}} tout au long de l'année {{year}}. Votre engagement fidèle représente un appui essentiel pour notre mission.\n\nVous trouverez ci-joint votre attestation fiscale pour un montant total de {{total}}, qui vous permettra de déduire vos dons de vos impôts. Nous vous rappelons toutefois que ces déductions ne s'appliquent pas aux éventuelles cotisations.\n\nEn vous remerciant une nouvelle fois pour votre précieux engagement, nous vous adressons nos salutations les meilleures.\n\n{{org_name}}\n{{org_address}}\n{{org_city}}\nContact : {{contact_email}}",
+            'body_text' => "{{formal_greeting_text}}\n\nNous tenons à vous remercier sincèrement pour le soutien que vous avez apporté à {{org_name}} tout au long de l'année {{year}}. Votre engagement fidèle représente un appui essentiel pour les personnes que nous accompagnons.\n\nGrâce à votre générosité, nos partenaires sur le terrain peuvent protéger et soutenir celles et ceux confrontés à des situations de grande vulnérabilité. Votre contribution leur offre un accompagnement de qualité et de réelles perspectives de réinsertion.\n\nVous trouverez ci-joint votre attestation fiscale, qui vous permettra de déduire vos dons de vos impôts.{{cotisation_note}}\n\nEn vous remerciant une nouvelle fois pour votre précieux engagement, nous vous adressons nos salutations les meilleures.\n\n{{org_name}}\n\nPour toute question : {{contact_email}}",
             'body_html' => $htmlWrap(
-                '<p style="color:#555;font-size:13px;margin-bottom:20px"><strong>Concerne : Attestation de don {{year}}</strong></p>
-<p>{{greeting}}</p>
-<p>Nous tenons à vous remercier sincèrement pour le soutien que vous avez apporté à <strong>{{org_name}}</strong> tout au long de l\'année <strong>{{year}}</strong>. Votre engagement fidèle représente un appui essentiel pour notre mission.</p>
-<p>Vous trouverez ci-joint votre attestation fiscale pour un montant total de <strong>{{total}}</strong>, qui vous permettra de déduire vos dons de vos impôts. Nous vous rappelons toutefois que ces déductions ne s\'appliquent pas aux éventuelles cotisations.</p>
+                '<p>{{formal_greeting}}</p>
+<p>Nous tenons à vous remercier sincèrement pour le soutien que vous avez apporté à <strong>{{org_name}}</strong> tout au long de l\'année <strong>{{year}}</strong>. Votre engagement fidèle représente un appui essentiel pour les personnes que nous accompagnons.</p>
+<p>Grâce à votre générosité, nos partenaires sur le terrain peuvent protéger et soutenir celles et ceux confrontés à des situations de grande vulnérabilité. Votre contribution leur offre un accompagnement de qualité et de réelles perspectives de réinsertion.</p>
+<p>Vous trouverez ci-joint votre attestation fiscale, qui vous permettra de déduire vos dons de vos impôts.{{cotisation_note_html}}</p>
 <p>En vous remerciant une nouvelle fois pour votre précieux engagement, nous vous adressons nos salutations les meilleures.</p>
-<p style="margin-top:24px"><strong>{{org_name}}</strong><br>{{org_address}}<br>{{org_city}}<br><a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>', '{{org_name}}'),
+<p style="margin-top:24px"><strong>{{org_name}}</strong></p>
+<p>Pour toute question : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>', '{{org_name}}'),
         ],
         // {{entries}}      = plain-text block, one line per entry (date · type · description · amount)
         // {{entries_html}} = HTML <table> of entries (built by the action)

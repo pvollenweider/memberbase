@@ -55,7 +55,7 @@ usort($allRows, fn($a, $b) => (int)$b->ts - (int)$a->ts);
 </thead>
 <tbody>
 <?php foreach ($allRows as $row):
-    $date = timeStampToformatedDate($row->ts);
+    $date = date('d/m/Y H:i', (int)$row->ts);
     $name = trim(($row->society ? htmlentities($row->society, ENT_COMPAT, $charset) . ' ' : '') .
                  htmlentities($row->lastname, ENT_COMPAT, $charset) . ' ' .
                  htmlentities($row->firstname, ENT_COMPAT, $charset));
@@ -89,7 +89,7 @@ usort($allRows, fn($a, $b) => (int)$b->ts - (int)$a->ts);
 
 <script>
 $(document).ready(function() {
-    $.fn.dataTable.moment('DD/MM/YYYY');
+    $.fn.dataTable.moment('DD/MM/YYYY HH:mm');
     $('#suivi-table').DataTable({
         order: [[0, 'desc']],
         pageLength: 50,

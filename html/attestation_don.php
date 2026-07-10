@@ -12,114 +12,49 @@ requireLogin();
 ob_start();
 include __DIR__ . "/includes/lib/bootstrap.php";
 require_once __DIR__ . '/locales/resources_fr.php';
+require_once __DIR__ . '/includes/lib/attestation.php';
 include "classes/contact_class.php";
 
-$userid = isset($_GET['userid']) ? (int)$_GET['userid'] : 0;
-$year   = isset($_GET['year'])   ? (int)$_GET['year']   : (int)date('Y');
+$emailId = isset($_GET['emailid']) ? (int)$_GET['emailid'] : 0;
+$asOf    = null;
+
+if ($emailId > 0) {
+    // Regenerate a previously sent attestation from its email_log entry — reuses
+    // the original send date for the "Lieu / Date" line (see email_detail.php).
+    $stmt = $pdo->prepare("SELECT user_id, subject, created_at, tpl_key FROM email_log WHERE id = ? LIMIT 1");
+    $stmt->execute([$emailId]);
+    $log = $stmt->fetch(PDO::FETCH_OBJ);
+    if (!$log || $log->tpl_key !== 'tpl_attestation_don' || !$log->user_id) {
+        http_response_code(404);
+        die('Not found');
+    }
+    $userid = (int)$log->user_id;
+    $asOf   = strtotime($log->created_at);
+    $year   = preg_match('/\b(20\d{2})\b/', $log->subject, $m) ? (int)$m[1] : (int)date('Y', $asOf);
+    $stamp  = !isset($_GET['stamp']) || !empty($_GET['stamp']); // regenerated copies are stamped by default
+} else {
+    $userid = isset($_GET['userid']) ? (int)$_GET['userid'] : 0;
+    $year   = isset($_GET['year'])   ? (int)$_GET['year']   : (int)date('Y');
+    $stamp  = !empty($_GET['stamp']);
+}
 
 if (!$userid) { http_response_code(400); die('Missing userid'); }
 
 $user = new Contact();
 $user->lookupUser($userid);
 
-// Total donations for the year (excluding types flagged is_excluded_from_donation)
-$from = mktime(0, 0, 0, 1, 0, $year);
-$to   = mktime(0, 0, 0, 1, 1, $year + 1);
-$stmt = $pdo->prepare("
-    SELECT COALESCE(SUM(c.sum), 0) AS total
-    FROM compta c
-    WHERE c.user_id = ?
-      AND c.date > ? AND c.date < ?
-      AND c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
-");
-$stmt->execute([$userid, $from, $to]);
-$total = (float)$stmt->fetchObject()->total;
-$totalFormatted = number_format($total, 2, '.', "'");
+$pdf = mbGenerateAttestationForUser($pdo, $appSettings, $user, $year, $stamp, $asOf);
 
-// Split "NPA Localité" stored as single field
-$npaFull  = $user->getNpa() ?? '';
-$npaParts = preg_split('/\s+/', trim($npaFull), 2);
-$npa      = $npaParts[0] ?? '';
-$localite = $npaParts[1] ?? '';
-
-// Build institution name with IDE number if configured
-$_orgIde   = trim($appSettings['org_ide']  ?? '');
-$_orgName  = trim($appSettings['org_name'] ?? '');
-$_instName = $_orgIde ? "$_orgName — IDE $_orgIde" : $_orgName;
-
-// AcroForm field values — institution info from app_settings
-$fields = [
-    'Nom de institution' => $_instName,
-    'Adresse'            => $appSettings['org_address']  ?? '',
-    'NPA'                => $appSettings['org_npa']      ?? '',
-    'Localite'           => $appSettings['org_city']     ?? '',
-    'Nom'                => $user->getLastName() ?? '',
-    'Prenom'             => $user->getFirstName() ?? '',
-    'Adresse 2'          => $user->getAddress() ?? '',
-    'NPA 2'              => $npa,
-    'Localite 2'         => $localite,
-    'annee1'             => (string)$year,
-    'annee2'             => (string)$year,
-    'Case à cocher2'     => $GLOBAL['yes'],   // Dons en espèces
-    'Somme'              => $totalFormatted,
-    'Lieu'               => $appSettings['org_city'] ?? '',
-    'mois'               => date('m'),
-    'date'               => date('Y'),
-];
-
-// Generate FDF (Form Data Format) for pdftk
-// Field names: convert UTF-8 → Latin-1 to match PDF internal encoding
-function fdf_escape_name(string $s): string {
-    $latin1 = iconv('UTF-8', 'ISO-8859-1//TRANSLIT', $s);
-    return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $latin1);
-}
-
-// Field values: encode as UTF-16 BE hex string to support accented chars
-function fdf_encode_value(string $s): string {
-    $utf16be = mb_convert_encoding($s, 'UTF-16BE', 'UTF-8');
-    return '<' . strtoupper(bin2hex("\xfe\xff" . $utf16be)) . '>';
-}
-
-function fdf_generate(array $fields): string {
-    $fdf  = "%FDF-1.2\n%\xe2\xe3\xcf\xd3\n";
-    $fdf .= "1 0 obj\n<< /FDF << /Fields [\n";
-    foreach ($fields as $name => $value) {
-        $fdf .= "<< /T (" . fdf_escape_name($name) . ") /V " . fdf_encode_value($value) . " >>\n";
-    }
-    $fdf .= "] >> >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n";
-    return $fdf;
-}
-
-$tmpFdf = tempnam(sys_get_temp_dir(), 'att_') . '.fdf';
-$tmpPdf = tempnam(sys_get_temp_dir(), 'att_') . '.pdf';
-
-file_put_contents($tmpFdf, fdf_generate($fields));
-
-$template = __DIR__ . '/assets/attestation.pdf';
-$cmd = sprintf(
-    'pdftk %s fill_form %s output %s flatten 2>&1',
-    escapeshellarg($template),
-    escapeshellarg($tmpFdf),
-    escapeshellarg($tmpPdf)
-);
-exec($cmd, $cmdOutput, $returnCode);
-
-unlink($tmpFdf);
-
-if ($returnCode !== 0 || !file_exists($tmpPdf) || filesize($tmpPdf) === 0) {
+if ($pdf === null) {
     http_response_code(500);
-    echo '<pre>' . sprintf($GLOBAL['pdftkError'], $returnCode) . "\n" . htmlspecialchars(implode("\n", $cmdOutput)) . '</pre>';
+    echo '<pre>' . sprintf($GLOBAL['pdftkError'], -1) . '</pre>';
     exit;
 }
-
-require_once __DIR__ . '/includes/lib/attestation_stamp.php';
-mbStampAttestation($tmpPdf);
 
 $filename = 'attestation_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $user->getLastName() . '_' . $year) . '.pdf';
 header('Content-Type: application/pdf');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
-header('Content-Length: ' . filesize($tmpPdf));
+header('Content-Length: ' . strlen($pdf));
 header('Cache-Control: private, no-cache');
-readfile($tmpPdf);
-unlink($tmpPdf);
+echo $pdf;
 exit;

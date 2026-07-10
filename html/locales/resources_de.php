@@ -330,6 +330,19 @@ $GLOBAL['bulkAttestInProgress'] = "Erstellung läuft — das PDF öffnet sich in
 $GLOBAL['progress'] = "Fortschritt";
 $GLOBAL['bulkAttestCanClose'] = "Sie können dieses Fenster schliessen. Die Erstellung läuft im geöffneten Tab weiter.";
 $GLOBAL['generate'] = "Erstellen";
+$GLOBAL['includeStampSignature'] = "Stempel/Unterschrift einfügen";
+$GLOBAL['sendAttestationBtn'] = "Bescheinigung per E-Mail senden";
+$GLOBAL['sendAttestationConfirm'] = "Spendenbescheinigung %d von %s per E-Mail senden?";
+$GLOBAL['sendAllAttestationsEmail'] = "Per E-Mail senden";
+$GLOBAL['downloadAllAttestationsPdf'] = "PDF herunterladen (alle)";
+$GLOBAL['sendBtn'] = "Senden";
+$GLOBAL['bulkAttestSendConfirmBody'] = "Spendenbescheinigung per E-Mail an %s Person(en) mit E-Mail-Adresse senden.";
+$GLOBAL['bulkAttestSendInProgress'] = "Wird gesendet…";
+$GLOBAL['sendAttestationsBulkOk'] = "%d Bescheinigung(en) gesendet, %sk übersprungen (keine E-Mail oder Fehler).";
+$GLOBAL['sendAttestationsBulkFail'] = "Senden der Bescheinigungen fehlgeschlagen.";
+$GLOBAL['downloadAllAttestationsPdfStamped'] = "PDF herunterladen (alle) mit Stempel/Unterschrift";
+$GLOBAL['attestationOffSeasonWarning'] = "Bescheinigungen werden normalerweise im Januar versendet. Es ist derzeit nicht Januar.";
+$GLOBAL['attestationOffSeasonConfirm'] = "Ich bestätige, dass ich eine Bescheinigung ausserhalb des üblichen Zeitraums senden möchte.";
 
 // --- Import wizard ---
 $GLOBAL['importStep1Subtitle'] = "Schritt 1 von 3 — Wählen Sie eine CSV- oder TSV-Datei.";
@@ -967,6 +980,7 @@ $GLOBAL['emailStatus']           = "Status";
 $GLOBAL['emailStatusSent']       = "Gesendet";
 $GLOBAL['emailStatusError']      = "Fehler";
 $GLOBAL['emailViewPlaintext']    = "Nur-Text-Version anzeigen";
+$GLOBAL['regenerateAttestationBtn'] = "Bescheinigung neu erstellen (PDF)";
 
 // Email templates
 $GLOBAL['emailTemplates']              = "E-Mail-Vorlagen";

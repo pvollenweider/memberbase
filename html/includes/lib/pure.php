@@ -66,6 +66,38 @@ function mbBuildSalutation(string $firstname, string $lastname, string $society)
 }
 
 /**
+ * Build a formal, gender-aware salutation ("Chère Madame X," / "Cher Monsieur X,")
+ * from the contact.sexe enum (na / f / m / hf), for formal correspondence
+ * (donation attestations) where "Bonjour X," would be too casual.
+ *
+ * Falls back to "Madame, Monsieur," when sexe is unknown/couple or no name is set.
+ *
+ * Returns: formal_greeting (HTML), formal_greeting_text (plain).
+ */
+function mbBuildFormalSalutation(string $sexe, string $firstname, string $lastname, string $society): array
+{
+    $ln  = trim($lastname);
+    $soc = trim($society);
+
+    if ($sexe === 'f' && $ln !== '') {
+        $text = "Chère Madame $ln,";
+    } elseif ($sexe === 'm' && $ln !== '') {
+        $text = "Cher Monsieur $ln,";
+    } elseif ($sexe === 'hf' && $ln !== '') {
+        $text = "Chère Madame, Cher Monsieur $ln,";
+    } elseif ($ln === '' && $soc !== '') {
+        $text = "Madame, Monsieur,";
+    } else {
+        $text = "Madame, Monsieur,";
+    }
+
+    return [
+        'formal_greeting'      => htmlspecialchars($text, ENT_QUOTES, 'UTF-8'),
+        'formal_greeting_text' => $text,
+    ];
+}
+
+/**
  * Replace {{placeholder}} tokens in a template string.
  */
 function mbRenderTemplate(string $tpl, array $vars): string
@@ -74,6 +106,22 @@ function mbRenderTemplate(string $tpl, array $vars): string
         $tpl = str_replace('{{' . $k . '}}', (string)$v, $tpl);
     }
     return $tpl;
+}
+
+/**
+ * Build email template variables for a donation attestation.
+ * Pure -- no DB, no I/O.
+ */
+function mbBuildAttestationVars(object $m, array $appSettings, int $year): array
+{
+    $contactEmail = $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? '');
+    $salutation   = mbBuildSalutation($m->firstname ?? '', $m->lastname ?? '', $m->society ?? '');
+    $formal       = mbBuildFormalSalutation($m->sexe ?? 'na', $m->firstname ?? '', $m->lastname ?? '', $m->society ?? '');
+    return array_merge($salutation, $formal, [
+        'org_name'      => $appSettings['org_name'] ?? '',
+        'contact_email' => $contactEmail,
+        'year'          => (string)$year,
+    ]);
 }
 
 /**

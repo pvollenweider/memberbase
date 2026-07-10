@@ -59,16 +59,174 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <i class="fas fa-file-pdf me-1" aria-hidden="true"></i><?= $GLOBAL['attestation'] ?>
     </button>
-    <ul class="dropdown-menu dropdown-menu-end">
+    <ul class="dropdown-menu dropdown-menu-end" style="min-width:15rem">
+      <li class="px-3 py-1">
+        <div class="form-check form-check-sm mb-0">
+          <input class="form-check-input" type="checkbox" id="attest-include-stamp" data-no-dirty>
+          <label class="form-check-label small" for="attest-include-stamp"><?= $GLOBAL['includeStampSignature'] ?></label>
+        </div>
+      </li>
+      <li><hr class="dropdown-divider"></li>
       <?php for ($i = 0; $i < 10; $i++): $y = $currentYear - $i; ?>
-      <li><a class="dropdown-item<?= $year == $y ? ' fw-semibold' : '' ?>"
-             href="/attestation_don.php?userid=<?=$user->getId()?>&amp;year=<?=$y?>"
-             target="_blank">
-          <?= $y ?><?= $year == $y ? ' ' . $GLOBAL['displayedYear'] : '' ?>
-      </a></li>
+      <li class="d-flex align-items-center">
+        <a class="dropdown-item attest-year-link<?= $year == $y ? ' fw-semibold' : '' ?>"
+           data-href="/attestation_don.php?userid=<?=$user->getId()?>&amp;year=<?=$y?>"
+           href="/attestation_don.php?userid=<?=$user->getId()?>&amp;year=<?=$y?>"
+           target="_blank" style="flex:1 1 auto">
+            <?= $y ?><?= $year == $y ? ' ' . $GLOBAL['displayedYear'] : '' ?>
+        </a>
+        <?php if (isManager() && trim($user->getEmail()) !== ''): ?>
+        <button type="button" class="btn btn-link btn-sm text-muted js-preview-attest-one py-0 px-2"
+                data-year="<?= $y ?>"
+                data-name="<?= htmlspecialchars(trim($user->getFirstName() . ' ' . $user->getLastName()), ENT_QUOTES, $charset) ?>"
+                data-email="<?= htmlspecialchars($user->getEmail(), ENT_QUOTES, $charset) ?>"
+                title="<?= $GLOBAL['sendAttestationBtn'] ?>">
+          <i class="fas fa-paper-plane" aria-hidden="true"></i>
+        </button>
+        <?php endif ?>
+      </li>
       <?php endfor ?>
     </ul>
   </div>
+
+  <!-- Preview modal for individual attestation send -->
+  <div class="modal fade" id="attestPreviewModal" tabindex="-1" aria-labelledby="attestPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title mb-0" id="attestPreviewModalLabel"><?= htmlspecialchars($GLOBAL['sendAttestationBtn'], ENT_QUOTES, $charset) ?></h5>
+            <div class="text-muted small" id="attest-modal-meta"></div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= htmlspecialchars($GLOBAL['close'], ENT_QUOTES, $charset) ?>"></button>
+        </div>
+        <div class="modal-body p-0" style="min-height:300px">
+          <div id="attest-modal-loading" style="display:flex;align-items:center;justify-content:center;padding:3rem 0">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
+          </div>
+          <div id="attest-modal-error" class="alert alert-danger m-3" style="display:none"></div>
+          <iframe id="attest-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin allow-scripts"></iframe>
+        </div>
+        <?php if ((int)date('n') !== 1): ?>
+        <div class="alert alert-warning d-flex align-items-start gap-2 mx-3 mb-0 py-2" role="alert" style="font-size:0.85rem">
+          <i class="fas fa-triangle-exclamation mt-1 flex-shrink-0" aria-hidden="true"></i>
+          <div>
+            <div><?= $GLOBAL['attestationOffSeasonWarning'] ?></div>
+            <div class="form-check mt-1 mb-0">
+              <input class="form-check-input" type="checkbox" id="attest-off-season-confirm">
+              <label class="form-check-label" for="attest-off-season-confirm"><?= $GLOBAL['attestationOffSeasonConfirm'] ?></label>
+            </div>
+          </div>
+        </div>
+        <?php endif ?>
+        <div class="modal-footer gap-2">
+          <div class="me-auto small text-muted" id="attest-modal-subject"></div>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= htmlspecialchars($GLOBAL['cancel'], ENT_QUOTES, $charset) ?></button>
+          <button type="button" class="btn btn-primary" id="btn-attest-send-one" disabled>
+            <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= htmlspecialchars($GLOBAL['sendAttestationBtn'], ENT_QUOTES, $charset) ?>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+  (function () {
+      var stampCb = document.getElementById('attest-include-stamp');
+      function syncStampParam() {
+          document.querySelectorAll('.attest-year-link').forEach(function (a) {
+              var base = a.dataset.href;
+              a.href = base + (stampCb.checked ? '&stamp=1' : '');
+          });
+      }
+      stampCb.addEventListener('change', syncStampParam);
+      syncStampParam();
+
+      var baseUrl  = <?= json_encode(appUrl()) ?>;
+      var userId   = <?= (int)$user->getId() ?>;
+      function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
+
+      var modal        = new bootstrap.Modal(document.getElementById('attestPreviewModal'));
+      var loadingEl     = document.getElementById('attest-modal-loading');
+      var errorEl       = document.getElementById('attest-modal-error');
+      var frame         = document.getElementById('attest-modal-frame');
+      var metaEl        = document.getElementById('attest-modal-meta');
+      var subjectEl     = document.getElementById('attest-modal-subject');
+      var sendBtn       = document.getElementById('btn-attest-send-one');
+      var offSeasonCb   = document.getElementById('attest-off-season-confirm');
+      var currentYear   = null;
+      var previewOk     = false;
+
+      function syncSendEnabled() {
+          sendBtn.disabled = !previewOk || (offSeasonCb && !offSeasonCb.checked);
+      }
+      if (offSeasonCb) { offSeasonCb.addEventListener('change', syncSendEnabled); }
+
+      document.querySelectorAll('.js-preview-attest-one').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+              currentYear = btn.dataset.year;
+              loadingEl.style.display = '';
+              errorEl.style.display   = 'none';
+              frame.style.display     = 'none';
+              metaEl.textContent      = btn.dataset.name + ' <' + btn.dataset.email + '> — ' + currentYear;
+              subjectEl.textContent   = '';
+              previewOk               = false;
+              if (offSeasonCb) { offSeasonCb.checked = false; }
+              syncSendEnabled();
+              modal.show();
+
+              fetch(baseUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
+                  body: 'action=previewAttestation&user_id=' + userId + '&year=' + encodeURIComponent(currentYear)
+              })
+              .then(function (r) { return r.json(); })
+              .then(function (data) {
+                  loadingEl.style.display = 'none';
+                  if (!data.ok) {
+                      errorEl.textContent = data.error || '?';
+                      errorEl.style.display = '';
+                      return;
+                  }
+                  subjectEl.textContent = data.subject;
+                  frame.srcdoc = data.html || '<pre>' + (data.text || '') + '</pre>';
+                  frame.style.display = '';
+                  frame.addEventListener('load', function () {
+                      try { frame.style.height = (frame.contentDocument.body.scrollHeight + 16) + 'px'; } catch(e){}
+                  }, { once: true });
+                  frame.style.height = '500px';
+                  previewOk = true;
+                  syncSendEnabled();
+              })
+              .catch(function () {
+                  loadingEl.style.display = 'none';
+                  errorEl.textContent = '?';
+                  errorEl.style.display = '';
+              });
+          });
+      });
+
+      sendBtn.addEventListener('click', function () {
+          sendBtn.disabled = true;
+          sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + sendBtn.textContent.trim();
+          fetch(baseUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
+              body: 'action=sendAttestationOne&user_id=' + userId + '&year=' + encodeURIComponent(currentYear)
+          })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+              modal.hide();
+              var yearBtn = document.querySelector('.js-preview-attest-one[data-year="' + currentYear + '"]');
+              if (yearBtn) {
+                  yearBtn.innerHTML = data.ok
+                      ? '<i class="fas fa-check text-success" aria-hidden="true"></i>'
+                      : '<i class="fas fa-triangle-exclamation text-danger" aria-hidden="true"></i>';
+              }
+          })
+          .catch(function () { modal.hide(); });
+      });
+  })();
+  </script>
   <?php endif ?>
   <?php if ($filterTypeId > 0 && isset($comptaTypes[$filterTypeId])): ?>
   <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?>&amp;year=<?= $year ?>"

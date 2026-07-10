@@ -87,3 +87,17 @@ function mbStampAttestation(string $pdfPath): void
         @unlink($tmpStamped);
     }
 }
+
+/**
+ * Bytes-in/bytes-out convenience wrapper around mbStampAttestation() for
+ * callers that hold PDF content in memory (e.g. before emailing it).
+ */
+function mbStampAttestationBytes(string $pdfBytes): string
+{
+    $tmpPdf = tempnam(sys_get_temp_dir(), 'att_stamp_') . '.pdf';
+    file_put_contents($tmpPdf, $pdfBytes);
+    mbStampAttestation($tmpPdf);
+    $stamped = file_get_contents($tmpPdf);
+    unlink($tmpPdf);
+    return $stamped;
+}

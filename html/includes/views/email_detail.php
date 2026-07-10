@@ -20,7 +20,7 @@ if ($emailId <= 0) { ?>
 try {
     $stmt = $pdo->prepare(
         "SELECT el.id, el.created_at, el.to_email, el.subject, el.status,
-                el.error_msg, el.body_text, el.body_html,
+                el.error_msg, el.body_text, el.body_html, el.tpl_key,
                 u.id AS user_id, u.firstname, u.lastname
          FROM email_log el
          LEFT JOIN contact u ON u.id = el.user_id
@@ -105,8 +105,13 @@ $isHtml  = isset($log->body_html) && $log->body_html !== '';
 <pre class="p-3 border rounded bg-light small" style="white-space:pre-wrap;max-width:700px"><?= htmlspecialchars($log->body_text ?? '', ENT_QUOTES, $charset) ?></pre>
 <?php endif ?>
 
-<div class="mt-3">
+<div class="mt-3 d-flex gap-2">
   <a href="<?= appUrl() ?>?view=lastEntrySuivi" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['back'] ?>
   </a>
+  <?php if (($log->tpl_key ?? '') === 'tpl_attestation_don' && $log->user_id): ?>
+  <a href="/attestation_don.php?emailid=<?= (int)$log->id ?>" target="_blank" class="btn btn-outline-primary btn-sm">
+    <i class="fas fa-file-pdf me-1" aria-hidden="true"></i><?= $GLOBAL['regenerateAttestationBtn'] ?>
+  </a>
+  <?php endif ?>
 </div>

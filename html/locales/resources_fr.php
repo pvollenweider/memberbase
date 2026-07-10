@@ -331,6 +331,19 @@ $GLOBAL['bulkAttestInProgress'] = "Génération en cours — le PDF s'ouvrira da
 $GLOBAL['progress'] = "Progression";
 $GLOBAL['bulkAttestCanClose'] = "Vous pouvez fermer cette fenêtre. La génération continue dans l'onglet ouvert.";
 $GLOBAL['generate'] = "Générer";
+$GLOBAL['includeStampSignature'] = "Inclure tampon/signature";
+$GLOBAL['sendAttestationBtn'] = "Envoyer l'attestation par email";
+$GLOBAL['sendAttestationConfirm'] = "Envoyer l'attestation de dons %d de %s par email ?";
+$GLOBAL['sendAllAttestationsEmail'] = "Envoyer par email";
+$GLOBAL['downloadAllAttestationsPdf'] = "Télécharger le PDF (toutes)";
+$GLOBAL['sendBtn'] = "Envoyer";
+$GLOBAL['bulkAttestSendConfirmBody'] = "Envoyer par email l'attestation de dons à %s personne(s) ayant une adresse email.";
+$GLOBAL['bulkAttestSendInProgress'] = "Envoi en cours…";
+$GLOBAL['sendAttestationsBulkOk'] = "%d attestation(s) envoyée(s), %sk ignorée(s) (pas d'email ou échec).";
+$GLOBAL['sendAttestationsBulkFail'] = "Échec de l'envoi des attestations.";
+$GLOBAL['downloadAllAttestationsPdfStamped'] = "Télécharger le PDF (toutes) avec tampon/signature";
+$GLOBAL['attestationOffSeasonWarning'] = "L'envoi des attestations se fait normalement en janvier. Nous ne sommes pas en janvier.";
+$GLOBAL['attestationOffSeasonConfirm'] = "Je confirme vouloir envoyer une attestation hors de la période habituelle.";
 
 // --- Import wizard ---
 $GLOBAL['importStep1Subtitle'] = "Étape 1 sur 3 — Sélectionnez un fichier CSV ou TSV.";
@@ -967,6 +980,7 @@ $GLOBAL['emailStatus']           = "Statut";
 $GLOBAL['emailStatusSent']       = "Envoyé";
 $GLOBAL['emailStatusError']      = "Erreur";
 $GLOBAL['emailViewPlaintext']    = "Voir la version texte brut";
+$GLOBAL['regenerateAttestationBtn'] = "Régénérer l'attestation (PDF)";
 
 // Email templates
 $GLOBAL['emailTemplates']              = "Modèles d'email";
