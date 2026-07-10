@@ -23,3 +23,9 @@ tests/.auth/
 
 # /understand intermediate files (final graph is committed)
 .understand-anything/intermediate/
+.understand-anything/.trash-*/
+
+# Local-only tooling and notes
+.codegraph/
+docker-compose.override.yml
+resume.txt
