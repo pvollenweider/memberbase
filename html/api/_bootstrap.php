@@ -7,6 +7,9 @@
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 define('APP_ENTRY', true);
+// Tells bootstrap.php to answer JSON 503 on DB failure instead of
+// redirecting to the HTML installer.
+define('APP_API', true);
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../includes/lib/bootstrap.php';
@@ -47,31 +50,23 @@ if (in_array($_apiMethod, ['POST', 'PUT', 'PATCH'], true)) {
 }
 
 // Rate limiting (#92). Fixed-window counter per (user + IP): at most
-// API_RATE_MAX requests per API_RATE_WINDOW seconds → 429. Self-contained (the
-// tracking table is created lazily), and best-effort: any limiter error is
-// swallowed so it can never take the API down. The UI mostly talks to
-// index.php, not /api, so the limit is generous.
+// API_RATE_MAX requests per API_RATE_WINDOW seconds → 429. The tracking table
+// is part of the schema (migration 0019); best-effort: any limiter error —
+// including a not-yet-migrated instance missing the table — is swallowed so
+// it can never take the API down. The UI mostly talks to index.php, not /api,
+// so the limit is generous.
 const API_RATE_WINDOW = 60;
 const API_RATE_MAX    = 600;
 try {
-    db()->exec(
-        "CREATE TABLE IF NOT EXISTS `api_rate_limit` (
-            `bucket`       VARCHAR(190) NOT NULL,
-            `hits`         INT(11)      NOT NULL DEFAULT 0,
-            `window_start` INT(11)      NOT NULL DEFAULT 0,
-            PRIMARY KEY (`bucket`),
-            KEY `idx_window_start` (`window_start`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
-    );
     $_rlId  = 'u' . ($_SESSION['app_user_id'] ?? '0') . ':' . ($_SERVER['REMOTE_ADDR'] ?? '?');
     $_rlKey = $_rlId . ':' . intdiv(time(), API_RATE_WINDOW);
+    // LAST_INSERT_ID(expr) returns the per-connection counter value — one
+    // round-trip fewer than upsert + SELECT.
     db()->prepare(
-        "INSERT INTO api_rate_limit (bucket, hits, window_start) VALUES (?, 1, ?)
-         ON DUPLICATE KEY UPDATE hits = hits + 1"
+        "INSERT INTO api_rate_limit (bucket, hits, window_start) VALUES (?, LAST_INSERT_ID(1), ?)
+         ON DUPLICATE KEY UPDATE hits = LAST_INSERT_ID(hits + 1)"
     )->execute([$_rlKey, time()]);
-    $_rlStmt = db()->prepare("SELECT hits FROM api_rate_limit WHERE bucket = ?");
-    $_rlStmt->execute([$_rlKey]);
-    $_rlHits = (int)$_rlStmt->fetchColumn();
+    $_rlHits = (int)db()->query("SELECT LAST_INSERT_ID()")->fetchColumn();
     // Opportunistic cleanup of stale buckets (~1% of requests).
     if (random_int(1, 100) === 1) {
         db()->prepare("DELETE FROM api_rate_limit WHERE window_start < ?")
