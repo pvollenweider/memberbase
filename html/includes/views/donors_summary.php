@@ -757,6 +757,14 @@ $(document).ready(function() {
         </div>
       </div>
       <?php endif ?>
+      <?php if (trim($appSettings['smtp_reply_to'] ?? '') !== ''): ?>
+      <div class="px-3 pt-2">
+        <div class="form-check mb-0">
+          <input class="form-check-input" type="checkbox" id="attest-row-bcc">
+          <label class="form-check-label small" for="attest-row-bcc"><?= sprintf($GLOBAL['sendBccCopyLabel'], htmlspecialchars($appSettings['smtp_reply_to'], ENT_QUOTES, $charset)) ?></label>
+        </div>
+      </div>
+      <?php endif ?>
       <div class="modal-footer gap-2">
         <div class="me-auto small text-muted" id="attest-row-modal-subject"></div>
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= htmlspecialchars($GLOBAL['cancel'], ENT_QUOTES, $charset) ?></button>
@@ -861,7 +869,7 @@ $(document).ready(function() {
 
 <!-- Confirm modal for bulk attestation send by email -->
 <div class="modal fade" id="bulk-attest-send-modal" tabindex="-1" aria-labelledby="bulk-attest-send-title" aria-modal="true" role="dialog">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header py-2">
         <h6 class="modal-title" id="bulk-attest-send-title" style="font-size:0.9rem">
@@ -870,19 +878,38 @@ $(document).ready(function() {
         <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div id="bulk-attest-send-confirm-body" class="modal-body py-3" style="font-size:0.875rem">
-        <p class="mb-0"><?= sprintf($GLOBAL['bulkAttestSendConfirmBody'], '<strong id="bulk-attest-send-count">…</strong>') ?></p>
-        <?php if ((int)date('n') !== 1): ?>
-        <div class="alert alert-warning d-flex align-items-start gap-2 mt-3 mb-0 py-2" role="alert" style="font-size:0.85rem">
-          <i class="fas fa-triangle-exclamation mt-1 flex-shrink-0" aria-hidden="true"></i>
-          <div>
-            <div><?= $GLOBAL['attestationOffSeasonWarning'] ?></div>
-            <div class="form-check mt-1 mb-0">
-              <input class="form-check-input" type="checkbox" id="bulk-attest-off-season-confirm">
-              <label class="form-check-label" for="bulk-attest-off-season-confirm"><?= $GLOBAL['attestationOffSeasonConfirm'] ?></label>
+        <div id="bulk-attest-send-loading" style="display:flex;align-items:center;justify-content:center;padding:2rem 0">
+          <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
+        </div>
+        <div id="bulk-attest-send-content" class="d-none">
+          <p class="mb-0"><?= sprintf($GLOBAL['bulkAttestSendConfirmBody'], '<strong id="bulk-attest-send-count">…</strong>') ?></p>
+          <div id="bulk-attest-send-already-block" class="mt-3 d-none">
+            <p class="mb-1 text-muted"><i class="fas fa-circle-info me-1" aria-hidden="true"></i><span id="bulk-attest-already-intro"></span></p>
+            <div class="border rounded" style="max-height:220px;overflow-y:auto">
+              <table class="table table-sm mb-0" id="bulk-attest-already-table">
+                <tbody></tbody>
+              </table>
             </div>
           </div>
+          <?php if (trim($appSettings['smtp_reply_to'] ?? '') !== ''): ?>
+          <div class="form-check mt-3 mb-0">
+            <input class="form-check-input" type="checkbox" id="bulk-attest-bcc">
+            <label class="form-check-label small" for="bulk-attest-bcc"><?= sprintf($GLOBAL['sendBccCopyLabel'], htmlspecialchars($appSettings['smtp_reply_to'], ENT_QUOTES, $charset)) ?></label>
+          </div>
+          <?php endif ?>
+          <?php if ((int)date('n') !== 1): ?>
+          <div class="alert alert-warning d-flex align-items-start gap-2 mt-3 mb-0 py-2" role="alert" style="font-size:0.85rem">
+            <i class="fas fa-triangle-exclamation mt-1 flex-shrink-0" aria-hidden="true"></i>
+            <div>
+              <div><?= $GLOBAL['attestationOffSeasonWarning'] ?></div>
+              <div class="form-check mt-1 mb-0">
+                <input class="form-check-input" type="checkbox" id="bulk-attest-off-season-confirm">
+                <label class="form-check-label" for="bulk-attest-off-season-confirm"><?= $GLOBAL['attestationOffSeasonConfirm'] ?></label>
+              </div>
+            </div>
+          </div>
+          <?php endif ?>
         </div>
-        <?php endif ?>
       </div>
       <div id="bulk-attest-send-progress-body" class="modal-body py-3 d-none" style="font-size:0.875rem">
         <p class="mb-2"><?= $GLOBAL['bulkAttestSendInProgress'] ?></p>
@@ -906,22 +933,33 @@ $(document).ready(function() {
 (function() {
   var btn = document.getElementById('btn-bulk-attest-send');
   if (!btn) return;
-  var modal        = new bootstrap.Modal(document.getElementById('bulk-attest-send-modal'));
-  var confirmBody   = document.getElementById('bulk-attest-send-confirm-body');
-  var progressBody  = document.getElementById('bulk-attest-send-progress-body');
-  var resultBody    = document.getElementById('bulk-attest-send-result-body');
-  var goBtn         = document.getElementById('bulk-attest-send-go');
-  var countEl       = document.getElementById('bulk-attest-send-count');
-  var offSeasonCb   = document.getElementById('bulk-attest-off-season-confirm');
+  var baseUrl = <?= json_encode(appUrl()) ?>;
+  function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
+
+  var modal         = new bootstrap.Modal(document.getElementById('bulk-attest-send-modal'));
+  var confirmBody    = document.getElementById('bulk-attest-send-confirm-body');
+  var loadingEl      = document.getElementById('bulk-attest-send-loading');
+  var contentEl      = document.getElementById('bulk-attest-send-content');
+  var progressBody   = document.getElementById('bulk-attest-send-progress-body');
+  var resultBody     = document.getElementById('bulk-attest-send-result-body');
+  var goBtn          = document.getElementById('bulk-attest-send-go');
+  var countEl        = document.getElementById('bulk-attest-send-count');
+  var alreadyBlock    = document.getElementById('bulk-attest-send-already-block');
+  var alreadyIntro     = document.getElementById('bulk-attest-already-intro');
+  var alreadyTableBody = document.querySelector('#bulk-attest-already-table tbody');
+  var offSeasonCb    = document.getElementById('bulk-attest-off-season-confirm');
+  var bccCb          = document.getElementById('bulk-attest-bcc');
+  var listOk          = false;
 
   function syncGoEnabled() {
-    goBtn.disabled = !!(offSeasonCb && !offSeasonCb.checked);
+    goBtn.disabled = !listOk || !!(offSeasonCb && !offSeasonCb.checked);
   }
   if (offSeasonCb) { offSeasonCb.addEventListener('change', syncGoEnabled); }
 
   btn.addEventListener('click', function() {
-    var rowCount = document.querySelectorAll('table.export tbody tr').length;
-    countEl.textContent = rowCount;
+    listOk = false;
+    loadingEl.style.display = '';
+    contentEl.classList.add('d-none');
     confirmBody.classList.remove('d-none');
     progressBody.classList.add('d-none');
     resultBody.classList.add('d-none');
@@ -929,26 +967,79 @@ $(document).ready(function() {
     if (offSeasonCb) { offSeasonCb.checked = false; }
     syncGoEnabled();
     modal.show();
+
+    fetch(baseUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
+        body: 'action=previewAttestationsBulkList&year=' + encodeURIComponent(btn.dataset.year) + '&minSum=' + encodeURIComponent(btn.dataset.minSum)
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        loadingEl.style.display = 'none';
+        contentEl.classList.remove('d-none');
+        if (!data.ok) { return; }
+
+        var toSend  = data.donors.filter(function (d) { return !d.alreadySent; });
+        var already = data.donors.filter(function (d) { return d.alreadySent; });
+        countEl.textContent = toSend.length;
+
+        if (already.length) {
+            alreadyBlock.classList.remove('d-none');
+            alreadyIntro.textContent = already.length + ' ' + <?= json_encode($GLOBAL['bulkAttestAlreadySentIntro']) ?>;
+            alreadyTableBody.innerHTML = '';
+            already.forEach(function (d) {
+                var tr = document.createElement('tr');
+                var tdCb = document.createElement('td');
+                tdCb.style.width = '2rem';
+                var cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.className = 'form-check-input js-force-resend';
+                cb.dataset.userId = d.id;
+                tdCb.appendChild(cb);
+                var tdName = document.createElement('td');
+                tdName.textContent = d.name + (d.email ? ' <' + d.email + '>' : '');
+                var tdDate = document.createElement('td');
+                tdDate.className = 'text-muted small text-end';
+                tdDate.textContent = d.alreadySent;
+                tr.appendChild(tdCb);
+                tr.appendChild(tdName);
+                tr.appendChild(tdDate);
+                alreadyTableBody.appendChild(tr);
+            });
+        } else {
+            alreadyBlock.classList.add('d-none');
+        }
+
+        listOk = true;
+        syncGoEnabled();
+    })
+    .catch(function () {
+        loadingEl.style.display = 'none';
+        contentEl.classList.remove('d-none');
+    });
   });
 
   goBtn.addEventListener('click', function() {
     confirmBody.classList.add('d-none');
     progressBody.classList.remove('d-none');
     goBtn.classList.add('d-none');
-    fetch(<?= json_encode(appUrl()) ?>, {
+    var forceIds = Array.prototype.map.call(
+        document.querySelectorAll('.js-force-resend:checked'),
+        function (cb) { return cb.dataset.userId; }
+    ).join(',');
+    fetch(baseUrl, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : ''
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
         body: 'action=sendAttestationsBulk&year=' + encodeURIComponent(btn.dataset.year) + '&minSum=' + encodeURIComponent(btn.dataset.minSum)
+            + '&force_ids=' + encodeURIComponent(forceIds)
+            + (bccCb && bccCb.checked ? '&bcc=1' : '')
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {
         progressBody.classList.add('d-none');
         resultBody.classList.remove('d-none');
         if (data.ok) {
-            var msg = goBtn.dataset.msgOk.replace('%d', data.sent).replace('%sk', data.skipped);
+            var msg = goBtn.dataset.msgOk.replace('%d', data.sent).replace('%sk', data.skipped).replace('%alr', data.already);
             resultBody.innerHTML = '<div class="alert alert-success py-2 mb-0"><i class="fas fa-circle-check me-1" aria-hidden="true"></i>' + msg + '</div>';
         } else {
             resultBody.innerHTML = '<div class="alert alert-danger py-2 mb-0"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i>' + goBtn.dataset.msgFail + '</div>';

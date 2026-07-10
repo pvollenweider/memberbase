@@ -119,6 +119,14 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
           </div>
         </div>
         <?php endif ?>
+        <?php if (trim($appSettings['smtp_reply_to'] ?? '') !== ''): ?>
+        <div class="px-3 pt-2">
+          <div class="form-check mb-0">
+            <input class="form-check-input" type="checkbox" id="attest-one-bcc">
+            <label class="form-check-label small" for="attest-one-bcc"><?= sprintf($GLOBAL['sendBccCopyLabel'], htmlspecialchars($appSettings['smtp_reply_to'], ENT_QUOTES, $charset)) ?></label>
+          </div>
+        </div>
+        <?php endif ?>
         <div class="modal-footer gap-2">
           <div class="me-auto small text-muted" id="attest-modal-subject"></div>
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= htmlspecialchars($GLOBAL['cancel'], ENT_QUOTES, $charset) ?></button>
@@ -212,6 +220,7 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
               method: 'POST',
               headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
               body: 'action=sendAttestationOne&user_id=' + userId + '&year=' + encodeURIComponent(currentYear)
+                  + (document.getElementById('attest-one-bcc') && document.getElementById('attest-one-bcc').checked ? '&bcc=1' : '')
           })
           .then(function (r) { return r.json(); })
           .then(function (data) {

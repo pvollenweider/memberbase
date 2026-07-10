@@ -19,9 +19,10 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @param string $bodyText    Plain-text body.
  * @param string $bodyHtml    Optional HTML body; when provided, sends multipart/alternative.
  * @param array  $attachments Optional list of attachments. Each entry: ['name' => string, 'mime' => string, 'data' => string (raw bytes)].
+ * @param bool   $bcc         When true, also envelope-RCPT to $cfg['smtp_reply_to'] (silent copy — no Bcc header).
  * @return array{ok:bool,error:string,debug:string}
  */
-function mbSmtpSend(array $cfg, string $to, string $subject, string $bodyText, string $bodyHtml = '', array $attachments = []): array
+function mbSmtpSend(array $cfg, string $to, string $subject, string $bodyText, string $bodyHtml = '', array $attachments = [], bool $bcc = false): array
 {
     $host       = $cfg['smtp_host']       ?? '';
     $port       = (int)($cfg['smtp_port'] ?? 587);
@@ -143,6 +144,11 @@ function mbSmtpSend(array $cfg, string $to, string $subject, string $bodyText, s
 
         $resp = $cmd('RCPT TO:<' . $to . '>');
         if ($code($resp) !== 250) throw new RuntimeException("RCPT TO: $resp");
+
+        if ($bcc && $replyTo !== '') {
+            $resp = $cmd('RCPT TO:<' . $replyTo . '>');
+            if ($code($resp) !== 250) throw new RuntimeException("RCPT TO (bcc): $resp");
+        }
 
         // Data
         $resp = $cmd('DATA');
@@ -530,6 +536,7 @@ function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars, ?int 
  * Like mbSendMail but returns true on success or an error string on failure.
  *
  * @param array $attachments Optional — same format as mbSmtpSend $attachments
+ * @param bool  $bcc         When true, also sends a silent copy to $appSettings['smtp_reply_to']
  */
 function mbSendMailWithError(
     PDO $pdo,
@@ -539,14 +546,15 @@ function mbSendMailWithError(
     string $bodyText = '',
     ?int $userId = null,
     string $tplKey = '',
-    array $attachments = []
+    array $attachments = [],
+    bool $bcc = false
 ): bool|string {
     global $appSettings;
     try {
         $cfg  = $appSettings;
         $cfg['smtp_enc_key'] = mbSmtpGetOrCreateEncKey($pdo);
         $text   = $bodyText !== '' ? $bodyText : strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $bodyHtml));
-        $result = mbSmtpSend($cfg, $to, $subject, $text, $bodyHtml, $attachments);
+        $result = mbSmtpSend($cfg, $to, $subject, $text, $bodyHtml, $attachments, $bcc);
         $status = $result['ok'] ? 'sent' : 'error';
         $errMsg = $result['ok'] ? null : ($result['error'] ?? 'unknown error');
         _mbLogEmail($pdo, $to, $subject, $status, $errMsg, $userId, $text, $bodyHtml, $tplKey);
@@ -561,6 +569,7 @@ function mbSendMailWithError(
  * Like mbSendTemplate but attaches an optional list of files.
  *
  * @param array $attachments Same format as mbSmtpSend $attachments
+ * @param bool  $bcc         When true, also sends a silent copy to $appSettings['smtp_reply_to']
  */
 function mbSendTemplateWithAttachment(
     PDO $pdo,
@@ -568,11 +577,12 @@ function mbSendTemplateWithAttachment(
     string $tplKey,
     array $vars,
     ?int $userId = null,
-    array $attachments = []
+    array $attachments = [],
+    bool $bcc = false
 ): bool|string {
     $tpl      = mbGetTemplate($pdo, $tplKey);
     $subject  = mbRenderTemplate($tpl->subject,   $vars);
     $bodyText = mbRenderTemplate($tpl->body_text, $vars);
     $bodyHtml = isset($tpl->body_html) ? mbRenderTemplate($tpl->body_html, $vars) : '';
-    return mbSendMailWithError($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText, $userId, $tplKey, $attachments);
+    return mbSendMailWithError($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText, $userId, $tplKey, $attachments, $bcc);
 }

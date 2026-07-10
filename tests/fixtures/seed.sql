@@ -44,21 +44,31 @@ INSERT INTO `app_settings` (`key`, `value`) VALUES
   ('smtp_from_name', 'MemberBase Test'),
   ('membership_url', 'https://www.memberbase.test/devenir-membre');
 
--- Compta type
+-- Compta types — covers all four flag combinations for filter/attestation testing
 INSERT INTO `compta_type` (`id`, `label`, `color`, `sort_order`, `is_cotisation`, `is_excluded_from_donation`, `is_institutional`)
-VALUES (1, 'Cotisation', 'bg-primary', 0, 1, 0, 0);
+VALUES
+  (1, 'Cotisation',  'bg-primary',   0, 1, 0, 0),
+  (2, 'Institution',  'bg-info',      1, 0, 0, 1),
+  (3, 'Don',          'bg-success',   2, 0, 0, 0),
+  (4, 'Vente',        'bg-secondary', 3, 0, 1, 0);
 
 -- Compta entries
--- User 1: paid 2026 (active member)
--- User 2: paid 2025 and 2026 (active member, loyal)
--- Users 4 & 5: paid 2025 only (lapsed for 2026)
+-- User 1: paid 2026 cotisation + a Don (wants attestation) + a Vente (excluded from donations)
+-- User 2: paid 2025 and 2026 cotisation (active member, loyal) + an Institution donation + a Don, both wanting attestation
+-- User 4: paid 2025 cotisation only (lapsed for 2026) + a Don (no attestation requested)
+-- User 5: paid 2025 cotisation only (lapsed for 2026, no email — skip case)
 INSERT INTO `compta` (`id`, `user_id`, `date`, `libele`, `sum`, `quittance`, `type_id`, `wants_attestation`, `cotisation_year`)
 VALUES
-  (1, 1, UNIX_TIMESTAMP(), 'Cotisation annuelle',        '50', 'Q-001', 1, 0, 2026),
-  (2, 2, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50', 'Q-002', 1, 0, 2025),
-  (3, 2, UNIX_TIMESTAMP(), 'Cotisation annuelle 2026',   '50', 'Q-003', 1, 0, 2026),
-  (4, 4, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50', 'Q-004', 1, 0, 2025),
-  (5, 5, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50', 'Q-005', 1, 0, 2025);
+  (1,  1, UNIX_TIMESTAMP(), 'Cotisation annuelle',        '50',  'Q-001', 1, 0, 2026),
+  (2,  2, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50',  'Q-002', 1, 0, 2025),
+  (3,  2, UNIX_TIMESTAMP(), 'Cotisation annuelle 2026',   '50',  'Q-003', 1, 0, 2026),
+  (4,  4, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50',  'Q-004', 1, 0, 2025),
+  (5,  5, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50',  'Q-005', 1, 0, 2025),
+  (6,  1, UNIX_TIMESTAMP(), 'Don libre',                  '80',  'Q-006', 3, 1, NULL),
+  (7,  1, UNIX_TIMESTAMP(), 'Vente brocante',              '30',  'Q-007', 4, 0, NULL),
+  (8,  2, UNIX_TIMESTAMP(), 'Don institutionnel',          '500', 'Q-008', 2, 1, NULL),
+  (9,  2, UNIX_TIMESTAMP(), 'Don libre',                  '120', 'Q-009', 3, 1, NULL),
+  (10, 4, UNIX_TIMESTAMP(), 'Don libre',                  '60',  'Q-010', 3, 0, NULL);
 
 -- Segment membership (join table)
 INSERT INTO `contact_segment` (`user_id`, `segment_id`) VALUES

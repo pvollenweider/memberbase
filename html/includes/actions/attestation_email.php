@@ -6,15 +6,17 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * (unlike the direct-download endpoints, where it's opt-in).
  *
  * Actions:
- *   previewAttestation    — return the rendered subject/html/text for one member (no send)
- *   sendAttestationOne    — send to a single member for one year (member card / résumé dons row)
- *   sendAttestationsBulk  — bulk send to all qualifying donors of a year (résumé dons)
+ *   previewAttestation         — return the rendered subject/html/text for one member (no send)
+ *   previewAttestationsBulkList — list qualifying donors for a year + who already got one (no send)
+ *   sendAttestationOne         — send to a single member for one year (member card / résumé dons row)
+ *   sendAttestationsBulk       — bulk send to all qualifying donors of a year (résumé dons);
+ *                                 skips members already sent one this year unless their id is in force_ids
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 $_attAction = $_REQUEST['action'] ?? '';
-$_attValidActions = ['previewAttestation', 'sendAttestationOne', 'sendAttestationsBulk'];
+$_attValidActions = ['previewAttestation', 'previewAttestationsBulkList', 'sendAttestationOne', 'sendAttestationsBulk'];
 if (!in_array($_attAction, $_attValidActions, true)) { return; }
 if (!isManager()) { http_response_code(403); exit; }
 
@@ -26,6 +28,7 @@ require_once __DIR__ . '/../lib/attestation.php';
 
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
 if ($year <= 0) { $year = (int)date('Y'); }
+$bcc = !empty($_REQUEST['bcc']) && trim($appSettings['smtp_reply_to'] ?? '') !== '';
 
 // ── previewAttestation ────────────────────────────────────────────────────────
 if ($_attAction === 'previewAttestation') {
@@ -64,7 +67,7 @@ if ($_attAction === 'sendAttestationOne') {
 
     $vars        = mbBuildAttestationVarsForUser($pdo, $member, $appSettings, $year);
     $attachments = [['name' => "attestation-don-$year.pdf", 'mime' => 'application/pdf', 'data' => $pdf]];
-    $result      = mbSendTemplateWithAttachment($pdo, $member->email, 'tpl_attestation_don', $vars, $userId, $attachments);
+    $result      = mbSendTemplateWithAttachment($pdo, $member->email, 'tpl_attestation_don', $vars, $userId, $attachments, $bcc);
 
     if ($result === true) {
         auditLog($pdo, 'attestationSent',
@@ -76,34 +79,51 @@ if ($_attAction === 'sendAttestationOne') {
     exit;
 }
 
-// ── sendAttestationsBulk ──────────────────────────────────────────────────────
+// ── previewAttestationsBulkList ───────────────────────────────────────────────
 $minSum = isset($_REQUEST['minSum']) ? (int)$_REQUEST['minSum'] : 1;
 if (!in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 1; }
 
-$from = mktime(0, 0, 0, 1, 0, $year);
-$to   = mktime(0, 0, 0, 1, 1, $year + 1);
+if ($_attAction === 'previewAttestationsBulkList') {
+    $donors      = mbGetQualifyingDonors($pdo, $year, $minSum);
+    $donorIds    = array_map(fn($d) => (int)$d->id, $donors);
+    $alreadyMap  = mbGetAlreadySentAttestationIds($pdo, $year, $donorIds);
 
-$stmt = $pdo->prepare("
-    SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.email, u.npa, u.address,
-           SUM(c.sum) AS total
-    FROM contact u
-    JOIN compta c ON u.id = c.user_id
-    WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
-      AND c.date > ? AND c.date < ?
-    GROUP BY u.id, u.firstname, u.lastname, u.society, u.sexe, u.email, u.npa, u.address
-    HAVING SUM(c.sum) >= ?
-    ORDER BY u.lastname, u.firstname
-");
-$stmt->execute([$from, $to, $minSum]);
-$donors = $stmt->fetchAll(PDO::FETCH_OBJ);
+    $list = array_map(function ($d) use ($alreadyMap) {
+        $uid = (int)$d->id;
+        return [
+            'id'          => $uid,
+            'name'        => trim(($d->lastname ?? '') . ' ' . ($d->firstname ?? '')) ?: ($d->society ?? ''),
+            'email'       => $d->email ?? '',
+            'alreadySent' => $alreadyMap[$uid] ?? null,
+        ];
+    }, $donors);
 
-$sentCount = 0;
-$skipCount = 0;
+    echo json_encode(['ok' => true, 'donors' => $list]);
+    exit;
+}
+
+// ── sendAttestationsBulk ──────────────────────────────────────────────────────
+$forceIds = array_filter(array_map('intval', explode(',', (string)($_REQUEST['force_ids'] ?? ''))));
+
+$donors     = mbGetQualifyingDonors($pdo, $year, $minSum);
+$donorIds   = array_map(fn($d) => (int)$d->id, $donors);
+$alreadyMap = mbGetAlreadySentAttestationIds($pdo, $year, $donorIds);
+
+$sentCount    = 0;
+$skipCount    = 0;
+$alreadyCount = 0;
 
 foreach ($donors as $row) {
+    $uid = (int)$row->id;
+
+    if (isset($alreadyMap[$uid]) && !in_array($uid, $forceIds, true)) {
+        $alreadyCount++;
+        auditLog($pdo, 'attestationSent', "skip id=$uid (already sent this year)");
+        continue;
+    }
     if (trim($row->email) === '') {
         $skipCount++;
-        auditLog($pdo, 'attestationSent', "skip id={$row->id} (no email)");
+        auditLog($pdo, 'attestationSent', "skip id=$uid (no email)");
         continue;
     }
 
@@ -114,7 +134,7 @@ foreach ($donors as $row) {
     $pdf = mbGenerateAttestationPdf($fields);
     if ($pdf === null) {
         $skipCount++;
-        auditLog($pdo, 'attestationSent', "FAILED (pdf) id={$row->id}");
+        auditLog($pdo, 'attestationSent', "FAILED (pdf) id=$uid");
         continue;
     }
 
@@ -123,12 +143,12 @@ foreach ($donors as $row) {
 
     $vars        = mbBuildAttestationVarsForUser($pdo, $row, $appSettings, $year);
     $attachments = [['name' => "attestation-don-$year.pdf", 'mime' => 'application/pdf', 'data' => $pdf]];
-    $result      = mbSendTemplateWithAttachment($pdo, $row->email, 'tpl_attestation_don', $vars, (int)$row->id, $attachments);
+    $result      = mbSendTemplateWithAttachment($pdo, $row->email, 'tpl_attestation_don', $vars, $uid, $attachments, $bcc);
 
     if ($result === true) {
         $sentCount++;
         auditLog($pdo, 'attestationSent',
-            "sent to {$row->firstname} {$row->lastname} <{$row->email}> year=$year");
+            "sent to {$row->firstname} {$row->lastname} <{$row->email}> year=$year" . (isset($alreadyMap[$uid]) ? ' (forced resend)' : ''));
     } else {
         $skipCount++;
         auditLog($pdo, 'attestationSent',
@@ -136,6 +156,6 @@ foreach ($donors as $row) {
     }
 }
 
-auditLog($pdo, 'attestationSent', "bulk year=$year minSum=$minSum sent=$sentCount skipped=$skipCount");
-echo json_encode(['ok' => true, 'sent' => $sentCount, 'skipped' => $skipCount]);
+auditLog($pdo, 'attestationSent', "bulk year=$year minSum=$minSum sent=$sentCount skipped=$skipCount already=$alreadyCount");
+echo json_encode(['ok' => true, 'sent' => $sentCount, 'skipped' => $skipCount, 'already' => $alreadyCount]);
 exit;

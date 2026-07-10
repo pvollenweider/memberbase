@@ -108,6 +108,12 @@ $prevTeamId  = 1; // non-zero so the table renders
         <?php if ($alreadySent > 0): ?>
         <p class="text-muted small mb-0"><i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['sendCotiRemindersSkipAlready'], $alreadySent, $alreadySent > 1 ? 's' : '', $alreadySent > 1 ? 's' : '') ?></p>
         <?php endif ?>
+        <?php if (trim($appSettings['smtp_reply_to'] ?? '') !== ''): ?>
+        <div class="form-check mt-2 mb-0">
+          <input class="form-check-input" type="checkbox" id="coti-bulk-bcc">
+          <label class="form-check-label small" for="coti-bulk-bcc"><?= sprintf($GLOBAL['sendBccCopyLabel'], htmlspecialchars($appSettings['smtp_reply_to'], ENT_QUOTES, $charset)) ?></label>
+        </div>
+        <?php endif ?>
         <div id="coti-reminder-result" class="mt-3" style="display:none"></div>
       </div>
       <div class="modal-footer" id="coti-reminder-modal-footer">
@@ -198,18 +204,36 @@ include __DIR__ . '/../partials/donor_table.php';
 <?php endif ?>
 
 <?php if (isManager() && $count > 0): ?>
-<!-- Confirm modal for individual send/resend -->
-<div class="modal fade" id="sendOneModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+<!-- Preview modal for individual send/resend -->
+<div class="modal fade" id="cotiPreviewModal" tabindex="-1" aria-labelledby="cotiPreviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><?= htmlspecialchars($GLOBAL['sendCotiRemindersTitle'], ENT_QUOTES, $charset) ?></h5>
+        <div>
+          <h5 class="modal-title mb-0" id="cotiPreviewModalLabel"><?= htmlspecialchars($GLOBAL['sendCotiRemindersTitle'], ENT_QUOTES, $charset) ?></h5>
+          <div class="text-muted small" id="coti-modal-meta"></div>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= htmlspecialchars($GLOBAL['close'], ENT_QUOTES, $charset) ?>"></button>
       </div>
-      <div class="modal-body" id="sendOneModalBody"></div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= htmlspecialchars($GLOBAL['cancel'], ENT_QUOTES, $charset) ?></button>
-        <button type="button" class="btn btn-primary" id="sendOneModalConfirm">
+      <div class="modal-body p-0" style="min-height:300px">
+        <div id="coti-modal-loading" style="display:flex;align-items:center;justify-content:center;padding:3rem 0">
+          <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
+        </div>
+        <div id="coti-modal-error" class="alert alert-danger m-3" style="display:none"></div>
+        <iframe id="coti-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin allow-scripts"></iframe>
+      </div>
+      <?php if (trim($appSettings['smtp_reply_to'] ?? '') !== ''): ?>
+      <div class="px-3 pt-2">
+        <div class="form-check mb-0">
+          <input class="form-check-input" type="checkbox" id="coti-one-bcc">
+          <label class="form-check-label small" for="coti-one-bcc"><?= sprintf($GLOBAL['sendBccCopyLabel'], htmlspecialchars($appSettings['smtp_reply_to'], ENT_QUOTES, $charset)) ?></label>
+        </div>
+      </div>
+      <?php endif ?>
+      <div class="modal-footer gap-2">
+        <div class="me-auto small text-muted" id="coti-modal-subject"></div>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= htmlspecialchars($GLOBAL['cancel'], ENT_QUOTES, $charset) ?></button>
+        <button type="button" class="btn btn-primary" id="btn-coti-send-one" disabled>
           <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= htmlspecialchars($GLOBAL['sendCotiRemindersBtnOne'], ENT_QUOTES, $charset) ?>
         </button>
       </div>
@@ -218,36 +242,80 @@ include __DIR__ . '/../partials/donor_table.php';
 </div>
 <script>
 (function () {
-    var modal        = new bootstrap.Modal(document.getElementById('sendOneModal'));
-    var modalBody    = document.getElementById('sendOneModalBody');
-    var modalConfirm = document.getElementById('sendOneModalConfirm');
-    var pendingBtn   = null;
+    var rowBtns = document.querySelectorAll('.js-send-one');
+    if (!rowBtns.length) return;
 
-    // Per-row individual send / resend buttons
-    document.querySelectorAll('.js-send-one').forEach(function (btn) {
+    var baseUrl = <?= json_encode(appUrl()) ?>;
+    var year    = <?= (int)$year ?>;
+    function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
+
+    var modal      = new bootstrap.Modal(document.getElementById('cotiPreviewModal'));
+    var loadingEl   = document.getElementById('coti-modal-loading');
+    var errorEl     = document.getElementById('coti-modal-error');
+    var frame       = document.getElementById('coti-modal-frame');
+    var metaEl      = document.getElementById('coti-modal-meta');
+    var subjectEl   = document.getElementById('coti-modal-subject');
+    var sendBtn     = document.getElementById('btn-coti-send-one');
+    var bccCb       = document.getElementById('coti-one-bcc');
+    var pendingBtn  = null;
+    var previewOk   = false;
+
+    rowBtns.forEach(function (btn) {
         btn.addEventListener('click', function () {
             pendingBtn = btn;
-            modalBody.textContent = btn.dataset.confirm;
+            loadingEl.style.display = '';
+            errorEl.style.display   = 'none';
+            frame.style.display     = 'none';
+            metaEl.textContent      = btn.dataset.confirm;
+            subjectEl.textContent   = '';
+            previewOk               = false;
+            sendBtn.disabled        = true;
             modal.show();
+
+            fetch(baseUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
+                body: 'action=previewCotisationReminder&user_id=' + encodeURIComponent(btn.dataset.userId) + '&year=' + year
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                loadingEl.style.display = 'none';
+                if (!data.ok) {
+                    errorEl.textContent = data.error || '?';
+                    errorEl.style.display = '';
+                    return;
+                }
+                subjectEl.textContent = data.subject;
+                frame.srcdoc = data.html || '<pre>' + (data.text || '') + '</pre>';
+                frame.style.display = '';
+                frame.addEventListener('load', function () {
+                    try { frame.style.height = (frame.contentDocument.body.scrollHeight + 16) + 'px'; } catch(e){}
+                }, { once: true });
+                frame.style.height = '500px';
+                previewOk = true;
+                sendBtn.disabled = false;
+            })
+            .catch(function () {
+                loadingEl.style.display = 'none';
+                errorEl.textContent = '?';
+                errorEl.style.display = '';
+            });
         });
     });
 
-    modalConfirm.addEventListener('click', function () {
-        modal.hide();
+    sendBtn.addEventListener('click', function () {
         var btn = pendingBtn;
-        if (!btn) return;
-        pendingBtn = null;
+        if (!btn || !previewOk) return;
+        modal.hide();
         var orig = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1" aria-hidden="true"></i>' + btn.dataset.labelSending;
-        fetch(<?= json_encode(appUrl()) ?>, {
+        fetch(baseUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : ''
-            },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': getCsrf() },
             body: 'action=sendCotisationReminderOne&user_id=' + encodeURIComponent(btn.dataset.userId)
                 + '&year=' + encodeURIComponent(btn.dataset.year)
+                + (bccCb && bccCb.checked ? '&bcc=1' : '')
         })
         .then(function (r) { return r.json(); })
         .then(function (data) {
@@ -287,6 +355,7 @@ include __DIR__ . '/../partials/donor_table.php';
                 'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : ''
             },
             body: 'action=sendCotisationReminders&year=' + encodeURIComponent(btn.dataset.year)
+                + (document.getElementById('coti-bulk-bcc') && document.getElementById('coti-bulk-bcc').checked ? '&bcc=1' : '')
         })
         .then(function (r) { return r.json(); })
         .then(function (data) {

@@ -175,6 +175,60 @@ function mbBuildAttestationVarsForUser(PDO $pdo, object $m, array $appSettings, 
 }
 
 /**
+ * Donors qualifying for an attestation of a given year (total >= minSum),
+ * same rule as attestation_bulk.php / résumé dons. Used for both the bulk
+ * email send and its preview list.
+ */
+function mbGetQualifyingDonors(PDO $pdo, int $year, int $minSum): array
+{
+    $from = mktime(0, 0, 0, 1, 0, $year);
+    $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+    $stmt = $pdo->prepare("
+        SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.email, u.npa, u.address,
+               SUM(c.sum) AS total
+        FROM contact u
+        JOIN compta c ON u.id = c.user_id
+        WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
+          AND c.date > ? AND c.date < ?
+        GROUP BY u.id, u.firstname, u.lastname, u.society, u.sexe, u.email, u.npa, u.address
+        HAVING SUM(c.sum) >= ?
+        ORDER BY u.lastname, u.firstname
+    ");
+    $stmt->execute([$from, $to, $minSum]);
+    return $stmt->fetchAll(PDO::FETCH_OBJ);
+}
+
+/**
+ * Map of user_id => last sent_at for members who already received a
+ * tpl_attestation_don email for this specific year (matched via the subject,
+ * which embeds the year — created_at can't be used since attestations are
+ * often sent the year after the one they cover).
+ */
+function mbGetAlreadySentAttestationIds(PDO $pdo, int $year, array $userIds): array
+{
+    if (empty($userIds)) {
+        return [];
+    }
+    $ph = implode(',', array_fill(0, count($userIds), '?'));
+    $stmt = $pdo->prepare(
+        "SELECT user_id, subject, created_at FROM email_log
+         WHERE tpl_key = 'tpl_attestation_don' AND status = 'sent' AND user_id IN ($ph)"
+    );
+    $stmt->execute($userIds);
+    $map = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_OBJ) as $row) {
+        if (!preg_match('/\b' . preg_quote((string)$year, '/') . '\b/', $row->subject)) {
+            continue;
+        }
+        $uid = (int)$row->user_id;
+        if (!isset($map[$uid]) || $row->created_at > $map[$uid]) {
+            $map[$uid] = $row->created_at;
+        }
+    }
+    return $map;
+}
+
+/**
  * Generate one member's attestation PDF for a year, optionally stamped
  * (stamp/signature overlay, see attestation_stamp.php).
  *
