@@ -122,6 +122,7 @@ try {
         <tr>
           <th style="width:24px"></th>
           <th><?= $GLOBAL['labelField'] ?></th>
+          <th title="<?= htmlspecialchars($GLOBAL['defaultLibeleHelp'], ENT_QUOTES, $charset) ?>"><?= $GLOBAL['defaultLibeleField'] ?></th>
           <th style="width:80px"><?= $GLOBAL['color'] ?></th>
           <th style="width:80px" class="text-end"><?= $GLOBAL['entriesColumn'] ?></th>
           <th style="width:60px" class="text-center" title="<?= $GLOBAL['cotiTooltip'] ?>"><?= $GLOBAL['cotiShort'] ?></th>
@@ -137,6 +138,13 @@ try {
             <i class="fas fa-grip-vertical" aria-hidden="true"></i>
           </td>
           <td><?= htmlentities($ct->label, ENT_COMPAT, $charset) ?></td>
+          <td class="text-muted" style="font-size:0.85rem">
+            <?php if (trim((string)$ct->default_libele) !== ''): ?>
+            <?= htmlspecialchars($ct->default_libele, ENT_QUOTES, $charset) ?><?php if ($ct->is_cotisation): ?><span class="opacity-50"> + <?= date('Y') ?></span><?php endif ?>
+            <?php else: ?>
+            <span class="opacity-50">—</span>
+            <?php endif ?>
+          </td>
           <td>
             <span class="d-inline-block rounded border <?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>"
                   style="width:28px;height:20px" title="<?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>"></span>
@@ -207,7 +215,7 @@ try {
           </td>
         </tr>
         <tr id="edit-<?= $ct->id ?>" style="display:none" class="table-light">
-          <td colspan="6" class="py-2">
+          <td colspan="9" class="py-2">
             <form action="<?= appUrl() ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
               <input type="hidden" name="action" value="updateComptaType">
               <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
