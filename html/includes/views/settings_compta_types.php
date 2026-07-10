@@ -24,10 +24,10 @@ $colorOptions = [
 ];
 
 $types = $pdo->query("
-    SELECT ct.id, ct.label, ct.color, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, COUNT(c.id) AS cnt
+    SELECT ct.id, ct.label, ct.color, ct.default_libele, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, COUNT(c.id) AS cnt
     FROM compta_type ct
     LEFT JOIN compta c ON c.type_id = ct.id
-    GROUP BY ct.id, ct.label, ct.color, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional
+    GROUP BY ct.id, ct.label, ct.color, ct.default_libele, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional
     ORDER BY ct.sort_order ASC, ct.label ASC
 ")->fetchAll(PDO::FETCH_OBJ);
 ?>
@@ -80,6 +80,11 @@ $types = $pdo->query("
           <div>
             <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['labelField'] ?></label>
             <input type="text" name="label" class="form-control form-control-sm" style="width:200px" required>
+          </div>
+          <div>
+            <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['defaultLibeleField'] ?></label>
+            <input type="text" name="default_libele" class="form-control form-control-sm" style="width:200px"
+                   maxlength="255" title="<?= htmlspecialchars($GLOBAL['defaultLibeleHelp'], ENT_QUOTES, $charset) ?>">
           </div>
           <div>
             <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['color'] ?></label>
@@ -199,6 +204,12 @@ $types = $pdo->query("
                 <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['labelField'] ?></label>
                 <input type="text" name="label" value="<?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>"
                        class="form-control form-control-sm" style="width:200px" required>
+              </div>
+              <div>
+                <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['defaultLibeleField'] ?></label>
+                <input type="text" name="default_libele" value="<?= htmlspecialchars($ct->default_libele, ENT_QUOTES, $charset) ?>"
+                       class="form-control form-control-sm" style="width:200px" maxlength="255"
+                       title="<?= htmlspecialchars($GLOBAL['defaultLibeleHelp'], ENT_QUOTES, $charset) ?>">
               </div>
               <div>
                 <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['color'] ?></label>

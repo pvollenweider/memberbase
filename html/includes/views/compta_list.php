@@ -118,6 +118,13 @@ $to = mktime(0, 0, 0, 1, 1, $year + 1);
 $_cotiTypeIds = array_values(array_map('intval',
     array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1))
 ));
+// Per-type default entry label for the autofill (only types that define one)
+$_ctDefaultLibeles = [];
+foreach ($comptaTypes as $_ctId => $_ctObj) {
+    if (trim((string)($_ctObj->default_libele ?? '')) !== '') {
+        $_ctDefaultLibeles[(int)$_ctId] = trim((string)$_ctObj->default_libele);
+    }
+}
 ?>
 <?php if (canWrite()): ?>
 <tr>
@@ -302,15 +309,46 @@ function _comptaListInit() {
     var cotiIds = <?= json_encode($_cotiTypeIds) ?>;
     var typeSelect = document.getElementById('ca-add-type');
     var cotiYearField = document.getElementById('ca-coti-year');
+    function isCotiType() {
+        return typeSelect && cotiIds.indexOf(parseInt(typeSelect.value, 10)) !== -1;
+    }
     function toggleCotiYear() {
         if (!typeSelect || !cotiYearField) return;
-        var isCoti = cotiIds.indexOf(parseInt(typeSelect.value, 10)) !== -1;
+        var isCoti = isCotiType();
         cotiYearField.style.display = isCoti ? '' : 'none';
         cotiYearField.name = isCoti ? 'cotisation_year' : '';
     }
+
+    // Default entry label per type. For cotisation types the selected year is
+    // appended ("Cotisation 2026"). The field is only overwritten while it is
+    // empty or still holds the previous auto-filled value — a hand-edited
+    // label is never touched.
+    var defaultLibeles = <?= json_encode($_ctDefaultLibeles) ?>;
+    var libeleInput = document.querySelector('form[name="addCompta"] input[name="libele"]');
+    var lastAutoLibele = '';
+    function computedDefaultLibele() {
+        if (!typeSelect) return '';
+        var def = defaultLibeles[typeSelect.value] || '';
+        if (def && isCotiType() && cotiYearField && cotiYearField.value) {
+            def += ' ' + cotiYearField.value;
+        }
+        return def;
+    }
+    function applyDefaultLibele() {
+        if (!libeleInput) return;
+        var cur = libeleInput.value.trim();
+        if (cur !== '' && cur !== lastAutoLibele) return; // user-edited
+        lastAutoLibele = computedDefaultLibele();
+        libeleInput.value = lastAutoLibele;
+    }
     if (typeSelect) {
-        typeSelect.addEventListener('change', toggleCotiYear);
+        typeSelect.addEventListener('change', function () {
+            toggleCotiYear();
+            applyDefaultLibele();
+        });
+        if (cotiYearField) cotiYearField.addEventListener('change', applyDefaultLibele);
         toggleCotiYear();
+        applyDefaultLibele();
     }
 }
 if (document.readyState === 'loading') {

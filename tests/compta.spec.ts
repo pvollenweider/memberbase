@@ -73,3 +73,44 @@ test.describe('Compta (accounting)', () => {
     await expect(page.locator('form[name="addCompta"]')).toBeVisible({ timeout: 15_000 });
   });
 });
+
+// ─── default entry label (compta_type.default_libele) ───────────────────────
+
+test.describe('Default entry label autofill', () => {
+  test.describe.configure({ mode: 'serial' });
+  const USER_ID = 1;
+
+  test('set a default label on the Cotisation type', async ({ page }) => {
+    await page.goto('/index.php?view=manageComptaTypes');
+    // Open the inline edit row of type id=1 (Cotisation, from seed)
+    await page.locator('#row-1 button:has-text("Edit"), #row-1 button:has-text("Édit"), #row-1 button.btn-outline-secondary').first().click();
+    const editRow = page.locator('#edit-1');
+    await expect(editRow).toBeVisible();
+    await editRow.locator('input[name="default_libele"]').fill('Cotisation');
+    await editRow.locator('button[type="submit"].btn-primary').click();
+    // Redirects back to the types tab
+    await expect(page.locator('#ct-tbody')).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('libele is prefilled with default + year and respects manual edits', async ({ page }) => {
+    await page.goto(`/index.php?view=compta&userid=${USER_ID}`);
+    const form = page.locator('form[name="addCompta"]');
+    const libele = form.locator('input[name="libele"]');
+    const yearSelect = form.locator('select#ca-coti-year');
+
+    // Type id=1 (Cotisation) selected → default + current year
+    await form.locator('select[name="type_id"]').selectOption('1');
+    const year = await yearSelect.inputValue();
+    await expect(libele).toHaveValue(`Cotisation ${year}`);
+
+    // Changing the cotisation year updates the untouched label
+    const otherYear = String(Number(year) - 1);
+    await yearSelect.selectOption(otherYear);
+    await expect(libele).toHaveValue(`Cotisation ${otherYear}`);
+
+    // A hand-edited label is never overwritten
+    await libele.fill('Mon libellé perso');
+    await yearSelect.selectOption(year);
+    await expect(libele).toHaveValue('Mon libellé perso');
+  });
+});

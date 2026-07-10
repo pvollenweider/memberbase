@@ -174,8 +174,9 @@ if ($action == 'saveSettings') {
     $allowed = ['bg-primary-subtle','bg-secondary-subtle','bg-success-subtle','bg-danger-subtle','bg-warning-subtle','bg-info-subtle','bg-light','bg-dark-subtle','ca-orange-subtle','ca-teal-subtle','ca-pink-subtle','ca-purple-subtle','ca-indigo-subtle','ca-lime-subtle'];
     if (!in_array($color, $allowed)) $color = 'bg-light';
     if ($label !== '') {
+        $defaultLibele = trim((string)($_REQUEST['default_libele'] ?? ''));
         $maxOrder = (int)$pdo->query("SELECT COALESCE(MAX(sort_order),0) FROM compta_type")->fetchColumn();
-        $pdo->prepare("INSERT INTO compta_type (label, color, sort_order) VALUES (?, ?, ?)")->execute([$label, $color, $maxOrder + 1]);
+        $pdo->prepare("INSERT INTO compta_type (label, color, default_libele, sort_order) VALUES (?, ?, ?, ?)")->execute([$label, $color, $defaultLibele, $maxOrder + 1]);
         auditLog($pdo, 'addComptaType', "label: $label | couleur: $color");
     }
     $_rvAllowed = ['settings','manageComptaTypes'];
@@ -190,13 +191,24 @@ if ($action == 'saveSettings') {
     $label = trim($_REQUEST['label'] ?? '');
     $color = $_REQUEST['color'] ?? 'bg-light';
     $sortOrder = (int)($_REQUEST['sort_order'] ?? 0);
-    $isCotisation    = isset($_REQUEST['is_cotisation']) ? (int)$_REQUEST['is_cotisation'] : 0;
-    $isExcluded      = isset($_REQUEST['is_excluded_from_donation']) ? (int)$_REQUEST['is_excluded_from_donation'] : 0;
-    $isInstitutional = isset($_REQUEST['is_institutional']) ? (int)$_REQUEST['is_institutional'] : 0;
+    // Flags absent from the request keep their current value: the inline edit
+    // form only sends label/color/order — it must not reset the flags to 0
+    // (only the flag-toggle mini-forms send them explicitly).
+    $_ctCur = $pdo->prepare("SELECT is_cotisation, is_excluded_from_donation, is_institutional FROM compta_type WHERE id=?");
+    $_ctCur->execute([$id]);
+    $_ctCurRow = $_ctCur->fetchObject();
+    $isCotisation    = isset($_REQUEST['is_cotisation']) ? (int)$_REQUEST['is_cotisation'] : (int)($_ctCurRow->is_cotisation ?? 0);
+    $isExcluded      = isset($_REQUEST['is_excluded_from_donation']) ? (int)$_REQUEST['is_excluded_from_donation'] : (int)($_ctCurRow->is_excluded_from_donation ?? 0);
+    $isInstitutional = isset($_REQUEST['is_institutional']) ? (int)$_REQUEST['is_institutional'] : (int)($_ctCurRow->is_institutional ?? 0);
     $allowed = ['bg-primary-subtle','bg-secondary-subtle','bg-success-subtle','bg-danger-subtle','bg-warning-subtle','bg-info-subtle','bg-light','bg-dark-subtle','ca-orange-subtle','ca-teal-subtle','ca-pink-subtle','ca-purple-subtle','ca-indigo-subtle','ca-lime-subtle'];
     if (!in_array($color, $allowed)) $color = 'bg-light';
     if ($id > 0 && $label !== '') {
         $pdo->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=?, is_institutional=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $isInstitutional, $id]);
+        // Only sent by the edit form — the flag-toggle mini-forms omit it and
+        // must not wipe the stored value.
+        if (isset($_REQUEST['default_libele'])) {
+            $pdo->prepare("UPDATE compta_type SET default_libele=? WHERE id=?")->execute([trim((string)$_REQUEST['default_libele']), $id]);
+        }
         auditLog($pdo, 'updateComptaType', "id=$id | label: $label");
     }
     $_rvAllowed = ['settings','manageComptaTypes'];

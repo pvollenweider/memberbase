@@ -80,7 +80,13 @@ try {
 }
 
 // Compta types
-$_ctRows = $pdo->query("SELECT id, label, color, sort_order, is_cotisation, is_excluded_from_donation, is_institutional FROM compta_type ORDER BY sort_order ASC, label ASC")->fetchAll(PDO::FETCH_OBJ);
+// default_libele may not exist yet on a not-yet-migrated DB (pre-0021): the
+// admin must still be able to reach the pending-migrations screen.
+try {
+    $_ctRows = $pdo->query("SELECT id, label, color, default_libele, sort_order, is_cotisation, is_excluded_from_donation, is_institutional FROM compta_type ORDER BY sort_order ASC, label ASC")->fetchAll(PDO::FETCH_OBJ);
+} catch (PDOException $e) {
+    $_ctRows = $pdo->query("SELECT id, label, color, '' AS default_libele, sort_order, is_cotisation, is_excluded_from_donation, is_institutional FROM compta_type ORDER BY sort_order ASC, label ASC")->fetchAll(PDO::FETCH_OBJ);
+}
 $comptaTypes = [];
 foreach ($_ctRows as $_ct) { $comptaTypes[(int)$_ct->id] = $_ct; }
 unset($_ctRows, $_ct);

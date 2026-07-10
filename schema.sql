@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS `compta_type` (
   `id`                        int(11)      NOT NULL AUTO_INCREMENT,
   `label`                     varchar(255) NOT NULL,
   `color`                     varchar(64)  NOT NULL DEFAULT 'bg-light',
+  `default_libele`            varchar(255) NOT NULL DEFAULT '',
   `sort_order`                int(11)      NOT NULL DEFAULT 0,
   `is_cotisation`             tinyint(1)   NOT NULL DEFAULT 0,
   `is_excluded_from_donation` tinyint(1)   NOT NULL DEFAULT 0,
