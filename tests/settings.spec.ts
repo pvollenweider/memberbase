@@ -29,11 +29,11 @@ test.describe('Settings', () => {
     await expect(page.locator('#tab-compta')).toBeVisible();
   });
 
-  test('change default_team setting and verify saved', async ({ page }) => {
+  test('change default_segment setting and verify saved', async ({ page }) => {
     await page.goto('/index.php?view=settings&tab=settings');
-    await expect(page.locator('#s_default_team')).toBeVisible();
+    await expect(page.locator('#s_default_segment')).toBeVisible();
 
-    await page.selectOption('#s_default_team', '1');
+    await page.selectOption('#s_default_segment', '1');
     await page.click('button[type="submit"].btn-primary');
 
     // After htmx save, wait for success toast element
@@ -41,11 +41,11 @@ test.describe('Settings', () => {
 
     // Reload and confirm persisted value
     await page.goto('/index.php?view=settings&tab=settings');
-    await expect(page.locator('#s_default_team')).toHaveValue('1');
+    await expect(page.locator('#s_default_segment')).toHaveValue('1');
 
-    // Restore — navigate again so the form is present; restore to team 2
+    // Restore — navigate again so the form is present; restore to segment 2
     await page.goto('/index.php?view=settings&tab=settings');
-    await page.selectOption('#s_default_team', '2');
+    await page.selectOption('#s_default_segment', '2');
     await page.click('button[type="submit"].btn-primary');
     await expect(page.locator('#casa-save-ok')).toBeAttached({ timeout: 10_000 });
   });

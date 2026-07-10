@@ -15,12 +15,12 @@ $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year === -1) { $year = (int)date("Y"); }
 $type = "allTypes";
 
-$membreTeamId = (int)($appSettings['default_team'] ?? 0);
-$membreTeamLabel = $GLOBAL['activeQuestion'];
-if ($membreTeamId > 0) {
+$membreSegmentId = (int)($appSettings['default_segment'] ?? 0);
+$membreSegmentLabel = $GLOBAL['activeQuestion'];
+if ($membreSegmentId > 0) {
     $r = db()->prepare("SELECT name FROM segment WHERE id = ?");
-    $r->execute([$membreTeamId]);
-    $membreTeamLabel = $r->fetchColumn() ?: $GLOBAL['activeQuestion'];
+    $r->execute([$membreSegmentId]);
+    $membreSegmentLabel = $r->fetchColumn() ?: $GLOBAL['activeQuestion'];
 }
 ?>
 <?php
@@ -83,9 +83,9 @@ if ($year != -2) {
 
     // Member counts by cotisation_year (fallback: YEAR of payment date)
     $_cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
-    $_noCotiTeam  = (int)($appSettings['member_no_coti_team'] ?? 0);
-    $_noCotiJoin  = $_noCotiTeam > 0
-        ? "AND NOT EXISTS (SELECT 1 FROM contact_segment WHERE user_id=u.id AND segment_id=$_noCotiTeam)"
+    $_noCotiSegment  = (int)($appSettings['member_no_coti_segment'] ?? 0);
+    $_noCotiJoin  = $_noCotiSegment > 0
+        ? "AND NOT EXISTS (SELECT 1 FROM contact_segment WHERE user_id=u.id AND segment_id=$_noCotiSegment)"
         : '';
     $_kMembres = 0;
     $_kMembresPrev = 0;
@@ -248,7 +248,7 @@ if ($year != -2) {
     </div>
   </div>
   <!-- Membres actifs -->
-  <?php if ($membreTeamId > 0): ?>
+  <?php if ($membreSegmentId > 0): ?>
   <div style="flex:1 0 0;min-width:120px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem">
     <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)"><?= $GLOBAL['activeMembers'] ?></div>
     <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem;color:var(--ca-ink,#212529)"><?= $_kMembres ?></div>
@@ -272,7 +272,7 @@ if ($year != -2) {
     </div>
     <?php endif ?>
     <?php else: ?>
-    <div style="font-size:0.78rem;color:var(--ca-ink-muted);margin-top:0.3rem"><?= htmlentities($membreTeamLabel, ENT_COMPAT, $charset) ?></div>
+    <div style="font-size:0.78rem;color:var(--ca-ink-muted);margin-top:0.3rem"><?= htmlentities($membreSegmentLabel, ENT_COMPAT, $charset) ?></div>
     <?php endif ?>
   </div>
   <?php endif ?>
@@ -487,7 +487,7 @@ if ($_showPie) {
     <th><?=$GLOBAL['lastName']?></th>
     <th><?=$GLOBAL['firstName']?></th>
     <th><?=$GLOBAL['email']?></th>
-    <th title="<?= sprintf($GLOBAL['statusTitleInstitutional'], htmlentities($membreTeamLabel, ENT_COMPAT, $charset)) ?>"><?= $GLOBAL['status'] ?></th>
+    <th title="<?= sprintf($GLOBAL['statusTitleInstitutional'], htmlentities($membreSegmentLabel, ENT_COMPAT, $charset)) ?>"><?= $GLOBAL['status'] ?></th>
     <th><?=$GLOBAL['address']?></th>
     <th><?=$GLOBAL['npa']?></th>
     <th style="text-align:right"><?= $GLOBAL['donations'] ?></th>
@@ -501,7 +501,7 @@ if ($_showPie) {
 </thead>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-$params = [$membreTeamId];
+$params = [$membreSegmentId];
 $_exclSub = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
 $_sumExpr = $showAll ? 'SUM(c.sum)' : "SUM(CASE WHEN c.type_id NOT IN ($_exclSub) THEN c.sum ELSE 0 END)";
 $baseSelect = "
@@ -562,7 +562,7 @@ foreach ($rows as $row):
     $email = htmlentities($row->email ?? '', ENT_COMPAT, $charset);
     $address = htmlentities($row->address ?? '', ENT_COMPAT, $charset);
     $npa = htmlentities($row->npa ?? '', ENT_COMPAT, $charset);
-    $isActif  = $row->is_actif        ? "<i class='fas fa-id-card text-success' title='" . htmlspecialchars($membreTeamLabel, ENT_QUOTES, $charset) . "' aria-label='" . htmlspecialchars($membreTeamLabel, ENT_QUOTES, $charset) . "'></i><span class='visually-hidden'>1</span>" : "";
+    $isActif  = $row->is_actif        ? "<i class='fas fa-id-card text-success' title='" . htmlspecialchars($membreSegmentLabel, ENT_QUOTES, $charset) . "' aria-label='" . htmlspecialchars($membreSegmentLabel, ENT_QUOTES, $charset) . "'></i><span class='visually-hidden'>1</span>" : "";
     $isInstit = $row->has_institutional ? "<i class='fas fa-building ms-1 text-info' title='{$GLOBAL['institutionalDonation']}' aria-label='{$GLOBAL['institutionalDonation']}'></i>" : "";
     $sexeRaw = $row->sexe;
     $sexe2 = match($sexeRaw) { 'f' => $GLOBAL['madame'], 'm' => $GLOBAL['monsieur'], 'hf' => $GLOBAL['hf'], default => '-' };

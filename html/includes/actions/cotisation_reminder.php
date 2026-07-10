@@ -83,8 +83,8 @@ if ($_cotiAction === 'sendCotisationReminderOne') {
 }
 
 // ── sendCotisationReminders (bulk) ────────────────────────────────────────────
-$_noCotiTeam = (int)($appSettings['member_no_coti_team'] ?? 0);
-$members     = mbGetLapsedMembers(db(), $year, $cotiTypeIds, $_noCotiTeam);
+$_noCotiSegment = (int)($appSettings['member_no_coti_segment'] ?? 0);
+$members        = mbGetLapsedMembers(db(), $year, $cotiTypeIds, $_noCotiSegment);
 
 if (empty($members)) {
     echo json_encode(['ok' => true, 'sent' => 0, 'skipped' => 0, 'already' => 0]);

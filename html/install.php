@@ -361,7 +361,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
     $orgNpa     = trim($_POST['org_npa'] ?? '');
     $orgCity    = trim($_POST['org_city'] ?? '');
     $orgCountry = trim($_POST['org_country'] ?? 'Suisse');
-    $memberPrefix = trim($_POST['membre_team_prefix'] ?? 'Membre');
+    $memberPrefix = trim($_POST['membre_segment_prefix'] ?? 'Membre');
 
     if (!$orgName) $errors[] = $GLOBAL['orgNameRequired'];
 
@@ -376,51 +376,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === '4') {
                 'org_npa'            => $orgNpa,
                 'org_city'           => $orgCity,
                 'org_country'        => $orgCountry,
-                'membre_team_prefix' => $memberPrefix ?: 'Membre',
-                'default_team'       => '0',
-                'membre_team'        => '0',
-                'member_no_coti_team' => '0',
+                'membre_segment_prefix' => $memberPrefix ?: 'Membre',
+                'default_segment'       => '0',
+                'membre_segment'        => '0',
+                'member_no_coti_segment' => '0',
             ];
             $upsert = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
             foreach ($settings as $k => $v) {
                 $upsert->execute([$k, $v]);
             }
 
-            // Create default member group for current year and set as default_team + membre_team
+            // Create default member segment for current year and set as default_segment + membre_segment
             $currentYear = (int)date('Y');
             $prefix = $memberPrefix ?: 'Membre';
-            $insertTeam = $pdo->prepare("INSERT INTO segment (name, hidden) VALUES (?, 0)");
-            $findTeam   = $pdo->prepare("SELECT id FROM segment WHERE name = ?");
+            $insertSegment = $pdo->prepare("INSERT INTO segment (name, hidden) VALUES (?, 0)");
+            $findSegment   = $pdo->prepare("SELECT id FROM segment WHERE name = ?");
 
-            // Previous year team (for delta display in resume)
-            $prevGroupName = $prefix . ' ' . ($currentYear - 1);
-            $findTeam->execute([$prevGroupName]);
-            $prevTeamId = (int)$findTeam->fetchColumn();
-            if (!$prevTeamId) {
-                $insertTeam->execute([$prevGroupName]);
-                $prevTeamId = (int)$pdo->lastInsertId();
+            // Previous year segment (for delta display in resume)
+            $prevSegmentName = $prefix . ' ' . ($currentYear - 1);
+            $findSegment->execute([$prevSegmentName]);
+            $prevSegmentId = (int)$findSegment->fetchColumn();
+            if (!$prevSegmentId) {
+                $insertSegment->execute([$prevSegmentName]);
+                $prevSegmentId = (int)$pdo->lastInsertId();
             }
 
-            // Current year team
-            $defaultGroupName = $prefix . ' ' . $currentYear;
-            $findTeam->execute([$defaultGroupName]);
-            $defaultTeamId = (int)$findTeam->fetchColumn();
-            if (!$defaultTeamId) {
-                $insertTeam->execute([$defaultGroupName]);
-                $defaultTeamId = (int)$pdo->lastInsertId();
+            // Current year segment
+            $defaultSegmentName = $prefix . ' ' . $currentYear;
+            $findSegment->execute([$defaultSegmentName]);
+            $defaultSegmentId = (int)$findSegment->fetchColumn();
+            if (!$defaultSegmentId) {
+                $insertSegment->execute([$defaultSegmentName]);
+                $defaultSegmentId = (int)$pdo->lastInsertId();
             }
-            $setTeam = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
-            $setTeam->execute(['default_team', (string)$defaultTeamId]);
-            $setTeam->execute(['membre_team',  (string)$defaultTeamId]);
+            $setSegment = $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
+            $setSegment->execute(['default_segment', (string)$defaultSegmentId]);
+            $setSegment->execute(['membre_segment',  (string)$defaultSegmentId]);
 
-            // Create "Membres" combined segment category and assign both teams
+            // Create "Membres" combined segment category and assign both segments
             $existingMeta = (int)$pdo->query("SELECT COUNT(*) FROM combined_segment WHERE name='Membres'")->fetchColumn();
             if (!$existingMeta) {
                 $pdo->prepare("INSERT INTO combined_segment (name, is_filter, sort_order) VALUES (?, 0, 1)")->execute(['Membres']);
                 $metaId = (int)$pdo->lastInsertId();
                 $insMember = $pdo->prepare("INSERT INTO combined_segment_member (combined_segment_id, segment_id) VALUES (?, ?)");
-                $insMember->execute([$metaId, $prevTeamId]);
-                $insMember->execute([$metaId, $defaultTeamId]);
+                $insMember->execute([$metaId, $prevSegmentId]);
+                $insMember->execute([$metaId, $defaultSegmentId]);
             }
 
             // Seed minimal compta_type if table is empty
@@ -660,9 +660,9 @@ $steps = ['1' => $GLOBAL['stepPrereqs'], '2' => $GLOBAL['stepDatabase'], '3' => 
         </div>
         <hr>
         <div class="mb-3">
-          <label class="form-label small fw-semibold" for="membre_team_prefix"><?= $GLOBAL['memberPrefixLabel'] ?></label>
-          <input type="text" class="form-control form-control-sm" id="membre_team_prefix" name="membre_team_prefix"
-                 value="<?= htmlspecialchars($_POST['membre_team_prefix'] ?? 'Membre', ENT_QUOTES, 'UTF-8') ?>" style="max-width:180px">
+          <label class="form-label small fw-semibold" for="membre_segment_prefix"><?= $GLOBAL['memberPrefixLabel'] ?></label>
+          <input type="text" class="form-control form-control-sm" id="membre_segment_prefix" name="membre_segment_prefix"
+                 value="<?= htmlspecialchars($_POST['membre_segment_prefix'] ?? 'Membre', ENT_QUOTES, 'UTF-8') ?>" style="max-width:180px">
           <div class="form-text"><?= $GLOBAL['memberPrefixHint'] ?></div>
         </div>
         <hr>

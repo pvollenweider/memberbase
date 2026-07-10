@@ -223,9 +223,9 @@ if ($action == 'deleteSegment') {
             exit;
         }
         $ph = implode(',', array_fill(0, count($cotiTypeIds), '?'));
-        $_noCotiTeam  = (int)($appSettings['member_no_coti_team'] ?? 0);
-        $noCotiClause = $_noCotiTeam > 0
-            ? "AND NOT EXISTS (SELECT 1 FROM contact_segment WHERE user_id=u.id AND segment_id=$_noCotiTeam)"
+        $_noCotiSegment = (int)($appSettings['member_no_coti_segment'] ?? 0);
+        $noCotiClause = $_noCotiSegment > 0
+            ? "AND NOT EXISTS (SELECT 1 FROM contact_segment WHERE user_id=u.id AND segment_id=$_noCotiSegment)"
             : '';
         $stmt = db()->prepare("
             SELECT u.id AS user_id FROM contact u

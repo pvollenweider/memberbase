@@ -10,8 +10,8 @@ $searchString = "";
 if (isset ($_REQUEST["searchString"])) {
     $searchString = trim($_REQUEST["searchString"]);
 }
-$team = (int)($appSettings['default_team'] ?? 0);
-$membre = (int)($appSettings['membre_team'] ?? 245);
+$team = (int)($appSettings['default_segment'] ?? 0);
+$membre = (int)($appSettings['membre_segment'] ?? 245);
 if (isset ($_REQUEST["team"])) {
     $team = $_REQUEST["team"];
 }
@@ -73,12 +73,12 @@ $_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$team, [0, FILTER_ALL_
                         $currentTeamTitle = $GLOBAL['allExceptArchives'];
                     } else if ($team == FILTER_UNPAID_COTI_3Y) {
                         $currentTeamTitle = $GLOBAL['cotiUnpayedLast3Years'];
-                        $_noCotiTeamId3 = (int)($appSettings['member_no_coti_team'] ?? 0);
+                        $_noCotiSegmentId3 = (int)($appSettings['member_no_coti_segment'] ?? 0);
                         $_noCotiExclusion = '';
-                        if ($_noCotiTeamId3 > 0) {
-                            try { $_noCotiTeamNameStr = Segment::nameById($_noCotiTeamId3); } catch (PDOException $e) { $_noCotiTeamNameStr = null; }
-                            if ($_noCotiTeamNameStr) {
-                                $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars(appUrl(), ENT_QUOTES, $charset) . '?team=' . $_noCotiTeamId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiTeamNameStr, ENT_QUOTES, $charset) . '</a>');
+                        if ($_noCotiSegmentId3 > 0) {
+                            try { $_noCotiSegmentNameStr = Segment::nameById($_noCotiSegmentId3); } catch (PDOException $e) { $_noCotiSegmentNameStr = null; }
+                            if ($_noCotiSegmentNameStr) {
+                                $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars(appUrl(), ENT_QUOTES, $charset) . '?team=' . $_noCotiSegmentId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiSegmentNameStr, ENT_QUOTES, $charset) . '</a>');
                             }
                         }
                         $currentFilterDesc = sprintf($GLOBAL['filterDescCotiUnpaid3y'], $year-2, $year) . $_noCotiExclusion;
@@ -178,7 +178,7 @@ $_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$team, [0, FILTER_ALL_
   </a>
   <?php endif ?>
   <?php if (canWrite()): ?>
-  <a href="<?= appUrl() ?>?view=addUser&searchString=<?= $searchString ?><?= $team > 0 ? '&fromTeam=' . $team : '' ?>"
+  <a href="<?= appUrl() ?>?view=addUser&searchString=<?= $searchString ?><?= $team > 0 ? '&fromSegment=' . $team : '' ?>"
      class="<?= isManager() ? '' : 'ms-auto ' ?>ca-filter-btn text-decoration-none"
      title="<?= $GLOBAL['addUser'] ?>">
     <i class="fas fa-user-plus" aria-hidden="true"></i>

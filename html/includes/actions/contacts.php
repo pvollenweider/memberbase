@@ -126,7 +126,7 @@ if ($_REQUEST['action'] == 'updateUser') {
         db()->prepare("UPDATE compta SET user_id=? WHERE user_id=?")->execute([$survivorId, $sourceId]);
 
         // Move non-segment user_properties
-        db()->prepare("UPDATE contact_properties SET user_id=? WHERE user_id=? AND parameter NOT LIKE 'team_%'")->execute([$survivorId, $sourceId]);
+        db()->prepare("UPDATE contact_properties SET user_id=? WHERE user_id=? AND parameter NOT LIKE 'segment_%'")->execute([$survivorId, $sourceId]);
 
         // Move segment memberships (dedup)
         db()->prepare("INSERT IGNORE INTO contact_segment (user_id, segment_id) SELECT ?, segment_id FROM contact_segment WHERE user_id=?")->execute([$survivorId, $sourceId]);
@@ -282,13 +282,13 @@ if ($_REQUEST['action'] == 'updateUser') {
     $user->comment = unquote($_REQUEST['comment'] ?? '');
     $userid = $user->save();
     auditLog(db(), 'addUser', "id=$userid | {$user->firstName} {$user->lastName} | email: {$user->email}", (int)$userid);
-    $fromTeam = (int)($_REQUEST['fromTeam'] ?? 0);
-    if ($fromTeam > 0 && !empty($_REQUEST['addToFromTeam'])) {
+    $fromSegment = (int)($_REQUEST['fromSegment'] ?? 0);
+    if ($fromSegment > 0 && !empty($_REQUEST['addToFromSegment'])) {
         $chk = db()->prepare("SELECT COUNT(*) FROM segment WHERE id=?");
-        $chk->execute([$fromTeam]);
+        $chk->execute([$fromSegment]);
         if ($chk->fetchColumn() > 0) {
             $ins = db()->prepare("INSERT IGNORE INTO contact_properties (user_id, parameter, value) VALUES (?, ?, 'true')");
-            $ins->execute([$userid, 'team_' . $fromTeam]);
+            $ins->execute([$userid, 'segment_' . $fromSegment]);
         }
     }
 

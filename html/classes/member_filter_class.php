@@ -34,7 +34,7 @@ class MemberFilter
      * @param int   $filterId    one of self::RESOLVABLE
      * @param PDO   $pdo
      * @param int   $year        reference year (the view allows ?year override)
-     * @param array $appSettings needs member_no_coti_team, membre_team
+     * @param array $appSettings needs member_no_coti_segment, membre_segment
      * @return array<int,true>
      */
     public static function resolveIds(int $filterId, PDO $pdo, int $year, array $appSettings): array
@@ -115,8 +115,8 @@ class MemberFilter
             // Members of the "membre" segment without a cotisation this year.
             // Members of the "no coti" segment are excluded.
             case FILTER_UNPAID_COTI_CURRENT: {
-                $membreTeam = (int)($appSettings['membre_team'] ?? 0);
-                if ($membreTeam <= 0) {
+                $membreSegment = (int)($appSettings['membre_segment'] ?? 0);
+                if ($membreSegment <= 0) {
                     return [];
                 }
                 $from = mktime(0, 0, 0, 1, 0, $year);
@@ -137,7 +137,7 @@ class MemberFilter
                             )
                       )
                 ");
-                $st->execute([$membreTeam, $year]);
+                $st->execute([$membreSegment, $year]);
                 while ($r = $st->fetchObject()) {
                     $uid = (int)$r->id;
                     if (empty($noCoti[$uid])) {
@@ -155,12 +155,12 @@ class MemberFilter
     /** id => true map of members in the "no cotisation expected" segment. */
     private static function noCotiMembers(PDO $pdo, array $appSettings): array
     {
-        $noCotiTeam = (int)($appSettings['member_no_coti_team'] ?? 0);
-        if ($noCotiTeam <= 0) {
+        $noCotiSegment = (int)($appSettings['member_no_coti_segment'] ?? 0);
+        if ($noCotiSegment <= 0) {
             return [];
         }
         $st = $pdo->prepare("SELECT user_id FROM contact_segment WHERE segment_id=?");
-        $st->execute([$noCotiTeam]);
+        $st->execute([$noCotiSegment]);
         $map = [];
         while ($r = $st->fetchObject()) {
             $map[(int)$r->user_id] = true;

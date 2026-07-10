@@ -29,12 +29,12 @@ VALUES
 INSERT INTO `segment` (`id`, `name`, `hidden`) VALUES (1, 'Membre 2025', 0);
 INSERT INTO `segment` (`id`, `name`, `hidden`) VALUES (2, 'Membre 2026', 0);
 
--- App settings — default_team=0 means "all active members" (no group filter)
+-- App settings — default_segment=0 means "all active members" (no segment filter)
 -- SMTP points to Mailpit running in Docker (port 1025, no auth)
 INSERT INTO `app_settings` (`key`, `value`) VALUES
-  ('default_team', '0'),
-  ('membre_team', '2'),
-  ('membre_team_prefix', 'Membre'),
+  ('default_segment', '0'),
+  ('membre_segment', '2'),
+  ('membre_segment_prefix', 'Membre'),
   ('org_name', 'MemberBase Test'),
   ('smtp_host', 'mailpit'),
   ('smtp_port', '1025'),

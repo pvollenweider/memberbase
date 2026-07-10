@@ -140,9 +140,9 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
 
         <?php if (count($allCats) > 0): ?>
         <div class="row mb-3 align-items-center">
-          <label for="team_category" class="col-sm-3 col-form-label col-form-label-sm text-sm-end"><?= $GLOBAL['category'] ?></label>
+          <label for="segment_category" class="col-sm-3 col-form-label col-form-label-sm text-sm-end"><?= $GLOBAL['category'] ?></label>
           <div class="col-sm-9">
-            <select class="form-select form-select-sm" id="team_category" name="categoryId">
+            <select class="form-select form-select-sm" id="segment_category" name="categoryId">
               <option value="0"<?= $currentCatId === 0 ? ' selected' : '' ?>><?= $GLOBAL['noCategoryOptionLower'] ?></option>
               <?php foreach ($allCats as $cat): ?>
               <option value="<?= (int)$cat->id ?>"<?= $currentCatId === (int)$cat->id ? ' selected' : '' ?>>

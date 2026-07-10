@@ -94,8 +94,8 @@ unset($_ctRows, $_ct);
 // App settings
 $_settingsRows = $pdo->query("SELECT `key`, `value` FROM app_settings")->fetchAll(PDO::FETCH_KEY_PAIR);
 $appSettings = array_merge([
-    'default_team'       => '0',
-    'membre_team'        => '0',
+    'default_segment'    => '0',
+    'membre_segment'     => '0',
     'archive_id'         => '0',
     'org_name'           => '',
     'org_address'        => '',
@@ -107,7 +107,7 @@ $appSettings = array_merge([
     'org_coti_amount_desc' => '',
     'org_purpose'        => '',
     'org_tax_status'     => '',
-    'membre_team_prefix' => 'Membre',
+    'membre_segment_prefix' => 'Membre',
     // SMTP — all defaults empty; smtp_enc_key generated on first save
     'smtp_host'       => '',
     'smtp_port'       => '587',

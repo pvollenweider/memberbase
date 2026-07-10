@@ -19,11 +19,11 @@ if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail
 
 if ($action == 'saveSettings') {
     // Integer settings — stored as numeric values
-    $intKeys = ['default_team', 'membre_team', 'member_no_coti_team'];
+    $intKeys = ['default_segment', 'membre_segment', 'member_no_coti_segment'];
     // String settings — stored as trimmed text
     $strKeys = ['org_name', 'org_address', 'org_npa', 'org_city', 'org_country',
                 'org_ide', 'org_iban', 'org_coti_amount_desc', 'org_purpose', 'org_tax_status',
-                'membre_team_prefix', 'membership_url'];
+                'membre_segment_prefix', 'membership_url'];
     $stmt = db()->prepare("INSERT INTO app_settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
     foreach ($intKeys as $key) {
         if (isset($_REQUEST[$key])) {

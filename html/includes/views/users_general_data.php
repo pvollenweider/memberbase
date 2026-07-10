@@ -38,10 +38,10 @@ $_gLabels = json_encode([
     'm'  => $GLOBAL['m'],
 ], JSON_HEX_QUOT | JSON_HEX_TAG);
 
-$_noCotiTeam  = (int)($appSettings['member_no_coti_team'] ?? 0);
+$_noCotiSegment = (int)($appSettings['member_no_coti_segment'] ?? 0);
 $_showCotiWarn = (int)$_stats->ever_coti > 0
     && (int)$_stats->coti_this_year === 0
-    && ($_noCotiTeam === 0 || !$user->isMemberOfSegment($_noCotiTeam));
+    && ($_noCotiSegment === 0 || !$user->isMemberOfSegment($_noCotiSegment));
 
 $_createdAt  = $user->getCreationDate()     ? timeStampToformatedDate($user->getCreationDate())     : '';
 $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->getModificationDate()) : '';

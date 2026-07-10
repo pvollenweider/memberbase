@@ -12,8 +12,8 @@ if ($year <= 0) { $year = (int)date("Y"); }
 // Members who paid a cotisation for year-1 but not for year (by cotisation_year).
 require_once __DIR__ . '/../lib/cotisation.php';
 $cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
-$_noCotiTeam = (int)($appSettings['member_no_coti_team'] ?? 0);
-$rows        = mbGetLapsedMembers(db(), $year, $cotiTypeIds, $_noCotiTeam);
+$_noCotiSegment = (int)($appSettings['member_no_coti_segment'] ?? 0);
+$rows        = mbGetLapsedMembers(db(), $year, $cotiTypeIds, $_noCotiSegment);
 
 // Map: user_id → last reminder sent_at (this year) from email_log.
 $reminderSentMap = [];

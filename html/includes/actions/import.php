@@ -140,7 +140,7 @@ if ($_REQUEST['action'] === 'importUpload') {
     $segStmt = ($segTeamId > 0)
         ? db()->prepare("INSERT IGNORE INTO contact_properties (user_id, parameter, value) VALUES (?, ?, 'true')")
         : null;
-    $segParam = 'team_' . $segTeamId;
+    $segParam = 'segment_' . $segTeamId;
     $segAdded = 0;
 
     foreach ($rows as $rowIdx => $row) {

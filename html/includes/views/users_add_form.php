@@ -10,12 +10,12 @@ $searchString = "";
 if (isset($_REQUEST["searchString"])) {
     $searchString = trim($_REQUEST["searchString"]);
 }
-$fromTeam     = (int)($_REQUEST['fromTeam'] ?? 0);
-$fromTeamName = '';
-if ($fromTeam > 0) {
+$fromSegment     = (int)($_REQUEST['fromSegment'] ?? 0);
+$fromSegmentName = '';
+if ($fromSegment > 0) {
     $_ft = db()->prepare("SELECT name FROM segment WHERE id = ?");
-    $_ft->execute([$fromTeam]);
-    $fromTeamName = (string)($_ft->fetchColumn() ?: '');
+    $_ft->execute([$fromSegment]);
+    $fromSegmentName = (string)($_ft->fetchColumn() ?: '');
     unset($_ft);
 }
 ?>
@@ -26,8 +26,8 @@ if ($fromTeam > 0) {
     <h6 class="form-section-title" style="margin-top:0"><?= $GLOBAL['addUser'] ?></h6>
 
     <form action="<?= appUrl() ?>?action=addUser&amp;view=updateUser" method="post" id="addUser">
-      <?php if ($fromTeam > 0): ?>
-      <input type="hidden" name="fromTeam" value="<?= $fromTeam ?>">
+      <?php if ($fromSegment > 0): ?>
+      <input type="hidden" name="fromSegment" value="<?= $fromSegment ?>">
       <?php endif ?>
 
       <p class="form-section-title"><?= $GLOBAL['contactInfo'] ?></p>
@@ -167,13 +167,13 @@ if ($fromTeam > 0) {
         </div>
       </div>
 
-      <?php if ($fromTeam > 0 && $fromTeamName): ?>
+      <?php if ($fromSegment > 0 && $fromSegmentName): ?>
       <div class="row mb-3">
         <div class="col-8 offset-4 col-sm-9 offset-sm-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="addToFromTeam" name="addToFromTeam" value="1">
-            <label class="form-check-label" for="addToFromTeam" style="font-size:0.85rem">
-              Ajouter au segment <strong><?= htmlspecialchars($fromTeamName, ENT_QUOTES, $charset) ?></strong>
+            <input class="form-check-input" type="checkbox" id="addToFromSegment" name="addToFromSegment" value="1">
+            <label class="form-check-label" for="addToFromSegment" style="font-size:0.85rem">
+              <?= sprintf($GLOBAL['addToSegmentLabel'], '<strong>' . htmlspecialchars($fromSegmentName, ENT_QUOTES, $charset) . '</strong>') ?>
             </label>
           </div>
         </div>

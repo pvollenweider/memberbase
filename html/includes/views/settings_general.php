@@ -202,41 +202,41 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
               </div>
 
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team_prefix"><?= $GLOBAL['memberTeamPrefixLabel'] ?></label>
-                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['memberTeamPrefixHelp'] ?></p>
-                <input type="text" name="membre_team_prefix" id="s_membre_team_prefix" class="form-control form-control-sm" style="max-width:200px"
-                       value="<?= htmlspecialchars($appSettings['membre_team_prefix'] ?? 'Membre', ENT_QUOTES, $charset) ?>">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_segment_prefix"><?= $GLOBAL['memberSegmentPrefixLabel'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['memberSegmentPrefixHelp'] ?></p>
+                <input type="text" name="membre_segment_prefix" id="s_membre_segment_prefix" class="form-control form-control-sm" style="max-width:200px"
+                       value="<?= htmlspecialchars($appSettings['membre_segment_prefix'] ?? 'Membre', ENT_QUOTES, $charset) ?>">
               </div>
               <p class="form-section-title"><i class="fas fa-sliders me-1" aria-hidden="true"></i><?= $GLOBAL['groups'] ?></p>
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_default_team"><?= $GLOBAL['defaultTeamLabel'] ?></label>
-                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['defaultTeamHelp'] ?></p>
-                <select name="default_team" id="s_default_team" class="form-select form-select-sm" style="max-width:320px">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_default_segment"><?= $GLOBAL['defaultSegmentLabel'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['defaultSegmentHelp'] ?></p>
+                <select name="default_segment" id="s_default_segment" class="form-select form-select-sm" style="max-width:320px">
                   <?php foreach ($allSegments as $t): ?>
-                  <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['default_team'] === (int)$t->id ? 'selected' : '' ?>>
+                  <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['default_segment'] === (int)$t->id ? 'selected' : '' ?>>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' ' . $GLOBAL['maskedSuffix'] : '' ?>
                   </option>
                   <?php endforeach ?>
                 </select>
               </div>
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_team"><?= $GLOBAL['membreTeamLabel'] ?></label>
-                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['membreTeamHelp'] ?></p>
-                <select name="membre_team" id="s_membre_team" class="form-select form-select-sm" style="max-width:320px">
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membre_segment"><?= $GLOBAL['membreSegmentLabel'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['membreSegmentHelp'] ?></p>
+                <select name="membre_segment" id="s_membre_segment" class="form-select form-select-sm" style="max-width:320px">
                   <?php foreach ($allSegments as $t): ?>
-                  <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['membre_team'] === (int)$t->id ? 'selected' : '' ?>>
+                  <option value="<?= (int)$t->id ?>" <?= (int)$appSettings['membre_segment'] === (int)$t->id ? 'selected' : '' ?>>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' ' . $GLOBAL['maskedSuffix'] : '' ?>
                   </option>
                   <?php endforeach ?>
                 </select>
               </div>
               <div class="mb-4">
-                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_member_no_coti_team"><?= $GLOBAL['noCotiTeamLabel'] ?></label>
-                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['noCotiTeamHelp'] ?></p>
-                <select name="member_no_coti_team" id="s_member_no_coti_team" class="form-select form-select-sm" style="max-width:320px">
-                  <option value="0" <?= empty($appSettings['member_no_coti_team']) ? 'selected' : '' ?>><?= $GLOBAL['noneOption'] ?></option>
+                <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_member_no_coti_segment"><?= $GLOBAL['noCotiSegmentLabel'] ?></label>
+                <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['noCotiSegmentHelp'] ?></p>
+                <select name="member_no_coti_segment" id="s_member_no_coti_segment" class="form-select form-select-sm" style="max-width:320px">
+                  <option value="0" <?= empty($appSettings['member_no_coti_segment']) ? 'selected' : '' ?>><?= $GLOBAL['noneOption'] ?></option>
                   <?php foreach ($allSegments as $t): ?>
-                  <option value="<?= (int)$t->id ?>" <?= (int)($appSettings['member_no_coti_team'] ?? 0) === (int)$t->id ? 'selected' : '' ?>>
+                  <option value="<?= (int)$t->id ?>" <?= (int)($appSettings['member_no_coti_segment'] ?? 0) === (int)$t->id ? 'selected' : '' ?>>
                     <?= htmlentities($t->name, ENT_COMPAT, $charset) ?><?= $t->hidden ? ' ' . $GLOBAL['maskedSuffix'] : '' ?>
                   </option>
                   <?php endforeach ?>
