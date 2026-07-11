@@ -174,7 +174,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     db()->prepare("UPDATE contact SET
         firstName='Anonymisé', lastName='', society='', sexe='na', title='',
         address='', npa='', tel='', telprof='', portable='', fax='',
-        email='', web='', birthday=0, comment='', status=0
+        email='', web='', birthday=NULL, comment='', status=0
         WHERE id=?")->execute([$uid]);
     auditLog(db(), 'anonymizeUser', 'id=' . $uid, $uid);
     if ($isHtmx) { header('HX-Location: ' . appUrl() . '?view=updateUser&id=' . $uid); exit; }

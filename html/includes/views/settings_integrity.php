@@ -414,7 +414,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php foreach ($birthdayFuture as $r): ?>
       <tr>
         <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname), ENT_COMPAT, $charset) ?></td>
-        <td><code class="text-warning"><?= date('d.m.Y', (int)$r->birthday) ?></code></td>
+        <td><code class="text-warning"><?= date('d.m.Y', strtotime($r->birthday)) ?></code></td>
         <td class="text-end">
           <a href="<?= appUrl() ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>

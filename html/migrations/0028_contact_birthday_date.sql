@@ -1,0 +1,45 @@
+-- 0028 — contact.birthday: Unix timestamp int(16) → DATE (issue #143, step 3/5).
+-- `birthday = 0` was the "not set" sentinel; it becomes NULL (application code
+-- already treats getBirthDay()==0 and the new NULL read as equivalent "unset").
+--
+-- Timezone note: historical birthday values were produced by
+-- Contact::setBirthDay()'s mktime(), which runs under PHP's hardcoded
+-- "Europe/Zurich" timezone (see includes/lib/bootstrap.php). Naively converting
+-- via FROM_UNIXTIME() alone would use MySQL's *session* timezone instead, which
+-- can silently shift the calendar day when the two don't match. The backfill
+-- below explicitly re-targets Europe/Zurich via CONVERT_TZ(), which requires the
+-- named-timezone tables to be loaded (`mysql_tzinfo_to_sql /usr/share/zoneinfo |
+-- mysql -u root mysql`) — the safety check aborts loudly instead of silently
+-- wiping every birthday if they aren't.
+--
+-- Guarded with information_schema checks so a retry after a partial failure (DDL
+-- is auto-committed, no rollback) is safe regardless of which step it died on.
+
+SET @tz_test = CONVERT_TZ('2026-01-01 00:00:00', @@session.time_zone, 'Europe/Zurich');
+SET @sql = IF(@tz_test IS NULL,
+    'SIGNAL SQLSTATE ''45000'' SET MESSAGE_TEXT = ''CONVERT_TZ returned NULL: MariaDB named timezone tables are not loaded. Run `mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql` on the DB server, then retry this migration.''',
+    'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+ALTER TABLE `contact` ADD COLUMN IF NOT EXISTS `birthday_dt` date DEFAULT NULL;
+
+SET @old_is_int = (SELECT COUNT(*) FROM information_schema.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'contact'
+                      AND COLUMN_NAME = 'birthday' AND DATA_TYPE = 'int');
+
+SET @sql = IF(@old_is_int > 0,
+    'UPDATE `contact` SET `birthday_dt` = DATE(CONVERT_TZ(FROM_UNIXTIME(`birthday`), @@session.time_zone, ''Europe/Zurich'')) WHERE `birthday` > 0',
+    'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @sql = IF(@old_is_int > 0, 'ALTER TABLE `contact` DROP COLUMN `birthday`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @dt_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS
+                   WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'contact'
+                     AND COLUMN_NAME = 'birthday_dt');
+
+SET @sql = IF(@dt_exists > 0,
+    'ALTER TABLE `contact` CHANGE COLUMN `birthday_dt` `birthday` date DEFAULT NULL',
+    'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

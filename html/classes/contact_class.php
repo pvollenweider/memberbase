@@ -54,7 +54,11 @@ class Contact
         $this->email            = $row->email;
         $this->emailAlt         = $row->email_alt ?? '';
         $this->web              = $row->web;
-        $this->birthDay         = $row->birthday;
+        // birthday is a plain DATE column (no time-of-day/timezone in the stored
+        // value) — parsed via PHP's strtotime(), not a MySQL date function, so the
+        // round-trip stays symmetric with setBirthDay()'s mktime() regardless of
+        // whether PHP's and MySQL's configured timezones match.
+        $this->birthDay         = $row->birthday ? strtotime($row->birthday) : 0;
         $this->comment          = $row->comment;
         $this->creationDate     = $row->creationDate;
         $this->modificationDate = $row->modificationDate;
@@ -225,6 +229,11 @@ class Contact
 
     public function save(): int
     {
+        // birthday is a plain DATE column — formatted via PHP's date() (matching
+        // setBirthDay()'s mktime()), never a MySQL date function, so the value
+        // written is exactly the calendar date intended regardless of PHP's vs
+        // MySQL's configured timezone.
+        $birthdayDate = ((int)$this->birthDay) > 0 ? date('Y-m-d', (int)$this->birthDay) : null;
         if ($this->id) {
             db()->prepare(
                 "UPDATE contact SET firstname=?,lastname=?,society=?,sexe=?,title=?,address=?,npa=?,
@@ -233,7 +242,7 @@ class Contact
             )->execute([
                 $this->firstName, $this->lastName, $this->society, $this->sexe, $this->title,
                 $this->address, $this->npa, $this->tel, $this->telProf, $this->portable,
-                $this->fax, $this->email, $this->emailAlt ?? '', $this->web, $this->birthDay, $this->comment,
+                $this->fax, $this->email, $this->emailAlt ?? '', $this->web, $birthdayDate, $this->comment,
                 time(), $this->id,
             ]);
             return (int) $this->id;
@@ -245,7 +254,7 @@ class Contact
             )->execute([
                 $this->firstName, $this->lastName, $this->society, $this->sexe,
                 $this->title, $this->address, $this->npa, $this->tel, $this->telProf,
-                $this->portable, $this->fax, $this->email, $this->emailAlt ?? '', $this->web, $this->birthDay,
+                $this->portable, $this->fax, $this->email, $this->emailAlt ?? '', $this->web, $birthdayDate,
                 $this->comment, time(), time(),
             ]);
             return (int)db()->lastInsertId();

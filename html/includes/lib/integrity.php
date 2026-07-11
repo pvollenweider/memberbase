@@ -128,7 +128,7 @@ function mbRunIntegrityChecks(PDO $db): array
         'birthdayFuture' => $db->query("
             SELECT id, firstname, lastname, birthday
             FROM contact
-            WHERE status=1 AND birthday > 0 AND birthday > UNIX_TIMESTAMP()
+            WHERE status=1 AND birthday IS NOT NULL AND birthday > CURDATE()
             ORDER BY lastname, firstname
         ")->fetchAll(PDO::FETCH_OBJ),
         ];
