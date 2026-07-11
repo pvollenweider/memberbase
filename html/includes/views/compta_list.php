@@ -12,8 +12,8 @@ if (isset($_REQUEST['year'])) {
 }
 $donsOnly = !empty($_REQUEST['dons_only']);
 $filterTypeId = isset($_REQUEST['type_id']) ? (int)$_REQUEST['type_id'] : 0;
-$from = mktime(0, 0, 0, 1, 0, $year);
-$to = mktime(0, 0, 0, 1, 1, $year + 1);
+$from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+$to = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
 ?>
 <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
 
@@ -368,7 +368,7 @@ $stmt->execute($_baseParams);
 $total = 0;
 while ($row = $stmt->fetchObject()) {
     $id = $row->id;
-    $date = $row->date;
+    $date = $row->date ? strtotime($row->date) : 0;
     $libele = $row->libele;
     $sum = (float)($row->sum ?? 0);
     $quittance = $row->quittance;
@@ -396,7 +396,7 @@ while ($row = $stmt->fetchObject()) {
         <td>
             <?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>
             <?php if ($row->ct_coti && $row->cotisation_year): ?>
-            <?php $_payYear = $row->date ? (int)date('Y', (int)$row->date) : 0; ?>
+            <?php $_payYear = $row->date ? (int)date('Y', strtotime($row->date)) : 0; ?>
             <?php if ((int)$row->cotisation_year !== $_payYear): ?>
             <span class="badge bg-secondary ms-1" style="font-size:0.7rem" title="<?= $GLOBAL['cotisationYearLabel'] ?>"><?= (int)$row->cotisation_year ?></span>
             <?php else: ?>
@@ -771,7 +771,7 @@ while ($_r = $_stmt2->fetchObject()) {
     if (!isset($_typeAgg[$_lbl])) $_typeAgg[$_lbl] = ['sum' => 0.0, 'color' => $_col];
     $_typeAgg[$_lbl]['sum'] += (float)$_r->sum;
     // Timeline: aggregate by month (specific year) or by year (all years)
-    $_ts = (int)$_r->date;
+    $_ts = $_r->date ? strtotime($_r->date) : 0;
     $_pk = ($year == -2) ? date('Y', $_ts) : date('Y-m', $_ts);
     if (!isset($_periodAgg[$_pk])) $_periodAgg[$_pk] = 0.0;
     $_periodAgg[$_pk] += (float)$_r->sum;

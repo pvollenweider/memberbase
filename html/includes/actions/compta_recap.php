@@ -41,7 +41,7 @@ if ($action === 'sendComptaRecap') {
             continue;
         }
         // Entries are ordered by date ASC per member — the first one is the earliest in this batch.
-        $sinceLine = mbRecapSinceLine($recapYear, false, (int)$first['date']);
+        $sinceLine = mbRecapSinceLine($recapYear, false, strtotime($first['date']));
         [$vars, $ids, $total] = mbRecapBuildVars($entries, $appSettings);
         $vars['since_line']   = $sinceLine;
         $result = mbSendTemplate(db(), $first['email'], 'tpl_compta_recap', $vars, (int)$userId);
@@ -79,7 +79,7 @@ if ($action === 'sendComptaRecap') {
     if (empty($byMember)) { echo json_encode(['ok' => false, 'error' => 'no_entries']); exit; }
     $entries = reset($byMember);
 
-    $sinceLine = mbRecapSinceLine($recapYear, $force, (int)$entries[0]['date']);
+    $sinceLine = mbRecapSinceLine($recapYear, $force, strtotime($entries[0]['date']));
 
     [$vars, , ] = mbRecapBuildVars($entries, $appSettings);
     $vars['since_line'] = $sinceLine;
@@ -109,7 +109,7 @@ if ($action === 'sendComptaRecap') {
         exit;
     }
 
-    $sinceLine = mbRecapSinceLine($recapYear, $force, (int)$entries[0]['date']);
+    $sinceLine = mbRecapSinceLine($recapYear, $force, strtotime($entries[0]['date']));
 
     [$vars, $ids, $total] = mbRecapBuildVars($entries, $appSettings);
     $vars['since_line'] = $sinceLine;

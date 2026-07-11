@@ -18,9 +18,9 @@ $user->lookupUser($userid);
 
 // Stats for badges + mini-dashboard
 $_year = (int)date('Y');
-$_tsThisYear = mktime(0,0,0,1,1,$_year);
-$_tsNextYear = mktime(0,0,0,1,1,$_year+1);
-$_tsLastYear = mktime(0,0,0,1,1,$_year-1);
+$_tsThisYear = mbDateTimeBound(mktime(0,0,0,1,1,$_year));
+$_tsNextYear = mbDateTimeBound(mktime(0,0,0,1,1,$_year+1));
+$_tsLastYear = mbDateTimeBound(mktime(0,0,0,1,1,$_year-1));
 $_stStats = db()->prepare("
     SELECT
         COUNT(*) AS compta_count,
@@ -40,7 +40,7 @@ $_stStats = db()->prepare("
         SUM(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 AND c.date >= ? AND c.date < ? THEN 1 ELSE 0 END) AS other_last_year_count,
         -- cotisation
         SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 THEN 1 ELSE 0 END) AS ever_coti,
-        SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ? THEN 1 ELSE 0 END) AS coti_this_year,
+        SUM(CASE WHEN COALESCE(ct.is_cotisation,0)=1 AND COALESCE(c.cotisation_year, YEAR(c.date)) = ? THEN 1 ELSE 0 END) AS coti_this_year,
         -- années du premier versement par catégorie
         MIN(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=0 THEN c.date ELSE NULL END) AS don_first_ts,
         MIN(CASE WHEN COALESCE(ct.is_excluded_from_donation,0)=1 THEN c.date ELSE NULL END) AS other_first_ts,
@@ -250,7 +250,7 @@ if ($view == "compta") {
                     </span>
                   </div>
                   <div class="d-flex justify-content-between align-items-baseline border-top pt-1 mt-1">
-                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)"><?= sprintf($GLOBAL['totalSince'], $_stats->don_first_ts ? date('Y', (int)$_stats->don_first_ts) : '—') ?></span>
+                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)"><?= sprintf($GLOBAL['totalSince'], $_stats->don_first_ts ? date('Y', strtotime($_stats->don_first_ts)) : '—') ?></span>
                     <span class="fw-semibold" style="font-size:0.85rem">
                       <?= number_format((float)$_stats->total_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
                     </span>
@@ -282,7 +282,7 @@ if ($view == "compta") {
                     </span>
                   </div>
                   <div class="d-flex justify-content-between align-items-baseline border-top pt-1 mt-1">
-                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)"><?= sprintf($GLOBAL['totalSince'], $_stats->other_first_ts ? date('Y', (int)$_stats->other_first_ts) : '—') ?></span>
+                    <span style="font-size:0.75rem;color:var(--ca-ink-muted)"><?= sprintf($GLOBAL['totalSince'], $_stats->other_first_ts ? date('Y', strtotime($_stats->other_first_ts)) : '—') ?></span>
                     <span class="fw-semibold" style="font-size:0.85rem">
                       <?= number_format((float)$_stats->other_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
                     </span>
@@ -292,7 +292,7 @@ if ($view == "compta") {
               <?php endif ?>
               <?php if ((int)$_stats->compta_count > 0): ?>
               <div class="mt-2 px-3 py-2 rounded border d-flex justify-content-between align-items-baseline" style="background:var(--bs-light)">
-                <span class="text-muted" style="font-size:0.75rem"><?= sprintf($GLOBAL['totalSince'], $_stats->all_first_ts ? date('Y', (int)$_stats->all_first_ts) : '—') ?></span>
+                <span class="text-muted" style="font-size:0.75rem"><?= sprintf($GLOBAL['totalSince'], $_stats->all_first_ts ? date('Y', strtotime($_stats->all_first_ts)) : '—') ?></span>
                 <span class="fw-semibold" style="font-size:0.85rem">
                   <?= number_format((float)$_stats->all_time_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
                 </span>

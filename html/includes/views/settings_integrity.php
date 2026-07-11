@@ -286,7 +286,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
       <tr>
         <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname) ?: '#'.(int)$r->user_id, ENT_COMPAT, $charset) ?></td>
         <td><?= htmlentities($r->libele, ENT_COMPAT, $charset) ?></td>
-        <td><code class="text-danger"><?= $r->date == 0 ? $GLOBAL['zeroEmpty'] : date('d.m.Y', (int)$r->date) ?></code></td>
+        <td><code class="text-danger"><?= $r->date === null ? $GLOBAL['zeroEmpty'] : date('d.m.Y', strtotime($r->date)) ?></code></td>
         <td class="text-end">
           <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$r->user_id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['compta'] ?></a>

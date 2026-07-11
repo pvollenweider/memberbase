@@ -32,7 +32,7 @@ class Compta
             $this->id                = $row->id;
             $this->userId            = $row->user_id;
             $this->type_id           = $row->type_id;
-            $this->date              = $row->date;
+            $this->date              = $row->date ? strtotime($row->date) : 0;
             $this->libele            = $row->libele;
             $this->sum               = $row->sum;
             $this->quittance         = $row->quittance;
@@ -76,18 +76,21 @@ class Compta
 
     public function save(): void
     {
+        // date is formatted via PHP's date() (matching formatedDateToTimeStamp()'s
+        // mktime()-based parsing), never a MySQL date function — see lookupCompta().
+        $dateVal = ((int)$this->date) > 0 ? date('Y-m-d H:i:s', (int)$this->date) : null;
         if ($this->id) {
             db()->prepare(
                 "UPDATE compta SET user_id=?,type_id=?,date=?,libele=?,sum=?,quittance=?,wants_attestation=?,cotisation_year=? WHERE id=?"
             )->execute([
-                $this->userId, $this->type_id, $this->date, $this->libele,
+                $this->userId, $this->type_id, $dateVal, $this->libele,
                 $this->sum, $this->quittance, $this->wants_attestation, $this->cotisation_year, $this->id,
             ]);
         } else {
             db()->prepare(
                 "INSERT INTO compta (user_id,type_id,date,libele,sum,quittance,wants_attestation,cotisation_year) VALUES (?,?,?,?,?,?,?,?)"
             )->execute([
-                $this->userId, $this->type_id, $this->date,
+                $this->userId, $this->type_id, $dateVal,
                 $this->libele, $this->sum, $this->quittance, $this->wants_attestation, $this->cotisation_year,
             ]);
         }
@@ -135,8 +138,8 @@ class Compta
      */
     public static function activitySummaryByUser(int $year): array
     {
-        $from = mktime(0, 0, 0, 1, 0, $year - 10);
-        $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+        $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 10));
+        $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
         $stmt = db()->prepare("
             SELECT c.user_id,
                    COUNT(*) AS total,

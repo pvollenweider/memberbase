@@ -465,7 +465,7 @@ function handleGetCompta(int $id): void
 
     $data = array_map(fn($r) => [
         'id'              => (int)$r->id,
-        'date'            => $r->date ? date('Y-m-d', (int)$r->date) : null,
+        'date'            => $r->date ? date('Y-m-d', strtotime($r->date)) : null,
         'label'           => $r->libele ?: null,
         'amount'          => $r->sum !== null ? (float)$r->sum : null,
         'quittance'       => $r->quittance ?: null,

@@ -54,7 +54,7 @@ class MemberFilter
                     JOIN contact u ON u.id = c.user_id AND u.status = 1
                     GROUP BY c.user_id
                     HAVING COUNT(*) > 0
-                       AND SUM(CASE WHEN COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) >= ? THEN 1 ELSE 0 END) = 0
+                       AND SUM(CASE WHEN COALESCE(c.cotisation_year, YEAR(c.date)) >= ? THEN 1 ELSE 0 END) = 0
                 ");
                 $st->execute([$cutoffYear]);
                 while ($r = $st->fetchObject()) {
@@ -68,8 +68,8 @@ class MemberFilter
 
             // No accounting entry at all in the last 10 years.
             case FILTER_NO_ACTIVITY_10Y: {
-                $from = mktime(0, 0, 0, 1, 0, $year - 10);
-                $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+                $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 10));
+                $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
                 $ids = [];
                 $st = $pdo->prepare("
                     SELECT u.id
@@ -90,8 +90,8 @@ class MemberFilter
 
             // At least one non-institutional payment in the previous year.
             case FILTER_NON_INSTIT_LAST_YEAR: {
-                $from = mktime(0, 0, 0, 1, 0, $year - 1);
-                $to   = mktime(0, 0, 0, 1, 1, $year);
+                $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 1));
+                $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year));
                 $institIds = array_column(
                     $pdo->query("SELECT id FROM compta_type WHERE is_institutional=1")->fetchAll(PDO::FETCH_OBJ),
                     'id'
@@ -119,8 +119,6 @@ class MemberFilter
                 if ($membreSegment <= 0) {
                     return [];
                 }
-                $from = mktime(0, 0, 0, 1, 0, $year);
-                $to   = mktime(0, 0, 0, 1, 1, $year + 1);
                 $noCoti = self::noCotiMembers($pdo, $appSettings);
                 $ids = [];
                 $st = $pdo->prepare("
@@ -133,7 +131,7 @@ class MemberFilter
                           JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1
                           WHERE c.user_id = u.id
                             AND (
-                                COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
+                                COALESCE(c.cotisation_year, YEAR(c.date)) = ?
                             )
                       )
                 ");

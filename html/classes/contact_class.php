@@ -142,13 +142,13 @@ class Contact
         $stmt = db()->prepare($sql);
         $stmt->execute($params);
         $row = $stmt->fetchObject();
-        return $row ? (int) $row->date : -1;
+        return $row ? (strtotime($row->date) ?: -1) : -1;
     }
 
     public function isCotisationPayed(int $year): int
     {
-        $from = mktime(0, 0, 0, 1, 0, $year);
-        $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+        $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+        $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
         return $this->firstComptaDate(
             "SELECT date FROM compta WHERE user_id=? AND date>? AND date<? AND type_id IN (SELECT id FROM compta_type WHERE is_cotisation=1)",
             [$this->id, $from, $to]
@@ -158,8 +158,8 @@ class Contact
     /* Any non-coti payment in a given year */
     public function hasPayed(int $year): int
     {
-        $from = mktime(0, 0, 0, 1, 0, $year);
-        $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+        $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+        $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
         return $this->firstComptaDate(
             "SELECT date FROM compta WHERE user_id=? AND date>? AND date<? AND type_id NOT IN (SELECT id FROM compta_type WHERE is_cotisation=1)",
             [$this->id, $from, $to]
@@ -169,8 +169,8 @@ class Contact
     /* Pure donation (excludes coti, reintegration, evenementiel) */
     public function hasDonated(int $year): int
     {
-        $from = mktime(0, 0, 0, 1, 0, $year);
-        $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+        $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+        $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
         return $this->firstComptaDate(
             "SELECT date FROM compta WHERE user_id=? AND date>? AND date<? AND type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation=1)",
             [$this->id, $from, $to]
@@ -180,8 +180,8 @@ class Contact
     /* Any compta entry of any type in a given year */
     public function hasAnyEntry(int $year): int
     {
-        $from = mktime(0, 0, 0, 1, 0, $year);
-        $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+        $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+        $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
         return $this->firstComptaDate(
             "SELECT date FROM compta WHERE user_id=? AND date>? AND date<?",
             [$this->id, $from, $to]
@@ -190,8 +190,8 @@ class Contact
 
     public function hasComptaEntries(int $year, int $number): bool
     {
-        $from = mktime(0, 0, 0, 1, 0, $year - $number);
-        $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+        $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - $number));
+        $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
         $stmt = db()->prepare("SELECT 1 FROM compta WHERE user_id=? AND date>? AND date<? LIMIT 1");
         $stmt->execute([$this->id, $from, $to]);
         return $stmt->fetchObject() !== false;

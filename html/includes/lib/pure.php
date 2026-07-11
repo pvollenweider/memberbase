@@ -32,6 +32,19 @@ function timeStampToformatedDate(?int $timestamp): string
     return $timestamp ? date("d/m/Y", $timestamp) : "";
 }
 
+/**
+ * Formats a Unix timestamp as a MySQL DATETIME literal ('Y-m-d H:i:s') for
+ * binding against DATETIME columns (e.g. compta.date range bounds built via
+ * mktime()). Always converts in PHP, never via MySQL's FROM_UNIXTIME()/
+ * UNIX_TIMESTAMP() — those use the DB session timezone, which differs from
+ * PHP's hardcoded "Europe/Zurich" (see includes/lib/bootstrap.php) and would
+ * silently shift the bound by an hour or two (see #143).
+ */
+function mbDateTimeBound(int $ts): string
+{
+    return date('Y-m-d H:i:s', $ts);
+}
+
 /** Replaces typographic apostrophes (’) with straight apostrophes from user input. */
 function unquote(string $s): string
 {

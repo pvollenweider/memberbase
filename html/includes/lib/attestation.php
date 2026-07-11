@@ -124,8 +124,8 @@ function mbGenerateAttestationPdf(array $fields): ?string
  */
 function mbGetDonationTotal(PDO $pdo, int $userId, int $year): float
 {
-    $from = mktime(0, 0, 0, 1, 0, $year);
-    $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+    $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+    $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
     $stmt = $pdo->prepare("
         SELECT COALESCE(SUM(c.sum), 0) AS total
         FROM compta c
@@ -144,8 +144,8 @@ function mbGetDonationTotal(PDO $pdo, int $userId, int $year): float
  */
 function mbHasCotisationEntries(PDO $pdo, int $userId, int $year): bool
 {
-    $from = mktime(0, 0, 0, 1, 0, $year);
-    $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+    $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+    $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
     $stmt = $pdo->prepare("
         SELECT 1 FROM compta c
         WHERE c.user_id = ?
@@ -181,8 +181,8 @@ function mbBuildAttestationVarsForUser(PDO $pdo, object $m, array $appSettings, 
  */
 function mbGetQualifyingDonors(PDO $pdo, int $year, int $minSum): array
 {
-    $from = mktime(0, 0, 0, 1, 0, $year);
-    $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+    $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+    $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
     $stmt = $pdo->prepare("
         SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.email, u.npa, u.address,
                SUM(c.sum) AS total

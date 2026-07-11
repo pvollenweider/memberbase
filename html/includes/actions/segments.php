@@ -82,7 +82,7 @@ if ($action == 'deleteSegment') {
             FROM contact u
             JOIN compta c ON c.user_id = u.id
             WHERE c.type_id IN ($placeholders)
-              AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
+              AND COALESCE(c.cotisation_year, YEAR(c.date)) = ?
               AND u.id NOT IN (SELECT user_id FROM contact_segment WHERE segment_id = ?)
             GROUP BY u.id
         ")->execute($params);
@@ -101,8 +101,8 @@ if ($action == 'deleteSegment') {
                  ? $_REQUEST['donor_type'] : 'all';
     if (!in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 1; }
     if ($segmentId > 0 && $year >= 2000 && $year <= 2100) {
-        $from = mktime(0, 0, 0, 1, 0, $year);
-        $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+        $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+        $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
         $instSubClause = '';
         if ($donorType === 'institutional') {
             $instSubClause = 'AND c.type_id IN (SELECT id FROM compta_type WHERE is_institutional = 1)';
@@ -206,10 +206,10 @@ if ($action == 'deleteSegment') {
     $groupType = in_array($_REQUEST['groupType'] ?? '', ['donors', 'members']) ? $_REQUEST['groupType'] : 'donors';
     $yr        = (int)($_REQUEST['year'] ?? date("Y"));
     $excl      = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
-    $kFrom1    = mktime(0,0,0,1,0,$yr-1);
-    $kTo1      = mktime(0,0,0,1,1,$yr);
-    $kFrom     = mktime(0,0,0,1,0,$yr);
-    $kTo       = mktime(0,0,0,1,1,$yr+1);
+    $kFrom1    = mbDateTimeBound(mktime(0,0,0,1,0,$yr-1));
+    $kTo1      = mbDateTimeBound(mktime(0,0,0,1,1,$yr));
+    $kFrom     = mbDateTimeBound(mktime(0,0,0,1,0,$yr));
+    $kTo       = mbDateTimeBound(mktime(0,0,0,1,1,$yr+1));
 
     if ($groupType === 'donors') {
         $groupName = sprintf($GLOBAL['lapsedDonorsSegmentName'], $yr, date("d.m.Y"));
@@ -233,11 +233,11 @@ if ($action == 'deleteSegment') {
               $noCotiClause
               AND EXISTS (
                   SELECT 1 FROM compta c WHERE c.user_id = u.id AND c.type_id IN ($ph)
-                    AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
+                    AND COALESCE(c.cotisation_year, YEAR(c.date)) = ?
               )
               AND NOT EXISTS (
                   SELECT 1 FROM compta c WHERE c.user_id = u.id AND c.type_id IN ($ph)
-                    AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
+                    AND COALESCE(c.cotisation_year, YEAR(c.date)) = ?
               )
         ");
         $stmt->execute(array_merge(

@@ -51,7 +51,7 @@ $extra_columns = [
     ],
     [
         'label'  => $GLOBAL['firstDonation'],
-        'value'  => fn($row) => timeStampToformatedDate($row->first_date),
+        'value'  => fn($row) => timeStampToformatedDate($row->first_date ? strtotime($row->first_date) : 0),
         'style'  => '',
         'footer' => null,
     ],

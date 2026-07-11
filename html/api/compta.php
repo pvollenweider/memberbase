@@ -87,8 +87,8 @@ function handleList(): void
     $where  = 'WHERE c.user_id = ?';
 
     if ($year) {
-        $from    = mktime(0, 0, 0, 1, 1, $year);
-        $to      = mktime(0, 0, 0, 1, 1, $year + 1);
+        $from    = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year));
+        $to      = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
         $where  .= ' AND c.date >= ? AND c.date < ?';
         $params[] = $from;
         $params[] = $to;
@@ -106,7 +106,7 @@ function handleList(): void
         'id'               => (int)$r->id,
         'memberId'         => (int)$r->user_id,
         'typeId'           => (int)$r->type_id,
-        'date'             => $r->date ? date('Y-m-d', (int)$r->date) : null,
+        'date'             => $r->date ? date('Y-m-d', strtotime($r->date)) : null,
         'label'            => $r->libele    ?: null,
         'amount'           => $r->sum !== null ? (float)$r->sum : null,
         'receipt'          => $r->quittance ?: null,

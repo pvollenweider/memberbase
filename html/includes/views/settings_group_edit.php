@@ -47,7 +47,7 @@ $institutionalTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)($
 $nonInstTypeIds      = array_keys(array_filter($comptaTypes, fn($ct) => (int)($ct->is_institutional ?? 0) === 0 && (int)($ct->is_excluded_from_donation ?? 0) === 0));
 
 /** Helper: count distinct donors for a given set of allowed type IDs */
-$countDonors = function(array $allowedTypeIds, int $from, int $to) use ($id): int {
+$countDonors = function(array $allowedTypeIds, string $from, string $to) use ($id): int {
     if (empty($allowedTypeIds)) return 0;
     $ph = implode(',', array_fill(0, count($allowedTypeIds), '?'));
     $r = db()->prepare("
@@ -66,8 +66,8 @@ $allDonorTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is
 
 for ($yi = 0; $yi < 10; $yi++) {
     $dy   = $currentYear - $yi;
-    $from = mktime(0, 0, 0, 1, 0, $dy);
-    $to   = mktime(0, 0, 0, 1, 1, $dy + 1);
+    $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $dy));
+    $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $dy + 1));
 
     $importCountsPerYear[$dy] = [
         'donors'         => $countDonors($allDonorTypeIds,      $from, $to),

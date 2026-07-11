@@ -43,6 +43,12 @@ final class PureHelpersTest extends TestCase
         $this->assertSame('', timeStampToformatedDate(null));
     }
 
+    public function testDateTimeBoundFormatsAsMysqlDatetime(): void
+    {
+        $ts = mktime(0, 0, 0, 6, 15, 2020);
+        $this->assertSame('2020-06-15 00:00:00', mbDateTimeBound($ts));
+    }
+
     public function testUnquoteReplacesTypographicApostrophe(): void
     {
         $this->assertSame("l'association", unquote("l\u{2019}association"));

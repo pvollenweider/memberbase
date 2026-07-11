@@ -82,7 +82,7 @@ $extra_columns = [
     ],
     [
         'label'  => $GLOBAL['lastDonation'],
-        'value'  => fn($row) => timeStampToformatedDate($row->last_date),
+        'value'  => fn($row) => timeStampToformatedDate($row->last_date ? strtotime($row->last_date) : 0),
         'style'  => '',
         'footer' => null,
     ],

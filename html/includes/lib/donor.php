@@ -2,8 +2,9 @@
 /**
  * Donor business logic -- DB queries for donor analytics views.
  *
- * All functions use Unix timestamp ranges computed by the caller to remain
- * consistent with the existing mktime()-based date arithmetic in the views.
+ * All functions take DATETIME-literal ranges (mbDateTimeBound()) computed by
+ * the caller to remain consistent with the existing mktime()-based date
+ * arithmetic in the views.
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -19,10 +20,10 @@
 function mbGetLapsedDonors(PDO $db, int $year): array
 {
     $excl   = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
-    $kFrom  = mktime(0, 0, 0, 1, 0, $year);
-    $kTo    = mktime(0, 0, 0, 1, 1, $year + 1);
-    $kFrom1 = mktime(0, 0, 0, 1, 0, $year - 1);
-    $kTo1   = mktime(0, 0, 0, 1, 1, $year);
+    $kFrom  = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+    $kTo    = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
+    $kFrom1 = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 1));
+    $kTo1   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year));
 
     $stmt = $db->prepare("
         SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
@@ -54,10 +55,10 @@ function mbGetLapsedDonors(PDO $db, int $year): array
 function mbGetLoyalDonors(PDO $db, int $year): array
 {
     $excl   = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
-    $kFrom  = mktime(0, 0, 0, 1, 0, $year);
-    $kTo    = mktime(0, 0, 0, 1, 1, $year + 1);
-    $kFrom1 = mktime(0, 0, 0, 1, 0, $year - 1);
-    $kTo1   = mktime(0, 0, 0, 1, 1, $year);
+    $kFrom  = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+    $kTo    = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
+    $kFrom1 = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 1));
+    $kTo1   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year));
 
     $stmt = $db->prepare("
         SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
@@ -91,10 +92,10 @@ function mbGetLoyalDonors(PDO $db, int $year): array
 function mbGetNewDonors(PDO $db, int $year): array
 {
     $excl   = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
-    $kFrom  = mktime(0, 0, 0, 1, 0, $year);
-    $kTo    = mktime(0, 0, 0, 1, 1, $year + 1);
-    $kFrom1 = mktime(0, 0, 0, 1, 0, $year - 1);
-    $kTo1   = mktime(0, 0, 0, 1, 1, $year);
+    $kFrom  = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+    $kTo    = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
+    $kFrom1 = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 1));
+    $kTo1   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year));
 
     $stmt = $db->prepare("
         SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,

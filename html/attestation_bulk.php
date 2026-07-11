@@ -25,8 +25,8 @@ $stamp  = !empty($_GET['stamp']);
 if (!in_array($minSum, [1, 200, 500, 1000])) { $minSum = 1; }
 if ($year < 2000 || $year > 2100) { http_response_code(400); die('Invalid year'); }
 
-$from = mktime(0, 0, 0, 1, 0, $year);
-$to   = mktime(0, 0, 0, 1, 1, $year + 1);
+$from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+$to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
 
 // Same query as resume.inc — one row per qualifying donor
 $stmt = $pdo->prepare("

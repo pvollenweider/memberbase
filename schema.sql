@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `compta_type` (
 CREATE TABLE IF NOT EXISTS `compta` (
   `id`                int(8)       NOT NULL AUTO_INCREMENT,
   `user_id`           int(8)       NOT NULL DEFAULT 0,
-  `date`              int(16)      NOT NULL DEFAULT 0,
+  `date`              datetime     DEFAULT NULL,
   `libele`            varchar(255) NOT NULL DEFAULT '',
   `sum`               decimal(10,2) NOT NULL DEFAULT 0.00,
   `quittance`         varchar(64)  NOT NULL DEFAULT '',

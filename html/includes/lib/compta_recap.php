@@ -32,7 +32,7 @@ function mbRecapLoadEntries(PDO $db, ?int $filterUserId = null, int $year = 0, b
         $params[]     = $filterUserId;
     }
     if ($year > 0) {
-        $conditions[] = 'YEAR(FROM_UNIXTIME(c.date)) = ?';
+        $conditions[] = 'YEAR(c.date) = ?';
         $params[]     = $year;
     }
     $where = implode(' AND ', $conditions);
@@ -112,7 +112,7 @@ function mbRecapBuildVars(array $entries, array $appSettings): array
             $sumDonation += $amount_raw;
         }
 
-        $d         = $e['date'] ? date('d.m.Y', (int)$e['date']) : '--';
+        $d         = $e['date'] ? date('d.m.Y', strtotime($e['date'])) : '--';
         $typeLabel = $e['type_label'] !== '' ? $e['type_label'] : '--';
         $libele    = trim((string)$e['libele']);
         // Build description: always show type label; append free-text libele when it adds info.
@@ -126,7 +126,7 @@ function mbRecapBuildVars(array $entries, array $appSettings): array
             $desc = $libele;
             // Append cotisation year only when it differs from the payment year.
             if (!empty($e['ct_coti']) && !empty($e['cotisation_year'])) {
-                $payYear = $e['date'] ? (int)date('Y', (int)$e['date']) : 0;
+                $payYear = $e['date'] ? (int)date('Y', strtotime($e['date'])) : 0;
                 if ((int)$e['cotisation_year'] !== $payYear) {
                     $desc .= ' (' . (int)$e['cotisation_year'] . ')';
                 }

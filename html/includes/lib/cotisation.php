@@ -37,12 +37,12 @@ function mbGetLapsedMembers(PDO $db, int $year, array $cotiTypeIds, int $noCotiS
           AND EXISTS (
               SELECT 1 FROM compta c
               WHERE c.user_id = u.id AND c.type_id IN ($ph)
-                AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
+                AND COALESCE(c.cotisation_year, YEAR(c.date)) = ?
           )
           AND NOT EXISTS (
               SELECT 1 FROM compta c
               WHERE c.user_id = u.id AND c.type_id IN ($ph)
-                AND COALESCE(c.cotisation_year, YEAR(FROM_UNIXTIME(c.date))) = ?
+                AND COALESCE(c.cotisation_year, YEAR(c.date)) = ?
           )
         ORDER BY u.lastname, u.firstname, u.society
     ");

@@ -33,17 +33,17 @@ if ($year == -1) {
 }
 $year = (int)$year;
 if ($year === -3) {
-    $from = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 1);
-    $to   = time();
+    $from = mbDateTimeBound(mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 1));
+    $to   = mbDateTimeBound(time());
 } elseif ($year === -4) {
-    $from = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2);
-    $to   = time();
+    $from = mbDateTimeBound(mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2));
+    $to   = mbDateTimeBound(time());
 } elseif ($year === -2) {
-    $from = 0;
-    $to   = PHP_INT_MAX;
+    $from = null;
+    $to   = null;
 } else {
-    $from = mktime(0, 0, 0, 1, 0, $year);
-    $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+    $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+    $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
 }
 $addMem = -1;
 if (isset($_REQUEST['addMem'])) {
@@ -155,7 +155,7 @@ if ($filterTypeId > 0) {
     $query .= " AND c.type_id = " . (int)$filterTypeId;
 }
 if ($year != -2) {
-    $query .= " AND c.date > $from AND c.date < $to";
+    $query .= " AND c.date > " . db()->quote($from) . " AND c.date < " . db()->quote($to);
 }
 $query2 = $query;
 $query .= " ORDER BY $sort DESC LIMIT 0,20000";
@@ -165,7 +165,7 @@ $i = 0;
 $total = 0.0;
 while ($row = $stmt->fetchObject()) {
     $i++;
-    $date = timeStampToformatedDate($row->date);
+    $date = timeStampToformatedDate($row->date ? strtotime($row->date) : 0);
     $firstName = $row->firstname;
     $lastName = $row->lastname;
     $society = $row->society;
@@ -300,7 +300,7 @@ $_ctBorderL = [
 $_stmt2 = db()->query($query2);
 while ($_r = $_stmt2->fetchObject()) {
     // Timeline
-    $_ts  = (int)$_r->date;
+    $_ts  = $_r->date ? strtotime($_r->date) : 0;
     $_mk  = ($year == -2) ? date('Y', $_ts) : date('Y-m', $_ts);
     $_lbl = ($year == -2) ? date('Y', $_ts) :
             $_frM[(int)date('n', $_ts)] . ' ' . date('Y', $_ts);

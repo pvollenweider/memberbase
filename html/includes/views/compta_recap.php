@@ -27,7 +27,7 @@ $_pending = db()->prepare(
      FROM compta c
      JOIN contact u ON u.id = c.user_id AND u.status = 1
      WHERE c.notified_at IS NULL AND c.sum <> 0
-       AND YEAR(FROM_UNIXTIME(c.date)) = ?"
+       AND YEAR(c.date) = ?"
 );
 $_pending->execute([$_year]);
 $_pending = $_pending->fetchObject();
@@ -53,7 +53,7 @@ if ($_pendingMembers > 0) {
          FROM compta c
          JOIN contact u ON u.id = c.user_id AND u.status = 1
          WHERE c.notified_at IS NULL AND c.sum <> 0
-           AND YEAR(FROM_UNIXTIME(c.date)) = ?
+           AND YEAR(c.date) = ?
          GROUP BY c.user_id, u.firstname, u.lastname, u.email
          ORDER BY u.lastname, u.firstname"
     );
@@ -79,7 +79,7 @@ if ($_extended) {
          FROM compta c
          JOIN contact u ON u.id = c.user_id AND u.status = 1
          WHERE c.notified_at IS NOT NULL AND c.sum <> 0
-           AND YEAR(FROM_UNIXTIME(c.date)) = ?
+           AND YEAR(c.date) = ?
          GROUP BY c.user_id, u.firstname, u.lastname, u.email
          ORDER BY u.lastname, u.firstname"
     );

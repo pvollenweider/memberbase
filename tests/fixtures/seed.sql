@@ -59,16 +59,16 @@ VALUES
 -- User 5: paid 2025 cotisation only (lapsed for 2026, no email — skip case)
 INSERT INTO `compta` (`id`, `user_id`, `date`, `libele`, `sum`, `quittance`, `type_id`, `wants_attestation`, `cotisation_year`)
 VALUES
-  (1,  1, UNIX_TIMESTAMP(), 'Cotisation annuelle',        '50',  'Q-001', 1, 0, 2026),
-  (2,  2, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50',  'Q-002', 1, 0, 2025),
-  (3,  2, UNIX_TIMESTAMP(), 'Cotisation annuelle 2026',   '50',  'Q-003', 1, 0, 2026),
-  (4,  4, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50',  'Q-004', 1, 0, 2025),
-  (5,  5, UNIX_TIMESTAMP(), 'Cotisation annuelle 2025',   '50',  'Q-005', 1, 0, 2025),
-  (6,  1, UNIX_TIMESTAMP(), 'Don libre',                  '80',  'Q-006', 3, 1, NULL),
-  (7,  1, UNIX_TIMESTAMP(), 'Vente brocante',              '30',  'Q-007', 4, 0, NULL),
-  (8,  2, UNIX_TIMESTAMP(), 'Don institutionnel',          '500', 'Q-008', 2, 1, NULL),
-  (9,  2, UNIX_TIMESTAMP(), 'Don libre',                  '120', 'Q-009', 3, 1, NULL),
-  (10, 4, UNIX_TIMESTAMP(), 'Don libre',                  '60',  'Q-010', 3, 0, NULL);
+  (1,  1, NOW(), 'Cotisation annuelle',        '50',  'Q-001', 1, 0, 2026),
+  (2,  2, NOW(), 'Cotisation annuelle 2025',   '50',  'Q-002', 1, 0, 2025),
+  (3,  2, NOW(), 'Cotisation annuelle 2026',   '50',  'Q-003', 1, 0, 2026),
+  (4,  4, NOW(), 'Cotisation annuelle 2025',   '50',  'Q-004', 1, 0, 2025),
+  (5,  5, NOW(), 'Cotisation annuelle 2025',   '50',  'Q-005', 1, 0, 2025),
+  (6,  1, NOW(), 'Don libre',                  '80',  'Q-006', 3, 1, NULL),
+  (7,  1, NOW(), 'Vente brocante',              '30',  'Q-007', 4, 0, NULL),
+  (8,  2, NOW(), 'Don institutionnel',          '500', 'Q-008', 2, 1, NULL),
+  (9,  2, NOW(), 'Don libre',                  '120', 'Q-009', 3, 1, NULL),
+  (10, 4, NOW(), 'Don libre',                  '60',  'Q-010', 3, 0, NULL);
 
 -- Segment membership (join table)
 INSERT INTO `contact_segment` (`user_id`, `segment_id`) VALUES

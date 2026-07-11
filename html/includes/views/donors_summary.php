@@ -38,20 +38,20 @@ if ($showAll) {
 }
 if ($year != -2) {
     if ($year === -3) {
-        $_kFrom  = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 1);
-        $_kTo    = time();
-        $_kFrom1 = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2);
+        $_kFrom  = mbDateTimeBound(mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 1));
+        $_kTo    = mbDateTimeBound(time());
+        $_kFrom1 = mbDateTimeBound(mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2));
         $_kTo1   = $_kFrom;
     } elseif ($year === -4) {
-        $_kFrom  = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2);
-        $_kTo    = time();
-        $_kFrom1 = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 4);
+        $_kFrom  = mbDateTimeBound(mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2));
+        $_kTo    = mbDateTimeBound(time());
+        $_kFrom1 = mbDateTimeBound(mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 4));
         $_kTo1   = $_kFrom;
     } else {
-        $_kFrom  = mktime(0,0,0,1,0,$year);
-        $_kTo    = mktime(0,0,0,1,1,$year+1);
-        $_kFrom1 = mktime(0,0,0,1,0,$year-1);
-        $_kTo1   = mktime(0,0,0,1,1,$year);
+        $_kFrom  = mbDateTimeBound(mktime(0,0,0,1,0,$year));
+        $_kTo    = mbDateTimeBound(mktime(0,0,0,1,1,$year+1));
+        $_kFrom1 = mbDateTimeBound(mktime(0,0,0,1,0,$year-1));
+        $_kTo1   = mbDateTimeBound(mktime(0,0,0,1,1,$year));
     }
 
     $_excl = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
@@ -93,7 +93,7 @@ if ($year != -2) {
     $_kMembresLapsed = 0;
     if (!empty($_cotiTypeIds)) {
         $_ph = implode(',', array_fill(0, count($_cotiTypeIds), '?'));
-        $_sM = db()->prepare("SELECT COUNT(DISTINCT u.id) FROM contact u JOIN compta c ON c.user_id=u.id WHERE u.status=1 $_noCotiJoin AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?");
+        $_sM = db()->prepare("SELECT COUNT(DISTINCT u.id) FROM contact u JOIN compta c ON c.user_id=u.id WHERE u.status=1 $_noCotiJoin AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(c.date))=?");
         $_sM->execute(array_merge(array_values($_cotiTypeIds), [$year]));
         $_kMembres = (int)$_sM->fetchColumn();
         $_sM->execute(array_merge(array_values($_cotiTypeIds), [$year - 1]));
@@ -104,8 +104,8 @@ if ($year != -2) {
             SELECT COUNT(*) FROM contact u
             WHERE u.status=1
               $_noCotiJoin
-              AND EXISTS (SELECT 1 FROM compta c WHERE c.user_id=u.id AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?)
-              AND NOT EXISTS (SELECT 1 FROM compta c WHERE c.user_id=u.id AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(FROM_UNIXTIME(c.date)))=?)
+              AND EXISTS (SELECT 1 FROM compta c WHERE c.user_id=u.id AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(c.date))=?)
+              AND NOT EXISTS (SELECT 1 FROM compta c WHERE c.user_id=u.id AND c.type_id IN ($_ph) AND COALESCE(c.cotisation_year,YEAR(c.date))=?)
         ");
         $_sLapsedM->execute(array_merge(array_values($_cotiTypeIds), [$year - 1], array_values($_cotiTypeIds), [$year]));
         $_kMembresLapsed = (int)$_sLapsedM->fetchColumn();
@@ -119,8 +119,8 @@ if ($year != -2) {
     $_kMembresYtd1   = null;
     if ($year === (int)date("Y")) {
         // "today at midnight" in current year vs same date last year
-        $_kToYtd  = mktime(23, 59, 59, (int)date("m"), (int)date("d"), $year);
-        $_kToYtd1 = mktime(23, 59, 59, (int)date("m"), (int)date("d"), $year - 1);
+        $_kToYtd  = mbDateTimeBound(mktime(23, 59, 59, (int)date("m"), (int)date("d"), $year));
+        $_kToYtd1 = mbDateTimeBound(mktime(23, 59, 59, (int)date("m"), (int)date("d"), $year - 1));
         // total CHF same period last year
         $_sYtd = db()->prepare("SELECT COALESCE(SUM(c.sum),0) FROM compta c WHERE c.date>? AND c.date<=? AND c.type_id NOT IN ($_excl)");
         $_sYtd->execute([$_kFrom1, $_kToYtd1]);
@@ -526,14 +526,14 @@ $sql = $baseSelect . " WHERE u.status=1";
 
 if ($year != -2) {
     if ($year === -3) {
-        $from = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 1);
-        $to   = time();
+        $from = mbDateTimeBound(mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 1));
+        $to   = mbDateTimeBound(time());
     } elseif ($year === -4) {
-        $from = mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2);
-        $to   = time();
+        $from = mbDateTimeBound(mktime(0, 0, 0, date('n'), date('j'), (int)date('Y') - 2));
+        $to   = mbDateTimeBound(time());
     } else {
-        $from = mktime(0, 0, 0, 1, 0, $year);
-        $to   = mktime(0, 0, 0, 1, 1, $year + 1);
+        $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+        $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
     }
     $sql .= " AND c.date > ? AND c.date < ?";
     $params[] = $from;

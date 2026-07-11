@@ -83,7 +83,7 @@ function mbRunIntegrityChecks(PDO $db): array
             SELECT c.id, c.date, c.user_id, u.firstname, u.lastname, c.libele
             FROM compta c
             LEFT JOIN contact u ON u.id = c.user_id
-            WHERE c.date = 0 OR c.date > UNIX_TIMESTAMP()
+            WHERE c.date IS NULL OR c.date > NOW()
             ORDER BY c.id DESC
             LIMIT 100
         ")->fetchAll(PDO::FETCH_OBJ),
