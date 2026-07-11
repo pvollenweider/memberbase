@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `contact` (
   `title`            varchar(255) NOT NULL DEFAULT '',
   `comment`          mediumtext   NOT NULL,
   `birthday`         int(16)      NOT NULL DEFAULT 0,
-  `creationDate`     int(16)      NOT NULL DEFAULT 0,
+  `creationDate`     datetime     DEFAULT NULL,
   `modificationDate` datetime     DEFAULT NULL,
   `status`           tinyint(1)   NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),

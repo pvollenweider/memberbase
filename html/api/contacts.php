@@ -163,7 +163,7 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
     $year = (int)date('Y');
 
     $baseSelect = "SELECT contact.id, contact.firstname, contact.lastname, contact.society,
-                          contact.email, contact.npa, contact.address, contact.sexe, contact.creationDate
+                          contact.email, contact.npa, contact.address, contact.sexe, UNIX_TIMESTAMP(contact.creationDate) AS creationDate
                    FROM contact";
     $orderBy    = "ORDER BY contact.lastname ASC, contact.firstname ASC";
 
@@ -271,7 +271,7 @@ function handleList(): void
     $sql = "SELECT DISTINCT
                 contact.id, contact.firstname, contact.lastname, contact.society,
                 contact.email, contact.npa, contact.address, contact.sexe,
-                contact.creationDate
+                UNIX_TIMESTAMP(contact.creationDate) AS creationDate
             FROM contact $joins $where
             ORDER BY contact.lastname ASC, contact.firstname ASC
             LIMIT ? OFFSET ?";

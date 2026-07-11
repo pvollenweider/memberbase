@@ -17,13 +17,13 @@ VALUES
 -- Users 4 and 5 are lapsed: paid 2025, not 2026. User 5 has no email (skip case).
 INSERT INTO `contact` (`id`, `lastname`, `firstname`, `email`, `status`, `creationDate`, `modificationDate`, `comment`)
 VALUES
-  (1, 'Dupont',   'Alice',  'alice@example.com',    1, UNIX_TIMESTAMP(), NOW(), ''),
-  (2, 'Martin',   'Bob',    'bob@example.com',      1, UNIX_TIMESTAMP(), NOW(), ''),
+  (1, 'Dupont',   'Alice',  'alice@example.com',    1, NOW(), NOW(), ''),
+  (2, 'Martin',   'Bob',    'bob@example.com',      1, NOW(), NOW(), ''),
   -- Archived, no compta → can be permanently deleted (admin only)
-  (3, 'Archived', 'Member', 'archived@example.com', 0, UNIX_TIMESTAMP(), NOW(), ''),
+  (3, 'Archived', 'Member', 'archived@example.com', 0, NOW(), NOW(), ''),
   -- Lapsed members (paid 2025, no 2026 entry)
-  (4, 'Lapsed',   'Carol',  'carol@example.com',    1, UNIX_TIMESTAMP(), NOW(), ''),
-  (5, 'Lapsed',   'Dave',   '',                     1, UNIX_TIMESTAMP(), NOW(), '');
+  (4, 'Lapsed',   'Carol',  'carol@example.com',    1, NOW(), NOW(), ''),
+  (5, 'Lapsed',   'Dave',   '',                     1, NOW(), NOW(), '');
 
 -- Segments (formerly teams)
 INSERT INTO `segment` (`id`, `name`, `hidden`) VALUES (1, 'Membre 2025', 0);

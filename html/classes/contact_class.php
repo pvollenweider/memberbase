@@ -61,7 +61,7 @@ class Contact
         $this->status           = (int)$row->status;
     }
 
-    private const SELECT_COLS = "id,firstname,lastname,society,sexe,title,address,npa,tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,UNIX_TIMESTAMP(modificationDate) AS modificationDate,status";
+    private const SELECT_COLS = "id,firstname,lastname,society,sexe,title,address,npa,tel,telprof,portable,fax,email,email_alt,web,birthday,comment,UNIX_TIMESTAMP(creationDate) AS creationDate,UNIX_TIMESTAMP(modificationDate) AS modificationDate,status";
 
     public function lookupUser(int $id): void
     {
@@ -241,7 +241,7 @@ class Contact
             db()->prepare(
                 "INSERT INTO contact (firstname,lastname,society,sexe,title,address,npa,
                  tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,modificationDate)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?))"
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?),FROM_UNIXTIME(?))"
             )->execute([
                 $this->firstName, $this->lastName, $this->society, $this->sexe,
                 $this->title, $this->address, $this->npa, $this->tel, $this->telProf,
@@ -285,7 +285,7 @@ class Contact
         $orderSort   = $opts['orderSort'] ?? 'ASC';
 
         $query = "SELECT DISTINCT contact.id, contact.firstname, contact.lastname, contact.society,"
-               . " contact.sexe, contact.address, contact.npa, contact.email, contact.creationDate"
+               . " contact.sexe, contact.address, contact.npa, contact.email, UNIX_TIMESTAMP(contact.creationDate) AS creationDate"
                . " FROM contact";
         if ($combinedSegment > 0) {
             $query .= ",contact_segment ";
