@@ -90,6 +90,43 @@ En local avec Docker : `make backup [FILE=dump.sql]` / `make restore FILE=dump.s
   versement QR pour les rappels de cotisation).
 - `0017_settings_coti_amount_desc.sql` — nouveau réglage
   `org_coti_amount_desc` (texte du champ « Montant » sur le rappel/bulletin QR).
+- `0022_metagroup_member_table.sql` / `0024_rename_metagroup_to_combined_segment.sql`
+  — **breaking (v5.1.0)** : `metagroup` devient une vraie table `AUTO_INCREMENT`
+  avec jointure `metagroup_member`, puis l'ensemble est renommé
+  `combined_segment`/`combined_segment_member`. Classe PHP `Metagroup` →
+  `CombinedSegment`.
+- `0023_foreign_keys.sql` — contraintes FK réelles sur `contact_segment`,
+  `contact_properties`, `compta`, `combined_segment_member`, `audit_log`,
+  `email_log` (fin de `foreign_key_checks=0`). Nettoie d'abord les lignes
+  orphelines (⚠️ suppression de données — vérifier **Réglages → Intégrité**
+  et sauvegarder avant de migrer en prod).
+- `0025_rename_team_settings_to_segment.sql` — **breaking (v5.1.0)** : clés
+  `app_settings` `default_team`/`membre_team`/`member_no_coti_team`/
+  `membre_team_prefix` → `*_segment`/`*_segment_prefix` ; préfixe
+  `contact_properties.parameter` `team_<id>` → `segment_<id>`.
+- `0026`-`0030` — **breaking (v5.1.0)**, issue #143 : `contact.modificationDate`,
+  `contact.creationDate`, `contact_properties.date`, `compta.date` (`int(16)` →
+  `DATETIME`) et `contact.birthday` (`int(16)` → `DATE`). `0` n'est plus la
+  sentinelle « non renseigné » — c'est désormais `NULL`.
+
+  > ⚠️ **Prérequis obligatoire avant `0028`/`0029`/`0030`** : les tables de
+  > fuseaux horaires nommés de MariaDB doivent être chargées, sinon le
+  > backfill des dates échoue silencieusement (toutes les valeurs deviennent
+  > `NULL` — pas une date fausse, mais une perte réelle si l'ancienne colonne
+  > `int` a déjà été supprimée par la migration). Vérifier **avant** de
+  > lancer ces migrations :
+  > ```sql
+  > SELECT CONVERT_TZ(NOW(), @@session.time_zone, 'Europe/Zurich');
+  > ```
+  > Si le résultat est `NULL`, charger les tables d'abord :
+  > ```bash
+  > mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p mysql
+  > ```
+  > puis revérifier que la requête ci-dessus renvoie une vraie date avant de
+  > relancer les migrations. En cas de backfill déjà parti en `NULL` : ne pas
+  > restaurer la sauvegarde complète (perd tout ce qui a été écrit depuis) —
+  > restaurer la sauvegarde dans une **base séparée** et recopier uniquement
+  > les colonnes affectées par `id`, une fois les tables de fuseaux chargées.
 
 ---
 

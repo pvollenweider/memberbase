@@ -43,10 +43,10 @@ Avec le temps, l'application a été refactorisée pour devenir aussi génériqu
 
 ### Segments et segments combinés
 
-> Terminologie : depuis la v3.5.4, l'interface parle de **Segment** (anciennement « groupe »). Depuis la v5.0.0, l'entité technique elle-même est renommée `team` → `segment` (table, classe, API) — voir [CHANGELOG](CHANGELOG.md#500--2026-07-09).
+> Terminologie : depuis la v3.5.4, l'interface parle de **Segment** (anciennement « groupe »). Depuis la v5.0.0, l'entité technique elle-même est renommée `team` → `segment` (table, classe, API). Depuis la v5.1.0, les « segments combinés » (anciennement « métagroupes ») sont renommés en base et en code : table `metagroup` → `combined_segment`, classe `Metagroup` → `CombinedSegment` — voir [CHANGELOG](CHANGELOG.md#510--2026-07-11).
 
 - Création et gestion de segments (`segment`) avec visibilité configurable (actif/masqué)
-- Segments combinés (métagroupes): regrouper des segments en catégories pour filtrage
+- Segments combinés (`combined_segment`, anciennement « métagroupes ») : regrouper des segments en catégories pour filtrage
 - Filtre de la liste membres par segment ou segment combiné
 - Recherche incrémentale dans le dropdown de sélection de segment
 - Filtre rapide par statut: tout le monde sauf archives, cotisation non payée, rien ces 10 dernières années, non-instit ayant versé l'année passée
@@ -159,7 +159,7 @@ Endpoints JSON disponibles sous `/api/` (authentification de session requise) :
 | `PUT` | `/api/suivi/{id}` | Modifier une note de suivi |
 | `DELETE` | `/api/suivi/{id}` | Supprimer une note de suivi |
 
-Filtres sur `/api/contacts` : `search`, `team`, `metagroup`, `page`, `limit`, `types`.
+Filtres sur `/api/contacts` : `search`, `segment`, `combinedSegment`, `page`, `limit`, `types`.
 
 Toutes les réponses sont en JSON UTF-8. Les erreurs retournent `{"error": "message"}` avec le code HTTP approprié.
 
@@ -218,7 +218,7 @@ html/
 │   ├── contact_class.php       # Classe Contact (CRUD, cotisation, dons)
 │   ├── segment_class.php       # Classe Segment (segments)
 │   ├── compta_class.php        # Classe Compta (écritures comptables)
-│   ├── metagroup_class.php     # Classe Metagroup (catégories de segments)
+│   ├── combined_segment_class.php # Classe CombinedSegment (catégories de segments)
 │   └── property_class.php      # Classe UserProperty (appartenance, suivi)
 ├── locales/
 │   ├── resources_fr.php        # Libellés français (UTF-8, base complète)

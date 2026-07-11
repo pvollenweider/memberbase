@@ -2,6 +2,41 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [5.1.0] — 2026-07-11
+
+### ⚠️ Changements majeurs (breaking)
+
+- **`metagroup` renommé en `combined_segment`** (table, `metagroup_member` → `combined_segment_member`, classe PHP `Metagroup` → `CombinedSegment` dans `combined_segment_class.php`). Toute intégration externe référençant l'ancien nom de table/classe doit être adaptée (migration `0024`).
+- **Vocabulaire "Groupe"/"team" éliminé du code et de la base** au profit de "segment", partout où ça restait :
+  - `app_settings` : `default_team`/`membre_team`/`member_no_coti_team`/`membre_team_prefix` → `default_segment`/`membre_segment`/`member_no_coti_segment`/`membre_segment_prefix` (migration `0025`).
+  - Préfixe `contact_properties.parameter` `team_<id>` → `segment_<id>` (marqueur d'import, migration `0025`).
+  - Paramètre de requête générique **`?team=` → `?segment=`** partout (vue liste, `/api/contacts`, formulaires de recherche, liens de navigation) — tout lien/favori/intégration externe utilisant `?team=` doit être mis à jour.
+  - Paramètre **`?metagroup=` → `?combinedSegment=`** sur `/api/contacts` et les vues.
+  - Clés de locale génériques renommées (`addGroups`→`addSegments`, `editGroup`→`editSegment`, etc.) dans les 4 langues (fr/en/es/de).
+- **5 colonnes timestamp Unix `int(16)` migrées vers `DATE`/`DATETIME` natifs** (issue #143, migrations `0026`-`0030`) : `contact.modificationDate`, `contact.creationDate` (DATETIME), `contact.birthday` (DATE), `contact_properties.date`, `compta.date` (DATETIME). `0` n'est plus la sentinelle "non renseigné" — c'est désormais `NULL`. Toute requête SQL directe (debug, exports, scripts) comparant ces colonnes à un entier doit être adaptée ; `FROM_UNIXTIME()`/`UNIX_TIMESTAMP()` ne sont plus nécessaires pour les lire.
+- **Contraintes de clé étrangère réelles** sur `contact_segment`, `contact_properties`, `compta`, `combined_segment_member`, `audit_log`, `email_log` (au lieu de `foreign_key_checks=0`) — une suppression en cascade ou une valeur orpheline qui passait silencieusement avant peut désormais être rejetée par la base (migration `0023`).
+
+### Nouveautés
+
+- **Marquage en masse des récapitulatifs comptables** (Réglages → Santé) : choix explicite d'une date de référence (au lieu de "maintenant" implicite) affichée aux membres comme point de départ dans l'email suivant.
+- **Bandeau d'alerte** si l'application tourne sur `localhost` avec un SMTP réel configuré (pas Mailpit) — évite un envoi accidentel à de vrais membres depuis un poste de dev.
+- Le rapport d'envoi des récapitulatifs comptables affiche désormais les échecs d'envoi (auparavant silencieusement ignorés), avec le détail dans le journal d'audit.
+
+### Améliorations
+
+- **Récapitulatifs comptables** : la ligne « depuis … » de chaque email est calculée par membre à partir de la première entrée réellement incluse dans son envoi, plutôt que sur une date de dernier lot globale et fragile.
+- Emails trim automatiquement les espaces parasites avant envoi (cause d'échecs silencieux).
+- Reformulation « Dont dons pouvant figurer sur l'attestation fiscale » → « Montant déductible fiscalement ».
+- Toutes les actions `$pdo` global remplacées par le singleton `db()` dans `includes/actions/` et `includes/views/` (#145) — élimine une classe de bugs de portée de variable.
+
+### Corrections
+
+- Page Réglages accessible même sur une base pas encore migrée jusqu'à `0021`.
+- Colonne « Libellé par défaut » ajoutée au tableau des types de compta ; fallback serveur du libellé cotisation utilise `default_libele`.
+- `compta.php` utilise `Contact::getMemberName()` au lieu de dupliquer la jointure `CONCAT(firstName,' ',lastName)`.
+- **Bug de décalage de fuseau horaire corrigé** sur les migrations `0028`-`0030` : `birthday`/`contact_properties.date`/`compta.date` sont désormais converties entièrement côté PHP (jamais via `FROM_UNIXTIME()`/`UNIX_TIMESTAMP()` SQL, qui utilisent le fuseau de *session* MySQL — différent du fuseau PHP forcé à `Europe/Zurich`).
+- **Plantage PDO corrigé** dans les migrations `0026`-`0030` (`SQLSTATE[HY000]: 2014` / `1295`) : le mécanisme de garde conditionnelle (`PREPARE`/`EXECUTE` dynamique) utilisait `SELECT 1` comme no-op et `SIGNAL` comme abandon volontaire — ni l'un ni l'autre n'est fiable via `PDO::exec()` sur tous les serveurs MySQL/MariaDB. Remplacé par `DO 0` (aucun jeu de résultats) ; le garde `SIGNAL` est retiré au profit d'une dégradation silencieuse et sûre (`NULL` plutôt qu'une date fausse) en cas de tables de fuseaux horaires MariaDB non chargées.
+
 ## [5.0.1] — 2026-07-10
 
 ### Nouveautés

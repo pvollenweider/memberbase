@@ -1,16 +1,19 @@
 # Architecture de MemberBase
 
-MemberBase **v5.0.0** — application PHP 8.2 de gestion des membres pour ONG.
+MemberBase **v5.1.0** — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.
 
 > **Terminologie.** Depuis la v3.5.4, l'interface parle de **Segment** (au lieu de
 > « groupe ») et de **Segment combiné** (au lieu de « métagroupe »). Depuis la
 > **v5.0.0**, le code et l'API suivent le même vocabulaire : table `segment`
-> (anciennement `team`), table `metagroup`, endpoints `/api/segments`
-> (anciennement `/api/groups`). De même, la table `users` est renommée `contact`
-> et la classe `User` devient `Contact`. Dans tout ce document, **« Segment »
-> (UI) = entité `segment` (technique)** et **« Segment combiné » (UI) = entité
-> `metagroup`**.
+> (anciennement `team`), endpoints `/api/segments` (anciennement `/api/groups`),
+> table `users` renommée `contact`, classe `User` devenue `Contact`. Depuis la
+> **v5.1.0**, la table `metagroup` (et sa classe PHP `Metagroup`) est à son tour
+> renommée `combined_segment` (classe `CombinedSegment`), et tout paramètre de
+> requête générique encore nommé `team`/`metagroup` est renommé `segment`/
+> `combinedSegment` (y compris le filtre `?team=` de la liste membres et de
+> `/api/contacts`). Dans tout ce document, **« Segment » (UI) = entité `segment`
+> (technique)** et **« Segment combiné » (UI) = entité `combined_segment`**.
 
 ---
 
@@ -101,7 +104,7 @@ identifie **13 couches**.
 | `routing`   | Dispatch GET (`views.php`) et POST (`actions.php` + `$ACTION_MAP`) | `html/includes/routing/`                            |
 | `views`     | Fragments PHP inclus par `views.php`                       | `html/includes/views/`, `includes/partials/`              |
 | `concepts`  | Concepts transverses (dirty-guard, htmx, terminologie…)    | (transversal, pas de fichier unique)                      |
-| `domain`    | Classes active-record                                      | `html/classes/` (User, Team, Compta, Metagroup, UserProperty) |
+| `domain`    | Classes active-record                                      | `html/classes/` (Contact, Segment, Compta, CombinedSegment, UserProperty) |
 | `actions`   | Handlers POST procéduraux groupés par domaine             | `html/includes/actions/`                                  |
 | `api`       | Endpoints REST JSON                                        | `html/api/`                                               |
 | `tools`     | Scripts utilitaires CLI                                    | `html/tools/` (`import.php`, `fix_encoding.php`, `guest2010.php`) |
@@ -118,26 +121,36 @@ identifie **13 couches**.
 
 ## 5. Schéma de base de données
 
-Toutes les tables sont **InnoDB / utf8mb4**. Il n'y a **aucune clé étrangère
-déclarée** : l'intégrité référentielle est assurée par le code (`SET foreign_key_checks = 0`
-dans `schema.sql`). Les dates métier sont stockées en **timestamp Unix** (`int(16)`),
-pas en `DATE` SQL ; conversions via `formatedDateToTimeStamp()` / `timeStampToformatedDate()`.
+Toutes les tables sont **InnoDB / utf8mb4**. Depuis la migration `0023` (v5.1.0),
+les relations sont couvertes par de **vraies clés étrangères** (`contact_segment`,
+`contact_properties`, `compta`, `combined_segment_member`, `audit_log`, `email_log`)
+— avant ça, l'intégrité référentielle reposait entièrement sur le code
+(`SET foreign_key_checks = 0`). Depuis les migrations `0026`-`0030` (v5.1.0, issue
+#143), les dates métier sont des `DATE`/`DATETIME` natifs (plus des timestamps Unix
+`int(16)`) : `contact.birthday` (`DATE`), `contact.creationDate`/`modificationDate`,
+`contact_properties.date`, `compta.date` (`DATETIME`). `NULL` remplace `0` comme
+sentinelle « non renseigné ». Les formulaires continuent de passer par
+`formatedDateToTimeStamp()` / `timeStampToformatedDate()` côté PHP — la conversion
+avec la base se fait exclusivement en PHP (jamais via `FROM_UNIXTIME()`/
+`UNIX_TIMESTAMP()` SQL, qui utilisent le fuseau de *session* MySQL, différent du
+fuseau PHP forcé à `Europe/Zurich`).
 
 | Table             | Rôle                                                                                     | Clé / séquence         |
 |-------------------|------------------------------------------------------------------------------------------|------------------------|
-| `contact`         | Membres (**anciennement `users`**, renommée v5.0.0) : identité, coordonnées (dont **`email_alt`**), `sexe` (na/f/m/hf), `status` (1/0), dates Unix | `id` AUTO_INCREMENT    |
+| `contact`         | Membres (**anciennement `users`**, renommée v5.0.0) : identité, coordonnées (dont **`email_alt`**), `sexe` (na/f/m/hf), `status` (1/0), `birthday` (`DATE`), `creationDate`/`modificationDate` (`DATETIME`) | `id` AUTO_INCREMENT    |
 | `segment`         | Segments (**anciennement `team`**, renommée v5.0.0) : `name`, `hidden`                   | `id` AUTO_INCREMENT    |
-| `contact_segment` | Appartenance segment (**anciennement EAV dans `user_properties`**, table de jointure depuis v5.0.0) : `user_id` (contact), `segment_id` | PK `(user_id, segment_id)` |
-| `contact_properties` | EAV : notes de suivi (**anciennement `user_properties`**, renommée v5.0.0)             | `id` AUTO_INCREMENT (PK depuis la migration 0020) |
-| `metagroup`       | Segments combinés / catégories : `name`, `segmentid`, `is_filter`, `sort_order`          | `id` via `maxval`      |
+| `contact_segment` | Appartenance segment (**anciennement EAV dans `user_properties`**, table de jointure depuis v5.0.0) : `user_id` (contact), `segment_id` — FK réelles vers `contact`/`segment` (migration 0023) | PK `(user_id, segment_id)` |
+| `contact_properties` | EAV : notes de suivi (**anciennement `user_properties`**, renommée v5.0.0), `date` (`DATETIME`, `NULL` = non renseignée) | `id` AUTO_INCREMENT (PK depuis la migration 0020) |
+| `combined_segment` | Segments combinés / catégories (**anciennement `metagroup`**, renommée v5.1.0) : `name`, `is_filter`, `sort_order` | `id` AUTO_INCREMENT (depuis migration 0022 ; via `maxval` avant) |
+| `combined_segment_member` | Appartenance segment → segment combiné (**anciennement auto-jointure sur `metagroup`**, table de jointure depuis migration 0022) : `combined_segment_id`, `segment_id` — FK réelles (migration 0023) | PK `(combined_segment_id, segment_id)` |
 | `compta_type`     | Types d'écriture : `label`, `color`, **`default_libele`** (libellé pré-rempli à la saisie, migration 0021), `sort_order`, `is_cotisation`, `is_excluded_from_donation`, `is_institutional` | `id` AUTO_INCREMENT |
-| `compta`          | Écritures : `user_id`, `date` (Unix), `libele`, `sum` (**decimal(10,2)**, CHF), `quittance`, `type_id`, `wants_attestation`, **`notified_at`** (dernier envoi du récapitulatif email, `NULL` = non notifiée), **`cotisation_year`** (année de cotisation si différente de l'année de paiement) | `id` AUTO_INCREMENT |
-| `maxval`          | Compteur de séquence manuel (clé/valeur)                                                  | PK `parameter`         |
-| `app_settings`    | Configuration organisation (clé/valeur : `org_name`, `membre_team`, `archive_id`, `org_ide`, `org_purpose`, `org_tax_status`, `smtp_*`, etc. — `value` en `TEXT` depuis la migration 0004 pour les champs multi-lignes) | PK `key`               |
+| `compta`          | Écritures : `user_id`, `date` (`DATETIME`, `NULL` = non renseignée/invalide), `libele`, `sum` (**decimal(10,2)**, CHF), `quittance`, `type_id`, `wants_attestation`, **`notified_at`** (dernier envoi du récapitulatif email, `NULL` = non notifiée), **`cotisation_year`** (année de cotisation si différente de l'année de paiement) — FK réelles vers `contact`/`compta_type` (migration 0023) | `id` AUTO_INCREMENT |
+| `maxval`          | Compteur de séquence manuel (clé/valeur) — n'est plus utilisé pour `combined_segment.id` depuis la migration 0022 | PK `parameter`         |
+| `app_settings`    | Configuration organisation (clé/valeur : `org_name`, `membre_segment` — anciennement `membre_team`, renommée v5.1.0 —, `archive_id`, `org_ide`, `org_purpose`, `org_tax_status`, `smtp_*`, etc. — `value` en `TEXT` depuis la migration 0004 pour les champs multi-lignes) | PK `key`               |
 | `app_users`       | Comptes applicatifs : `password_hash` (bcrypt), `role` enum, **`locale`** (langue d'interface, défaut `fr`), `force_password_change`, `is_active`, `last_login`, `reset_token`, `token_expires_at`, `email` | `id` AUTO_INCREMENT |
-| `audit_log`       | Journal : `app_user_id`, `username`, `action`, `detail`, `subject_user_id`, `created_at`  | `id` AUTO_INCREMENT    |
+| `audit_log`       | Journal : `app_user_id`, `username`, `action`, `detail`, `subject_user_id`, `created_at` — FK réelle vers `contact` sur `subject_user_id` (migration 0023, `ON DELETE SET NULL`) | `id` AUTO_INCREMENT    |
 | `email_templates` | Templates éditables (clé `tpl_*`) : `subject`, `body_text`, `body_html`, `updated_at`     | PK `key`                |
-| `email_log`       | Historique des envois : `user_id`, `tpl_key`, `to_email`, `subject`, `status` (sent/error), `error_msg`, `body_text`, `body_html`, `created_at` | `id` AUTO_INCREMENT |
+| `email_log`       | Historique des envois : `user_id`, `tpl_key`, `to_email`, `subject`, `status` (sent/error), `error_msg`, `body_text`, `body_html`, `created_at` — FK réelle vers `contact` sur `user_id` (migration 0023, `ON DELETE SET NULL`) | `id` AUTO_INCREMENT |
 | `schema_migrations` | Suivi des migrations appliquées : `version`, `applied_at`, `checksum` (SHA-256, détection de dérive) | PK `version`          |
 
 ### Relations
@@ -152,7 +165,7 @@ contact (id)
   └── compta (user_id) ── type_id ──> compta_type
                                         (is_cotisation / is_excluded_from_donation / is_institutional)
 
-segment (id) ──> metagroup (segmentid)   [1 ligne header (segmentid NULL) + N lignes membres]
+segment (id) ──> combined_segment_member (segment_id) ──> combined_segment (id)
 ```
 
 ### Notes sur le modèle
@@ -163,9 +176,14 @@ segment (id) ──> metagroup (segmentid)   [1 ligne header (segmentid NULL) + 
   `value = 'true'`) ; la migration `0013` a fait la bascule avec backfill
   automatique, puis `0014`/`0015` ont renommé les tables (`team` → `segment`,
   `users` → `contact`).
-- `metagroup.id` est **partagé** entre la ligne header (`segmentid IS NULL`, portant
-  `name`) et les lignes membres (`segmentid = N`), d'où l'usage de `maxval` plutôt que
-  d'`AUTO_INCREMENT`.
+- **`metagroup` → `combined_segment`/`combined_segment_member` (v5.1.0)** :
+  l'ancien modèle stockait la ligne « header » (catégorie/filtre, `segmentid IS NULL`,
+  portant `name`) et les lignes « membre » (`segmentid = N`) dans la **même table**,
+  avec un `id` **partagé** entre les deux (self-jointure, allocation manuelle via
+  `maxval`). La migration `0022` a séparé ça en deux tables propres : `combined_segment`
+  (une ligne par catégorie/filtre, `id` `AUTO_INCREMENT`) et `combined_segment_member`
+  (table de jointure `combined_segment_id`/`segment_id`). La migration `0024` a renommé
+  l'ensemble `metagroup`/`metagroup_member` → `combined_segment`/`combined_segment_member`.
 - `contact_properties.id` est une vraie clé primaire `AUTO_INCREMENT` depuis la
   migration `0020` : la colonne héritée (≈83k lignes à `0`, doublons possibles) a été
   renumérotée séquentiellement — l'id n'était référencé nulle part ailleurs, seulement
@@ -205,8 +223,10 @@ public function hasComptaEntry(): bool
 ### `Segment` (`segment_class.php`, anciennement `Team`/`team_class.php`)
 
 `lookupSegment()`, `save()`, `remove()`, `isUsed()`, et gestion de l'appartenance aux
-segments combinés : `isMemberOfMetagroup()`, `addMetagroupMembership()`,
-`removeMetagroupMembership()`.
+segments combinés (renommées v5.1.0, anciennement `isMemberOfMetagroup()`/
+`addMetagroupMembership()`/`removeMetagroupMembership()`) : `isMemberOfCombinedSegment()`,
+`addCombinedSegmentMembership()` (`INSERT IGNORE` depuis v5.1.0, plus de check-then-insert),
+`removeCombinedSegmentMembership()`.
 
 ### `Compta` (`compta_class.php`)
 
@@ -217,9 +237,11 @@ segments combinés : `isMemberOfMetagroup()`, `addMetagroupMembership()`,
 année hors de la plage `[année courante - 50, année courante + 1]`, et coerce
 les chaînes numériques en entier. Testé dans `tests/unit/ComptaYearTest.php`.
 
-### `Metagroup` (`metagroup_class.php`)
+### `CombinedSegment` (`combined_segment_class.php`, anciennement `Metagroup`/`metagroup_class.php`)
 
-`lookupMetagroup()`, `save()`, `filterList()`, `segmentNames()`, `segmentIds()`. `id` alloué via `maxval`.
+`lookupCombinedSegment()` (anciennement `lookupMetagroup()`), `save()`, `filterList()`,
+`segmentNames()`, `segmentIds()`. `id` `AUTO_INCREMENT` depuis la migration `0022`
+(anciennement alloué via `maxval`, partagé avec les lignes membres — voir §5).
 
 ### `UserProperty` (`property_class.php`)
 
@@ -321,13 +343,14 @@ Dispatch par `match (true)` sur `REQUEST_METHOD` + présence de `id`/`sub` :
 | DELETE       | /api/contacts/{id}           | `handleDelete()` (204) |
 | (autre)      | —                            | `apiError(405)`    |
 
-`handleList()` supporte `?search=`, `?team=`, `?metagroup=`, `?page=`, `?limit=`
+`handleList()` supporte `?search=`, `?segment=` (anciennement `?team=`, renommé v5.1.0),
+`?combinedSegment=` (anciennement `?metagroup=`, renommé v5.1.0), `?page=`, `?limit=`
 (max 2000), `?types=`. `handleUpdate()` charge l'avant, applique le patch, recharge
 l'après, calcule un diff lisible et l'écrit dans `audit_log` (`updateUser`).
 
 ### Filtres virtuels (`MemberFilter`)
 
-Un `?team=` **négatif** déclenche des requêtes métier dédiées, résolues par la classe
+Un `?segment=` **négatif** déclenche des requêtes métier dédiées, résolues par la classe
 partagée `MemberFilter` (`html/classes/member_filter_class.php`) — seule source de
 vérité consommée à la fois par la liste des membres (`users_list.php`) et par l'API
 (`api/contacts.php`). `MemberFilter::resolveIds()` retourne la map `id => true` des
@@ -337,7 +360,7 @@ un filtre virtuel. Constantes définies dans `bootstrap.php` :
 | Constante                       | Valeur | Sémantique                                                    |
 |---------------------------------|--------|--------------------------------------------------------------|
 | `FILTER_ALL_EXCEPT_ARCHIVES`    | -3     | Tous les membres actifs                                       |
-| `FILTER_UNPAID_COTI_CURRENT`    | -4     | Membres du segment `membre_team` sans cotisation cette année  |
+| `FILTER_UNPAID_COTI_CURRENT`    | -4     | Membres du segment `membre_segment` sans cotisation cette année (anciennement `membre_team`) |
 | `FILTER_UNPAID_COTI_3Y`         | -3333  | Ont déjà cotisé mais pas depuis 3 ans                        |
 | `FILTER_NO_ACTIVITY_10Y`        | -5555  | Aucune écriture compta depuis 10 ans                        |
 | `FILTER_NON_INSTIT_LAST_YEAR`   | -6666  | Paiement non-institutionnel l'an passé                       |
@@ -426,10 +449,11 @@ sur tout `change`/`input` d'un `INPUT`/`SELECT`/`TEXTAREA` non exclu. Il interce
 passent), et `beforeunload` pour la navigation hors-htmx. `htmx:afterSwap` remet `dirty`
 et `window.__dirtyOverride` à `false`.
 
-**Exclusions réelles** : classe `.mg-team-cb`, ids `#includeAttestation` et
-`#team-filter-input`, tout ancêtre `[data-no-dirty]`, `.dt-search`/`.dataTables_filter`,
-`.modal`, `#bulk-form`. Convention projet : setter `window.__dirtyOverride = true` avant
-tout `window.location = …` inline, et poser `data-no-dirty` sur les selects/inputs de
+**Exclusions réelles** : classe `.mg-segment-cb` (anciennement `.mg-team-cb`), ids
+`#includeAttestation` et `#segment-filter-input` (anciennement `#team-filter-input`),
+tout ancêtre `[data-no-dirty]`, `.dt-search`/`.dataTables_filter`, `.modal`, `#bulk-form`.
+Convention projet : setter `window.__dirtyOverride = true` avant tout
+`window.location = …` inline, et poser `data-no-dirty` sur les selects/inputs de
 navigation ou de filtre.
 
 ### Alpine — `memberGeneralForm` (`js/member-general-form.js`)
@@ -466,7 +490,7 @@ appellent `requireLogin()` mais ne sont **pas** des vues htmx (téléchargements
 ### Playwright (`tests/`)
 
 Suite E2E Node.js (specs `*.spec.ts` couvrant auth, membres, compta, groupes,
-metagroups, suivi, rôles, import, réglages, API, fusion, etc.). Un `global-setup.ts`
+segments combinés, suivi, rôles, import, réglages, API, fusion, etc.). Un `global-setup.ts`
 produit un `storageState` pré-authentifié réutilisé par les specs.
 
 Specs d'invariants issus des refactors #56–#59 : `filter-parity` (parité vue/API des
@@ -511,10 +535,12 @@ base (DDL + `tests/fixtures/seed.sql`).
 
 ### Séquences
 - `AUTO_INCREMENT` natif pour `contact`, `segment`, `compta`, `compta_type`,
-  `contact_properties` (depuis la migration 0020), `app_users`, `audit_log`.
-  `maxval` (`updateAndGetMaxVal()`) uniquement pour `metagroup.id` (id partagé
-  header/membres). L'incrément est atomique via `LAST_INSERT_ID(expr)` — deux
-  requêtes parallèles ne peuvent pas obtenir le même compteur.
+  `contact_properties` (depuis la migration 0020), `combined_segment` (depuis la
+  migration 0022, anciennement `metagroup.id` alloué via `maxval` et partagé
+  header/membres — voir §5), `app_users`, `audit_log`. `maxval` sert encore de
+  compteur générique clé/valeur pour d'éventuels autres usages ; l'incrément est
+  atomique via `LAST_INSERT_ID(expr)` — deux requêtes parallèles ne peuvent pas
+  obtenir le même compteur.
 
 ### Audit log
 - `auditLog(PDO $pdo, string $action, string $detail = '', ?int $subjectUserId = null)`

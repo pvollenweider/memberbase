@@ -1,6 +1,6 @@
 # Guide administrateur — MemberBase
 
-Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.0.1). Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
+Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.1.0). Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
 
 ---
 
@@ -104,7 +104,7 @@ Saisir les paramètres de connexion. L'installeur teste la connexion et, si elle
 
 Crée les tables suivantes (toutes avec `CREATE TABLE IF NOT EXISTS` — idempotent) :
 
-`contact` `segment` `contact_properties` `contact_segment` `metagroup` `compta` `compta_type` `maxval` `app_settings` `app_users` `audit_log` `email_templates` `email_log` `api_rate_limit` `schema_migrations`
+`contact` `segment` `contact_properties` `contact_segment` `combined_segment` `combined_segment_member` `compta` `compta_type` `maxval` `app_settings` `app_users` `audit_log` `email_templates` `email_log` `api_rate_limit` `schema_migrations`
 
 Un clic suffit. Les tables existantes ne sont pas modifiées.
 
@@ -216,10 +216,11 @@ Stockés en base, modifiables dans Réglages → Général. Clés principales :
 | `org_npa` | Code postal (attestations) |
 | `org_city` | Ville (attestations) |
 | `org_country` | Pays (attestations) |
-| `default_team` | ID du groupe affiché par défaut dans la liste membres |
-| `membre_team` | ID du groupe de référence pour les filtres cotisation |
-| `archive_id` | ID du groupe archives (exclu des vues par défaut) |
-| `membre_team_prefix` | Préfixe des groupes membres annuels (ex. `Membre`) |
+| `default_segment` | ID du segment affiché par défaut dans la liste membres (anciennement `default_team`, renommé v5.1.0) |
+| `membre_segment` | ID du segment de référence pour les filtres cotisation (anciennement `membre_team`, renommé v5.1.0) |
+| `member_no_coti_segment` | ID du segment « membres sans cotisation attendue » — exclu du filtre rapide « cotisation non payée cette année » (anciennement `member_no_coti_team`, renommé v5.1.0) |
+| `archive_id` | ID du segment archives (exclu des vues par défaut) |
+| `membre_segment_prefix` | Préfixe des segments membres annuels (ex. `Membre`) (anciennement `membre_team_prefix`, renommé v5.1.0) |
 | `org_ide` | Numéro IDE suisse (CHE-XXX.XXX.XXX) — figure sur les attestations de dons. Bouton **Vérifier via Zefix** dans l'UI : interroge le registre du commerce suisse (`zefix.ch`, flux `search.json` → `firm/{ehraid}.json`) pour préremplir nom/adresse/but statutaire à partir du numéro IDE |
 | `org_purpose` | But statutaire (extrait des statuts) — préremplissable via Zefix |
 | `org_tax_status` | Statut d'exonération fiscale — saisie manuelle uniquement (aucun registre fédéral consulté automatiquement) |
@@ -596,11 +597,12 @@ curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
 
 | Paramètre | Type | Description |
 |-----------|------|-------------|
-| `group` | int | Filtrer par ID de groupe |
-| `metagroup` | int | Filtrer par ID de métagroupe |
-| `active` | bool | `1` = membres actifs uniquement |
+| `segment` | int | Filtrer par ID de segment (négatif = filtre virtuel, voir `MemberFilter`) — anciennement `team`, renommé v5.1.0 |
+| `combinedSegment` | int | Filtrer par ID de segment combiné — anciennement `metagroup`, renommé v5.1.0 |
 | `search` | string | Recherche textuelle (nom, prénom, email) |
-| `limit` | int | Nombre de résultats (pagination) |
+| `page` | int | Numéro de page (pagination) |
+| `limit` | int | Nombre de résultats par page (max 2000) |
+| `types` | bool | `1` = inclut les types de compta de chaque membre dans la réponse |
 | `offset` | int | Décalage (pagination) |
 
 **`GET /api/compta`**
@@ -713,13 +715,13 @@ L'outil effectue cinq contrôles en lecture seule sur la base de données :
 | Membres avec même nom | Danger | Deux membres actifs avec le même prénom ET nom (insensible à la casse) |
 | Membres avec même email | Danger | Deux membres actifs avec la même adresse email |
 | Groupes masqués dans une catégorie | Avertissement | Un groupe `hidden=1` est encore assigné à une catégorie |
-| Groupes masqués dans un métagroupe | Avertissement | Un groupe `hidden=1` est encore référencé dans un métagroupe de filtrage |
+| Groupes masqués dans un segment combiné | Avertissement | Un groupe `hidden=1` est encore référencé dans un segment combiné de filtrage |
 | Groupes masqués avec des membres | Avertissement | Un groupe `hidden=1` a encore des membres actifs assignés |
 
 ### Actions disponibles
 
 - **Doublons de nom/email** : liens directs vers les fiches membres concernées. Pour deux doublons, un bouton **Fusionner** apparaît (vue `mergeUsers`).
-- **Groupes masqués** : lien **Éditer** vers la page de configuration du métagroupe ou de la catégorie pour retirer l'assignation.
+- **Groupes masqués** : lien **Éditer** vers la page de configuration du segment combiné ou de la catégorie pour retirer l'assignation.
 
 ### Quand l'utiliser
 
@@ -835,14 +837,23 @@ dérive de checksum détectée.
 
 1. `php html/tools/migrate.php --status` (ou Réglages → Santé) pour voir ce qui va s'appliquer
 2. Dump de la base (`mysqldump`, ou export intégré via Réglages → Santé)
-3. Tester sur un environnement de staging si la migration est structurante
-4. Appliquer en production
+3. **Depuis la v5.1.0 (migrations `0028`-`0030`)** : vérifier que les tables de
+   fuseaux horaires nommés MariaDB sont chargées —
+   `SELECT CONVERT_TZ(NOW(), @@session.time_zone, 'Europe/Zurich');` doit
+   renvoyer une vraie date, pas `NULL`. Si `NULL` : `mysql_tzinfo_to_sql
+   /usr/share/zoneinfo | mysql -u root mysql` avant de continuer — sinon les
+   dates de naissance / notes de suivi / écritures comptables migrées
+   deviennent silencieusement `NULL` (voir `MIGRATION_PROD.md`).
+4. Tester sur un environnement de staging si la migration est structurante
+5. Appliquer en production
 
 ⚠️ Le DDL MySQL est auto-committé (pas de rollback transactionnel) — la
 sauvegarde de l'étape 2 est la seule protection en cas de problème.
 
-`MIGRATION_PROD.md` à la racine du dépôt documente l'historique des migrations
-manuelles d'avant ce système (versions ≤ 3.7.x) ; il n'est plus alimenté.
+`MIGRATION_PROD.md` à la racine du dépôt documente l'historique complet des
+migrations (y compris les migrations manuelles d'avant ce système, versions
+≤ 3.7.x) et les prérequis spécifiques (fuseaux horaires, sauvegardes) — à
+consulter avant toute migration structurante.
 
 ### Vérifier l'état du schéma
 

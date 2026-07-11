@@ -56,7 +56,7 @@ Règles réelles appliquées **par endpoint** (vérifiées dans le code — elle
 
 Un rôle insuffisant retourne `403` avec `{ "error": "Forbidden" }` (ou un message spécifique, ex. `"Manager role required"`, `"Admin role required to permanently delete a member"`).
 
-> **Terminologie.** L'interface et l'API parlent désormais de **Segment** (chemins `/api/segments`, entité SQL `segment`, depuis la v5.0.0). Le champ de filtre `team` sur `GET /api/contacts` garde son nom historique par rétrocompatibilité de paramètre. Dans ce document, « Segment » et « groupe » sont synonymes.
+> **Terminologie.** L'interface et l'API parlent de **Segment** (chemins `/api/segments`, entité SQL `segment`, depuis la v5.0.0). Le paramètre de filtre `GET /api/contacts?segment=` s'appelait `team` avant la v5.1.0 — **aucune rétrocompatibilité**, tout appelant doit utiliser `segment`. Dans ce document, « Segment » et « groupe » sont synonymes.
 
 ---
 
@@ -125,8 +125,8 @@ Rôle : `canRead()`.
 | Paramètre | Type | Obligatoire | Description |
 |-----------|------|-------------|-------------|
 | `search` | string | non | Recherche `LIKE %…%` sur `firstname`, `lastname`, `firstname lastname`, `lastname firstname`, `society`, `npa`, `email`, `address` |
-| `team` | integer | non | Filtre par groupe (ID positif). Valeur **négative** = filtre virtuel (voir section dédiée) |
-| `metagroup` | integer | non | Filtre par catégorie de groupes (ID de `metagroup`). Ajoute le champ `groups` à chaque membre. Renvoie une liste vide si la catégorie n'a aucun groupe rattaché |
+| `segment` | integer | non | Filtre par groupe (ID positif). Valeur **négative** = filtre virtuel (voir section dédiée) |
+| `combinedSegment` | integer | non | Filtre par catégorie de groupes (ID de `combined_segment`). Ajoute le champ `groups` à chaque membre. Renvoie une liste vide si la catégorie n'a aucun groupe rattaché |
 | `page` | integer | non | Numéro de page, défaut `1` (borné à ≥ 1) |
 | `limit` | integer | non | Résultats par page, défaut `25`, borné à `[1, 2000]` |
 | `types` | any | non | Si présent (valeur quelconque, même vide), ajoute le champ `types` à chaque membre |
@@ -159,7 +159,7 @@ Rôle : `canRead()`.
 ```
 
 - `types` présent uniquement si `?types` est passé (tableau `{id, label, color}` ; `color` est `""` si non définie).
-- `groups` présent uniquement si `?metagroup` est passé (tableau `{id, name}` des groupes de la catégorie auxquels le membre appartient).
+- `groups` présent uniquement si `?combinedSegment` est passé (tableau `{id, name}` des groupes de la catégorie auxquels le membre appartient).
 
 #### Exemple curl
 
@@ -172,14 +172,14 @@ curl -b cookies.txt \
 
 ### Filtres virtuels sur `GET /api/contacts`
 
-Activés en passant une valeur **négative** au paramètre `team`. La résolution est déléguée à la classe partagée `MemberFilter` (`html/classes/member_filter_class.php`) — la même que celle utilisée par la liste des membres dans l'interface, ce qui garantit des résultats identiques entre la vue et l'API. Pagination standard (`page`, `limit`) et `types` supportés. Une valeur négative non reconnue retourne `400 Unknown virtual filter`.
+Activés en passant une valeur **négative** au paramètre `segment`. La résolution est déléguée à la classe partagée `MemberFilter` (`html/classes/member_filter_class.php`) — la même que celle utilisée par la liste des membres dans l'interface, ce qui garantit des résultats identiques entre la vue et l'API. Pagination standard (`page`, `limit`) et `types` supportés. Une valeur négative non reconnue retourne `400 Unknown virtual filter`.
 
 Constantes définies dans `html/includes/lib/bootstrap.php` :
 
-| Valeur `team` | Constante | Description |
+| Valeur `segment` | Constante | Description |
 |---------------|-----------|-------------|
 | `-3` | `FILTER_ALL_EXCEPT_ARCHIVES` | Tous les membres actifs (équivalent à l'absence de filtre) |
-| `-4` | `FILTER_UNPAID_COTI_CURRENT` | Membres du groupe « membre » (paramètre `membre_team`) sans cotisation payée dans l'année civile en cours. Exclut le groupe « no_coti » (`member_no_coti_team`) si configuré. Retourne un tableau vide si `membre_team` n'est pas configuré |
+| `-4` | `FILTER_UNPAID_COTI_CURRENT` | Membres du groupe « membre » (paramètre `membre_segment`) sans cotisation payée dans l'année civile en cours. Exclut le groupe « no_coti » (`member_no_coti_segment`) si configuré. Retourne un tableau vide si `membre_segment` n'est pas configuré |
 | `-3333` | `FILTER_UNPAID_COTI_3Y` | Membres ayant payé au moins une cotisation dans l'historique, mais aucune depuis le début de l'année N-2. Exclut le groupe « no_coti » si configuré |
 | `-5555` | `FILTER_NO_ACTIVITY_10Y` | Membres actifs sans aucune écriture comptable (`compta`) dans les 10 dernières années |
 | `-6666` | `FILTER_NON_INSTIT_LAST_YEAR` | Membres actifs ayant effectué au moins un paiement non-institutionnel (type `is_institutional = 0`, ou sans type) durant l'année civile précédente |
@@ -188,10 +188,10 @@ Une cotisation est une écriture dont le type a `is_cotisation = 1`. La réponse
 
 ```bash
 # Cotisation en retard depuis plus de 3 ans
-curl -b cookies.txt "https://votre-domaine/api/contacts?team=-3333&limit=50"
+curl -b cookies.txt "https://votre-domaine/api/contacts?segment=-3333&limit=50"
 
 # Membres du groupe « membre » sans cotisation cette année
-curl -b cookies.txt "https://votre-domaine/api/contacts?team=-4"
+curl -b cookies.txt "https://votre-domaine/api/contacts?segment=-4"
 ```
 
 ---
@@ -365,7 +365,7 @@ Groupes (segments) auxquels appartient un membre, triés par catégorie (`sort_o
 }
 ```
 
-`categoryId`/`categoryName` sont `null` si le groupe n'appartient à aucune catégorie non-filtre (`metagroup` avec `is_filter = 0`).
+`categoryId`/`categoryName` sont `null` si le groupe n'appartient à aucune catégorie non-filtre (`combined_segment` avec `is_filter = 0`).
 
 #### Erreurs
 

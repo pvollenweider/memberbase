@@ -1,6 +1,6 @@
 # MemberBase — Guide d'accueil développeur
 
-> Version **3.5.6** — dérivé du knowledge graph du projet (`.understand-anything/knowledge-graph.json`, commit `ece1d70`). Noms de tables/classes/routes API mis à jour à la main pour la v5.0.0 (renommage `users`→`contact`, `team`→`segment`) ; une régénération complète du graphe (`/understand --full`) reste à faire.
+> Version **5.1.0** — dérivé du knowledge graph du projet (`.understand-anything/knowledge-graph.json`, commit `ece1d70`). Noms de tables/classes/routes API mis à jour à la main pour la v5.0.0 (renommage `users`→`contact`, `team`→`segment`) puis la v5.1.0 (`metagroup`→`combined_segment`, colonnes date `int`→`DATE`/`DATETIME`) ; une régénération complète du graphe (`/understand --full`) reste à faire.
 
 Bienvenue. Ce guide vous fait entrer dans le code de **MemberBase**, une application PHP 8.2 de gestion des membres pour ONG et petites associations. Il suit l'ossature du graphe de connaissance du projet : ses 13 couches d'architecture et son tour guidé en 8 étapes.
 
@@ -8,7 +8,7 @@ Bienvenue. Ce guide vous fait entrer dans le code de **MemberBase**, une applica
 
 ## 1. Aperçu du projet
 
-MemberBase est une application web auto-hébergée de gestion des **membres**, des **donateurs** et de la **comptabilité associative**. Terminologie centrale : un **Segment** regroupe des membres (implémenté par les tables `segment` et `metagroup` en base, `team`/`metagroup` avant la v5.0.0).
+MemberBase est une application web auto-hébergée de gestion des **membres**, des **donateurs** et de la **comptabilité associative**. Terminologie centrale : un **Segment** regroupe des membres (implémenté par les tables `segment` et `combined_segment` en base — `team` avant la v5.0.0, `metagroup` avant la v5.1.0).
 
 | | |
 |---|---|
@@ -32,11 +32,11 @@ Les couches proviennent directement du champ `layers` du graphe.
 | 3 | **Routage** | Dispatch GET/POST | `html/includes/routing/views.php`, `html/includes/routing/actions.php` |
 | 4 | **Vues** | Templates PHP inclus dans le layout | `html/includes/views/*`, `html/includes/partials/menu.php`, `html/includes/partials/donor_table.php` |
 | 5 | **Concepts transverses** | Notions applicatives (RBAC, dirty-form, import, segments…) | *(voir §3)* |
-| 6 | **Classes de domaine** | Logique métier active-record | `html/classes/{contact,segment,compta,metagroup,property,member_filter}_class.php` |
+| 6 | **Classes de domaine** | Logique métier active-record | `html/classes/{contact,segment,compta,combined_segment,property,member_filter}_class.php` |
 | 7 | **Handlers d'actions (POST)** | Validation + orchestration + audit | `html/includes/actions/*` |
 | 8 | **API REST** | Endpoints JSON `/api/`, gardés par session | `html/api/_bootstrap.php`, `html/api/{contacts,segments,compta,suivi,compta-types}.php` |
 | 9 | **Outils CLI** | Scripts de maintenance | `html/tools/{fix_encoding,guest2010,import}.php` |
-| 10 | **Schéma base de données** | 10 tables MariaDB | `schema.sql` |
+| 10 | **Schéma base de données** | 16 tables MariaDB, FK réelles depuis la v5.1.0 | `schema.sql` |
 | 11 | **Infrastructure** | Conteneurs et pipeline | `docker-compose.yml`, `docker-compose.test.yml`, `Dockerfile` |
 | 12 | **Tests E2E** | Suite Playwright | `tests/*.spec.ts` |
 | 13 | **Documentation** | Docs projet | `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `DESIGN.md`, `PRODUCT.md`, `MIGRATION_PROD.md`, `doc/*` |
@@ -48,11 +48,11 @@ Les couches proviennent directement du champ `layers` du graphe.
 - **Routage htmx** — `index.php` reçoit toutes les requêtes web et distingue requête htmx (fragment) et chargement full-page. Les redirections après action utilisent `HX-Location` pour htmx, `Location` sinon (voir `CLAUDE.md`).
 - **Alpine.js — mode view/edit inline** — les fiches basculent entre lecture et édition côté client sans rechargement, Alpine pilotant l'état local.
 - **RBAC / rôles** — dans `html/includes/lib/auth.php` : `authUser`, gardes `canRead` / `canWrite` / `isManager` / `isAdmin`, plus `requireLogin` et `requirePasswordChange`. Sessions PHP + mots de passe bcrypt.
-- **Active-record sans ORM** — 5 classes de domaine (`Contact`, `Segment`, `Compta`, `Metagroup`, `UserProperty`) encapsulent leur accès via le singleton `db()` directement, sans couche de mapping.
+- **Active-record sans ORM** — 5 classes de domaine (`Contact`, `Segment`, `Compta`, `CombinedSegment`, `UserProperty`) encapsulent leur accès via le singleton `db()` directement, sans couche de mapping.
 - **Dirty-form guard** — garde globale dans `index.php` qui marque le formulaire « modifié » sur `change`/`input` et intercepte `beforeunload` / `htmx:beforeRequest`. Toujours poser `window.__dirtyOverride = true` avant une navigation JS et `data-no-dirty` sur les selects/inputs de navigation (voir `CLAUDE.md`).
 - **Assistant d'import (nouveauté 3.5.4)** — wizard CSV 3 étapes : `importUpload` → `importApply` → `importResolveDuplicates`. Source unique des champs importables dans `html/includes/lib/import_fields.php` ; détection de doublons par maps en mémoire ; création enveloppée dans une transaction ; possibilité d'ajouter les contacts importés à un **Segment**.
 - **Journal d'audit** — helper `auditLog()` dans `bootstrap.php`, chaque handler POST trace ses écritures dans `audit_log`.
-- **Gestion des Segments** — les Segments s'appuient sur les tables `segment` et `metagroup`, avec appartenance en table de jointure `contact_segment` (EAV avant la v5.0.0) ; le panneau segments de la fiche membre gère l'appartenance.
+- **Gestion des Segments** — les Segments s'appuient sur les tables `segment` et `combined_segment`, avec appartenance en table de jointure `contact_segment` (EAV avant la v5.0.0) ; le panneau segments de la fiche membre gère l'appartenance.
 - **Fusion de membres (transaction)** — la fusion de doublons est atomique (transaction PDO).
 
 ---
@@ -84,10 +84,10 @@ Suivez ces étapes dans l'ordre pour prendre le code en main.
 `html/includes/routing/views.php` · `html/includes/routing/actions.php`
 
 **Classes de domaine**
-`html/classes/contact_class.php` (`Contact`) · `segment_class.php` (`Segment`) · `compta_class.php` (`Compta`) · `metagroup_class.php` (`Metagroup`) · `property_class.php` (`UserProperty`)
+`html/classes/contact_class.php` (`Contact`) · `segment_class.php` (`Segment`) · `compta_class.php` (`Compta`) · `combined_segment_class.php` (`CombinedSegment`) · `property_class.php` (`UserProperty`)
 
 **Handlers d'actions**
-`html/includes/actions/` : `auth.php` · `contacts.php` · `compta.php` · `segments.php` · `metagroups.php` · `import.php` · `settings.php` · `suivi.php`
+`html/includes/actions/` : `auth.php` · `contacts.php` · `compta.php` · `segments.php` · `combined_segments.php` · `import.php` · `settings.php` · `suivi.php`
 
 **Vues**
 `html/includes/views/` : `users_*` (liste, fiche, ajout, édition, fusion, anonymisation, inactifs, historique, appartenance) · `compta_*` · `suivi_*` · `donors_*` (résumé, nouveaux, fidèles, perdus) · `members_lapsed.php` · `import_step{1,2,3}.php` · `settings_*` (groupes, filtres, catégories, types compta, app users, général, intégrité, audit) · `auth_change_password.php`
@@ -100,10 +100,10 @@ Partiels : `html/includes/partials/menu.php` · `donor_table.php`
 `html/tools/fix_encoding.php` · `guest2010.php` · `import.php`
 
 **Schéma**
-`schema.sql` — tables `contact`, `segment`, `contact_segment`, `contact_properties`, `metagroup`, `compta_type`, `compta`, `maxval`, `app_settings`, `app_users`, `audit_log`, `email_templates`, `email_log`
+`schema.sql` — tables `contact`, `segment`, `contact_segment`, `contact_properties`, `combined_segment`, `combined_segment_member`, `compta_type`, `compta`, `maxval`, `app_settings`, `app_users`, `audit_log`, `email_templates`, `email_log`, `api_rate_limit`, `schema_migrations`
 
 **Tests E2E**
-`tests/` : `api`, `app-users`, `auth`, `change-password`, `compta-types`, `compta`, `groups`, `inactive-members`, `members`, `merge-users`, `metagroups`, `resume`, `roles`, `settings`, `suivi`, `views` (`.spec.ts`)
+`tests/` : `api`, `app-users`, `auth`, `change-password`, `compta-types`, `compta`, `groups`, `combined_segments`, `inactive-members`, `members`, `merge-users`, `segment-filter`, `resume`, `roles`, `settings`, `suivi`, `views` (`.spec.ts`)
 
 ---
 
