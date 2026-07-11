@@ -18,7 +18,7 @@
 SET @tz_test = CONVERT_TZ('2026-01-01 00:00:00', @@session.time_zone, 'Europe/Zurich');
 SET @sql = IF(@tz_test IS NULL,
     'SIGNAL SQLSTATE ''45000'' SET MESSAGE_TEXT = ''CONVERT_TZ returned NULL: MariaDB named timezone tables are not loaded. Run `mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql` on the DB server, then retry this migration.''',
-    'SELECT 1');
+    'DO 0');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 ALTER TABLE `contact` ADD COLUMN IF NOT EXISTS `birthday_dt` date DEFAULT NULL;
@@ -29,10 +29,10 @@ SET @old_is_int = (SELECT COUNT(*) FROM information_schema.COLUMNS
 
 SET @sql = IF(@old_is_int > 0,
     'UPDATE `contact` SET `birthday_dt` = DATE(CONVERT_TZ(FROM_UNIXTIME(`birthday`), @@session.time_zone, ''Europe/Zurich'')) WHERE `birthday` > 0',
-    'SELECT 1');
+    'DO 0');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-SET @sql = IF(@old_is_int > 0, 'ALTER TABLE `contact` DROP COLUMN `birthday`', 'SELECT 1');
+SET @sql = IF(@old_is_int > 0, 'ALTER TABLE `contact` DROP COLUMN `birthday`', 'DO 0');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 SET @dt_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS
@@ -41,5 +41,5 @@ SET @dt_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS
 
 SET @sql = IF(@dt_exists > 0,
     'ALTER TABLE `contact` CHANGE COLUMN `birthday_dt` `birthday` date DEFAULT NULL',
-    'SELECT 1');
+    'DO 0');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
