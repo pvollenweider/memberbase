@@ -26,7 +26,11 @@ class UserProperty
             $this->id        = $row->id;
             $this->userId    = $row->user_id;
             $this->parameter = $row->parameter;
-            $this->date      = $row->date;
+            // date is a DATETIME column converted in PHP, not via MySQL FROM_UNIXTIME()/
+            // UNIX_TIMESTAMP() — those use the session timezone, which differs from
+            // PHP's hardcoded Europe/Zurich (bootstrap.php) and would silently shift
+            // the date (see #143).
+            $this->date       = $row->date ? strtotime($row->date) : 0;
             $this->value     = $row->value;
         }
         // Not found: the object stays empty ($id === null) — callers check id.
@@ -45,14 +49,17 @@ class UserProperty
 
     public function save(): void
     {
+        // date is formatted via PHP's date() (matching the mktime()/DateTime-based
+        // parsers callers use), never a MySQL date function — see lookupUserProperty().
+        $dateVal = ((int)$this->date) > 0 ? date('Y-m-d H:i:s', (int)$this->date) : null;
         if ($this->id) {
             db()->prepare(
                 "UPDATE contact_properties SET user_id=?,parameter=?,date=?,value=? WHERE id=?"
-            )->execute([$this->userId, $this->parameter, $this->date, $this->value, $this->id]);
+            )->execute([$this->userId, $this->parameter, $dateVal, $this->value, $this->id]);
         } else {
             db()->prepare(
                 "INSERT INTO contact_properties (user_id,parameter,date,value) VALUES (?,?,?,?)"
-            )->execute([$this->userId, $this->parameter, $this->date, $this->value]);
+            )->execute([$this->userId, $this->parameter, $dateVal, $this->value]);
             $this->id = (int) db()->lastInsertId();
         }
     }

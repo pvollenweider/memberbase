@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `contact_properties` (
   `id`        int(8)       NOT NULL AUTO_INCREMENT,
   `user_id`   int(8)       NOT NULL DEFAULT 0,
   `parameter` varchar(64)  NOT NULL DEFAULT '',
-  `date`      int(16)      NOT NULL DEFAULT 0,
+  `date`      datetime     DEFAULT NULL,
   `value`     varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `parameter`      (`parameter`),

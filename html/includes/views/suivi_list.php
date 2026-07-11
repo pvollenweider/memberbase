@@ -39,7 +39,7 @@ $stmt->execute([(int)$user->getId()]);
 while ($row = $stmt->fetchObject()) {
     $id = $row->id;
     $userid = $row->user_id;
-    $date = $row->date;
+    $date = $row->date ? strtotime($row->date) : 0;
     $parameter = $row->parameter;
     $value = $row->value;
     ?>

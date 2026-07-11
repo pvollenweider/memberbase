@@ -18,6 +18,12 @@ $stmtSuivi = db()->query(
      WHERE u.status = 1 AND up.parameter = 'suivi'"
 );
 $rows = $stmtSuivi->fetchAll(PDO::FETCH_OBJ);
+// contact_properties.date is converted in PHP, not via SQL UNIX_TIMESTAMP() — that
+// function uses MySQL's session timezone, which differs from PHP's hardcoded
+// Europe/Zurich (bootstrap.php) and would silently shift the date (see #143).
+foreach ($rows as $r) {
+    $r->ts = $r->ts ? strtotime($r->ts) : 0;
+}
 
 // Sent emails linked to a member
 $emailRows = [];

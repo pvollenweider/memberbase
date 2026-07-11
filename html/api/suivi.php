@@ -77,7 +77,7 @@ function handleList(): void
     $data = array_map(fn($r) => [
         'id'       => (int)$r->id,
         'memberId' => (int)$r->user_id,
-        'date'     => $r->date ? date('Y-m-d', (int)$r->date) : null,
+        'date'     => $r->date ? date('Y-m-d', strtotime($r->date)) : null,
         'note'     => $r->value ?: null,
     ], $stmt->fetchAll());
 
