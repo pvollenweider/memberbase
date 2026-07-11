@@ -9,17 +9,15 @@
 -- can silently shift the calendar day when the two don't match. The backfill
 -- below explicitly re-targets Europe/Zurich via CONVERT_TZ(), which requires the
 -- named-timezone tables to be loaded (`mysql_tzinfo_to_sql /usr/share/zoneinfo |
--- mysql -u root mysql`) — the safety check aborts loudly instead of silently
--- wiping every birthday if they aren't.
+-- mysql -u root mysql`). If they aren't loaded, CONVERT_TZ() silently returns
+-- NULL per row — those rows are left with birthday=NULL (same as "unset") rather
+-- than a wrong date, and show up in Réglages → Intégrité afterward for review.
+-- (An earlier version of this migration used SIGNAL to hard-abort in that case,
+-- but SIGNAL via dynamic PREPARE/EXECUTE isn't portable — MariaDB/MySQL error
+-- 1295 "not supported in the prepared statement protocol" on some servers.)
 --
 -- Guarded with information_schema checks so a retry after a partial failure (DDL
 -- is auto-committed, no rollback) is safe regardless of which step it died on.
-
-SET @tz_test = CONVERT_TZ('2026-01-01 00:00:00', @@session.time_zone, 'Europe/Zurich');
-SET @sql = IF(@tz_test IS NULL,
-    'SIGNAL SQLSTATE ''45000'' SET MESSAGE_TEXT = ''CONVERT_TZ returned NULL: MariaDB named timezone tables are not loaded. Run `mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql` on the DB server, then retry this migration.''',
-    'DO 0');
-PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 ALTER TABLE `contact` ADD COLUMN IF NOT EXISTS `birthday_dt` date DEFAULT NULL;
 

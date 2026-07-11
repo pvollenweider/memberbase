@@ -4,9 +4,13 @@
 -- PHP's hardcoded "Europe/Zurich" timezone (see includes/lib/bootstrap.php) — same
 -- timezone trap as 0028 (contact.birthday) and 0029 (contact_properties.date), so
 -- the backfill re-targets Europe/Zurich via CONVERT_TZ() rather than trusting
--- MySQL's session timezone. The safety check aborts loudly instead of silently
--- corrupting every accounting entry's date if the named-timezone tables
--- (`mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql`) aren't loaded.
+-- MySQL's session timezone. If the named-timezone tables aren't loaded
+-- (`mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql`), CONVERT_TZ()
+-- silently returns NULL per row — those rows are left with date=NULL (same as
+-- "unset") rather than a wrong date, flagged by Réglages → Intégrité afterward.
+-- (An earlier version of this migration used SIGNAL to hard-abort in that case,
+-- but SIGNAL via dynamic PREPARE/EXECUTE isn't portable — MariaDB/MySQL error
+-- 1295 "not supported in the prepared statement protocol" on some servers.)
 --
 -- `date` is part of two indexes (idx_date, user_id_2). Dropping the column drops/
 -- shrinks them unpredictably depending on MariaDB version, so they're dropped
@@ -14,12 +18,6 @@
 --
 -- Guarded with information_schema checks so a retry after a partial failure (DDL is
 -- auto-committed, no rollback) is safe regardless of which step it died on.
-
-SET @tz_test = CONVERT_TZ('2026-01-01 00:00:00', @@session.time_zone, 'Europe/Zurich');
-SET @sql = IF(@tz_test IS NULL,
-    'SIGNAL SQLSTATE ''45000'' SET MESSAGE_TEXT = ''CONVERT_TZ returned NULL: MariaDB named timezone tables are not loaded. Run `mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql` on the DB server, then retry this migration.''',
-    'DO 0');
-PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 ALTER TABLE `compta` DROP INDEX IF EXISTS `idx_date`;
 ALTER TABLE `compta` DROP INDEX IF EXISTS `user_id_2`;
