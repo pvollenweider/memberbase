@@ -61,7 +61,7 @@ class Contact
         $this->status           = (int)$row->status;
     }
 
-    private const SELECT_COLS = "id,firstname,lastname,society,sexe,title,address,npa,tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,modificationDate,status";
+    private const SELECT_COLS = "id,firstname,lastname,society,sexe,title,address,npa,tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,UNIX_TIMESTAMP(modificationDate) AS modificationDate,status";
 
     public function lookupUser(int $id): void
     {
@@ -228,7 +228,7 @@ class Contact
         if ($this->id) {
             db()->prepare(
                 "UPDATE contact SET firstname=?,lastname=?,society=?,sexe=?,title=?,address=?,npa=?,
-                 tel=?,telprof=?,portable=?,fax=?,email=?,email_alt=?,web=?,birthday=?,comment=?,modificationDate=?
+                 tel=?,telprof=?,portable=?,fax=?,email=?,email_alt=?,web=?,birthday=?,comment=?,modificationDate=FROM_UNIXTIME(?)
                  WHERE id=?"
             )->execute([
                 $this->firstName, $this->lastName, $this->society, $this->sexe, $this->title,
@@ -241,7 +241,7 @@ class Contact
             db()->prepare(
                 "INSERT INTO contact (firstname,lastname,society,sexe,title,address,npa,
                  tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,modificationDate)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?))"
             )->execute([
                 $this->firstName, $this->lastName, $this->society, $this->sexe,
                 $this->title, $this->address, $this->npa, $this->tel, $this->telProf,

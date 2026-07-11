@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `contact` (
   `comment`          mediumtext   NOT NULL,
   `birthday`         int(16)      NOT NULL DEFAULT 0,
   `creationDate`     int(16)      NOT NULL DEFAULT 0,
-  `modificationDate` int(16)      NOT NULL DEFAULT 0,
+  `modificationDate` datetime     DEFAULT NULL,
   `status`           tinyint(1)   NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   KEY `lastname`  (`lastname`(250)),
