@@ -30,9 +30,7 @@ if ($action === 'sendComptaRecap') {
     $byMember = mbRecapLoadEntries(db(), null, $recapYear);
     if (empty($byMember)) { $redirect('recapOk=0'); }
 
-    $sinceLine = mbRecapSinceLine(db(), $recapYear, false);
-
-    $sentCount = 0; $skipCount = 0; $notifiedIds = [];
+    $sentCount = 0; $skipCount = 0; $failCount = 0; $notifiedIds = [];
 
     foreach ($byMember as $userId => $entries) {
         $first = $entries[0];
@@ -42,18 +40,22 @@ if ($action === 'sendComptaRecap') {
             auditLog(db(), 'sendComptaRecap', "skip id=$userId (no email) — " . count($entries) . ' entries marked');
             continue;
         }
+        // Entries are ordered by date ASC per member — the first one is the earliest in this batch.
+        $sinceLine = mbRecapSinceLine($recapYear, false, (int)$first['date']);
         [$vars, $ids, $total] = mbRecapBuildVars($entries, $appSettings);
         $vars['since_line']   = $sinceLine;
-        $ok = mbSendTemplate(db(), $first['email'], 'tpl_compta_recap', $vars, (int)$userId) === true;
-        if ($ok) {
+        $result = mbSendTemplate(db(), $first['email'], 'tpl_compta_recap', $vars, (int)$userId);
+        if ($result === true) {
             $sentCount++;
             $notifiedIds = array_merge($notifiedIds, $ids);
             auditLog(db(), 'sendComptaRecap',
                 "sent to {$first['firstname']} {$first['lastname']} <{$first['email']}> — "
                 . count($entries) . ' entr(ies), CHF ' . $total);
         } else {
+            $failCount++;
+            $errMsg = is_string($result) ? $result : 'send_failed';
             auditLog(db(), 'sendComptaRecap',
-                "FAILED for {$first['firstname']} {$first['lastname']} <{$first['email']}>");
+                "FAILED for {$first['firstname']} {$first['lastname']} <{$first['email']}> — $errMsg");
         }
     }
 
@@ -62,8 +64,8 @@ if ($action === 'sendComptaRecap') {
         db()->prepare("UPDATE compta SET notified_at = NOW() WHERE id IN ($ph)")->execute($notifiedIds);
     }
     db()->exec("UPDATE compta SET notified_at = NOW() WHERE notified_at IS NULL AND sum = 0");
-    auditLog(db(), 'sendComptaRecap', "sent=$sentCount skipped=$skipCount entries_marked=" . count($notifiedIds));
-    $redirect('recapOk=' . $sentCount . '&recapSkip=' . $skipCount);
+    auditLog(db(), 'sendComptaRecap', "sent=$sentCount skipped=$skipCount failed=$failCount entries_marked=" . count($notifiedIds));
+    $redirect('recapOk=' . $sentCount . '&recapSkip=' . $skipCount . '&recapFail=' . $failCount);
 
 } elseif ($action === 'previewComptaRecap') {
     // Returns JSON {subject, html, text} for a single member's recap email.
@@ -77,7 +79,7 @@ if ($action === 'sendComptaRecap') {
     if (empty($byMember)) { echo json_encode(['ok' => false, 'error' => 'no_entries']); exit; }
     $entries = reset($byMember);
 
-    $sinceLine = mbRecapSinceLine(db(), $recapYear, $force);
+    $sinceLine = mbRecapSinceLine($recapYear, $force, (int)$entries[0]['date']);
 
     [$vars, , ] = mbRecapBuildVars($entries, $appSettings);
     $vars['since_line'] = $sinceLine;
@@ -107,7 +109,7 @@ if ($action === 'sendComptaRecap') {
         exit;
     }
 
-    $sinceLine = mbRecapSinceLine(db(), $recapYear, $force);
+    $sinceLine = mbRecapSinceLine($recapYear, $force, (int)$entries[0]['date']);
 
     [$vars, $ids, $total] = mbRecapBuildVars($entries, $appSettings);
     $vars['since_line'] = $sinceLine;
@@ -142,8 +144,19 @@ if ($action === 'sendComptaRecap') {
         $redirect('bulkComptaErr=noConfirm');
     }
 
-    db()->exec("UPDATE compta SET notified_at = NOW() WHERE notified_at IS NULL");
+    // Reference date shown to members as "depuis le …" in future recap emails.
+    // Defaults to today but admins typically pick Jan 1 of the current year so
+    // historical entries don't appear to have been notified on the mark date.
+    $bulkDateRaw = (string)($_REQUEST['bulk_date'] ?? '');
+    $bulkTs      = $bulkDateRaw !== '' ? strtotime($bulkDateRaw . ' 00:00:00') : false;
+    if ($bulkTs === false || $bulkTs > time()) {
+        $redirect('bulkComptaErr=invalidDate');
+    }
+    $notifiedAt = date('Y-m-d H:i:s', $bulkTs);
+
+    $stmt = db()->prepare("UPDATE compta SET notified_at = ? WHERE notified_at IS NULL");
+    $stmt->execute([$notifiedAt]);
     $n = (int)db()->query("SELECT COUNT(*) FROM compta WHERE notified_at IS NOT NULL")->fetchColumn();
-    auditLog(db(), 'markAllComptaNotified', "marked $n entries");
+    auditLog(db(), 'markAllComptaNotified', "marked $n entries as notified_at=$notifiedAt");
     $redirect('bulkComptaOk=' . $n);
 }

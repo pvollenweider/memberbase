@@ -465,7 +465,7 @@ function mbDefaultTemplates(): array
         // {{entries_html}} = HTML <table> of entries (built by the action)
         // {{total}}        = formatted sum of included entries
         // {{send_date}}        = date of the batch send (DD mois YYYY)
-        // {{since_line}}       = "en YYYY" or "depuis votre dernier récapitulatif du DD.MM.YYYY"
+        // {{since_line}}       = "en YYYY" or "depuis MOIS YYYY"
         // {{total_lines}}      = total line(s) for plain text (includes donation sub-total when mixed)
         // {{attest_note}}      = fiscal attestation sentence (empty when no attestable amounts)
         // {{attest_note_html}} = same, HTML version with styling

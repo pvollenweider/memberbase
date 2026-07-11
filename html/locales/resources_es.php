@@ -925,6 +925,8 @@ $GLOBAL['pendingMigrationsBannerBody'] = "Aplíquela(s) desde
             (sin SSH), o por línea de comandos <code>php html/tools/migrate.php</code>,
             después de haber hecho una copia de seguridad de la base. Mientras no se haga, algunas
             funcionalidades pueden no funcionar correctamente.\n";
+$GLOBAL['localSmtpWarningTitle'] = "Atención: host local, SMTP real configurado.";
+$GLOBAL['localSmtpWarningBody'] = "Este sitio se ejecuta en local (localhost) pero está configurado para enviar correos vía un servidor SMTP real (%s) — no Mailpit. Cualquier envío (resúmenes, recordatorios, etc.) llegará realmente a los miembros. Revise Ajustes → Email antes de enviar nada.";
 $GLOBAL['language']              = "Idioma";
 $GLOBAL['interfaceLanguage']     = "Idioma de la interfaz";
 $GLOBAL['interfaceLanguageHelp'] = "Se aplica a su cuenta, en todas sus sesiones.";
@@ -1007,6 +1009,7 @@ $GLOBAL['comptaRecapNoEntriesForce'] = "No se encontraron entradas para este añ
 $GLOBAL['comptaRecapHelp']           = "Se envía un correo por miembro con todas las entradas aún no notificadas.";
 $GLOBAL['comptaRecapSentOk']         = "%d miembro(s) notificado(s) correctamente.";
 $GLOBAL['comptaRecapSkipped']        = "%d miembro(s) sin correo omitido(s).";
+$GLOBAL['comptaRecapFailed']         = "%d error(es) de envío (ver el registro de auditoría).";
 $GLOBAL['comptaRecapSinceLastBatch'] = "desde su último resumen del %s";
 $GLOBAL['comptaRecapSinceYear']      = "en %d";
 $GLOBAL['comptaRecapSinceFirst']     = "desde su adhesión";
@@ -1027,9 +1030,11 @@ $GLOBAL['comptaRecapSendUserBtn']    = "Enviar un resumen";
 // Bulk compta notified mark (Configuración → Salud)
 $GLOBAL['comptaBulkTitle']           = "Marcado masivo — resúmenes contables";
 $GLOBAL['comptaBulkDesc']            = "%d entrada(s) contable(s) aún no marcadas como notificadas.";
+$GLOBAL['comptaBulkDateLabel']       = "Fecha de referencia mostrada a los miembros («desde el…»)";
 $GLOBAL['comptaBulkConfirm']         = "Entiendo que estas entradas no se incluirán en el próximo envío";
 $GLOBAL['comptaBulkBtn']             = "Marcar todas como tratadas";
 $GLOBAL['comptaBulkOk']              = "%d entrada(s) marcada(s) como tratadas.";
+$GLOBAL['comptaBulkErrDate']         = "Fecha de referencia inválida (no puede estar en el futuro).";
 $GLOBAL['comptaBulkErrConfirm']      = "Por favor, marque la casilla de confirmación.";
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Confirmación de recepción de pago";

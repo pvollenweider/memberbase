@@ -40,7 +40,7 @@ function mbRecapLoadEntries(PDO $db, ?int $filterUserId = null, int $year = 0, b
         "SELECT c.id, c.user_id, c.date, c.libele, c.sum, c.cotisation_year,
                 COALESCE(ct.is_cotisation, 0)             AS ct_coti,
                 COALESCE(ct.is_excluded_from_donation, 0) AS ct_excluded,
-                u.firstname, u.lastname, u.society, u.email,
+                u.firstname, u.lastname, u.society, TRIM(u.email) AS email,
                 COALESCE(ct.label, '') AS type_label
          FROM compta c
          JOIN contact u ON u.id = c.user_id AND u.status = 1
@@ -60,24 +60,30 @@ function mbRecapLoadEntries(PDO $db, ?int $filterUserId = null, int $year = 0, b
 /**
  * Build the since_line string for recap templates.
  *
- * When a specific past year is requested (or force mode), uses "en YYYY"
- * instead of "depuis votre dernier recapitulatif du JJ.MM.AAAA".
+ * Based on the earliest entry actually included in this member's batch
+ * (not a global "last notified" marker) — accurate regardless of when
+ * previous batches ran or how old entries got backfilled/re-dated.
  *
- * @param PDO  $db   Database connection
- * @param int  $year The recap year
- * @param bool $force Whether force mode is active
+ * When a specific past year is requested (or force mode), uses "en YYYY"
+ * instead of "depuis MOIS AAAA".
+ *
+ * @param int $year        The recap year
+ * @param bool $force      Whether force mode is active
+ * @param int  $minEntryTs Unix timestamp of the earliest entry in this batch
  * @return string French label for the since_line template variable
  */
-function mbRecapSinceLine(PDO $db, int $year, bool $force): string
+function mbRecapSinceLine(int $year, bool $force, int $minEntryTs): string
 {
+    static $monthsFr = [
+        1 => 'janvier', 2 => 'février', 3 => 'mars', 4 => 'avril',
+        5 => 'mai', 6 => 'juin', 7 => 'juillet', 8 => 'août',
+        9 => 'septembre', 10 => 'octobre', 11 => 'novembre', 12 => 'décembre',
+    ];
     // Email body is always French regardless of the admin UI locale.
     if ($force || $year !== (int)date('Y')) {
         return 'en ' . $year;
     }
-    $lastBatchRaw = $db->query("SELECT MAX(notified_at) FROM compta WHERE notified_at IS NOT NULL")->fetchColumn();
-    return $lastBatchRaw
-        ? 'depuis votre dernier recapitulatif du ' . date('d.m.Y', strtotime($lastBatchRaw))
-        : 'depuis votre adhesion';
+    return 'depuis ' . $monthsFr[(int)date('n', $minEntryTs)] . ' ' . date('Y', $minEntryTs);
 }
 
 /**
@@ -150,7 +156,7 @@ function mbRecapBuildVars(array $entries, array $appSettings): array
                    . '</tr>';
     if ($hasMixed) {
         $totalHtmlRows .= '<tr style="background:#eaf4fb;color:#1a5276">'
-                        . '<td colspan="2" style="border:1px solid #dde3ea;padding:8px;text-align:right;font-size:13px">Dont dons pouvant figurer sur l\'attestation fiscale</td>'
+                        . '<td colspan="2" style="border:1px solid #dde3ea;padding:8px;text-align:right;font-size:13px">Montant déductible fiscalement</td>'
                         . '<td style="border:1px solid #dde3ea;padding:8px;text-align:right;font-size:13px">CHF ' . $donationFmt . '</td>'
                         . '</tr>';
     }
@@ -165,7 +171,7 @@ function mbRecapBuildVars(array $entries, array $appSettings): array
     // Build total lines for plain-text version.
     $totalLines = 'Total des versements : CHF ' . $totalFmt;
     if ($hasMixed) {
-        $totalLines .= "\nDont dons pouvant figurer sur l'attestation fiscale : CHF " . $donationFmt;
+        $totalLines .= "\nMontant déductible fiscalement : CHF " . $donationFmt;
     }
 
     // Fiscal note: only mention attestation when there are attestable amounts.

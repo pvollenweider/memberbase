@@ -19,6 +19,7 @@ if ($_year <= 0) { $_year = (int)date('Y'); }
 // Flash messages from redirect
 $_recapOk   = isset($_GET['recapOk'])   ? (int)$_GET['recapOk']   : null;
 $_recapSkip = isset($_GET['recapSkip']) ? (int)$_GET['recapSkip'] : 0;
+$_recapFail = isset($_GET['recapFail']) ? (int)$_GET['recapFail'] : 0;
 
 // Pending stats for the selected year (zero-sum excluded)
 $_pending = db()->prepare(
@@ -92,11 +93,14 @@ if ($_extended) {
 </div>
 
 <?php if ($_recapOk !== null): ?>
-<div class="alert alert-success py-2" role="alert">
-  <i class="fas fa-circle-check me-1" aria-hidden="true"></i>
+<div class="alert <?= $_recapFail > 0 ? 'alert-warning' : 'alert-success' ?> py-2" role="alert">
+  <i class="fas <?= $_recapFail > 0 ? 'fa-triangle-exclamation' : 'fa-circle-check' ?> me-1" aria-hidden="true"></i>
   <?= sprintf($GLOBAL['comptaRecapSentOk'], $_recapOk) ?>
   <?php if ($_recapSkip > 0): ?>
     &nbsp;—&nbsp;<?= sprintf($GLOBAL['comptaRecapSkipped'], $_recapSkip) ?>
+  <?php endif ?>
+  <?php if ($_recapFail > 0): ?>
+    &nbsp;—&nbsp;<?= sprintf($GLOBAL['comptaRecapFailed'], $_recapFail) ?>
   <?php endif ?>
 </div>
 <?php endif ?>

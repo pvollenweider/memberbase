@@ -925,6 +925,8 @@ $GLOBAL['pendingMigrationsBannerBody'] = "Apply them from
             (no SSH needed), or on the command line <code>php html/tools/migrate.php</code>,
             after backing up the database. Until this is done, some
             features may not work correctly.\n";
+$GLOBAL['localSmtpWarningTitle'] = "Warning: local host, real SMTP configured.";
+$GLOBAL['localSmtpWarningBody'] = "This site is running locally (localhost) but is configured to send emails via a real SMTP server (%s) — not Mailpit. Any send (recaps, reminders, etc.) will actually reach real members. Check Settings → Email before sending anything.";
 $GLOBAL['language']              = "Language";
 $GLOBAL['interfaceLanguage']     = "Interface language";
 $GLOBAL['interfaceLanguageHelp'] = "Applied to your account, across all your sessions.";
@@ -1005,6 +1007,7 @@ $GLOBAL['comptaRecapNoEntriesForce'] = "No accounting entries found for this yea
 $GLOBAL['comptaRecapHelp']           = "One email per member is sent, grouping all entries not yet notified. Entries for members without an email address are marked as handled without sending.";
 $GLOBAL['comptaRecapSentOk']         = "%d member(s) notified successfully.";
 $GLOBAL['comptaRecapSkipped']        = "%d member(s) without email skipped.";
+$GLOBAL['comptaRecapFailed']         = "%d send failure(s) (see audit log).";
 $GLOBAL['comptaRecapSinceLastBatch'] = "since your last recap of %s";
 $GLOBAL['comptaRecapSinceYear']      = "in %d";
 $GLOBAL['comptaRecapSinceFirst']     = "since your membership";
@@ -1025,9 +1028,11 @@ $GLOBAL['comptaRecapSendUserBtn']    = "Send a recap";
 // Bulk compta notified mark (Settings → Health)
 $GLOBAL['comptaBulkTitle']           = "Bulk mark — accounting recaps";
 $GLOBAL['comptaBulkDesc']            = "%d existing compta entry/entries are not yet marked as notified. Mark them to avoid sending historical recaps to members.";
+$GLOBAL['comptaBulkDateLabel']       = "Reference date shown to members (\"since …\")";
 $GLOBAL['comptaBulkConfirm']         = "I understand these entries will not be included in the next batch";
 $GLOBAL['comptaBulkBtn']             = "Mark all as handled";
 $GLOBAL['comptaBulkOk']              = "%d entry/entries marked as handled.";
+$GLOBAL['comptaBulkErrDate']         = "Invalid reference date (cannot be in the future).";
 $GLOBAL['comptaBulkErrConfirm']      = "Please check the confirmation checkbox.";
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Payment receipt confirmation";

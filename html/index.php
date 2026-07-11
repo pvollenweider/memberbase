@@ -165,6 +165,26 @@ if ($_pendingMigrations):
     </div>
 </div>
 <?php endif; ?>
+
+<?php
+// Bandeau d'alerte : hôte local mais SMTP pointant sur un vrai serveur (pas Mailpit).
+// Évite d'envoyer de vrais emails à de vrais membres depuis un poste de dev (#131).
+$_hostHeader   = strtolower((string)($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? ''));
+$_isLocalHost  = (bool)preg_match('/^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/', $_hostHeader);
+$_smtpHost     = trim((string)($appSettings['smtp_host'] ?? ''));
+$_smtpIsRealServer = $_smtpHost !== '' && !str_contains(strtolower($_smtpHost), 'mailpit');
+if ($_isLocalHost && $_smtpIsRealServer && isManager()):
+?>
+<div class="container mt-2">
+    <div class="alert alert-danger d-flex align-items-start gap-2 mb-0" role="alert">
+        <i class="fas fa-triangle-exclamation mt-1 flex-shrink-0" aria-hidden="true"></i>
+        <div>
+            <strong><?= $GLOBAL['localSmtpWarningTitle'] ?></strong>
+            <?= sprintf($GLOBAL['localSmtpWarningBody'], htmlspecialchars($_smtpHost, ENT_QUOTES, $charset)) ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 <div class="container mt-2">
     <div class="row">
         <div class="col-12" id="main-content">

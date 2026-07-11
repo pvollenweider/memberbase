@@ -69,6 +69,8 @@ $_bulkComptaErr  = $_GET['bulkComptaErr'] ?? null;
 ?>
 <?php if ($_bulkComptaOk !== null): ?>
   <div class="alert alert-success py-2" role="alert"><i class="fas fa-circle-check me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['comptaBulkOk'], $_bulkComptaOk) ?></div>
+<?php elseif ($_bulkComptaErr === 'invalidDate'): ?>
+  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['comptaBulkErrDate'] ?></div>
 <?php elseif ($_bulkComptaErr !== null): ?>
   <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['comptaBulkErrConfirm'] ?></div>
 <?php endif ?>
@@ -237,6 +239,11 @@ if ($_comptaUntouched > 0):
       <input type="hidden" name="action" value="markAllComptaNotified">
       <input type="hidden" name="view"   value="settings">
       <input type="hidden" name="tab"    value="health">
+      <div class="mb-1">
+        <label class="form-label small" for="bulk_compta_date"><?= $GLOBAL['comptaBulkDateLabel'] ?></label>
+        <input type="date" class="form-control form-control-sm" name="bulk_date" id="bulk_compta_date"
+               value="<?= date('Y-01-01') ?>" max="<?= date('Y-m-d') ?>" required data-no-dirty>
+      </div>
       <div class="form-check">
         <input class="form-check-input" type="checkbox" name="confirm_bulk" id="confirm_bulk_compta" required data-no-dirty>
         <label class="form-check-label small" for="confirm_bulk_compta"><?= $GLOBAL['comptaBulkConfirm'] ?></label>
