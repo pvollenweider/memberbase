@@ -463,6 +463,27 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap">
     <h2 id="changelog-h">Dernières versions</h2>
     <article class="release">
+      <h3 class="v">5.1.0 <span class="d">11 juillet 2026</span></h3>
+      <ul>
+        <li><strong><code class="inline">metagroup</code> renommé en <code class="inline">combined_segment</code></strong> (table, <code class="inline">metagroup_member</code> → <code class="inline">combined_segment_member</code>, classe PHP <code class="inline">Metagroup</code> → <code class="inline">CombinedSegment</code> dans <code class="inline">combined_segment_class.php</code>). Toute intégration externe référençant l'ancien nom de table/classe doit être adaptée (migration <code class="inline">0024</code>).</li>
+        <li><strong>Vocabulaire "Groupe"/"team" éliminé du code et de la base</strong> au profit de "segment", partout où ça restait :</li>
+        <li><strong>5 colonnes timestamp Unix <code class="inline">int(16)</code> migrées vers <code class="inline">DATE</code>/<code class="inline">DATETIME</code> natifs</strong> (issue #143, migrations <code class="inline">0026</code>-<code class="inline">0030</code>) : <code class="inline">contact.modificationDate</code>, <code class="inline">contact.creationDate</code> (DATETIME), <code class="inline">contact.birthday</code> (DATE), <code class="inline">contact_properties.date</code>, <code class="inline">compta.date</code> (DATETIME). <code class="inline">0</code> n'est plus la sentinelle "non renseigné" — c'est désormais <code class="inline">NULL</code>. Toute requête SQL directe (debug, exports, scripts) comparant ces colonnes à un entier doit être adaptée ; <code class="inline">FROM_UNIXTIME()</code>/<code class="inline">UNIX_TIMESTAMP()</code> ne sont plus nécessaires pour les lire.</li>
+        <li><strong>Contraintes de clé étrangère réelles</strong> sur <code class="inline">contact_segment</code>, <code class="inline">contact_properties</code>, <code class="inline">compta</code>, <code class="inline">combined_segment_member</code>, <code class="inline">audit_log</code>, <code class="inline">email_log</code> (au lieu de <code class="inline">foreign_key_checks=0</code>) — une suppression en cascade ou une valeur orpheline qui passait silencieusement avant peut désormais être rejetée par la base (migration <code class="inline">0023</code>).</li>
+        <li><strong>Marquage en masse des récapitulatifs comptables</strong> (Réglages → Santé) : choix explicite d'une date de référence (au lieu de "maintenant" implicite) affichée aux membres comme point de départ dans l'email suivant.</li>
+        <li><strong>Bandeau d'alerte</strong> si l'application tourne sur <code class="inline">localhost</code> avec un SMTP réel configuré (pas Mailpit) — évite un envoi accidentel à de vrais membres depuis un poste de dev.</li>
+        <li>Le rapport d'envoi des récapitulatifs comptables affiche désormais les échecs d'envoi (auparavant silencieusement ignorés), avec le détail dans le journal d'audit.</li>
+        <li><strong>Récapitulatifs comptables</strong> : la ligne « depuis … » de chaque email est calculée par membre à partir de la première entrée réellement incluse dans son envoi, plutôt que sur une date de dernier lot globale et fragile.</li>
+        <li>Emails trim automatiquement les espaces parasites avant envoi (cause d'échecs silencieux).</li>
+        <li>Reformulation « Dont dons pouvant figurer sur l'attestation fiscale » → « Montant déductible fiscalement ».</li>
+        <li>Toutes les actions <code class="inline">$pdo</code> global remplacées par le singleton <code class="inline">db()</code> dans <code class="inline">includes/actions/</code> et <code class="inline">includes/views/</code> (#145) — élimine une classe de bugs de portée de variable.</li>
+        <li>Page Réglages accessible même sur une base pas encore migrée jusqu'à <code class="inline">0021</code>.</li>
+        <li>Colonne « Libellé par défaut » ajoutée au tableau des types de compta ; fallback serveur du libellé cotisation utilise <code class="inline">default_libele</code>.</li>
+        <li><code class="inline">compta.php</code> utilise <code class="inline">Contact::getMemberName()</code> au lieu de dupliquer la jointure <code class="inline">CONCAT(firstName,' ',lastName)</code>.</li>
+        <li><strong>Bug de décalage de fuseau horaire corrigé</strong> sur les migrations <code class="inline">0028</code>-<code class="inline">0030</code> : <code class="inline">birthday</code>/<code class="inline">contact_properties.date</code>/<code class="inline">compta.date</code> sont désormais converties entièrement côté PHP (jamais via <code class="inline">FROM_UNIXTIME()</code>/<code class="inline">UNIX_TIMESTAMP()</code> SQL, qui utilisent le fuseau de *session* MySQL — différent du fuseau PHP forcé à <code class="inline">Europe/Zurich</code>).</li>
+        <li><strong>Plantage PDO corrigé</strong> dans les migrations <code class="inline">0026</code>-<code class="inline">0030</code> (<code class="inline">SQLSTATE[HY000]: 2014</code> / <code class="inline">1295</code>) : le mécanisme de garde conditionnelle (<code class="inline">PREPARE</code>/<code class="inline">EXECUTE</code> dynamique) utilisait <code class="inline">SELECT 1</code> comme no-op et <code class="inline">SIGNAL</code> comme abandon volontaire — ni l'un ni l'autre n'est fiable via <code class="inline">PDO::exec()</code> sur tous les serveurs MySQL/MariaDB. Remplacé par <code class="inline">DO 0</code> (aucun jeu de résultats) ; le garde <code class="inline">SIGNAL</code> est retiré au profit d'une dégradation silencieuse et sûre (<code class="inline">NULL</code> plutôt qu'une date fausse) en cas de tables de fuseaux horaires MariaDB non chargées.</li>
+      </ul>
+    </article>
+    <article class="release">
       <h3 class="v">5.0.1 <span class="d">10 juillet 2026</span></h3>
       <ul>
         <li><strong>Envoi des attestations de dons par email</strong> (individuel depuis la fiche membre / résumé</li>
@@ -488,24 +509,6 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li><strong>Renvoi forcé</strong> : possibilité de renvoyer un rappel à un membre déjà relancé (garde anti-doublon contournable explicitement) depuis la vue Membres perdus.</li>
         <li><strong>Singleton <code class="inline">db()</code></strong> remplace la variable globale <code class="inline">$pdo</code> dans les fonctions et méthodes de classe — signature stable pour tout code appelant la couche DB (#125).</li>
         <li>Dépendances runtime PHP (<code class="inline">sprain/swiss-qr-bill</code>, <code class="inline">fpdf/fpdf</code>) vendorisées dans <code class="inline">html/vendor/</code> (committées, pas de <code class="inline">composer install</code> requis en prod ; extension <strong>GD</strong> requise sur le serveur).</li>
-      </ul>
-    </article>
-    <article class="release">
-      <h3 class="v">4.0.0 <span class="d">8 juillet 2026</span></h3>
-      <ul>
-        <li><strong>Configuration SMTP</strong> (Réglages → Email) : client SMTP pur PHP sans dépendance externe (plain / STARTTLS / SSL-TLS, AUTH LOGIN/PLAIN ou sans auth), mot de passe chiffré au repos, envoi de test avec message d'erreur SMTP détaillé.</li>
-        <li><strong>Templates d'email configurables</strong> (objet + corps texte/HTML, variables <code class="inline">{{placeholder}}</code>) pour le rappel de cotisation, le récapitulatif comptable et l'attestation de don, avec repli sur un template intégré par défaut.</li>
-        <li><strong>Récapitulatifs comptables groupés</strong> (<code class="inline">comptaRecap</code>) : un email par membre récapitulant ses entrées non notifiées, aperçu avant envoi (rendu HTML réel), envoi individuel ou en masse, filtre par année, mode étendu pour renvoyer aux membres déjà notifiés.</li>
-        <li><strong>Rappels de cotisation impayée</strong> : envoi manuel individuel ou en masse depuis la vue Membres perdus, avec garde anti-doublon par année.</li>
-        <li><strong>Journal des emails</strong> (Réglages → Email → Journal) : historique paginé, statut envoyé/erreur, renvoi d'une entrée en erreur, purge.</li>
-        <li><strong>Année de cotisation</strong> (<code class="inline">compta.cotisation_year</code>) : distingue l'année de paiement de l'année de cotisation couverte (ex. cotisation N+1 payée en décembre N) ; champ validé côté serveur, reflété dans les emails et exposé par l'API REST (<code class="inline">GET /api/contacts/{id}?sub=compta</code>).</li>
-        <li><strong>Champs organisation</strong> : numéro IDE suisse avec vérification automatique via Zefix (préremplissage nom/adresse/but statutaire), but statutaire, statut d'exonération fiscale.</li>
-        <li>Lien PDF d'attestation non cliquable dans une ligne cliquable (<code class="inline">ca-row-link</code>) : le plugin <code class="inline">datahref</code> interceptait les clics sur les liens imbriqués.</li>
-        <li>Lookup Zefix : bascule vers le flux d'API réel (<code class="inline">search.json</code> → <code class="inline">firm/{ehraid}.json</code>), l'ancien endpoint étant décommissionné.</li>
-        <li>Erreur réseau sur les boutons Zefix/LINDAS causée par une requête <code class="inline">fetch()</code> sans en-tête <code class="inline">HX-Request</code>.</li>
-        <li><code class="inline">assert.sh</code> (test CI d'upgrade) n'attendait que 9 migrations appliquées au lieu de 12.</li>
-        <li><code class="inline">email_templates.body_html</code> manquant dans <code class="inline">schema.sql</code>/<code class="inline">install.php</code> — un fresh install ne créait pas cette colonne pourtant utilisée par les templates HTML.</li>
-        <li>Test de convergence CI depuis une base de données legacy étendu aux migrations 0010-0012 (<code class="inline">tests/upgrade/</code>).</li>
       </ul>
     </article>
     <p class="changelog-more"><a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md">Historique complet des versions</a></p>
