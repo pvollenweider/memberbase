@@ -541,7 +541,7 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/contacts/42?dispos
       &quot;date&quot;: &quot;2026-01-15&quot;,
       &quot;label&quot;: &quot;Cotisation 2026&quot;,
       &quot;amount&quot;: 50.0,
-      &quot;quittance&quot;: null,
+      &quot;comment&quot;: null,
       &quot;wantsAttestation&quot;: false,
       &quot;notifiedAt&quot;: null,
       &quot;cotisationYear&quot;: 2026,
@@ -705,13 +705,13 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/contacts/42?dispos
       &quot;date&quot;: &quot;2024-05-10&quot;,
       &quot;label&quot;: &quot;Don printemps 2024&quot;,
       &quot;amount&quot;: 150.0,
-      &quot;receipt&quot;: &quot;QR-2024-0301&quot;,
+      &quot;comment&quot;: &quot;QR-2024-0301&quot;,
       &quot;wantsAttestation&quot;: true
     }
   ]
 }
 </code></pre>
-<p><code>amount</code> est un nombre (float) ou <code>null</code> ; <code>label</code>/<code>receipt</code> sont <code>null</code> si vides.</p>
+<p><code>amount</code> est un nombre (float) ou <code>null</code> ; <code>label</code>/<code>comment</code> sont <code>null</code> si vides.</p>
 <h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
 <ul>
 <li><code>400</code> — <code>memberId</code> manquant</li>
@@ -734,7 +734,7 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/contacts/42?dispos
 <tr><td><code>date</code></td><td>string</td><td><strong>oui</strong></td><td>Date <code>YYYY-MM-DD</code> (non vide)</td></tr>
 <tr><td><code>amount</code></td><td>number|string</td><td><strong>oui</strong></td><td>Montant CHF. La virgule décimale est acceptée (<code>&quot;150,50&quot;</code> → <code>150.50</code>)</td></tr>
 <tr><td><code>label</code></td><td>string</td><td>non</td><td>Libellé</td></tr>
-<tr><td><code>receipt</code></td><td>string</td><td>non</td><td>Référence quittance</td></tr>
+<tr><td><code>comment</code></td><td>string</td><td>non</td><td>Commentaire libre</td></tr>
 <tr><td><code>wantsAttestation</code></td><td>boolean</td><td>non</td><td>Souhait d&#39;attestation de don (défaut <code>false</code>)</td></tr></tbody></table></div>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
 <p><code>201 Created</code> — objet écriture.</p>
@@ -752,7 +752,7 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/contacts/42?dispos
 <h3 id="put-apicomptaid"><code>PUT /api/compta/{id}</code><a class="anchor" href="#put-apicomptaid" aria-label="Lien d'ancrage">#</a></h3>
 <p>Modifier une écriture. Rôle : <code>canWrite()</code>. Seuls les champs présents sont appliqués. <strong><code>memberId</code> n&#39;est pas modifiable</strong> (ignoré).</p>
 <h4 id="corps-de-requête-json">Corps de requête (JSON)<a class="anchor" href="#corps-de-requête-json" aria-label="Lien d'ancrage">#</a></h4>
-<p>Champs modifiables : <code>typeId</code>, <code>date</code>, <code>amount</code>, <code>label</code>, <code>receipt</code>, <code>wantsAttestation</code> (tous facultatifs). Si <code>typeId</code> est fourni, il est validé (<code>422</code> si inconnu).</p>
+<p>Champs modifiables : <code>typeId</code>, <code>date</code>, <code>amount</code>, <code>label</code>, <code>comment</code>, <code>wantsAttestation</code> (tous facultatifs). Si <code>typeId</code> est fourni, il est validé (<code>422</code> si inconnu).</p>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
 <p>Objet écriture mis à jour.</p>
 <h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
