@@ -603,22 +603,19 @@ curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
 | `page` | int | Numéro de page (pagination) |
 | `limit` | int | Nombre de résultats par page (max 2000) |
 | `types` | bool | `1` = inclut les types de compta de chaque membre dans la réponse |
-| `offset` | int | Décalage (pagination) |
 
 **`GET /api/compta`**
 
 | Paramètre | Type | Description |
 |-----------|------|-------------|
-| `member` | int | Filtrer par ID membre |
-| `type` | int | Filtrer par ID type compta |
+| `memberId` | int | Filtrer par ID membre |
 | `year` | int | Filtrer par année |
 
 **`GET /api/suivi`**
 
 | Paramètre | Type | Description |
 |-----------|------|-------------|
-| `member` | int | Filtrer par ID membre |
-| `year` | int | Filtrer par année |
+| `memberId` | int | Filtrer par ID membre |
 
 ### 8.5 Exemples curl
 
@@ -626,8 +623,8 @@ curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
 BASE=https://membres.votre-domaine.ch
 COOKIES=cookies.txt
 
-# Liste des membres du segment 3, actifs
-curl -b $COOKIES "$BASE/api/contacts?group=3&active=1"
+# Liste des membres du segment 3
+curl -b $COOKIES "$BASE/api/contacts?segment=3"
 
 # Fiche complète du membre 42
 curl -b $COOKIES "$BASE/api/contacts/42"
@@ -639,7 +636,7 @@ curl -b $COOKIES -X PATCH \
   "$BASE/api/contacts/42"
 
 # Entrées compta du membre 42 pour 2024
-curl -b $COOKIES "$BASE/api/compta?member=42&year=2024"
+curl -b $COOKIES "$BASE/api/compta?memberId=42&year=2024"
 
 # Liste des segments
 curl -b $COOKIES "$BASE/api/segments"
