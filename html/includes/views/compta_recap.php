@@ -88,9 +88,11 @@ if ($_extended) {
 }
 ?>
 
+<?php if (empty($_pfEmbedded)): ?>
 <div class="page-title-row mb-3">
   <h1 class="page-title"><?= $GLOBAL['comptaRecapPageTitle'] ?></h1>
 </div>
+<?php endif ?>
 
 <?php if ($_recapOk !== null): ?>
 <div class="alert <?= $_recapFail > 0 ? 'alert-warning' : 'alert-success' ?> py-2" role="alert">

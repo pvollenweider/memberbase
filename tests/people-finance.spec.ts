@@ -1,8 +1,11 @@
 /**
- * E2E tests — "Membres & finances" hub, Phase 1 (#164)
+ * E2E tests — "Membres & finances" hub (#164)
  *
- * Phase 1: only the Membres tab is fully ported (reuses users_list.php
- * unchanged); Relances/Dons are stubs linking to their legacy pages.
+ * Phase 1: Membres tab fully ported (reuses users_list.php unchanged).
+ * Phase 2: Relances cotisation tab fully ported (reuses compta_recap.php,
+ * isolated via a closure scope since both real tabs' PHP now runs in the
+ * same request — Bootstrap tabs render every pane server-side).
+ * Dons & attestations remains a stub linking to its legacy page (phase 3).
  * Not yet linked from the navbar — reachable via ?view=peopleFinance.
  *
  * @copyright 2026 Philippe Vollenweider
@@ -20,13 +23,22 @@ test.describe('People/finance hub — Phase 1', () => {
     await expect(page.locator('#pf-tab-members')).toContainText('Dupont');
   });
 
-  test('Relances cotisation tab is a stub linking to the legacy page (manager)', async ({ page }) => {
+  test('Relances cotisation tab shows the full compta recap content (manager)', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance&tab=recap');
     await expect(page.locator('#pf-tab-recap-btn')).toHaveClass(/active/);
-    const link = page.locator('#pf-tab-recap a', { hasText: 'Ouvrir' });
-    await expect(link).toBeVisible();
-    await link.click();
-    await expect(page).toHaveURL(/view=comptaRecap/);
+    // No duplicate title inside the embedded pane (suppressed via $_pfEmbedded)
+    await expect(page.locator('#pf-tab-recap h1')).toHaveCount(0);
+    await expect(page.locator('#pf-tab-recap #recap-extended-toggle')).toBeVisible();
+  });
+
+  test('Membres and Relances tabs both execute in one request without variable collisions', async ({ page }) => {
+    // Regression guard for the closure-isolation fix: both panes' own content
+    // (which independently define similarly-named variables like $year) must
+    // render correctly side by side.
+    await page.goto('/index.php?view=peopleFinance&tab=recap');
+    await expect(page.locator('#pf-tab-members table.export')).toBeAttached();
+    await expect(page.locator('#pf-tab-members')).toContainText('Dupont');
+    await expect(page.locator('#pf-tab-recap')).toBeVisible();
   });
 
   test('Dons & attestations tab is a stub linking to the legacy page', async ({ page }) => {

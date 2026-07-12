@@ -17,6 +17,17 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $_pfTab = in_array($_REQUEST['tab'] ?? '', ['members', 'recap', 'dons'], true) ? $_REQUEST['tab'] : 'members';
 $_pfPane = fn(string $tab): string => $_pfTab === $tab ? ' show active' : '';
+
+// Each tab's content is an independently-written view file, never designed
+// to coexist in one request (Bootstrap tabs render every pane server-side,
+// only toggling CSS visibility client-side — so with 2+ real tabs, more
+// than one of these actually executes per request). A closure gives each
+// its own local scope so top-level variable names (both use $year!) can't
+// collide, while still exposing the handful of bootstrap globals they read.
+$_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $charset, $appSettings, $comptaTypes, $pdo) {
+    extract($vars);
+    require $file;
+};
 ?>
 
 <div class="page-title-row mb-3">
@@ -51,17 +62,12 @@ $_pfPane = fn(string $tab): string => $_pfTab === $tab ? ' show active' : '';
 
 <div class="tab-content">
   <div class="tab-pane fade<?= $_pfPane('members') ?>" id="pf-tab-members" role="tabpanel" aria-labelledby="pf-tab-members-btn">
-    <?php require __DIR__ . '/users_list.php'; ?>
+    <?php $_pfRequireIsolated(__DIR__ . '/users_list.php'); ?>
   </div>
 
   <?php if (isManager()): ?>
   <div class="tab-pane fade<?= $_pfPane('recap') ?>" id="pf-tab-recap" role="tabpanel" aria-labelledby="pf-tab-recap-btn">
-    <div class="text-center py-5">
-      <p class="text-muted mb-3"><?= $GLOBAL['peopleFinanceComingSoon'] ?></p>
-      <a href="<?= appUrl() ?>?view=comptaRecap" class="btn btn-primary btn-sm" hx-boost="false">
-        <?= $GLOBAL['peopleFinanceOpenLegacy'] ?>
-      </a>
-    </div>
+    <?php $_pfRequireIsolated(__DIR__ . '/compta_recap.php', ['_pfEmbedded' => true]); ?>
   </div>
   <?php endif ?>
 
