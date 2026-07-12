@@ -709,8 +709,8 @@ curl -c cookies.txt -X POST https://votre-domaine/index.php \
 
 # 2. Liste paginée — segment 12, page 2, 50 par page
 curl -b cookies.txt \
-  "https://votre-domaine/api/contacts?team=12&amp;page=2&amp;limit=50"</code></pre>
-            <p>La réponse enveloppe <code>{ "data": […], "meta": { "page": 2, "limit": 50, "total": 312 } }</code>. Filtres disponibles : <code>search</code>, <code>team</code>, <code>metagroup</code>, <code>types</code>, <code>active</code>. L'accès requiert une session authentifiée avec au minimum le rôle <strong>Lecture seule</strong>. Voir le <a href="api.html">guide API</a> pour la référence complète.</p>
+  "https://votre-domaine/api/contacts?segment=12&amp;page=2&amp;limit=50"</code></pre>
+            <p>La réponse enveloppe <code>{ "data": […], "meta": { "page": 2, "limit": 50, "total": 312 } }</code>. Filtres disponibles : <code>search</code>, <code>segment</code>, <code>combinedSegment</code>, <code>types</code>. L'accès requiert une session authentifiée avec au minimum le rôle <strong>Lecture seule</strong>. Voir le <a href="api.html">guide API</a> pour la référence complète.</p>
           </div>
         </div>
       </div>
