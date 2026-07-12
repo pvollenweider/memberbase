@@ -1,6 +1,6 @@
 # Référence API MemberBase
 
-API REST interne de l'application MemberBase (version **5.0.0**). Toutes les réponses sont en JSON UTF-8.
+API REST interne de l'application MemberBase (version **5.1.0**). Toutes les réponses sont en JSON UTF-8.
 
 > ⚠️ **v5.0.0 (breaking)** : les routes `/api/members` et `/api/groups` sont renommées `/api/contacts` et `/api/segments` (aucune rétrocompatibilité). Voir le [CHANGELOG](../CHANGELOG.md#500--2026-07-09).
 
