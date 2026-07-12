@@ -688,21 +688,18 @@ curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
 <tr><td><code>search</code></td><td>string</td><td>Recherche textuelle (nom, prénom, email)</td></tr>
 <tr><td><code>page</code></td><td>int</td><td>Numéro de page (pagination)</td></tr>
 <tr><td><code>limit</code></td><td>int</td><td>Nombre de résultats par page (max 2000)</td></tr>
-<tr><td><code>types</code></td><td>bool</td><td><code>1</code> = inclut les types de compta de chaque membre dans la réponse</td></tr>
-<tr><td><code>offset</code></td><td>int</td><td>Décalage (pagination)</td></tr></tbody></table></div>
+<tr><td><code>types</code></td><td>bool</td><td><code>1</code> = inclut les types de compta de chaque membre dans la réponse</td></tr></tbody></table></div>
 <p><strong><code>GET /api/compta</code></strong></p>
-<div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>member</code></td><td>int</td><td>Filtrer par ID membre</td></tr>
-<tr><td><code>type</code></td><td>int</td><td>Filtrer par ID type compta</td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>int</td><td>Filtrer par ID membre</td></tr>
 <tr><td><code>year</code></td><td>int</td><td>Filtrer par année</td></tr></tbody></table></div>
 <p><strong><code>GET /api/suivi</code></strong></p>
-<div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>member</code></td><td>int</td><td>Filtrer par ID membre</td></tr>
-<tr><td><code>year</code></td><td>int</td><td>Filtrer par année</td></tr></tbody></table></div>
+<div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>memberId</code></td><td>int</td><td>Filtrer par ID membre</td></tr></tbody></table></div>
 <h3 id="85-exemples-curl">8.5 Exemples curl<a class="anchor" href="#85-exemples-curl" aria-label="Lien d'ancrage">#</a></h3>
 <pre><code class="language-bash">BASE=https://membres.votre-domaine.ch
 COOKIES=cookies.txt
 
-# Liste des membres du segment 3, actifs
-curl -b $COOKIES &quot;$BASE/api/contacts?group=3&amp;active=1&quot;
+# Liste des membres du segment 3
+curl -b $COOKIES &quot;$BASE/api/contacts?segment=3&quot;
 
 # Fiche complète du membre 42
 curl -b $COOKIES &quot;$BASE/api/contacts/42&quot;
@@ -714,7 +711,7 @@ curl -b $COOKIES -X PATCH \
   &quot;$BASE/api/contacts/42&quot;
 
 # Entrées compta du membre 42 pour 2024
-curl -b $COOKIES &quot;$BASE/api/compta?member=42&amp;year=2024&quot;
+curl -b $COOKIES &quot;$BASE/api/compta?memberId=42&amp;year=2024&quot;
 
 # Liste des segments
 curl -b $COOKIES &quot;$BASE/api/segments&quot;
