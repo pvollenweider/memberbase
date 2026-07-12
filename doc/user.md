@@ -398,6 +398,24 @@ reprend les versements de l'année (hors types marqués « exclu des dons »), a
 tampon et la signature de l'organisation (images déposées sur le serveur par l'administrateur
 système — pas de réglage dans l'interface, voir la documentation d'administration).
 
+### Qui peut en bénéficier fiscalement
+
+Une attestation peut être émise aussi bien à un particulier qu'à une entreprise membre : les deux
+ont droit à une déduction fiscale sur leurs dons, sous condition que l'association bénéficiaire
+soit reconnue d'utilité publique et exonérée d'impôt sur le bénéfice.
+
+- **Personnes physiques** : déduction jusqu'à 20% du revenu net imposable (art. 33a LIFD au
+  niveau fédéral ; art. 37 al. 1 LIPP pour Genève).
+- **Personnes morales (entreprises)** : même droit à déduction, jusqu'à 20% du bénéfice net
+  (art. 59 al. 1 lit. c LIFD ; art. 13 al. 1 lit. c LIPM pour Genève).
+- **Cotisations exclues** : seuls les dons sont déductibles — les cotisations ne le sont pas
+  (d'où l'importance de marquer les types d'écriture correspondants comme « exclu des dons »,
+  voir [Réglages → Types compta](admin.md#types-de-compta) dans le guide administrateur).
+
+Les bases légales cantonales varient hors Genève ; se référer à la législation applicable dans le
+canton de l'organisation. Référence générale : Circulaire CSI du 18 janvier 2008 (modifiée
+novembre 2023) sur la déductibilité des libéralités.
+
 ### Télécharger le PDF
 
 - **Depuis la fiche d'un membre** : onglet **Compta**, choisir une année, menu **Attestation**.
