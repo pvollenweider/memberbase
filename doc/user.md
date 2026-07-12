@@ -514,6 +514,20 @@ réservée aux Managers et Admins), onglets **Segments**, **Catégories** et **S
 
 Dans l'onglet **Segments**, saisir le nom dans le champ prévu et valider.
 
+### Règles d'auto-assignation
+
+En bas de l'onglet **Segments**, il est possible de définir des règles du type « ajouter un
+membre au segment source l'ajoute aussi automatiquement au segment cible ». Exemple type :
+assigner un membre au segment « Comité » l'ajoute automatiquement au segment configuré comme
+« membres sans cotisation attendue » (Réglages généraux), pour qu'il n'apparaisse pas dans les
+relances de cotisation.
+
+Ces règles s'appliquent à l'assignation directe d'un membre à un segment (fiche membre, ajout
+en masse depuis la liste des membres) — elles ne sont **pas rétroactives** sur les membres déjà
+assignés auparavant, ne s'enchaînent pas (assigner via une règle ne déclenche pas une deuxième
+règle à la suite), et ne s'appliquent pas aux imports/copies de segment à segment (import CSV,
+copie de membres entre segments, fusion de fiches) — uniquement à l'assignation individuelle.
+
 ### Modifier un segment
 
 Cliquer le nom d'un segment ouvre sa page d'édition, qui permet de :

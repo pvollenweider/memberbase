@@ -43,6 +43,8 @@ if (isset($_REQUEST['action'])) {
         'updateSegment'           => 'segments',
         'assignSegment'        => 'segments',
         'unassignSegment'     => 'segments',
+        'addSegmentCascadeRule'    => 'segments',
+        'deleteSegmentCascadeRule' => 'segments',
         'updateCategoryOrder'  => 'combined_segments',
         'updateSegmentCategory'   => 'combined_segments',
         'updateCombinedSegmentMembers' => 'combined_segments',

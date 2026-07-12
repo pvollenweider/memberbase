@@ -377,4 +377,30 @@ if ($action == 'deleteSegment') {
     $user->lookupUser((int)$_REQUEST['id']);
     $user->unassignSegment((int)$_REQUEST['segmentId']);
     auditLog(db(), 'unassignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) ← segment: " . Segment::lookupName((int)$_REQUEST['segmentId']), (int)$_REQUEST['id']);
+
+} elseif ($action == 'addSegmentCascadeRule') {
+    $sourceId = (int)($_REQUEST['sourceSegmentId'] ?? 0);
+    $targetId = (int)($_REQUEST['targetSegmentId'] ?? 0);
+    if ($sourceId > 0 && $targetId > 0 && $sourceId !== $targetId) {
+        db()->prepare("INSERT IGNORE INTO segment_cascade_rule (source_segment_id, target_segment_id) VALUES (?, ?)")
+            ->execute([$sourceId, $targetId]);
+        auditLog(db(), 'addSegmentCascadeRule', "segment source: " . Segment::lookupName($sourceId) . " → segment cible: " . Segment::lookupName($targetId));
+    }
+    $_scrUrl = appUrl() . '?view=settings&tab=groups';
+    if ($isHtmx) { header('HX-Location: ' . $_scrUrl); } else { header('Location: ' . $_scrUrl); }
+    exit;
+
+} elseif ($action == 'deleteSegmentCascadeRule') {
+    $ruleId = (int)($_REQUEST['ruleId'] ?? 0);
+    if ($ruleId > 0) {
+        $_scrRow = db()->prepare("SELECT source_segment_id, target_segment_id FROM segment_cascade_rule WHERE id=?");
+        $_scrRow->execute([$ruleId]);
+        if ($_scrRule = $_scrRow->fetchObject()) {
+            auditLog(db(), 'deleteSegmentCascadeRule', "segment source: " . Segment::lookupName((int)$_scrRule->source_segment_id) . " → segment cible: " . Segment::lookupName((int)$_scrRule->target_segment_id));
+            db()->prepare("DELETE FROM segment_cascade_rule WHERE id=?")->execute([$ruleId]);
+        }
+    }
+    $_scrUrl = appUrl() . '?view=settings&tab=groups';
+    if ($isHtmx) { header('HX-Location: ' . $_scrUrl); } else { header('Location: ' . $_scrUrl); }
+    exit;
 }

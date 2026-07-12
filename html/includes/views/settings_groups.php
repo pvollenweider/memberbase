@@ -48,6 +48,19 @@ foreach ($allSegments as $_it) {
 }
 ksort($_importByCat);
 
+// Cascade rules: assigning source_segment_id also assigns target_segment_id (#154)
+try {
+    $cascadeRules = db()->query("
+        SELECT r.id, r.source_segment_id, r.target_segment_id, s.name AS source_name, t.name AS target_name
+        FROM segment_cascade_rule r
+        JOIN segment s ON s.id = r.source_segment_id
+        JOIN segment t ON t.id = r.target_segment_id
+        ORDER BY s.name, t.name
+    ")->fetchAll(PDO::FETCH_OBJ);
+} catch (PDOException $e) {
+    $cascadeRules = [];
+}
+
 // Emit undo toast sentinel if set by previous bulk action
 if (!isset($_SESSION)) session_start();
 if (!empty($_SESSION['segment_toast'])) {
@@ -436,4 +449,49 @@ function toggleHiddenSection(btn) {
   });
 })();
 </script>
+
+<?php if (count($allSegments) > 1): ?>
+<hr class="my-4">
+<p class="fw-semibold mb-1" style="font-size:0.85rem"><?= $GLOBAL['segmentCascadeRules'] ?></p>
+<p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['segmentCascadeRulesHint'] ?></p>
+
+<?php if ($cascadeRules): ?>
+<ul class="list-unstyled mb-3" style="font-size:0.82rem">
+  <?php foreach ($cascadeRules as $rule): ?>
+  <li class="d-flex align-items-center gap-2 mb-1">
+    <span><?= htmlspecialchars($rule->source_name, ENT_QUOTES, $charset) ?> <i class="fas fa-arrow-right mx-1 text-muted" aria-hidden="true"></i> <?= htmlspecialchars($rule->target_name, ENT_QUOTES, $charset) ?></span>
+    <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty>
+      <input type="hidden" name="action" value="deleteSegmentCascadeRule">
+      <input type="hidden" name="ruleId" value="<?= (int)$rule->id ?>">
+      <input type="hidden" name="view" value="settings">
+      <input type="hidden" name="tab" value="groups">
+      <button type="submit" class="btn btn-sm py-0 px-1 text-muted" title="<?= $GLOBAL['delete'] ?>">
+        <i class="fas fa-trash-can" style="font-size:0.7rem" aria-hidden="true"></i>
+      </button>
+    </form>
+  </li>
+  <?php endforeach ?>
+</ul>
+<?php endif ?>
+
+<form method="post" action="<?= appUrl() ?>" class="d-flex align-items-center gap-2 flex-wrap" data-no-dirty>
+  <input type="hidden" name="action" value="addSegmentCascadeRule">
+  <input type="hidden" name="view" value="settings">
+  <input type="hidden" name="tab" value="groups">
+  <select name="sourceSegmentId" class="form-select form-select-sm" style="max-width:220px" required data-no-dirty>
+    <option value=""><?= $GLOBAL['segmentCascadeSourceLabel'] ?></option>
+    <?php foreach ($allSegments as $seg): ?>
+    <option value="<?= (int)$seg->id ?>"><?= htmlentities($seg->name, ENT_COMPAT, $charset) ?></option>
+    <?php endforeach ?>
+  </select>
+  <i class="fas fa-arrow-right text-muted" aria-hidden="true"></i>
+  <select name="targetSegmentId" class="form-select form-select-sm" style="max-width:220px" required data-no-dirty>
+    <option value=""><?= $GLOBAL['segmentCascadeTargetLabel'] ?></option>
+    <?php foreach ($allSegments as $seg): ?>
+    <option value="<?= (int)$seg->id ?>"><?= htmlentities($seg->name, ENT_COMPAT, $charset) ?></option>
+    <?php endforeach ?>
+  </select>
+  <button type="submit" class="btn btn-outline-primary btn-sm"><?= $GLOBAL['addBtn'] ?></button>
+</form>
+<?php endif ?>
 

@@ -215,10 +215,22 @@ class Contact
         return $stmt->fetchColumn() ?: "id=$id";
     }
 
+    /**
+     * Assigns a segment, then applies any configured cascade rule
+     * (segment_cascade_rule, issue #154) — single-hop only, not recursive:
+     * assigning the cascade's target segment does not itself trigger further
+     * cascades in the same call.
+     */
     public function assignSegment(int $segmentId): void
     {
         db()->prepare("INSERT IGNORE INTO contact_segment (user_id, segment_id) VALUES (?, ?)")
             ->execute([$this->id, $segmentId]);
+        $targets = db()->prepare("SELECT target_segment_id FROM segment_cascade_rule WHERE source_segment_id=?");
+        $targets->execute([$segmentId]);
+        foreach ($targets->fetchAll(PDO::FETCH_COLUMN) as $targetId) {
+            db()->prepare("INSERT IGNORE INTO contact_segment (user_id, segment_id) VALUES (?, ?)")
+                ->execute([$this->id, (int)$targetId]);
+        }
     }
 
     public function unassignSegment(int $segmentId): void

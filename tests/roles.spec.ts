@@ -514,6 +514,14 @@ test.describe('Server — group action guards', () => {
     expect(r.status()).toBe(403);
     await api.dispose();
   });
+
+  test('user: action=addSegmentCascadeRule → 403 (manager-only)', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'user');
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'addSegmentCascadeRule', sourceSegmentId: '1', targetSegmentId: '2' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
