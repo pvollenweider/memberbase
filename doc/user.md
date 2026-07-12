@@ -55,6 +55,7 @@ En haut de chaque page, la barre bleue contient :
 
 | Élément | Contenu |
 |---|---|
+| **Tableau de bord** (icône jauge) | Vue d'ensemble : tâches urgentes, KPIs rapides, liens de documentation |
 | **Liste** (icône liste) | Liste des membres — page d'accueil |
 | **Compta** (icône pièces) | Journal comptable global (tous membres confondus) |
 | **Suivi** (icône livre) | Journal des notes de suivi (tous membres confondus) |
@@ -68,6 +69,18 @@ sont directement dans la barre, et la gestion des segments se fait dans les **R�
 
 Sur mobile, la barre se réduit à une rangée d'icônes ; la loupe ouvre un champ de recherche
 et l'icône utilisateur regroupe le profil.
+
+### Tableau de bord
+
+Accessible via l'icône jauge de la barre de navigation (`?view=dashboard`) — n'est **pas** la page
+d'accueil par défaut, qui reste la liste des membres. Il regroupe :
+
+- les **tâches en retard ou à échéance proche** (5 maximum), avec un bouton **Envoyer le rappel**
+  directement sur les tâches de relance cotisation ;
+- deux **KPI cliquables** : cotisations impayées de l'année en cours (renvoie vers la liste
+  filtrée), et migrations de base en attente (visible uniquement pour les admins) ;
+- des **liens vers la documentation** — le guide utilisateur pour tous les rôles connectés, le
+  guide administrateur uniquement pour les rôles Manager et Admin.
 
 ### Navigation sans rechargement (htmx)
 
