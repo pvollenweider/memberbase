@@ -672,6 +672,17 @@ donateurs à relancer…). Leur gestion se trouve dans les <strong>Réglages</st
 réservée aux Managers et Admins), onglets <strong>Segments</strong>, <strong>Catégories</strong> et <strong>Segments combinés</strong>.</p>
 <h3 id="créer-un-segment">Créer un segment<a class="anchor" href="#créer-un-segment" aria-label="Lien d'ancrage">#</a></h3>
 <p>Dans l&#39;onglet <strong>Segments</strong>, saisir le nom dans le champ prévu et valider.</p>
+<h3 id="règles-dauto-assignation">Règles d&#39;auto-assignation<a class="anchor" href="#règles-dauto-assignation" aria-label="Lien d'ancrage">#</a></h3>
+<p>En bas de l&#39;onglet <strong>Segments</strong>, il est possible de définir des règles du type « ajouter un
+membre au segment source l&#39;ajoute aussi automatiquement au segment cible ». Exemple type :
+assigner un membre au segment « Comité » l&#39;ajoute automatiquement au segment configuré comme
+« membres sans cotisation attendue » (Réglages généraux), pour qu&#39;il n&#39;apparaisse pas dans les
+relances de cotisation.</p>
+<p>Ces règles s&#39;appliquent à l&#39;assignation directe d&#39;un membre à un segment (fiche membre, ajout
+en masse depuis la liste des membres) — elles ne sont <strong>pas rétroactives</strong> sur les membres déjà
+assignés auparavant, ne s&#39;enchaînent pas (assigner via une règle ne déclenche pas une deuxième
+règle à la suite), et ne s&#39;appliquent pas aux imports/copies de segment à segment (import CSV,
+copie de membres entre segments, fusion de fiches) — uniquement à l&#39;assignation individuelle.</p>
 <h3 id="modifier-un-segment">Modifier un segment<a class="anchor" href="#modifier-un-segment" aria-label="Lien d'ancrage">#</a></h3>
 <p>Cliquer le nom d&#39;un segment ouvre sa page d&#39;édition, qui permet de :</p>
 <ul>
