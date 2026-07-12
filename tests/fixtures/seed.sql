@@ -57,7 +57,7 @@ VALUES
 -- User 2: paid 2025 and 2026 cotisation (active member, loyal) + an Institution donation + a Don, both wanting attestation
 -- User 4: paid 2025 cotisation only (lapsed for 2026) + a Don (no attestation requested)
 -- User 5: paid 2025 cotisation only (lapsed for 2026, no email — skip case)
-INSERT INTO `compta` (`id`, `user_id`, `date`, `libele`, `sum`, `quittance`, `type_id`, `wants_attestation`, `cotisation_year`)
+INSERT INTO `compta` (`id`, `user_id`, `date`, `libele`, `sum`, `comment`, `type_id`, `wants_attestation`, `cotisation_year`)
 VALUES
   (1,  1, NOW(), 'Cotisation annuelle',        '50',  'Q-001', 1, 0, 2026),
   (2,  2, NOW(), 'Cotisation annuelle 2025',   '50',  'Q-002', 1, 0, 2025),

@@ -37,7 +37,7 @@ function entryToArray(Compta $c): array
         'date'             => $c->getDate() ? date('Y-m-d', (int)$c->getDate()) : null,
         'label'            => $c->getLibele() ?: null,
         'amount'           => $c->getSum() !== null ? (float)$c->getSum() : null,
-        'receipt'          => $c->getQuittance() ?: null,
+        'comment'          => $c->getComment() ?: null,
         'wantsAttestation' => (bool)$c->getWantsAttestation(),
     ];
 }
@@ -55,7 +55,7 @@ function applyFields(Compta $c, array $body): void
 {
     if (array_key_exists('typeId',  $body)) $c->setTypeId((int)$body['typeId']);
     if (array_key_exists('label',   $body)) $c->setlibele(unquote((string)$body['label']));
-    if (array_key_exists('receipt', $body)) $c->setQuittance((string)$body['receipt']);
+    if (array_key_exists('comment', $body)) $c->setComment((string)$body['comment']);
     if (array_key_exists('wantsAttestation', $body)) {
         $c->setWantsAttestation((bool)$body['wantsAttestation']);
     }
@@ -95,7 +95,7 @@ function handleList(): void
     }
 
     $stmt = db()->prepare(
-        "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation
+        "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.`comment`, c.wants_attestation
          FROM compta c
          $where
          ORDER BY c.date DESC, c.id DESC"
@@ -109,7 +109,7 @@ function handleList(): void
         'date'             => $r->date ? date('Y-m-d', strtotime($r->date)) : null,
         'label'            => $r->libele    ?: null,
         'amount'           => $r->sum !== null ? (float)$r->sum : null,
-        'receipt'          => $r->quittance ?: null,
+        'comment'          => $r->comment ?: null,
         'wantsAttestation' => (bool)$r->wants_attestation,
     ], $stmt->fetchAll());
 
@@ -149,7 +149,7 @@ function handleCreate(): void
     $c = new Compta();
     $c->setUserId($memberId);
     $c->setlibele('');
-    $c->setQuittance('');
+    $c->setComment('');
     $c->setSum(0);
     $c->setDate(0);
     $c->setWantsAttestation(false);

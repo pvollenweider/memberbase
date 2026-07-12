@@ -395,7 +395,7 @@ curl -b cookies.txt "https://votre-domaine/api/contacts/42/groups"
       "date": "2026-01-15",
       "label": "Cotisation 2026",
       "amount": 50.0,
-      "quittance": null,
+      "comment": null,
       "wantsAttestation": false,
       "notifiedAt": null,
       "cotisationYear": 2026,
@@ -644,14 +644,14 @@ Ressource : `html/api/compta.php`. Entité SQL : `compta`.
       "date": "2024-05-10",
       "label": "Don printemps 2024",
       "amount": 150.0,
-      "receipt": "QR-2024-0301",
+      "comment": "QR-2024-0301",
       "wantsAttestation": true
     }
   ]
 }
 ```
 
-`amount` est un nombre (float) ou `null` ; `label`/`receipt` sont `null` si vides.
+`amount` est un nombre (float) ou `null` ; `label`/`comment` sont `null` si vides.
 
 #### Erreurs
 
@@ -686,7 +686,7 @@ Créer une écriture. Rôle : `canWrite()`.
 | `date` | string | **oui** | Date `YYYY-MM-DD` (non vide) |
 | `amount` | number\|string | **oui** | Montant CHF. La virgule décimale est acceptée (`"150,50"` → `150.50`) |
 | `label` | string | non | Libellé |
-| `receipt` | string | non | Référence quittance |
+| `comment` | string | non | Commentaire libre |
 | `wantsAttestation` | boolean | non | Souhait d'attestation de don (défaut `false`) |
 
 #### Réponse
@@ -713,7 +713,7 @@ Modifier une écriture. Rôle : `canWrite()`. Seuls les champs présents sont ap
 
 #### Corps de requête (JSON)
 
-Champs modifiables : `typeId`, `date`, `amount`, `label`, `receipt`, `wantsAttestation` (tous facultatifs). Si `typeId` est fourni, il est validé (`422` si inconnu).
+Champs modifiables : `typeId`, `date`, `amount`, `label`, `comment`, `wantsAttestation` (tous facultatifs). Si `typeId` est fourni, il est validé (`422` si inconnu).
 
 #### Réponse
 

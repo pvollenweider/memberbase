@@ -21,7 +21,7 @@ if ($action == 'addCompta') {
     $compta->date = formatedDateToTimeStamp($_REQUEST['date']);
     $compta->libele = unquote($_REQUEST['libele']);
     $compta->sum = $_rawSum;
-    $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);
+    $compta->comment = str_replace(',','.',$_REQUEST['comment']);
     $compta->setCotisationYear($_REQUEST['cotisation_year'] ?? null);
     // Auto-fill libele for cotisation entries when user left it blank.
     // Prefer the type's default_libele (same source as the client-side
@@ -77,7 +77,7 @@ if ($action == 'addCompta') {
         'date'           => timeStampToformatedDate((int)$compta->date),
         'libele'         => (string)$compta->libele,
         'sum'            => number_format((float)$compta->sum, 2, '.', ''),
-        'quittance'      => (string)$compta->quittance,
+        'comment'        => (string)$compta->comment,
         'attestation'    => $compta->wants_attestation ? 'oui' : 'non',
         'cotisation_year'=> (string)($compta->cotisation_year ?? ''),
     ];
@@ -86,7 +86,7 @@ if ($action == 'addCompta') {
     $compta->date = $date;
     $compta->libele = unquote($_REQUEST['libele']);
     $compta->sum = $_rawSum2;
-    $compta->quittance = str_replace(',','.',$_REQUEST['quittance']);
+    $compta->comment = str_replace(',','.',$_REQUEST['comment']);
     $compta->setTypeId((int)$_REQUEST['type_id']);
     $compta->setWantsAttestation(isset($_REQUEST['wants_attestation']));
     $compta->setCotisationYear($_REQUEST['cotisation_year'] ?? null);
@@ -104,7 +104,7 @@ if ($action == 'addCompta') {
         'date'           => $mydate,
         'libele'         => (string)$compta->libele,
         'sum'            => number_format((float)$compta->sum, 2, '.', ''),
-        'quittance'      => (string)$compta->quittance,
+        'comment'        => (string)$compta->comment,
         'attestation'    => isset($_REQUEST['wants_attestation']) ? 'oui' : 'non',
         'cotisation_year'=> (string)($compta->cotisation_year ?? ''),
     ];

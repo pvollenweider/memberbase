@@ -452,7 +452,7 @@ function handleGetCompta(int $id): void
     if (!$chk->fetchColumn()) apiError(404, 'Member not found');
 
     $stmt = db()->prepare(
-        "SELECT c.id, c.date, c.libele, c.sum, c.quittance,
+        "SELECT c.id, c.date, c.libele, c.sum, c.`comment`,
                 c.wants_attestation, c.notified_at, c.cotisation_year,
                 ct.id AS type_id, ct.label AS type_label, ct.color AS type_color,
                 COALESCE(ct.is_cotisation, 0) AS is_cotisation
@@ -468,7 +468,7 @@ function handleGetCompta(int $id): void
         'date'            => $r->date ? date('Y-m-d', strtotime($r->date)) : null,
         'label'           => $r->libele ?: null,
         'amount'          => $r->sum !== null ? (float)$r->sum : null,
-        'quittance'       => $r->quittance ?: null,
+        'comment'         => $r->comment ?: null,
         'wantsAttestation'=> (bool)$r->wants_attestation,
         'notifiedAt'      => $r->notified_at ?: null,
         'cotisationYear'  => $r->cotisation_year !== null ? (int)$r->cotisation_year : null,

@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS `compta` (
   `date`              datetime     DEFAULT NULL,
   `libele`            varchar(255) NOT NULL DEFAULT '',
   `sum`               decimal(10,2) NOT NULL DEFAULT 0.00,
-  `quittance`         varchar(64)  NOT NULL DEFAULT '',
+  `comment`           varchar(64)  NOT NULL DEFAULT '',
   `type_id`           int(11)      DEFAULT NULL,
   `wants_attestation` tinyint(1)   NOT NULL DEFAULT 0,
   `notified_at`       datetime     DEFAULT NULL,

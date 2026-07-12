@@ -144,7 +144,7 @@ fuseau PHP forcé à `Europe/Zurich`).
 | `combined_segment` | Segments combinés / catégories (**anciennement `metagroup`**, renommée v5.1.0) : `name`, `is_filter`, `sort_order` | `id` AUTO_INCREMENT (depuis migration 0022 ; via `maxval` avant) |
 | `combined_segment_member` | Appartenance segment → segment combiné (**anciennement auto-jointure sur `metagroup`**, table de jointure depuis migration 0022) : `combined_segment_id`, `segment_id` — FK réelles (migration 0023) | PK `(combined_segment_id, segment_id)` |
 | `compta_type`     | Types d'écriture : `label`, `color`, **`default_libele`** (libellé pré-rempli à la saisie, migration 0021), `sort_order`, `is_cotisation`, `is_excluded_from_donation`, `is_institutional` | `id` AUTO_INCREMENT |
-| `compta`          | Écritures : `user_id`, `date` (`DATETIME`, `NULL` = non renseignée/invalide), `libele`, `sum` (**decimal(10,2)**, CHF), `quittance`, `type_id`, `wants_attestation`, **`notified_at`** (dernier envoi du récapitulatif email, `NULL` = non notifiée), **`cotisation_year`** (année de cotisation si différente de l'année de paiement) — FK réelles vers `contact`/`compta_type` (migration 0023) | `id` AUTO_INCREMENT |
+| `compta`          | Écritures : `user_id`, `date` (`DATETIME`, `NULL` = non renseignée/invalide), `libele`, `sum` (**decimal(10,2)**, CHF), `comment` (**anciennement `quittance`**, renommée migration 0031), `type_id`, `wants_attestation`, **`notified_at`** (dernier envoi du récapitulatif email, `NULL` = non notifiée), **`cotisation_year`** (année de cotisation si différente de l'année de paiement) — FK réelles vers `contact`/`compta_type` (migration 0023) | `id` AUTO_INCREMENT |
 | `maxval`          | Compteur de séquence manuel (clé/valeur) — n'est plus utilisé pour `combined_segment.id` depuis la migration 0022 | PK `parameter`         |
 | `app_settings`    | Configuration organisation (clé/valeur : `org_name`, `membre_segment` — anciennement `membre_team`, renommée v5.1.0 —, `archive_id`, `org_ide`, `org_purpose`, `org_tax_status`, `smtp_*`, etc. — `value` en `TEXT` depuis la migration 0004 pour les champs multi-lignes) | PK `key`               |
 | `app_users`       | Comptes applicatifs : `password_hash` (bcrypt), `role` enum, **`locale`** (langue d'interface, défaut `fr`), `force_password_change`, `is_active`, `last_login`, `reset_token`, `token_expires_at`, `email` | `id` AUTO_INCREMENT |
@@ -231,7 +231,7 @@ segments combinés (renommées v5.1.0, anciennement `isMemberOfMetagroup()`/
 ### `Compta` (`compta_class.php`)
 
 `lookupCompta()`, `save()`, `remove()`, getters/setters (date, `libele`, `sum`,
-`quittance`, `type_id`, `wants_attestation`, `notified_at`, `cotisation_year`).
+`comment`, `type_id`, `wants_attestation`, `notified_at`, `cotisation_year`).
 
 `setCotisationYear()` valide la valeur côté serveur : rejette (met `null`) toute
 année hors de la plage `[année courante - 50, année courante + 1]`, et coerce
@@ -480,8 +480,8 @@ Les attestations fiscales de dons sont générées **côté serveur avec `pdftk`
 Le gabarit AcroForm est `html/assets/attestation.pdf`. Ces deux points d'entrée
 appellent `requireLogin()` mais ne sont **pas** des vues htmx (téléchargements directs).
 
-> Il n'existe pas de génération « quittance Word / MHTML » dans le code : `quittance`
-> est un simple champ texte de la table `compta`.
+> Il n'existe pas de génération « quittance Word / MHTML » dans le code : `compta.comment`
+> (anciennement `quittance`) est un simple champ texte libre.
 
 ---
 

@@ -320,7 +320,7 @@ foreach ($comptaTypes as $_ctId => $_ctObj) {
              inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" title="<?= $GLOBAL['numericAmountHint'] ?>"
              required oninvalid="this.setCustomValidity(this.validity.valueMissing ? <?= json_encode($GLOBAL['sumRequired']) ?> : <?= json_encode($GLOBAL['numericAmountHint']) ?>)"
              oninput="this.setCustomValidity('')"/></td>
-    <td class="d-none d-sm-table-cell"><input type="text" name="quittance" size="10" class="form-control" maxlength="64"/></td>
+    <td class="d-none d-sm-table-cell"><input type="text" name="comment" size="10" class="form-control" maxlength="64"/></td>
     <td class="d-none d-sm-table-cell text-center"><input type="checkbox" name="wants_attestation" value="1" /></td>
     <td class="d-none d-sm-table-cell text-center">
       <?php if ($user->getEmail()): ?>
@@ -354,7 +354,7 @@ if ($filterTypeId > 0) {
 $_zeroStmt = db()->prepare("SELECT COUNT(*) " . $_baseWhere . " AND c.sum = 0");
 $_zeroStmt->execute($_baseParams);
 $_zeroCount = (int)$_zeroStmt->fetchColumn();
-$_selectCols = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.quittance, c.wants_attestation, c.cotisation_year, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl, COALESCE(ct.is_cotisation,0) AS ct_coti ";
+$_selectCols = "SELECT c.id, c.user_id, c.type_id, c.date, c.libele, c.sum, c.`comment`, c.wants_attestation, c.cotisation_year, ct.label AS ct_label, ct.color AS ct_color, COALESCE(ct.is_excluded_from_donation,0) AS ct_excl, COALESCE(ct.is_cotisation,0) AS ct_coti ";
 $query  = $_selectCols . $_baseWhere;
 $query2 = $_selectCols . $_baseWhere;
 if (!$_showZero) {
@@ -371,7 +371,7 @@ while ($row = $stmt->fetchObject()) {
     $date = $row->date ? strtotime($row->date) : 0;
     $libele = $row->libele;
     $sum = (float)($row->sum ?? 0);
-    $quittance = $row->quittance;
+    $comment = $row->comment;
     $total += $sum;
     $ctColor = $row->ct_color ?? '';
     static $bgVarMap = [
@@ -410,7 +410,7 @@ while ($row = $stmt->fetchObject()) {
         <td><?=timeStampToformatedDate($date)?></td>
         <td><?=htmlentities($libele,ENT_COMPAT,$charset)?></td>
         <td style="text-align:right;"><?=number_format($sum,2,'.','\'')?></td>
-        <td class="d-none d-sm-table-cell"><?= htmlspecialchars($quittance, ENT_QUOTES, $charset) ?></td>
+        <td class="d-none d-sm-table-cell"><?= htmlspecialchars($comment, ENT_QUOTES, $charset) ?></td>
         <td class="d-none d-sm-table-cell text-center">
             <?php if ($row->wants_attestation): ?>
                 <i class="fas fa-check text-success" aria-label="<?= $GLOBAL['wantsAttestation'] ?>" title="<?= $GLOBAL['wantsAttestation'] ?>"></i>

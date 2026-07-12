@@ -58,7 +58,7 @@ Avec le temps, l'application a été refactorisée pour devenir aussi génériqu
 
 ### Compta
 
-- Saisie et modification d'entrées comptables par membre (type, date, libellé, somme, quittance)
+- Saisie et modification d'entrées comptables par membre (type, date, libellé, somme, commentaire)
 - Vue historique par membre avec filtre par année
 - **Flag "souhaite une attestation de don"** par entrée: checkbox directement dans la liste, visible dans la vue résumé
 - Types de compta configurables (UI d'administration): label, couleur Bootstrap, ordre
@@ -66,7 +66,7 @@ Avec le temps, l'application a été refactorisée pour devenir aussi génériqu
   - Flag **exclu des dons** (exclu des vues résumé et attestations)
   - Archivage d'un type (masqué à la saisie, visible sur les lignes existantes)
 - Coloration des lignes par type dans toutes les vues compta
-- Génération de quittance de don (Word/MHTML téléchargeable)
+- Génération d'attestation de don (PDF téléchargeable, gabarit AcroForm)
 
 ### Vues d'activité
 
@@ -170,7 +170,6 @@ Toutes les réponses sont en JSON UTF-8. Les erreurs retournent `{"error": "mess
 - **Backend**: PHP 8.2, PDO/MySQL (MariaDB)
 - **Frontend**: Bootstrap 5.3.8, htmx 2.0.4, Alpine.js 3, DataTables 1.13, jQuery 3, Font Awesome 6, Chart.js, moment.js 2.30 — tous auto-hébergés (zéro CDN)
 - **PDF**: pdftk (fill AcroForm) sur le serveur
-- **Génération documents**: MHTML (quittances Word)
 
 ## Structure
 

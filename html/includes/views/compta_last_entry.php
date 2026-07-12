@@ -150,7 +150,7 @@ if ($addMem != -1) {
 </thead>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-$query = "SELECT DISTINCT u.firstname, u.lastname, u.society, u.id, c.type_id, c.date, c.libele, c.id AS comptaid, c.sum, c.quittance, c.user_id, u.address, u.npa, u.email, u.tel, u.portable, ct.label AS ct_label, ct.color AS ct_color FROM contact u JOIN compta c ON u.id = c.user_id LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE u.status=1";
+$query = "SELECT DISTINCT u.firstname, u.lastname, u.society, u.id, c.type_id, c.date, c.libele, c.id AS comptaid, c.sum, c.`comment`, c.user_id, u.address, u.npa, u.email, u.tel, u.portable, ct.label AS ct_label, ct.color AS ct_color FROM contact u JOIN compta c ON u.id = c.user_id LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE u.status=1";
 if ($filterTypeId > 0) {
     $query .= " AND c.type_id = " . (int)$filterTypeId;
 }
@@ -171,7 +171,7 @@ while ($row = $stmt->fetchObject()) {
     $society = $row->society;
     $libele = $row->libele;
     $sum = (float) $row->sum;
-    $quittance = $row->quittance;
+    $comment = $row->comment;
     $userId = $row->user_id;
     $user = new Contact();
     $user->lookupUser($userId);
@@ -220,7 +220,7 @@ while ($row = $stmt->fetchObject()) {
             title="<?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>"><?= htmlentities(mb_strtoupper(mb_substr($row->ct_label ?? '', 0, 3)), ENT_COMPAT, $charset) ?></span></td>
         <td><?= htmlentities($libele, ENT_COMPAT, $charset) ?></td>
         <td style="text-align:right;"><?= number_format($sum, 2, '.', '\'') ?></td>
-        <td><?= htmlentities($quittance, ENT_COMPAT, $charset) ?></td>
+        <td><?= htmlentities($comment, ENT_COMPAT, $charset) ?></td>
         <td><?= timeStampToformatedDate($user->getCreationDate()) ?></td>
     </tr>
     <?php

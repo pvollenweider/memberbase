@@ -86,10 +86,10 @@ $_cotiTypeIdsEdit = array_values(array_map('intval',
       </div>
 
       <div class="row mb-2 align-items-center">
-        <label for="quittance" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end text-sm-end" style="font-size:0.82rem"><?= $GLOBAL['quittance'] ?></label>
+        <label for="comment" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end text-sm-end" style="font-size:0.82rem"><?= $GLOBAL['quittance'] ?></label>
         <div class="col-8 col-sm-9">
-          <input type="text" class="form-control form-control-sm" id="quittance" name="quittance"
-                 value="<?= htmlentities($compta->getQuittance(), ENT_COMPAT, $charset) ?>">
+          <input type="text" class="form-control form-control-sm" id="comment" name="comment"
+                 value="<?= htmlentities($compta->getComment(), ENT_COMPAT, $charset) ?>">
         </div>
       </div>
 

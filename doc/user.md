@@ -304,7 +304,7 @@ Le formulaire est en haut du tableau :
    sélectionnée est ajoutée (ex. « Cotisation 2026 ») et suit les changements d'année.
    Dès que vous modifiez le libellé à la main, il n'est plus écrasé.
 5. **Somme** — montant en CHF (ex. `50` ou `12.50`).
-6. **Quittance** — numéro de quittance / référence.
+6. **Commentaire** — texte libre (ex. référence de paiement).
 7. **Attestation** (case à cocher) — cocher si le donateur souhaite une attestation fiscale.
 8. Cliquer **Ajouter**.
 

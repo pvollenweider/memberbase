@@ -15,7 +15,7 @@ class Compta
     public $date;
     public $libele;
     public $sum;
-    public $quittance;
+    public $comment;
     public $wants_attestation = 0;
     public $cotisation_year   = null;
 
@@ -25,7 +25,7 @@ class Compta
 
     public function lookupCompta(int $id): void
     {
-        $stmt = db()->prepare("SELECT id,user_id,type_id,date,libele,sum,quittance,wants_attestation,cotisation_year FROM compta WHERE id=?");
+        $stmt = db()->prepare("SELECT id,user_id,type_id,date,libele,sum,`comment`,wants_attestation,cotisation_year FROM compta WHERE id=?");
         $stmt->execute([$id]);
         $row = $stmt->fetchObject();
         if ($row) {
@@ -35,7 +35,7 @@ class Compta
             $this->date              = $row->date ? strtotime($row->date) : 0;
             $this->libele            = $row->libele;
             $this->sum               = $row->sum;
-            $this->quittance         = $row->quittance;
+            $this->comment           = $row->comment;
             $this->wants_attestation = (int)$row->wants_attestation;
             $this->cotisation_year   = $row->cotisation_year !== null ? (int)$row->cotisation_year : null;
         }
@@ -47,7 +47,7 @@ class Compta
     public function getDate()      { return $this->date; }
     public function getLibele()    { return $this->libele; }
     public function getSum()       { return $this->sum; }
-    public function getQuittance()        { return $this->quittance; }
+    public function getComment()          { return $this->comment; }
     public function getWantsAttestation() { return $this->wants_attestation; }
     public function getCotisationYear()   { return $this->cotisation_year; }
 
@@ -56,7 +56,7 @@ class Compta
     public function setDate($v)      { $this->date = $v; }
     public function setlibele($v)    { $this->libele = $v; }
     public function setSum($v)       { $this->sum = $v; }
-    public function setQuittance($v)       { $this->quittance = $v; }
+    public function setComment($v)         { $this->comment = $v; }
     public function setWantsAttestation($v){ $this->wants_attestation = $v ? 1 : 0; }
     public function setCotisationYear($v): void
     {
@@ -81,17 +81,17 @@ class Compta
         $dateVal = ((int)$this->date) > 0 ? date('Y-m-d H:i:s', (int)$this->date) : null;
         if ($this->id) {
             db()->prepare(
-                "UPDATE compta SET user_id=?,type_id=?,date=?,libele=?,sum=?,quittance=?,wants_attestation=?,cotisation_year=? WHERE id=?"
+                "UPDATE compta SET user_id=?,type_id=?,date=?,libele=?,sum=?,`comment`=?,wants_attestation=?,cotisation_year=? WHERE id=?"
             )->execute([
                 $this->userId, $this->type_id, $dateVal, $this->libele,
-                $this->sum, $this->quittance, $this->wants_attestation, $this->cotisation_year, $this->id,
+                $this->sum, $this->comment, $this->wants_attestation, $this->cotisation_year, $this->id,
             ]);
         } else {
             db()->prepare(
-                "INSERT INTO compta (user_id,type_id,date,libele,sum,quittance,wants_attestation,cotisation_year) VALUES (?,?,?,?,?,?,?,?)"
+                "INSERT INTO compta (user_id,type_id,date,libele,sum,`comment`,wants_attestation,cotisation_year) VALUES (?,?,?,?,?,?,?,?)"
             )->execute([
                 $this->userId, $this->type_id, $dateVal,
-                $this->libele, $this->sum, $this->quittance, $this->wants_attestation, $this->cotisation_year,
+                $this->libele, $this->sum, $this->comment, $this->wants_attestation, $this->cotisation_year,
             ]);
         }
     }
