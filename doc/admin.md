@@ -993,6 +993,30 @@ Handler `html/includes/actions/attestation_email.php`, lib `html/includes/lib/at
 - **Régénération depuis le journal** : `attestation_don.php?emailid=N` relit `email_log` (user_id, sujet pour l'année, `created_at` pour la date « Lieu / Date » du PDF), régénère et stampe le PDF avec la date d'envoi d'origine plutôt que la date du jour. Lien affiché dans `email_detail.php` pour toute entrée `tpl_attestation_don`.
 - **BCC** : voir §14.1.
 
+---
+
+## 15. Tâches planifiées (cron)
+
+Point d'entrée : `html/tools/cron.php` (CLI uniquement, `Require all denied` en HTTP comme `migrate.php`/`backup.sh` — voir `html/tools/.htaccess`).
+
+### Installation
+
+Ajouter au crontab système (une exécution quotidienne suffit) :
+
+```bash
+0 7 * * * php /chemin/vers/html/tools/cron.php >> /var/log/memberbase-cron.log 2>&1
+```
+
+`php html/tools/cron.php --help` affiche l'usage. Le script exécute toutes les tâches à chaque appel (pas de sous-commandes pour l'instant) et retourne un code de sortie non nul si un envoi échoue, pour permettre une alerte crontab standard (`MAILTO=` ou supervision externe).
+
+### Tâches planifiées existantes
+
+**Digest de tâches (voir §8 « Tâches » du guide utilisateur, issue #150)** — envoie un e-mail récapitulatif des tâches ouvertes en retard ou à échéance dans les 3 prochains jours (`SuiviTask::dueSoonOrOverdue()`), à l'adresse configurée dans **Réglages → Email → `smtp_reply_to`**. Si ce champ est vide, la tâche est silencieusement ignorée (pas d'erreur — c'est une fonctionnalité opt-in via la config SMTP déjà existante, pas un nouveau réglage dédié). Template éditable dans **Réglages → Email → Templates** (`tpl_task_digest`). Journalisé dans `audit_log` (action `cronTaskDigest`) et `email_log`.
+
+### Sans accès cron (hébergement mutualisé, etc.)
+
+Le script reste utilisable en exécution manuelle ponctuelle (`php html/tools/cron.php`) mais perd son intérêt (« planifié ») sans un déclencheur externe. Pas d'alternative web (« bouton Réglages ») pour l'instant — contrairement aux migrations (Réglages → Santé), le digest de tâches n'a de sens que déclenché automatiquement.
+
 ## Réglages de l'application
 
 ### Général

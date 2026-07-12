@@ -1060,6 +1060,7 @@ $GLOBAL['comptaBulkErrConfirm']      = "Please check the confirmation checkbox."
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Payment receipt confirmation";
 $GLOBAL['emailTemplateComptaRecap']    = "Payment summary";
+$GLOBAL['emailTemplateTaskDigest']     = "Task digest (team)";
 $GLOBAL['resetToDefault']              = "Reset to default";
 $GLOBAL['resetToDefaultConfirm']       = "Reset this template to the built-in default? Your changes will be lost.";
 $GLOBAL['sendReceiptLabel']            = "Send a confirmation to the member";

@@ -480,6 +480,18 @@ function mbDefaultTemplates(): array
 <p>Pour toute question ou pour nous signaler une erreur : <a href="mailto:{{contact_email}}" style="color:#1a5276">{{contact_email}}</a></p>
 <p style="margin-top:24px">Nous vous remercions chaleureusement pour votre soutien.<br><br>Cordialement,<br><strong>{{org_name}}</strong></p>', '{{org_name}}'),
         ],
+        // {{count}}      = number of tasks in the digest
+        // {{tasks_text}} = plain-text block, one line per task (due date · title · member)
+        // {{tasks_html}} = HTML <table> of tasks (built by tools/cron.php)
+        // Sent to app_settings.smtp_reply_to only — not a per-member template
+        // (no {{greeting}}/{{contact_email}} member-facing vars).
+        'tpl_task_digest' => [
+            'subject'   => '{{count}} tâche(s) à traiter — {{org_name}}',
+            'body_text' => "Tâches ouvertes en retard ou à échéance proche ({{org_name}}) :\n\n{{tasks_text}}",
+            'body_html' => $htmlWrap(
+                '<p>Tâches ouvertes en retard ou à échéance proche :</p>
+{{tasks_html}}', '{{org_name}}'),
+        ],
     ];
 }
 

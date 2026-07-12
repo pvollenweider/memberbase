@@ -235,7 +235,7 @@ if ($action == 'saveSettings') {
     $subject  = trim($_REQUEST['tpl_subject']   ?? '');
     $body     = trim($_REQUEST['tpl_body']      ?? '');
     $bodyHtml = trim($_REQUEST['tpl_body_html'] ?? '');
-    $allowed  = ['tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don', 'tpl_compta_recap'];
+    $allowed  = ['tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don', 'tpl_compta_recap', 'tpl_task_digest'];
     if (in_array($key, $allowed, true) && $subject !== '' && $body !== '') {
         try {
             db()->prepare(
@@ -260,7 +260,7 @@ if ($action == 'saveSettings') {
 
 } elseif ($action === 'resetEmailTemplate') {
     $key     = trim($_REQUEST['tpl_key'] ?? '');
-    $allowed = ['tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don', 'tpl_compta_recap'];
+    $allowed = ['tpl_payment_receipt', 'tpl_cotisation_reminder', 'tpl_attestation_don', 'tpl_compta_recap', 'tpl_task_digest'];
     if (in_array($key, $allowed, true)) {
         db()->prepare("DELETE FROM email_templates WHERE `key` = ?")->execute([$key]);
         auditLog(db(), 'resetEmailTemplate', "key=$key");

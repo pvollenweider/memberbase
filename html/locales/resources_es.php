@@ -1062,6 +1062,7 @@ $GLOBAL['comptaBulkErrConfirm']      = "Por favor, marque la casilla de confirma
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Confirmación de recepción de pago";
 $GLOBAL['emailTemplateComptaRecap']    = "Resumen de versamentos";
+$GLOBAL['emailTemplateTaskDigest']     = "Resumen de tareas (equipo)";
 $GLOBAL['resetToDefault']              = "Restablecer al valor por defecto";
 $GLOBAL['resetToDefaultConfirm']       = "¿Restablecer esta plantilla al valor por defecto? Los cambios se perderán.";
 $GLOBAL['sendReceiptLabel']            = "Enviar confirmación al miembro";

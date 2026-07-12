@@ -124,6 +124,27 @@ class SuiviTask
     }
 
     /**
+     * Open tasks that are overdue or due within $horizonDays, for the cron
+     * digest email (#150). Threshold computed in PHP, not via a MySQL date
+     * function — same convention as the rest of the app (see #143).
+     *
+     * @return object[] rows: id, title, due_date, priority, firstname, lastname, society (member fields NULL for global tasks)
+     */
+    public static function dueSoonOrOverdue(int $horizonDays = 3): array
+    {
+        $threshold = date('Y-m-d', strtotime("+$horizonDays days"));
+        $stmt = db()->prepare("
+            SELECT t.id, t.title, t.due_date, t.priority, u.firstname, u.lastname, u.society
+            FROM suivi_task t
+            LEFT JOIN contact u ON u.id = t.user_id
+            WHERE t.done_at IS NULL AND t.due_date IS NOT NULL AND t.due_date <= ?
+            ORDER BY t.due_date ASC, t.priority ASC
+        ");
+        $stmt->execute([$threshold]);
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
+    }
+
+    /**
      * Generates a relance task for every member matching FILTER_UNPAID_COTI_CURRENT
      * for $year, skipping members who already have an open task for this rule/year
      * (dedup via rule_key). Reuses MemberFilter — same rule as the members list

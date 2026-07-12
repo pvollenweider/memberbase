@@ -384,6 +384,13 @@ marquer terminée séparément après l'envoi.
 L'ajout, la modification, la fermeture et la suppression de tâches sont réservés aux rôles
 Utilisateur et plus.
 
+### Rappel automatique par email (équipe)
+
+Si l'administrateur système a configuré une tâche planifiée (cron, voir le guide administrateur),
+un e-mail récapitulatif des tâches en retard ou à échéance dans les 3 prochains jours est envoyé
+automatiquement à l'adresse configurée dans Réglages → Email. Sans cron configuré, il faut
+consulter la vue globale des tâches soi-même.
+
 ---
 
 ## 9. Journaux et aperçu des dons

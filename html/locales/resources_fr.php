@@ -1060,6 +1060,7 @@ $GLOBAL['comptaBulkErrDate']         = "Date de référence invalide (ne peut pa
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Confirmation de réception de paiement";
 $GLOBAL['emailTemplateComptaRecap']    = "Récapitulatif de versements";
+$GLOBAL['emailTemplateTaskDigest']     = "Digest de tâches (équipe)";
 $GLOBAL['resetToDefault']              = "Réinitialiser au défaut";
 $GLOBAL['resetToDefaultConfirm']       = "Remettre ce template au texte par défaut ? Les modifications seront perdues.";
 $GLOBAL['sendReceiptLabel']            = "Envoyer une confirmation au membre";

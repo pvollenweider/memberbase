@@ -31,6 +31,7 @@ $tplLabels = [
     'tpl_payment_receipt'     => $GLOBAL['emailTemplatePaymentReceipt'],
     'tpl_cotisation_reminder' => $GLOBAL['emailTemplateCotiReminder'],
     'tpl_attestation_don'     => $GLOBAL['emailTemplateAttestationDon'],
+    'tpl_task_digest'         => $GLOBAL['emailTemplateTaskDigest'],
 ];
 ?>
 
