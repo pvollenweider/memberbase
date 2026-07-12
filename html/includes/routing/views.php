@@ -20,6 +20,12 @@ $UA_VIEW_ROUTES = [
     // Tableau de bord
     'dashboard'           => ['dashboard.php'],
 
+    // Membres & finances — vue à onglets en construction (#164), pas encore
+    // dans la navbar : accessible par URL directe pour test. Guard par onglet
+    // géré dans la vue elle-même (Membres/Dons ouverts à tous, Relances
+    // réservé aux managers, comme comptaRecap).
+    'peopleFinance'       => ['people_finance.php'],
+
     // Membres
     'list'                => ['users_list.php'],
     'usersList'           => ['users_list.php'], // alias utilisé par le pushState de la recherche AJAX
