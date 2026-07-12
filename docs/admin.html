@@ -752,16 +752,25 @@ mysqldump -h localhost -u members -p members \
 <p><strong>Réglages → Intégrité</strong> (onglet dans la barre latérale des réglages)</p>
 <p>Accessible uniquement aux comptes <code>admin</code> et <code>manager</code>.</p>
 <h3 id="ce-que-loutil-vérifie">Ce que l&#39;outil vérifie<a class="anchor" href="#ce-que-loutil-vérifie" aria-label="Lien d'ancrage">#</a></h3>
-<p>L&#39;outil effectue cinq contrôles en lecture seule sur la base de données :</p>
+<p>L&#39;outil effectue des contrôles en lecture seule sur la base de données (<code>html/includes/lib/integrity.php</code>, fonction <code>mbRunIntegrityChecks()</code>) :</p>
 <div class="table-scroll" role="region" aria-label="Tableau — Ce que l'outil vérifie" tabindex="0"><table><thead><tr><th scope="col">Contrôle</th><th scope="col">Sévérité</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Membres avec même nom</td><td>Danger</td><td>Deux membres actifs avec le même prénom ET nom (insensible à la casse)</td></tr>
 <tr><td>Membres avec même email</td><td>Danger</td><td>Deux membres actifs avec la même adresse email</td></tr>
 <tr><td>Groupes masqués dans une catégorie</td><td>Avertissement</td><td>Un groupe <code>hidden=1</code> est encore assigné à une catégorie</td></tr>
 <tr><td>Groupes masqués dans un segment combiné</td><td>Avertissement</td><td>Un groupe <code>hidden=1</code> est encore référencé dans un segment combiné de filtrage</td></tr>
-<tr><td>Groupes masqués avec des membres</td><td>Avertissement</td><td>Un groupe <code>hidden=1</code> a encore des membres actifs assignés</td></tr></tbody></table></div>
+<tr><td>Groupes masqués avec des membres</td><td>Avertissement</td><td>Un groupe <code>hidden=1</code> a encore des membres actifs assignés</td></tr>
+<tr><td>Membres sans nom</td><td>Danger</td><td>Ni prénom/nom ni société renseignés</td></tr>
+<tr><td>Écritures compta à date invalide</td><td>Danger</td><td><code>date</code> NULL ou dans le futur</td></tr>
+<tr><td>Écritures compta sans type</td><td>Avertissement</td><td><code>type_id</code> NULL</td></tr>
+<tr><td>Email malformé</td><td>Avertissement</td><td>Pas de <code>@</code> dans <code>email</code></td></tr>
+<tr><td>Email alternatif malformé</td><td>Avertissement</td><td>Pas de <code>@</code> dans <code>email_alt</code></td></tr>
+<tr><td>Genre invalide</td><td>Avertissement</td><td><code>sexe</code> hors <code>na</code>/<code>hf</code>/<code>f</code>/<code>m</code></td></tr>
+<tr><td>Date de naissance future</td><td>Avertissement</td><td><code>birthday</code> postérieure à aujourd&#39;hui</td></tr>
+<tr><td>Règles d&#39;auto-assignation non appliquées</td><td>Avertissement</td><td>Membre dans le segment source d&#39;une règle mais absent du segment cible — assignation antérieure à la règle, ou import ayant contourné l&#39;assignation individuelle</td></tr></tbody></table></div>
 <h3 id="actions-disponibles">Actions disponibles<a class="anchor" href="#actions-disponibles" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
 <li><strong>Doublons de nom/email</strong> : liens directs vers les fiches membres concernées. Pour deux doublons, un bouton <strong>Fusionner</strong> apparaît (vue <code>mergeUsers</code>).</li>
 <li><strong>Groupes masqués</strong> : lien <strong>Éditer</strong> vers la page de configuration du segment combiné ou de la catégorie pour retirer l&#39;assignation.</li>
+<li><strong>Règles d&#39;auto-assignation non appliquées</strong> : bouton <strong>Appliquer</strong> par ligne, ajoute directement le membre au segment cible manquant.</li>
 </ul>
 <h3 id="quand-lutiliser">Quand l&#39;utiliser<a class="anchor" href="#quand-lutiliser" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
