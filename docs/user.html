@@ -552,6 +552,14 @@ si elle n&#39;est liée à aucun membre en particulier).</p>
 au filtre « Cotisation impayée cette année » (même règle que dans la liste des membres), sans
 créer de doublon si une tâche de relance est déjà ouverte pour ce membre. Relancer la génération
 plus tard ne recrée donc que les tâches manquantes.</p>
+<p>Si un membre a entre-temps payé sa cotisation par un autre biais (saisie directe dans l&#39;onglet
+Compta, par exemple), relancer la génération <strong>ferme automatiquement</strong> la tâche de relance
+devenue inutile — inutile de la chercher pour la marquer terminée à la main.</p>
+<h3 id="envoyer-le-rappel-directement-depuis-la-tâche">Envoyer le rappel directement depuis la tâche<a class="anchor" href="#envoyer-le-rappel-directement-depuis-la-tâche" aria-label="Lien d'ancrage">#</a></h3>
+<p>Une tâche de relance cotisation affiche un bouton <strong>Envoyer le rappel</strong> qui ouvre le même
+aperçu email (sujet + rendu, bulletin de versement QR en pièce jointe) que la vue <strong>Membres
+perdus</strong> (voir §17). Confirmer l&#39;envoi <strong>ferme automatiquement la tâche</strong> — pas besoin de la
+marquer terminée séparément après l&#39;envoi.</p>
 <p>L&#39;ajout, la modification, la fermeture et la suppression de tâches sont réservés aux rôles
 Utilisateur et plus.</p>
 <hr>
