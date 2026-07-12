@@ -1,11 +1,12 @@
 /**
  * E2E tests — "Membres & finances" hub (#164)
  *
- * Phase 1: Membres tab fully ported (reuses users_list.php unchanged).
- * Phase 2: Relances cotisation tab fully ported (reuses compta_recap.php,
- * isolated via a closure scope since both real tabs' PHP now runs in the
- * same request — Bootstrap tabs render every pane server-side).
- * Dons & attestations remains a stub linking to its legacy page (phase 3).
+ * All three tabs are now fully ported: Membres (users_list.php), Relances
+ * cotisation (compta_recap.php, managers only), Dons & attestations
+ * (donors_summary.php — KPI cards/pie suppressed here, they live on the
+ * dashboard, #153). Each tab's require goes through an isolated closure
+ * since Bootstrap tabs render every pane server-side (all three views'
+ * PHP runs in the same request; none of them were designed to coexist).
  * Not yet linked from the navbar — reachable via ?view=peopleFinance.
  *
  * @copyright 2026 Philippe Vollenweider
@@ -31,23 +32,23 @@ test.describe('People/finance hub — Phase 1', () => {
     await expect(page.locator('#pf-tab-recap #recap-extended-toggle')).toBeVisible();
   });
 
-  test('Membres and Relances tabs both execute in one request without variable collisions', async ({ page }) => {
-    // Regression guard for the closure-isolation fix: both panes' own content
-    // (which independently define similarly-named variables like $year) must
-    // render correctly side by side.
+  test('all three tabs execute in one request without variable collisions', async ({ page }) => {
+    // Regression guard for the closure-isolation fix: all three panes' own
+    // content (which independently define similarly-named variables like
+    // $year, $rows, $email...) must render correctly side by side.
     await page.goto('/index.php?view=peopleFinance&tab=recap');
     await expect(page.locator('#pf-tab-members table.export')).toBeAttached();
     await expect(page.locator('#pf-tab-members')).toContainText('Dupont');
     await expect(page.locator('#pf-tab-recap')).toBeVisible();
+    await expect(page.locator('#pf-tab-dons table.resume-export')).toBeAttached();
   });
 
-  test('Dons & attestations tab is a stub linking to the legacy page', async ({ page }) => {
+  test('Dons & attestations tab shows the contributor table, no duplicate KPI cards', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance&tab=dons');
     await expect(page.locator('#pf-tab-dons-btn')).toHaveClass(/active/);
-    const link = page.locator('#pf-tab-dons a', { hasText: 'Ouvrir' });
-    await expect(link).toBeVisible();
-    await link.click();
-    await expect(page).toHaveURL(/view=resume/);
+    await expect(page.locator('#pf-tab-dons table.resume-export')).toBeVisible();
+    // KPI cards (total contributions, donors, pie chart) live on the dashboard now (#153)
+    await expect(page.locator('#pf-tab-dons .ca-resume-cards')).toHaveCount(0);
   });
 
   test('switching tabs client-side works without reload', async ({ page }) => {

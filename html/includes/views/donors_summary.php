@@ -135,7 +135,10 @@ if ($year != -2) {
     }
 }
 ?>
-<?php if ($year != -2): ?>
+<?php /* KPI cards + pie chart — moved to the dashboard (#153). Still computed
+above (cheap enough, keeps this block a single self-contained diff) but only
+rendered on the standalone page, not when embedded in the hub (#164). */ ?>
+<?php if (empty($_pfEmbedded) && $year != -2): ?>
 <div class="ca-resume-cards d-flex gap-2 mb-4">
   <!-- Total contributions -->
   <div style="flex:2 0 0;min-width:160px;background:var(--ca-primary);color:#fff;border-radius:10px;padding:0.85rem 1rem">
@@ -315,7 +318,7 @@ if ($_showPie) {
 <?php endif ?>
 </div>
 <?php endif ?>
-<?php if (!empty($_showPie)): ?>
+<?php if (empty($_pfEmbedded) && !empty($_showPie)): ?>
 <script>
 (function() {
   var labels    = <?= json_encode($_pieLabels) ?>;
@@ -479,7 +482,7 @@ if ($_showPie) {
   <span><?= $GLOBAL['extendedModeWarningIntro'] ?><?php if ($excludedLabels): ?><?= sprintf($GLOBAL['extendedModeWarningExcluded'], implode(', ', $excludedLabels)) ?><?php endif ?><?= $GLOBAL['extendedModeWarningOutro'] ?></span>
 </div>
 <?php endif ?>
-<table class="table table-striped table-hover export">
+<table class="table table-striped table-hover resume-export">
 <thead>
 <tr>
     <th><?=$GLOBAL['society']?></th>
@@ -639,8 +642,8 @@ $(document).ready(function() {
         window.location = loc + sep + 'includeAttestation=' + (this.checked ? 1 : 0);
     });
     $.fn.dataTable.moment('DD/MM/YYYY');
-    if ($.fn.DataTable.isDataTable('.export')) { $('.export').DataTable().destroy(); }
-    $('.export').DataTable({
+    if ($.fn.DataTable.isDataTable('.resume-export')) { $('.resume-export').DataTable().destroy(); }
+    window.CA_DT_INSTANCE_DONS = $('.resume-export').DataTable({
         order: [[2, 'asc']],
         paging: false,
         columnDefs: [{ targets: [1, 6, 7], visible: false }],
@@ -651,7 +654,7 @@ $(document).ready(function() {
     // Clic-ligne fiable via data-href (pattern standard, sans overlay CSS
     // stretched-link qui, sur mobile Safari, retombait sur la dernière ligne).
     // Les clics sur un lien/bouton interne (PDF) ne déclenchent pas la navigation.
-    $('.export tbody').off('click.rowlink').on('click.rowlink', 'tr[data-href]', function(e) {
+    $('.resume-export tbody').off('click.rowlink').on('click.rowlink', 'tr[data-href]', function(e) {
         if ($(e.target).closest('a, button').length) return;
         window.__dirtyOverride = true;
         window.location = $(this).data('href');
@@ -703,7 +706,7 @@ $(document).ready(function() {
   triggers.forEach(function (btn) {
     btn.addEventListener('click', function() {
       pendingUrl = btn.dataset.url;
-      var rowCount = document.querySelectorAll('table.export tbody tr').length;
+      var rowCount = document.querySelectorAll('table.resume-export tbody tr').length;
       countEl.textContent = rowCount;
       confirmBody.classList.remove('d-none');
       progressBody.classList.add('d-none');

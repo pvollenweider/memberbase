@@ -2,12 +2,11 @@
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
  * Unified "Membres & finances" hub — tab shell over the three list views
- * that used to be separate destinations (#164).
- *
- * Phase 1: only the "Membres" tab is fully ported (reuses users_list.php
- * unchanged — same AJAX/segment-filter behavior, zero regression risk).
- * "Relances cotisation" and "Dons & attestations" are stubs linking to
- * their existing standalone pages until phases 2/3 port them in.
+ * that used to be separate destinations (#164). All three tabs are now
+ * fully ported: Membres (users_list.php), Relances cotisation
+ * (compta_recap.php, managers only), Dons & attestations
+ * (donors_summary.php — KPI cards/pie already live on the dashboard,
+ * #153, so they're suppressed here via $_pfEmbedded).
  *
  * Not yet linked from the navbar — reachable via ?view=peopleFinance while
  * this is being validated.
@@ -72,12 +71,7 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
   <?php endif ?>
 
   <div class="tab-pane fade<?= $_pfPane('dons') ?>" id="pf-tab-dons" role="tabpanel" aria-labelledby="pf-tab-dons-btn">
-    <div class="text-center py-5">
-      <p class="text-muted mb-3"><?= $GLOBAL['peopleFinanceComingSoon'] ?></p>
-      <a href="<?= appUrl() ?>?view=resume" class="btn btn-primary btn-sm" hx-boost="false">
-        <?= $GLOBAL['peopleFinanceOpenLegacy'] ?>
-      </a>
-    </div>
+    <?php $_pfRequireIsolated(__DIR__ . '/donors_summary.php', ['_pfEmbedded' => true]); ?>
   </div>
 </div>
 
@@ -87,5 +81,8 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
 // force a re-adjust once the Membres tab is actually shown.
 document.getElementById('pf-tab-members-btn')?.addEventListener('shown.bs.tab', function () {
   if (window.CA_DT_INSTANCE) { CA_DT_INSTANCE.columns.adjust(); }
+});
+document.getElementById('pf-tab-dons-btn')?.addEventListener('shown.bs.tab', function () {
+  if (window.CA_DT_INSTANCE_DONS) { CA_DT_INSTANCE_DONS.columns.adjust(); }
 });
 </script>
