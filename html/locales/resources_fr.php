@@ -143,6 +143,7 @@ $GLOBAL['updateTask']         = "Mise à jour";
 $GLOBAL['deleteTask']         = "Supprimer cette tâche";
 $GLOBAL['taskGenerateBtn']    = "Générer les tâches de relance cotisation";
 $GLOBAL['taskGeneratedCount'] = "%d tâche(s) de relance créée(s).";
+$GLOBAL['taskAutoClosedCount'] = "%d résolue(s) automatiquement (déjà payée entre-temps).";
 $GLOBAL['taskRuleUnpaidCotiTitle'] = "Relance cotisation %d impayée";
 $GLOBAL['tel']             = "Privé";
 $GLOBAL['telProf']         = "Prof.";

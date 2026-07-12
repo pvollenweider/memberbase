@@ -12,15 +12,23 @@ $_priorityLabels = [
     SuiviTask::PRIORITY_LOW    => $GLOBAL['taskPriorityLow'],
 ];
 
+$_year = (int)date('Y');
 $stmt = db()->query(
-    "SELECT t.id, t.title, t.body, t.priority, t.due_date, t.user_id,
-            u.firstname, u.lastname, u.society
+    "SELECT t.id, t.title, t.body, t.priority, t.rule_key, t.due_date, t.user_id,
+            u.firstname, u.lastname, u.society, u.email
      FROM suivi_task t
      LEFT JOIN contact u ON u.id = t.user_id
      WHERE t.done_at IS NULL
      ORDER BY t.due_date IS NULL, t.due_date ASC, t.priority ASC"
 );
 $_tasks = $stmt->fetchAll(PDO::FETCH_OBJ);
+$_hasCotiTask = false;
+foreach ($_tasks as $_t) {
+    if ($_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_')) {
+        $_hasCotiTask = true;
+        break;
+    }
+}
 ?>
 
 <div class="page-title-row mb-3">
@@ -31,6 +39,9 @@ $_tasks = $stmt->fetchAll(PDO::FETCH_OBJ);
 <div class="alert alert-success py-2" role="alert">
   <i class="fas fa-circle-check me-1" aria-hidden="true"></i>
   <?= sprintf($GLOBAL['taskGeneratedCount'], (int)$_GET['generated']) ?>
+  <?php if ((int)($_GET['closed'] ?? 0) > 0): ?>
+  &nbsp;—&nbsp;<?= sprintf($GLOBAL['taskAutoClosedCount'], (int)$_GET['closed']) ?>
+  <?php endif ?>
 </div>
 <?php endif ?>
 
@@ -113,6 +124,17 @@ $_tasks = $stmt->fetchAll(PDO::FETCH_OBJ);
         </td>
         <td class="text-nowrap"><?= $_name ?: '<span class="text-muted">' . $GLOBAL['globalTask'] . '</span>' ?></td>
         <td class="text-end" style="white-space:nowrap">
+            <?php if ($_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_') && $_t->user_id && trim((string)$_t->email) !== ''): ?>
+            <button type="button" class="btn btn-outline-primary btn-sm js-task-send-coti" style="position:relative;z-index:2"
+                    data-user-id="<?= (int)$_t->user_id ?>"
+                    data-year="<?= $_year ?>"
+                    data-task-id="<?= (int)$_t->id ?>"
+                    data-confirm="<?= htmlspecialchars(sprintf($GLOBAL['cotiReminderConfirmOne'], trim(($_t->firstname ?? '') . ' ' . ($_t->lastname ?? ''))), ENT_QUOTES, $charset) ?>"
+                    data-msg-fail="<?= htmlspecialchars($GLOBAL['cotiReminderSentFail'], ENT_QUOTES, $charset) ?>"
+                    data-label-sending="<?= htmlspecialchars($GLOBAL['sendCotiRemindersSending'], ENT_QUOTES, $charset) ?>">
+                <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendCotiRemindersBtnOne'] ?>
+            </button>
+            <?php endif ?>
             <a href="<?= $_href ?>" class="stretched-link" hx-boost="false"
                aria-label="<?= $GLOBAL['taskTitle'] ?>: <?= htmlspecialchars($_t->title, ENT_QUOTES, $charset) ?>"></a>
         </td>
@@ -156,4 +178,8 @@ $(document).ready(function() {
     });
 });
 </script>
+<?php endif ?>
+
+<?php if ($_hasCotiTask): ?>
+<?php require __DIR__ . '/../partials/task_coti_reminder_modal.php'; ?>
 <?php endif ?>

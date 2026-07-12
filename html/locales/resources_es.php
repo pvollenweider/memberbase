@@ -142,6 +142,7 @@ $GLOBAL['updateTask']         = "Actualizar";
 $GLOBAL['deleteTask']         = "Eliminar esta tarea";
 $GLOBAL['taskGenerateBtn']    = "Generar tareas de recordatorio de cuota";
 $GLOBAL['taskGeneratedCount'] = "%d tarea(s) de recordatorio creada(s).";
+$GLOBAL['taskAutoClosedCount'] = "%d resuelta(s) automáticamente (pagada mientras tanto).";
 $GLOBAL['taskRuleUnpaidCotiTitle'] = "Recordatorio cuota %d impagada";
 $GLOBAL['tel']             = "Privado";
 $GLOBAL['telProf']         = "Prof.";

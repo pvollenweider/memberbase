@@ -128,4 +128,59 @@ test.describe.serial('Tasks — auto-generation (#149)', () => {
     const rowCountAfter = await page.locator('tr', { hasText: 'Relance cotisation' }).count();
     expect(rowCountAfter).toBe(rowCountBefore);
   });
+
+  test('"Envoyer le rappel" button on the task opens the same email preview modal', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const sendBtn = page.locator('.js-task-send-coti').first();
+    await expect(sendBtn).toBeVisible();
+
+    // Same pattern as tests/cotisation-reminders.spec.ts: opening the modal
+    // fires a preview-only POST — cancel must not trigger an actual send.
+    let sendRequestFired = false;
+    const onRequest = (req: any) => {
+      if (req.url().includes('index.php') && req.method() === 'POST'
+          && (req.postData() ?? '').includes('action=sendCotisationReminderOne')) {
+        sendRequestFired = true;
+      }
+    };
+    page.on('request', onRequest);
+
+    await sendBtn.click();
+    const modal = page.locator('#taskCotiPreviewModal');
+    await expect(modal).toBeVisible();
+    await expect(page.locator('#task-coti-modal-frame')).toBeVisible({ timeout: 10_000 });
+
+    await modal.locator('button[data-bs-dismiss="modal"].btn-outline-secondary').click();
+    await expect(modal).toBeHidden();
+    await page.waitForTimeout(300);
+    page.off('request', onRequest);
+
+    expect(sendRequestFired).toBe(false);
+    // Task still open — cancelling the preview must not close it.
+    await expect(page.locator('tr', { hasText: 'Relance cotisation' })).toBeVisible();
+  });
+
+  test('regenerating auto-closes the task once the member pays another way', async ({ page }) => {
+    // Record a 2026 cotisation for the lapsed member directly (simulates a
+    // payment entered through the normal compta flow, not via the reminder).
+    await page.goto(`/index.php?view=compta&userid=${LAPSED_USER_ID}`);
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    const addResp = await page.request.post('/index.php', {
+      form: {
+        action: 'addCompta', view: 'compta', userid: String(LAPSED_USER_ID),
+        type_id: '1', date: '01/06/2026', libele: 'Cotisation E2E', sum: '50', csrf,
+      },
+    });
+    expect(addResp.status()).toBe(200);
+
+    await page.goto('/index.php?view=tasks');
+    const generateForm = page.locator('form', { has: page.locator('button', { hasText: 'Générer les tâches de relance cotisation' }) });
+    await generateForm.locator('button[type="submit"]').click();
+    await expect(page.locator('.alert-success')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.alert-success')).toContainText('résolue');
+    await expect(page.locator('tr', { hasText: 'Relance cotisation' })).not.toBeVisible();
+  });
 });

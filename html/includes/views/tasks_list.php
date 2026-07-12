@@ -47,12 +47,19 @@ $_priorityLabels = [
 
 <?php
 $_taskStmt = db()->prepare(
-    "SELECT id,title,body,priority,due_date,done_at FROM suivi_task
+    "SELECT id,title,body,priority,rule_key,due_date,done_at FROM suivi_task
      WHERE user_id = ?
      ORDER BY (done_at IS NULL) DESC, due_date IS NULL, due_date ASC, priority ASC"
 );
 $_taskStmt->execute([(int)$user->getId()]);
 $_tasks = $_taskStmt->fetchAll(PDO::FETCH_OBJ);
+$_hasCotiTask = false;
+foreach ($_tasks as $_t) {
+    if (!$_t->done_at && $_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_')) {
+        $_hasCotiTask = true;
+        break;
+    }
+}
 ?>
 <?php if (empty($_tasks)): ?>
 <p class="text-muted"><?= $GLOBAL['noTasks'] ?></p>
@@ -86,6 +93,17 @@ $_tasks = $_taskStmt->fetchAll(PDO::FETCH_OBJ);
     <td><?= htmlspecialchars($_priorityLabels[(int)$_t->priority] ?? '', ENT_QUOTES, $charset) ?></td>
     <td><?= $_doneTs ? $GLOBAL['taskDone'] : $GLOBAL['taskOpen'] ?></td>
     <td class="text-end" style="white-space:nowrap">
+        <?php if (!$_doneTs && $_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_') && trim((string)$user->getEmail()) !== ''): ?>
+        <button type="button" class="btn btn-outline-primary btn-sm js-task-send-coti"
+                data-user-id="<?= $user->getId() ?>"
+                data-year="<?= (int)date('Y') ?>"
+                data-task-id="<?= (int)$_t->id ?>"
+                data-confirm="<?= htmlspecialchars(sprintf($GLOBAL['cotiReminderConfirmOne'], trim($user->getFirstName() . ' ' . $user->getLastName())), ENT_QUOTES, $charset) ?>"
+                data-msg-fail="<?= htmlspecialchars($GLOBAL['cotiReminderSentFail'], ENT_QUOTES, $charset) ?>"
+                data-label-sending="<?= htmlspecialchars($GLOBAL['sendCotiRemindersSending'], ENT_QUOTES, $charset) ?>">
+            <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendCotiRemindersBtnOne'] ?>
+        </button>
+        <?php endif ?>
         <?php if (canWrite()): ?>
         <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty>
             <input type="hidden" name="action" value="<?= $_doneTs ? 'reopenTask' : 'closeTask' ?>">
@@ -111,4 +129,8 @@ $_tasks = $_taskStmt->fetchAll(PDO::FETCH_OBJ);
 </tbody>
 </table>
 </div>
+<?php endif ?>
+
+<?php if ($_hasCotiTask): ?>
+<?php require __DIR__ . '/../partials/task_coti_reminder_modal.php'; ?>
 <?php endif ?>

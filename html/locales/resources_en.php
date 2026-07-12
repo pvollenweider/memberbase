@@ -143,6 +143,7 @@ $GLOBAL['updateTask']         = "Update";
 $GLOBAL['deleteTask']         = "Delete this task";
 $GLOBAL['taskGenerateBtn']    = "Generate cotisation reminder tasks";
 $GLOBAL['taskGeneratedCount'] = "%d reminder task(s) created.";
+$GLOBAL['taskAutoClosedCount'] = "%d resolved automatically (already paid since).";
 $GLOBAL['taskRuleUnpaidCotiTitle'] = "Cotisation reminder %d — unpaid";
 $GLOBAL['tel']             = "Home";
 $GLOBAL['telProf']         = "Work";

@@ -129,24 +129,44 @@ class SuiviTask
      * (dedup via rule_key). Reuses MemberFilter — same rule as the members list
      * "Cotisation AAAA non payée" quick filter (issue #149).
      *
-     * @return int number of tasks created
+     * Also closes existing open tasks for this rule whose member no longer matches
+     * the filter (e.g. the cotisation was recorded through another channel — the
+     * secretary shouldn't have to remember to close the reminder task by hand).
+     *
+     * @return array{created:int,closed:int}
      */
-    public static function generateUnpaidCotiTasks(int $year, array $appSettings, ?int $createdBy): int
+    public static function generateUnpaidCotiTasks(int $year, array $appSettings, ?int $createdBy): array
     {
         global $GLOBAL;
         $ruleKey = "unpaid_coti_current_$year";
         $memberIds = MemberFilter::resolveIds(FILTER_UNPAID_COTI_CURRENT, db(), $year, $appSettings);
-        if (!$memberIds) {
-            return 0;
+
+        $stmt = db()->prepare("SELECT id, user_id FROM suivi_task WHERE rule_key=? AND done_at IS NULL");
+        $stmt->execute([$ruleKey]);
+        $openTasks = $stmt->fetchAll(PDO::FETCH_OBJ);
+        $existingByUser = [];
+        foreach ($openTasks as $t) {
+            $existingByUser[(int)$t->user_id] = (int)$t->id;
         }
 
-        $stmt = db()->prepare("SELECT user_id FROM suivi_task WHERE rule_key=? AND done_at IS NULL");
-        $stmt->execute([$ruleKey]);
-        $existing = array_flip(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)));
+        // Still-unpaid members with an open task: nothing to do. Members with an
+        // open task who are NOT in the current unpaid list anymore: resolved
+        // elsewhere (payment recorded directly, membership changed...) — close it.
+        $closed = 0;
+        foreach ($existingByUser as $uid => $taskId) {
+            if (empty($memberIds[$uid])) {
+                $task = new SuiviTask();
+                $task->lookupTask($taskId);
+                if ($task->getId()) {
+                    $task->close();
+                    $closed++;
+                }
+            }
+        }
 
         $created = 0;
         foreach (array_keys($memberIds) as $uid) {
-            if (isset($existing[$uid])) {
+            if (isset($existingByUser[$uid])) {
                 continue;
             }
             $task = new SuiviTask();
@@ -158,6 +178,6 @@ class SuiviTask
             $task->save();
             $created++;
         }
-        return $created;
+        return ['created' => $created, 'closed' => $closed];
     }
 }

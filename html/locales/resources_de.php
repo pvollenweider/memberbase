@@ -142,6 +142,7 @@ $GLOBAL['updateTask']         = "Aktualisieren";
 $GLOBAL['deleteTask']         = "Diese Aufgabe löschen";
 $GLOBAL['taskGenerateBtn']    = "Mahnaufgaben für Beiträge erstellen";
 $GLOBAL['taskGeneratedCount'] = "%d Mahnaufgabe(n) erstellt.";
+$GLOBAL['taskAutoClosedCount'] = "%d automatisch erledigt (zwischenzeitlich bezahlt).";
 $GLOBAL['taskRuleUnpaidCotiTitle'] = "Mahnung Mitgliederbeitrag %d unbezahlt";
 $GLOBAL['tel']             = "Privat";
 $GLOBAL['telProf']         = "Gesch.";

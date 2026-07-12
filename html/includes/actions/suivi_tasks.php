@@ -19,9 +19,9 @@ $_authUser = authUser();
 
 if ($action == 'generateUnpaidCotiTasks') {
     $_genYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
-    $_genCount = SuiviTask::generateUnpaidCotiTasks($_genYear, $appSettings, (int)($_authUser->id ?? 0));
-    auditLog(db(), 'generateUnpaidCotiTasks', "année: $_genYear | tâches créées: $_genCount");
-    $_genTarget = '?view=tasks&generated=' . $_genCount;
+    $_genResult = SuiviTask::generateUnpaidCotiTasks($_genYear, $appSettings, (int)($_authUser->id ?? 0));
+    auditLog(db(), 'generateUnpaidCotiTasks', "année: $_genYear | créées: {$_genResult['created']} | closes (résolues ailleurs): {$_genResult['closed']}");
+    $_genTarget = '?view=tasks&generated=' . $_genResult['created'] . '&closed=' . $_genResult['closed'];
     if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_genTarget); exit; }
     header('Location: ' . appUrl() . $_genTarget); exit;
 
