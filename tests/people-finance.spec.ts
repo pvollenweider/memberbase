@@ -7,7 +7,7 @@
  * dashboard, #153). Each tab's require goes through an isolated closure
  * since Bootstrap tabs render every pane server-side (all three views'
  * PHP runs in the same request; none of them were designed to coexist).
- * Not yet linked from the navbar — reachable via ?view=peopleFinance.
+ * Linked from the navbar as "Membres & finances" (see menu.php tests).
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>

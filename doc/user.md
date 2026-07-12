@@ -56,16 +56,17 @@ En haut de chaque page, la barre bleue contient :
 | Élément | Contenu |
 |---|---|
 | **Tableau de bord** (icône jauge) | Vue d'ensemble : tâches urgentes, KPIs rapides, liens de documentation |
-| **Liste** (icône liste) | Liste des membres — page d'accueil |
+| **Membres & finances** (icône personnes) | Liste des membres, relances cotisation (Manager+) et dons/attestations — trois onglets, page d'accueil par défaut |
 | **Compta** (icône pièces) | Journal comptable global (tous membres confondus) |
 | **Suivi** (icône livre) | Journal des notes de suivi (tous membres confondus) |
-| **Aperçu des dons** (icône camembert) | Tableau de bord des dons et contributions |
 | **Engrenage** (à droite) | Réglages — visible uniquement pour les rôles Manager et Admin |
 | **Nom d'utilisateur** (à droite) | Menu : *Mot de passe*, *Déconnexion* |
 | **Chercher** | Recherche rapide globale |
 
-Il n'y a plus de menu « Rapports » ni « Groupes » séparé : les journaux et l'aperçu des dons
-sont directement dans la barre, et la gestion des segments se fait dans les **Réglages**.
+Il n'y a plus de menu « Rapports » ni « Groupes » séparé : les journaux sont directement dans
+la barre, et la gestion des segments se fait dans les **Réglages**. La liste des membres, les
+relances de cotisation et le suivi des dons/attestations — trois destinations autrefois
+séparées — sont désormais réunies sous **Membres & finances**, en onglets.
 
 Sur mobile, la barre se réduit à une rangée d'icônes ; la loupe ouvre un champ de recherche
 et l'icône utilisateur regroupe le profil.

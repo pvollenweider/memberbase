@@ -8,8 +8,10 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * (donors_summary.php — KPI cards/pie already live on the dashboard,
  * #153, so they're suppressed here via $_pfEmbedded).
  *
- * Not yet linked from the navbar — reachable via ?view=peopleFinance while
- * this is being validated.
+ * Linked from the navbar ("Membres & finances", desktop and mobile),
+ * replacing the old separate Listes / Relances cotisation / Aperçu des
+ * dons entries. The three underlying routes (?view=list, ?view=comptaRecap,
+ * ?view=resume) still work — only removed from the menu.
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
