@@ -161,4 +161,62 @@ final class PureHelpersTest extends TestCase
         $vars = mbBuildCotiReminderVars($this->fakeMember(), 2025, $settings);
         $this->assertSame('from@org.ch', $vars['contact_email']);
     }
+
+    public function testNormalizeCommentWhitespaceStripsInsideTags(): void
+    {
+        // Strips whitespace right after an opening tag and right before a
+        // closing tag; whitespace *between* two tags is left untouched.
+        $this->assertSame(
+            '<p>Hello</p>  <p>World</p>',
+            mbNormalizeCommentWhitespace("<p>\n  Hello\n</p>  <p>World  </p>")
+        );
+    }
+
+    public function testNormalizeCommentWhitespaceLeavesPlainTextAlone(): void
+    {
+        $this->assertSame('no tags here', mbNormalizeCommentWhitespace('no tags here'));
+    }
+
+    public function testFormatSwissIdeValidNumber(): void
+    {
+        $this->assertSame('CHE-123.456.789', mbFormatSwissIde('CHE-123.456.789'));
+        $this->assertSame('CHE-123.456.789', mbFormatSwissIde('123 456 789'));
+        // More than 9 digits: keeps the last 9.
+        $this->assertSame('CHE-123.456.789', mbFormatSwissIde('CHE-000.123.456.789'));
+    }
+
+    public function testFormatSwissIdeTooShortReturnsNull(): void
+    {
+        $this->assertNull(mbFormatSwissIde('12345'));
+        $this->assertNull(mbFormatSwissIde(''));
+    }
+
+    public function testValidComptaTypeColorAcceptsKnownColor(): void
+    {
+        $this->assertSame('ca-orange-subtle', mbValidComptaTypeColor('ca-orange-subtle'));
+    }
+
+    public function testValidComptaTypeColorFallsBackOnUnknown(): void
+    {
+        $this->assertSame('bg-light', mbValidComptaTypeColor('not-a-color'));
+        $this->assertSame('bg-light', mbValidComptaTypeColor(null));
+    }
+
+    public function testComptaTypeReturnUrlDefaults(): void
+    {
+        $this->assertSame('?view=settings&tab=compta', mbComptaTypeReturnUrl(null, null));
+    }
+
+    public function testComptaTypeReturnUrlHonorsAllowedViewAndSanitizesTab(): void
+    {
+        $this->assertSame(
+            '?view=manageComptaTypes&tab=dontions',
+            mbComptaTypeReturnUrl('manageComptaTypes', 'don4tions!')
+        );
+    }
+
+    public function testComptaTypeReturnUrlRejectsUnknownView(): void
+    {
+        $this->assertSame('?view=settings&tab=compta', mbComptaTypeReturnUrl('someOtherView', 'compta'));
+    }
 }

@@ -24,9 +24,7 @@ if ($action == 'deleteSegment') {
 
 } elseif ($action == 'deleteSegmentForce') {
     $segmentId = (int) $_REQUEST['id'];
-    $segmentName = db()->prepare("SELECT name FROM segment WHERE id=?");
-    $segmentName->execute([$segmentId]);
-    auditLog(db(), 'deleteSegmentForce', "id=$segmentId " . ($segmentName->fetchColumn() ?: ''));
+    auditLog(db(), 'deleteSegmentForce', "id=$segmentId " . Segment::lookupName($segmentId));
     db()->prepare("DELETE FROM contact_segment WHERE segment_id = ?")->execute([$segmentId]);
     db()->prepare("DELETE FROM segment WHERE id = ?")->execute([$segmentId]);
 
@@ -34,9 +32,7 @@ if ($action == 'deleteSegment') {
     $segmentId       = (int) $_REQUEST['id'];
     $targetSegmentId = (int) $_REQUEST['targetSegmentId'];
     if ($targetSegmentId > 0 && $targetSegmentId !== $segmentId) {
-        $_auSrc = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auSrc->execute([$segmentId]);
-        $_auDst = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auDst->execute([$targetSegmentId]);
-        auditLog(db(), 'reassignSegment', "segment source: " . ($_auSrc->fetchColumn() ?: "id=$segmentId") . " → segment cible: " . ($_auDst->fetchColumn() ?: "id=$targetSegmentId"));
+        auditLog(db(), 'reassignSegment', "segment source: " . Segment::lookupName($segmentId) . " → segment cible: " . Segment::lookupName($targetSegmentId));
         db()->prepare(
             "INSERT IGNORE INTO contact_segment (user_id, segment_id)
              SELECT user_id, ?
@@ -63,8 +59,7 @@ if ($action == 'deleteSegment') {
             }
         }
     }
-    $_auSegN = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auSegN->execute([$segmentId]);
-    auditLog(db(), 'importSegmentMembers', "vers segment: " . ($_auSegN->fetchColumn() ?: "id=$segmentId") . " | depuis segments: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
+    auditLog(db(), 'importSegmentMembers', "vers segment: " . Segment::lookupName($segmentId) . " | depuis segments: " . implode(',', array_map('intval', $_REQUEST['importFrom'] ?? [])));
     $_itUrl = appUrl() . '?view=updateSegment&id=' . $segmentId;
     if ($isHtmx) { header('HX-Location: ' . $_itUrl); } else { echo '<script>window.location.replace(' . json_encode($_itUrl) . ');</script>'; }
     exit;
@@ -87,8 +82,7 @@ if ($action == 'deleteSegment') {
             GROUP BY u.id
         ")->execute($params);
     }
-    $_auSegC = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auSegC->execute([$segmentId]);
-    auditLog(db(), 'importCotisants', "vers segment: " . ($_auSegC->fetchColumn() ?: "id=$segmentId") . " | année: $year");
+    auditLog(db(), 'importCotisants', "vers segment: " . Segment::lookupName($segmentId) . " | année: $year");
     $_icUrl = appUrl() . '?view=updateSegment&id=' . $segmentId . '&imported=cotisants';
     if ($isHtmx) { header('HX-Location: ' . $_icUrl); } else { echo '<script>window.location.replace(' . json_encode($_icUrl) . ');</script>'; }
     exit;
@@ -122,9 +116,8 @@ if ($action == 'deleteSegment') {
             HAVING SUM(c.sum) >= ?
         ")->execute([$segmentId, $from, $to, $segmentId, $minSum]);
     }
-    $_auSegD = db()->prepare("SELECT name FROM segment WHERE id=?"); $_auSegD->execute([$segmentId]);
     $typeLabel = ['institutional' => 'institutionnels', 'non_institutional' => 'non-institutionnels', 'all' => 'tous'][$donorType];
-    auditLog(db(), 'importDonors', "vers segment: " . ($_auSegD->fetchColumn() ?: "id=$segmentId") . " | année: $year | min: {$minSum} CHF | type: $typeLabel");
+    auditLog(db(), 'importDonors', "vers segment: " . Segment::lookupName($segmentId) . " | année: $year | min: {$minSum} CHF | type: $typeLabel");
     $_idUrl = appUrl() . '?view=updateSegment&id=' . $segmentId . '&imported=donors';
     if ($isHtmx) { header('HX-Location: ' . $_idUrl); } else { echo '<script>window.location.replace(' . json_encode($_idUrl) . ');</script>'; }
     exit;
@@ -368,9 +361,7 @@ if ($action == 'deleteSegment') {
             }
         }
         if ($importedFrom) {
-            $_auImpSrc = db()->prepare("SELECT name FROM segment WHERE id=?");
-            $srcNames = [];
-            foreach ($importedFrom as $sid) { $_auImpSrc->execute([$sid]); $srcNames[] = $_auImpSrc->fetchColumn() ?: "id=$sid"; }
+            $srcNames = array_map(fn($sid) => Segment::lookupName($sid), $importedFrom);
             auditLog(db(), 'importSegmentMembers', "vers segment: {$segment->name} (id=$segmentId) | depuis: " . implode(', ', $srcNames));
         }
     }
@@ -379,15 +370,11 @@ if ($action == 'deleteSegment') {
     $user = new Contact();
     $user->lookupUser((int)$_REQUEST['id']);
     $user->assignSegment((int)$_REQUEST['segmentId']);
-    $_auSeg = db()->prepare("SELECT name FROM segment WHERE id=?");
-    $_auSeg->execute([(int)$_REQUEST['segmentId']]);
-    auditLog(db(), 'assignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) → segment: " . ($_auSeg->fetchColumn() ?: "id={$_REQUEST['segmentId']}"), (int)$_REQUEST['id']);
+    auditLog(db(), 'assignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) → segment: " . Segment::lookupName((int)$_REQUEST['segmentId']), (int)$_REQUEST['id']);
 
 } elseif ($action == 'unassignSegment') {
     $user = new Contact();
     $user->lookupUser((int)$_REQUEST['id']);
     $user->unassignSegment((int)$_REQUEST['segmentId']);
-    $_auSeg = db()->prepare("SELECT name FROM segment WHERE id=?");
-    $_auSeg->execute([(int)$_REQUEST['segmentId']]);
-    auditLog(db(), 'unassignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) ← segment: " . ($_auSeg->fetchColumn() ?: "id={$_REQUEST['segmentId']}"), (int)$_REQUEST['id']);
+    auditLog(db(), 'unassignSegment', "membre: {$user->firstName} {$user->lastName} (id={$_REQUEST['id']}) ← segment: " . Segment::lookupName((int)$_REQUEST['segmentId']), (int)$_REQUEST['id']);
 }

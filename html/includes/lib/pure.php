@@ -138,6 +138,61 @@ function mbBuildAttestationVars(object $m, array $appSettings, int $year): array
 }
 
 /**
+ * Strip whitespace immediately inside HTML tags (after an opening tag, before
+ * a closing tag) to match TipTap's editor output, which never emits that
+ * whitespace. Used when normalizing a rich-text comment field before saving
+ * or diffing against the stored value.
+ */
+function mbNormalizeCommentWhitespace(string $html): string
+{
+    $html = preg_replace('/(<(?!\/)[^>]+>)\s+/', '$1', $html);
+    return preg_replace('/\s+(<\/[^>]+>)/', '$1', $html);
+}
+
+/**
+ * Normalize a Swiss company identification number (IDE/UID) to the canonical
+ * CHE-XXX.XXX.XXX form. Strips everything but digits, keeps the last 9
+ * (the CHE prefix is non-numeric, the UID body is always 9 digits). Returns
+ * null when fewer than 9 digits remain -- not enough to form a valid UID.
+ */
+function mbFormatSwissIde(string $raw): ?string
+{
+    $digits = preg_replace('/[^0-9]/', '', $raw);
+    if (strlen($digits) < 9) {
+        return null;
+    }
+    $uid9 = substr($digits, -9);
+    return 'CHE-' . substr($uid9, 0, 3) . '.' . substr($uid9, 3, 3) . '.' . substr($uid9, 6, 3);
+}
+
+/** Compta type badge colors allowed in the UI -- Bootstrap subtles + a few custom hues. */
+const COMPTA_TYPE_COLORS = [
+    'bg-primary-subtle', 'bg-secondary-subtle', 'bg-success-subtle', 'bg-danger-subtle',
+    'bg-warning-subtle', 'bg-info-subtle', 'bg-light', 'bg-dark-subtle',
+    'ca-orange-subtle', 'ca-teal-subtle', 'ca-pink-subtle', 'ca-purple-subtle',
+    'ca-indigo-subtle', 'ca-lime-subtle',
+];
+
+/** Validates a compta type color against the allowed palette, falling back to 'bg-light'. */
+function mbValidComptaTypeColor(?string $color): string
+{
+    return in_array($color, COMPTA_TYPE_COLORS, true) ? $color : 'bg-light';
+}
+
+/**
+ * Build the `?view=...&tab=...` redirect suffix used after compta-type
+ * actions (add/update/delete/reorder), which can be triggered from either
+ * the Réglages page or the standalone "manage compta types" view.
+ */
+function mbComptaTypeReturnUrl(?string $returnView, ?string $returnTab): string
+{
+    $allowedViews = ['settings', 'manageComptaTypes'];
+    $view = in_array($returnView, $allowedViews, true) ? $returnView : 'settings';
+    $tab  = preg_replace('/[^a-zA-Z]/', '', $returnTab ?? 'compta');
+    return '?view=' . $view . '&tab=' . $tab;
+}
+
+/**
  * Build email template variables for a cotisation reminder.
  * Pure -- no DB, no I/O.
  */

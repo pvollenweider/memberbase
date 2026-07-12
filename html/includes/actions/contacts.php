@@ -29,7 +29,7 @@ if ($_REQUEST['action'] == 'updateUser') {
         'emailAlt'  => (string)$user->emailAlt,
         'web'       => (string)$user->web,
         'birthDay'  => timeStampToformatedDate((int)$user->birthDay),
-        'comment'   => preg_replace(['/(<(?!\/)[^>]+>)\s+/', '/\s+(<\/[^>]+>)/'], ['$1', '$1'], trim((string)$user->comment)),
+        'comment'   => mbNormalizeCommentWhitespace(trim((string)$user->comment)),
     ];
     $user->firstName = unquote($_REQUEST['firstName'] ?? '');
     $user->lastName = unquote($_REQUEST['lastName'] ?? '');
@@ -46,11 +46,8 @@ if ($_REQUEST['action'] == 'updateUser') {
     $user->emailAlt = unquote($_REQUEST['emailAlt'] ?? '');
     $user->web = unquote($_REQUEST['web'] ?? '');
     $user->birthDay = unquote((string)formatedDateToTimeStamp($_REQUEST['birthDay'] ?? ''));
-    $_rawComment = trim(unquote($_REQUEST['comment'] ?? ''));
     // Normalize whitespace inside HTML tags to match TipTap output
-    $_rawComment = preg_replace('/(<(?!\/)[^>]+>)\s+/', '$1', $_rawComment);
-    $_rawComment = preg_replace('/\s+(<\/[^>]+>)/', '$1', $_rawComment);
-    $user->comment = $_rawComment;
+    $user->comment = mbNormalizeCommentWhitespace(trim(unquote($_REQUEST['comment'] ?? '')));
     $_auAfter = [
         'firstName' => (string)$user->firstName,
         'lastName'  => (string)$user->lastName,
@@ -185,9 +182,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     $uid = (int)($_REQUEST['id'] ?? 0);
     if ($uid > 0) {
         db()->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$uid]);
-        $auUser = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM contact WHERE id=?");
-        $auUser->execute([$uid]);
-        auditLog(db(), 'deactivateUser', 'id=' . $uid . ' | ' . ($auUser->fetchColumn() ?: "id=$uid"), $uid);
+        auditLog(db(), 'deactivateUser', 'id=' . $uid . ' | ' . Contact::getMemberName($uid), $uid);
     }
     if ($isHtmx) {
         header('HX-Location: ' . appUrl() . '?view=updateUser&id=' . $uid);
@@ -252,9 +247,7 @@ if ($_REQUEST['action'] == 'updateUser') {
     $uid = (int)($_REQUEST['id'] ?? 0);
     if ($uid > 0) {
         db()->prepare("UPDATE contact SET status=1 WHERE id=?")->execute([$uid]);
-        $auUser = db()->prepare("SELECT CONCAT(firstName,' ',lastName) FROM contact WHERE id=?");
-        $auUser->execute([$uid]);
-        auditLog(db(), 'reactivateUser', 'id=' . $uid . ' | ' . ($auUser->fetchColumn() ?: "id=$uid"), $uid);
+        auditLog(db(), 'reactivateUser', 'id=' . $uid . ' | ' . Contact::getMemberName($uid), $uid);
     }
     $redirectTarget = ($_REQUEST['redirect'] ?? '') === 'inactiveUsers'
         ? '?view=inactiveUsers'

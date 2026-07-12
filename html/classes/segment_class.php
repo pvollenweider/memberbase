@@ -31,6 +31,17 @@ class Segment
         }
     }
 
+    /**
+     * Return a segment's name for audit log labels, or "id=N" fallback.
+     * Avoids repeating the same SELECT name FROM segment pattern in callers.
+     */
+    public static function lookupName(int $id): string
+    {
+        $stmt = db()->prepare("SELECT name FROM segment WHERE id=?");
+        $stmt->execute([$id]);
+        return $stmt->fetchColumn() ?: "id=$id";
+    }
+
     public function getId()        { return $this->id; }
     public function getName()      { return $this->name; }
     public function getHidden()    { return $this->hidden; }

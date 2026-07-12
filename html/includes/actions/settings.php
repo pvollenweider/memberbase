@@ -51,15 +51,11 @@ if ($action == 'saveSettings') {
     // Returns JSON: { name, street, npa, city, country, purpose, error? }
     header('Content-Type: application/json; charset=utf-8');
     $raw = trim($_REQUEST['ide'] ?? '');
-    // Normalize IDE: strip spaces, dashes, dots — keep only digits; then format as CHE-XXX.XXX.XXX
-    $digits = preg_replace('/[^0-9]/', '', $raw);
-    if (strlen($digits) < 9) {
+    $uidFormatted = mbFormatSwissIde($raw);
+    if ($uidFormatted === null) {
         echo json_encode(['error' => 'invalid_ide']);
         exit;
     }
-    // Keep last 9 digits (CHE prefix is 3 letters, UID body is 9 digits)
-    $uid9 = substr($digits, -9);
-    $uidFormatted = 'CHE-' . substr($uid9, 0, 3) . '.' . substr($uid9, 3, 3) . '.' . substr($uid9, 6, 3);
 
     $searchCtx = stream_context_create(['http' => [
         'method'        => 'POST',
@@ -170,26 +166,20 @@ if ($action == 'saveSettings') {
 
 } elseif ($action == 'addComptaType') {
     $label = trim($_REQUEST['label'] ?? '');
-    $color = $_REQUEST['color'] ?? 'bg-light';
-    $allowed = ['bg-primary-subtle','bg-secondary-subtle','bg-success-subtle','bg-danger-subtle','bg-warning-subtle','bg-info-subtle','bg-light','bg-dark-subtle','ca-orange-subtle','ca-teal-subtle','ca-pink-subtle','ca-purple-subtle','ca-indigo-subtle','ca-lime-subtle'];
-    if (!in_array($color, $allowed)) $color = 'bg-light';
+    $color = mbValidComptaTypeColor($_REQUEST['color'] ?? 'bg-light');
     if ($label !== '') {
         $defaultLibele = trim((string)($_REQUEST['default_libele'] ?? ''));
         $maxOrder = (int)db()->query("SELECT COALESCE(MAX(sort_order),0) FROM compta_type")->fetchColumn();
         db()->prepare("INSERT INTO compta_type (label, color, default_libele, sort_order) VALUES (?, ?, ?, ?)")->execute([$label, $color, $defaultLibele, $maxOrder + 1]);
         auditLog(db(), 'addComptaType', "label: $label | couleur: $color");
     }
-    $_rvAllowed = ['settings','manageComptaTypes'];
-    $rv  = in_array($_REQUEST['returnView'] ?? '', $_rvAllowed) ? $_REQUEST['returnView'] : 'settings';
-    $rtb = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnTab'] ?? 'compta');
-    $_ctUrl = appUrl() . '?view=' . $rv . '&tab=' . $rtb;
+    $_ctUrl = appUrl() . mbComptaTypeReturnUrl($_REQUEST['returnView'] ?? null, $_REQUEST['returnTab'] ?? null);
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>'; }
     exit;
 
 } elseif ($action == 'updateComptaType') {
     $id = (int)($_REQUEST['id'] ?? 0);
     $label = trim($_REQUEST['label'] ?? '');
-    $color = $_REQUEST['color'] ?? 'bg-light';
     $sortOrder = (int)($_REQUEST['sort_order'] ?? 0);
     // Flags absent from the request keep their current value: the inline edit
     // form only sends label/color/order — it must not reset the flags to 0
@@ -200,8 +190,7 @@ if ($action == 'saveSettings') {
     $isCotisation    = isset($_REQUEST['is_cotisation']) ? (int)$_REQUEST['is_cotisation'] : (int)($_ctCurRow->is_cotisation ?? 0);
     $isExcluded      = isset($_REQUEST['is_excluded_from_donation']) ? (int)$_REQUEST['is_excluded_from_donation'] : (int)($_ctCurRow->is_excluded_from_donation ?? 0);
     $isInstitutional = isset($_REQUEST['is_institutional']) ? (int)$_REQUEST['is_institutional'] : (int)($_ctCurRow->is_institutional ?? 0);
-    $allowed = ['bg-primary-subtle','bg-secondary-subtle','bg-success-subtle','bg-danger-subtle','bg-warning-subtle','bg-info-subtle','bg-light','bg-dark-subtle','ca-orange-subtle','ca-teal-subtle','ca-pink-subtle','ca-purple-subtle','ca-indigo-subtle','ca-lime-subtle'];
-    if (!in_array($color, $allowed)) $color = 'bg-light';
+    $color = mbValidComptaTypeColor($_REQUEST['color'] ?? 'bg-light');
     if ($id > 0 && $label !== '') {
         db()->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=?, is_institutional=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $isInstitutional, $id]);
         // Only sent by the edit form — the flag-toggle mini-forms omit it and
@@ -211,10 +200,7 @@ if ($action == 'saveSettings') {
         }
         auditLog(db(), 'updateComptaType', "id=$id | label: $label");
     }
-    $_rvAllowed = ['settings','manageComptaTypes'];
-    $rv  = in_array($_REQUEST['returnView'] ?? '', $_rvAllowed) ? $_REQUEST['returnView'] : 'settings';
-    $rtb = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnTab'] ?? 'compta');
-    $_ctUrl = appUrl() . '?view=' . $rv . '&tab=' . $rtb;
+    $_ctUrl = appUrl() . mbComptaTypeReturnUrl($_REQUEST['returnView'] ?? null, $_REQUEST['returnTab'] ?? null);
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>'; }
     exit;
 
@@ -229,10 +215,7 @@ if ($action == 'saveSettings') {
             db()->prepare("DELETE FROM compta_type WHERE id=?")->execute([$id]);
         }
     }
-    $_rvAllowed = ['settings','manageComptaTypes'];
-    $rv  = in_array($_REQUEST['returnView'] ?? '', $_rvAllowed) ? $_REQUEST['returnView'] : 'settings';
-    $rtb = preg_replace('/[^a-zA-Z]/', '', $_REQUEST['returnTab'] ?? 'compta');
-    $_ctUrl = appUrl() . '?view=' . $rv . '&tab=' . $rtb;
+    $_ctUrl = appUrl() . mbComptaTypeReturnUrl($_REQUEST['returnView'] ?? null, $_REQUEST['returnTab'] ?? null);
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>'; }
     exit;
 
