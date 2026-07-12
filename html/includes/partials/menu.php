@@ -30,13 +30,9 @@ if (isset ($_REQUEST["searchString"])) {
                    href="<?= appUrl() ?>?view=peopleFinance" title="<?= $GLOBAL['peopleFinancePageTitle'] ?>" aria-label="<?= $GLOBAL['peopleFinancePageTitle'] ?>">
                     <i class="fas fa-users"></i>
                 </a>
-                <a class="nav-link text-white px-2<?= $view === 'lastEntryCompta' ? ' opacity-100' : ' opacity-75' ?>"
-                   href="<?= appUrl() ?>?view=lastEntryCompta" title="Compta" aria-label="Compta">
-                    <i class="fas fa-coins"></i>
-                </a>
-                <a class="nav-link text-white px-2<?= $view === 'lastEntrySuivi' ? ' opacity-100' : ' opacity-75' ?>"
-                   href="<?= appUrl() ?>?view=lastEntrySuivi" title="Suivi" aria-label="Suivi">
-                    <i class="fas fa-book-open"></i>
+                <a class="nav-link text-white px-2<?= in_array($view, ['journals','lastEntryCompta','lastEntrySuivi']) ? ' opacity-100' : ' opacity-75' ?>"
+                   href="<?= appUrl() ?>?view=journals" title="<?= $GLOBAL['journalsPageTitle'] ?>" aria-label="<?= $GLOBAL['journalsPageTitle'] ?>">
+                    <i class="fas fa-book"></i>
                 </a>
                 <a class="nav-link text-white px-2<?= $view === 'tasks' ? ' opacity-100' : ' opacity-75' ?>"
                    href="<?= appUrl() ?>?view=tasks" title="<?= $GLOBAL['tasks'] ?>" aria-label="<?= $GLOBAL['tasks'] ?>">
@@ -86,11 +82,8 @@ if (isset ($_REQUEST["searchString"])) {
                 <li class="nav-item<?= in_array($view, ['peopleFinance','list','comptaRecap','resume']) ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=peopleFinance"><i class="fas fa-users me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinancePageTitle'] ?></a>
                 </li>
-                <li class="nav-item<?= $view == 'lastEntryCompta' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= appUrl() ?>?view=lastEntryCompta"><i class="fas fa-coins me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?></a>
-                </li>
-                <li class="nav-item<?= $view == 'lastEntrySuivi' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= appUrl() ?>?view=lastEntrySuivi"><i class="fas fa-book-open me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?></a>
+                <li class="nav-item<?= in_array($view, ['journals','lastEntryCompta','lastEntrySuivi']) ? ' active' : '' ?>">
+                    <a class="nav-link" href="<?= appUrl() ?>?view=journals"><i class="fas fa-book me-1" aria-hidden="true"></i><?= $GLOBAL['journalsPageTitle'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'tasks' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=tasks"><i class="fas fa-list-check me-1" aria-hidden="true"></i><?= $GLOBAL['tasks'] ?></a>

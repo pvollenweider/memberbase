@@ -20,11 +20,15 @@ $UA_VIEW_ROUTES = [
     // Tableau de bord
     'dashboard'           => ['dashboard.php'],
 
-    // Membres & finances — vue à onglets en construction (#164), pas encore
-    // dans la navbar : accessible par URL directe pour test. Guard par onglet
-    // géré dans la vue elle-même (Membres/Dons ouverts à tous, Relances
-    // réservé aux managers, comme comptaRecap).
+    // Membres & finances — hub à onglets (#164), remplace Listes/Relances
+    // cotisation/Aperçu des dons dans la navbar. Guard par onglet géré dans
+    // la vue elle-même (Membres/Dons ouverts à tous, Relances réservé aux
+    // managers, comme comptaRecap).
     'peopleFinance'       => ['people_finance.php'],
+
+    // Journaux — hub à onglets, remplace Compta/Suivi dans la navbar. Ouvert
+    // à tous les rôles, comme les deux routes qu'il remplace.
+    'journals'            => ['journals.php'],
 
     // Membres
     'list'                => ['users_list.php'],

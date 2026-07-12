@@ -226,6 +226,7 @@ $GLOBAL['combinedSegments']    = "Kombinierte Segmente";
 $GLOBAL['comptaTypes']         = "Buchungstypen";
 $GLOBAL['users']               = "Benutzer";
 $GLOBAL['journal']             = "Protokoll";
+$GLOBAL['journalsPageTitle']   = "Journale";
 $GLOBAL['integrity']           = "Integrität";
 $GLOBAL['health']              = "Systemstatus";
 $GLOBAL['management']          = "Verwaltung";
