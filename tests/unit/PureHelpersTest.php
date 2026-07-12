@@ -219,4 +219,43 @@ final class PureHelpersTest extends TestCase
     {
         $this->assertSame('?view=settings&tab=compta', mbComptaTypeReturnUrl('someOtherView', 'compta'));
     }
+
+    public function testValidTaskPriorityAcceptsKnownLevels(): void
+    {
+        $this->assertSame(1, mbValidTaskPriority(1));
+        $this->assertSame(3, mbValidTaskPriority(3));
+    }
+
+    public function testValidTaskPriorityFallsBackToNormal(): void
+    {
+        $this->assertSame(2, mbValidTaskPriority(0));
+        $this->assertSame(2, mbValidTaskPriority(99));
+    }
+
+    public function testTaskIsOverdueWhenPastAndOpen(): void
+    {
+        $yesterday = strtotime('-1 day');
+        $this->assertTrue(mbTaskIsOverdue($yesterday, null));
+    }
+
+    public function testTaskIsNotOverdueWhenDone(): void
+    {
+        $yesterday = strtotime('-1 day');
+        $this->assertFalse(mbTaskIsOverdue($yesterday, time()));
+    }
+
+    public function testTaskIsNotOverdueWhenNoDueDate(): void
+    {
+        $this->assertFalse(mbTaskIsOverdue(null, null));
+    }
+
+    public function testTaskIsNotOverdueWhenDueToday(): void
+    {
+        $this->assertFalse(mbTaskIsOverdue(time(), null));
+    }
+
+    public function testTaskIsNotOverdueWhenDueInFuture(): void
+    {
+        $this->assertFalse(mbTaskIsOverdue(strtotime('+1 day'), null));
+    }
 }

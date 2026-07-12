@@ -1,0 +1,111 @@
+<?php
+defined('APP_ENTRY') or die('Direct access not permitted.');
+/**
+ * Global view: all open tasks, sorted by due date / priority.
+ *
+ * @copyright 2026 Philippe Vollenweider
+ * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
+ */
+$_priorityLabels = [
+    SuiviTask::PRIORITY_HIGH   => $GLOBAL['taskPriorityHigh'],
+    SuiviTask::PRIORITY_NORMAL => $GLOBAL['taskPriorityNormal'],
+    SuiviTask::PRIORITY_LOW    => $GLOBAL['taskPriorityLow'],
+];
+
+$stmt = db()->query(
+    "SELECT t.id, t.title, t.body, t.priority, t.due_date, t.user_id,
+            u.firstname, u.lastname, u.society
+     FROM suivi_task t
+     LEFT JOIN contact u ON u.id = t.user_id
+     WHERE t.done_at IS NULL
+     ORDER BY t.due_date IS NULL, t.due_date ASC, t.priority ASC"
+);
+$_tasks = $stmt->fetchAll(PDO::FETCH_OBJ);
+?>
+
+<div class="page-title-row mb-3">
+  <h1 class="page-title"><?= $GLOBAL['tasksPageTitle'] ?></h1>
+</div>
+
+<?php if (empty($_tasks)): ?>
+<p class="text-muted"><i class="fas fa-circle-check me-1 text-success" aria-hidden="true"></i><?= $GLOBAL['noOpenTasks'] ?></p>
+<?php else: ?>
+<table id="tasks-table" class="table table-sm table-striped table-hover mt-2">
+<thead>
+<tr>
+    <th><?= $GLOBAL['dueDate'] ?></th>
+    <th><?= $GLOBAL['priority'] ?></th>
+    <th><?= $GLOBAL['taskTitle'] ?></th>
+    <th><?= $GLOBAL['member'] ?></th>
+    <th></th>
+</tr>
+</thead>
+<tbody>
+<?php foreach ($_tasks as $_t):
+    $_dueTs   = $_t->due_date ? strtotime($_t->due_date) : null;
+    $_overdue = mbTaskIsOverdue($_dueTs, null);
+    $_name    = $_t->user_id
+        ? trim(($_t->society ? htmlentities($_t->society, ENT_COMPAT, $charset) . ' ' : '') .
+               htmlentities($_t->lastname, ENT_COMPAT, $charset) . ' ' .
+               htmlentities($_t->firstname, ENT_COMPAT, $charset))
+        : '';
+    $_href = $_t->user_id
+        ? appUrl() . '?view=memberTasks&userid=' . (int)$_t->user_id
+        : appUrl() . '?view=updateTask&taskid=' . (int)$_t->id;
+?>
+    <tr class="position-relative">
+        <td class="text-nowrap <?= $_overdue ? 'text-danger fw-semibold' : '' ?>">
+            <?= $_dueTs ? htmlspecialchars(date('d.m.Y', $_dueTs), ENT_QUOTES, $charset) : '—' ?>
+            <?php if ($_overdue): ?><i class="fas fa-triangle-exclamation ms-1" aria-hidden="true" title="<?= $GLOBAL['taskOverdue'] ?>"></i><?php endif ?>
+        </td>
+        <td><?= htmlspecialchars($_priorityLabels[(int)$_t->priority] ?? '', ENT_QUOTES, $charset) ?></td>
+        <td>
+            <?= htmlspecialchars($_t->title, ENT_QUOTES, $charset) ?>
+            <?php if ($_t->body): ?><div class="text-muted small"><?= htmlspecialchars($_t->body, ENT_QUOTES, $charset) ?></div><?php endif ?>
+        </td>
+        <td class="text-nowrap"><?= $_name ?: '<span class="text-muted">' . $GLOBAL['globalTask'] . '</span>' ?></td>
+        <td class="text-end" style="white-space:nowrap">
+            <a href="<?= $_href ?>" class="stretched-link" hx-boost="false"
+               aria-label="<?= $GLOBAL['taskTitle'] ?>: <?= htmlspecialchars($_t->title, ENT_QUOTES, $charset) ?>"></a>
+        </td>
+    </tr>
+<?php endforeach ?>
+</tbody>
+</table>
+
+<script>
+$(document).ready(function() {
+    $.fn.dataTable.moment('DD.MM.YYYY');
+    $('#tasks-table').DataTable({
+        order: [],
+        pageLength: 50,
+        paging: true,
+        dom: '<"d-flex align-items-center justify-content-between mb-2"<"d-flex gap-2"B>f>rtip',
+        buttons: [
+            {
+                extend: 'collection',
+                text: '<?= $GLOBAL['export'] ?> <i class="fas fa-caret-down ms-1" aria-hidden="true"></i>',
+                className: 'btn btn-dt',
+                buttons: [
+                    { extend: 'copy',  text: '<i class="fas fa-copy me-2" aria-hidden="true"></i><?= $GLOBAL['copy'] ?>' },
+                    { extend: 'excel', text: '<i class="fas fa-file-excel me-2" aria-hidden="true"></i><?= $GLOBAL['excel'] ?>' },
+                    { extend: 'print', text: '<i class="fas fa-print me-2" aria-hidden="true"></i><?= $GLOBAL['print'] ?>' }
+                ]
+            }
+        ],
+        language: {
+            info:           '<?= $GLOBAL['dtInfoEntries'] ?>',
+            infoFiltered:   '<?= $GLOBAL['dtInfoFiltered'] ?>',
+            search:         '',
+            searchPlaceholder: '<?= $GLOBAL['filterPlaceholder'] ?>',
+            paginate: {
+                first:    '«',
+                last:     '»',
+                next:     '›',
+                previous: '‹'
+            }
+        }
+    });
+});
+</script>
+<?php endif ?>

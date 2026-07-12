@@ -474,6 +474,18 @@ test.describe('Server — suivi action guards', () => {
   });
 });
 
+test.describe('Server — task action guards', () => {
+  test('readonly: action=addTask → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'readonly');
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: {
+      csrf, action: 'addTask', userid: String(ACTIVE_MEMBER_ID), title: 'Hack',
+    }});
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Server enforcement — actions/segments.php (HTTP 403)
 // ─────────────────────────────────────────────────────────────────────────────

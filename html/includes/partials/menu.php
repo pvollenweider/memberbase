@@ -34,6 +34,10 @@ if (isset ($_REQUEST["searchString"])) {
                    href="<?= appUrl() ?>?view=lastEntrySuivi" title="Suivi" aria-label="Suivi">
                     <i class="fas fa-book-open"></i>
                 </a>
+                <a class="nav-link text-white px-2<?= $view === 'tasks' ? ' opacity-100' : ' opacity-75' ?>"
+                   href="<?= appUrl() ?>?view=tasks" title="<?= $GLOBAL['tasks'] ?>" aria-label="<?= $GLOBAL['tasks'] ?>">
+                    <i class="fas fa-list-check"></i>
+                </a>
                 <a class="nav-link text-white px-2<?= $view === 'resume' ? ' opacity-100' : ' opacity-75' ?>"
                    href="<?= appUrl() ?>?view=resume" title="<?= $GLOBAL['donationOverview'] ?>" aria-label="<?= $GLOBAL['donationOverview'] ?>">
                     <i class="fas fa-chart-pie"></i>
@@ -90,6 +94,9 @@ if (isset ($_REQUEST["searchString"])) {
                 <?php endif ?>
                 <li class="nav-item<?= $view == 'lastEntrySuivi' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=lastEntrySuivi"><i class="fas fa-book-open me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?></a>
+                </li>
+                <li class="nav-item<?= $view == 'tasks' ? ' active' : '' ?>">
+                    <a class="nav-link" href="<?= appUrl() ?>?view=tasks"><i class="fas fa-list-check me-1" aria-hidden="true"></i><?= $GLOBAL['tasks'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'resume' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=resume"><i class="fas fa-chart-pie me-1" aria-hidden="true"></i><?= $GLOBAL['donationOverview'] ?></a>

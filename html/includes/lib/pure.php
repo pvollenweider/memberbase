@@ -192,6 +192,24 @@ function mbComptaTypeReturnUrl(?string $returnView, ?string $returnTab): string
     return '?view=' . $view . '&tab=' . $tab;
 }
 
+/** Task priority levels (1=haute, 2=normale, 3=basse) — see SuiviTask. */
+const TASK_PRIORITIES = [1, 2, 3];
+
+/** Validates a task priority, falling back to 2 (normale) for anything unknown. */
+function mbValidTaskPriority(int $priority): int
+{
+    return in_array($priority, TASK_PRIORITIES, true) ? $priority : 2;
+}
+
+/** A task is overdue when open and its due date is strictly before today. */
+function mbTaskIsOverdue(?int $dueDate, ?int $doneAt): bool
+{
+    if ($doneAt !== null || !$dueDate) {
+        return false;
+    }
+    return date('Y-m-d', $dueDate) < date('Y-m-d');
+}
+
 /**
  * Build email template variables for a cotisation reminder.
  * Pure -- no DB, no I/O.

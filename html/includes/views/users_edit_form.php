@@ -90,6 +90,8 @@ $_otherTypes = $_stOtherTypes->fetchAll(PDO::FETCH_OBJ);
 $_suiviStmt = db()->prepare("SELECT COUNT(*) FROM contact_properties WHERE user_id=? AND parameter='suivi'");
 $_suiviStmt->execute([$user->getId()]);
 $_suiviCount = (int)$_suiviStmt->fetchColumn();
+$_taskOpenCount    = SuiviTask::openCountForUser($user->getId());
+$_taskOverdueCount = SuiviTask::overdueCountForUser($user->getId());
 ?>
 
 <div class="d-flex align-items-center justify-content-between mb-3 gap-2 flex-wrap" style="border-bottom:1px solid var(--ca-border,#dee2e6);padding-bottom:0.5rem">
@@ -115,6 +117,15 @@ $_suiviCount = (int)$_suiviStmt->fetchColumn();
             <i class="far fa-rectangle-list me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?>
             <?php if ($_suiviCount > 0): ?>
             <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= $_suiviCount ?></span>
+            <?php endif ?>
+        </a>
+        <a class="btn btn-sm <?= $view === 'memberTasks' ? 'btn-primary' : 'btn-outline-secondary' ?>"
+           href="<?= appUrl() ?>?view=memberTasks&amp;userid=<?= $user->getId() ?>">
+            <i class="fas fa-list-check me-1" aria-hidden="true"></i><?= $GLOBAL['tasks'] ?>
+            <?php if ($_taskOverdueCount > 0): ?>
+            <span class="badge bg-danger ms-1" style="font-size:0.65rem" title="<?= $GLOBAL['taskOverdue'] ?>"><?= $_taskOverdueCount ?></span>
+            <?php elseif ($_taskOpenCount > 0): ?>
+            <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= $_taskOpenCount ?></span>
             <?php endif ?>
         </a>
         <?php if (isAdmin()): ?>
@@ -180,6 +191,8 @@ if ($view == "compta") {
     include __DIR__ . "/compta_list.php";
 } else if ($view == "suivi") {
     ?><?php include __DIR__ . "/suivi_list.php"; ?><?php
+} else if ($view == "memberTasks") {
+    ?><?php include __DIR__ . "/tasks_list.php"; ?><?php
 } else if ($view == "userHistory") {
     ?><?php include __DIR__ . "/users_history.php"; ?><?php
 } else {

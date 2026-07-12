@@ -68,6 +68,24 @@ CREATE TABLE IF NOT EXISTS `contact_properties` (
   CONSTRAINT `fk_contact_properties_user` FOREIGN KEY (`user_id`) REFERENCES `contact` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Tasks (titled, with priority/due date/status) — parallel to contact_properties, does not replace it
+CREATE TABLE IF NOT EXISTS `suivi_task` (
+  `id`          int(11)      NOT NULL AUTO_INCREMENT,
+  `user_id`     int(11)      DEFAULT NULL,
+  `created_by`  int(11)      DEFAULT NULL,
+  `title`       varchar(255) NOT NULL DEFAULT '',
+  `body`        text         DEFAULT NULL,
+  `priority`    tinyint(1)   NOT NULL DEFAULT 2,
+  `due_date`    date         DEFAULT NULL,
+  `done_at`     datetime     DEFAULT NULL,
+  `created_at`  datetime     NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_suivi_task_user_id`  (`user_id`),
+  KEY `idx_suivi_task_due_date` (`due_date`),
+  KEY `idx_suivi_task_done_at`  (`done_at`),
+  CONSTRAINT `fk_suivi_task_user` FOREIGN KEY (`user_id`) REFERENCES `contact` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Combined segments (formerly "metagroups") — header row only, one per filter/category
 CREATE TABLE IF NOT EXISTS `combined_segment` (
   `id`         int(11)      NOT NULL AUTO_INCREMENT,

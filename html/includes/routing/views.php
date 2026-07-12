@@ -25,6 +25,7 @@ $UA_VIEW_ROUTES = [
     'generalData'         => ['users_edit_form.php'],
     'compta'              => ['users_edit_form.php'],
     'suivi'               => ['users_edit_form.php'],
+    'memberTasks'         => ['users_edit_form.php'],
     'userHistory'         => ['users_edit_form.php'],
     'deleteUser'          => ['users_delete_confirm.php',  'isAdmin'],
     // Legacy direct-link alias — shows the confirm dialog (state changes are POST-only).
@@ -56,6 +57,11 @@ $UA_VIEW_ROUTES = [
     'lastEntrySuivi'      => ['suivi_last_entry.php'],
     'emailDetail'         => ['email_detail.php',         'isManager'],
     'removeSuivi'         => ['suivi_delete_confirm.php',  'canWrite'],
+
+    // Tâches
+    'tasks'               => ['tasks_global.php'],
+    'updateTask'          => ['tasks_edit_form.php',       null, [], 'memberTasks'],
+    'removeTask'          => ['tasks_delete_confirm.php',  'canWrite'],
 
     // Réglages & administration
     'settings'            => ['settings_general.php'],

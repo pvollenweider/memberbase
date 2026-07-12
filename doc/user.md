@@ -17,15 +17,16 @@ Guide pratique pour la gestion quotidienne des membres, segments, comptabilité,
 5. [Fiche membre](#5-fiche-membre)
 6. [Comptabilité d'un membre (onglet Compta)](#6-comptabilité-dun-membre-onglet-compta)
 7. [Suivi d'un membre (onglet Suivi)](#7-suivi-dun-membre-onglet-suivi)
-8. [Journaux et aperçu des dons](#8-journaux-et-aperçu-des-dons)
-9. [Attestations de dons](#9-attestations-de-dons)
-10. [Segments](#10-segments)
-11. [Réglages](#11-réglages)
-12. [Rôles utilisateurs et matrice des droits](#12-rôles-utilisateurs-et-matrice-des-droits)
-13. [Changer son mot de passe](#13-changer-son-mot-de-passe)
-14. [Déconnexion](#14-déconnexion)
-15. [Récapitulatifs comptables par email](#15-récapitulatifs-comptables-par-email)
-16. [Rappels de cotisation impayée](#16-rappels-de-cotisation-impayée)
+8. [Tâches](#8-tâches)
+9. [Journaux et aperçu des dons](#9-journaux-et-aperçu-des-dons)
+10. [Attestations de dons](#10-attestations-de-dons)
+11. [Segments](#11-segments)
+12. [Réglages](#12-réglages)
+13. [Rôles utilisateurs et matrice des droits](#13-rôles-utilisateurs-et-matrice-des-droits)
+14. [Changer son mot de passe](#14-changer-son-mot-de-passe)
+15. [Déconnexion](#15-déconnexion)
+16. [Récapitulatifs comptables par email](#16-récapitulatifs-comptables-par-email)
+17. [Rappels de cotisation impayée](#17-rappels-de-cotisation-impayée)
 
 ---
 
@@ -336,7 +337,35 @@ sont réservés aux rôles Utilisateur et plus.
 
 ---
 
-## 8. Journaux et aperçu des dons
+## 8. Tâches
+
+Distinctes des notes de suivi, les **tâches** ont un titre, une échéance optionnelle, une
+priorité et un statut ouvert/fermé — pensées pour le suivi d'actions à faire plutôt que pour
+l'historique de contact.
+
+### Depuis la fiche d'un membre
+
+L'onglet **Tâches** de la fiche membre liste les tâches liées à ce membre et propose un
+formulaire d'ajout (titre, échéance, priorité, description). Un badge sur l'onglet indique le
+nombre de tâches ouvertes ; il devient **rouge** dès qu'au moins une tâche est en retard
+(échéance dépassée et non terminée).
+
+Sur chaque ligne : coche pour marquer **terminée** (ou rouvrir une tâche déjà terminée), icône
+crayon pour modifier, icône corbeille pour supprimer.
+
+### Vue globale
+
+Le lien **Tâches** de la barre de navigation ouvre la liste de **toutes les tâches ouvertes**,
+tous membres confondus, triées par échéance puis priorité. Les tâches en retard sont mises en
+évidence en rouge. Cliquer une ligne ouvre la fiche du membre concerné (ou la tâche elle-même
+si elle n'est liée à aucun membre en particulier).
+
+L'ajout, la modification, la fermeture et la suppression de tâches sont réservés aux rôles
+Utilisateur et plus.
+
+---
+
+## 9. Journaux et aperçu des dons
 
 Ces vues transversales sont accessibles depuis la barre de navigation.
 
@@ -391,7 +420,7 @@ segment pour faciliter la relance.
 
 ---
 
-## 9. Attestations de dons
+## 10. Attestations de dons
 
 Une attestation de don est un PDF officiel remis au donateur pour sa déclaration fiscale. Elle
 reprend les versements de l'année (hors types marqués « exclu des dons »), avec en option le
@@ -447,7 +476,7 @@ novembre 2023) sur la déductibilité des libéralités.
 
 ---
 
-## 10. Segments
+## 11. Segments
 
 Les segments découpent les membres en sous-ensembles (membres d'une année, comité, partenaires,
 donateurs à relancer…). Leur gestion se trouve dans les **Réglages** (icône engrenage,
@@ -491,7 +520,7 @@ menu de filtrage de la liste des membres.
 
 ---
 
-## 11. Réglages
+## 12. Réglages
 
 Accès via l'icône **engrenage** (Managers et Admins). La barre latérale liste les sections ;
 les sections disponibles dépendent du rôle.
@@ -580,7 +609,7 @@ Depuis Intégrité, cliquer **Fusionner** sur un doublon ouvre l'écran de fusio
 
 ---
 
-## 12. Rôles utilisateurs et matrice des droits
+## 13. Rôles utilisateurs et matrice des droits
 
 L'application distingue quatre rôles : **Lecture seule**, **Utilisateur**, **Manager** et
 **Admin**. La matrice ci-dessous est consultable directement à la création d'un compte (icône
@@ -602,7 +631,7 @@ saisir compta et suivi, mais pas gérer les segments.
 
 ---
 
-## 13. Changer son mot de passe
+## 14. Changer son mot de passe
 
 1. Cliquer son **nom d'utilisateur** en haut à droite.
 2. Choisir **Mot de passe**.
@@ -614,13 +643,13 @@ connexion suivante.
 
 ---
 
-## 14. Déconnexion
+## 15. Déconnexion
 
 Cliquer son **nom d'utilisateur** en haut à droite, puis **Déconnexion**.
 
 ---
 
-## 15. Récapitulatifs comptables par email
+## 16. Récapitulatifs comptables par email
 
 Accès : menu **Emails** (Manager / Admin). Envoie à chaque membre un email récapitulant ses
 entrées comptables pas encore notifiées (cotisations, dons…), regroupées en une seule fois
@@ -642,7 +671,7 @@ décembre 2026), l'email le précise explicitement.
 
 ---
 
-## 16. Rappels de cotisation impayée
+## 17. Rappels de cotisation impayée
 
 Accès : vue **Membres perdus** (menu principal ou Réglages → sections liées aux membres).
 Liste les membres ayant cotisé l'année précédente mais pas encore l'année en cours.
