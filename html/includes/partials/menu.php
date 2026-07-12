@@ -26,9 +26,9 @@ if (isset ($_REQUEST["searchString"])) {
                    href="<?= appUrl() ?>?view=dashboard" title="<?= $GLOBAL['dashboardPageTitle'] ?>" aria-label="<?= $GLOBAL['dashboardPageTitle'] ?>">
                     <i class="fas fa-gauge"></i>
                 </a>
-                <a class="nav-link text-white px-2<?= in_array($view, ['list','']) ? ' opacity-100' : ' opacity-75' ?>"
-                   href="<?= appUrl() ?>?view=list" title="<?= $GLOBAL['list'] ?>" aria-label="<?= $GLOBAL['list'] ?>">
-                    <i class="fas fa-list"></i>
+                <a class="nav-link text-white px-2<?= in_array($view, ['peopleFinance','list','comptaRecap','resume','']) ? ' opacity-100' : ' opacity-75' ?>"
+                   href="<?= appUrl() ?>?view=peopleFinance" title="<?= $GLOBAL['peopleFinancePageTitle'] ?>" aria-label="<?= $GLOBAL['peopleFinancePageTitle'] ?>">
+                    <i class="fas fa-users"></i>
                 </a>
                 <a class="nav-link text-white px-2<?= $view === 'lastEntryCompta' ? ' opacity-100' : ' opacity-75' ?>"
                    href="<?= appUrl() ?>?view=lastEntryCompta" title="Compta" aria-label="Compta">
@@ -41,10 +41,6 @@ if (isset ($_REQUEST["searchString"])) {
                 <a class="nav-link text-white px-2<?= $view === 'tasks' ? ' opacity-100' : ' opacity-75' ?>"
                    href="<?= appUrl() ?>?view=tasks" title="<?= $GLOBAL['tasks'] ?>" aria-label="<?= $GLOBAL['tasks'] ?>">
                     <i class="fas fa-list-check"></i>
-                </a>
-                <a class="nav-link text-white px-2<?= $view === 'resume' ? ' opacity-100' : ' opacity-75' ?>"
-                   href="<?= appUrl() ?>?view=resume" title="<?= $GLOBAL['donationOverview'] ?>" aria-label="<?= $GLOBAL['donationOverview'] ?>">
-                    <i class="fas fa-chart-pie"></i>
                 </a>
             </div>
             <!-- Right: search, settings, user -->
@@ -87,26 +83,17 @@ if (isset ($_REQUEST["searchString"])) {
                 <li class="nav-item<?= $view == 'dashboard' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=dashboard"><i class="fas fa-gauge me-1" aria-hidden="true"></i><?= $GLOBAL['dashboardPageTitle'] ?></a>
                 </li>
-                <li class="nav-item<?= $view == 'list' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= appUrl() ?>?view=list"
-                       title="<?= $GLOBAL['manageSegments'] ?>"><i class="fas fa-list"></i> <?= $GLOBAL['list'] ?></a>
+                <li class="nav-item<?= in_array($view, ['peopleFinance','list','comptaRecap','resume']) ? ' active' : '' ?>">
+                    <a class="nav-link" href="<?= appUrl() ?>?view=peopleFinance"><i class="fas fa-users me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinancePageTitle'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'lastEntryCompta' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=lastEntryCompta"><i class="fas fa-coins me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?></a>
                 </li>
-                <?php if (isManager()): ?>
-                <li class="nav-item<?= $view == 'comptaRecap' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= appUrl() ?>?view=comptaRecap"><i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapTitle'] ?></a>
-                </li>
-                <?php endif ?>
                 <li class="nav-item<?= $view == 'lastEntrySuivi' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=lastEntrySuivi"><i class="fas fa-book-open me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'tasks' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=tasks"><i class="fas fa-list-check me-1" aria-hidden="true"></i><?= $GLOBAL['tasks'] ?></a>
-                </li>
-                <li class="nav-item<?= $view == 'resume' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= appUrl() ?>?view=resume"><i class="fas fa-chart-pie me-1" aria-hidden="true"></i><?= $GLOBAL['donationOverview'] ?></a>
                 </li>
             </ul>
 

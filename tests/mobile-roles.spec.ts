@@ -58,7 +58,7 @@ test.describe('mobile bar — common elements visible for every role', () => {
     test(`${role}: nav icons and search toggle visible`, async ({ browser }) => {
       const { page, ctx } = await openMobileAs(browser, role);
       await page.goto('/index.php');
-      await expect(page.locator(`${MOBILE_BAR} a[href*="view=resume"]`).first()).toBeVisible();
+      await expect(page.locator(`${MOBILE_BAR} a[href*="view=peopleFinance"]`).first()).toBeVisible();
       await expect(page.locator('#mobile-search-toggle')).toBeVisible();
       // Desktop navbar collapsed away at this viewport
       await expect(page.locator('.navbar-collapse')).not.toBeVisible();

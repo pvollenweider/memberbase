@@ -29,10 +29,10 @@ test.describe('Dashboard', () => {
     await expect(navLink).toBeVisible();
   });
 
-  test('member list "Ajouter" shortcut still reachable from the list icon', async ({ page }) => {
+  test('member list reachable from the Membres & finances nav link', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
-    await page.locator('.navbar-nav .nav-link', { hasText: 'Listes' }).click();
-    await expect(page).toHaveURL(/view=list/);
+    await page.locator('.navbar-nav .nav-link', { hasText: 'Membres & finances' }).click();
+    await expect(page).toHaveURL(/view=peopleFinance/);
   });
 
   test('bare landing (no view param) is unaffected — still the member list', async ({ page }) => {

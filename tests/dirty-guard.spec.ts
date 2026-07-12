@@ -27,7 +27,7 @@ test('modified form field triggers confirm dialog on navigation', async ({ page 
     await dialog.accept(); // let navigation proceed
   });
 
-  await page.locator('a[href*="view=resume"]:visible').first().click();
+  await page.locator('a[href*="view=peopleFinance"]:visible').first().click();
   await expect(page.locator('#main-content')).not.toContainText('Brouillon');
   expect(dialogShown, 'confirm dialog should fire for dirty form').toBe(true);
 });
@@ -37,7 +37,7 @@ test('dismissing the dialog cancels navigation and keeps input', async ({ page }
   await page.fill('#firstName', 'Brouillon');
 
   page.once('dialog', (dialog) => dialog.dismiss());
-  await page.locator('a[href*="view=resume"]:visible').first().click();
+  await page.locator('a[href*="view=peopleFinance"]:visible').first().click();
 
   // Navigation blocked — the form and its value are still there
   await expect(page.locator('#firstName')).toHaveValue('Brouillon');
@@ -50,7 +50,7 @@ test('clean page navigates without dialog', async ({ page }) => {
     throw new Error(`unexpected dialog: ${dialog.message()}`);
   });
 
-  await page.locator('a[href*="view=resume"]:visible').first().click();
+  await page.locator('a[href*="view=peopleFinance"]:visible').first().click();
   await expect(page.locator('#firstName')).toHaveCount(0);
 });
 
@@ -64,6 +64,6 @@ test('segment filter input (data-no-dirty exclusion) does not mark dirty', async
     throw new Error(`unexpected dialog: ${dialog.message()}`);
   });
 
-  await page.locator('a[href*="view=resume"]:visible').first().click();
+  await page.locator('a[href*="view=peopleFinance"]:visible').first().click();
   await expect(page.locator('#main-content')).toBeVisible();
 });
