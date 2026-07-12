@@ -146,9 +146,31 @@ function mbRunIntegrityChecks(PDO $db): array
         ];
     }
 
+    // segment_cascade_rule may not exist before migration 0034.
+    try {
+        $cascadeMissing = $db->query("
+            SELECT c.id AS user_id, c.firstname, c.lastname,
+                   s.id AS source_segment_id, s.name AS source_name,
+                   t.id AS target_segment_id, t.name AS target_name
+            FROM segment_cascade_rule r
+            JOIN segment s ON s.id = r.source_segment_id
+            JOIN segment t ON t.id = r.target_segment_id
+            JOIN contact_segment cs ON cs.segment_id = r.source_segment_id
+            JOIN contact c ON c.id = cs.user_id AND c.status = 1
+            WHERE NOT EXISTS (
+                SELECT 1 FROM contact_segment cs2
+                WHERE cs2.user_id = cs.user_id AND cs2.segment_id = r.target_segment_id
+            )
+            ORDER BY s.name, c.lastname, c.firstname
+        ")->fetchAll(PDO::FETCH_OBJ);
+    } catch (PDOException $e) {
+        $cascadeMissing = [];
+    }
+
     return array_merge($contactChecks, [
         'hiddenInCats'      => $hiddenInCats,
         'hiddenInMeta'      => $hiddenInMeta,
         'hiddenWithMembers' => $hiddenWithMembers,
+        'cascadeMissing'    => $cascadeMissing,
     ]);
 }

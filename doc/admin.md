@@ -705,7 +705,7 @@ Accessible uniquement aux comptes `admin` et `manager`.
 
 ### Ce que l'outil vérifie
 
-L'outil effectue cinq contrôles en lecture seule sur la base de données :
+L'outil effectue des contrôles en lecture seule sur la base de données (`html/includes/lib/integrity.php`, fonction `mbRunIntegrityChecks()`) :
 
 | Contrôle | Sévérité | Description |
 |----------|----------|-------------|
@@ -714,11 +714,20 @@ L'outil effectue cinq contrôles en lecture seule sur la base de données :
 | Groupes masqués dans une catégorie | Avertissement | Un groupe `hidden=1` est encore assigné à une catégorie |
 | Groupes masqués dans un segment combiné | Avertissement | Un groupe `hidden=1` est encore référencé dans un segment combiné de filtrage |
 | Groupes masqués avec des membres | Avertissement | Un groupe `hidden=1` a encore des membres actifs assignés |
+| Membres sans nom | Danger | Ni prénom/nom ni société renseignés |
+| Écritures compta à date invalide | Danger | `date` NULL ou dans le futur |
+| Écritures compta sans type | Avertissement | `type_id` NULL |
+| Email malformé | Avertissement | Pas de `@` dans `email` |
+| Email alternatif malformé | Avertissement | Pas de `@` dans `email_alt` |
+| Genre invalide | Avertissement | `sexe` hors `na`/`hf`/`f`/`m` |
+| Date de naissance future | Avertissement | `birthday` postérieure à aujourd'hui |
+| Règles d'auto-assignation non appliquées | Avertissement | Membre dans le segment source d'une règle (#154) mais absent du segment cible — assignation antérieure à la règle, ou import ayant contourné l'assignation individuelle |
 
 ### Actions disponibles
 
 - **Doublons de nom/email** : liens directs vers les fiches membres concernées. Pour deux doublons, un bouton **Fusionner** apparaît (vue `mergeUsers`).
 - **Groupes masqués** : lien **Éditer** vers la page de configuration du segment combiné ou de la catégorie pour retirer l'assignation.
+- **Règles d'auto-assignation non appliquées** : bouton **Appliquer** par ligne, ajoute directement le membre au segment cible manquant (réutilise l'action `assignSegment`, idempotent).
 
 ### Quand l'utiliser
 

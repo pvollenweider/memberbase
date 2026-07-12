@@ -21,12 +21,13 @@ $_ic = mbRunIntegrityChecks(db());
     'noName'            => $noName,
     'emailAltInvalid'   => $emailAltInvalid,
     'birthdayFuture'    => $birthdayFuture,
+    'cascadeMissing'    => $cascadeMissing,
 ] = $_ic;
 
 $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty($hiddenInMeta) && empty($hiddenWithMembers)
       && empty($dateInvalid) && empty($typeNull)
       && empty($emailInvalid) && empty($emailAltInvalid) && empty($sexeInvalid) && empty($birthdayFuture)
-      && empty($noName);
+      && empty($noName) && empty($cascadeMissing);
 ?>
 
 <p class="form-section-title mb-1">
@@ -238,6 +239,41 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
         <td class="text-end">
           <a href="<?= appUrl() ?>?view=updateSegment&amp;id=<?= (int)$row->segment_id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+</details>
+<?php endif ?>
+
+<?php if (!empty($cascadeMissing)): ?>
+<details class="ca-integrity-section mb-3" open>
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-arrows-turn-to-dots me-1 text-warning" aria-hidden="true"></i>
+    <?= $GLOBAL['cascadeRuleMissingTitle'] ?>
+    <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($cascadeMissing) ?></span>
+  </summary>
+  <p class="small text-muted mt-2 mb-1"><?= $GLOBAL['cascadeRuleMissingHelp'] ?></p>
+  <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
+    <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['cascadeRuleSourceColumn'] ?></th><th><?= $GLOBAL['cascadeRuleTargetColumn'] ?></th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($cascadeMissing as $r): ?>
+      <tr>
+        <td><?= htmlentities(trim($r->firstname . ' ' . $r->lastname), ENT_COMPAT, $charset) ?></td>
+        <td class="text-muted"><?= htmlentities($r->source_name, ENT_COMPAT, $charset) ?></td>
+        <td class="text-muted"><?= htmlentities($r->target_name, ENT_COMPAT, $charset) ?></td>
+        <td class="text-end">
+          <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty>
+            <input type="hidden" name="action" value="assignSegment">
+            <input type="hidden" name="id" value="<?= (int)$r->user_id ?>">
+            <input type="hidden" name="segmentId" value="<?= (int)$r->target_segment_id ?>">
+            <input type="hidden" name="view" value="settings">
+            <input type="hidden" name="tab" value="groups">
+            <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:0.75rem">
+              <?= $GLOBAL['cascadeRuleApplyFix'] ?>
+            </button>
+          </form>
         </td>
       </tr>
     <?php endforeach ?>
