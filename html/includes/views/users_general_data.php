@@ -17,6 +17,7 @@ $_iData = json_encode([
     'firstName' => (string)$user->getFirstName(),
     'society'   => (string)$user->getSociety(),
     'gender'    => (string)$user->getSexe() ?: 'na',
+    'contactTypeId' => (int)$user->getContactTypeId(),
     'title'     => (string)$user->getTitle(),
     'address'   => (string)$user->getAddress(),
     'npa'       => (string)$user->getNpa(),
@@ -37,6 +38,15 @@ $_gLabels = json_encode([
     'f'  => $GLOBAL['f'],
     'm'  => $GLOBAL['m'],
 ], JSON_HEX_QUOT | JSON_HEX_TAG);
+
+// Contact type (#165) — id => label map for the view-mode display and the
+// edit-mode <select> options; always present (4 seeded rows, admin-editable).
+$_contactTypes = db()->query("SELECT id, code, label FROM contact_type ORDER BY sort_order")->fetchAll(PDO::FETCH_OBJ);
+$_ctLabelsById = [];
+foreach ($_contactTypes as $_ct) {
+    $_ctLabelsById[(string)$_ct->id] = $_ct->label;
+}
+$_ctLabelsJson = json_encode($_ctLabelsById, JSON_HEX_QUOT | JSON_HEX_TAG | JSON_UNESCAPED_UNICODE);
 
 $_noCotiSegment = (int)($appSettings['member_no_coti_segment'] ?? 0);
 $_showCotiWarn = (int)$_stats->ever_coti > 0
@@ -100,6 +110,7 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
      data-member-id="<?= $_mid ?>"
      data-initial="<?= htmlspecialchars($_iData, ENT_QUOTES, 'UTF-8') ?>"
      data-gender-labels="<?= htmlspecialchars($_gLabels, ENT_QUOTES, 'UTF-8') ?>"
+     data-contact-type-labels="<?= htmlspecialchars($_ctLabelsJson, ENT_QUOTES, 'UTF-8') ?>"
      data-no-dirty>
 
     <template x-if="saved"><div id="casa-save-ok"></div></template>
@@ -142,6 +153,11 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
             <div x-show="data.gender && data.gender !== 'na'">
                 <div class="ca-field-label"><?= $GLOBAL['sexe'] ?></div>
                 <div class="ca-field-value" x-text="genderLabels[data.gender] ?? data.gender"></div>
+            </div>
+
+            <div>
+                <div class="ca-field-label"><?= $GLOBAL['contactTypesTitle'] ?></div>
+                <div class="ca-field-value" x-text="contactTypeLabels[data.contactTypeId] ?? data.contactTypeId"></div>
             </div>
 
             <div x-show="data.title">
@@ -267,6 +283,16 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
                     <option value="hf"><?= $GLOBAL['hf'] ?></option>
                     <option value="f"><?= $GLOBAL['f'] ?></option>
                     <option value="m"><?= $GLOBAL['m'] ?></option>
+                </select>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <label for="gd-contact-type" class="col-md-3 col-form-label"><?= $GLOBAL['contactTypesTitle'] ?></label>
+            <div class="col-md-9">
+                <select class="form-select form-select-sm" id="gd-contact-type" x-model.number="draft.contactTypeId">
+                    <?php foreach ($_contactTypes as $_ct): ?>
+                    <option value="<?= (int)$_ct->id ?>"><?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?></option>
+                    <?php endforeach ?>
                 </select>
             </div>
         </div>

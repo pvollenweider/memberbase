@@ -14,6 +14,7 @@
 require_once __DIR__ . '/_bootstrap.php';
 require_once __DIR__ . '/../classes/contact_class.php';
 require_once __DIR__ . '/../classes/member_filter_class.php';
+require_once __DIR__ . '/../includes/lib/contact_type.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -39,6 +40,7 @@ function memberFieldsForDiff(Contact $u): array
         'lastName'  => (string)$u->getLastName(),
         'society'   => (string)$u->getSociety(),
         'gender'    => (string)$u->getSexe(),
+        'contactTypeId' => (int)$u->getContactTypeId(),
         'title'     => (string)$u->getTitle(),
         'address'   => (string)$u->getAddress(),
         'npa'       => (string)$u->getNpa(),
@@ -62,6 +64,7 @@ function memberToArray(Contact $u): array
         'firstName'        => (string)$u->getFirstName(),
         'society'          => $u->getSociety()  ?: null,
         'gender'           => $u->getSexe()     ?: null,
+        'contactTypeId'    => (int)$u->getContactTypeId(),
         'title'            => $u->getTitle()    ?: null,
         'address'          => $u->getAddress()  ?: null,
         'npa'              => $u->getNpa()      ?: null,
@@ -92,14 +95,15 @@ function requestBody(): array
 /** Applies allowed string fields from $body onto $user. */
 function applyFields(Contact $user, array $body): void
 {
-    $allowed = ['firstName','lastName','society','gender','title','address','npa',
+    $allowed = ['firstName','lastName','society','gender','contactTypeId','title','address','npa',
                 'email','emailAlt','tel','telProf','portable','fax','web','comment'];
     foreach ($allowed as $field) {
         if (!array_key_exists($field, $body)) continue;
         $val = (string)$body[$field];
         match ($field) {
-            'gender'  => $user->setSexe(in_array($val, ['m','f','hf','na']) ? $val : 'na'),
-            default   => $user->{'set' . ucfirst($field)}(unquote($val)),
+            'gender'        => $user->setSexe(in_array($val, ['m','f','hf','na']) ? $val : 'na'),
+            'contactTypeId' => $user->setContactTypeId(mbValidContactTypeId(db(), (int)$val)),
+            default         => $user->{'set' . ucfirst($field)}(unquote($val)),
         };
     }
     if (array_key_exists('birthDate', $body)) {

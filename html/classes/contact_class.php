@@ -16,6 +16,7 @@ class Contact
     public $lastName = '';
     public $society = '';
     public $sexe = 'na';
+    public $contactTypeId = 1; // contact_type.id — defaults to 'private' (see #165)
     public $title = '';
     public $address = '';
     public $npa = '';
@@ -44,6 +45,7 @@ class Contact
         $this->lastName         = $row->lastname;
         $this->society          = $row->society;
         $this->sexe             = $row->sexe;
+        $this->contactTypeId    = isset($row->contact_type_id) ? (int)$row->contact_type_id : 1;
         $this->title            = $row->title;
         $this->address          = $row->address;
         $this->npa              = $row->npa;
@@ -65,7 +67,7 @@ class Contact
         $this->status           = (int)$row->status;
     }
 
-    private const SELECT_COLS = "id,firstname,lastname,society,sexe,title,address,npa,tel,telprof,portable,fax,email,email_alt,web,birthday,comment,UNIX_TIMESTAMP(creationDate) AS creationDate,UNIX_TIMESTAMP(modificationDate) AS modificationDate,status";
+    private const SELECT_COLS = "id,firstname,lastname,society,sexe,contact_type_id,title,address,npa,tel,telprof,portable,fax,email,email_alt,web,birthday,comment,UNIX_TIMESTAMP(creationDate) AS creationDate,UNIX_TIMESTAMP(modificationDate) AS modificationDate,status";
 
     public function lookupUser(int $id): void
     {
@@ -83,6 +85,7 @@ class Contact
     public function getLastName()         { return $this->lastName; }
     public function getSociety()          { return $this->society; }
     public function getSexe()             { return $this->sexe; }
+    public function getContactTypeId()    { return $this->contactTypeId; }
     public function getTitle()            { return $this->title; }
     public function getAddress()          { return $this->address; }
     public function getNpa()              { return $this->npa; }
@@ -102,6 +105,7 @@ class Contact
     public function setLastName($v)          { $this->lastName = $v; }
     public function setSociety($v)           { $this->society = $v; }
     public function setSexe($v)              { $this->sexe = $v; }
+    public function setContactTypeId($v)     { $this->contactTypeId = (int)$v ?: 1; }
     public function setTitle($v)             { $this->title = $v; }
     public function setAddress($v)           { $this->address = $v; }
     public function setNpa($v)               { $this->npa = $v; }
@@ -248,11 +252,11 @@ class Contact
         $birthdayDate = ((int)$this->birthDay) > 0 ? date('Y-m-d', (int)$this->birthDay) : null;
         if ($this->id) {
             db()->prepare(
-                "UPDATE contact SET firstname=?,lastname=?,society=?,sexe=?,title=?,address=?,npa=?,
+                "UPDATE contact SET firstname=?,lastname=?,society=?,sexe=?,contact_type_id=?,title=?,address=?,npa=?,
                  tel=?,telprof=?,portable=?,fax=?,email=?,email_alt=?,web=?,birthday=?,comment=?,modificationDate=FROM_UNIXTIME(?)
                  WHERE id=?"
             )->execute([
-                $this->firstName, $this->lastName, $this->society, $this->sexe, $this->title,
+                $this->firstName, $this->lastName, $this->society, $this->sexe, $this->contactTypeId, $this->title,
                 $this->address, $this->npa, $this->tel, $this->telProf, $this->portable,
                 $this->fax, $this->email, $this->emailAlt ?? '', $this->web, $birthdayDate, $this->comment,
                 time(), $this->id,
@@ -260,11 +264,11 @@ class Contact
             return (int) $this->id;
         } else {
             db()->prepare(
-                "INSERT INTO contact (firstname,lastname,society,sexe,title,address,npa,
+                "INSERT INTO contact (firstname,lastname,society,sexe,contact_type_id,title,address,npa,
                  tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,modificationDate)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?),FROM_UNIXTIME(?))"
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?),FROM_UNIXTIME(?))"
             )->execute([
-                $this->firstName, $this->lastName, $this->society, $this->sexe,
+                $this->firstName, $this->lastName, $this->society, $this->sexe, $this->contactTypeId,
                 $this->title, $this->address, $this->npa, $this->tel, $this->telProf,
                 $this->portable, $this->fax, $this->email, $this->emailAlt ?? '', $this->web, $birthdayDate,
                 $this->comment, time(), time(),

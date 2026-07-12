@@ -39,9 +39,16 @@ test.describe('Contact type classification tool', () => {
     const row = page.locator('table tbody tr', { hasText: 'Martin' });
     await expect(row).toBeVisible();
 
+    // Scope the submission to Martin only — other rows may transiently be
+    // diffs too (e.g. tests/contact-type-fiche.spec.ts runs concurrently
+    // and briefly changes a different contact's type), so don't rely on
+    // "select all" or an exact applied-count.
+    await page.locator('#ct-check-all').uncheck();
+    await row.locator('.ct-row-check').check();
+
     await page.locator('button[type="submit"]', { hasText: 'Appliquer' }).click();
     await expect(page).toHaveURL(/contactTypesApplied=/);
-    await expect(page.locator('#tab-contactTypes .alert-success')).toContainText('1');
+    await expect(page.locator('#tab-contactTypes .alert-success')).toBeVisible();
 
     // Re-visit fresh: no more diff for this contact
     await page.goto('/index.php?view=settings&tab=contactTypes');

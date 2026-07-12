@@ -3,7 +3,8 @@
  * Loaded as an external file to comply with CSP 'self' restrictions.
  *
  * Data is passed via data-* attributes on the root element:
- *   data-member-id, data-initial (JSON), data-gender-labels (JSON)
+ *   data-member-id, data-initial (JSON), data-gender-labels (JSON),
+ *   data-contact-type-labels (JSON, id => label)
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -18,12 +19,14 @@ function memberGeneralForm() {
         data:         {},
         draft:        {},
         genderLabels: {},
+        contactTypeLabels: {},
 
         init() {
-            this.memberId     = parseInt(this.$el.dataset.memberId || '0', 10);
-            this.data         = JSON.parse(this.$el.dataset.initial      || '{}');
-            this.genderLabels = JSON.parse(this.$el.dataset.genderLabels || '{}');
-            this.draft        = { ...this.data };
+            this.memberId          = parseInt(this.$el.dataset.memberId || '0', 10);
+            this.data              = JSON.parse(this.$el.dataset.initial           || '{}');
+            this.genderLabels      = JSON.parse(this.$el.dataset.genderLabels      || '{}');
+            this.contactTypeLabels = JSON.parse(this.$el.dataset.contactTypeLabels || '{}');
+            this.draft             = { ...this.data };
         },
 
         startEdit() {
@@ -84,6 +87,7 @@ function memberGeneralForm() {
                     firstName: d.firstName || '',
                     society:   d.society   || '',
                     gender:    d.gender    || 'na',
+                    contactTypeId: d.contactTypeId || 1,
                     title:     d.title     || '',
                     address:   d.address   || '',
                     npa:       d.npa       || '',

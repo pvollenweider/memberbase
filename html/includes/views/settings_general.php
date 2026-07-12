@@ -56,13 +56,13 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
         <option value="#tab-compta"><?= $GLOBAL['comptaTypes'] ?></option>
         <?php endif ?>
         <?php if (isAdmin()): ?>
+        <option value="#tab-contactTypes"><?= $GLOBAL['contactTypesTitle'] ?></option>
         <option value="#tab-settings"><?= $GLOBAL['settings'] ?></option>
         <option value="#tab-email"><?= $GLOBAL['smtpSettings'] ?></option>
         <option value="#tab-users"><?= $GLOBAL['users'] ?></option>
         <option value="#tab-audit"><?= $GLOBAL['journal'] ?></option>
         <option value="#tab-integrity"><?= $GLOBAL['integrity'] ?></option>
         <option value="#tab-health"><?= $GLOBAL['health'] ?></option>
-        <option value="#tab-contactTypes"><?= $GLOBAL['contactTypesTitle'] ?></option>
         <?php endif ?>
       </select>
     </div>
@@ -83,6 +83,9 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['management'] ?></li>
           <?php
           _settings_nav_item('compta',     'fas fa-tags',        $GLOBAL['comptaTypes'], $_navActive, $_settingsDrillDown, $_navSelf);
+          if (isAdmin()):
+          _settings_nav_item('contactTypes', 'fas fa-id-card',   $GLOBAL['contactTypesTitle'], $_navActive, $_settingsDrillDown, $_navSelf);
+          endif;
           endif;
           if (isAdmin()):
           ?>
@@ -94,7 +97,6 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
           _settings_nav_item('audit',      'fas fa-clock-rotate-left', $GLOBAL['journal'], $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('integrity',  'fas fa-stethoscope', $GLOBAL['integrity'], $_navActive, $_settingsDrillDown, $_navSelf);
           _settings_nav_item('health',     'fas fa-heart-pulse', $GLOBAL['health'],    $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('contactTypes', 'fas fa-id-card',   $GLOBAL['contactTypesTitle'], $_navActive, $_settingsDrillDown, $_navSelf);
           ?>
           <li role="presentation">
             <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=inactiveUsers"
@@ -317,6 +319,13 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
             <?php endif ?>
           </div><!-- #tab-compta -->
 
+          <!-- Type de contact (admin only) -->
+          <div class="tab-pane fade<?= $_paneClass('contactTypes') ?>" id="tab-contactTypes" role="tabpanel" aria-labelledby="tab-contactTypes-btn">
+            <?php if (isAdmin()): $_ctEmbedded = true; include __DIR__ . '/settings_contact_types.php'; else: ?>
+            <div class="alert alert-danger mt-3" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i><?= $GLOBAL['adminOnly'] ?></div>
+            <?php endif ?>
+          </div><!-- #tab-contactTypes -->
+
           <!-- Groupes -->
           <div class="tab-pane fade<?= $_paneClass('groups') ?>" id="tab-groups" role="tabpanel" aria-labelledby="tab-groups-btn">
             <div class="mt-1">
@@ -370,13 +379,6 @@ function _settings_nav_item(string $tab, string $icon, string $label, string $ac
             <?php include __DIR__ . '/settings_health.php'; ?>
             </div>
           </div><!-- #tab-health -->
-
-          <!-- Type de contact -->
-          <div class="tab-pane fade<?= $_paneClass('contactTypes') ?>" id="tab-contactTypes" role="tabpanel" aria-labelledby="tab-contactTypes-btn">
-            <div class="mt-1 col-md-10">
-            <?php $_ctEmbedded = true; include __DIR__ . '/settings_contact_types.php'; ?>
-            </div>
-          </div><!-- #tab-contactTypes -->
           <?php endif ?>
 
         </div><!-- .tab-content -->

@@ -15,6 +15,13 @@
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 
+/** Validates a contact_type.id, falling back to 1 ('private') if unknown. */
+function mbValidContactTypeId(PDO $db, int $id): int
+{
+    $validIds = array_map('intval', array_column($db->query("SELECT id FROM contact_type")->fetchAll(PDO::FETCH_OBJ), 'id'));
+    return in_array($id, $validIds, true) ? $id : 1;
+}
+
 /** @return array<string,int> code => contact_type.id */
 function mbContactTypeIdsByCode(PDO $db): array
 {
