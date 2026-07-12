@@ -17,6 +17,9 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 
 $UA_VIEW_ROUTES = [
+    // Tableau de bord
+    'dashboard'           => ['dashboard.php'],
+
     // Membres
     'list'                => ['users_list.php'],
     'usersList'           => ['users_list.php'], // alias utilisé par le pushState de la recherche AJAX

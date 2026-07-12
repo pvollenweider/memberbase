@@ -22,8 +22,12 @@ if (isset ($_REQUEST["searchString"])) {
         <div class="d-flex d-lg-none align-items-center justify-content-between w-100">
             <!-- Left: navigation views -->
             <div class="d-flex align-items-center gap-1">
+                <a class="nav-link text-white px-2<?= $view === 'dashboard' ? ' opacity-100' : ' opacity-75' ?>"
+                   href="<?= appUrl() ?>?view=dashboard" title="<?= $GLOBAL['dashboardPageTitle'] ?>" aria-label="<?= $GLOBAL['dashboardPageTitle'] ?>">
+                    <i class="fas fa-gauge"></i>
+                </a>
                 <a class="nav-link text-white px-2<?= in_array($view, ['list','']) ? ' opacity-100' : ' opacity-75' ?>"
-                   href="<?= appUrl() ?>" title="<?= $GLOBAL['list'] ?>" aria-label="<?= $GLOBAL['list'] ?>">
+                   href="<?= appUrl() ?>?view=list" title="<?= $GLOBAL['list'] ?>" aria-label="<?= $GLOBAL['list'] ?>">
                     <i class="fas fa-list"></i>
                 </a>
                 <a class="nav-link text-white px-2<?= $view === 'lastEntryCompta' ? ' opacity-100' : ' opacity-75' ?>"
@@ -80,8 +84,11 @@ if (isset ($_REQUEST["searchString"])) {
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto">
+                <li class="nav-item<?= $view == 'dashboard' ? ' active' : '' ?>">
+                    <a class="nav-link" href="<?= appUrl() ?>?view=dashboard"><i class="fas fa-gauge me-1" aria-hidden="true"></i><?= $GLOBAL['dashboardPageTitle'] ?></a>
+                </li>
                 <li class="nav-item<?= $view == 'list' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= appUrl() ?>"
+                    <a class="nav-link" href="<?= appUrl() ?>?view=list"
                        title="<?= $GLOBAL['manageSegments'] ?>"><i class="fas fa-list"></i> <?= $GLOBAL['list'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'lastEntryCompta' ? ' active' : '' ?>">
