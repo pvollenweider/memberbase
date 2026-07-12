@@ -360,6 +360,9 @@ tous membres confondus, triées par échéance puis priorité. Les tâches en re
 évidence en rouge. Cliquer une ligne ouvre la fiche du membre concerné (ou la tâche elle-même
 si elle n'est liée à aucun membre en particulier).
 
+Un formulaire d'ajout y est aussi disponible pour créer une **tâche générale**, non rattachée
+à un membre (ex. « renouveler l'assurance RC », « préparer l'AG »).
+
 L'ajout, la modification, la fermeture et la suppression de tâches sont réservés aux rôles
 Utilisateur et plus.
 

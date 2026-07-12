@@ -27,6 +27,38 @@ $_tasks = $stmt->fetchAll(PDO::FETCH_OBJ);
   <h1 class="page-title"><?= $GLOBAL['tasksPageTitle'] ?></h1>
 </div>
 
+<?php if (canWrite()): ?>
+<form action="<?= appUrl() ?>" method="post" name="addTask" class="mb-4">
+<input type="hidden" name="action" value="addTask"/>
+<input type="hidden" name="view" value="tasks"/>
+<div class="row g-2 align-items-end">
+  <div class="col-12 col-md-4">
+    <label for="title" class="form-label form-label-sm small text-muted"><?= $GLOBAL['taskTitle'] ?></label>
+    <input type="text" name="title" id="title" class="form-control form-control-sm" maxlength="255" required>
+  </div>
+  <div class="col-6 col-md-2">
+    <label for="due_date" class="form-label form-label-sm small text-muted"><?= $GLOBAL['dueDate'] ?></label>
+    <input type="text" name="due_date" id="due_date" class="form-control form-control-sm datepicker">
+  </div>
+  <div class="col-6 col-md-2">
+    <label for="priority" class="form-label form-label-sm small text-muted"><?= $GLOBAL['priority'] ?></label>
+    <select name="priority" id="priority" class="form-select form-select-sm">
+      <?php foreach ($_priorityLabels as $_pv => $_pl): ?>
+      <option value="<?= $_pv ?>"<?= $_pv === SuiviTask::PRIORITY_NORMAL ? ' selected' : '' ?>><?= htmlspecialchars($_pl, ENT_QUOTES, $charset) ?></option>
+      <?php endforeach ?>
+    </select>
+  </div>
+  <div class="col-12 col-md-3">
+    <label for="body" class="form-label form-label-sm small text-muted"><?= $GLOBAL['taskBody'] ?></label>
+    <input type="text" name="body" id="body" class="form-control form-control-sm">
+  </div>
+  <div class="col-12 col-md-1">
+    <button type="submit" class="btn btn-primary btn-sm w-100"><?= $GLOBAL['add'] ?></button>
+  </div>
+</div>
+</form>
+<?php endif ?>
+
 <?php if (empty($_tasks)): ?>
 <p class="text-muted"><i class="fas fa-circle-check me-1 text-success" aria-hidden="true"></i><?= $GLOBAL['noOpenTasks'] ?></p>
 <?php else: ?>

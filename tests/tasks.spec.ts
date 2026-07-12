@@ -83,4 +83,14 @@ test.describe.serial('Tasks', () => {
     ]);
     await expect(page.locator('text=Task E2E edited')).not.toBeVisible();
   });
+
+  test('add a global task (no member) from the global tasks view', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const form = page.locator('form[name="addTask"]');
+    await expect(form).toBeVisible();
+    await form.locator('input[name="title"]').fill('Task E2E global');
+    await form.locator('button[type="submit"]').click();
+    await expect(page.locator('text=Task E2E global')).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('tr', { hasText: 'Task E2E global' }).locator('text=Tâche générale')).toBeVisible();
+  });
 });

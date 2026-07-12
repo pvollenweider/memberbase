@@ -23,7 +23,7 @@ if ($action == 'addTask') {
     $task->setDueDate(formatedDateToTimeStamp($_REQUEST['due_date'] ?? '') ?: null);
     $task->save();
     $_auTarget = $task->getUserId() ? Contact::getMemberName((int)$task->getUserId()) : 'global';
-    auditLog(db(), 'addTask', "id={$task->getId()} | membre: {$_auTarget} | {$task->getTitle()}", (int)$task->getUserId());
+    auditLog(db(), 'addTask', "id={$task->getId()} | membre: {$_auTarget} | {$task->getTitle()}", $task->getUserId());
 
 } elseif ($action == 'updateTask') {
     $task = new SuiviTask();
@@ -33,27 +33,27 @@ if ($action == 'addTask') {
     $task->setPriority((int)($_REQUEST['priority'] ?? SuiviTask::PRIORITY_NORMAL));
     $task->setDueDate(formatedDateToTimeStamp($_REQUEST['due_date'] ?? '') ?: null);
     $task->save();
-    auditLog(db(), 'updateTask', "id={$task->getId()} | {$task->getTitle()}", (int)$task->getUserId());
+    auditLog(db(), 'updateTask', "id={$task->getId()} | {$task->getTitle()}", $task->getUserId());
 
 } elseif ($action == 'closeTask') {
     $task = new SuiviTask();
     $task->lookupTask((int)$_REQUEST['taskid']);
     $task->close();
-    auditLog(db(), 'closeTask', "id={$task->getId()} | {$task->getTitle()}", (int)$task->getUserId());
+    auditLog(db(), 'closeTask', "id={$task->getId()} | {$task->getTitle()}", $task->getUserId());
 
 } elseif ($action == 'reopenTask') {
     $task = new SuiviTask();
     $task->lookupTask((int)$_REQUEST['taskid']);
     db()->prepare("UPDATE suivi_task SET done_at=NULL WHERE id=?")->execute([$task->getId()]);
-    auditLog(db(), 'reopenTask', "id={$task->getId()} | {$task->getTitle()}", (int)$task->getUserId());
+    auditLog(db(), 'reopenTask', "id={$task->getId()} | {$task->getTitle()}", $task->getUserId());
 
 } elseif ($action == 'deleteTask') {
     $task = new SuiviTask();
     $task->lookupTask((int)$_REQUEST['taskid']);
     $_delUserId = $task->getUserId();
-    auditLog(db(), 'deleteTask', "id={$task->getId()} | {$task->getTitle()}", (int)$_delUserId);
+    auditLog(db(), 'deleteTask', "id={$task->getId()} | {$task->getTitle()}", $_delUserId);
     $task->remove();
-    $_delTarget = $_delUserId ? ('?view=tasks&userid=' . $_delUserId) : '?view=tasks';
+    $_delTarget = $_delUserId ? ('?view=memberTasks&userid=' . $_delUserId) : '?view=tasks';
     if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_delTarget); exit; }
     header('Location: ' . appUrl() . $_delTarget); exit;
 }
