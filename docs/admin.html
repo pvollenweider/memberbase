@@ -951,6 +951,18 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 <li><strong>BCC</strong> : voir §14.1.</li>
 </ul>
 <hr>
+<h2 id="15-tâches-planifiées-cron">15. Tâches planifiées (cron)<a class="anchor" href="#15-tâches-planifiées-cron" aria-label="Lien d'ancrage">#</a></h2>
+<p>Point d&#39;entrée : <code>html/tools/cron.php</code> (CLI uniquement, <code>Require all denied</code> en HTTP comme <code>migrate.php</code>/<code>backup.sh</code> — voir <code>html/tools/.htaccess</code>).</p>
+<h3 id="installation">Installation<a class="anchor" href="#installation" aria-label="Lien d'ancrage">#</a></h3>
+<p>Ajouter au crontab système (une exécution quotidienne suffit) :</p>
+<pre><code class="language-bash">0 7 * * * php /chemin/vers/html/tools/cron.php &gt;&gt; /var/log/memberbase-cron.log 2&gt;&amp;1
+</code></pre>
+<p><code>php html/tools/cron.php --help</code> affiche l&#39;usage. Le script exécute toutes les tâches à chaque appel (pas de sous-commandes pour l&#39;instant) et retourne un code de sortie non nul si un envoi échoue, pour permettre une alerte crontab standard (<code>MAILTO=</code> ou supervision externe).</p>
+<h3 id="tâches-planifiées-existantes">Tâches planifiées existantes<a class="anchor" href="#tâches-planifiées-existantes" aria-label="Lien d'ancrage">#</a></h3>
+<p><strong>Digest de tâches</strong> (voir §8 « Tâches » du guide utilisateur) — envoie un e-mail récapitulatif des tâches ouvertes en retard ou à échéance dans les 3 prochains jours (<code>SuiviTask::dueSoonOrOverdue()</code>), à l&#39;adresse configurée dans <strong>Réglages → Email → <code>smtp_reply_to</code></strong>. Si ce champ est vide, la tâche est silencieusement ignorée (pas d&#39;erreur — c&#39;est une fonctionnalité opt-in via la config SMTP déjà existante, pas un nouveau réglage dédié). Template éditable dans <strong>Réglages → Email → Templates</strong> (<code>tpl_task_digest</code>). Journalisé dans <code>audit_log</code> (action <code>cronTaskDigest</code>) et <code>email_log</code>.</p>
+<h3 id="sans-accès-cron-hébergement-mutualisé-etc">Sans accès cron (hébergement mutualisé, etc.)<a class="anchor" href="#sans-accès-cron-hébergement-mutualisé-etc" aria-label="Lien d'ancrage">#</a></h3>
+<p>Le script reste utilisable en exécution manuelle ponctuelle (<code>php html/tools/cron.php</code>) mais perd son intérêt (« planifié ») sans un déclencheur externe. Pas d&#39;alternative web (« bouton Réglages ») pour l&#39;instant — contrairement aux migrations (Réglages → Santé), le digest de tâches n&#39;a de sens que déclenché automatiquement.</p>
+<hr>
 <h2 id="réglages-de-lapplication">Réglages de l&#39;application<a class="anchor" href="#réglages-de-lapplication" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="général">Général<a class="anchor" href="#général" aria-label="Lien d'ancrage">#</a></h3>
 <p>Accès : <strong>Réglages</strong> → section <strong>Général</strong></p>
