@@ -265,6 +265,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
         <li><a href="#11-cicd">11. CI/CD</a></li>
         <li><a href="#12-mise-à-jour-du-schéma">12. Mise à jour du schéma</a></li>
         <li><a href="#13-logs-daudit">13. Logs d'audit</a></li>
+        <li><a href="#14-emails-et-communications">14. Emails et communications</a></li>
         <li><a href="#réglages-de-lapplication">Réglages de l'application</a></li>
         <li><a href="#référence-rapide">Référence rapide</a></li>
       </ul>
@@ -406,8 +407,9 @@ define(&#39;DB_PASS&#39;, &#39;secret&#39;);
 <tr><td><code>org_country</code></td><td>Pays (attestations)</td></tr>
 <tr><td><code>default_segment</code></td><td>ID du segment affiché par défaut dans la liste membres (anciennement <code>default_team</code>, renommé v5.1.0)</td></tr>
 <tr><td><code>membre_segment</code></td><td>ID du segment de référence pour les filtres cotisation (anciennement <code>membre_team</code>, renommé v5.1.0)</td></tr>
+<tr><td><code>member_no_coti_segment</code></td><td>ID du segment « membres sans cotisation attendue » — exclu du filtre rapide « cotisation non payée cette année » (anciennement <code>member_no_coti_team</code>, renommé v5.1.0)</td></tr>
 <tr><td><code>archive_id</code></td><td>ID du segment archives (exclu des vues par défaut)</td></tr>
-<tr><td><code>membre_segment_prefix</code></td><td>Préfixe des segments membres annuels (ex. <code>Membre</code>) (anciennement <code>membre_team_prefix</code>, renommé v5.1.0)</td></tr><tr><td><code>org_ide</code></td><td>Numéro IDE suisse (CHE-XXX.XXX.XXX) — figure sur les attestations de dons. Bouton <strong>Vérifier via Zefix</strong> dans l&#39;UI : interroge le registre du commerce suisse (<code>zefix.ch</code>, flux <code>search.json</code> → <code>firm/{ehraid}.json</code>) pour préremplir nom/adresse/but statutaire à partir du numéro IDE</td></tr><tr><td><code>org_purpose</code></td><td>But statutaire (extrait des statuts) — préremplissable via Zefix</td></tr><tr><td><code>org_tax_status</code></td><td>Statut d&#39;exonération fiscale — saisie manuelle uniquement (aucun registre fédéral consulté automatiquement)</td></tr><tr><td><code>smtp_*</code></td><td>Configuration SMTP — voir <a href="#141-configuration-smtp">§14.1</a></td></tr></tbody></table></div>
+<tr><td><code>membre_segment_prefix</code></td><td>Préfixe des segments membres annuels (ex. <code>Membre</code>) (anciennement <code>membre_team_prefix</code>, renommé v5.1.0)</td></tr><tr><td><code>org_ide</code></td><td>Numéro IDE suisse (CHE-XXX.XXX.XXX) — figure sur les attestations de dons. Bouton <strong>Vérifier via Zefix</strong> dans l&#39;UI : interroge le registre du commerce suisse (<code>zefix.ch</code>, flux <code>search.json</code> → <code>firm/{ehraid}.json</code>) pour préremplir nom/adresse/but statutaire à partir du numéro IDE</td></tr><tr><td><code>org_purpose</code></td><td>But statutaire (extrait des statuts) — préremplissable via Zefix</td></tr><tr><td><code>org_tax_status</code></td><td>Statut d&#39;exonération fiscale — saisie manuelle uniquement (aucun registre fédéral consulté automatiquement)</td></tr><tr><td><code>org_iban</code></td><td>IBAN de l&#39;association — requis pour générer le bulletin de versement QR joint aux rappels de cotisation (voir <a href="#144-rappels-de-cotisation">§14.4</a>)</td></tr><tr><td><code>org_coti_amount_desc</code></td><td>Description libre du montant de cotisation, affichée dans l&#39;email de rappel et sur le bulletin QR (champ « Montant ») — repli sur une valeur par défaut si vide</td></tr><tr><td><code>smtp_*</code></td><td>Configuration SMTP — voir <a href="#141-configuration-smtp">§14.1</a></td></tr></tbody></table></div>
 <p>Modification directe en SQL si nécessaire :</p>
 <pre><code class="language-sql">UPDATE app_settings SET value = &#39;Nouvelle valeur&#39; WHERE `key` = &#39;org_name&#39;;
 </code></pre>
@@ -446,7 +448,7 @@ find $WEBROOT/html -type d -exec chmod 755 {} \;
 find $WEBROOT/html -type f -exec chmod 644 {} \;
 </code></pre>
 <h3 id="routes-api-modrewrite">Routes API (mod_rewrite)<a class="anchor" href="#routes-api-modrewrite" aria-label="Lien d'ancrage">#</a></h3>
-<p>Les endpoints REST utilisent des URLs propres (<code>/api/contacts/42</code>). <code>mod_rewrite</code> doit être actif (<code>a2enmod rewrite</code>) <strong>et</strong> les règles <code>RewriteRule</code> déclarées <strong>dans le vhost</strong>, pas via <code>.htaccess</code> (l&#39;<code>AllowOverride</code> du dossier <code>api/</code> bloque les directives Rewrite en <code>.htaccess</code>). Le bloc <code>&lt;Directory .../html/api&gt;</code> complet avec toutes les <code>RewriteRule</code> figure dans <a href="https://github.com/pvollenweider/memberbase/blob/main/MIGRATION_PROD.md"><code>MIGRATION_PROD.md</code></a> (section <code>feature/api-members</code>). Vérification :</p>
+<p>Les endpoints REST utilisent des URLs propres (<code>/api/contacts/42</code>). <code>mod_rewrite</code> doit être actif (<code>a2enmod rewrite</code>) <strong>et</strong> les règles <code>RewriteRule</code> déclarées <strong>dans le vhost</strong>, pas via <code>.htaccess</code> (l&#39;<code>AllowOverride</code> du dossier <code>api/</code> bloque les directives Rewrite en <code>.htaccess</code>). Le bloc <code>&lt;Directory .../html/api&gt;</code> complet avec toutes les <code>RewriteRule</code> figure dans <a href="https://github.com/pvollenweider/memberbase/blob/main/MIGRATION_PROD.md#configuration-apache--routes-api"><code>MIGRATION_PROD.md</code></a>. Vérification :</p>
 <pre><code class="language-bash"># URL propre → doit retourner 401 (auth requise), pas 404
 curl -s -o /dev/null -w &quot;%{http_code}&quot; https://membres.votre-domaine.ch/api/contacts/1
 </code></pre>
@@ -683,9 +685,10 @@ curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
 <p><strong><code>GET /api/contacts</code></strong></p>
 <div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>segment</code></td><td>int</td><td>Filtrer par ID de segment (négatif = filtre virtuel, voir <code>MemberFilter</code>) — anciennement <code>team</code>, renommé v5.1.0</td></tr>
 <tr><td><code>combinedSegment</code></td><td>int</td><td>Filtrer par ID de segment combiné — anciennement <code>metagroup</code>, renommé v5.1.0</td></tr>
-<tr><td><code>active</code></td><td>bool</td><td><code>1</code> = membres actifs uniquement</td></tr>
 <tr><td><code>search</code></td><td>string</td><td>Recherche textuelle (nom, prénom, email)</td></tr>
-<tr><td><code>limit</code></td><td>int</td><td>Nombre de résultats (pagination)</td></tr>
+<tr><td><code>page</code></td><td>int</td><td>Numéro de page (pagination)</td></tr>
+<tr><td><code>limit</code></td><td>int</td><td>Nombre de résultats par page (max 2000)</td></tr>
+<tr><td><code>types</code></td><td>bool</td><td><code>1</code> = inclut les types de compta de chaque membre dans la réponse</td></tr>
 <tr><td><code>offset</code></td><td>int</td><td>Décalage (pagination)</td></tr></tbody></table></div>
 <p><strong><code>GET /api/compta</code></strong></p>
 <div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>member</code></td><td>int</td><td>Filtrer par ID membre</td></tr>
@@ -698,8 +701,8 @@ curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
 <pre><code class="language-bash">BASE=https://membres.votre-domaine.ch
 COOKIES=cookies.txt
 
-# Liste des membres du groupe 3, actifs
-curl -b $COOKIES &quot;$BASE/api/contacts?segment=3&amp;active=1&quot;
+# Liste des membres du segment 3, actifs
+curl -b $COOKIES &quot;$BASE/api/contacts?group=3&amp;active=1&quot;
 
 # Fiche complète du membre 42
 curl -b $COOKIES &quot;$BASE/api/contacts/42&quot;
@@ -713,7 +716,7 @@ curl -b $COOKIES -X PATCH \
 # Entrées compta du membre 42 pour 2024
 curl -b $COOKIES &quot;$BASE/api/compta?member=42&amp;year=2024&quot;
 
-# Liste des groupes
+# Liste des segments
 curl -b $COOKIES &quot;$BASE/api/segments&quot;
 </code></pre>
 <h3 id="86-format-des-réponses">8.6 Format des réponses<a class="anchor" href="#86-format-des-réponses" aria-label="Lien d'ancrage">#</a></h3>
@@ -756,12 +759,12 @@ mysqldump -h localhost -u members -p members \
 <div class="table-scroll" role="region" aria-label="Tableau — Ce que l'outil vérifie" tabindex="0"><table><thead><tr><th scope="col">Contrôle</th><th scope="col">Sévérité</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Membres avec même nom</td><td>Danger</td><td>Deux membres actifs avec le même prénom ET nom (insensible à la casse)</td></tr>
 <tr><td>Membres avec même email</td><td>Danger</td><td>Deux membres actifs avec la même adresse email</td></tr>
 <tr><td>Groupes masqués dans une catégorie</td><td>Avertissement</td><td>Un groupe <code>hidden=1</code> est encore assigné à une catégorie</td></tr>
-<tr><td>Groupes masqués dans un métagroupe</td><td>Avertissement</td><td>Un groupe <code>hidden=1</code> est encore référencé dans un métagroupe de filtrage</td></tr>
+<tr><td>Groupes masqués dans un segment combiné</td><td>Avertissement</td><td>Un groupe <code>hidden=1</code> est encore référencé dans un segment combiné de filtrage</td></tr>
 <tr><td>Groupes masqués avec des membres</td><td>Avertissement</td><td>Un groupe <code>hidden=1</code> a encore des membres actifs assignés</td></tr></tbody></table></div>
 <h3 id="actions-disponibles">Actions disponibles<a class="anchor" href="#actions-disponibles" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
 <li><strong>Doublons de nom/email</strong> : liens directs vers les fiches membres concernées. Pour deux doublons, un bouton <strong>Fusionner</strong> apparaît (vue <code>mergeUsers</code>).</li>
-<li><strong>Groupes masqués</strong> : lien <strong>Éditer</strong> vers la page de configuration du métagroupe ou de la catégorie pour retirer l&#39;assignation.</li>
+<li><strong>Groupes masqués</strong> : lien <strong>Éditer</strong> vers la page de configuration du segment combiné ou de la catégorie pour retirer l&#39;assignation.</li>
 </ul>
 <h3 id="quand-lutiliser">Quand l&#39;utiliser<a class="anchor" href="#quand-lutiliser" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
@@ -846,11 +849,12 @@ php html/tools/migrate.php --baseline
 <ol>
 <li><code>php html/tools/migrate.php --status</code> (ou Réglages → Santé) pour voir ce qui va s&#39;appliquer</li>
 <li>Dump de la base (<code>mysqldump</code>, ou export intégré via Réglages → Santé)</li>
+<li><strong>Depuis la v5.1.0 (migrations <code>0028</code>-<code>0030</code>)</strong> : vérifier que les tables de fuseaux horaires nommés MariaDB sont chargées — <code>SELECT CONVERT_TZ(NOW(), @@session.time_zone, &#39;Europe/Zurich&#39;);</code> doit renvoyer une vraie date, pas <code>NULL</code>. Si <code>NULL</code> : <code>mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql</code> avant de continuer — sinon les dates de naissance / notes de suivi / écritures comptables migrées deviennent silencieusement <code>NULL</code> (voir <code>MIGRATION_PROD.md</code>).</li>
 <li>Tester sur un environnement de staging si la migration est structurante</li>
 <li>Appliquer en production</li>
 </ol>
 <p>⚠️ Le DDL MySQL est auto-committé (pas de rollback transactionnel) — la sauvegarde de l&#39;étape 2 est la seule protection en cas de problème.</p>
-<p><code>MIGRATION_PROD.md</code> à la racine du dépôt documente l&#39;historique des migrations manuelles d&#39;avant ce système (versions ≤ 3.7.x) ; il n&#39;est plus alimenté.</p>
+<p><code>MIGRATION_PROD.md</code> à la racine du dépôt documente l&#39;historique complet des migrations (y compris les migrations manuelles d&#39;avant ce système, versions ≤ 3.7.x) et les prérequis spécifiques (fuseaux horaires, sauvegardes) — à consulter avant toute migration structurante.</p>
 <h3 id="vérifier-létat-du-schéma">Vérifier l&#39;état du schéma<a class="anchor" href="#vérifier-létat-du-schéma" aria-label="Lien d'ancrage">#</a></h3>
 <pre><code class="language-sql">-- Lister les tables existantes
 SHOW TABLES;
@@ -930,6 +934,7 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 <p>Interpolation par <code>{{placeholder}}</code> (pas <code>%s</code>/<code>sprintf</code>). Une modale « Variables disponibles » liste les placeholders utilisables par template (ex. <code>{{firstname}}</code>, <code>{{entries}}</code>, <code>{{total}}</code>, <code>{{org_name}}</code>).</p>
 <h3 id="144-rappels-de-cotisation">14.4 Rappels de cotisation<a class="anchor" href="#144-rappels-de-cotisation" aria-label="Lien d'ancrage">#</a></h3>
 <p>Depuis la vue <strong>Membres perdus</strong> (<code>lapsedMembers</code>), envoi manuel — individuel ou en masse — d&#39;un rappel aux membres ayant cotisé l&#39;année précédente mais pas l&#39;année en cours. Anti-doublon : un membre déjà relancé cette année (<code>email_log.tpl_key = &#39;tpl_cotisation_reminder&#39;</code> + année) n&#39;est pas re-sollicité tant que l&#39;option de forçage n&#39;est pas utilisée (bouton <strong>Renvoyer</strong>). L&#39;envoi individuel (et le renvoi) passe par une modale d&#39;<strong>aperçu</strong> (action <code>previewCotisationReminder</code>, sujet + rendu HTML réel du template) avant confirmation — pas de <code>window.confirm()</code> natif.</p>
+<p>Chaque rappel embarque en pièce jointe un <strong>bulletin de versement QR</strong> suisse (<code>sprain/swiss-qr-bill</code>, cf. <code>html/includes/lib/qr_bill.php</code>), généré à partir de l&#39;IBAN configuré (<code>app_settings.org_iban</code>) et de la description de montant configurable (<code>app_settings.org_coti_amount_desc</code>, avec repli sur une valeur par défaut si vide). Nécessite l&#39;extension PHP <strong>GD</strong> côté serveur (cf. section Dépendances du <code>CLAUDE.md</code>).</p>
 <h3 id="145-récapitulatifs-comptables-compta-recap">14.5 Récapitulatifs comptables (compta recap)<a class="anchor" href="#145-récapitulatifs-comptables-compta-recap" aria-label="Lien d'ancrage">#</a></h3>
 <p>Vue <strong><code>comptaRecap</code></strong> : envoi groupé d&#39;un email par membre récapitulant ses entrées comptables non encore notifiées (<code>compta.notified_at IS NULL</code>), filtrable par année. Fonctionnalités :</p>
 <ul>
@@ -952,9 +957,10 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 <h2 id="réglages-de-lapplication">Réglages de l&#39;application<a class="anchor" href="#réglages-de-lapplication" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="général">Général<a class="anchor" href="#général" aria-label="Lien d'ancrage">#</a></h3>
 <p>Accès : <strong>Réglages</strong> → section <strong>Général</strong></p>
-<div class="table-scroll" role="region" aria-label="Tableau — Général" tabindex="0"><table><thead><tr><th scope="col">Réglage</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Groupe par défaut</td><td>Groupe affiché à l&#39;ouverture de la liste membres</td></tr>
-<tr><td>Groupe membres de référence</td><td>Référence pour les filtres cotisation non payée</td></tr>
-<tr><td>Groupe archives</td><td>Exclu des vues &quot;tous sauf archives&quot;</td></tr></tbody></table></div>
+<div class="table-scroll" role="region" aria-label="Tableau — Général" tabindex="0"><table><thead><tr><th scope="col">Réglage</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Segment par défaut</td><td>Segment affiché à l&#39;ouverture de la liste membres</td></tr>
+<tr><td>Segment membres de référence</td><td>Référence pour les filtres cotisation non payée</td></tr>
+<tr><td>Segment archives</td><td>Exclu des vues &quot;tous sauf archives&quot;</td></tr>
+<tr><td>IBAN / Description du montant</td><td>Voir <a href="#33-paramètres-applicatifs-table-appsettings">§3.3</a> — utilisés pour le bulletin QR des rappels de cotisation</td></tr></tbody></table></div>
 <h3 id="types-de-compta">Types de compta<a class="anchor" href="#types-de-compta" aria-label="Lien d'ancrage">#</a></h3>
 <p>Accès : <strong>Réglages</strong> → section <strong>Types de compta</strong></p>
 <p>Les types définissent les catégories d&#39;entrées financières. Flags disponibles :</p>

@@ -257,7 +257,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
         <li><a href="#format-des-réponses">Format des réponses</a></li>
         <li><a href="#routage-htaccess">Routage (.htaccess)</a></li>
         <li><a href="#membres">Membres</a></li>
-        <li><a href="#segments-groups">Segments (groups)</a></li>
+        <li><a href="#segments-groups">Segments</a></li>
         <li><a href="#comptabilité">Comptabilité</a></li>
         <li><a href="#types-de-compta">Types de compta</a></li>
         <li><a href="#suivi">Suivi</a></li>
@@ -265,6 +265,9 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
     </nav>
     <div class="prose">
 <p>API REST interne de l&#39;application MemberBase (version <strong>5.1.0</strong>). Toutes les réponses sont en JSON UTF-8.</p>
+<blockquote>
+<p>⚠️ <strong>v5.0.0 (breaking)</strong> : les routes <code>/api/members</code> et <code>/api/groups</code> sont renommées <code>/api/contacts</code> et <code>/api/segments</code> (aucune rétrocompatibilité). Voir le <a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md#500--2026-07-09">CHANGELOG</a>.</p>
+</blockquote>
 <hr>
 <h2 id="authentification">Authentification<a class="anchor" href="#authentification" aria-label="Lien d'ancrage">#</a></h2>
 <p>L&#39;API ne dispose pas de token séparé. Elle repose sur <strong>la session web de l&#39;application</strong> : la requête doit porter le cookie de session obtenu lors d&#39;une connexion via l&#39;interface web (<code>login.php</code>).</p>
@@ -335,7 +338,7 @@ curl -b cookies.txt https://votre-domaine/api/contacts
 <p>Toute combinaison méthode/chemin non prévue par le dispatcher d&#39;un script retourne <code>405 Method Not Allowed</code>.</p>
 <hr>
 <h2 id="membres">Membres<a class="anchor" href="#membres" aria-label="Lien d'ancrage">#</a></h2>
-<p>Ressource : <code>html/api/contacts.php</code>. Entité SQL : <code>contact</code>.</p>
+<p>Ressource : <code>html/api/contacts.php</code>. Entité SQL : <code>contact</code> (renommée depuis <code>users</code> en v5.0.0).</p>
 <h3 id="get-apimembers"><code>GET /api/contacts</code><a class="anchor" href="#get-apimembers" aria-label="Lien d'ancrage">#</a></h3>
 <p>Liste paginée des membres <strong>actifs</strong> (<code>contact.status = 1</code>), triée par <code>lastName ASC, firstName ASC</code>.
 Rôle : <code>canRead()</code>.</p>
@@ -485,7 +488,7 @@ curl -b cookies.txt &quot;https://votre-domaine/api/contacts?segment=-4&quot;
 </code></pre>
 <hr>
 <h3 id="delete-apimembersid"><code>DELETE /api/contacts/{id}</code><a class="anchor" href="#delete-apimembersid" aria-label="Lien d'ancrage">#</a></h3>
-<p>Par défaut : <strong>désactivation</strong> (<code>UPDATE users SET status = 0</code>). Avec <code>?dispose=delete</code> : <strong>suppression définitive</strong> de l&#39;enregistrement (<code>isAdmin()</code> requis).</p>
+<p>Par défaut : <strong>désactivation</strong> (<code>UPDATE contact SET status = 0</code>). Avec <code>?dispose=delete</code> : <strong>suppression définitive</strong> de l&#39;enregistrement (<code>isAdmin()</code> requis).</p>
 <h4 id="paramètres-de-query">Paramètres de query<a class="anchor" href="#paramètres-de-query" aria-label="Lien d'ancrage">#</a></h4>
 <div class="table-scroll" role="region" aria-label="Tableau — Paramètres de query" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>dispose</code></td><td>string</td><td><code>&quot;delete&quot;</code> : suppression définitive (admin uniquement). Toute autre valeur (ou absente) : désactivation</td></tr></tbody></table></div>
 <h4 id="réponse">Réponse<a class="anchor" href="#réponse" aria-label="Lien d'ancrage">#</a></h4>
@@ -548,7 +551,7 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/contacts/42?dispos
 }
 </code></pre>
 <ul>
-<li><code>notifiedAt</code> : date d&#39;envoi du récapitulatif email incluant cette entrée (<code>null</code> = pas encore notifiée).</li>
+<li><code>notifiedAt</code> : date d&#39;envoi du récapitulatif email incluant cette entrée (<code>null</code> = pas encore notifiée), voir <a href="admin.html#145-récapitulatifs-comptables-compta-recap">Récapitulatifs comptables</a> dans le guide administrateur.</li>
 <li><code>cotisationYear</code> : année de cotisation couverte par l&#39;entrée quand elle diffère de l&#39;année de paiement (ex. cotisation 2027 payée en décembre 2026), sinon <code>null</code> — dans ce cas l&#39;année effective est celle du champ <code>date</code>.</li>
 <li><code>type</code> est <code>null</code> si l&#39;entrée n&#39;a pas de type associé.</li>
 </ul>
