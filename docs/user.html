@@ -259,15 +259,16 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
         <li><a href="#5-fiche-membre">5. Fiche membre</a></li>
         <li><a href="#6-comptabilité-dun-membre-onglet-compta">6. Comptabilité d'un membre (onglet Compta)</a></li>
         <li><a href="#7-suivi-dun-membre-onglet-suivi">7. Suivi d'un membre (onglet Suivi)</a></li>
-        <li><a href="#8-journaux-et-aperçu-des-dons">8. Journaux et aperçu des dons</a></li>
-        <li><a href="#9-attestations-de-dons">9. Attestations de dons</a></li>
-        <li><a href="#10-segments">10. Segments</a></li>
-        <li><a href="#11-réglages">11. Réglages</a></li>
-        <li><a href="#12-rôles-utilisateurs-et-matrice-des-droits">12. Rôles utilisateurs et matrice des droits</a></li>
-        <li><a href="#13-changer-son-mot-de-passe">13. Changer son mot de passe</a></li>
-        <li><a href="#14-déconnexion">14. Déconnexion</a></li>
-<li><a href="#15-récapitulatifs-comptables-par-email">15. Récapitulatifs comptables par email</a></li>
-<li><a href="#16-rappels-de-cotisation-impayée">16. Rappels de cotisation impayée</a></li>
+        <li><a href="#8-tâches">8. Tâches</a></li>
+        <li><a href="#9-journaux-et-aperçu-des-dons">9. Journaux et aperçu des dons</a></li>
+        <li><a href="#10-attestations-de-dons">10. Attestations de dons</a></li>
+        <li><a href="#11-segments">11. Segments</a></li>
+        <li><a href="#12-réglages">12. Réglages</a></li>
+        <li><a href="#13-rôles-utilisateurs-et-matrice-des-droits">13. Rôles utilisateurs et matrice des droits</a></li>
+        <li><a href="#14-changer-son-mot-de-passe">14. Changer son mot de passe</a></li>
+        <li><a href="#15-déconnexion">15. Déconnexion</a></li>
+<li><a href="#16-récapitulatifs-comptables-par-email">16. Récapitulatifs comptables par email</a></li>
+<li><a href="#17-rappels-de-cotisation-impayée">17. Rappels de cotisation impayée</a></li>
       </ul>
     </nav>
     <div class="prose">
@@ -528,7 +529,26 @@ non comptées comme don portent la mention « non-don ».</li>
 affichées de la plus récente à la plus ancienne. L&#39;ajout, la modification et la suppression
 sont réservés aux rôles Utilisateur et plus.</p>
 <hr>
-<h2 id="8-journaux-et-aperçu-des-dons">8. Journaux et aperçu des dons<a class="anchor" href="#8-journaux-et-aperçu-des-dons" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="8-tâches">8. Tâches<a class="anchor" href="#8-tâches" aria-label="Lien d'ancrage">#</a></h2>
+<p>Distinctes des notes de suivi, les <strong>tâches</strong> ont un titre, une échéance optionnelle, une
+priorité et un statut ouvert/fermé — pensées pour le suivi d&#39;actions à faire plutôt que pour
+l&#39;historique de contact.</p>
+<h3 id="depuis-la-fiche-dun-membre">Depuis la fiche d&#39;un membre<a class="anchor" href="#depuis-la-fiche-dun-membre" aria-label="Lien d'ancrage">#</a></h3>
+<p>L&#39;onglet <strong>Tâches</strong> de la fiche membre liste les tâches liées à ce membre et propose un
+formulaire d&#39;ajout (titre, échéance, priorité, description). Un badge sur l&#39;onglet indique le
+nombre de tâches ouvertes ; il devient <strong>rouge</strong> dès qu&#39;au moins une tâche est en retard
+(échéance dépassée et non terminée).</p>
+<p>Sur chaque ligne : coche pour marquer <strong>terminée</strong> (ou rouvrir une tâche déjà terminée), icône
+crayon pour modifier, icône corbeille pour supprimer.</p>
+<h3 id="vue-globale">Vue globale<a class="anchor" href="#vue-globale" aria-label="Lien d'ancrage">#</a></h3>
+<p>Le lien <strong>Tâches</strong> de la barre de navigation ouvre la liste de <strong>toutes les tâches ouvertes</strong>,
+tous membres confondus, triées par échéance puis priorité. Les tâches en retard sont mises en
+évidence en rouge. Cliquer une ligne ouvre la fiche du membre concerné (ou la tâche elle-même
+si elle n&#39;est liée à aucun membre en particulier).</p>
+<p>L&#39;ajout, la modification, la fermeture et la suppression de tâches sont réservés aux rôles
+Utilisateur et plus.</p>
+<hr>
+<h2 id="9-journaux-et-aperçu-des-dons">9. Journaux et aperçu des dons<a class="anchor" href="#9-journaux-et-aperçu-des-dons" aria-label="Lien d'ancrage">#</a></h2>
 <p>Ces vues transversales sont accessibles depuis la barre de navigation.</p>
 <h3 id="compta--journal-comptable-global">Compta — journal comptable global<a class="anchor" href="#compta--journal-comptable-global" aria-label="Lien d'ancrage">#</a></h3>
 <p>Toutes les entrées comptables, tous membres confondus.</p>
@@ -575,7 +595,7 @@ génère son attestation.</p>
 <strong>Créer segment « Donateurs à relancer AAAA »</strong> qui rassemble ces personnes dans un nouveau
 segment pour faciliter la relance.</p>
 <hr>
-<h2 id="9-attestations-de-dons">9. Attestations de dons<a class="anchor" href="#9-attestations-de-dons" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="10-attestations-de-dons">10. Attestations de dons<a class="anchor" href="#10-attestations-de-dons" aria-label="Lien d'ancrage">#</a></h2>
 <p>Une attestation de don est un PDF officiel remis au donateur pour sa déclaration fiscale. Elle
 reprend les versements de l&#39;année (hors types marqués « exclu des dons »), avec en option le
 tampon et la signature de l&#39;organisation (images déposées sur le serveur par l&#39;administrateur
@@ -626,7 +646,7 @@ emails, Réglages → Email), un bouton <strong>Régénérer l&#39;attestation (
 la date d&#39;envoi d&#39;origine (pas la date du jour).</li>
 </ul>
 <hr>
-<h2 id="10-segments">10. Segments<a class="anchor" href="#10-segments" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="11-segments">11. Segments<a class="anchor" href="#11-segments" aria-label="Lien d'ancrage">#</a></h2>
 <p>Les segments découpent les membres en sous-ensembles (membres d&#39;une année, comité, partenaires,
 donateurs à relancer…). Leur gestion se trouve dans les <strong>Réglages</strong> (icône engrenage,
 réservée aux Managers et Admins), onglets <strong>Segments</strong>, <strong>Catégories</strong> et <strong>Segments combinés</strong>.</p>
@@ -661,7 +681,7 @@ l&#39;<strong>union</strong> de leurs membres. Depuis l&#39;onglet <strong>Segme
 un, puis cliquer son nom pour choisir les segments à inclure. Il apparaît ensuite en tête du
 menu de filtrage de la liste des membres.</p>
 <hr>
-<h2 id="11-réglages">11. Réglages<a class="anchor" href="#11-réglages" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="12-réglages">12. Réglages<a class="anchor" href="#12-réglages" aria-label="Lien d'ancrage">#</a></h2>
 <p>Accès via l&#39;icône <strong>engrenage</strong> (Managers et Admins). La barre latérale liste les sections ;
 les sections disponibles dépendent du rôle.</p>
 <div class="table-scroll" role="region" aria-label="Tableau — 11. Réglages" tabindex="0"><table><thead><tr><th scope="col">Section</th><th scope="col">Rôle</th><th scope="col">Contenu</th></tr></thead><tbody><tr><td>Segments</td><td>Manager / Admin</td><td>Gestion des segments (voir §10)</td></tr>
@@ -726,7 +746,7 @@ ou <em>supprimer</em>.</li>
 automatiquement (dédoublonnées). Confirmer via la fenêtre de résumé.</li>
 </ul>
 <hr>
-<h2 id="12-rôles-utilisateurs-et-matrice-des-droits">12. Rôles utilisateurs et matrice des droits<a class="anchor" href="#12-rôles-utilisateurs-et-matrice-des-droits" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="13-rôles-utilisateurs-et-matrice-des-droits">13. Rôles utilisateurs et matrice des droits<a class="anchor" href="#13-rôles-utilisateurs-et-matrice-des-droits" aria-label="Lien d'ancrage">#</a></h2>
 <p>L&#39;application distingue quatre rôles : <strong>Lecture seule</strong>, <strong>Utilisateur</strong>, <strong>Manager</strong> et
 <strong>Admin</strong>. La matrice ci-dessous est consultable directement à la création d&#39;un compte (icône
 <strong>?</strong> à côté du champ Rôle dans <strong>Réglages ▸ Utilisateurs</strong>).</p>
@@ -741,7 +761,7 @@ automatiquement (dédoublonnées). Confirmer via la fenêtre de résumé.</li>
 réservés aux Managers et Admins ; un rôle <strong>Utilisateur</strong> peut créer et modifier des membres et
 saisir compta et suivi, mais pas gérer les segments.</p>
 <hr>
-<h2 id="13-changer-son-mot-de-passe">13. Changer son mot de passe<a class="anchor" href="#13-changer-son-mot-de-passe" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="14-changer-son-mot-de-passe">14. Changer son mot de passe<a class="anchor" href="#14-changer-son-mot-de-passe" aria-label="Lien d'ancrage">#</a></h2>
 <ol>
 <li>Cliquer son <strong>nom d&#39;utilisateur</strong> en haut à droite.</li>
 <li>Choisir <strong>Mot de passe</strong>.</li>
@@ -751,10 +771,10 @@ saisir compta et suivi, mais pas gérer les segments.</p>
 <p>Si un administrateur a réinitialisé votre mot de passe, l&#39;application impose ce changement à la
 connexion suivante.</p>
 <hr>
-<h2 id="14-déconnexion">14. Déconnexion<a class="anchor" href="#14-déconnexion" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="15-déconnexion">15. Déconnexion<a class="anchor" href="#15-déconnexion" aria-label="Lien d'ancrage">#</a></h2>
 <p>Cliquer son <strong>nom d&#39;utilisateur</strong> en haut à droite, puis <strong>Déconnexion</strong>.</p>
 <hr>
-<h2 id="15-récapitulatifs-comptables-par-email">15. Récapitulatifs comptables par email<a class="anchor" href="#15-récapitulatifs-comptables-par-email" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="16-récapitulatifs-comptables-par-email">16. Récapitulatifs comptables par email<a class="anchor" href="#16-récapitulatifs-comptables-par-email" aria-label="Lien d'ancrage">#</a></h2>
 <p>Accès : menu <strong>Emails</strong> (Manager / Admin). Envoie à chaque membre un email récapitulant ses
 entrées comptables pas encore notifiées (cotisations, dons…), regroupées en une seule fois
 plutôt qu&#39;une notification par entrée.</p>
@@ -773,7 +793,7 @@ possibilité de renvoyer (forçage).</li>
 <strong>année de cotisation</strong> différente de l&#39;année de paiement (ex. cotisation 2027 payée en
 décembre 2026), l&#39;email le précise explicitement.</p>
 <hr>
-<h2 id="16-rappels-de-cotisation-impayée">16. Rappels de cotisation impayée<a class="anchor" href="#16-rappels-de-cotisation-impayée" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="17-rappels-de-cotisation-impayée">17. Rappels de cotisation impayée<a class="anchor" href="#17-rappels-de-cotisation-impayée" aria-label="Lien d'ancrage">#</a></h2>
 <p>Accès : vue <strong>Membres perdus</strong> (menu principal ou Réglages → sections liées aux membres).
 Liste les membres ayant cotisé l&#39;année précédente mais pas encore l&#39;année en cours.</p>
 <ul>
