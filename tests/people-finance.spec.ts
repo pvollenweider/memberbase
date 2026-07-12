@@ -57,6 +57,43 @@ test.describe('People/finance hub — Phase 1', () => {
     await expect(page.locator('#pf-tab-dons')).toBeVisible();
     await expect(page.locator('#pf-tab-members')).toBeHidden();
   });
+
+  test('switching tabs updates the URL for direct linking', async ({ page }) => {
+    await page.goto('/index.php?view=peopleFinance');
+    await page.locator('#pf-tab-recap-btn').click();
+    await expect(page).toHaveURL(/[?&]tab=recap/);
+    await page.locator('#pf-tab-dons-btn').click();
+    await expect(page).toHaveURL(/[?&]tab=dons/);
+  });
+
+  test('Relances tab: changing the year filter stays inside the hub', async ({ page }) => {
+    await page.goto('/index.php?view=peopleFinance&tab=recap');
+    await page.locator('#pf-tab-recap .dropdown-toggle', { hasText: String(new Date().getFullYear()) }).click();
+    const yearLink = page.locator('#pf-tab-recap .dropdown-menu.show a', { hasText: String(new Date().getFullYear() - 1) }).first();
+    await yearLink.click();
+    await expect(page).toHaveURL(/view=peopleFinance/);
+    await expect(page).toHaveURL(/tab=recap/);
+    await expect(page.locator('#pf-tab-recap-btn')).toHaveClass(/active/);
+  });
+
+  test('Dons tab: changing the year filter stays inside the hub', async ({ page }) => {
+    await page.goto('/index.php?view=peopleFinance&tab=dons');
+    await page.locator('#pf-tab-dons .dropdown-toggle').filter({ has: page.locator('.fa-calendar-days') }).click();
+    const yearLink = page.locator('#pf-tab-dons .dropdown-menu.show a', { hasText: String(new Date().getFullYear() - 1) }).first();
+    await yearLink.click();
+    await expect(page).toHaveURL(/view=peopleFinance/);
+    await expect(page).toHaveURL(/tab=dons/);
+    await expect(page.locator('#pf-tab-dons-btn')).toHaveClass(/active/);
+  });
+
+  test('Relances tab: bulk-send redirect stays inside the hub', async ({ page }) => {
+    await page.goto('/index.php?view=peopleFinance&tab=recap');
+    const sendBtn = page.locator('#pf-tab-recap form button[type="submit"]', { hasText: 'Envoyer' });
+    if (await sendBtn.count() === 0) test.skip(true, 'no pending entries to send in seed data');
+    await sendBtn.click();
+    await expect(page).toHaveURL(/view=peopleFinance/);
+    await expect(page).toHaveURL(/tab=recap/);
+  });
 });
 
 test.describe('People/finance hub — role guard on Relances tab', () => {

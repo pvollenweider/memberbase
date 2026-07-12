@@ -77,6 +77,7 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
   </div>
 </div>
 
+<script src="js/hub-tabs.js?v=<?= APP_VERSION ?>"></script>
 <script>
 // If the page lands on a non-Membres tab (?tab=recap/dons) the DataTable
 // initializes while its pane is hidden and mis-measures column widths —
@@ -87,4 +88,12 @@ document.getElementById('pf-tab-members-btn')?.addEventListener('shown.bs.tab', 
 document.getElementById('pf-tab-dons-btn')?.addEventListener('shown.bs.tab', function () {
   if (window.CA_DT_INSTANCE_DONS) { CA_DT_INSTANCE_DONS.columns.adjust(); }
 });
+
+// Filter links inside the Relances/Dons tabs still point at their own
+// standalone route (?view=comptaRecap / ?view=resume) — rewrite them to
+// stay inside the hub, and keep ?tab= in sync when switching tabs so the
+// current tab is directly linkable.
+caHubRewriteEmbeddedLinks('#pf-tab-recap', 'comptaRecap', 'peopleFinance', 'recap');
+caHubRewriteEmbeddedLinks('#pf-tab-dons', 'resume', 'peopleFinance', 'dons');
+caHubEnableTabDeepLink('#pf-tab-members-btn, #pf-tab-recap-btn, #pf-tab-dons-btn', /^pf-tab-(\w+)-btn$/);
 </script>

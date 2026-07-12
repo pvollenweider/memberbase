@@ -16,6 +16,11 @@ $_year     = isset($_GET['year'])     ? (int)$_GET['year'] : (int)date('Y');
 $_extended = !empty($_GET['extended']);
 if ($_year <= 0) { $_year = (int)date('Y'); }
 
+// Self-referencing links (year picker, extended-mode toggle, bulk-send
+// redirect) must stay inside the hub when embedded there — otherwise every
+// filter change kicks the user back out to the standalone page (#164 follow-up).
+$_selfQuery = !empty($_pfEmbedded) ? 'view=peopleFinance&tab=recap' : 'view=comptaRecap';
+
 // Flash messages from redirect
 $_recapOk   = isset($_GET['recapOk'])   ? (int)$_GET['recapOk']   : null;
 $_recapSkip = isset($_GET['recapSkip']) ? (int)$_GET['recapSkip'] : 0;
@@ -45,7 +50,7 @@ $_withEmail = [];
 $_noEmail   = [];
 if ($_pendingMembers > 0) {
     $stmt = db()->prepare(
-        "SELECT c.user_id, u.firstname, u.lastname, u.email,
+        "SELECT c.user_id, u.firstname, u.lastname, u.society, u.email,
                 COUNT(*) AS nb_entries,
                 SUM(c.sum) AS total,
                 MIN(c.date) AS first_date,
@@ -54,7 +59,7 @@ if ($_pendingMembers > 0) {
          JOIN contact u ON u.id = c.user_id AND u.status = 1
          WHERE c.notified_at IS NULL AND c.sum <> 0
            AND YEAR(c.date) = ?
-         GROUP BY c.user_id, u.firstname, u.lastname, u.email
+         GROUP BY c.user_id, u.firstname, u.lastname, u.society, u.email
          ORDER BY u.lastname, u.firstname"
     );
     $stmt->execute([$_year]);
@@ -72,7 +77,7 @@ $_sendableCount = count($_withEmail);
 $_alreadySent = [];
 if ($_extended) {
     $stmtSent = db()->prepare(
-        "SELECT c.user_id, u.firstname, u.lastname, u.email,
+        "SELECT c.user_id, u.firstname, u.lastname, u.society, u.email,
                 COUNT(*) AS nb_entries,
                 SUM(c.sum) AS total,
                 MAX(c.notified_at) AS last_notified_at
@@ -80,7 +85,7 @@ if ($_extended) {
          JOIN contact u ON u.id = c.user_id AND u.status = 1
          WHERE c.notified_at IS NOT NULL AND c.sum <> 0
            AND YEAR(c.date) = ?
-         GROUP BY c.user_id, u.firstname, u.lastname, u.email
+         GROUP BY c.user_id, u.firstname, u.lastname, u.society, u.email
          ORDER BY u.lastname, u.firstname"
     );
     $stmtSent->execute([$_year]);
@@ -116,7 +121,7 @@ if ($_extended) {
     <ul class="dropdown-menu">
       <?php for ($i = 0; $i < 10; $i++): $y = (int)date('Y') - $i; ?>
       <li><a class="dropdown-item<?= $y === $_year ? ' active' : '' ?>"
-             href="<?= appUrl() ?>?view=comptaRecap&amp;year=<?= $y ?><?= $_extended ? '&amp;extended=1' : '' ?>"><?= $y ?></a></li>
+             href="<?= appUrl() ?>?<?= $_selfQuery ?>&amp;year=<?= $y ?><?= $_extended ? '&amp;extended=1' : '' ?>"><?= $y ?></a></li>
       <?php endfor ?>
     </ul>
   </div>
@@ -154,7 +159,8 @@ if ($_extended) {
   <?php if ($_sendableCount > 0): ?>
   <form method="post" action="<?= appUrl() ?>" class="d-inline">
     <input type="hidden" name="action" value="sendComptaRecap">
-    <input type="hidden" name="view"   value="comptaRecap">
+    <input type="hidden" name="view"   value="<?= !empty($_pfEmbedded) ? 'peopleFinance' : 'comptaRecap' ?>">
+    <?php if (!empty($_pfEmbedded)): ?><input type="hidden" name="tab" value="recap"><?php endif ?>
     <input type="hidden" name="year"   value="<?= $_year ?>">
     <button type="submit" class="btn btn-primary btn-sm">
       <i class="fas fa-paper-plane me-1" aria-hidden="true"></i>
@@ -168,7 +174,9 @@ if ($_extended) {
 <table class="table table-sm table-hover" id="recap-preview-table">
   <thead class="table-light">
     <tr>
-      <th><?= $GLOBAL['member'] ?></th>
+      <th><?= $GLOBAL['society'] ?></th>
+      <th><?= $GLOBAL['lastName'] ?></th>
+      <th><?= $GLOBAL['firstName'] ?></th>
       <th><?= $GLOBAL['email'] ?></th>
       <th class="text-center"><?= $GLOBAL['entriesColumn'] ?></th>
       <th class="text-end"><?= $GLOBAL['total'] ?></th>
@@ -183,7 +191,9 @@ if ($_extended) {
         data-userid="<?= (int)$_pr->user_id ?>"
         data-name="<?= htmlspecialchars(trim($_pr->firstname . ' ' . $_pr->lastname), ENT_QUOTES, $charset) ?>"
         data-email="<?= htmlspecialchars($_pr->email, ENT_QUOTES, $charset) ?>">
-      <td class="text-nowrap"><?= htmlspecialchars(trim($_pr->lastname . ' ' . $_pr->firstname), ENT_QUOTES, $charset) ?></td>
+      <td class="text-nowrap"><?= htmlspecialchars($_pr->society ?? '', ENT_QUOTES, $charset) ?></td>
+      <td class="text-nowrap"><?= htmlspecialchars($_pr->lastname, ENT_QUOTES, $charset) ?></td>
+      <td class="text-nowrap"><?= htmlspecialchars($_pr->firstname, ENT_QUOTES, $charset) ?></td>
       <td><?= htmlspecialchars($_pr->email, ENT_QUOTES, $charset) ?></td>
       <td class="text-center"><?= (int)$_pr->nb_entries ?></td>
       <td class="text-end">CHF <?= htmlspecialchars($_total, ENT_QUOTES, $charset) ?></td>
@@ -207,7 +217,9 @@ if ($_extended) {
     <table class="table table-sm table-warning table-bordered">
       <thead>
         <tr>
-          <th><?= $GLOBAL['member'] ?></th>
+          <th><?= $GLOBAL['society'] ?></th>
+          <th><?= $GLOBAL['lastName'] ?></th>
+          <th><?= $GLOBAL['firstName'] ?></th>
           <th class="text-center"><?= $GLOBAL['entriesColumn'] ?></th>
           <th class="text-end"><?= $GLOBAL['total'] ?></th>
         </tr>
@@ -217,11 +229,13 @@ if ($_extended) {
           $_total = number_format((float)$_pr->total, 2, '.', "'");
       ?>
         <tr>
-          <td>
-            <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$_pr->user_id ?>" class="text-nowrap">
-              <?= htmlspecialchars(trim($_pr->lastname . ' ' . $_pr->firstname), ENT_QUOTES, $charset) ?>
+          <td class="text-nowrap"><?= htmlspecialchars($_pr->society ?? '', ENT_QUOTES, $charset) ?></td>
+          <td class="text-nowrap">
+            <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$_pr->user_id ?>">
+              <?= htmlspecialchars($_pr->lastname, ENT_QUOTES, $charset) ?>
             </a>
           </td>
+          <td class="text-nowrap"><?= htmlspecialchars($_pr->firstname, ENT_QUOTES, $charset) ?></td>
           <td class="text-center"><?= (int)$_pr->nb_entries ?></td>
           <td class="text-end">CHF <?= htmlspecialchars($_total, ENT_QUOTES, $charset) ?></td>
         </tr>
@@ -246,7 +260,9 @@ if ($_extended) {
   <table class="table table-sm table-hover opacity-75">
     <thead class="table-light">
       <tr>
-        <th><?= $GLOBAL['member'] ?></th>
+        <th><?= $GLOBAL['society'] ?></th>
+        <th><?= $GLOBAL['lastName'] ?></th>
+        <th><?= $GLOBAL['firstName'] ?></th>
         <th><?= $GLOBAL['email'] ?></th>
         <th class="text-center"><?= $GLOBAL['entriesColumn'] ?></th>
         <th class="text-end"><?= $GLOBAL['total'] ?></th>
@@ -263,7 +279,9 @@ if ($_extended) {
           data-name="<?= htmlspecialchars(trim($_sr->firstname . ' ' . $_sr->lastname), ENT_QUOTES, $charset) ?>"
           data-email="<?= htmlspecialchars($_sr->email, ENT_QUOTES, $charset) ?>"
           data-force="1">
-        <td class="text-nowrap"><?= htmlspecialchars(trim($_sr->lastname . ' ' . $_sr->firstname), ENT_QUOTES, $charset) ?></td>
+        <td class="text-nowrap"><?= htmlspecialchars($_sr->society ?? '', ENT_QUOTES, $charset) ?></td>
+        <td class="text-nowrap"><?= htmlspecialchars($_sr->lastname, ENT_QUOTES, $charset) ?></td>
+        <td class="text-nowrap"><?= htmlspecialchars($_sr->firstname, ENT_QUOTES, $charset) ?></td>
         <td><?= htmlspecialchars($_sr->email, ENT_QUOTES, $charset) ?></td>
         <td class="text-center"><?= (int)$_sr->nb_entries ?></td>
         <td class="text-end">CHF <?= htmlspecialchars($_total, ENT_QUOTES, $charset) ?></td>
@@ -295,7 +313,7 @@ require __DIR__ . '/../partials/preview_send_modal.php';
   var recapYear = <?= (int)$_year ?>;
 
   document.getElementById('recap-extended-toggle').addEventListener('change', function () {
-    var url = baseUrl + '?view=comptaRecap&year=' + recapYear;
+    var url = baseUrl + '?<?= $_selfQuery ?>&year=' + recapYear;
     if (this.checked) { url += '&extended=1'; }
     window.__dirtyOverride = true;
     window.location = url;

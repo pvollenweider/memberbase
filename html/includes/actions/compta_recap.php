@@ -21,8 +21,14 @@ if ($action === 'sendComptaRecap') {
 
     $recapYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
     $isHtmx    = isset($_SERVER['HTTP_HX_REQUEST']);
-    $redirect  = static function (string $q) use ($isHtmx, $recapYear): void {
-        $url = appUrl() . '?view=comptaRecap&year=' . $recapYear . '&' . $q;
+    // Stay inside the "Membres & finances" hub (#164) when the bulk-send
+    // form was submitted from there, instead of always bouncing back to the
+    // standalone page.
+    $_recapView = ($_REQUEST['view'] ?? 'comptaRecap') === 'peopleFinance'
+        ? 'peopleFinance&tab=' . rawurlencode((string)($_REQUEST['tab'] ?? 'recap'))
+        : 'comptaRecap';
+    $redirect  = static function (string $q) use ($isHtmx, $recapYear, $_recapView): void {
+        $url = appUrl() . '?view=' . $_recapView . '&year=' . $recapYear . '&' . $q;
         if ($isHtmx) { header('HX-Location: ' . $url); } else { header('Location: ' . $url); }
         exit;
     };

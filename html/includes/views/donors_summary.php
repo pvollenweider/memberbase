@@ -15,6 +15,10 @@ $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year === -1) { $year = (int)date("Y"); }
 $type = "allTypes";
 
+// Self-referencing links must stay inside the hub when embedded there —
+// otherwise every filter change kicks the user back out (#164 follow-up).
+$_selfQuery = !empty($_pfEmbedded) ? 'view=peopleFinance&tab=dons' : 'view=resume';
+
 $membreSegmentId = (int)($appSettings['default_segment'] ?? 0);
 $membreSegmentLabel = $GLOBAL['activeQuestion'];
 if ($membreSegmentId > 0) {
@@ -630,7 +634,7 @@ $(document).ready(function() {
     });
     document.getElementById('extendedMode').addEventListener('change', function() {
         window.__dirtyOverride = true;
-        var url = '<?= appUrl() ?>?view=resume&year=<?= $year ?>&includeAttestation=<?= $includeAttestation ? 1 : 0 ?>';
+        var url = '<?= appUrl() ?>?<?= $_selfQuery ?>&year=<?= $year ?>&includeAttestation=<?= $includeAttestation ? 1 : 0 ?>';
         if (this.checked) { url += '&showAll=1'; } else { url += '&minSum=<?= $showAll ? 100 : $minSum ?>'; }
         window.location = url;
     });
