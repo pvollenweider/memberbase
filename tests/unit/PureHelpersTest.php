@@ -220,6 +220,33 @@ final class PureHelpersTest extends TestCase
         $this->assertSame('?view=settings&tab=compta', mbComptaTypeReturnUrl('someOtherView', 'compta'));
     }
 
+    public function testClassifyContactTypeDefaultsToPrivate(): void
+    {
+        $this->assertSame(CONTACT_TYPE_PRIVATE, mbClassifyContactTypeRow(false, false, false, false));
+    }
+
+    public function testClassifyContactTypeInstitutionalTakesPriority(): void
+    {
+        $this->assertSame(CONTACT_TYPE_INSTITUTION, mbClassifyContactTypeRow(true, true, true, true));
+    }
+
+    public function testClassifyContactTypeFinancialBeatsCompanyAndSociety(): void
+    {
+        $this->assertSame(CONTACT_TYPE_FINANCIAL, mbClassifyContactTypeRow(false, true, true, true));
+    }
+
+    public function testClassifyContactTypeCompanyFromPaymentTypeAlone(): void
+    {
+        $this->assertSame(CONTACT_TYPE_COMPANY, mbClassifyContactTypeRow(false, false, true, false));
+    }
+
+    public function testClassifyContactTypeCompanyFromSocietyAlone(): void
+    {
+        // Society field non-empty is enough on its own — no need for a
+        // matching "company" compta entry too (clarified mid-discussion).
+        $this->assertSame(CONTACT_TYPE_COMPANY, mbClassifyContactTypeRow(false, false, false, true));
+    }
+
     public function testValidTaskPriorityAcceptsKnownLevels(): void
     {
         $this->assertSame(1, mbValidTaskPriority(1));

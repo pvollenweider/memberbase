@@ -64,6 +64,7 @@ if (isset($_REQUEST['action'])) {
         'addComptaType'        => 'settings',
         'updateComptaType'     => 'settings',
         'deleteComptaType'     => 'settings',
+        'applyContactTypes'    => 'settings',
         'previewCotisationReminder' => 'cotisation_reminder',
         'sendCotisationReminders'   => 'cotisation_reminder',
         'sendCotisationReminderOne' => 'cotisation_reminder',

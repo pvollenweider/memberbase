@@ -81,6 +81,7 @@ $UA_VIEW_ROUTES = [
     'updateSegment'          => ['settings_general.php',      null, ['tab' => 'segments']],
     'updateCombinedSegment'     => ['settings_general.php',      null, ['tab' => 'filters']],
     'manageComptaTypes'   => ['settings_compta_types.php'],
+    'contactTypes'        => ['settings_contact_types.php', 'isAdmin'],
     'manageAppUsers'      => ['settings_app_users.php'],
     'auditLog'            => ['settings_audit_log.php'],
     'changePassword'      => ['auth_change_password.php'],

@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'applyContactTypes'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -184,15 +184,17 @@ if ($action == 'saveSettings') {
     // Flags absent from the request keep their current value: the inline edit
     // form only sends label/color/order — it must not reset the flags to 0
     // (only the flag-toggle mini-forms send them explicitly).
-    $_ctCur = db()->prepare("SELECT is_cotisation, is_excluded_from_donation, is_institutional FROM compta_type WHERE id=?");
+    $_ctCur = db()->prepare("SELECT is_cotisation, is_excluded_from_donation, is_institutional, is_financial_institution, is_company FROM compta_type WHERE id=?");
     $_ctCur->execute([$id]);
     $_ctCurRow = $_ctCur->fetchObject();
     $isCotisation    = isset($_REQUEST['is_cotisation']) ? (int)$_REQUEST['is_cotisation'] : (int)($_ctCurRow->is_cotisation ?? 0);
     $isExcluded      = isset($_REQUEST['is_excluded_from_donation']) ? (int)$_REQUEST['is_excluded_from_donation'] : (int)($_ctCurRow->is_excluded_from_donation ?? 0);
     $isInstitutional = isset($_REQUEST['is_institutional']) ? (int)$_REQUEST['is_institutional'] : (int)($_ctCurRow->is_institutional ?? 0);
+    $isFinancial     = isset($_REQUEST['is_financial_institution']) ? (int)$_REQUEST['is_financial_institution'] : (int)($_ctCurRow->is_financial_institution ?? 0);
+    $isCompany       = isset($_REQUEST['is_company']) ? (int)$_REQUEST['is_company'] : (int)($_ctCurRow->is_company ?? 0);
     $color = mbValidComptaTypeColor($_REQUEST['color'] ?? 'bg-light');
     if ($id > 0 && $label !== '') {
-        db()->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=?, is_institutional=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $isInstitutional, $id]);
+        db()->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=?, is_institutional=?, is_financial_institution=?, is_company=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $isInstitutional, $isFinancial, $isCompany, $id]);
         // Only sent by the edit form — the flag-toggle mini-forms omit it and
         // must not wipe the stored value.
         if (isset($_REQUEST['default_libele'])) {
@@ -217,6 +219,20 @@ if ($action == 'saveSettings') {
     }
     $_ctUrl = appUrl() . mbComptaTypeReturnUrl($_REQUEST['returnView'] ?? null, $_REQUEST['returnTab'] ?? null);
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>'; }
+    exit;
+
+} elseif ($action === 'applyContactTypes') {
+    require_once __DIR__ . '/../lib/contact_type.php';
+    $_applyRaw = (array)($_REQUEST['apply'] ?? []);
+    $_typeIdByUserId = [];
+    foreach ($_applyRaw as $_userId => $_typeId) {
+        $_typeIdByUserId[(int)$_userId] = (int)$_typeId;
+    }
+    $_appliedCount = mbApplyContactTypes(db(), $_typeIdByUserId);
+    auditLog(db(), 'applyContactTypes', "applied=$_appliedCount");
+    $_returnView = ($_REQUEST['returnView'] ?? '') === 'settings' ? 'settings' : 'contactTypes';
+    $_ctUrl = appUrl() . '?view=' . $_returnView . '&tab=contactTypes&contactTypesApplied=' . $_appliedCount;
+    if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { header('Location: ' . $_ctUrl); }
     exit;
 
 } elseif ($action === 'purgeEmailLog') {

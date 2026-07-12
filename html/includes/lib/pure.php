@@ -192,6 +192,30 @@ function mbComptaTypeReturnUrl(?string $returnView, ?string $returnTab): string
     return '?view=' . $view . '&tab=' . $tab;
 }
 
+const CONTACT_TYPE_PRIVATE     = 'private';
+const CONTACT_TYPE_INSTITUTION = 'institution';
+const CONTACT_TYPE_FINANCIAL   = 'financial';
+const CONTACT_TYPE_COMPANY     = 'company';
+
+/**
+ * Contact type classification rule (issue #165), priority order, first
+ * match wins: institutional payment > financial institution payment >
+ * company payment or non-empty society > private (default).
+ */
+function mbClassifyContactTypeRow(bool $hasInstitutional, bool $hasFinancial, bool $hasCompany, bool $hasSociety): string
+{
+    if ($hasInstitutional) {
+        return CONTACT_TYPE_INSTITUTION;
+    }
+    if ($hasFinancial) {
+        return CONTACT_TYPE_FINANCIAL;
+    }
+    if ($hasCompany || $hasSociety) {
+        return CONTACT_TYPE_COMPANY;
+    }
+    return CONTACT_TYPE_PRIVATE;
+}
+
 /** Task priority levels (1=haute, 2=normale, 3=basse) — see SuiviTask. */
 const TASK_PRIORITIES = [1, 2, 3];
 

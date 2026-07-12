@@ -7,6 +7,18 @@
 SET NAMES utf8mb4;
 SET foreign_key_checks = 0;
 
+-- Contact type classification (donor/institution/financial institution/company)
+-- — real lookup table so labels stay editable, but `code` is the stable key
+-- the classification logic (includes/lib/contact_type.php) depends on.
+CREATE TABLE IF NOT EXISTS `contact_type` (
+  `id`         int(11)      NOT NULL AUTO_INCREMENT,
+  `code`       varchar(20)  NOT NULL,
+  `label`      varchar(255) NOT NULL,
+  `sort_order` int(11)      NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_contact_type_code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Contacts (formerly "users")
 CREATE TABLE IF NOT EXISTS `contact` (
   `id`               int(8)       NOT NULL AUTO_INCREMENT,
@@ -23,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `contact` (
   `email_alt`        varchar(255) NOT NULL DEFAULT '',
   `web`              varchar(255) NOT NULL DEFAULT '',
   `sexe`             varchar(8)   NOT NULL DEFAULT 'na',
+  `contact_type_id`  int(11)      NOT NULL DEFAULT 1,
   `title`            varchar(255) NOT NULL DEFAULT '',
   `comment`          mediumtext   NOT NULL,
   `birthday`         date         DEFAULT NULL,
@@ -32,8 +45,15 @@ CREATE TABLE IF NOT EXISTS `contact` (
   PRIMARY KEY (`id`),
   KEY `lastname`  (`lastname`(250)),
   KEY `firstname` (`firstname`(250)),
-  KEY `idx_contact_status` (`status`)
+  KEY `idx_contact_status` (`status`),
+  CONSTRAINT `fk_contact_contact_type` FOREIGN KEY (`contact_type_id`) REFERENCES `contact_type` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO `contact_type` (`id`, `code`, `label`, `sort_order`) VALUES
+  (1, 'private',     'Donateur privé',           0),
+  (2, 'institution',  'Institution',              1),
+  (3, 'financial',    'Établissement financier',  2),
+  (4, 'company',      'Entreprise',               3);
 
 -- Segments (formerly "teams" / groups)
 CREATE TABLE IF NOT EXISTS `segment` (
@@ -132,6 +152,8 @@ CREATE TABLE IF NOT EXISTS `compta_type` (
   `is_cotisation`             tinyint(1)   NOT NULL DEFAULT 0,
   `is_excluded_from_donation` tinyint(1)   NOT NULL DEFAULT 0,
   `is_institutional`          tinyint(1)   NOT NULL DEFAULT 0,
+  `is_financial_institution`  tinyint(1)   NOT NULL DEFAULT 0,
+  `is_company`                tinyint(1)   NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
