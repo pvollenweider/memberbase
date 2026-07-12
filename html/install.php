@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS `suivi_task` (
   `title`       varchar(255) NOT NULL DEFAULT '',
   `body`        text         DEFAULT NULL,
   `priority`    tinyint(1)   NOT NULL DEFAULT 2,
+  `rule_key`    varchar(64)  DEFAULT NULL,
   `due_date`    date         DEFAULT NULL,
   `done_at`     datetime     DEFAULT NULL,
   `created_at`  datetime     NOT NULL DEFAULT current_timestamp(),
@@ -92,6 +93,7 @@ CREATE TABLE IF NOT EXISTS `suivi_task` (
   KEY `idx_suivi_task_user_id`  (`user_id`),
   KEY `idx_suivi_task_due_date` (`due_date`),
   KEY `idx_suivi_task_done_at`  (`done_at`),
+  KEY `idx_suivi_task_rule_key` (`rule_key`, `user_id`),
   CONSTRAINT `fk_suivi_task_user` FOREIGN KEY (`user_id`) REFERENCES `contact` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

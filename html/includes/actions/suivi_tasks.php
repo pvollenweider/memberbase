@@ -6,14 +6,26 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// actions: addTask, updateTask, closeTask, reopenTask, deleteTask
+// actions: addTask, updateTask, closeTask, reopenTask, deleteTask, generateUnpaidCotiTasks
 
-if (!canWrite()) { http_response_code(403); exit; }
+if ($_REQUEST['action'] === 'generateUnpaidCotiTasks') {
+    if (!isManager()) { http_response_code(403); exit; }
+} elseif (!canWrite()) {
+    http_response_code(403); exit;
+}
 
 $action = $_REQUEST['action'];
 $_authUser = authUser();
 
-if ($action == 'addTask') {
+if ($action == 'generateUnpaidCotiTasks') {
+    $_genYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
+    $_genCount = SuiviTask::generateUnpaidCotiTasks($_genYear, $appSettings, (int)($_authUser->id ?? 0));
+    auditLog(db(), 'generateUnpaidCotiTasks', "année: $_genYear | tâches créées: $_genCount");
+    $_genTarget = '?view=tasks&generated=' . $_genCount;
+    if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_genTarget); exit; }
+    header('Location: ' . appUrl() . $_genTarget); exit;
+
+} elseif ($action == 'addTask') {
     $task = new SuiviTask();
     $task->setUserId(!empty($_REQUEST['userid']) ? (int)$_REQUEST['userid'] : null);
     $task->setCreatedBy((int)($_authUser->id ?? 0));

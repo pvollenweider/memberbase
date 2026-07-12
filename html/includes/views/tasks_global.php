@@ -27,6 +27,22 @@ $_tasks = $stmt->fetchAll(PDO::FETCH_OBJ);
   <h1 class="page-title"><?= $GLOBAL['tasksPageTitle'] ?></h1>
 </div>
 
+<?php if (isset($_GET['generated'])): ?>
+<div class="alert alert-success py-2" role="alert">
+  <i class="fas fa-circle-check me-1" aria-hidden="true"></i>
+  <?= sprintf($GLOBAL['taskGeneratedCount'], (int)$_GET['generated']) ?>
+</div>
+<?php endif ?>
+
+<?php if (isManager()): ?>
+<form action="<?= appUrl() ?>" method="post" class="mb-3" data-no-dirty>
+  <input type="hidden" name="action" value="generateUnpaidCotiTasks"/>
+  <button type="submit" class="btn btn-outline-primary btn-sm">
+    <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateBtn'] ?>
+  </button>
+</form>
+<?php endif ?>
+
 <?php if (canWrite()): ?>
 <form action="<?= appUrl() ?>" method="post" name="addTask" class="mb-4">
 <input type="hidden" name="action" value="addTask"/>

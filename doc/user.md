@@ -363,6 +363,13 @@ si elle n'est liée à aucun membre en particulier).
 Un formulaire d'ajout y est aussi disponible pour créer une **tâche générale**, non rattachée
 à un membre (ex. « renouveler l'assurance RC », « préparer l'AG »).
 
+### Génération automatique (rôles Manager et Admin)
+
+Le bouton **Générer les tâches de relance cotisation** crée une tâche par membre correspondant
+au filtre « Cotisation impayée cette année » (même règle que dans la liste des membres), sans
+créer de doublon si une tâche de relance est déjà ouverte pour ce membre. Relancer la génération
+plus tard ne recrée donc que les tâches manquantes.
+
 L'ajout, la modification, la fermeture et la suppression de tâches sont réservés aux rôles
 Utilisateur et plus.
 

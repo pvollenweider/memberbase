@@ -94,3 +94,38 @@ test.describe.serial('Tasks', () => {
     await expect(page.locator('tr', { hasText: 'Task E2E global' }).locator('text=Tâche générale')).toBeVisible();
   });
 });
+
+test.describe.serial('Tasks — auto-generation (#149)', () => {
+  // User 4 (seed): paid 2025 cotisation, not 2026, only in segment 1 (Membre 2025).
+  // Assign to segment 2 (Membre 2026, = membre_segment setting) so they match
+  // FILTER_UNPAID_COTI_CURRENT for 2026 — a real "unpaid this year" candidate.
+  const LAPSED_USER_ID = 4;
+
+  test('generate button creates a reminder task for an unpaid member', async ({ page }) => {
+    await page.goto(`/index.php?view=generalData&userid=${LAPSED_USER_ID}`);
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    await page.request.post('/index.php', {
+      form: { action: 'assignSegment', id: String(LAPSED_USER_ID), segmentId: '2', csrf },
+    });
+
+    await page.goto('/index.php?view=tasks');
+    const generateForm = page.locator('form', { has: page.locator('button', { hasText: 'Générer les tâches de relance cotisation' }) });
+    await expect(generateForm).toBeVisible();
+    await generateForm.locator('button[type="submit"]').click();
+    await expect(page.locator('.alert-success')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('tr', { hasText: 'Relance cotisation' })).toBeVisible();
+  });
+
+  test('re-running generation does not duplicate the task (dedup via rule_key)', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const rowCountBefore = await page.locator('tr', { hasText: 'Relance cotisation' }).count();
+    const generateForm = page.locator('form', { has: page.locator('button', { hasText: 'Générer les tâches de relance cotisation' }) });
+    await generateForm.locator('button[type="submit"]').click();
+    await expect(page.locator('.alert-success')).toBeVisible({ timeout: 10_000 });
+    const rowCountAfter = await page.locator('tr', { hasText: 'Relance cotisation' }).count();
+    expect(rowCountAfter).toBe(rowCountBefore);
+  });
+});

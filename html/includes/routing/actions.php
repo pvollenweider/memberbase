@@ -88,6 +88,7 @@ if (isset($_REQUEST['action'])) {
         'closeTask'            => 'suivi_tasks',
         'reopenTask'           => 'suivi_tasks',
         'deleteTask'           => 'suivi_tasks',
+        'generateUnpaidCotiTasks' => 'suivi_tasks',
         'logout'               => 'auth',
         'changePassword'       => 'auth',
         'changeLocale'         => 'auth',
