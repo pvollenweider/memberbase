@@ -297,7 +297,8 @@ Le choix est enregistré sur le compte et s&#39;applique à toutes vos futures c
 n&#39;importe quel poste.</p>
 <h3 id="la-barre-de-navigation">La barre de navigation<a class="anchor" href="#la-barre-de-navigation" aria-label="Lien d'ancrage">#</a></h3>
 <p>En haut de chaque page, la barre bleue contient :</p>
-<div class="table-scroll" role="region" aria-label="Tableau — La barre de navigation" tabindex="0"><table><thead><tr><th scope="col">Élément</th><th scope="col">Contenu</th></tr></thead><tbody><tr><td><strong>Liste</strong> (icône liste)</td><td>Liste des membres — page d&#39;accueil</td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — La barre de navigation" tabindex="0"><table><thead><tr><th scope="col">Élément</th><th scope="col">Contenu</th></tr></thead><tbody><tr><td><strong>Tableau de bord</strong> (icône jauge)</td><td>Vue d&#39;ensemble : tâches urgentes, KPIs rapides, liens de documentation</td></tr>
+<tr><td><strong>Liste</strong> (icône liste)</td><td>Liste des membres — page d&#39;accueil</td></tr>
 <tr><td><strong>Compta</strong> (icône pièces)</td><td>Journal comptable global (tous membres confondus)</td></tr>
 <tr><td><strong>Suivi</strong> (icône livre)</td><td>Journal des notes de suivi (tous membres confondus)</td></tr>
 <tr><td><strong>Aperçu des dons</strong> (icône camembert)</td><td>Tableau de bord des dons et contributions</td></tr>
@@ -308,6 +309,17 @@ n&#39;importe quel poste.</p>
 sont directement dans la barre, et la gestion des segments se fait dans les <strong>Réglages</strong>.</p>
 <p>Sur mobile, la barre se réduit à une rangée d&#39;icônes ; la loupe ouvre un champ de recherche
 et l&#39;icône utilisateur regroupe le profil.</p>
+<h3 id="tableau-de-bord">Tableau de bord<a class="anchor" href="#tableau-de-bord" aria-label="Lien d'ancrage">#</a></h3>
+<p>Accessible via l&#39;icône jauge de la barre de navigation (<code>?view=dashboard</code>) — n&#39;est
+<strong>pas</strong> la page d&#39;accueil par défaut, qui reste la liste des membres. Il regroupe :</p>
+<ul>
+<li>les <strong>tâches en retard ou à échéance proche</strong> (5 maximum), avec un bouton
+<strong>Envoyer le rappel</strong> directement sur les tâches de relance cotisation ;</li>
+<li>deux <strong>KPI cliquables</strong> : cotisations impayées de l&#39;année en cours (renvoie vers la
+liste filtrée), et migrations de base en attente (visible uniquement pour les admins) ;</li>
+<li>des <strong>liens vers la documentation</strong> — le guide utilisateur pour tous les rôles
+connectés, le guide administrateur uniquement pour les rôles Manager et Admin.</li>
+</ul>
 <h3 id="navigation-sans-rechargement-htmx">Navigation sans rechargement (htmx)<a class="anchor" href="#navigation-sans-rechargement-htmx" aria-label="Lien d'ancrage">#</a></h3>
 <p>La plupart des actions (changement de membre, d&#39;onglet, de filtre) ne rechargent que la zone
 centrale. L&#39;URL du navigateur reste à jour : les boutons Précédent / Suivant fonctionnent
