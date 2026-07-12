@@ -293,7 +293,7 @@ curl -b cookies.txt https://votre-domaine/api/contacts
 </ul>
 <p>Un rôle insuffisant retourne <code>403</code> avec <code>{ &quot;error&quot;: &quot;Forbidden&quot; }</code> (ou un message spécifique, ex. <code>&quot;Manager role required&quot;</code>, <code>&quot;Admin role required to permanently delete a member&quot;</code>).</p>
 <blockquote>
-<p><strong>Terminologie.</strong> L&#39;interface parle désormais de <strong>Segment</strong> ; l&#39;API parlent désormais de <strong>Segment</strong> (chemins <code>/api/segments</code>, entité SQL <code>segment</code>, depuis la v5.0.0). Le champ de filtre <code>team</code> sur <code>GET /api/contacts</code> garde son nom historique par rétrocompatibilité de paramètre. Dans ce document, « Segment » et « groupe » sont synonymes.</p>
+<p><strong>Terminologie.</strong> L&#39;interface et l&#39;API parlent de <strong>Segment</strong> (chemins <code>/api/segments</code>, entité SQL <code>segment</code>, depuis la v5.0.0). Le paramètre de filtre <code>GET /api/contacts?segment=</code> s&#39;appelait <code>team</code> avant la v5.1.0 — <strong>aucune rétrocompatibilité</strong>, tout appelant doit utiliser <code>segment</code>. Dans ce document, « Segment » et « groupe » sont synonymes.</p>
 </blockquote>
 <hr>
 <h2 id="format-des-réponses">Format des réponses<a class="anchor" href="#format-des-réponses" aria-label="Lien d'ancrage">#</a></h2>
@@ -341,8 +341,8 @@ curl -b cookies.txt https://votre-domaine/api/contacts
 Rôle : <code>canRead()</code>.</p>
 <h4 id="paramètres-de-query">Paramètres de query<a class="anchor" href="#paramètres-de-query" aria-label="Lien d'ancrage">#</a></h4>
 <div class="table-scroll" role="region" aria-label="Tableau — Paramètres de query" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Obligatoire</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>search</code></td><td>string</td><td>non</td><td>Recherche <code>LIKE %…%</code> sur <code>firstname</code>, <code>lastname</code>, <code>firstname lastname</code>, <code>lastname firstname</code>, <code>society</code>, <code>npa</code>, <code>email</code>, <code>address</code></td></tr>
-<tr><td><code>team</code></td><td>integer</td><td>non</td><td>Filtre par groupe (ID positif). Valeur <strong>négative</strong> = filtre virtuel (voir section dédiée)</td></tr>
-<tr><td><code>metagroup</code></td><td>integer</td><td>non</td><td>Filtre par catégorie de groupes (ID de <code>metagroup</code>). Ajoute le champ <code>groups</code> à chaque membre. Renvoie une liste vide si la catégorie n&#39;a aucun groupe rattaché</td></tr>
+<tr><td><code>segment</code></td><td>integer</td><td>non</td><td>Filtre par groupe (ID positif). Valeur <strong>négative</strong> = filtre virtuel (voir section dédiée)</td></tr>
+<tr><td><code>combinedSegment</code></td><td>integer</td><td>non</td><td>Filtre par catégorie de groupes (ID de <code>combined_segment</code>). Ajoute le champ <code>groups</code> à chaque membre. Renvoie une liste vide si la catégorie n&#39;a aucun groupe rattaché</td></tr>
 <tr><td><code>page</code></td><td>integer</td><td>non</td><td>Numéro de page, défaut <code>1</code> (borné à ≥ 1)</td></tr>
 <tr><td><code>limit</code></td><td>integer</td><td>non</td><td>Résultats par page, défaut <code>25</code>, borné à <code>[1, 2000]</code></td></tr>
 <tr><td><code>types</code></td><td>any</td><td>non</td><td>Si présent (valeur quelconque, même vide), ajoute le champ <code>types</code> à chaque membre</td></tr></tbody></table></div>
@@ -372,7 +372,7 @@ Rôle : <code>canRead()</code>.</p>
 </code></pre>
 <ul>
 <li><code>types</code> présent uniquement si <code>?types</code> est passé (tableau <code>{id, label, color}</code> ; <code>color</code> est <code>&quot;&quot;</code> si non définie).</li>
-<li><code>groups</code> présent uniquement si <code>?metagroup</code> est passé (tableau <code>{id, name}</code> des groupes de la catégorie auxquels le membre appartient).</li>
+<li><code>groups</code> présent uniquement si <code>?combinedSegment</code> est passé (tableau <code>{id, name}</code> des groupes de la catégorie auxquels le membre appartient).</li>
 </ul>
 <h4 id="exemple-curl">Exemple curl<a class="anchor" href="#exemple-curl" aria-label="Lien d'ancrage">#</a></h4>
 <pre><code class="language-bash">curl -b cookies.txt \
@@ -380,19 +380,19 @@ Rôle : <code>canRead()</code>.</p>
 </code></pre>
 <hr>
 <h3 id="filtres-virtuels-sur-get-apimembers">Filtres virtuels sur <code>GET /api/contacts</code><a class="anchor" href="#filtres-virtuels-sur-get-apimembers" aria-label="Lien d'ancrage">#</a></h3>
-<p>Activés en passant une valeur <strong>négative</strong> au paramètre <code>team</code>. La résolution est déléguée à la classe partagée <code>MemberFilter</code> (<code>html/classes/member_filter_class.php</code>) — la même que celle utilisée par la liste des membres dans l&#39;interface, ce qui garantit des résultats identiques entre la vue et l&#39;API. Pagination standard (<code>page</code>, <code>limit</code>) et <code>types</code> supportés. Une valeur négative non reconnue retourne <code>400 Unknown virtual filter</code>.</p>
+<p>Activés en passant une valeur <strong>négative</strong> au paramètre <code>segment</code>. La résolution est déléguée à la classe partagée <code>MemberFilter</code> (<code>html/classes/member_filter_class.php</code>) — la même que celle utilisée par la liste des membres dans l&#39;interface, ce qui garantit des résultats identiques entre la vue et l&#39;API. Pagination standard (<code>page</code>, <code>limit</code>) et <code>types</code> supportés. Une valeur négative non reconnue retourne <code>400 Unknown virtual filter</code>.</p>
 <p>Constantes définies dans <code>html/includes/lib/bootstrap.php</code> :</p>
-<div class="table-scroll" role="region" aria-label="Tableau — Filtres virtuels sur GET /api/contacts" tabindex="0"><table><thead><tr><th scope="col">Valeur <code>team</code></th><th scope="col">Constante</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>-3</code></td><td><code>FILTER_ALL_EXCEPT_ARCHIVES</code></td><td>Tous les membres actifs (équivalent à l&#39;absence de filtre)</td></tr>
-<tr><td><code>-4</code></td><td><code>FILTER_UNPAID_COTI_CURRENT</code></td><td>Membres du groupe « membre » (paramètre <code>membre_team</code>) sans cotisation payée dans l&#39;année civile en cours. Exclut le groupe « no_coti » (<code>member_no_coti_team</code>) si configuré. Retourne un tableau vide si <code>membre_team</code> n&#39;est pas configuré</td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — Filtres virtuels sur GET /api/contacts" tabindex="0"><table><thead><tr><th scope="col">Valeur <code>segment</code></th><th scope="col">Constante</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>-3</code></td><td><code>FILTER_ALL_EXCEPT_ARCHIVES</code></td><td>Tous les membres actifs (équivalent à l&#39;absence de filtre)</td></tr>
+<tr><td><code>-4</code></td><td><code>FILTER_UNPAID_COTI_CURRENT</code></td><td>Membres du groupe « membre » (paramètre <code>membre_segment</code>) sans cotisation payée dans l&#39;année civile en cours. Exclut le groupe « no_coti » (<code>member_no_coti_segment</code>) si configuré. Retourne un tableau vide si <code>membre_segment</code> n&#39;est pas configuré</td></tr>
 <tr><td><code>-3333</code></td><td><code>FILTER_UNPAID_COTI_3Y</code></td><td>Membres ayant payé au moins une cotisation dans l&#39;historique, mais aucune depuis le début de l&#39;année N-2. Exclut le groupe « no_coti » si configuré</td></tr>
 <tr><td><code>-5555</code></td><td><code>FILTER_NO_ACTIVITY_10Y</code></td><td>Membres actifs sans aucune écriture comptable (<code>compta</code>) dans les 10 dernières années</td></tr>
 <tr><td><code>-6666</code></td><td><code>FILTER_NON_INSTIT_LAST_YEAR</code></td><td>Membres actifs ayant effectué au moins un paiement non-institutionnel (type <code>is_institutional = 0</code>, ou sans type) durant l&#39;année civile précédente</td></tr></tbody></table></div>
 <p>Une cotisation est une écriture dont le type a <code>is_cotisation = 1</code>. La réponse a le même format que <code>GET /api/contacts</code> (envelope <code>data</code> + <code>meta</code>).</p>
 <pre><code class="language-bash"># Cotisation en retard depuis plus de 3 ans
-curl -b cookies.txt &quot;https://votre-domaine/api/contacts?team=-3333&amp;limit=50&quot;
+curl -b cookies.txt &quot;https://votre-domaine/api/contacts?segment=-3333&amp;limit=50&quot;
 
 # Membres du groupe « membre » sans cotisation cette année
-curl -b cookies.txt &quot;https://votre-domaine/api/contacts?team=-4&quot;
+curl -b cookies.txt &quot;https://votre-domaine/api/contacts?segment=-4&quot;
 </code></pre>
 <hr>
 <h3 id="get-apimembersid"><code>GET /api/contacts/{id}</code><a class="anchor" href="#get-apimembersid" aria-label="Lien d'ancrage">#</a></h3>
@@ -516,7 +516,7 @@ curl -b cookies.txt -X DELETE &quot;https://votre-domaine/api/contacts/42?dispos
   ]
 }
 </code></pre>
-<p><code>categoryId</code>/<code>categoryName</code> sont <code>null</code> si le groupe n&#39;appartient à aucune catégorie non-filtre (<code>metagroup</code> avec <code>is_filter = 0</code>).</p>
+<p><code>categoryId</code>/<code>categoryName</code> sont <code>null</code> si le groupe n&#39;appartient à aucune catégorie non-filtre (<code>combined_segment</code> avec <code>is_filter = 0</code>).</p>
 <h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
 <ul>
 <li><code>404</code> — membre introuvable <strong>ou inactif</strong> (contrôle <code>status = 1</code> ici, contrairement à <code>GET /api/contacts/{id}</code>)</li>

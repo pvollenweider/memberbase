@@ -269,17 +269,20 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
       </ul>
     </nav>
     <div class="prose">
-<p>MemberBase <strong>v5.0.1</strong> — application PHP 8.2 de gestion des membres pour ONG.
+<p>MemberBase <strong>v5.1.0</strong> — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.</p>
 <blockquote>
 <p><strong>Terminologie.</strong> Depuis la v3.5.4, l&#39;interface parle de <strong>Segment</strong> (au lieu de
 « groupe ») et de <strong>Segment combiné</strong> (au lieu de « métagroupe »). Depuis la
 <strong>v5.0.0</strong>, le code et l&#39;API suivent le même vocabulaire : table <code>segment</code>
-(anciennement <code>team</code>), table <code>metagroup</code>, endpoints <code>/api/segments</code>
-(anciennement <code>/api/groups</code>). De même, la table <code>users</code> est renommée <code>contact</code>
-et la classe <code>User</code> devient <code>Contact</code>. Dans tout ce document, <strong>« Segment »
-(UI) = entité <code>segment</code> (technique)</strong> et <strong>« Segment combiné » (UI) = entité
-<code>metagroup</code></strong>.</p>
+(anciennement <code>team</code>), endpoints <code>/api/segments</code> (anciennement <code>/api/groups</code>),
+table <code>users</code> renommée <code>contact</code>, classe <code>User</code> devenue <code>Contact</code>. Depuis la
+<strong>v5.1.0</strong>, la table <code>metagroup</code> (et sa classe PHP <code>Metagroup</code>) est à son tour
+renommée <code>combined_segment</code> (classe <code>CombinedSegment</code>), et tout paramètre de
+requête générique encore nommé <code>team</code>/<code>metagroup</code> est renommé <code>segment</code>/
+<code>combinedSegment</code> (y compris le filtre <code>?team=</code> de la liste membres et de
+<code>/api/contacts</code>). Dans tout ce document, <strong>« Segment » (UI) = entité <code>segment</code>
+(technique)</strong> et <strong>« Segment combiné » (UI) = entité <code>combined_segment</code></strong>.</p>
 </blockquote>
 <hr>
 <h2 id="1-vue-densemble--principes">1. Vue d&#39;ensemble &amp; principes<a class="anchor" href="#1-vue-densemble--principes" aria-label="Lien d'ancrage">#</a></h2>
@@ -351,7 +354,7 @@ identifie <strong>13 couches</strong>.</p>
 <tr><td><code>routing</code></td><td>Dispatch GET (<code>views.php</code>) et POST (<code>actions.php</code> + <code>$ACTION_MAP</code>)</td><td><code>html/includes/routing/</code></td></tr>
 <tr><td><code>views</code></td><td>Fragments PHP inclus par <code>views.php</code></td><td><code>html/includes/views/</code>, <code>includes/partials/</code></td></tr>
 <tr><td><code>concepts</code></td><td>Concepts transverses (dirty-guard, htmx, terminologie…)</td><td>(transversal, pas de fichier unique)</td></tr>
-<tr><td><code>domain</code></td><td>Classes active-record</td><td><code>html/classes/</code> (User, Team, Compta, Metagroup, UserProperty)</td></tr>
+<tr><td><code>domain</code></td><td>Classes active-record</td><td><code>html/classes/</code> (Contact, Segment, Compta, CombinedSegment, UserProperty)</td></tr>
 <tr><td><code>actions</code></td><td>Handlers POST procéduraux groupés par domaine</td><td><code>html/includes/actions/</code></td></tr>
 <tr><td><code>api</code></td><td>Endpoints REST JSON</td><td><code>html/api/</code></td></tr>
 <tr><td><code>tools</code></td><td>Scripts utilitaires CLI</td><td><code>html/tools/</code> (<code>import.php</code>, <code>fix_encoding.php</code>, <code>guest2010.php</code>)</td></tr>
@@ -366,21 +369,31 @@ correspondaient pas au graphe réel.</p>
 </blockquote>
 <hr>
 <h2 id="5-schéma-de-base-de-données">5. Schéma de base de données<a class="anchor" href="#5-schéma-de-base-de-données" aria-label="Lien d'ancrage">#</a></h2>
-<p>Toutes les tables sont <strong>InnoDB / utf8mb4</strong>. Il n&#39;y a <strong>aucune clé étrangère
-déclarée</strong> : l&#39;intégrité référentielle est assurée par le code (<code>SET foreign_key_checks = 0</code>
-dans <code>schema.sql</code>). Les dates métier sont stockées en <strong>timestamp Unix</strong> (<code>int(16)</code>),
-pas en <code>DATE</code> SQL ; conversions via <code>formatedDateToTimeStamp()</code> / <code>timeStampToformatedDate()</code>.</p>
-<div class="table-scroll" role="region" aria-label="Tableau — 5. Schéma de base de données" tabindex="0"><table><thead><tr><th scope="col">Table</th><th scope="col">Rôle</th><th scope="col">Clé / séquence</th></tr></thead><tbody><tr><td><code>contact</code></td><td>Membres (<strong>anciennement <code>users</code></strong>, renommée v5.0.0) : identité, coordonnées (dont <strong><code>email_alt</code></strong>), <code>sexe</code> (na/f/m/hf), <code>status</code> (1/0), dates Unix</td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<p>Toutes les tables sont <strong>InnoDB / utf8mb4</strong>. Depuis la migration <code>0023</code> (v5.1.0),
+les relations sont couvertes par de <strong>vraies clés étrangères</strong> (<code>contact_segment</code>,
+<code>contact_properties</code>, <code>compta</code>, <code>combined_segment_member</code>, <code>audit_log</code>, <code>email_log</code>)
+— avant ça, l&#39;intégrité référentielle reposait entièrement sur le code
+(<code>SET foreign_key_checks = 0</code>). Depuis les migrations <code>0026</code>-<code>0030</code> (v5.1.0, issue
+#143), les dates métier sont des <code>DATE</code>/<code>DATETIME</code> natifs (plus des timestamps Unix
+<code>int(16)</code>) : <code>contact.birthday</code> (<code>DATE</code>), <code>contact.creationDate</code>/<code>modificationDate</code>,
+<code>contact_properties.date</code>, <code>compta.date</code> (<code>DATETIME</code>). <code>NULL</code> remplace <code>0</code> comme
+sentinelle « non renseigné ». Les formulaires continuent de passer par
+<code>formatedDateToTimeStamp()</code> / <code>timeStampToformatedDate()</code> côté PHP — la conversion
+avec la base se fait exclusivement en PHP (jamais via <code>FROM_UNIXTIME()</code>/
+<code>UNIX_TIMESTAMP()</code> SQL, qui utilisent le fuseau de <em>session</em> MySQL, différent du
+fuseau PHP forcé à <code>Europe/Zurich</code>).</p>
+<div class="table-scroll" role="region" aria-label="Tableau — 5. Schéma de base de données" tabindex="0"><table><thead><tr><th scope="col">Table</th><th scope="col">Rôle</th><th scope="col">Clé / séquence</th></tr></thead><tbody><tr><td><code>contact</code></td><td>Membres (<strong>anciennement <code>users</code></strong>, renommée v5.0.0) : identité, coordonnées (dont <strong><code>email_alt</code></strong>), <code>sexe</code> (na/f/m/hf), <code>status</code> (1/0), <code>birthday</code> (<code>DATE</code>), <code>creationDate</code>/<code>modificationDate</code> (<code>DATETIME</code>)</td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>segment</code></td><td>Segments (<strong>anciennement <code>team</code></strong>, renommée v5.0.0) : <code>name</code>, <code>hidden</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
-<tr><td><code>contact_segment</code></td><td>Appartenance segment (<strong>anciennement EAV dans <code>user_properties</code></strong>, table de jointure depuis v5.0.0) : <code>user_id</code> (contact), <code>segment_id</code></td><td>PK <code>(user_id, segment_id)</code></td></tr>
-<tr><td><code>contact_properties</code></td><td>EAV : notes de suivi (<strong>anciennement <code>user_properties</code></strong>, renommée v5.0.0)</td><td><code>id</code> AUTO_INCREMENT (PK depuis la migration 0020)</td></tr>
-<tr><td><code>metagroup</code></td><td>Segments combinés / catégories : <code>name</code>, <code>segmentid</code>, <code>is_filter</code>, <code>sort_order</code></td><td><code>id</code> via <code>maxval</code></td></tr>
+<tr><td><code>contact_segment</code></td><td>Appartenance segment (<strong>anciennement EAV dans <code>user_properties</code></strong>, table de jointure depuis v5.0.0) : <code>user_id</code> (contact), <code>segment_id</code> — FK réelles vers <code>contact</code>/<code>segment</code> (migration 0023)</td><td>PK <code>(user_id, segment_id)</code></td></tr>
+<tr><td><code>contact_properties</code></td><td>EAV : notes de suivi (<strong>anciennement <code>user_properties</code></strong>, renommée v5.0.0), <code>date</code> (<code>DATETIME</code>, <code>NULL</code> = non renseignée)</td><td><code>id</code> AUTO_INCREMENT (PK depuis la migration 0020)</td></tr>
+<tr><td><code>combined_segment</code></td><td>Segments combinés / catégories (<strong>anciennement <code>metagroup</code></strong>, renommée v5.1.0) : <code>name</code>, <code>is_filter</code>, <code>sort_order</code></td><td><code>id</code> AUTO_INCREMENT (depuis migration 0022 ; via <code>maxval</code> avant)</td></tr>
+<tr><td><code>combined_segment_member</code></td><td>Appartenance segment → segment combiné (<strong>anciennement auto-jointure sur <code>metagroup</code></strong>, table de jointure depuis migration 0022) : <code>combined_segment_id</code>, <code>segment_id</code> — FK réelles (migration 0023)</td><td>PK <code>(combined_segment_id, segment_id)</code></td></tr>
 <tr><td><code>compta_type</code></td><td>Types d&#39;écriture : <code>label</code>, <code>color</code>, <strong><code>default_libele</code></strong> (libellé pré-rempli à la saisie, migration 0021), <code>sort_order</code>, <code>is_cotisation</code>, <code>is_excluded_from_donation</code>, <code>is_institutional</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
-<tr><td><code>compta</code></td><td>Écritures : <code>user_id</code>, <code>date</code> (Unix), <code>libele</code>, <code>sum</code> (<strong>decimal(10,2)</strong>, CHF), <code>quittance</code>, <code>type_id</code>, <code>wants_attestation</code>, <strong><code>notified_at</code></strong> (dernier envoi du récapitulatif email, <code>NULL</code> = non notifiée), <strong><code>cotisation_year</code></strong> (année de cotisation si différente de l&#39;année de paiement)</td><td><code>id</code> AUTO_INCREMENT</td></tr>
-<tr><td><code>maxval</code></td><td>Compteur de séquence manuel (clé/valeur)</td><td>PK <code>parameter</code></td></tr>
-<tr><td><code>app_settings</code></td><td>Configuration organisation (clé/valeur : <code>org_name</code>, <code>membre_team</code>, <code>archive_id</code>, <code>org_ide</code>, <code>org_purpose</code>, <code>org_tax_status</code>, <code>smtp_*</code>, etc. — <code>value</code> en <code>TEXT</code> depuis la migration 0004 pour les champs multi-lignes)</td><td>PK <code>key</code></td></tr>
+<tr><td><code>compta</code></td><td>Écritures : <code>user_id</code>, <code>date</code> (<code>DATETIME</code>, <code>NULL</code> = non renseignée/invalide), <code>libele</code>, <code>sum</code> (<strong>decimal(10,2)</strong>, CHF), <code>quittance</code>, <code>type_id</code>, <code>wants_attestation</code>, <strong><code>notified_at</code></strong> (dernier envoi du récapitulatif email, <code>NULL</code> = non notifiée), <strong><code>cotisation_year</code></strong> (année de cotisation si différente de l&#39;année de paiement) — FK réelles vers <code>contact</code>/<code>compta_type</code> (migration 0023)</td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>maxval</code></td><td>Compteur de séquence manuel (clé/valeur) — n&#39;est plus utilisé pour <code>combined_segment.id</code> depuis la migration 0022</td><td>PK <code>parameter</code></td></tr>
+<tr><td><code>app_settings</code></td><td>Configuration organisation (clé/valeur : <code>org_name</code>, <code>membre_segment</code> — anciennement <code>membre_team</code>, renommée v5.1.0 —, <code>archive_id</code>, <code>org_ide</code>, <code>org_purpose</code>, <code>org_tax_status</code>, <code>smtp_*</code>, etc. — <code>value</code> en <code>TEXT</code> depuis la migration 0004 pour les champs multi-lignes)</td><td>PK <code>key</code></td></tr>
 <tr><td><code>app_users</code></td><td>Comptes applicatifs : <code>password_hash</code> (bcrypt), <code>role</code> enum, <strong><code>locale</code></strong> (langue d&#39;interface, défaut <code>fr</code>), <code>force_password_change</code>, <code>is_active</code>, <code>last_login</code>, <code>reset_token</code>, <code>token_expires_at</code>, <code>email</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
-<tr><td><code>audit_log</code></td><td>Journal : <code>app_user_id</code>, <code>username</code>, <code>action</code>, <code>detail</code>, <code>subject_user_id</code>, <code>created_at</code></td><td><code>id</code> AUTO_INCREMENT</td></tr><tr><td><code>email_templates</code></td><td>Templates éditables (clé <code>tpl_*</code>) : <code>subject</code>, <code>body_text</code>, <code>body_html</code>, <code>updated_at</code></td><td>PK <code>key</code></td></tr><tr><td><code>email_log</code></td><td>Historique des envois : <code>user_id</code>, <code>tpl_key</code>, <code>to_email</code>, <code>subject</code>, <code>status</code> (sent/error), <code>error_msg</code>, <code>body_text</code>, <code>body_html</code>, <code>created_at</code></td><td><code>id</code> AUTO_INCREMENT</td></tr><tr><td><code>schema_migrations</code></td><td>Suivi des migrations appliquées : <code>version</code>, <code>applied_at</code>, <code>checksum</code> (SHA-256, détection de dérive)</td><td>PK <code>version</code></td></tr></tbody></table></div>
+<tr><td><code>audit_log</code></td><td>Journal : <code>app_user_id</code>, <code>username</code>, <code>action</code>, <code>detail</code>, <code>subject_user_id</code>, <code>created_at</code> — FK réelle vers <code>contact</code> sur <code>subject_user_id</code> (migration 0023, <code>ON DELETE SET NULL</code>)</td><td><code>id</code> AUTO_INCREMENT</td></tr><tr><td><code>email_templates</code></td><td>Templates éditables (clé <code>tpl_*</code>) : <code>subject</code>, <code>body_text</code>, <code>body_html</code>, <code>updated_at</code></td><td>PK <code>key</code></td></tr><tr><td><code>email_log</code></td><td>Historique des envois : <code>user_id</code>, <code>tpl_key</code>, <code>to_email</code>, <code>subject</code>, <code>status</code> (sent/error), <code>error_msg</code>, <code>body_text</code>, <code>body_html</code>, <code>created_at</code> — FK réelle vers <code>contact</code> sur <code>user_id</code> (migration 0023, <code>ON DELETE SET NULL</code>)</td><td><code>id</code> AUTO_INCREMENT</td></tr><tr><td><code>schema_migrations</code></td><td>Suivi des migrations appliquées : <code>version</code>, <code>applied_at</code>, <code>checksum</code> (SHA-256, détection de dérive)</td><td>PK <code>version</code></td></tr></tbody></table></div>
 <h3 id="relations">Relations<a class="anchor" href="#relations" aria-label="Lien d'ancrage">#</a></h3>
 <pre><code>app_users ── session ──&gt; index.php ── actions/* ── auditLog() ──&gt; audit_log
 
@@ -391,7 +404,7 @@ contact (id)
   └── compta (user_id) ── type_id ──&gt; compta_type
                                         (is_cotisation / is_excluded_from_donation / is_institutional)
 
-segment (id) ──&gt; metagroup (segmentid)   [1 ligne header (segmentid NULL) + N lignes membres]
+segment (id) ──&gt; combined_segment_member (segment_id) ──&gt; combined_segment (id)
 </code></pre>
 <h3 id="notes-sur-le-modèle">Notes sur le modèle<a class="anchor" href="#notes-sur-le-modèle" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
@@ -401,9 +414,14 @@ dans le stockage EAV <code>user_properties</code> (<code>parameter = &#39;team_&
 <code>value = &#39;true&#39;</code>) ; la migration <code>0013</code> a fait la bascule avec backfill
 automatique, puis <code>0014</code>/<code>0015</code> ont renommé les tables (<code>team</code> → <code>segment</code>,
 <code>users</code> → <code>contact</code>).</li>
-<li><code>metagroup.id</code> est <strong>partagé</strong> entre la ligne header (<code>segmentid IS NULL</code>, portant
-<code>name</code>) et les lignes membres (<code>segmentid = N</code>), d&#39;où l&#39;usage de <code>maxval</code> plutôt que
-d&#39;<code>AUTO_INCREMENT</code>.</li>
+<li><strong><code>metagroup</code> → <code>combined_segment</code>/<code>combined_segment_member</code> (v5.1.0)</strong> :
+l&#39;ancien modèle stockait la ligne « header » (catégorie/filtre, <code>segmentid IS NULL</code>,
+portant <code>name</code>) et les lignes « membre » (<code>segmentid = N</code>) dans la <strong>même table</strong>,
+avec un <code>id</code> <strong>partagé</strong> entre les deux (self-jointure, allocation manuelle via
+<code>maxval</code>). La migration <code>0022</code> a séparé ça en deux tables propres : <code>combined_segment</code>
+(une ligne par catégorie/filtre, <code>id</code> <code>AUTO_INCREMENT</code>) et <code>combined_segment_member</code>
+(table de jointure <code>combined_segment_id</code>/<code>segment_id</code>). La migration <code>0024</code> a renommé
+l&#39;ensemble <code>metagroup</code>/<code>metagroup_member</code> → <code>combined_segment</code>/<code>combined_segment_member</code>.</li>
 <li><code>contact_properties.id</code> est une vraie clé primaire <code>AUTO_INCREMENT</code> depuis la
 migration <code>0020</code> : la colonne héritée (≈83k lignes à <code>0</code>, doublons possibles) a été
 renumérotée séquentiellement — l&#39;id n&#39;était référencé nulle part ailleurs, seulement
@@ -437,16 +455,20 @@ public function hasComptaEntry(): bool
 </code></pre>
 <h3 id="team-teamclassphp"><code>Segment</code> (<code>segment_class.php</code>, anciennement <code>Team</code>/<code>team_class.php</code>)<a class="anchor" href="#team-teamclassphp" aria-label="Lien d'ancrage">#</a></h3>
 <p><code>lookupSegment()</code>, <code>save()</code>, <code>remove()</code>, <code>isUsed()</code>, et gestion de l&#39;appartenance aux
-segments combinés : <code>isMemberOfMetagroup()</code>, <code>addMetagroupMembership()</code>,
-<code>removeMetagroupMembership()</code>.</p>
+segments combinés (renommées v5.1.0, anciennement <code>isMemberOfMetagroup()</code>/
+<code>addMetagroupMembership()</code>/<code>removeMetagroupMembership()</code>) : <code>isMemberOfCombinedSegment()</code>,
+<code>addCombinedSegmentMembership()</code> (<code>INSERT IGNORE</code> depuis v5.1.0, plus de check-then-insert),
+<code>removeCombinedSegmentMembership()</code>.</p>
 <h3 id="compta-comptaclassphp"><code>Compta</code> (<code>compta_class.php</code>)<a class="anchor" href="#compta-comptaclassphp" aria-label="Lien d'ancrage">#</a></h3>
 <p><code>lookupCompta()</code>, <code>save()</code>, <code>remove()</code>, getters/setters (date, <code>libele</code>, <code>sum</code>,
 <code>quittance</code>, <code>type_id</code>, <code>wants_attestation</code>, <code>notified_at</code>, <code>cotisation_year</code>).</p>
 <p><code>setCotisationYear()</code> valide la valeur côté serveur : rejette (met <code>null</code>) toute
 année hors de la plage <code>[année courante - 50, année courante + 1]</code>, et coerce
 les chaînes numériques en entier. Testé dans <code>tests/unit/ComptaYearTest.php</code>.</p>
-<h3 id="metagroup-metagroupclassphp"><code>Metagroup</code> (<code>metagroup_class.php</code>)<a class="anchor" href="#metagroup-metagroupclassphp" aria-label="Lien d'ancrage">#</a></h3>
-<p><code>lookupMetagroup()</code>, <code>save()</code>, <code>remove()</code>, <code>isUsed()</code>. <code>id</code> alloué via <code>maxval</code>.</p>
+<h3 id="combinedsegment-combinedsegmentclassphp"><code>CombinedSegment</code> (<code>combined_segment_class.php</code>, anciennement <code>Metagroup</code>/<code>metagroup_class.php</code>)<a class="anchor" href="#combinedsegment-combinedsegmentclassphp" aria-label="Lien d'ancrage">#</a></h3>
+<p><code>lookupCombinedSegment()</code> (anciennement <code>lookupMetagroup()</code>), <code>save()</code>, <code>filterList()</code>,
+<code>segmentNames()</code>, <code>segmentIds()</code>. <code>id</code> <code>AUTO_INCREMENT</code> depuis la migration <code>0022</code>
+(anciennement alloué via <code>maxval</code>, partagé avec les lignes membres — voir §5).</p>
 <h3 id="userproperty-propertyclassphp"><code>UserProperty</code> (<code>property_class.php</code>)<a class="anchor" href="#userproperty-propertyclassphp" aria-label="Lien d'ancrage">#</a></h3>
 <p>Note de suivi ou propriété générique. <code>lookupUserProperty()</code>, <code>save()</code>, <code>remove()</code>,
 getters/setters (<code>parameter</code>, <code>date</code>, <code>value</code>).</p>
@@ -519,18 +541,19 @@ pas de JWT ni de clé API.</p>
 <tr><td>PUT / PATCH</td><td>/api/contacts/{id}</td><td><code>handleUpdate()</code></td></tr>
 <tr><td>DELETE</td><td>/api/contacts/{id}</td><td><code>handleDelete()</code> (204)</td></tr>
 <tr><td>(autre)</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td><code>apiError(405)</code></td></tr></tbody></table></div>
-<p><code>handleList()</code> supporte <code>?search=</code>, <code>?team=</code>, <code>?metagroup=</code>, <code>?page=</code>, <code>?limit=</code>
+<p><code>handleList()</code> supporte <code>?search=</code>, <code>?segment=</code> (anciennement <code>?team=</code>, renommé v5.1.0),
+<code>?combinedSegment=</code> (anciennement <code>?metagroup=</code>, renommé v5.1.0), <code>?page=</code>, <code>?limit=</code>
 (max 2000), <code>?types=</code>. <code>handleUpdate()</code> charge l&#39;avant, applique le patch, recharge
 l&#39;après, calcule un diff lisible et l&#39;écrit dans <code>audit_log</code> (<code>updateUser</code>).</p>
 <h3 id="filtres-virtuels-memberfilter">Filtres virtuels (<code>MemberFilter</code>)<a class="anchor" href="#filtres-virtuels-memberfilter" aria-label="Lien d'ancrage">#</a></h3>
-<p>Un <code>?team=</code> <strong>négatif</strong> déclenche des requêtes métier dédiées, résolues par la classe
+<p>Un <code>?segment=</code> <strong>négatif</strong> déclenche des requêtes métier dédiées, résolues par la classe
 partagée <code>MemberFilter</code> (<code>html/classes/member_filter_class.php</code>) — seule source de
 vérité consommée à la fois par la liste des membres (<code>users_list.php</code>) et par l&#39;API
 (<code>api/contacts.php</code>). <code>MemberFilter::resolveIds()</code> retourne la map <code>id =&gt; true</code> des
 membres correspondants ; <code>MemberFilter::isVirtual()</code> teste si un ID de segment est
 un filtre virtuel. Constantes définies dans <code>bootstrap.php</code> :</p>
 <div class="table-scroll" role="region" aria-label="Tableau — Filtres virtuels (MemberFilter)" tabindex="0"><table><thead><tr><th scope="col">Constante</th><th scope="col">Valeur</th><th scope="col">Sémantique</th></tr></thead><tbody><tr><td><code>FILTER_ALL_EXCEPT_ARCHIVES</code></td><td>-3</td><td>Tous les membres actifs</td></tr>
-<tr><td><code>FILTER_UNPAID_COTI_CURRENT</code></td><td>-4</td><td>Membres du segment <code>membre_team</code> sans cotisation cette année</td></tr>
+<tr><td><code>FILTER_UNPAID_COTI_CURRENT</code></td><td>-4</td><td>Membres du segment <code>membre_segment</code> sans cotisation cette année (anciennement <code>membre_team</code>)</td></tr>
 <tr><td><code>FILTER_UNPAID_COTI_3Y</code></td><td>-3333</td><td>Ont déjà cotisé mais pas depuis 3 ans</td></tr>
 <tr><td><code>FILTER_NO_ACTIVITY_10Y</code></td><td>-5555</td><td>Aucune écriture compta depuis 10 ans</td></tr>
 <tr><td><code>FILTER_NON_INSTIT_LAST_YEAR</code></td><td>-6666</td><td>Paiement non-institutionnel l&#39;an passé</td></tr></tbody></table></div>
@@ -564,7 +587,7 @@ fin de l&#39;étape (<code>unset</code>, anti-bloat).</p>
 segment est journalisée (<code>auditLog</code>).</p>
 <hr>
 <h2 id="10-frontend">10. Frontend<a class="anchor" href="#10-frontend" aria-label="Lien d'ancrage">#</a></h2>
-<h3 id="bibliothèques-auto-hébergées-sauf-tiptap">Bibliothèques (auto-hébergées, sauf TipTap)<a class="anchor" href="#bibliothèques-auto-hébergées-sauf-tiptap" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="bibliothèques-toutes-auto-hébergées">Bibliothèques (toutes auto-hébergées)<a class="anchor" href="#bibliothèques-toutes-auto-hébergées" aria-label="Lien d'ancrage">#</a></h3>
 <div class="table-scroll" role="region" aria-label="Tableau — Bibliothèques (auto-hébergées, sauf TipTap)" tabindex="0"><table><thead><tr><th scope="col">Bibliothèque</th><th scope="col">Version</th><th scope="col">Usage</th></tr></thead><tbody><tr><td>Bootstrap</td><td>5.3</td><td>Grille, composants, utilitaires</td></tr>
 <tr><td>htmx</td><td>2.0.4</td><td>Navigation SPA-like, swaps partiels</td></tr>
 <tr><td>Alpine.js</td><td>3.x</td><td>Composants réactifs (formulaire membre)</td></tr>
@@ -574,10 +597,11 @@ segment est journalisée (<code>auditLog</code>).</p>
 <tr><td>Chart.js</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td>Graphiques (vue résumé)</td></tr>
 <tr><td>pdfmake + jszip</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td>Exports DataTables (PDF/Excel)</td></tr>
 <tr><td>Font Awesome</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td>Icônes</td></tr>
-<tr><td>TipTap 2 (via <code>esm.sh</code>)</td><td>2.x</td><td>Éditeur rich-text du champ commentaire</td></tr>
+<tr><td>TipTap 2 (<code>html/js/vendor/tiptap.bundle.js</code>)</td><td>2.x</td><td>Éditeur rich-text du champ commentaire</td></tr>
 <tr><td>Inter</td><td><span aria-hidden="true">—</span><span class="visually-hidden">Non</span></td><td>Police auto-hébergée</td></tr></tbody></table></div>
-<p>TipTap est le <strong>seul</strong> module chargé depuis un CDN (<code>esm.sh</code>) ; tout le reste est dans
-<code>html/js/vendor/</code> et <code>html/css/vendor/</code>.</p>
+<p>Toutes les bibliothèques sont vendorisées dans <code>html/js/vendor/</code> et <code>html/css/vendor/</code> —
+aucun chargement depuis un CDN externe (#102), ce qui permet une CSP stricte <code>self</code>
+(cf. section CSP ci-dessous / #93).</p>
 <h3 id="htmx--configuration">htmx — configuration<a class="anchor" href="#htmx--configuration" aria-label="Lien d'ancrage">#</a></h3>
 <pre><code class="language-html">&lt;body hx-boost=&quot;true&quot; hx-target=&quot;#main-content&quot; hx-swap=&quot;innerHTML&quot; hx-push-url=&quot;true&quot;&gt;
 &lt;meta name=&quot;htmx-config&quot; content=&#39;{&quot;scrollIntoViewOnBoost&quot;: false, &quot;defaultSwapStyle&quot;: &quot;innerHTML&quot;}&#39;&gt;
@@ -598,10 +622,11 @@ sur tout <code>change</code>/<code>input</code> d&#39;un <code>INPUT</code>/<cod
 <code>htmx:beforeRequest</code> pour confirmer avant une navigation GET (les POST — sauvegardes —
 passent), et <code>beforeunload</code> pour la navigation hors-htmx. <code>htmx:afterSwap</code> remet <code>dirty</code>
 et <code>window.__dirtyOverride</code> à <code>false</code>.</p>
-<p><strong>Exclusions réelles</strong> : classe <code>.mg-team-cb</code>, ids <code>#includeAttestation</code> et
-<code>#team-filter-input</code>, tout ancêtre <code>[data-no-dirty]</code>, <code>.dt-search</code>/<code>.dataTables_filter</code>,
-<code>.modal</code>, <code>#bulk-form</code>. Convention projet : setter <code>window.__dirtyOverride = true</code> avant
-tout <code>window.location = …</code> inline, et poser <code>data-no-dirty</code> sur les selects/inputs de
+<p><strong>Exclusions réelles</strong> : classe <code>.mg-segment-cb</code> (anciennement <code>.mg-team-cb</code>), ids
+<code>#includeAttestation</code> et <code>#segment-filter-input</code> (anciennement <code>#team-filter-input</code>),
+tout ancêtre <code>[data-no-dirty]</code>, <code>.dt-search</code>/<code>.dataTables_filter</code>, <code>.modal</code>, <code>#bulk-form</code>.
+Convention projet : setter <code>window.__dirtyOverride = true</code> avant tout
+<code>window.location = …</code> inline, et poser <code>data-no-dirty</code> sur les selects/inputs de
 navigation ou de filtre.</p>
 <h3 id="alpine--membergeneralform-jsmember-general-formjs">Alpine — <code>memberGeneralForm</code> (<code>js/member-general-form.js</code>)<a class="anchor" href="#alpine--membergeneralform-jsmember-general-formjs" aria-label="Lien d'ancrage">#</a></h3>
 <p>Chargé avant Alpine, initialisé via <code>x-data=&quot;memberGeneralForm()&quot;</code>. Données passées par
@@ -630,7 +655,7 @@ est un simple champ texte de la table <code>compta</code>.</p>
 <h2 id="12-tests--ci">12. Tests &amp; CI<a class="anchor" href="#12-tests--ci" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="playwright-tests">Playwright (<code>tests/</code>)<a class="anchor" href="#playwright-tests" aria-label="Lien d'ancrage">#</a></h3>
 <p>Suite E2E Node.js (specs <code>*.spec.ts</code> couvrant auth, membres, compta, groupes,
-metagroups, suivi, rôles, import, réglages, API, fusion, etc.). Un <code>global-setup.ts</code>
+segments combinés, suivi, rôles, import, réglages, API, fusion, etc.). Un <code>global-setup.ts</code>
 produit un <code>storageState</code> pré-authentifié réutilisé par les specs.</p>
 <p>Specs d&#39;invariants issus des refactors #56–#59 : <code>filter-parity</code> (parité vue/API des
 filtres virtuels), <code>route-guards</code> (matrice rôles × routes, régressions des failles
@@ -673,10 +698,12 @@ tête. Appellent <code>auditLog()</code> pour toute opération sensible. Termine
 <h3 id="séquences">Séquences<a class="anchor" href="#séquences" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
 <li><code>AUTO_INCREMENT</code> natif pour <code>contact</code>, <code>segment</code>, <code>compta</code>, <code>compta_type</code>,
-<code>contact_properties</code> (depuis la migration 0020), <code>app_users</code>, <code>audit_log</code>.
-<code>maxval</code> (<code>updateAndGetMaxVal()</code>) uniquement pour <code>metagroup.id</code> (id partagé
-header/membres). L&#39;incrément est atomique via <code>LAST_INSERT_ID(expr)</code> — deux
-requêtes parallèles ne peuvent pas obtenir le même compteur.</li>
+<code>contact_properties</code> (depuis la migration 0020), <code>combined_segment</code> (depuis la
+migration 0022, anciennement <code>metagroup.id</code> alloué via <code>maxval</code> et partagé
+header/membres — voir §5), <code>app_users</code>, <code>audit_log</code>. <code>maxval</code> sert encore de
+compteur générique clé/valeur pour d&#39;éventuels autres usages ; l&#39;incrément est
+atomique via <code>LAST_INSERT_ID(expr)</code> — deux requêtes parallèles ne peuvent pas
+obtenir le même compteur.</li>
 </ul>
 <h3 id="audit-log">Audit log<a class="anchor" href="#audit-log" aria-label="Lien d'ancrage">#</a></h3>
 <ul>

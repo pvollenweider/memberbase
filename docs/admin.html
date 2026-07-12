@@ -327,7 +327,7 @@ chmod 750 /var/www/votre-domaine/conf
 <tr><td>Mot de passe</td><td><code>***</code></td><td></td></tr></tbody></table></div>
 <p><strong>Étape 3 — Initialisation du schéma</strong></p>
 <p>Crée les tables suivantes (toutes avec <code>CREATE TABLE IF NOT EXISTS</code> — idempotent) :</p>
-<p><code>contact</code> <code>segment</code> <code>contact_properties</code> <code>contact_segment</code> <code>metagroup</code> <code>compta</code> <code>compta_type</code> <code>maxval</code> <code>app_settings</code> <code>app_users</code> <code>audit_log</code> <code>email_templates</code> <code>email_log</code> <code>api_rate_limit</code> <code>schema_migrations</code></p>
+<p><code>contact</code> <code>segment</code> <code>contact_properties</code> <code>contact_segment</code> <code>combined_segment</code> <code>combined_segment_member</code> <code>compta</code> <code>compta_type</code> <code>maxval</code> <code>app_settings</code> <code>app_users</code> <code>audit_log</code> <code>email_templates</code> <code>email_log</code> <code>api_rate_limit</code> <code>schema_migrations</code></p>
 <p>Un clic suffit. Les tables existantes ne sont pas modifiées.</p>
 <p><strong>Étape 4 — Configuration de l&#39;organisation</strong></p>
 <p>Saisir les informations de l&#39;association (nom, adresse, NPA, ville, pays). Ces données apparaissent dans le titre de l&#39;application et sur les attestations de dons PDF.</p>
@@ -404,10 +404,10 @@ define(&#39;DB_PASS&#39;, &#39;secret&#39;);
 <tr><td><code>org_npa</code></td><td>Code postal (attestations)</td></tr>
 <tr><td><code>org_city</code></td><td>Ville (attestations)</td></tr>
 <tr><td><code>org_country</code></td><td>Pays (attestations)</td></tr>
-<tr><td><code>default_team</code></td><td>ID du groupe affiché par défaut dans la liste membres</td></tr>
-<tr><td><code>membre_team</code></td><td>ID du groupe de référence pour les filtres cotisation</td></tr>
-<tr><td><code>archive_id</code></td><td>ID du groupe archives (exclu des vues par défaut)</td></tr>
-<tr><td><code>membre_team_prefix</code></td><td>Préfixe des groupes membres annuels (ex. <code>Membre</code>)</td></tr><tr><td><code>org_ide</code></td><td>Numéro IDE suisse (CHE-XXX.XXX.XXX) — figure sur les attestations de dons. Bouton <strong>Vérifier via Zefix</strong> dans l&#39;UI : interroge le registre du commerce suisse (<code>zefix.ch</code>, flux <code>search.json</code> → <code>firm/{ehraid}.json</code>) pour préremplir nom/adresse/but statutaire à partir du numéro IDE</td></tr><tr><td><code>org_purpose</code></td><td>But statutaire (extrait des statuts) — préremplissable via Zefix</td></tr><tr><td><code>org_tax_status</code></td><td>Statut d&#39;exonération fiscale — saisie manuelle uniquement (aucun registre fédéral consulté automatiquement)</td></tr><tr><td><code>smtp_*</code></td><td>Configuration SMTP — voir <a href="#141-configuration-smtp">§14.1</a></td></tr></tbody></table></div>
+<tr><td><code>default_segment</code></td><td>ID du segment affiché par défaut dans la liste membres (anciennement <code>default_team</code>, renommé v5.1.0)</td></tr>
+<tr><td><code>membre_segment</code></td><td>ID du segment de référence pour les filtres cotisation (anciennement <code>membre_team</code>, renommé v5.1.0)</td></tr>
+<tr><td><code>archive_id</code></td><td>ID du segment archives (exclu des vues par défaut)</td></tr>
+<tr><td><code>membre_segment_prefix</code></td><td>Préfixe des segments membres annuels (ex. <code>Membre</code>) (anciennement <code>membre_team_prefix</code>, renommé v5.1.0)</td></tr><tr><td><code>org_ide</code></td><td>Numéro IDE suisse (CHE-XXX.XXX.XXX) — figure sur les attestations de dons. Bouton <strong>Vérifier via Zefix</strong> dans l&#39;UI : interroge le registre du commerce suisse (<code>zefix.ch</code>, flux <code>search.json</code> → <code>firm/{ehraid}.json</code>) pour préremplir nom/adresse/but statutaire à partir du numéro IDE</td></tr><tr><td><code>org_purpose</code></td><td>But statutaire (extrait des statuts) — préremplissable via Zefix</td></tr><tr><td><code>org_tax_status</code></td><td>Statut d&#39;exonération fiscale — saisie manuelle uniquement (aucun registre fédéral consulté automatiquement)</td></tr><tr><td><code>smtp_*</code></td><td>Configuration SMTP — voir <a href="#141-configuration-smtp">§14.1</a></td></tr></tbody></table></div>
 <p>Modification directe en SQL si nécessaire :</p>
 <pre><code class="language-sql">UPDATE app_settings SET value = &#39;Nouvelle valeur&#39; WHERE `key` = &#39;org_name&#39;;
 </code></pre>
@@ -673,16 +673,16 @@ curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
 <div class="table-scroll" role="region" aria-label="Tableau — 8.3 Endpoints disponibles" tabindex="0"><table><thead><tr><th scope="col">Méthode</th><th scope="col">Endpoint</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>GET</code></td><td><code>/api/contacts</code></td><td>Liste des membres</td></tr>
 <tr><td><code>GET</code></td><td><code>/api/contacts/{id}</code></td><td>Fiche membre complète</td></tr>
 <tr><td><code>PATCH</code></td><td><code>/api/contacts/{id}</code></td><td>Modification partielle (génère un audit log)</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/contacts/{id}/groups</code></td><td>Groupes du membre</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/segments</code></td><td>Liste des groupes avec comptage membres</td></tr>
-<tr><td><code>GET</code></td><td><code>/api/segments/{id}</code></td><td>Groupe avec ses membres</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/contacts/{id}/groups</code></td><td>Segments du membre</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/segments</code></td><td>Liste des segments avec comptage membres</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/segments/{id}</code></td><td>Segment avec ses membres</td></tr>
 <tr><td><code>GET</code></td><td><code>/api/compta</code></td><td>Entrées comptables</td></tr>
 <tr><td><code>GET</code></td><td><code>/api/compta-types</code></td><td>Types de compta configurés</td></tr>
 <tr><td><code>GET</code></td><td><code>/api/suivi</code></td><td>Notes de suivi</td></tr></tbody></table></div>
 <h3 id="84-paramètres-de-filtrage">8.4 Paramètres de filtrage<a class="anchor" href="#84-paramètres-de-filtrage" aria-label="Lien d'ancrage">#</a></h3>
 <p><strong><code>GET /api/contacts</code></strong></p>
-<div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>group</code></td><td>int</td><td>Filtrer par ID de groupe</td></tr>
-<tr><td><code>metagroup</code></td><td>int</td><td>Filtrer par ID de métagroupe</td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>segment</code></td><td>int</td><td>Filtrer par ID de segment (négatif = filtre virtuel, voir <code>MemberFilter</code>) — anciennement <code>team</code>, renommé v5.1.0</td></tr>
+<tr><td><code>combinedSegment</code></td><td>int</td><td>Filtrer par ID de segment combiné — anciennement <code>metagroup</code>, renommé v5.1.0</td></tr>
 <tr><td><code>active</code></td><td>bool</td><td><code>1</code> = membres actifs uniquement</td></tr>
 <tr><td><code>search</code></td><td>string</td><td>Recherche textuelle (nom, prénom, email)</td></tr>
 <tr><td><code>limit</code></td><td>int</td><td>Nombre de résultats (pagination)</td></tr>
@@ -699,7 +699,7 @@ curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
 COOKIES=cookies.txt
 
 # Liste des membres du groupe 3, actifs
-curl -b $COOKIES &quot;$BASE/api/contacts?group=3&amp;active=1&quot;
+curl -b $COOKIES &quot;$BASE/api/contacts?segment=3&amp;active=1&quot;
 
 # Fiche complète du membre 42
 curl -b $COOKIES &quot;$BASE/api/contacts/42&quot;
