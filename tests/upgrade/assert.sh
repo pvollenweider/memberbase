@@ -81,8 +81,13 @@ NULL_COTI="$(q "SELECT COUNT(*) FROM compta WHERE cotisation_year IS NULL AND da
 # 15c. Migration 0014 renamed team→segment, user_team→user_segment, teamid→segmentid
 [ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='segment'")" = "1" ] \
   || fail "segment table missing (0014 not applied)"
-[ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='metagroup' AND column_name='segmentid'")" = "1" ] \
-  || fail "metagroup.segmentid column missing (0014 not applied)"
+#
+# NOTE: metagroup.teamid → segmentid was the 0014 rename, but metagroup itself
+# no longer exists in the final schema — 0022 split segmentid-bearing "member"
+# rows into metagroup_member (dropping the column), and 0024 renamed both
+# tables to combined_segment/combined_segment_member. Check the final shape.
+[ "$(q "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='combined_segment_member' AND column_name='segment_id'")" = "1" ] \
+  || fail "combined_segment_member.segment_id column missing (0014/0022/0024 chain not applied)"
 
 # 15d. Migration 0015 renamed users→contact, user_segment→contact_segment, user_properties→contact_properties
 [ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='users'")" = "0" ] \
@@ -94,9 +99,10 @@ NULL_COTI="$(q "SELECT COUNT(*) FROM compta WHERE cotisation_year IS NULL AND da
 [ "$(q "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='contact_properties'")" = "1" ] \
   || fail "contact_properties table missing (0015 not applied)"
 
-# 16. All 15 migrations recorded in schema_migrations, with checksums
+# 16. Every migration file recorded in schema_migrations, with checksums
+EXPECTED="$(ls "$(dirname "${BASH_SOURCE[0]}")"/../../html/migrations/*.sql | wc -l | tr -d ' ')"
 N="$(q "SELECT COUNT(*) FROM schema_migrations")"
-[ "$N" = "15" ] || fail "schema_migrations has $N rows, expected 15"
+[ "$N" = "$EXPECTED" ] || fail "schema_migrations has $N rows, expected $EXPECTED"
 BAD="$(q "SELECT COUNT(*) FROM schema_migrations WHERE checksum='' OR checksum IS NULL")"
 [ "$BAD" = "0" ] || fail "$BAD applied migration(s) missing a checksum"
 
