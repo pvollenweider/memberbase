@@ -246,7 +246,7 @@ rendered on the standalone page, not when embedded in the hub (#164). */ ?>
         <i class="fas fa-star me-1" aria-hidden="true" style="color:var(--bs-warning)"></i><?= $_kNouveaux ?> <?= $GLOBAL['newDonors'] ?>
       </a>
       <?php if ($_kLapsed > 0): ?>
-      <a href="<?= appUrl() ?>?view=lapsedDonors&amp;year=<?= $year ?>"
+      <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors&amp;year=<?= $year ?>"
          title="<?= sprintf($GLOBAL['donatedButNotIn'], $year-1, $year) ?>"
          style="color:var(--bs-danger);text-decoration:none"
          hx-boost="false"
@@ -496,7 +496,6 @@ if ($_showPie) {
     <th><?=$GLOBAL['lastName']?></th>
     <th><?=$GLOBAL['firstName']?></th>
     <th><?=$GLOBAL['email']?></th>
-    <th title="<?= sprintf($GLOBAL['statusTitleInstitutional'], htmlentities($membreSegmentLabel, ENT_COMPAT, $charset)) ?>"><?= $GLOBAL['status'] ?></th>
     <th><?=$GLOBAL['address']?></th>
     <th><?=$GLOBAL['npa']?></th>
     <th style="text-align:right"><?= $GLOBAL['donations'] ?></th>
@@ -571,8 +570,6 @@ foreach ($rows as $row):
     $email = htmlentities($row->email ?? '', ENT_COMPAT, $charset);
     $address = htmlentities($row->address ?? '', ENT_COMPAT, $charset);
     $npa = htmlentities($row->npa ?? '', ENT_COMPAT, $charset);
-    $isActif  = $row->is_actif        ? "<i class='fas fa-id-card text-success' title='" . htmlspecialchars($membreSegmentLabel, ENT_QUOTES, $charset) . "' aria-label='" . htmlspecialchars($membreSegmentLabel, ENT_QUOTES, $charset) . "'></i><span class='visually-hidden'>1</span>" : "";
-    $isInstit = $row->has_institutional ? "<i class='fas fa-building ms-1 text-info' title='{$GLOBAL['institutionalDonation']}' aria-label='{$GLOBAL['institutionalDonation']}'></i>" : "";
     $sexeRaw = $row->sexe;
     $sexe2 = match($sexeRaw) { 'f' => $GLOBAL['madame'], 'm' => $GLOBAL['monsieur'], 'hf' => $GLOBAL['hf'], default => '-' };
     $sexe = match($sexeRaw) {
@@ -588,7 +585,6 @@ foreach ($rows as $row):
         <td><strong><?=$lastName?></strong></td>
         <td><?=$firstName?></td>
         <td><?=$email?></td>
-        <td class="text-nowrap"><?=$isActif?><?=$isInstit?></td>
         <td><?=$address?></td>
         <td><?=$npa?></td>
         <td style="text-align:right"><?=number_format((float)$row->don_total, 2, '.', '\'')?></td>
@@ -652,7 +648,7 @@ $(document).ready(function() {
     window.CA_DT_INSTANCE_DONS = $('.resume-export').DataTable({
         order: [[2, 'asc']],
         paging: false,
-        columnDefs: [{ targets: [1, 6, 7], visible: false }],
+        columnDefs: [{ targets: [1, 5, 6], visible: false }],
         dom: CA_DT_DOM,
         buttons: [...CA_DT_BUTTONS, CA_DT_COLVIS],
         language: CA_DT_LANGUAGE

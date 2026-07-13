@@ -108,17 +108,33 @@ test.describe('Members', () => {
   });
 
   test('filter the member list by contact type via quick filters', async ({ page }) => {
+    // 'Testmembre2' (contactTypeId=Institution) was created by the earlier
+    // "non-default contact type" test in this file and never deleted — the
+    // one real Institution-type contact this test relies on finding.
     await page.goto('/index.php?view=list');
     const allRowCount = await page.locator('table.table tbody tr').count();
 
     await page.locator('#navbarDropdown').click();
-    await page.locator('.dropdown-menu.show a.dropdown-item[href*="contactTypeId="]', { hasText: 'Institution' }).click();
+    const ctLink = page.locator('.dropdown-menu.show a.dropdown-item[href*="contactTypeId="]', { hasText: 'Institution' });
+    // The link must reset segment=0 — otherwise it silently combines with the
+    // org's default_segment (most institutions aren't in the membership
+    // segment), hiding almost all results (bug: only 1/74 shown in prod).
+    await expect(ctLink).toHaveAttribute('href', /segment=0/);
+    await ctLink.click();
     await expect(page).toHaveURL(/contactTypeId=/);
 
-    // Every seed contact defaults to "Donateur privé" — filtering to
-    // Institution should narrow the result set.
+    // Regression guard: a client-side AJAX interceptor for segment-dropdown
+    // clicks used to silently ignore contactTypeId and show the unfiltered
+    // list (bug found in prod: filter appeared to do nothing).
+    await expect(page.locator('table.table tbody')).toContainText('Testmembre2');
     const filteredRowCount = await page.locator('table.table tbody tr').count();
     expect(filteredRowCount).toBeLessThan(allRowCount);
+  });
+
+  test('bare ?contactTypeId= URL is not silently scoped by the default segment', async ({ page }) => {
+    await page.goto('/index.php?contactTypeId=2');
+    await expect(page.locator('table.table tbody')).toContainText('Testmembre2');
+    await expect(page.locator('table.table tbody')).not.toContainText('No data available');
   });
 
   test('member fiche header shows a prominent name and uses nav-tabs, tasks tab hidden', async ({ page }) => {

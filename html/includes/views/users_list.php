@@ -10,7 +10,12 @@ $searchString = "";
 if (isset ($_REQUEST["searchString"])) {
     $searchString = trim($_REQUEST["searchString"]);
 }
-$segment = (int)($appSettings['default_segment'] ?? 0);
+// The org's default_segment (e.g. "current cotisation year") only applies
+// as a fallback for a bare page load — filtering by contact type is a
+// global attribute, not segment-scoped, so a contactTypeId with no explicit
+// segment must not silently intersect with it (institutions/companies are
+// typically outside the membership segment, which would hide almost all of them).
+$segment = isset($_REQUEST['contactTypeId']) ? 0 : (int)($appSettings['default_segment'] ?? 0);
 $membre = (int)($appSettings['membre_segment'] ?? 245);
 if (isset ($_REQUEST["segment"])) {
     $segment = $_REQUEST["segment"];
@@ -133,17 +138,22 @@ $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((in
                     <h6 class="dropdown-header">
                       <i class="fas fa-bolt me-1" aria-hidden="true"></i><?= $GLOBAL['quickFilters'] ?>
                     </h6>
-                    <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?segment=' . FILTER_ALL_EXCEPT_ARCHIVES ?>"><?= $GLOBAL['allExceptArchives'] ?></a>
-                    <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?segment=' . FILTER_UNPAID_COTI_3Y ?>"><?= $GLOBAL['cotiUnpayedLast3Years'] ?></a>
-                    <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?segment=' . FILTER_NO_ACTIVITY_10Y ?>"><?= $GLOBAL['nothingLast10Years'] ?></a>
-                    <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?segment=' . FILTER_NON_INSTIT_LAST_YEAR ?>"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
+                    <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
+                       href="<?= appUrl() . '?segment=' . FILTER_ALL_EXCEPT_ARCHIVES ?>"
+                       data-label="<?= htmlentities(mb_strtolower($GLOBAL['allExceptArchives']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['allExceptArchives'] ?></a>
+                    <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
+                       href="<?= appUrl() . '?segment=' . FILTER_UNPAID_COTI_3Y ?>"
+                       data-label="<?= htmlentities(mb_strtolower($GLOBAL['cotiUnpayedLast3Years']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['cotiUnpayedLast3Years'] ?></a>
+                    <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
+                       href="<?= appUrl() . '?segment=' . FILTER_NO_ACTIVITY_10Y ?>"
+                       data-label="<?= htmlentities(mb_strtolower($GLOBAL['nothingLast10Years']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['nothingLast10Years'] ?></a>
+                    <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
+                       href="<?= appUrl() . '?segment=' . FILTER_NON_INSTIT_LAST_YEAR ?>"
+                       data-label="<?= htmlentities(mb_strtolower($GLOBAL['nonInstitPayedSomethingLastYear']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
                     <?php foreach ($_ctFilterOptions as $_cto): ?>
-                    <a class="dropdown-item<?= $contactTypeId === (int)$_cto->id ? ' active' : '' ?>" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?contactTypeId=' . (int)$_cto->id ?>"><?= htmlspecialchars($_cto->label, ENT_QUOTES, $charset) ?></a>
+                    <a class="dropdown-item segment-filterable<?= $contactTypeId === (int)$_cto->id ? ' active' : '' ?>" style="padding-left:1.5rem"
+                       href="<?= appUrl() . '?segment=0&contactTypeId=' . (int)$_cto->id ?>"
+                       data-label="<?= htmlentities(mb_strtolower($_cto->label), ENT_COMPAT, $charset) ?>"><?= htmlspecialchars($_cto->label, ENT_QUOTES, $charset) ?></a>
                     <?php endforeach ?>
 
                         <?php
@@ -697,8 +707,12 @@ $(document).ready(caInitDT);
     var segmentVal = usp.has('segment') ? parseInt(usp.get('segment'), 10) : null;
     var mgVal   = usp.has('combinedSegment') ? parseInt(usp.get('combinedSegment'), 10) : null;
 
-    // Let non-segment/non-combined-segment links navigate normally
-    if (segmentVal === null && mgVal === null) return;
+    // Let non-segment/non-combined-segment links navigate normally. Also bail
+    // for contactTypeId links — /api/contacts (the fast-path this handler
+    // fetches from) has no contactTypeId filter, so intercepting here would
+    // silently drop it and show the unfiltered list (bug: contact-type quick
+    // filters appeared to do nothing).
+    if ((segmentVal === null && mgVal === null) || usp.has('contactTypeId')) return;
 
     e.preventDefault();
     e.stopPropagation();       // prevent event reaching htmx bubble listener on body

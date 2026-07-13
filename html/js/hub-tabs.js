@@ -27,13 +27,14 @@
         });
     }
 
-    function caHubEnableTabDeepLink(tabButtonSelector, tabIdPattern) {
+    function caHubEnableTabDeepLink(tabButtonSelector, tabIdPattern, paramName) {
+        paramName = paramName || 'tab';
         document.querySelectorAll(tabButtonSelector).forEach(function (btn) {
             btn.addEventListener('shown.bs.tab', function () {
                 var m = btn.id.match(tabIdPattern);
                 if (!m) return;
                 var url = new URL(window.location.href);
-                url.searchParams.set('tab', m[1]);
+                url.searchParams.set(paramName, m[1]);
                 history.pushState({}, '', url);
             });
         });

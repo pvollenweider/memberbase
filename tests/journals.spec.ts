@@ -55,7 +55,9 @@ test.describe('Journals hub', () => {
   test('Compta tab: changing the year filter stays inside the hub', async ({ page }) => {
     await page.goto('/index.php?view=journals');
     await page.locator('#jh-tab-compta .dropdown-toggle', { hasText: String(new Date().getFullYear()) }).click();
-    const yearLink = page.locator('#jh-tab-compta .dropdown-menu.show a', { hasText: String(new Date().getFullYear() - 1) }).first();
+    // "Toutes années" is always offered regardless of the facet (seed data
+    // is all dated "today", so only the current year has real entries).
+    const yearLink = page.locator('#jh-tab-compta .dropdown-menu.show a', { hasText: 'Toutes' }).first();
     await yearLink.click();
     await expect(page).toHaveURL(/view=journals/);
     await expect(page).toHaveURL(/tab=compta/);

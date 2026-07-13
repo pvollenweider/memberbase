@@ -16,6 +16,18 @@ $saved = isset($_GET['saved']);
 $_activeTab = $_REQUEST['tab'] ?? null;
 $_settingsDrillDown = in_array($_REQUEST['view'] ?? '', ['updateSegment', 'updateCombinedSegment']);
 
+// Guard: the compta/contactTypes panes below assume columns/tables from
+// migrations 0035-0037 (is_financial_institution, is_company, is_archived,
+// contact_type…) that a not-yet-migrated instance won't have — since every
+// tab pane renders unconditionally on every ?view=settings load (Bootstrap
+// tabs, not server-side routing), a missing column there would fatal the
+// WHOLE Réglages page, including the Santé tab needed to apply the pending
+// migration in the first place. Detect and show a notice instead.
+$_ctSchemaPending = (bool)array_intersect(
+    pendingMigrations($pdo),
+    ['0035_contact_type', '0036_compta_type_matrix_archive', '0037_contact_type_icon']
+);
+
 $_paneClass = function(string $tab) use ($_activeTab): string {
     $active = $_activeTab ?? '';
     if ($active === 'teams' || $active === 'segments') $active = 'groups';
@@ -239,16 +251,20 @@ require_once __DIR__ . '/../partials/settings_nav.php';
 
           <!-- Types compta (manager+) -->
           <div class="tab-pane fade<?= $_paneClass('compta') ?>" id="tab-compta" role="tabpanel" aria-labelledby="tab-compta-btn">
-            <?php if (isManager()): $ctEmbedded = true; $ctReturnView = 'settings'; $ctReturnTab = 'compta'; include __DIR__ . '/settings_compta_types.php'; else: ?>
+            <?php if (!isManager()): ?>
             <div class="alert alert-danger mt-3" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i><?= $GLOBAL['adminOnly'] ?></div>
-            <?php endif ?>
+            <?php elseif ($_ctSchemaPending): ?>
+            <?php include __DIR__ . '/settings_schema_pending_notice.php'; ?>
+            <?php else: $ctEmbedded = true; $ctReturnView = 'settings'; $ctReturnTab = 'compta'; include __DIR__ . '/settings_compta_types.php'; endif ?>
           </div><!-- #tab-compta -->
 
           <!-- Type de contact (admin only) -->
           <div class="tab-pane fade<?= $_paneClass('contactTypes') ?>" id="tab-contactTypes" role="tabpanel" aria-labelledby="tab-contactTypes-btn">
-            <?php if (isAdmin()): $_ctEmbedded = true; include __DIR__ . '/settings_contact_types.php'; else: ?>
+            <?php if (!isAdmin()): ?>
             <div class="alert alert-danger mt-3" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i><?= $GLOBAL['adminOnly'] ?></div>
-            <?php endif ?>
+            <?php elseif ($_ctSchemaPending): ?>
+            <?php include __DIR__ . '/settings_schema_pending_notice.php'; ?>
+            <?php else: $_ctEmbedded = true; include __DIR__ . '/settings_contact_types.php'; endif ?>
           </div><!-- #tab-contactTypes -->
 
           <!-- Groupes -->

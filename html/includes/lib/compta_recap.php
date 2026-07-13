@@ -184,12 +184,19 @@ function mbRecapBuildVars(array $entries, array $appSettings): array
     $_attestBelowThreshold = $contactEmail !== ''
         ? " Pour un montant inférieur, une attestation peut être demandée à {$contactEmail}."
         : '';
+    // Threshold already reached this year — drop the "CHF 300 ou plus"
+    // clause (redundant) but keep the note; below threshold, keep the
+    // clause so the donor knows what triggers an automatic attestation.
+    $_attestThresholdClause = $sumDonation >= 300.0
+        ? ''
+        : ' pour un total annuel de dons de CHF 300 ou plus';
     $attestNote         = $sumDonation > 0.0
-        ? "Attestation de dons : Une attestation de dons vous sera envoyée au début de l'année prochaine pour votre déclaration fiscale, pour un total annuel de dons de CHF 300 ou plus." . $_attestBelowThreshold
+        ? "Attestation de dons : Une attestation de dons vous sera envoyée au début de l'année prochaine pour votre déclaration fiscale" . $_attestThresholdClause . "." . $_attestBelowThreshold
         : '';
     $attestNoteHtml     = $sumDonation > 0.0
         ? '<p style="margin-top:20px;padding:14px 16px;background:#eaf4fb;border-left:4px solid #1a5276;font-size:14px;color:#1a5276">'
-          . '<strong>Attestation de dons :</strong> Une attestation de dons vous sera envoyée au début de l\'année prochaine pour votre déclaration fiscale, pour un total annuel de dons de CHF 300 ou plus.'
+          . '<strong>Attestation de dons :</strong> Une attestation de dons vous sera envoyée au début de l\'année prochaine pour votre déclaration fiscale'
+          . htmlspecialchars($_attestThresholdClause, ENT_QUOTES, 'UTF-8') . '.'
           . htmlspecialchars($_attestBelowThreshold, ENT_QUOTES, 'UTF-8')
           . '</p>'
         : '';

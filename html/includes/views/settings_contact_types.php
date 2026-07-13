@@ -12,6 +12,9 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 require_once __DIR__ . '/../lib/contact_type.php';
+require_once __DIR__ . '/../lib/pure.php';
+
+$_ctBuiltinCodes = [CONTACT_TYPE_PRIVATE, CONTACT_TYPE_INSTITUTION, CONTACT_TYPE_FINANCIAL, CONTACT_TYPE_COMPANY];
 
 $_ctEmbedded = $_ctEmbedded ?? false;
 $_ctAppliedCount = isset($_GET['contactTypesApplied']) ? (int)$_GET['contactTypesApplied'] : null;
@@ -48,21 +51,41 @@ $_ctComptaTypes  = db()->query(
 </div>
 <?php endif ?>
 
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['newContactType'] ?></p>
+    <form id="add-contact-type-form" action="<?= appUrl() ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
+      <input type="hidden" name="action" value="addContactType">
+      <input type="hidden" name="returnView" value="<?= $_ctEmbedded ? 'settings' : 'contactTypes' ?>">
+      <div>
+        <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['labelField'] ?></label>
+        <input type="text" name="label" class="form-control form-control-sm" style="width:200px" required>
+      </div>
+      <div>
+        <label class="form-label form-label-sm mb-1" style="font-size:0.8rem"><?= $GLOBAL['contactTypeIcon'] ?></label>
+        <input type="text" name="icon" class="form-control form-control-sm" style="width:140px"
+               placeholder="<?= htmlspecialchars($GLOBAL['contactTypeIconPlaceholder'], ENT_QUOTES, $charset) ?>"
+               title="<?= htmlspecialchars($GLOBAL['contactTypeIconHelp'], ENT_QUOTES, $charset) ?>">
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['addBtn'] ?></button>
+    </form>
+    <p class="text-muted small mt-2 mb-0"><?= $GLOBAL['newContactTypeHelp'] ?></p>
+  </div>
+</div>
+
 <div class="table-responsive mb-4">
 <table id="contact-type-management-table" class="table table-sm table-hover align-middle">
   <thead class="table-light">
     <tr>
-      <th><?= $GLOBAL['contactTypeCode'] ?></th>
       <th style="width:60px" class="text-center"><?= $GLOBAL['contactTypeIcon'] ?></th>
-      <th><?= $GLOBAL['contactTypeLabel'] ?></th>
+      <th><?= $GLOBAL['contactTypeLabel'] ?> / <?= $GLOBAL['contactTypeCode'] ?></th>
       <th class="text-end"><?= $GLOBAL['contactTypeCount'] ?></th>
       <th></th>
     </tr>
   </thead>
   <tbody>
-  <?php foreach ($_ctRows as $_ct): ?>
+  <?php foreach ($_ctRows as $_ct): $_ctIsBuiltin = in_array($_ct->code, $_ctBuiltinCodes, true); ?>
     <tr>
-      <td class="text-muted" style="font-size:0.85rem"><code><?= htmlspecialchars($_ct->code, ENT_QUOTES, $charset) ?></code></td>
       <td class="text-center">
         <i class="fas fa-<?= htmlspecialchars($_ct->icon !== '' ? $_ct->icon : 'question', ENT_QUOTES, $charset) ?> ctm-icon-preview" style="font-size:1.1rem"></i>
       </td>
@@ -77,11 +100,24 @@ $_ctComptaTypes  = db()->query(
                  class="form-control form-control-sm ctm-icon-input" style="max-width:140px"
                  placeholder="<?= htmlspecialchars($GLOBAL['contactTypeIconPlaceholder'], ENT_QUOTES, $charset) ?>"
                  title="<?= htmlspecialchars($GLOBAL['contactTypeIconHelp'], ENT_QUOTES, $charset) ?>">
+          <?php if ($_ctIsBuiltin): ?>
+          <code class="text-muted small" title="<?= htmlspecialchars($GLOBAL['contactTypeCodeBuiltinHelp'], ENT_QUOTES, $charset) ?>"><?= htmlspecialchars($_ct->code, ENT_QUOTES, $charset) ?></code>
+          <?php else: ?>
+          <input type="text" name="code" value="<?= htmlspecialchars($_ct->code, ENT_QUOTES, $charset) ?>"
+                 class="form-control form-control-sm font-monospace" style="max-width:140px" maxlength="20"
+                 pattern="[a-z0-9_]+" title="<?= htmlspecialchars($GLOBAL['contactTypeCodeHelp'], ENT_QUOTES, $charset) ?>">
+          <?php endif ?>
           <button type="submit" class="btn btn-sm btn-outline-secondary"><?= $GLOBAL['save'] ?></button>
         </form>
       </td>
       <td class="text-end text-muted" style="font-size:0.85rem"><?= (int)$_ct->cnt ?></td>
-      <td></td>
+      <td class="text-end">
+        <?php if ((int)$_ct->cnt === 0): ?>
+        <button type="button" class="btn btn-outline-danger btn-sm py-0"
+                data-bs-toggle="modal" data-bs-target="#modal-delete-contact-type"
+                data-href="<?= htmlspecialchars(appUrl() . '?action=deleteContactType&id=' . (int)$_ct->id . '&returnView=' . urlencode($_ctEmbedded ? 'settings' : 'contactTypes'), ENT_QUOTES, $charset) ?>"><?= $GLOBAL['deleteShort'] ?></button>
+        <?php endif ?>
+      </td>
     </tr>
   <?php endforeach ?>
   </tbody>
@@ -100,6 +136,28 @@ document.querySelectorAll('.ctm-icon-input').forEach(function (input) {
 });
 </script>
 </div>
+
+<div class="modal fade" id="modal-delete-contact-type" tabindex="-1" aria-labelledby="modal-delete-contact-type-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-delete-contact-type-label"><?= $GLOBAL['deleteContactTypeTitle'] ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body"><?= $GLOBAL['deleteContactTypeConfirm'] ?></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <a id="modal-delete-contact-type-link" href="#" class="btn btn-danger"><?= $GLOBAL['delete'] ?></a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('modal-delete-contact-type').addEventListener('show.bs.modal', function (e) {
+    var href = e.relatedTarget ? e.relatedTarget.dataset.href : '';
+    document.getElementById('modal-delete-contact-type-link').href = href || '#';
+});
+</script>
 
 <p class="form-section-title"><?= $GLOBAL['contactTypeMatrixTitle'] ?></p>
 <p class="text-muted small"><?= $GLOBAL['contactTypeMatrixHelp'] ?></p>

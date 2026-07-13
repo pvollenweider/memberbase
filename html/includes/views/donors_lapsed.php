@@ -8,15 +8,19 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year <= 0) { $year = (int)date("Y"); }
+$_pfEmbedded = $_pfEmbedded ?? false;
+$_selfQuery  = !empty($_pfEmbedded) ? 'view=peopleFinance&tab=lapsedDonors' : 'view=lapsedDonors';
 
 require_once __DIR__ . '/../lib/donor.php';
 $rows  = mbGetLapsedDonors(db(), $year);
 $count = count($rows);
 ?>
 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+  <?php if (empty($_pfEmbedded)): ?>
   <a href="<?= appUrl() ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToDonationOverview'] ?>
   </a>
+  <?php endif ?>
   <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
     <?= sprintf($GLOBAL['lapsedDonorsTitle'], $year-1, $year) ?>
   </span>
@@ -28,7 +32,7 @@ $count = count($rows);
     <ul class="dropdown-menu">
       <?php for ($i = 0; $i < 8; $i++): $y = (int)date("Y") - $i; ?>
       <li><a class="dropdown-item<?= $y === $year ? ' active' : '' ?>"
-             href="<?= appUrl() ?>?view=lapsedDonors&amp;year=<?= $y ?>"><?= $y ?></a></li>
+             href="<?= appUrl() ?>?<?= $_selfQuery ?>&amp;year=<?= $y ?>"><?= $y ?></a></li>
       <?php endfor ?>
     </ul>
   </div>
@@ -55,7 +59,7 @@ $count = count($rows);
           <input type="hidden" name="action"    value="createLapsedSegment">
           <input type="hidden" name="groupType" value="donors">
           <input type="hidden" name="year"      value="<?= $year ?>">
-          <input type="hidden" name="view"      value="lapsedDonors">
+          <input type="hidden" name="view"      value="peopleFinance">
           <button type="submit" class="btn btn-warning">
             <i class="fas fa-users me-1" aria-hidden="true"></i><?= $GLOBAL['create'] ?>
           </button>

@@ -15,19 +15,32 @@ VALUES
 
 -- Regular members
 -- Users 4 and 5 are lapsed: paid 2025, not 2026. User 5 has no email (skip case).
+-- User 6 is exempt from cotisation tracking (member_no_coti_segment) — no
+-- compta entries at all, must never show up as "lapsed".
 INSERT INTO `contact` (`id`, `lastname`, `firstname`, `email`, `status`, `creationDate`, `modificationDate`, `comment`)
 VALUES
-  (1, 'Dupont',   'Alice',  'alice@example.com',    1, NOW(), NOW(), ''),
-  (2, 'Martin',   'Bob',    'bob@example.com',      1, NOW(), NOW(), ''),
+  (1, 'Dupont',   'Alice',   'alice@example.com',    1, NOW(), NOW(), ''),
+  (2, 'Martin',   'Bob',     'bob@example.com',      1, NOW(), NOW(), ''),
   -- Archived, no compta → can be permanently deleted (admin only)
-  (3, 'Archived', 'Member', 'archived@example.com', 0, NOW(), NOW(), ''),
+  (3, 'Archived', 'Member',  'archived@example.com', 0, NOW(), NOW(), ''),
   -- Lapsed members (paid 2025, no 2026 entry)
-  (4, 'Lapsed',   'Carol',  'carol@example.com',    1, NOW(), NOW(), ''),
-  (5, 'Lapsed',   'Dave',   '',                     1, NOW(), NOW(), '');
+  (4, 'Lapsed',   'Carol',   'carol@example.com',    1, NOW(), NOW(), ''),
+  (5, 'Lapsed',   'Dave',    '',                     1, NOW(), NOW(), ''),
+  -- No-cotisation member (honorary/exempt) — in the "Sans cotisation" segment
+  (6, 'NoCoti',   'Frank',   'frank@example.com',    1, NOW(), NOW(), '');
 
 -- Segments (formerly teams)
 INSERT INTO `segment` (`id`, `name`, `hidden`) VALUES (1, 'Membre 2025', 0);
 INSERT INTO `segment` (`id`, `name`, `hidden`) VALUES (2, 'Membre 2026', 0);
+INSERT INTO `segment` (`id`, `name`, `hidden`) VALUES (3, 'Sans cotisation', 0);
+
+-- Category (combined_segment, is_filter=0) grouping the 3 membership segments
+-- — mirrors the "Membres" category shown in Réglages → Catégories.
+INSERT INTO `combined_segment` (`id`, `name`, `is_filter`, `sort_order`) VALUES (1, 'Membres', 0, 0);
+INSERT INTO `combined_segment_member` (`combined_segment_id`, `segment_id`) VALUES
+  (1, 1),
+  (1, 2),
+  (1, 3);
 
 -- App settings — default_segment=0 means "all active members" (no segment filter)
 -- SMTP points to Mailpit running in Docker (port 1025, no auth)
@@ -35,6 +48,7 @@ INSERT INTO `app_settings` (`key`, `value`) VALUES
   ('default_segment', '0'),
   ('membre_segment', '2'),
   ('membre_segment_prefix', 'Membre'),
+  ('member_no_coti_segment', '3'),
   ('org_name', 'MemberBase Test'),
   ('smtp_host', 'mailpit'),
   ('smtp_port', '1025'),
@@ -77,7 +91,8 @@ INSERT INTO `contact_segment` (`user_id`, `segment_id`) VALUES
   (2, 1),
   (2, 2),
   (4, 1),
-  (5, 1);
+  (5, 1),
+  (6, 3);
 
 -- maxval rows
 INSERT INTO `maxval` (`parameter`, `value`) VALUES

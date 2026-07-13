@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'applyContactTypes', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'applyContactTypes', 'addContactType', 'deleteContactType', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -236,7 +236,43 @@ if ($action == 'saveSettings') {
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { header('Location: ' . $_ctUrl); }
     exit;
 
+} elseif ($action === 'deleteContactType') {
+    $_dctId = (int)($_REQUEST['id'] ?? 0);
+    if ($_dctId > 0) {
+        $_dctStmt = db()->prepare("SELECT COUNT(*) FROM contact WHERE contact_type_id=?");
+        $_dctStmt->execute([$_dctId]);
+        if ((int)$_dctStmt->fetchColumn() === 0) {
+            $_dctLabelStmt = db()->prepare("SELECT label FROM contact_type WHERE id=?");
+            $_dctLabelStmt->execute([$_dctId]);
+            auditLog(db(), 'deleteContactType', "id=$_dctId | label: " . ($_dctLabelStmt->fetchColumn() ?: ''));
+            db()->prepare("DELETE FROM contact_type_compta_type WHERE contact_type_id=?")->execute([$_dctId]);
+            db()->prepare("DELETE FROM contact_type WHERE id=?")->execute([$_dctId]);
+        }
+    }
+    $_returnView = ($_REQUEST['returnView'] ?? '') === 'settings' ? 'settings' : 'contactTypes';
+    $_dctUrl = appUrl() . '?view=' . $_returnView . '&tab=contactTypes';
+    if ($isHtmx) { header('HX-Location: ' . $_dctUrl); } else { echo '<script>window.location.replace(' . json_encode($_dctUrl) . ');</script>'; }
+    exit;
+
+} elseif ($action === 'addContactType') {
+    require_once __DIR__ . '/../lib/contact_type.php';
+    $_actLabel = trim(unquote($_REQUEST['label'] ?? ''));
+    $_actIcon  = preg_replace('/[^a-z0-9-]/', '', strtolower(trim((string)($_REQUEST['icon'] ?? ''))));
+    $_actIcon  = preg_replace('/^fa-/', '', $_actIcon);
+    if ($_actLabel !== '') {
+        $_actCode = mbGenerateContactTypeCode(db(), $_actLabel);
+        $_actMaxOrder = (int)db()->query("SELECT COALESCE(MAX(sort_order),0) FROM contact_type")->fetchColumn();
+        db()->prepare("INSERT INTO contact_type (code, label, icon, sort_order) VALUES (?, ?, ?, ?)")
+            ->execute([$_actCode, $_actLabel, $_actIcon, $_actMaxOrder + 1]);
+        auditLog(db(), 'addContactType', "code=$_actCode | label: $_actLabel");
+    }
+    $_returnView = ($_REQUEST['returnView'] ?? '') === 'settings' ? 'settings' : 'contactTypes';
+    $_actUrl = appUrl() . '?view=' . $_returnView . '&tab=contactTypes';
+    if ($isHtmx) { header('HX-Location: ' . $_actUrl); } else { header('Location: ' . $_actUrl); }
+    exit;
+
 } elseif ($action === 'updateContactTypeLabel') {
+    require_once __DIR__ . '/../lib/pure.php';
     $_ctlId = (int)($_REQUEST['id'] ?? 0);
     $_ctlLabel = trim(unquote($_REQUEST['label'] ?? ''));
     // Strip a pasted "fa-" prefix and anything but Font Awesome's own
@@ -245,11 +281,29 @@ if ($action == 'saveSettings') {
     $_ctlIcon = preg_replace('/[^a-z0-9-]/', '', strtolower(trim((string)($_REQUEST['icon'] ?? ''))));
     $_ctlIcon = preg_replace('/^fa-/', '', $_ctlIcon);
     if ($_ctlId > 0 && $_ctlLabel !== '') {
-        $_ctlBefore = db()->prepare("SELECT label FROM contact_type WHERE id=?");
+        $_ctlBefore = db()->prepare("SELECT label, code FROM contact_type WHERE id=?");
         $_ctlBefore->execute([$_ctlId]);
-        $_ctlOldLabel = (string)($_ctlBefore->fetchColumn() ?: '');
-        db()->prepare("UPDATE contact_type SET label=?, icon=? WHERE id=?")->execute([$_ctlLabel, $_ctlIcon, $_ctlId]);
-        auditLog(db(), 'updateContactTypeLabel', "id=$_ctlId | «$_ctlOldLabel» → «$_ctlLabel» | icon=$_ctlIcon");
+        $_ctlBeforeRow = $_ctlBefore->fetch(PDO::FETCH_OBJ);
+        $_ctlOldLabel = (string)($_ctlBeforeRow->label ?? '');
+        $_ctlOldCode  = (string)($_ctlBeforeRow->code ?? '');
+        $_ctlBuiltinCodes = [CONTACT_TYPE_PRIVATE, CONTACT_TYPE_INSTITUTION, CONTACT_TYPE_FINANCIAL, CONTACT_TYPE_COMPANY];
+        // The 4 built-in codes are hardcoded in mbClassifyContactTypeRow()
+        // (pure.php) — renaming one would silently break "Suggestion de
+        // classement" with no error, so only custom types' codes are editable.
+        if (in_array($_ctlOldCode, $_ctlBuiltinCodes, true)) {
+            $_ctlCode = $_ctlOldCode;
+        } else {
+            $_ctlCode = strtolower(trim(preg_replace('/[^a-zA-Z0-9_]+/', '_', (string)($_REQUEST['code'] ?? $_ctlOldCode)), '_'));
+            if ($_ctlCode === '') { $_ctlCode = $_ctlOldCode; }
+            $_ctlCode = substr($_ctlCode, 0, 20);
+            $_ctlDupStmt = db()->prepare("SELECT COUNT(*) FROM contact_type WHERE code=? AND id<>?");
+            $_ctlDupStmt->execute([$_ctlCode, $_ctlId]);
+            if ((int)$_ctlDupStmt->fetchColumn() > 0) {
+                $_ctlCode = $_ctlOldCode;
+            }
+        }
+        db()->prepare("UPDATE contact_type SET label=?, icon=?, code=? WHERE id=?")->execute([$_ctlLabel, $_ctlIcon, $_ctlCode, $_ctlId]);
+        auditLog(db(), 'updateContactTypeLabel', "id=$_ctlId | «$_ctlOldLabel» → «$_ctlLabel» | icon=$_ctlIcon | code «$_ctlOldCode» → «$_ctlCode»");
     }
     $_returnView = ($_REQUEST['returnView'] ?? '') === 'settings' ? 'settings' : 'contactTypes';
     $_ctlUrl = appUrl() . '?view=' . $_returnView . '&tab=contactTypes&contactTypeLabelSaved=' . $_ctlId;

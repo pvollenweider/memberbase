@@ -35,8 +35,10 @@ test.describe('Reporting views', () => {
   });
 
   test('lapsed donors view loads', async ({ page }) => {
+    // Redirects into the peopleFinance hub (its own tab) — the hub renders
+    // every tab's table server-side, only one visible at a time.
     await page.goto('/index.php?view=lapsedDonors');
-    await expect(page.locator('table').first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('#pf-cohort-donors-lapsed table')).toBeVisible({ timeout: 10_000 });
   });
 
   test('new donors view loads', async ({ page }) => {

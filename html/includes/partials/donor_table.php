@@ -21,8 +21,15 @@ $_has_footer = false;
 foreach ($extra_columns as $_col) {
     if (array_key_exists('footer', $_col)) { $_has_footer = true; break; }
 }
+// Multiple includes of this partial can coexist in one page (e.g. the
+// lapsed/new cohort pills in the peopleFinance hub render both tables
+// server-side, only one visible at a time) — a unique id keeps each
+// instance's DataTable init from colliding with the others' ".export"-style
+// blanket selector.
+$GLOBALS['_caCohortTableSeq'] = ($GLOBALS['_caCohortTableSeq'] ?? 0) + 1;
+$_dtId = 'ca-cohort-table-' . $GLOBALS['_caCohortTableSeq'];
 ?>
-<table class="table table-hover table-sm export">
+<table class="table table-hover table-sm ca-cohort-table" id="<?= $_dtId ?>">
 <thead>
 <tr>
   <th><?= $GLOBAL['society'] ?></th>
@@ -46,12 +53,18 @@ foreach ($extra_columns as $_col) {
   $_npa       = htmlentities($row->npa       ?? '', ENT_COMPAT, $charset);
   $_href      = htmlspecialchars(($row_href)($row), ENT_QUOTES, $charset);
   $_aria      = htmlspecialchars(($row->firstname ?? '') . ' ' . ($row->lastname ?? ''), ENT_QUOTES, $charset);
+  $_ctIcon    = trim((string)($row->ct_icon ?? ''));
+  $_ctLabel   = trim((string)($row->ct_label ?? ''));
+  $_ctBadge   = $_ctIcon !== ''
+      ? '<i class="fas fa-' . htmlspecialchars($_ctIcon, ENT_QUOTES, $charset) . ' me-1 text-muted"'
+        . ' aria-hidden="true" title="' . htmlspecialchars($_ctLabel, ENT_QUOTES, $charset) . '"></i>'
+      : '';
 ?>
 <tr style="cursor:pointer"
     data-href="<?= $_href ?>"
     aria-label="<?= sprintf($GLOBAL['viewAllEntriesOf'], $_aria) ?>">
   <td><?= $_society ?></td>
-  <td><strong><?= $_lastName ?></strong></td>
+  <td><?= $_ctBadge ?><strong><?= $_lastName ?></strong></td>
   <td><?= $_firstName ?></td>
   <td><?= $_email ?></td>
   <td><?= $_address ?></td>
@@ -81,14 +94,17 @@ foreach ($extra_columns as $_col) {
 <script>
 $(document).ready(function() {
     $.fn.dataTable.moment('DD/MM/YYYY');
-    $('.export').DataTable({
+    $('#<?= $_dtId ?>').DataTable({
         order: <?= json_encode($dt_order) ?>,
         paging: false,
         dom: CA_DT_DOM,
-        buttons: CA_DT_BUTTONS,
+        buttons: [...CA_DT_BUTTONS, CA_DT_COLVIS],
+        columnDefs: [
+            { targets: [4, 5], visible: false }
+        ],
         language: CA_DT_LANGUAGE
     });
-    $('.export tbody').on('click', 'tr[data-href]', function() {
+    $('#<?= $_dtId ?> tbody').on('click', 'tr[data-href]', function() {
         window.__dirtyOverride = true;
         window.location = $(this).data('href');
     });

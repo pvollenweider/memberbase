@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Dashboard', () => {
   test('reachable via ?view=dashboard, shows shortcuts and documentation panels', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
-    await expect(page.locator('h1', { hasText: 'Tableau de bord' })).toBeVisible();
+    await expect(page.locator('h1', { hasText: 'MemberBase Test' })).toBeVisible();
     await expect(page.locator('.card-header', { hasText: 'Raccourcis' })).toBeVisible();
     await expect(page.locator('.card-header', { hasText: 'Documentation' })).toBeVisible();
   });
@@ -51,7 +51,7 @@ test.describe('Dashboard', () => {
 
   test('bare landing (no view param) defaults to the dashboard', async ({ page }) => {
     await page.goto('/index.php');
-    await expect(page.locator('h1', { hasText: 'Tableau de bord' })).toBeVisible();
+    await expect(page.locator('h1', { hasText: 'MemberBase Test' })).toBeVisible();
   });
 
   test('compta search shortcut: typing a name shows results, clicking jumps to the member\'s Compta tab', async ({ page }) => {
@@ -73,5 +73,24 @@ test.describe('Dashboard', () => {
     await input.fill('Zzzznomatch');
 
     await expect(page.locator('#dashboard-compta-results')).toContainText('Aucun résultat', { timeout: 5_000 });
+  });
+
+  test('KPI cards (contributions, donors, active members) are shown', async ({ page }) => {
+    await page.goto('/index.php?view=dashboard');
+    const cards = page.locator('.ca-resume-cards');
+    await expect(cards).toBeVisible();
+    await expect(cards).toContainText('Contributions');
+    await expect(cards).toContainText('CHF');
+    await expect(cards).toContainText('Donateurs');
+    await expect(cards.locator('a', { hasText: 'fidèles' })).toBeVisible();
+    await expect(cards.locator('a', { hasText: 'Nouveaux' })).toBeVisible();
+  });
+
+  test('KPI cards are absent for a role without write access', async ({ page, browser }) => {
+    const ctx = await browser.newContext({ storageState: require('path').resolve(__dirname, '.auth/readonly.json') });
+    const p = await ctx.newPage();
+    await p.goto('/index.php?view=dashboard');
+    await expect(p.locator('.ca-resume-cards')).toHaveCount(0);
+    await ctx.close();
   });
 });

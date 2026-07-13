@@ -100,15 +100,15 @@ test.describe('People/finance hub — Phase 1', () => {
   test('Cotisations non renouvelées tab shows the lapsed members table (manager)', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance&tab=lapsed');
     await expect(page.locator('#pf-tab-lapsed-btn')).toHaveClass(/active/);
-    await expect(page.locator('#pf-tab-lapsed table')).toBeVisible();
+    await expect(page.locator('#pf-cohort-members-lapsed table')).toBeVisible();
     // No redundant "back to donation overview" link — this is a peer tab now
     await expect(page.locator('#pf-tab-lapsed', { hasText: 'aperçu des dons' })).toHaveCount(0);
   });
 
   test('Cotisations non renouvelées tab: changing the year filter stays inside the hub', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance&tab=lapsed');
-    await page.locator('#pf-tab-lapsed .dropdown-toggle', { hasText: String(new Date().getFullYear()) }).click();
-    const yearLink = page.locator('#pf-tab-lapsed .dropdown-menu.show a', { hasText: String(new Date().getFullYear() - 1) }).first();
+    await page.locator('#pf-cohort-members-lapsed .dropdown-toggle', { hasText: String(new Date().getFullYear()) }).click();
+    const yearLink = page.locator('#pf-cohort-members-lapsed .dropdown-menu.show a', { hasText: String(new Date().getFullYear() - 1) }).first();
     await yearLink.click();
     await expect(page).toHaveURL(/view=peopleFinance/);
     await expect(page).toHaveURL(/tab=lapsed/);

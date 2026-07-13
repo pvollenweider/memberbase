@@ -91,6 +91,31 @@ test.describe('Contact type category management', () => {
     await renamedRow.locator('button[type="submit"]').click();
     await expect(page).toHaveURL(/contactTypeLabelSaved=/);
   });
+
+  test('add a custom contact type, then delete it (unused types are deletable)', async ({ page }) => {
+    await page.goto('/index.php?view=settings&tab=contactTypes');
+    const table = page.locator('#contact-type-management-table');
+    await expect(table.locator('tbody tr')).toHaveCount(4);
+
+    const addForm = page.locator('#add-contact-type-form');
+    await addForm.locator('input[name="label"]').fill('Bénévole E2E');
+    await addForm.locator('input[name="icon"]').fill('hand-holding-heart');
+    await addForm.locator('button[type="submit"]').click();
+
+    await expect(table.locator('tbody tr')).toHaveCount(5);
+    const newRow = table.locator('tbody tr').filter({ has: page.locator('input[value="Bénévole E2E"]') });
+    await expect(newRow).toBeVisible();
+    // Auto-generated code, editable for custom types, no contacts using it yet — delete button present.
+    await expect(newRow.locator('input[name="code"]')).toHaveValue('benevole_e2e');
+    await expect(newRow.locator('button', { hasText: 'Suppr' })).toBeVisible();
+
+    await newRow.locator('button', { hasText: 'Suppr' }).click();
+    await expect(page.locator('#modal-delete-contact-type')).toBeVisible();
+    await page.locator('#modal-delete-contact-type-link').click();
+
+    await expect(table.locator('tbody tr')).toHaveCount(4);
+    await expect(table.locator('tbody tr').filter({ has: page.locator('input[value="Bénévole E2E"]') })).toHaveCount(0);
+  });
 });
 
 test.describe('Contact type × compta type matrix — auto-save', () => {

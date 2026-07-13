@@ -69,6 +69,19 @@ if ($addMem != -1) {
            . '</span> ' . htmlentities($label, ENT_COMPAT, $charset);
   }
   $activeTypeCt = $filterTypeId > 0 ? ($comptaTypes[$filterTypeId] ?? null) : null;
+
+  // Facets: only offer a type/year the other active filter still has data
+  // for (each option is computed against the *other* filter, not itself, so
+  // the currently selected value always stays visible even if it becomes
+  // the only one left).
+  $_typeIdsWithData = array_map('intval', db()->query(
+      "SELECT DISTINCT c.type_id FROM compta c JOIN contact u ON u.id = c.user_id AND u.status = 1"
+      . ($year != -2 ? " WHERE c.date > " . db()->quote($from) . " AND c.date < " . db()->quote($to) : "")
+  )->fetchAll(PDO::FETCH_COLUMN));
+  $_yearsWithData = array_map('intval', db()->query(
+      "SELECT DISTINCT YEAR(c.date) FROM compta c JOIN contact u ON u.id = c.user_id AND u.status = 1"
+      . ($filterTypeId > 0 ? " WHERE c.type_id = " . (int)$filterTypeId : "")
+  )->fetchAll(PDO::FETCH_COLUMN));
   ?>
   <div class="dropdown ms-2">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -80,7 +93,9 @@ if ($addMem != -1) {
       <li><a class="dropdown-item<?= $filterTypeId === 0 ? ' active' : '' ?>"
              href="<?= appUrl() ?>?view=lastEntryCompta&amp;year=<?= $year ?>"><?= $GLOBAL['allTypes'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
-      <?php foreach ($comptaTypes as $ct): ?>
+      <?php foreach ($comptaTypes as $ct):
+          if (!in_array((int)$ct->id, $_typeIdsWithData, true) && $filterTypeId !== (int)$ct->id) { continue; }
+      ?>
       <li><a class="dropdown-item<?= $filterTypeId === (int)$ct->id ? ' active' : '' ?>"
              href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= (int)$ct->id ?>&amp;year=<?= $year ?>">
              <?= _lec_type_swatch($ct->color ?? '', $ct->label, $charset) ?>
@@ -114,6 +129,7 @@ if ($addMem != -1) {
       $currentYear = date("Y");
       for ($i = 0; $i < 10; $i++) {
           $y = $currentYear - $i;
+          if (!in_array($y, $_yearsWithData, true) && $year !== $y) { continue; }
           ?><li><a class="dropdown-item<?= $year === $y ? ' active' : '' ?>"
                href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
       }

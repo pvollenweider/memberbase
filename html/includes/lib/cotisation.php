@@ -55,6 +55,46 @@ function mbGetLapsedMembers(PDO $db, int $year, array $cotiTypeIds, int $noCotiS
 }
 
 /**
+ * Return members who paid a cotisation in year but NOT in year-1 (first-time
+ * or returning-after-a-gap members for that year).
+ *
+ * @param PDO   $db          Database connection
+ * @param int   $year        Target year (new = paid $year, not paid $year-1)
+ * @param int[] $cotiTypeIds compta_type IDs that count as a cotisation
+ * @return object[]          PDO rows with id, firstname, lastname, society, email
+ */
+function mbGetNewMembers(PDO $db, int $year, array $cotiTypeIds): array
+{
+    if (empty($cotiTypeIds)) {
+        return [];
+    }
+    $ph = implode(',', array_fill(0, count($cotiTypeIds), '?'));
+
+    $stmt = $db->prepare("
+        SELECT u.id, u.firstname, u.lastname, u.society, u.email
+        FROM contact u
+        WHERE u.status = 1
+          AND EXISTS (
+              SELECT 1 FROM compta c
+              WHERE c.user_id = u.id AND c.type_id IN ($ph)
+                AND COALESCE(c.cotisation_year, YEAR(c.date)) = ?
+          )
+          AND NOT EXISTS (
+              SELECT 1 FROM compta c
+              WHERE c.user_id = u.id AND c.type_id IN ($ph)
+                AND COALESCE(c.cotisation_year, YEAR(c.date)) = ?
+          )
+        ORDER BY u.lastname, u.firstname, u.society
+    ");
+    $params = array_merge(
+        array_values($cotiTypeIds), [$year],
+        array_values($cotiTypeIds), [$year - 1]
+    );
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_OBJ);
+}
+
+/**
  * Return a map of user_id => sent_at for members who already received a
  * cotisation reminder this year (guards against duplicate sends).
  *

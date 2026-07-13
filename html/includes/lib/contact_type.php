@@ -34,6 +34,32 @@ function mbContactTypeIdsByCode(PDO $db): array
 }
 
 /**
+ * Slugifies $label into a fresh, unique contact_type.code (ASCII lowercase,
+ * underscores, deduped with a numeric suffix). Custom types added this way
+ * fall outside mbClassifyContactTypeRow()'s 4 hardcoded codes — they're
+ * never auto-suggested, only ever assigned manually.
+ */
+function mbGenerateContactTypeCode(PDO $db, string $label): string
+{
+    $ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $label) ?: $label;
+    $slug  = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '_', $ascii), '_'));
+    if ($slug === '') {
+        $slug = 'type';
+    }
+    $slug = substr($slug, 0, 20);
+
+    $existing = array_map('strval', array_column($db->query("SELECT code FROM contact_type")->fetchAll(PDO::FETCH_OBJ), 'code'));
+    $code = $slug;
+    $i = 2;
+    while (in_array($code, $existing, true)) {
+        $suffix = '_' . $i;
+        $code = substr($slug, 0, 20 - strlen($suffix)) . $suffix;
+        $i++;
+    }
+    return $code;
+}
+
+/**
  * @param PDO $db
  * @return object[] One row per active contact: id, firstname, lastname,
  *                   society, current_type_id, current_label, suggested_code,

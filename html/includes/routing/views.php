@@ -60,9 +60,9 @@ $UA_VIEW_ROUTES = [
 
     // Donateurs
     'resume'              => ['donors_summary.php'],
-    'lapsedDonors'        => ['donors_lapsed.php'],
-    'loyalDonors'         => ['donors_loyal.php'],
+        'loyalDonors'         => ['donors_loyal.php'],
     'newDonors'           => ['donors_new.php'],
+    'newMembers'          => ['members_new.php'],
 
     // Suivi
     'updateSuivi'         => ['suivi_edit_form.php',       null, [], 'suivi'],
@@ -98,6 +98,13 @@ if ($uaRequestedView === 'manageTeam') {
 if ($uaRequestedView === 'lapsedMembers') {
     $_lmYear = isset($_REQUEST['year']) ? '&year=' . (int)$_REQUEST['year'] : '';
     header('Location: ' . appUrl() . '?view=peopleFinance&tab=lapsed' . $_lmYear);
+    exit;
+}
+
+// Legacy view — folded into the "Membres & finances" hub as its own tab
+if ($uaRequestedView === 'lapsedDonors') {
+    $_ldYear = isset($_REQUEST['year']) ? '&year=' . (int)$_REQUEST['year'] : '';
+    header('Location: ' . appUrl() . '?view=peopleFinance&tab=lapsedDonors' . $_ldYear);
     exit;
 }
 

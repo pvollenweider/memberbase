@@ -62,7 +62,7 @@ test.describe('Lapsed members view', () => {
     await page.waitForLoadState('load');
 
     // Two lapsed members: Carol (id=4, has email) and Dave (id=5, no email)
-    await expect(page.locator('[role="status"].alert-warning')).toContainText('2 membre');
+    await expect(page.locator('#pf-tab-lapsed [role="status"].alert-warning')).toContainText('2 membre');
   });
 
   test('send button is present for manager (inside confirmation modal)', async ({ page }) => {
@@ -113,7 +113,7 @@ test.describe('Lapsed members view', () => {
     // No lapsed members for 2025 (nobody paid 2024 in our seed)
     await page.goto(`/index.php?view=lapsedMembers&year=2025`);
     await page.waitForLoadState('load');
-    await expect(page.locator('[role="status"].alert-warning')).toContainText('0 membre');
+    await expect(page.locator('#pf-tab-lapsed [role="status"].alert-warning')).toContainText('0 membre');
   });
 });
 
