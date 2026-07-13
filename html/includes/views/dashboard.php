@@ -592,7 +592,7 @@ $_recentContacts = db()->query(
           ?>
           <tr class="ca-row-link" style="cursor:pointer" data-href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$_ce->user_id ?>">
             <td class="text-nowrap"><?= htmlspecialchars($_ceName, ENT_QUOTES, $charset) ?></td>
-            <td class="text-end text-nowrap">CHF <?= number_format((float)$_ce->sum, 2, '.', "'") ?></td>
+            <td class="text-end text-nowrap"><?= number_format((float)$_ce->sum, 2, '.', "'") ?></td>
             <td class="text-nowrap"><?= $_ctBadge((string)$_ce->type_color, (string)$_ce->type_label) ?></td>
           </tr>
           <?php endforeach ?>

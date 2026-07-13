@@ -234,13 +234,9 @@ if ($_extended) {
       <?php foreach ($_noEmail as $_pr):
           $_total = number_format((float)$_pr->total, 2, '.', "'");
       ?>
-        <tr>
+        <tr class="ca-row-link" style="cursor:pointer" data-href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$_pr->user_id ?>">
           <td class="text-nowrap"><?= htmlspecialchars($_pr->society ?? '', ENT_QUOTES, $charset) ?></td>
-          <td class="text-nowrap">
-            <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$_pr->user_id ?>">
-              <?= htmlspecialchars($_pr->lastname, ENT_QUOTES, $charset) ?>
-            </a>
-          </td>
+          <td class="text-nowrap"><?= htmlspecialchars($_pr->lastname, ENT_QUOTES, $charset) ?></td>
           <td class="text-nowrap"><?= htmlspecialchars($_pr->firstname, ENT_QUOTES, $charset) ?></td>
           <td class="text-center"><?= (int)$_pr->nb_entries ?></td>
           <td class="text-end">CHF <?= htmlspecialchars($_total, ENT_QUOTES, $charset) ?></td>
@@ -250,6 +246,17 @@ if ($_extended) {
     </table>
   </div>
 </div>
+<script>
+(function () {
+  var tbody = document.querySelector('#recap-no-email-section tbody');
+  if (!tbody) return;
+  tbody.addEventListener('click', function (e) {
+    var tr = e.target.closest('tr.ca-row-link');
+    if (!tr) return;
+    window.location.href = tr.dataset.href;
+  });
+})();
+</script>
 <?php endif ?>
 
 <?php else: ?>
