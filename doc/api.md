@@ -1,6 +1,6 @@
 # Référence API MemberBase
 
-API REST interne de l'application MemberBase (version **5.1.0**). Toutes les réponses sont en JSON UTF-8.
+API REST interne de l'application MemberBase (version **5.2.0**). Toutes les réponses sont en JSON UTF-8.
 
 > ⚠️ **v5.0.0 (breaking)** : les routes `/api/members` et `/api/groups` sont renommées `/api/contacts` et `/api/segments` (aucune rétrocompatibilité). Voir le [CHANGELOG](../CHANGELOG.md#500--2026-07-09).
 
@@ -210,6 +210,7 @@ Fiche complète d'un membre. Rôle : `canRead()`.
     "firstName": "Marie",
     "society": null,
     "gender": "f",
+    "contactTypeId": 1,
     "title": "Mme",
     "address": "Rue de la Paix 3",
     "npa": "1200",
@@ -228,7 +229,7 @@ Fiche complète d'un membre. Rôle : `canRead()`.
 }
 ```
 
-Valeurs `gender` possibles : `"m"`, `"f"`, `"hf"`, `"na"`. `birthDate` est `YYYY-MM-DD` ou `null`. `createdAt`/`updatedAt` sont au format ISO 8601 (`date('c')`) ou `null`.
+Valeurs `gender` possibles : `"m"`, `"f"`, `"hf"`, `"na"`. `contactTypeId` (depuis v5.2.0, migration `0035`) référence `contact_type.id` — `1` par défaut (donateur privé) ; toujours présent, jamais `null`. `birthDate` est `YYYY-MM-DD` ou `null`. `createdAt`/`updatedAt` sont au format ISO 8601 (`date('c')`) ou `null`.
 
 #### Erreurs
 
@@ -256,6 +257,7 @@ Champs de la liste blanche (`applyFields`). **Seul `lastName` est obligatoire** 
 | `firstName` | string | non | Prénom |
 | `society` | string | non | Société / organisation |
 | `gender` | string | non | `"m"`, `"f"`, `"hf"` ou `"na"`. Toute autre valeur est normalisée en `"na"` (défaut) |
+| `contactTypeId` | integer | non | ID de `contact_type` (depuis v5.2.0). Défaut `1` (donateur privé) ; une valeur qui ne correspond à aucun `contact_type` existant retombe silencieusement sur `1` (`mbValidContactTypeId()`) |
 | `title` | string | non | Civilité |
 | `address` | string | non | Adresse postale |
 | `npa` | string | non | Code postal + localité |

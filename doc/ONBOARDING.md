@@ -1,6 +1,6 @@
 # MemberBase — Guide d'accueil développeur
 
-> Version **5.1.0** — dérivé du knowledge graph du projet (`.understand-anything/knowledge-graph.json`, commit `ece1d70`). Noms de tables/classes/routes API mis à jour à la main pour la v5.0.0 (renommage `users`→`contact`, `team`→`segment`) puis la v5.1.0 (`metagroup`→`combined_segment`, colonnes date `int`→`DATE`/`DATETIME`) ; une régénération complète du graphe (`/understand --full`) reste à faire.
+> Version **5.2.0** — dérivé du knowledge graph du projet (`.understand-anything/knowledge-graph.json`, commit `ece1d70`). Noms de tables/classes/routes API mis à jour à la main pour la v5.0.0 (renommage `users`→`contact`, `team`→`segment`) puis la v5.1.0 (`metagroup`→`combined_segment`, colonnes date `int`→`DATE`/`DATETIME`) ; la v5.2.0 a ajouté le tableau de bord (`?view=dashboard`, nouvelle vue par défaut) et les hubs de navigation « Membres & finances » (`?view=peopleFinance`) et « Journaux » (`?view=journals`), non encore reflétés ci-dessous en détail ; une régénération complète du graphe (`/understand --full`) reste à faire.
 
 Bienvenue. Ce guide vous fait entrer dans le code de **MemberBase**, une application PHP 8.2 de gestion des membres pour ONG et petites associations. Il suit l'ossature du graphe de connaissance du projet : ses 13 couches d'architecture et son tour guidé en 8 étapes.
 
@@ -61,7 +61,7 @@ Les couches proviennent directement du champ `layers` du graphe.
 
 Suivez ces étapes dans l'ordre pour prendre le code en main.
 
-1. **Vue d'ensemble & point d'entrée** — `html/index.php` reçoit toutes les requêtes et dispatche via `html/includes/routing/views.php` (GET) et `html/includes/routing/actions.php` (POST). Concept : routage htmx.
+1. **Vue d'ensemble & point d'entrée** — `html/index.php` reçoit toutes les requêtes et dispatche via `html/includes/routing/views.php` (GET) et `html/includes/routing/actions.php` (POST). Vue par défaut (`mbDefaultView()`) : le tableau de bord (`?view=dashboard`, `html/includes/views/dashboard.php`). Navigation principale organisée en deux hubs : « Membres & finances » (`?view=peopleFinance`, `people_finance.php`) et « Journaux » (`?view=journals`, `journals.php`). Concept : routage htmx.
 2. **Authentification & rôles (RBAC)** — `html/includes/lib/auth.php` : sessions, bcrypt, gardes `canRead`/`canWrite`/`isManager`/`isAdmin`.
 3. **Cœur applicatif** — `html/includes/lib/bootstrap.php` : connexion PDO, helpers de date, `auditLog`, chargement des réglages.
 4. **Classes de domaine** — `html/classes/contact_class.php` (`Contact`), `segment_class.php` (`Segment`), `compta_class.php` (`Compta`) — style active-record.
@@ -90,7 +90,7 @@ Suivez ces étapes dans l'ordre pour prendre le code en main.
 `html/includes/actions/` : `auth.php` · `contacts.php` · `compta.php` · `segments.php` · `combined_segments.php` · `import.php` · `settings.php` · `suivi.php`
 
 **Vues**
-`html/includes/views/` : `users_*` (liste, fiche, ajout, édition, fusion, anonymisation, inactifs, historique, appartenance) · `compta_*` · `suivi_*` · `donors_*` (résumé, nouveaux, fidèles, perdus) · `members_lapsed.php` · `import_step{1,2,3}.php` · `settings_*` (groupes, filtres, catégories, types compta, app users, général, intégrité, audit) · `auth_change_password.php`
+`html/includes/views/` : `dashboard.php` (vue par défaut) · `people_finance.php` (hub Segments/Notification de versement/Attestation/Mouvements membres & donateurs) · `journals.php` (hub Compta/Suivi) · `users_*` (liste, fiche, ajout, édition, fusion, anonymisation, inactifs, historique, appartenance) · `compta_*` · `suivi_*` · `donors_*` (résumé, nouveaux, fidèles, perdus) · `members_lapsed.php` · `import_step{1,2,3}.php` · `settings_*` (groupes, filtres, catégories, types compta, app users, général, intégrité, audit) · `auth_change_password.php`
 Partiels : `html/includes/partials/menu.php` · `donor_table.php`
 
 **API REST**

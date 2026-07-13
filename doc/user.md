@@ -55,33 +55,47 @@ En haut de chaque page, la barre bleue contient :
 
 | Élément | Contenu |
 |---|---|
-| **Tableau de bord** (icône jauge) | Vue d'ensemble : tâches urgentes, KPIs rapides, liens de documentation |
-| **Membres & finances** (icône personnes) | Liste des membres, relances cotisation (Manager+) et dons/attestations — trois onglets, page d'accueil par défaut |
-| **Compta** (icône pièces) | Journal comptable global (tous membres confondus) |
-| **Suivi** (icône livre) | Journal des notes de suivi (tous membres confondus) |
+| **Tableau de bord** (icône jauge) | Page d'accueil par défaut après connexion : KPIs, graphique, raccourcis (voir ci-dessous) |
+| **Membres & finances** (icône personnes) | Segments, notification de versement, attestations, mouvements membres/donateurs — cinq onglets |
+| **Journaux** (icône livre) | Journal comptable et journal de suivi, tous membres confondus — deux onglets |
+| **Tâches** | Liste globale des tâches ouvertes (voir §8) |
 | **Engrenage** (à droite) | Réglages — visible uniquement pour les rôles Manager et Admin |
 | **Nom d'utilisateur** (à droite) | Menu : *Mot de passe*, *Déconnexion* |
 | **Chercher** | Recherche rapide globale |
 
-Il n'y a plus de menu « Rapports » ni « Groupes » séparé : les journaux sont directement dans
-la barre, et la gestion des segments se fait dans les **Réglages**. La liste des membres, les
-relances de cotisation et le suivi des dons/attestations — trois destinations autrefois
-séparées — sont désormais réunies sous **Membres & finances**, en onglets.
+Il n'y a plus de menu « Rapports » ni « Groupes » séparé, ni de liens distincts Listes /
+Relances / Aperçu des dons / Compta / Suivi : la gestion des segments se fait dans les
+**Réglages**, et les anciennes destinations autrefois séparées sont désormais réunies sous
+deux hubs à onglets accessibles depuis la barre — **Membres & finances** et **Journaux**. Les
+anciennes routes (`?view=list`, `?view=comptaRecap`, `?view=resume`, `?view=lastEntryCompta`…)
+continuent de fonctionner mais ne figurent plus dans le menu.
 
 Sur mobile, la barre se réduit à une rangée d'icônes ; la loupe ouvre un champ de recherche
 et l'icône utilisateur regroupe le profil.
 
 ### Tableau de bord
 
-Accessible via l'icône jauge de la barre de navigation (`?view=dashboard`) — n'est **pas** la page
-d'accueil par défaut, qui reste la liste des membres. Il regroupe :
+Page d'accueil par défaut après connexion (également accessible via l'icône jauge de la barre
+de navigation, `?view=dashboard`). Il regroupe :
 
-- les **tâches en retard ou à échéance proche** (5 maximum), avec un bouton **Envoyer le rappel**
-  directement sur les tâches de relance cotisation ;
-- deux **KPI cliquables** : cotisations impayées de l'année en cours (renvoie vers la liste
-  filtrée), et migrations de base en attente (visible uniquement pour les admins) ;
-- des **liens vers la documentation** — le guide utilisateur pour tous les rôles connectés, le
-  guide administrateur uniquement pour les rôles Manager et Admin.
+- **Cartes KPI** — Contributions, Donateurs et Membres actifs de l'année en cours, chacune avec
+  sa variation par rapport à l'année précédente et, pour l'année en cours, par rapport à la même
+  période l'an dernier (« YTD ») ainsi que l'écart restant pour égaler l'année précédente. Les
+  cartes Donateurs et Membres portent des liens directs vers les mouvements (nouveaux/perdus)
+  correspondants.
+- Un **graphique superposé** de l'évolution cumulée des recettes (année en cours vs année
+  précédente, mois par mois), intégré à la carte Contributions.
+- Un **camembert** de répartition des dons par type de compta, avec légende.
+- Un champ de **recherche rapide** d'un membre (nom, prénom, société), dès 2 caractères ; choisir
+  un résultat ouvre directement son onglet Compta.
+- Une liste de **raccourcis** contextuels — n'apparaissent que si pertinents : attestations à
+  envoyer (uniquement en janvier), notification de versement en attente (managers), nouveaux
+  et perdus donateurs et membres, membres actuels, membres de l'année passée, migrations de
+  base en attente (admins uniquement).
+- Les **dernières écritures comptables** et les **derniers contacts créés** (8 de chacun), avec
+  liens directs vers l'onglet Compta ou Données générales du membre concerné.
+- Un lien vers le **guide utilisateur** (et, pour les rôles Manager et Admin, le guide
+  administrateur).
 
 ### Navigation sans rechargement (htmx)
 
@@ -96,8 +110,9 @@ normalement.
 
 ## 2. Liste des membres
 
-La liste des membres est la page d'accueil. Elle affiche par défaut le segment configuré comme
-segment de référence (par exemple « Membre 2026 »).
+La liste des membres est l'onglet **Segments** du hub **Membres & finances**
+(`?view=peopleFinance&tab=members`, premier onglet). Elle affiche par défaut le segment
+configuré comme segment de référence (par exemple « Membre 2026 »).
 
 ### Colonnes affichées
 
@@ -135,6 +150,8 @@ déroulant contenant :
 | Cotisation AAAA non payée | Membres sans cotisation enregistrée pour l'année en cours |
 | Donateur non institutionnel actif en AAAA-1 | Membres ayant fait au moins un versement non institutionnel l'année précédente |
 
+- Une entrée de filtre rapide par **type de contact** configuré (Réglages → Types de contact,
+  voir §12), pour isoler par exemple les institutions ou les entreprises.
 - La liste de tous les segments, regroupés par **catégorie**. Le badge à droite de chaque
   segment indique son nombre de membres.
 
@@ -271,10 +288,19 @@ Par défaut, les données s'affichent en **lecture** ; les champs vides sont mas
 
 Pour modifier (rôles Utilisateur et plus) : cliquer dans la zone de données (la mention
 *Modifier* apparaît au survol). Le formulaire s'ouvre en place. Il inclut notamment le champ
-**E-mail alt.** (adresse historique / alternative, non utilisée pour les envois) et un éditeur
-de texte enrichi pour les *compétences / remarques* (gras, italique, listes). Cliquer
-**Enregistrer** ou **Annuler**. La date de création et de dernière modification est indiquée en
-bas.
+**E-mail alt.** (adresse historique / alternative, non utilisée pour les envois), le **Type de
+contact** (voir ci-dessous) et un éditeur de texte enrichi pour les *compétences / remarques*
+(gras, italique, listes). Cliquer **Enregistrer** ou **Annuler**. La date de création et de
+dernière modification est indiquée en bas.
+
+### Type de contact
+
+Chaque membre a un **type de contact** — donateur privé, institution, établissement financier,
+entreprise, ou un type personnalisé ajouté par un administrateur (voir §12). Il est affiché en
+lecture sous forme de badge (icône + libellé) et modifiable via un menu déroulant en édition. Ce
+type peut restreindre les types de compta proposés à la création d'une écriture pour ce membre
+(matrice configurée en Réglages → Types de contact) et sert de critère pour certains filtres
+rapides (§2) et rapports.
 
 ### Appartenance aux segments
 
@@ -391,9 +417,9 @@ devenue inutile — inutile de la chercher pour la marquer terminée à la main.
 ### Envoyer le rappel directement depuis la tâche
 
 Une tâche de relance cotisation affiche un bouton **Envoyer le rappel** qui ouvre le même
-aperçu email (sujet + rendu, bulletin de versement QR en pièce jointe) que la vue **Membres
-perdus** (voir §17). Confirmer l'envoi **ferme automatiquement la tâche** — pas besoin de la
-marquer terminée séparément après l'envoi.
+aperçu email (sujet + rendu, bulletin de versement QR en pièce jointe) que la pastille
+**Perdus** de l'onglet **Mouvements membres** (voir §17). Confirmer l'envoi **ferme
+automatiquement la tâche** — pas besoin de la marquer terminée séparément après l'envoi.
 
 L'ajout, la modification, la fermeture et la suppression de tâches sont réservés aux rôles
 Utilisateur et plus.
@@ -409,35 +435,35 @@ consulter la vue globale des tâches soi-même.
 
 ## 9. Journaux et aperçu des dons
 
-Ces vues transversales sont accessibles depuis la barre de navigation.
+Ces vues transversales sont accessibles depuis la barre de navigation, via les hubs
+**Journaux** et **Membres & finances**.
 
-### Compta — journal comptable global
+### Hub Journaux — Compta et Suivi
+
+`?view=journals` (lien **Journaux** de la barre), deux onglets :
+
+#### Compta — journal comptable global
 
 Toutes les entrées comptables, tous membres confondus.
 
 - Filtrer par **type** de versement et par **année** (avec options *12 derniers mois* /
-  *24 derniers mois* / *Toutes les années*).
+  *24 derniers mois* / *Toutes les années*). Les deux filtres ne proposent que les options
+  réellement présentes dans les données (un type ou une année sans aucune écriture n'apparaît
+  pas dans la liste).
 - Cliquer une ligne ouvre l'onglet Compta du membre concerné.
 - Export DataTables (Copier / Excel / PDF / Imprimer) et graphiques (répartition par type,
   évolution mensuelle vs cumulée).
 
-### Suivi — journal des notes global
+#### Suivi — journal des notes global
 
 Toutes les notes de suivi, tous membres confondus, avec les mêmes outils d'export.
 
-### Aperçu des dons
+### Membres & finances — onglet Attestation (aperçu des dons)
 
-Tableau de bord des contributions. En haut, des **cartes clés** :
-
-- **Contributions AAAA** : total CHF de l'année, avec comparaison à l'année précédente (et,
-  pour l'année en cours, comparaison à la même période l'an dernier + objectif à atteindre).
-- **Donateurs** : nombre de donateurs, avec trois liens cliquables :
-  - **fidèles** — ont donné en AAAA et AAAA-1 ;
-  - **Nouveaux** — première contribution en AAAA ;
-  - **perdus** — ont donné en AAAA-1 mais pas en AAAA.
-- **Membres actifs** : effectif du segment de référence, avec comparaison et lien
-  *membres perdus* (membres non reconduits).
-- Un **camembert** de répartition par type de versement.
+`?view=peopleFinance&tab=dons`. Reprend le résumé annuel des dons — les cartes KPI
+(Contributions, Donateurs, Membres actifs) et le camembert de répartition affichés ici avant la
+v5.2.0 vivent désormais sur le **Tableau de bord** (voir §1) et ne sont plus dupliqués dans cet
+onglet.
 
 Filtres et options :
 
@@ -448,17 +474,29 @@ Filtres et options :
   apparaissent.
 - **Inclure si attestation demandée** : ajoute les personnes ayant coché « souhaite une
   attestation » même sous le montant minimum.
-- **Attestations AAAA** : génère toutes les attestations de l'année en un seul PDF (voir §9).
+- **Attestations AAAA** : génère toutes les attestations de l'année en un seul PDF ou les
+  envoie par email en masse (voir §10).
 
 Le tableau liste les donateurs avec leur statut (membre / don institutionnel), le montant des
 dons et l'indicateur d'attestation. Cliquer une ligne ouvre la compta du membre ; l'icône PDF
 génère son attestation.
 
-#### Listes détaillées (donateurs fidèles / nouveaux / perdus, membres perdus)
+### Membres & finances — Mouvements membres / Mouvements donateurs
 
-Accessibles via les liens des cartes. La vue **Donateurs perdus** propose un bouton
-**Créer segment « Donateurs à relancer AAAA »** qui rassemble ces personnes dans un nouveau
-segment pour faciliter la relance.
+Deux onglets remplaçant les anciennes pages séparées « Cotisations non renouvelées »,
+« Donateurs perdus », « Nouveaux donateurs » et « Nouveaux membres ». Chacun propose deux
+pastilles :
+
+- **Perdus** : membres/donateurs ayant cotisé ou donné l'année précédente mais pas l'année en
+  cours.
+- **Nouveaux** : première cotisation/don enregistré cette année.
+
+Ouverts à tous les rôles (lecture seule) ; les actions à l'intérieur (envoi de rappel, création
+de segment) restent réservées aux **Managers** et **Admins**. La pastille **Perdus** de
+l'onglet **Mouvements membres** correspond aux rappels de cotisation impayée (voir §17) ; la
+pastille **Perdus** de **Mouvements donateurs** propose un bouton **Créer segment « Donateurs
+à relancer AAAA »** qui rassemble ces personnes dans un nouveau segment pour faciliter la
+relance.
 
 ---
 
@@ -587,6 +625,7 @@ les sections disponibles dépendent du rôle.
 | Catégories | Manager / Admin | Catégories de segments |
 | Segments combinés | Manager / Admin | Filtres regroupant plusieurs segments |
 | Types compta | Manager / Admin | Types de versements |
+| Types de contact | Admin | Types de contact des membres, icônes, matrice avec les types compta |
 | Réglages | Admin | Paramètres généraux de l'organisation |
 | Email | Admin | Configuration SMTP, templates d'email, journal des envois |
 | Utilisateurs | Admin | Comptes de connexion à l'application |
@@ -605,6 +644,27 @@ Pour chaque type de versement :
 - **Est une cotisation** : pris en compte par les filtres de cotisation ;
 - **Exclu des dons** : non comptabilisé dans les totaux de dons ni les attestations ;
 - **Institutionnel** : exclu du filtre « donateurs non institutionnels ».
+
+### Types de contact (Admin)
+
+Quatre types intégrés (donateur privé, institution, établissement financier, entreprise), plus
+des types personnalisés ajoutés au besoin.
+
+- **Nouveau type de contact** : renseigner un **libellé** et, facultativement, une **icône**
+  Font Awesome (nom libre, ex. `building` — un lien vers fontawesome.com aide à en trouver une).
+  Un type ajouté ici n'est jamais suggéré automatiquement : il doit être assigné manuellement à
+  un membre.
+- Pour chaque type existant : modifier le **libellé** et l'**icône** directement dans le
+  tableau. Le **code interne** n'est éditable que pour les types personnalisés — celui des 4
+  types intégrés est figé.
+- **Supprimer** un type personnalisé n'est possible que s'il n'est plus utilisé par aucun
+  membre (compteur affiché dans la colonne Contacts).
+- **Matrice type de contact × type de compta** : pour chaque type de contact, cocher les types
+  de compta autorisés à la création d'une écriture pour les membres de ce type. Tant qu'aucune
+  case n'a jamais été modifiée pour une colonne, tous les types compta actifs restent proposés
+  (aucune restriction) ; décocher toutes les cases d'une colonne bloque au contraire toute
+  création d'écriture pour ce type de contact. Le libellé en tête de colonne bascule toute la
+  colonne d'un coup. Enregistrement automatique à chaque case cochée/décochée.
 
 ### Réglages (généraux, Admin)
 
@@ -729,8 +789,9 @@ décembre 2026), l'email le précise explicitement.
 
 ## 17. Rappels de cotisation impayée
 
-Accès : vue **Membres perdus** (menu principal ou Réglages → sections liées aux membres).
-Liste les membres ayant cotisé l'année précédente mais pas encore l'année en cours.
+Accès : **Membres & finances** → onglet **Mouvements membres** → pastille **Perdus**
+(`?view=peopleFinance&tab=lapsed&cohort=lapsed`). Liste les membres ayant cotisé l'année
+précédente mais pas encore l'année en cours.
 
 - **Envoyer un rappel** sur une ligne individuelle, ou en masse pour toute la liste. L'envoi
   individuel (et le renvoi) affiche d'abord un **aperçu de l'email** (sujet + rendu tel qu'il

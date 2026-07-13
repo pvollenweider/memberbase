@@ -2,6 +2,111 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [5.2.0] — 2026-07-13
+
+Cycle majoritairement orienté UI/navigation — aucune rupture de compatibilité, 6 migrations
+(`0032`-`0037`, en plus de la `0031` déjà présente en 5.1.0).
+
+### Nouveautés
+
+- **Tableau de bord d'accueil** (`?view=dashboard`, nouvelle vue par défaut après connexion) :
+  - Cartes KPI (Contributions, Donateurs, Membres) avec delta vs année précédente et vs même
+    période l'an dernier (YTD), objectif restant à atteindre pour égaler l'année précédente.
+  - Graphique superposé de l'évolution cumulée des recettes (année en cours vs année
+    précédente, mois par mois).
+  - Camembert de répartition des dons par type de compta.
+  - Recherche rapide d'un membre → fiche Compta.
+  - Liste des raccourcis contextuels (n'apparaissent que si pertinents) : cotisations non
+    payées à relancer, notifications de versement en attente, attestations à envoyer
+    (janvier), nouveaux/perdus donateurs et membres, membres de l'année passée, membres
+    actuels, migrations en attente (admin).
+  - Liste des dernières écritures comptables et des derniers contacts créés.
+- **Hub « Membres & finances »** (`?view=peopleFinance`), remplace les anciens liens de menu
+  Listes/Relances/Aperçu des dons :
+  - Onglet **Segments** (ex-Liste) : filtre par segment, segment combiné, type de contact,
+    ou filtres rapides (aucune cotisation depuis 3 ans, aucune activité depuis 10 ans, etc.).
+  - Onglet **Notification de versement** (managers) : membres avec écritures comptables non
+    notifiées, aperçu et envoi de l'email avant confirmation.
+  - Onglet **Attestation** (ex-Dons & attestations) : résumé annuel des dons, envoi
+    individuel ou en masse des attestations fiscales.
+  - Onglets **Mouvements membres** et **Mouvements donateurs** : deux pastilles « Perdus » /
+    « Nouveaux » par onglet, remplaçant les anciennes pages séparées Cotisations non
+    renouvelées / Donateurs perdus / Nouveaux donateurs / Nouveaux membres. Visibles pour
+    tous les rôles (lecture seule) ; création de segment et envoi de rappels restent
+    réservés aux managers.
+- **Hub « Journaux »** (`?view=journals`), remplace les anciens liens Compta/Suivi : onglets
+  Compta et Suivi fusionnés en une seule destination de navigation. Le filtre de type/année
+  du journal Compta n'affiche désormais que les options réellement présentes dans les
+  données (facettes), au lieu de la liste complète fixe.
+- **Type de contact** (donateur privé / institution / établissement financier / entreprise),
+  nouvelle table `contact_type` (migration `0035`) :
+  - Visible et modifiable sur la fiche membre.
+  - Réglages → Types de contact : ajout de types personnalisés (icône Font Awesome, code
+    interne éditable pour les types personnalisés — figé pour les 4 types intégrés),
+    suppression si inutilisé.
+  - Matrice type de contact × type de compta (Réglages → Types de contact) : restreint les
+    types de compta proposés à la création d'une écriture selon le type de contact
+    (migration `0036`).
+  - Archivage des types de compta (masqués à la création de nouvelles écritures, historique
+    conservé) (migration `0036`).
+  - Icône Font Awesome par type de contact, affichée en badge sur la fiche membre et dans
+    les listes de donateurs/membres (migration `0037`).
+- **Outil admin « Forcer le type de contact d'un segment »** (Réglages → Santé) : action
+  ponctuelle, hors navigation standard, pour appliquer en masse un type de contact à tous
+  les membres actifs d'un segment donné.
+- **Gestion de tâches** (`suivi_task`, issue #117) : titre, priorité (haute/normale/basse),
+  échéance, ouverte/fermée — génération automatique de tâches de relance de cotisation
+  impayée (#149), envoi de rappel et fermeture automatique depuis la tâche, tâches
+  planifiées par cron + digest quotidien par email (#150).
+- **Règles d'auto-assignation de segment** (#154) : « quand un membre est assigné au segment
+  X, l'assigner aussi au segment Y » (usage unique, pas un moteur de règles générique) —
+  contrôle d'intégrité dédié pour détecter les incohérences (#156).
+- Colonnes affichées/masquées (DataTables colvis) sur les listes de membres/donateurs ;
+  adresse et NPA masquées par défaut, société/nom/prénom/email visibles par défaut.
+
+### Améliorations
+
+- Icône du type de contact affichée dans les listes « Nouveaux donateurs » et assimilées.
+- Libellé « Contacts non institutionnel ayant effectué au moins un versement %s » (filtre
+  rapide) simplifié.
+- Suppression du préfixe « CHF » devant les montants de la carte « Dernières écritures » du
+  tableau de bord.
+- Lignes sans adresse email cliquables (→ fiche Compta) dans l'onglet Notification de
+  versement.
+- Note d'attestation de dons : la mention « pour un total annuel de dons de CHF 300 ou
+  plus » est omise quand le seuil est déjà atteint (redondant), conservée en dessous.
+- Les liens « Derniers contacts créés » du tableau de bord pointent vers la vue Données
+  plutôt que Compta.
+- Suppression de la section « Suggestion de classement » (Réglages → Types de contact) —
+  outil de suggestion automatique retiré (UI, action, fonctions internes, clés de locale).
+
+### Corrections
+
+- **Migration `0031`** (`compta.quittance` → `compta.comment`) utilisait `RENAME COLUMN …
+  TO …`, syntaxe incompatible avec MariaDB < 10.5.2 — remplacée par `CHANGE COLUMN`
+  (portable), cause du blocage de migration en production.
+- Réglages → Santé plantait (erreur 500) tant que la migration `0035` n'était pas appliquée,
+  à cause du nouvel outil « Forcer le type de contact d'un segment » qui interrogeait la
+  table `contact_type` sans garde — masqué tant que la migration est en attente.
+- Le bouton du filtre rapide par segment n'affichait pas le libellé du type de contact
+  sélectionné (`?contactTypeId=`), retombait sur « Liste ».
+- Les liens de segments/filtres rapides de l'onglet Segments (hub Membres & finances)
+  sortaient du hub vers la page `?view=list` autonome au lieu de rester dans
+  `?view=peopleFinance&tab=members`.
+- Les onglets Mouvements membres/donateurs étaient masqués aux rôles non-manager alors
+  qu'ils auraient dû rester visibles en lecture seule (les actions de création de segment
+  et d'envoi de rappels, elles, étaient déjà protégées côté serveur — la garde manquait
+  seulement côté affichage du bouton).
+- Liens du tableau de bord « Notification de versement » et « Membres de l'année passée »
+  ne pointaient pas vers le bon onglet/la bonne vue du hub.
+- Filtre par type de contact (`?contactTypeId=`) intersecté silencieusement avec le segment
+  par défaut de l'organisation (les institutions/entreprises n'y appartenant généralement
+  pas, la liste apparaissait vide) — le filtre type de contact est désormais indépendant du
+  segment par défaut.
+- DataTables : conflit de réinitialisation quand deux tableaux « Perdus »/« Nouveaux »
+  coexistent dans le DOM (pastilles) — chaque instance a désormais un identifiant unique.
+- Grammaire du bandeau de migrations en attente (« Appliquez-las » → « Appliquez-les »).
+
 ## [5.1.0] — 2026-07-11
 
 ### ⚠️ Changements majeurs (breaking)

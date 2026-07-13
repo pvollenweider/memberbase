@@ -1,6 +1,6 @@
 # Guide administrateur — MemberBase
 
-Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.1.0). Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
+Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.2.0). Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
 
 ---
 
@@ -839,6 +839,45 @@ déjà appliquée a été modifié après coup (comparaison de checksum) — **n
 Cette page affiche aussi le nombre de migrations en attente et signale toute
 dérive de checksum détectée.
 
+**Depuis la v5.2.0**, la même page propose un outil ponctuel « **Forcer le
+type de contact d'un segment** » (`html/includes/views/settings_health.php`,
+action `bulkSetContactTypeBySegment` dans `includes/actions/settings.php`) :
+applique en une fois un type de contact (`contact_type`) à tous les membres
+actifs (`contact.status = 1`) d'un segment choisi — utile après un import en
+masse ou pour rattraper des fiches créées avant l'introduction des types de
+contact. Réservé aux `admin`, case de confirmation obligatoire, action
+journalisée dans `audit_log`. Ce bloc ne s'affiche (et ne s'exécute) que si
+la migration `0035_contact_type` est déjà appliquée — sur une base qui ne
+l'a pas encore, la table `contact_type` n'existe pas et le bloc est
+simplement masqué, plutôt que de faire planter la page Santé.
+
+### Migrations 5.2.0 (`0032`–`0037`)
+
+Six migrations ajoutées depuis la dernière documentée en 5.1.0 (`0031`,
+elle-même déjà présente en base depuis la v5.1.0 — voir la note de
+portabilité ci-dessous) :
+
+| Migration | Objet |
+|-----------|-------|
+| `0032_suivi_tasks.sql` | Table `suivi_task` — gestion de tâches (titre, priorité, échéance `due_date`, `done_at`), en parallèle des notes de suivi libres existantes |
+| `0033_suivi_task_rule_key.sql` | Colonne `suivi_task.rule_key` — marque les tâches créées automatiquement par une règle métier, pour dédupliquer une régénération |
+| `0034_segment_cascade_rule.sql` | Table `segment_cascade_rule` — règles d'auto-assignation « segment source → segment cible » (single-hop) |
+| `0035_contact_type.sql` | Table `contact_type` (4 types intégrés : `private`/`institution`/`financial`/`company`) + colonne `contact.contact_type_id` (FK, défaut `1`) + colonnes `compta_type.is_financial_institution`/`is_company` |
+| `0036_compta_type_matrix_archive.sql` | Table `contact_type_compta_type` — matrice type de contact × type de compta (restreint les types proposés à la création d'une écriture) + colonne `compta_type.is_archived` |
+| `0037_contact_type_icon.sql` | Colonne `contact_type.icon` — nom d'icône Font Awesome (sans préfixe `fa-`/`fas fa-`, ajouté au rendu) |
+
+### Portabilité SQL entre versions MariaDB/MySQL
+
+La migration `0031_compta_quittance_to_comment.sql` (renommage
+`compta.quittance` → `compta.comment`) a été livrée en 5.1.0 avec la syntaxe
+`ALTER TABLE ... RENAME COLUMN ... TO ...`, qui **nécessite MariaDB 10.5.2+ /
+MySQL 8.0+** — sur un serveur plus ancien, l'instruction échoue avec une
+erreur de syntaxe et bloque `migrate.php`. Corrigé en 5.2.0 : la migration a
+été réécrite avec `ALTER TABLE ... CHANGE COLUMN ... <même type>`, portable
+sur toutes les versions supportées (voir [§1 — Prérequis](#1-prérequis)).
+**Ne jamais utiliser `RENAME COLUMN ... TO ...` dans une nouvelle migration**
+— toujours `CHANGE COLUMN` (nécessite de répéter le type de la colonne).
+
 ### Avant toute migration en production
 
 1. `php html/tools/migrate.php --status` (ou Réglages → Santé) pour voir ce qui va s'appliquer
@@ -1050,7 +1089,32 @@ Les types définissent les catégories d'entrées financières. Flags disponible
 | `is_cotisation` | Pris en compte dans les filtres "cotisation non payée" et l'import de cotisants |
 | `is_excluded_from_donation` | Exclu de la vue Contributions et des attestations de dons |
 | `is_institutional` | Donateur institutionnel (filtres spécifiques) |
-| Archivé | Masqué à la saisie mais visible sur les entrées historiques |
+| `is_financial_institution` | Établissement financier (migration `0035`, même logique que `is_institutional`) |
+| `is_company` | Entreprise (migration `0035`) |
+| `is_archived` | Type masqué à la création d'une **nouvelle** écriture, mais visible/conservé sur les entrées existantes (migration `0036`) |
+
+### Types de contact
+
+Accès : **Réglages** → section **Types de contact** (nouveau en v5.2.0, table
+`contact_type` — migration `0035`).
+
+Classe un contact en donateur privé / institution / établissement financier
+/ entreprise (les 4 types intégrés, `code` figé : `private`/`institution`/
+`financial`/`company`) ou en type personnalisé ajouté par l'admin (`code`
+généré automatiquement depuis le libellé, éditable). Champs : libellé, icône
+Font Awesome (`contact_type.icon`, migration `0037`), ordre d'affichage.
+Suppression possible uniquement si le type n'est utilisé par aucun contact.
+
+La **matrice type de contact × type de compta** (même page, migration
+`0036`, table `contact_type_compta_type`) restreint, pour un type de contact
+donné, les types de compta proposés à la création d'une nouvelle écriture.
+Un type de contact sans aucune ligne dans la matrice reste non restreint
+(tous les types de compta non archivés lui restent proposés) — logique dans
+`html/includes/lib/contact_type.php` (`mbAllowedComptaTypeIdsForContact()`).
+
+Voir aussi l'outil admin **Forcer le type de contact d'un segment**
+([§12 — Méthode 2](#méthode-2--interface-web-sans-accès-ssh)) pour appliquer
+un type en masse.
 
 ---
 
