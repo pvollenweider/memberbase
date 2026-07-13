@@ -338,7 +338,11 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
     <ul class="features">
       <li>
         <h3>Gestion des membres</h3>
-        <p>Liste paginée avec recherche textuelle, fiches complètes (coordonnées, date de naissance, compétences), suivi individuel par notes de contact, export XLS et étiquettes d'adresse Word.</p>
+        <p>Liste paginée avec recherche textuelle, fiches complètes (coordonnées, date de naissance, compétences, type de contact — donateur privé, institution, établissement financier, entreprise ou type personnalisé), suivi individuel par notes de contact, export XLS et étiquettes d'adresse Word.</p>
+      </li>
+      <li>
+        <h3>Tableau de bord et suivi</h3>
+        <p>Page d'accueil avec cartes KPI (contributions, donateurs, membres), graphiques de recettes et de répartition des dons, raccourcis contextuels vers les relances et notifications en attente. Hubs « Membres & finances » et « Journaux » regroupant segments, attestations, mouvements et écritures. Gestion de tâches avec échéance, priorité et rappels automatiques.</p>
       </li>
       <li>
         <h3>Segments et segments combinés</h3>
@@ -354,7 +358,7 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
       </li>
       <li>
         <h3>API REST</h3>
-        <p>Endpoints JSON sous <code class="inline">/api/</code> pour les membres, groupes, écritures comptables et notes de suivi. Authentification de session, contrôle par rôle, audit log des modifications.</p>
+        <p>Endpoints JSON sous <code class="inline">/api/</code> pour les membres, segments, écritures comptables et notes de suivi. Authentification de session, contrôle par rôle, audit log des modifications.</p>
       </li>
       <li>
         <h3>Migrations versionnées</h3>
@@ -463,6 +467,19 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap">
     <h2 id="changelog-h">Dernières versions</h2>
     <article class="release">
+      <h3 class="v">5.2.0 <span class="d">13 juillet 2026</span></h3>
+      <ul>
+        <li><strong>Tableau de bord d'accueil</strong> (<code class="inline">?view=dashboard</code>, nouvelle vue par défaut après connexion) : cartes KPI (contributions, donateurs, membres) avec delta vs année précédente, graphique de recettes cumulées, répartition des dons par type de compta, recherche rapide et raccourcis contextuels (relances, notifications en attente, attestations, migrations).</li>
+        <li><strong>Hub « Membres & finances »</strong> (<code class="inline">?view=peopleFinance</code>), remplace les anciens listings séparés : onglets Segments, Notification de versement, Attestation, Mouvements membres et Mouvements donateurs.</li>
+        <li><strong>Hub « Journaux »</strong> (<code class="inline">?view=journals</code>) : onglets Compta et Suivi fusionnés en une seule destination de navigation.</li>
+        <li><strong>Type de contact</strong> (donateur privé / institution / établissement financier / entreprise), nouvelle table <code class="inline">contact_type</code> (migration <code class="inline">0035</code>) : types personnalisés avec icône, matrice type de contact × type de compta, archivage des types de compta inutilisés.</li>
+        <li><strong>Gestion de tâches</strong> (<code class="inline">suivi_task</code>) : titre, priorité, échéance, génération automatique de relances de cotisation impayée, tâches planifiées et digest quotidien par email.</li>
+        <li><strong>Règles d'auto-assignation de segment</strong> : assignation automatique à un segment secondaire quand un membre rejoint un segment donné.</li>
+        <li><strong>Migration <code class="inline">0031</code> corrigée</strong> (<code class="inline">RENAME COLUMN</code> incompatible MariaDB &lt; 10.5.2, remplacé par <code class="inline">CHANGE COLUMN</code>) — cause d'un blocage de migration en production.</li>
+        <li>Colonnes affichées/masquées (DataTables) sur les listes de membres/donateurs ; corrections diverses de navigation entre le tableau de bord et les hubs.</li>
+      </ul>
+    </article>
+    <article class="release">
       <h3 class="v">5.1.0 <span class="d">11 juillet 2026</span></h3>
       <ul>
         <li><strong><code class="inline">metagroup</code> renommé en <code class="inline">combined_segment</code></strong> (table, <code class="inline">metagroup_member</code> → <code class="inline">combined_segment_member</code>, classe PHP <code class="inline">Metagroup</code> → <code class="inline">CombinedSegment</code> dans <code class="inline">combined_segment_class.php</code>). Toute intégration externe référençant l'ancien nom de table/classe doit être adaptée (migration <code class="inline">0024</code>).</li>
@@ -493,22 +510,6 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li><strong>Aperçu de l'email avant envoi</strong> pour les rappels de cotisation individuels (et renvois),</li>
         <li><strong>Copie (BCC)</strong> vers l'adresse de contact (<code class="inline">smtp_reply_to</code>) si configurée, sur les rappels</li>
         <li>Nouveau modèle par défaut pour <code class="inline">tpl_attestation_don</code> : salutation formelle genrée</li>
-      </ul>
-    </article>
-    <article class="release">
-      <h3 class="v">5.0.0 <span class="d">9 juillet 2026</span></h3>
-      <ul>
-        <li><strong>Table <code class="inline">users</code> → <code class="inline">contact</code></strong>, <code class="inline">user_properties</code> → <code class="inline">contact_properties</code> (migration <code class="inline">0015</code>). Classe PHP <code class="inline">User</code> → <code class="inline">Contact</code> (<code class="inline">html/classes/user_class.php</code> → <code class="inline">contact_class.php</code>).</li>
-        <li><strong>Table <code class="inline">team</code> → <code class="inline">segment</code></strong>, <code class="inline">user_team</code> → <code class="inline">user_segment</code> (migration <code class="inline">0014</code>, colonne <code class="inline">team_id</code> → <code class="inline">segment_id</code>, <code class="inline">metagroup.teamid</code> → <code class="inline">metagroup.segmentid</code>). Classe PHP <code class="inline">Team</code> → <code class="inline">Segment</code> (<code class="inline">team_class.php</code> → <code class="inline">segment_class.php</code>).</li>
-        <li><strong>API REST</strong> : <code class="inline">/api/members</code> → <code class="inline">/api/contacts</code>, <code class="inline">/api/groups</code> → <code class="inline">/api/segments</code>. Réponses JSON et corps de requête inchangés à part le renommage des routes elles-mêmes.</li>
-        <li><strong>Adhésion aux segments</strong> : l'ancien stockage EAV (<code class="inline">user_properties</code>, clé <code class="inline">team_N</code>) est remplacé par une vraie table de jointure <code class="inline">contact_segment</code> (migration <code class="inline">0013</code>, backfill automatique depuis l'EAV existant).</li>
-        <li>Toute vue, action ou script personnalisé référençant les anciens noms de table/classe/route doit être adapté avant la mise à jour.</li>
-        <li><strong>Bulletin de versement QR suisse (QR-facture)</strong> joint en PDF aux rappels de cotisation, généré via <code class="inline">sprain/swiss-qr-bill</code> à partir de l'IBAN de l'organisation (nouveau champ <strong>Réglages → IBAN</strong>).</li>
-        <li><strong>Description du montant configurable</strong> pour les rappels de cotisation (<strong>Réglages → <code class="inline">org_coti_amount_desc</code></strong>) : affichée dans l'email de rappel et sur le bulletin QR (champ « Montant »), avec repli sur une valeur par défaut si laissée vide.</li>
-        <li><strong>Rappel individuel — confirmation</strong> : le bouton « Envoyer un rappel » de la vue Membres perdus affiche désormais une modale de confirmation nommant le membre (au lieu d'envoyer immédiatement), alignée sur le comportement de l'envoi groupé.</li>
-        <li><strong>Renvoi forcé</strong> : possibilité de renvoyer un rappel à un membre déjà relancé (garde anti-doublon contournable explicitement) depuis la vue Membres perdus.</li>
-        <li><strong>Singleton <code class="inline">db()</code></strong> remplace la variable globale <code class="inline">$pdo</code> dans les fonctions et méthodes de classe — signature stable pour tout code appelant la couche DB (#125).</li>
-        <li>Dépendances runtime PHP (<code class="inline">sprain/swiss-qr-bill</code>, <code class="inline">fpdf/fpdf</code>) vendorisées dans <code class="inline">html/vendor/</code> (committées, pas de <code class="inline">composer install</code> requis en prod ; extension <strong>GD</strong> requise sur le serveur).</li>
       </ul>
     </article>
     <p class="changelog-more"><a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md">Historique complet des versions</a></p>

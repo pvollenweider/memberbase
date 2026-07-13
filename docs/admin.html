@@ -271,7 +271,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
       </ul>
     </nav>
     <div class="prose">
-<p>Ce guide s&#39;adresse à l&#39;administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.1.0). Il couvre l&#39;installation, la configuration, la sécurité, l&#39;API et la maintenance.</p>
+<p>Ce guide s&#39;adresse à l&#39;administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.2.0). Il couvre l&#39;installation, la configuration, la sécurité, l&#39;API et la maintenance.</p>
 <hr>
 <hr>
 <h2 id="1-prérequis">1. Prérequis<a class="anchor" href="#1-prérequis" aria-label="Lien d'ancrage">#</a></h2>
@@ -851,6 +851,17 @@ php html/tools/migrate.php --baseline
 <li><strong>Appliquer les migrations en attente</strong> (case « j&#39;ai fait une sauvegarde » obligatoire avant de pouvoir valider)</li>
 </ul>
 <p>Cette page affiche aussi le nombre de migrations en attente et signale toute dérive de checksum détectée.</p>
+<p><strong>Depuis la v5.2.0</strong>, la même page propose un outil ponctuel « <strong>Forcer le type de contact d&#39;un segment</strong> » (<code>html/includes/views/settings_health.php</code>, action <code>bulkSetContactTypeBySegment</code> dans <code>includes/actions/settings.php</code>) : applique en une fois un type de contact (<code>contact_type</code>) à tous les membres actifs (<code>contact.status = 1</code>) d&#39;un segment choisi — utile après un import en masse ou pour rattraper des fiches créées avant l&#39;introduction des types de contact. Réservé aux <code>admin</code>, case de confirmation obligatoire, action journalisée dans <code>audit_log</code>. Ce bloc ne s&#39;affiche (et ne s&#39;exécute) que si la migration <code>0035_contact_type</code> est déjà appliquée — sur une base qui ne l&#39;a pas encore, la table <code>contact_type</code> n&#39;existe pas et le bloc est simplement masqué, plutôt que de faire planter la page Santé.</p>
+<h3 id="migrations-520-0032-0037">Migrations 5.2.0 (<code>0032</code>–<code>0037</code>)<a class="anchor" href="#migrations-520-0032-0037" aria-label="Lien d'ancrage">#</a></h3>
+<p>Six migrations ajoutées depuis la dernière documentée en 5.1.0 (<code>0031</code>, elle-même déjà présente en base depuis la v5.1.0 — voir la note de portabilité ci-dessous) :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Migrations 5.2.0 (0032–0037)" tabindex="0"><table><thead><tr><th scope="col">Migration</th><th scope="col">Objet</th></tr></thead><tbody><tr><td><code>0032_suivi_tasks.sql</code></td><td>Table <code>suivi_task</code> — gestion de tâches (titre, priorité, échéance <code>due_date</code>, <code>done_at</code>), en parallèle des notes de suivi libres existantes</td></tr>
+<tr><td><code>0033_suivi_task_rule_key.sql</code></td><td>Colonne <code>suivi_task.rule_key</code> — marque les tâches créées automatiquement par une règle métier, pour dédupliquer une régénération</td></tr>
+<tr><td><code>0034_segment_cascade_rule.sql</code></td><td>Table <code>segment_cascade_rule</code> — règles d&#39;auto-assignation « segment source → segment cible » (single-hop)</td></tr>
+<tr><td><code>0035_contact_type.sql</code></td><td>Table <code>contact_type</code> (4 types intégrés : <code>private</code>/<code>institution</code>/<code>financial</code>/<code>company</code>) + colonne <code>contact.contact_type_id</code> (FK, défaut <code>1</code>) + colonnes <code>compta_type.is_financial_institution</code>/<code>is_company</code></td></tr>
+<tr><td><code>0036_compta_type_matrix_archive.sql</code></td><td>Table <code>contact_type_compta_type</code> — matrice type de contact × type de compta (restreint les types proposés à la création d&#39;une écriture) + colonne <code>compta_type.is_archived</code></td></tr>
+<tr><td><code>0037_contact_type_icon.sql</code></td><td>Colonne <code>contact_type.icon</code> — nom d&#39;icône Font Awesome (sans préfixe <code>fa-</code>/<code>fas fa-</code>, ajouté au rendu)</td></tr></tbody></table></div>
+<h3 id="portabilité-sql-entre-versions-mariadbmysql">Portabilité SQL entre versions MariaDB/MySQL<a class="anchor" href="#portabilité-sql-entre-versions-mariadbmysql" aria-label="Lien d'ancrage">#</a></h3>
+<p>La migration <code>0031_compta_quittance_to_comment.sql</code> (renommage <code>compta.quittance</code> → <code>compta.comment</code>) a été livrée en 5.1.0 avec la syntaxe <code>ALTER TABLE ... RENAME COLUMN ... TO ...</code>, qui <strong>nécessite MariaDB 10.5.2+ / MySQL 8.0+</strong> — sur un serveur plus ancien, l&#39;instruction échoue avec une erreur de syntaxe et bloque <code>migrate.php</code>. Corrigé en 5.2.0 : la migration a été réécrite avec <code>ALTER TABLE ... CHANGE COLUMN ... &lt;même type&gt;</code>, portable sur toutes les versions supportées (voir <a href="#1-prérequis">§1 — Prérequis</a>). <strong>Ne jamais utiliser <code>RENAME COLUMN ... TO ...</code> dans une nouvelle migration</strong> — toujours <code>CHANGE COLUMN</code> (nécessite de répéter le type de la colonne).</p>
 <h3 id="avant-toute-migration-en-production">Avant toute migration en production<a class="anchor" href="#avant-toute-migration-en-production" aria-label="Lien d'ancrage">#</a></h3>
 <ol>
 <li><code>php html/tools/migrate.php --status</code> (ou Réglages → Santé) pour voir ce qui va s&#39;appliquer</li>
@@ -985,7 +996,14 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 <div class="table-scroll" role="region" aria-label="Tableau — Types de compta" tabindex="0"><table><thead><tr><th scope="col">Flag</th><th scope="col">Effet</th></tr></thead><tbody><tr><td><code>is_cotisation</code></td><td>Pris en compte dans les filtres &quot;cotisation non payée&quot; et l&#39;import de cotisants</td></tr>
 <tr><td><code>is_excluded_from_donation</code></td><td>Exclu de la vue Contributions et des attestations de dons</td></tr>
 <tr><td><code>is_institutional</code></td><td>Donateur institutionnel (filtres spécifiques)</td></tr>
-<tr><td>Archivé</td><td>Masqué à la saisie mais visible sur les entrées historiques</td></tr></tbody></table></div>
+<tr><td><code>is_financial_institution</code></td><td>Établissement financier (migration <code>0035</code>, même logique que <code>is_institutional</code>)</td></tr>
+<tr><td><code>is_company</code></td><td>Entreprise (migration <code>0035</code>)</td></tr>
+<tr><td><code>is_archived</code></td><td>Type masqué à la création d&#39;une <strong>nouvelle</strong> écriture, mais visible/conservé sur les entrées existantes (migration <code>0036</code>)</td></tr></tbody></table></div>
+<h3 id="types-de-contact">Types de contact<a class="anchor" href="#types-de-contact" aria-label="Lien d'ancrage">#</a></h3>
+<p>Accès : <strong>Réglages</strong> → section <strong>Types de contact</strong> (nouveau en v5.2.0, table <code>contact_type</code> — migration <code>0035</code>).</p>
+<p>Classe un contact en donateur privé / institution / établissement financier / entreprise (les 4 types intégrés, <code>code</code> figé : <code>private</code>/<code>institution</code>/<code>financial</code>/<code>company</code>) ou en type personnalisé ajouté par l&#39;admin (<code>code</code> généré automatiquement depuis le libellé, éditable). Champs : libellé, icône Font Awesome (<code>contact_type.icon</code>, migration <code>0037</code>), ordre d&#39;affichage. Suppression possible uniquement si le type n&#39;est utilisé par aucun contact.</p>
+<p>La <strong>matrice type de contact × type de compta</strong> (même page, migration <code>0036</code>, table <code>contact_type_compta_type</code>) restreint, pour un type de contact donné, les types de compta proposés à la création d&#39;une nouvelle écriture. Un type de contact sans aucune ligne dans la matrice reste non restreint (tous les types de compta non archivés lui restent proposés) — logique dans <code>html/includes/lib/contact_type.php</code> (<code>mbAllowedComptaTypeIdsForContact()</code>).</p>
+<p>Voir aussi l&#39;outil admin <strong>Forcer le type de contact d&#39;un segment</strong> (<a href="#méthode-2-interface-web-sans-accès-ssh">§12 — Méthode 2</a>) pour appliquer un type en masse.</p>
 <hr>
 <h2 id="référence-rapide">Référence rapide<a class="anchor" href="#référence-rapide" aria-label="Lien d'ancrage">#</a></h2>
 <pre><code class="language-bash"># Vérifier l&#39;état de Fail2Ban

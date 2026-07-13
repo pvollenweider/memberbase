@@ -269,7 +269,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
       </ul>
     </nav>
     <div class="prose">
-<p>MemberBase <strong>v5.1.0</strong> — application PHP 8.2 de gestion des membres pour ONG.
+<p>MemberBase <strong>v5.2.0</strong> — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.</p>
 <blockquote>
 <p><strong>Terminologie.</strong> Depuis la v3.5.4, l&#39;interface parle de <strong>Segment</strong> (au lieu de
@@ -382,14 +382,18 @@ sentinelle « non renseigné ». Les formulaires continuent de passer par
 avec la base se fait exclusivement en PHP (jamais via <code>FROM_UNIXTIME()</code>/
 <code>UNIX_TIMESTAMP()</code> SQL, qui utilisent le fuseau de <em>session</em> MySQL, différent du
 fuseau PHP forcé à <code>Europe/Zurich</code>).</p>
-<div class="table-scroll" role="region" aria-label="Tableau — 5. Schéma de base de données" tabindex="0"><table><thead><tr><th scope="col">Table</th><th scope="col">Rôle</th><th scope="col">Clé / séquence</th></tr></thead><tbody><tr><td><code>contact</code></td><td>Membres (<strong>anciennement <code>users</code></strong>, renommée v5.0.0) : identité, coordonnées (dont <strong><code>email_alt</code></strong>), <code>sexe</code> (na/f/m/hf), <code>status</code> (1/0), <code>birthday</code> (<code>DATE</code>), <code>creationDate</code>/<code>modificationDate</code> (<code>DATETIME</code>)</td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — 5. Schéma de base de données" tabindex="0"><table><thead><tr><th scope="col">Table</th><th scope="col">Rôle</th><th scope="col">Clé / séquence</th></tr></thead><tbody><tr><td><code>contact</code></td><td>Membres (<strong>anciennement <code>users</code></strong>, renommée v5.0.0) : identité, coordonnées (dont <strong><code>email_alt</code></strong>), <code>sexe</code> (na/f/m/hf), <strong><code>contact_type_id</code></strong> (donateur privé/institution/établissement financier/entreprise, <code>DEFAULT 1</code>, migration 0035, FK vers <code>contact_type</code>), <code>status</code> (1/0), <code>birthday</code> (<code>DATE</code>), <code>creationDate</code>/<code>modificationDate</code> (<code>DATETIME</code>)</td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>segment</code></td><td>Segments (<strong>anciennement <code>team</code></strong>, renommée v5.0.0) : <code>name</code>, <code>hidden</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>contact_segment</code></td><td>Appartenance segment (<strong>anciennement EAV dans <code>user_properties</code></strong>, table de jointure depuis v5.0.0) : <code>user_id</code> (contact), <code>segment_id</code> — FK réelles vers <code>contact</code>/<code>segment</code> (migration 0023)</td><td>PK <code>(user_id, segment_id)</code></td></tr>
 <tr><td><code>contact_properties</code></td><td>EAV : notes de suivi (<strong>anciennement <code>user_properties</code></strong>, renommée v5.0.0), <code>date</code> (<code>DATETIME</code>, <code>NULL</code> = non renseignée)</td><td><code>id</code> AUTO_INCREMENT (PK depuis la migration 0020)</td></tr>
 <tr><td><code>combined_segment</code></td><td>Segments combinés / catégories (<strong>anciennement <code>metagroup</code></strong>, renommée v5.1.0) : <code>name</code>, <code>is_filter</code>, <code>sort_order</code></td><td><code>id</code> AUTO_INCREMENT (depuis migration 0022 ; via <code>maxval</code> avant)</td></tr>
 <tr><td><code>combined_segment_member</code></td><td>Appartenance segment → segment combiné (<strong>anciennement auto-jointure sur <code>metagroup</code></strong>, table de jointure depuis migration 0022) : <code>combined_segment_id</code>, <code>segment_id</code> — FK réelles (migration 0023)</td><td>PK <code>(combined_segment_id, segment_id)</code></td></tr>
-<tr><td><code>compta_type</code></td><td>Types d&#39;écriture : <code>label</code>, <code>color</code>, <strong><code>default_libele</code></strong> (libellé pré-rempli à la saisie, migration 0021), <code>sort_order</code>, <code>is_cotisation</code>, <code>is_excluded_from_donation</code>, <code>is_institutional</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>compta_type</code></td><td>Types d&#39;écriture : <code>label</code>, <code>color</code>, <strong><code>default_libele</code></strong> (libellé pré-rempli à la saisie, migration 0021), <code>sort_order</code>, <code>is_cotisation</code>, <code>is_excluded_from_donation</code>, <code>is_institutional</code>, <strong><code>is_financial_institution</code></strong>/<strong><code>is_company</code></strong> (marquent quels types signalent un établissement financier / une entreprise, migration 0035), <strong><code>is_archived</code></strong> (masqué du sélecteur à la création d&#39;une nouvelle écriture, historique conservé, migration 0036)</td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>compta</code></td><td>Écritures : <code>user_id</code>, <code>date</code> (<code>DATETIME</code>, <code>NULL</code> = non renseignée/invalide), <code>libele</code>, <code>sum</code> (<strong>decimal(10,2)</strong>, CHF), <code>comment</code> (<strong>anciennement <code>quittance</code></strong>, renommée migration 0031), <code>type_id</code>, <code>wants_attestation</code>, <strong><code>notified_at</code></strong> (dernier envoi du récapitulatif email, <code>NULL</code> = non notifiée), <strong><code>cotisation_year</code></strong> (année de cotisation si différente de l&#39;année de paiement) — FK réelles vers <code>contact</code>/<code>compta_type</code> (migration 0023)</td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>contact_type</code></td><td>Type de contact (v5.2.0, migration 0035) : <code>code</code> (clé stable, ex. <code>private</code>/<code>institution</code>/<code>financial</code>/<code>company</code> — les 4 lignes seed, figées ; un type personnalisé a un code généré), <code>label</code>, <strong><code>icon</code></strong> (suffixe Font Awesome, ex. <code>landmark</code>, préfixé <code>fas fa-</code> à l&#39;affichage, migration 0037), <code>sort_order</code> — référencé par <code>contact.contact_type_id</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>contact_type_compta_type</code></td><td>Matrice type de contact × type de compta (migration 0036) : <code>contact_type_id</code>, <code>compta_type_id</code> — restreint les types de compta proposés à la création d&#39;une écriture pour un contact de ce type ; <strong>permissif par défaut</strong> (aucune ligne pour un <code>contact_type_id</code> = tous les types non archivés restent proposés) — FK réelles vers <code>contact_type</code>/<code>compta_type</code> (<code>ON DELETE CASCADE</code>)</td><td>PK <code>(contact_type_id, compta_type_id)</code></td></tr>
+<tr><td><code>suivi_task</code></td><td>Tâches de suivi structurées (titre, priorité, échéance — v5.2.0, migration 0032, issue #117), en parallèle des notes libres <code>contact_properties</code> : <code>user_id</code> (<code>NULL</code> = tâche globale) — FK vers <code>contact</code> (<code>ON DELETE CASCADE</code>) —, <code>created_by</code> (<code>app_users.id</code>, pas de FK, même convention que <code>audit_log.app_user_id</code>), <code>title</code>, <code>body</code>, <code>priority</code> (1=haute/2=normale/3=basse), <code>due_date</code>, <code>done_at</code> (<code>NULL</code> = ouverte), <strong><code>rule_key</code></strong> (marque les tâches générées automatiquement par une règle métier, migration 0033, <code>NULL</code> = tâche manuelle, sert au dédoublonnage lors d&#39;une régénération)</td><td><code>id</code> AUTO_INCREMENT</td></tr>
+<tr><td><code>segment_cascade_rule</code></td><td>Règle d&#39;auto-assignation de segment (v5.2.0, migration 0034, issue #154) : « quand un membre rejoint <code>source_segment_id</code>, l&#39;assigner aussi à <code>target_segment_id</code> » — appliquée par <code>Contact::assignSegment()</code> ; à dessein <strong>pas un moteur de règles générique</strong> (un seul niveau, pas de chaînage) — FK réelles vers <code>segment</code> (<code>ON DELETE CASCADE</code>), paire unique</td><td><code>id</code> AUTO_INCREMENT</td></tr>
 <tr><td><code>maxval</code></td><td>Compteur de séquence manuel (clé/valeur) — n&#39;est plus utilisé pour <code>combined_segment.id</code> depuis la migration 0022</td><td>PK <code>parameter</code></td></tr>
 <tr><td><code>app_settings</code></td><td>Configuration organisation (clé/valeur : <code>org_name</code>, <code>membre_segment</code> — anciennement <code>membre_team</code>, renommée v5.1.0 —, <code>archive_id</code>, <code>org_ide</code>, <code>org_purpose</code>, <code>org_tax_status</code>, <code>smtp_*</code>, etc. — <code>value</code> en <code>TEXT</code> depuis la migration 0004 pour les champs multi-lignes)</td><td>PK <code>key</code></td></tr>
 <tr><td><code>app_users</code></td><td>Comptes applicatifs : <code>password_hash</code> (bcrypt), <code>role</code> enum, <strong><code>locale</code></strong> (langue d&#39;interface, défaut <code>fr</code>), <code>force_password_change</code>, <code>is_active</code>, <code>last_login</code>, <code>reset_token</code>, <code>token_expires_at</code>, <code>email</code></td><td><code>id</code> AUTO_INCREMENT</td></tr>
@@ -401,10 +405,14 @@ contact (id)
   ├── contact_segment (user_id, segment_id) ──&gt; segment (id)
   ├── contact_properties (user_id)
   │        parameter = &#39;suivi_*&#39;   → notes de suivi (UserProperty)
+  ├── suivi_task (user_id, NULL = tâche globale)
+  ├── contact_type_id ──&gt; contact_type (id) ──&gt; contact_type_compta_type (contact_type_id, compta_type_id) ──&gt; compta_type (id)
   └── compta (user_id) ── type_id ──&gt; compta_type
-                                        (is_cotisation / is_excluded_from_donation / is_institutional)
+                                        (is_cotisation / is_excluded_from_donation / is_institutional /
+                                         is_financial_institution / is_company / is_archived)
 
 segment (id) ──&gt; combined_segment_member (segment_id) ──&gt; combined_segment (id)
+segment (id) ──&gt; segment_cascade_rule (source_segment_id, target_segment_id) ──&gt; segment (id)
 </code></pre>
 <h3 id="notes-sur-le-modèle">Notes sur le modèle<a class="anchor" href="#notes-sur-le-modèle" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
@@ -426,6 +434,24 @@ l&#39;ensemble <code>metagroup</code>/<code>metagroup_member</code> → <code>co
 migration <code>0020</code> : la colonne héritée (≈83k lignes à <code>0</code>, doublons possibles) a été
 renumérotée séquentiellement — l&#39;id n&#39;était référencé nulle part ailleurs, seulement
 comme paramètre d&#39;URL transitoire.</li>
+<li><strong><code>contact_type</code> (v5.2.0)</strong> est une vraie table de référence (comme <code>compta_type</code>,
+<code>segment</code>) plutôt qu&#39;un enum codé en dur, pour garder les libellés éditables sans
+changement de code — mais le <code>code</code> des 4 lignes seed (<code>private</code>/<code>institution</code>/
+<code>financial</code>/<code>company</code>) est la clé stable dont dépend la classification
+(<code>includes/lib/contact_type.php</code>), jamais le <code>label</code> (renommable). La matrice
+<code>contact_type_compta_type</code> est <strong>permissive par défaut</strong> : un <code>contact_type_id</code> sans
+aucune ligne laisse tous les <code>compta_type</code> non archivés proposés ; dès qu&#39;une ligne
+existe pour ce type, seuls les <code>compta_type_id</code> listés sont offerts.</li>
+<li><strong><code>suivi_task</code> (v5.2.0, issue #117)</strong> est un modèle de tâche structuré (titre,
+priorité, échéance, ouvert/fermé) qui coexiste avec les notes libres de
+<code>contact_properties</code>, sans les remplacer. Les tâches générées automatiquement par une
+règle métier (relance de cotisation impayée, #149) portent un <code>rule_key</code> (migration
+<code>0033</code>) pour permettre un dédoublonnage à la régénération ; une tâche créée à la main
+a <code>rule_key = NULL</code>.</li>
+<li><strong><code>segment_cascade_rule</code> (v5.2.0, issue #154)</strong> est volontairement un mécanisme à
+usage unique (« assigner Y quand X est assigné »), pas un moteur de règles générique —
+appliqué dans <code>Contact::assignSegment()</code>, sans chaînage (une cascade ne déclenche pas
+une autre cascade).</li>
 </ul>
 <hr>
 <h2 id="6-classes-de-domaine">6. Classes de domaine<a class="anchor" href="#6-classes-de-domaine" aria-label="Lien d'ancrage">#</a></h2>
@@ -683,6 +709,38 @@ base (DDL + <code>tests/fixtures/seed.sql</code>).</p>
 <code>$GLOBAL</code>, <code>$charset</code>, <code>$isHtmx</code>). Sortie utilisateur échappée
 (<code>htmlspecialchars</code> / <code>htmlentities</code>). Pas de redirection dans une vue.</li>
 </ul>
+<h4 id="pattern-hub-tab-shell-depuis-v520">Pattern « hub » (tab-shell), depuis v5.2.0<a class="anchor" href="#pattern-hub-tab-shell-depuis-v520" aria-label="Lien d'ancrage">#</a></h4>
+<p>Deux vues (<code>people_finance.php</code> — hub « Membres &amp; finances », <code>journals.php</code> — hub
+« Journaux ») regroupent plusieurs anciennes destinations autonomes sous une seule
+route à onglets Bootstrap (<code>?view=peopleFinance&amp;tab=…</code>, <code>?view=journals&amp;tab=…</code>).
+Chaque onglet réutilise <strong>sans modification</strong> un fichier de vue conçu à l&#39;origine
+comme page indépendante (<code>users_list.php</code>, <code>compta_recap.php</code>, <code>donors_summary.php</code>,
+<code>members_lapsed.php</code>, <code>members_new.php</code>, <code>donors_lapsed.php</code>, <code>donors_new.php</code>,
+<code>compta_last_entry.php</code>, <code>suivi_last_entry.php</code>). Le nouveau tableau de bord
+(<code>dashboard.php</code>, <code>?view=dashboard</code>) n&#39;est pas construit sur ce pattern : c&#39;est une
+vue à part entière avec ses propres calculs de KPI, pas un shell qui réutilise
+d&#39;autres vues.</p>
+<p>Point d&#39;attention : les onglets Bootstrap rendent <strong>tous</strong> les panneaux côté serveur à
+chaque requête (seule la visibilité CSS change côté client) — dès que 2 onglets ou plus
+réutilisent une vue réelle, plus d&#39;un fichier s&#39;exécute dans la même requête PHP. Comme
+plusieurs de ces vues déclarent les mêmes noms de variable au premier niveau (<code>$year</code>
+apparaît par exemple dans deux fichiers différents), un <code>include</code> direct provoquerait
+des collisions. Chaque hub isole donc l&#39;inclusion dans une closure dédiée :</p>
+<pre><code class="language-php">$_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $charset, $appSettings, $comptaTypes, $pdo) {
+    extract($vars);
+    require $file;
+};
+// …
+$_pfRequireIsolated(__DIR__ . &#39;/users_list.php&#39;, [&#39;_pfEmbedded&#39; =&gt; true]);
+</code></pre>
+<p>La closure ne capture (<code>use</code>) que la poignée de globales que les vues embarquées lisent
+réellement ; chaque appel a sa propre portée locale, donc aucune fuite de variable entre
+onglets. Le flag <code>_pfEmbedded</code> (ou équivalent) est passé aux vues qui doivent adapter
+leur rendu en contexte hub (ex. <code>donors_summary.php</code> masque ses cartes KPI, déjà
+affichées sur le tableau de bord). Les anciennes routes autonomes restent fonctionnelles
+(seulement retirées du menu) ; <code>js/hub-tabs.js</code> (<code>caHubRewriteEmbeddedLinks()</code>,
+<code>caHubEnableTabDeepLink()</code>) réécrit les liens internes des vues embarquées pour rester
+dans le hub et garde <code>?tab=</code>/<code>?cohort=</code> synchronisés avec l&#39;onglet Bootstrap actif.</p>
 <h3 id="handlers-dactions-includesactions">Handlers d&#39;actions (<code>includes/actions/</code>)<a class="anchor" href="#handlers-dactions-includesactions" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
 <li>Scripts procéduraux inclus par <code>actions.php</code> via <code>$ACTION_MAP</code>. Vérifient le rôle en

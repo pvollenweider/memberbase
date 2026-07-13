@@ -264,7 +264,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
       </ul>
     </nav>
     <div class="prose">
-<p>API REST interne de l&#39;application MemberBase (version <strong>5.1.0</strong>). Toutes les réponses sont en JSON UTF-8.</p>
+<p>API REST interne de l&#39;application MemberBase (version <strong>5.2.0</strong>). Toutes les réponses sont en JSON UTF-8.</p>
 <blockquote>
 <p>⚠️ <strong>v5.0.0 (breaking)</strong> : les routes <code>/api/members</code> et <code>/api/groups</code> sont renommées <code>/api/contacts</code> et <code>/api/segments</code> (aucune rétrocompatibilité). Voir le <a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md#500--2026-07-09">CHANGELOG</a>.</p>
 </blockquote>
@@ -408,6 +408,7 @@ curl -b cookies.txt &quot;https://votre-domaine/api/contacts?segment=-4&quot;
     &quot;firstName&quot;: &quot;Marie&quot;,
     &quot;society&quot;: null,
     &quot;gender&quot;: &quot;f&quot;,
+    &quot;contactTypeId&quot;: 1,
     &quot;title&quot;: &quot;Mme&quot;,
     &quot;address&quot;: &quot;Rue de la Paix 3&quot;,
     &quot;npa&quot;: &quot;1200&quot;,
@@ -425,7 +426,7 @@ curl -b cookies.txt &quot;https://votre-domaine/api/contacts?segment=-4&quot;
   }
 }
 </code></pre>
-<p>Valeurs <code>gender</code> possibles : <code>&quot;m&quot;</code>, <code>&quot;f&quot;</code>, <code>&quot;hf&quot;</code>, <code>&quot;na&quot;</code>. <code>birthDate</code> est <code>YYYY-MM-DD</code> ou <code>null</code>. <code>createdAt</code>/<code>updatedAt</code> sont au format ISO 8601 (<code>date(&#39;c&#39;)</code>) ou <code>null</code>.</p>
+<p>Valeurs <code>gender</code> possibles : <code>&quot;m&quot;</code>, <code>&quot;f&quot;</code>, <code>&quot;hf&quot;</code>, <code>&quot;na&quot;</code>. <code>contactTypeId</code> (depuis v5.2.0, migration <code>0035</code>) référence <code>contact_type.id</code> — <code>1</code> par défaut (donateur privé) ; toujours présent, jamais <code>null</code>. <code>birthDate</code> est <code>YYYY-MM-DD</code> ou <code>null</code>. <code>createdAt</code>/<code>updatedAt</code> sont au format ISO 8601 (<code>date(&#39;c&#39;)</code>) ou <code>null</code>.</p>
 <h4 id="erreurs">Erreurs<a class="anchor" href="#erreurs" aria-label="Lien d'ancrage">#</a></h4>
 <ul>
 <li><code>404</code> — membre introuvable. Note : <code>lookupUser()</code> ne filtre pas sur <code>status</code>, un membre désactivé peut donc être retourné par son id.</li>
@@ -442,6 +443,7 @@ curl -b cookies.txt &quot;https://votre-domaine/api/contacts?segment=-4&quot;
 <tr><td><code>firstName</code></td><td>string</td><td>non</td><td>Prénom</td></tr>
 <tr><td><code>society</code></td><td>string</td><td>non</td><td>Société / organisation</td></tr>
 <tr><td><code>gender</code></td><td>string</td><td>non</td><td><code>&quot;m&quot;</code>, <code>&quot;f&quot;</code>, <code>&quot;hf&quot;</code> ou <code>&quot;na&quot;</code>. Toute autre valeur est normalisée en <code>&quot;na&quot;</code> (défaut)</td></tr>
+<tr><td><code>contactTypeId</code></td><td>integer</td><td>non</td><td>ID de <code>contact_type</code> (depuis v5.2.0). Défaut <code>1</code> (donateur privé) ; une valeur qui ne correspond à aucun <code>contact_type</code> existant retombe silencieusement sur <code>1</code> (<code>mbValidContactTypeId()</code>)</td></tr>
 <tr><td><code>title</code></td><td>string</td><td>non</td><td>Civilité</td></tr>
 <tr><td><code>address</code></td><td>string</td><td>non</td><td>Adresse postale</td></tr>
 <tr><td><code>npa</code></td><td>string</td><td>non</td><td>Code postal + localité</td></tr>
