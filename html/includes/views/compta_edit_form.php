@@ -41,7 +41,7 @@ $_editAllowedTypeIds = array_unique(array_merge(
       <h6 class="text-muted mb-0" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em">
         <?= $GLOBAL['editCompta'] ?>
       </h6>
-      <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?>"
+      <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?><?= isset($_REQUEST['year']) ? '&amp;year=' . (int)$_REQUEST['year'] : '' ?>"
          class="text-muted small text-decoration-none">
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= htmlentities($user->getFirstName(), ENT_COMPAT, $charset) ?> <?= htmlentities($user->getLastName(), ENT_COMPAT, $charset) ?>
       </a>
@@ -52,6 +52,9 @@ $_editAllowedTypeIds = array_unique(array_merge(
       <input type="hidden" name="action"   value="updateCompta"/>
       <input type="hidden" name="view"     value="compta"/>
       <input type="hidden" name="userid"   value="<?= htmlentities($_REQUEST['userid'], ENT_COMPAT, $charset) ?>"/>
+      <?php if (isset($_REQUEST['year'])): ?>
+      <input type="hidden" name="year"     value="<?= (int)$_REQUEST['year'] ?>"/>
+      <?php endif ?>
 
       <div class="row mb-2 align-items-center">
         <label for="type" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end text-sm-end" style="font-size:0.82rem"><?= $GLOBAL['type'] ?></label>

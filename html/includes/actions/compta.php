@@ -74,6 +74,14 @@ if ($action == 'addCompta') {
         }
     }
 
+    // Post-redirect-get: the submitted type_id belongs to the new entry, not
+    // to the list's own type filter — falling through to re-render the view
+    // would otherwise reuse it as $filterTypeId and silently filter the list.
+    $_addRedirYear = isset($_REQUEST['year']) ? '&year=' . (int)$_REQUEST['year'] : '';
+    $_addTarget = '?view=compta&userid=' . (int)$compta->userId . $_addRedirYear;
+    if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_addTarget); exit; }
+    header('Location: ' . appUrl() . $_addTarget); exit;
+
 } elseif ($action == 'updateCompta') {
     $_rawSum2 = trim(str_replace(',', '.', $_REQUEST['sum'] ?? ''));
     if (!preg_match('/^[0-9]+(\.[0-9]+)?$/', $_rawSum2)) { http_response_code(422); exit; }
@@ -138,6 +146,13 @@ if ($action == 'addCompta') {
     if ($_auDiffs2) { $auDetail2 .= ' | ' . implode(' ; ', $_auDiffs2); }
     else            { $auDetail2 .= ' | (aucune modification)'; }
     auditLog(db(), 'updateCompta', $auDetail2, (int)$compta->userId);
+
+    // Same post-redirect-get rationale as addCompta — the edited entry's own
+    // type_id must not leak into the list's type filter on return.
+    $_updRedirYear = isset($_REQUEST['year']) ? '&year=' . (int)$_REQUEST['year'] : '';
+    $_updTarget = '?view=compta&userid=' . (int)$compta->userId . $_updRedirYear;
+    if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_updTarget); exit; }
+    header('Location: ' . appUrl() . $_updTarget); exit;
 
 } elseif ($action == 'deleteComptaEntry') {
     $comptaid = (int)$_REQUEST['comptaid'];

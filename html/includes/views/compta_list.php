@@ -266,6 +266,7 @@ $to = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
 <input type="hidden" name="action" value="addCompta"/>
 <input type="hidden" name="view" value="compta"/>
 <input type="hidden" name="userid" value="<?=$user->getId()?>"/>
+<input type="hidden" name="year" value="<?=$year?>"/>
 <div class="table-responsive">
 <table class="table table-condensed table-striped table-hover p mt-2">
 <thead>
@@ -397,7 +398,7 @@ while ($row = $stmt->fetchObject()) {
     ];
     $rowStyle = isset($bgVarMap[$ctColor]) ? '--bs-table-bg:' . $bgVarMap[$ctColor] : '';
     ?>
-     <tr <?= canWrite() ? 'class="ca-row-link" data-href="' . appUrl() . '?view=updateCompta&comptaid=' . (int)$id . '&userid=' . (int)$user->getId() . '" style="cursor:pointer;' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' : 'style="' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' ?>>
+     <tr <?= canWrite() ? 'class="ca-row-link" data-href="' . appUrl() . '?view=updateCompta&comptaid=' . (int)$id . '&userid=' . (int)$user->getId() . '&year=' . (int)$year . '" style="cursor:pointer;' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' : 'style="' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' ?>>
         <td>
             <?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>
             <?php if ($row->ct_coti && $row->cotisation_year): ?>
@@ -423,7 +424,7 @@ while ($row = $stmt->fetchObject()) {
         </td>
         <td>
             <?php if (canWrite()): ?>
-            <a href="<?=appUrl()?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>"
+            <a href="<?=appUrl()?>?view=updateCompta&comptaid=<?=$id?>&userid=<?=$user->getId()?>&year=<?=$year?>"
                class="ca-row-link-anchor" hx-boost="false" tabindex="-1" aria-hidden="true"></a>
             <?php endif ?>
         </td>
