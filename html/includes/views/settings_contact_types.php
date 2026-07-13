@@ -22,6 +22,18 @@ $_ctFlaggedTypes = (int)db()->query(
 
 $_ctSuggestions = $_ctFlaggedTypes > 0 ? mbSuggestContactTypes(db()) : [];
 $_ctDiffs = array_filter($_ctSuggestions, fn($r) => $r->suggested_type_id !== (int)$r->current_type_id);
+
+$_ctRows = db()->query(
+    "SELECT ct.id, ct.code, ct.label, ct.icon, ct.sort_order, COUNT(c.id) AS cnt
+     FROM contact_type ct
+     LEFT JOIN contact c ON c.contact_type_id = ct.id AND c.status = 1
+     GROUP BY ct.id ORDER BY ct.sort_order"
+)->fetchAll(PDO::FETCH_OBJ);
+$_ctLabelSavedId = isset($_GET['contactTypeLabelSaved']) ? (int)$_GET['contactTypeLabelSaved'] : null;
+$_ctMatrix       = mbContactTypeComptaMatrix(db());
+$_ctComptaTypes  = db()->query(
+    "SELECT id, label, is_archived FROM compta_type WHERE is_archived = 0 ORDER BY sort_order, label"
+)->fetchAll(PDO::FETCH_OBJ);
 ?>
 <?php if (!$_ctEmbedded): ?>
 <div class="row justify-content-center mt-4">
@@ -29,6 +41,167 @@ $_ctDiffs = array_filter($_ctSuggestions, fn($r) => $r->suggested_type_id !== (i
 <?php endif ?>
 
 <p class="form-section-title" style="margin-top:0"><?= $GLOBAL['contactTypesTitle'] ?></p>
+
+<?php if ($_ctLabelSavedId !== null): ?>
+<div class="alert alert-success py-2" role="alert">
+  <i class="fas fa-circle-check me-1" aria-hidden="true"></i><?= $GLOBAL['contactTypeLabelSavedMsg'] ?>
+</div>
+<?php endif ?>
+
+<div class="table-responsive mb-4">
+<table id="contact-type-management-table" class="table table-sm table-hover align-middle">
+  <thead class="table-light">
+    <tr>
+      <th><?= $GLOBAL['contactTypeCode'] ?></th>
+      <th style="width:60px" class="text-center"><?= $GLOBAL['contactTypeIcon'] ?></th>
+      <th><?= $GLOBAL['contactTypeLabel'] ?></th>
+      <th class="text-end"><?= $GLOBAL['contactTypeCount'] ?></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  <?php foreach ($_ctRows as $_ct): ?>
+    <tr>
+      <td class="text-muted" style="font-size:0.85rem"><code><?= htmlspecialchars($_ct->code, ENT_QUOTES, $charset) ?></code></td>
+      <td class="text-center">
+        <i class="fas fa-<?= htmlspecialchars($_ct->icon !== '' ? $_ct->icon : 'question', ENT_QUOTES, $charset) ?> ctm-icon-preview" style="font-size:1.1rem"></i>
+      </td>
+      <td>
+        <form method="post" action="<?= appUrl() ?>" class="d-flex gap-2 align-items-center flex-wrap">
+          <input type="hidden" name="action" value="updateContactTypeLabel">
+          <input type="hidden" name="returnView" value="<?= $_ctEmbedded ? 'settings' : 'contactTypes' ?>">
+          <input type="hidden" name="id" value="<?= (int)$_ct->id ?>">
+          <input type="text" name="label" value="<?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?>"
+                 class="form-control form-control-sm" style="max-width:220px" required>
+          <input type="text" name="icon" value="<?= htmlspecialchars($_ct->icon, ENT_QUOTES, $charset) ?>"
+                 class="form-control form-control-sm ctm-icon-input" style="max-width:140px"
+                 placeholder="<?= htmlspecialchars($GLOBAL['contactTypeIconPlaceholder'], ENT_QUOTES, $charset) ?>"
+                 title="<?= htmlspecialchars($GLOBAL['contactTypeIconHelp'], ENT_QUOTES, $charset) ?>">
+          <button type="submit" class="btn btn-sm btn-outline-secondary"><?= $GLOBAL['save'] ?></button>
+        </form>
+      </td>
+      <td class="text-end text-muted" style="font-size:0.85rem"><?= (int)$_ct->cnt ?></td>
+      <td></td>
+    </tr>
+  <?php endforeach ?>
+  </tbody>
+</table>
+<p class="text-muted small mt-1 mb-0">
+  <i class="fas fa-circle-info me-1" aria-hidden="true"></i>
+  <?= sprintf($GLOBAL['contactTypeIconFaHint'], '<a href="https://fontawesome.com/search?o=r&m=free" target="_blank" rel="noopener">fontawesome.com</a>') ?>
+</p>
+<script>
+document.querySelectorAll('.ctm-icon-input').forEach(function (input) {
+  input.addEventListener('input', function () {
+    var preview = input.closest('tr').querySelector('.ctm-icon-preview');
+    var name = input.value.trim().replace(/^fa-/, '');
+    preview.className = 'fas fa-' + (name || 'question') + ' ctm-icon-preview';
+  });
+});
+</script>
+</div>
+
+<p class="form-section-title"><?= $GLOBAL['contactTypeMatrixTitle'] ?></p>
+<p class="text-muted small"><?= $GLOBAL['contactTypeMatrixHelp'] ?></p>
+
+<?php if (empty($_ctComptaTypes)): ?>
+<p class="text-muted"><?= $GLOBAL['contactTypeMatrixNoComptaTypes'] ?></p>
+<?php else: ?>
+<div class="mb-4">
+  <div class="table-responsive">
+  <table id="contact-type-matrix-table" class="table table-sm table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th><?= $GLOBAL['contactTypeMatrixComptaType'] ?></th>
+        <?php foreach ($_ctRows as $_ct): ?>
+        <th class="text-center">
+          <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none ctm-col-toggle"
+                  data-contact-type-id="<?= (int)$_ct->id ?>"
+                  title="<?= htmlspecialchars(sprintf($GLOBAL['contactTypeMatrixToggleColumn'], $_ct->label), ENT_QUOTES, $charset) ?>">
+            <?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?>
+          </button>
+        </th>
+        <?php endforeach ?>
+      </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($_ctComptaTypes as $_compTy): ?>
+      <tr>
+        <td><?= htmlspecialchars($_compTy->label, ENT_QUOTES, $charset) ?></td>
+        <?php foreach ($_ctRows as $_ct): ?>
+        <?php
+          $_restricted = $_ctMatrix[(int)$_ct->id] ?? [];
+          $_checked = empty($_restricted) || in_array((int)$_compTy->id, $_restricted, true);
+        ?>
+        <td class="text-center">
+          <input type="checkbox" class="form-check-input ctm-cell"
+                 data-contact-type-id="<?= (int)$_ct->id ?>" value="<?= (int)$_compTy->id ?>"
+                 <?= $_checked ? 'checked' : '' ?>
+                 aria-label="<?= htmlspecialchars($_compTy->label . ' — ' . $_ct->label, ENT_QUOTES, $charset) ?>">
+        </td>
+        <?php endforeach ?>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+  </div>
+  <p class="text-muted small mb-0"><?= $GLOBAL['contactTypeMatrixUncheckAllHelp'] ?></p>
+  <div id="contact-type-matrix-status" class="small text-success mt-1" style="min-height:1.2em"></div>
+</div>
+<script>
+(function () {
+  var table = document.getElementById('contact-type-matrix-table');
+  if (!table) return;
+  var status  = document.getElementById('contact-type-matrix-status');
+  var baseUrl = <?= json_encode(appUrl()) ?>;
+  var savedMsg = <?= json_encode($GLOBAL['contactTypeMatrixSavedMsg']) ?>;
+  var errMsg   = <?= json_encode($GLOBAL['error'] ?? 'Erreur') ?>;
+  var statusTimer = null;
+
+  function showStatus(text, isError) {
+    clearTimeout(statusTimer);
+    status.textContent = text;
+    status.classList.toggle('text-danger', !!isError);
+    status.classList.toggle('text-success', !isError);
+    statusTimer = setTimeout(function () { status.textContent = ''; }, 2500);
+  }
+
+  function saveColumn(contactTypeId) {
+    var checked = Array.from(table.querySelectorAll('.ctm-cell[data-contact-type-id="' + contactTypeId + '"]:checked'))
+      .map(function (cb) { return cb.value; });
+    var body = new URLSearchParams();
+    body.append('action', 'updateContactTypeComptaMatrixColumn');
+    body.append('contact_type_id', contactTypeId);
+    checked.forEach(function (v) { body.append('compta_type_ids[]', v); });
+    fetch(baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true', 'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : '' },
+      body: body.toString()
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) { showStatus(data.ok ? savedMsg : errMsg, !data.ok); })
+      .catch(function () { showStatus(errMsg, true); });
+  }
+
+  table.addEventListener('change', function (e) {
+    if (!e.target.classList.contains('ctm-cell')) return;
+    saveColumn(e.target.dataset.contactTypeId);
+  });
+
+  table.querySelectorAll('.ctm-col-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var contactTypeId = btn.dataset.contactTypeId;
+      var boxes = table.querySelectorAll('.ctm-cell[data-contact-type-id="' + contactTypeId + '"]');
+      var allChecked = Array.from(boxes).every(function (cb) { return cb.checked; });
+      boxes.forEach(function (cb) { cb.checked = !allChecked; });
+      saveColumn(contactTypeId);
+    });
+  });
+})();
+</script>
+<?php endif ?>
+
+<p class="form-section-title"><?= $GLOBAL['contactTypesClassifyTitle'] ?></p>
 <p class="text-muted small"><?= $GLOBAL['contactTypesHelp'] ?></p>
 
 <?php if ($_ctAppliedCount !== null): ?>

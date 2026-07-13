@@ -36,6 +36,7 @@ if ($action === 'sendComptaRecap') {
     $byMember = mbRecapLoadEntries(db(), null, $recapYear);
     if (empty($byMember)) { $redirect('recapOk=0'); }
 
+    $bcc = !empty($_REQUEST['bcc']) && trim($appSettings['smtp_reply_to'] ?? '') !== '';
     $sentCount = 0; $skipCount = 0; $failCount = 0; $notifiedIds = [];
 
     foreach ($byMember as $userId => $entries) {
@@ -50,7 +51,7 @@ if ($action === 'sendComptaRecap') {
         $sinceLine = mbRecapSinceLine($recapYear, false, strtotime($first['date']));
         [$vars, $ids, $total] = mbRecapBuildVars($entries, $appSettings);
         $vars['since_line']   = $sinceLine;
-        $result = mbSendTemplate(db(), $first['email'], 'tpl_compta_recap', $vars, (int)$userId);
+        $result = mbSendTemplate(db(), $first['email'], 'tpl_compta_recap', $vars, (int)$userId, $bcc);
         if ($result === true) {
             $sentCount++;
             $notifiedIds = array_merge($notifiedIds, $ids);
@@ -119,7 +120,8 @@ if ($action === 'sendComptaRecap') {
 
     [$vars, $ids, $total] = mbRecapBuildVars($entries, $appSettings);
     $vars['since_line'] = $sinceLine;
-    $result = mbSendTemplate(db(), $first['email'], 'tpl_compta_recap', $vars, $userId);
+    $bcc    = !empty($_REQUEST['bcc']) && trim($appSettings['smtp_reply_to'] ?? '') !== '';
+    $result = mbSendTemplate(db(), $first['email'], 'tpl_compta_recap', $vars, $userId, $bcc);
     $ok     = $result === true;
 
     if ($ok) {

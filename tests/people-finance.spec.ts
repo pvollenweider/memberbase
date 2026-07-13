@@ -30,6 +30,8 @@ test.describe('People/finance hub — Phase 1', () => {
     // No duplicate title inside the embedded pane (suppressed via $_pfEmbedded)
     await expect(page.locator('#pf-tab-recap h1')).toHaveCount(0);
     await expect(page.locator('#pf-tab-recap #recap-extended-toggle')).toBeVisible();
+    // BCC checkbox absent — seed has no smtp_reply_to configured
+    await expect(page.locator('#pf-tab-recap #recap-bulk-bcc')).toHaveCount(0);
   });
 
   test('all three tabs execute in one request without variable collisions', async ({ page }) => {
@@ -94,6 +96,32 @@ test.describe('People/finance hub — Phase 1', () => {
     await expect(page).toHaveURL(/view=peopleFinance/);
     await expect(page).toHaveURL(/tab=recap/);
   });
+
+  test('Cotisations non renouvelées tab shows the lapsed members table (manager)', async ({ page }) => {
+    await page.goto('/index.php?view=peopleFinance&tab=lapsed');
+    await expect(page.locator('#pf-tab-lapsed-btn')).toHaveClass(/active/);
+    await expect(page.locator('#pf-tab-lapsed table')).toBeVisible();
+    // No redundant "back to donation overview" link — this is a peer tab now
+    await expect(page.locator('#pf-tab-lapsed', { hasText: 'aperçu des dons' })).toHaveCount(0);
+  });
+
+  test('Cotisations non renouvelées tab: changing the year filter stays inside the hub', async ({ page }) => {
+    await page.goto('/index.php?view=peopleFinance&tab=lapsed');
+    await page.locator('#pf-tab-lapsed .dropdown-toggle', { hasText: String(new Date().getFullYear()) }).click();
+    const yearLink = page.locator('#pf-tab-lapsed .dropdown-menu.show a', { hasText: String(new Date().getFullYear() - 1) }).first();
+    await yearLink.click();
+    await expect(page).toHaveURL(/view=peopleFinance/);
+    await expect(page).toHaveURL(/tab=lapsed/);
+    await expect(page.locator('#pf-tab-lapsed-btn')).toHaveClass(/active/);
+  });
+
+  test('standalone ?view=lapsedMembers no longer exists — redirects into the hub', async ({ page }) => {
+    await page.goto('/index.php?view=lapsedMembers&year=2025');
+    await expect(page).toHaveURL(/view=peopleFinance/);
+    await expect(page).toHaveURL(/tab=lapsed/);
+    await expect(page).toHaveURL(/year=2025/);
+    await expect(page.locator('#pf-tab-lapsed-btn')).toHaveClass(/active/);
+  });
 });
 
 test.describe('People/finance hub — role guard on Relances tab', () => {
@@ -102,5 +130,6 @@ test.describe('People/finance hub — role guard on Relances tab', () => {
   test('Relances cotisation tab is hidden for a non-manager role', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance');
     await expect(page.locator('#pf-tab-recap-btn')).toHaveCount(0);
+    await expect(page.locator('#pf-tab-lapsed-btn')).toHaveCount(0);
   });
 });

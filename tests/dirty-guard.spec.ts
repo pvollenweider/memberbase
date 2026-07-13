@@ -55,7 +55,7 @@ test('clean page navigates without dialog', async ({ page }) => {
 });
 
 test('segment filter input (data-no-dirty exclusion) does not mark dirty', async ({ page }) => {
-  await page.goto('/index.php');
+  await page.goto('/index.php?view=list');
   // #segment-filter-input is in the guard's exclusion list
   await page.click('#navbarDropdown');
   await page.fill('#segment-filter-input', 'xyz');

@@ -13,74 +13,16 @@ $inactiveUsers = db()->query(
      ORDER BY society, lastName, firstName"
 )->fetchAll(PDO::FETCH_OBJ);
 $allSegments = db()->query("SELECT id, name, hidden FROM segment ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
+require_once __DIR__ . '/../partials/settings_nav.php';
 ?>
 <div class="row justify-content-center mt-4">
   <div class="col-12 col-xl-10">
 
+    <?php mbRenderSettingsMobileSelect('inactiveUsers', true); ?>
+
     <div class="ca-settings-layout">
 
-      <!-- Sidebar nav (same as settings_form.php) -->
-      <nav class="ca-settings-nav" aria-label="<?= $GLOBAL['settingsSectionsAria'] ?>">
-        <ul role="tablist" aria-orientation="vertical" id="settings-tabs">
-          <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=groups"
-               style="text-decoration:none">
-              <i class="fas fa-users fa-fw" aria-hidden="true"></i><?= $GLOBAL['groups'] ?>
-            </a>
-          </li>
-          <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=categories"
-               style="text-decoration:none">
-              <i class="fas fa-tag fa-fw" aria-hidden="true"></i><?= $GLOBAL['categories'] ?>
-            </a>
-          </li>
-          <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=filters"
-               style="text-decoration:none">
-              <i class="fas fa-layer-group fa-fw" aria-hidden="true"></i><?= $GLOBAL['combinedSegments'] ?>
-            </a>
-          </li>
-          <?php if (isAdmin()): ?>
-          <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['administration'] ?></li>
-          <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=compta"
-               style="text-decoration:none">
-              <i class="fas fa-tags fa-fw" aria-hidden="true"></i><?= $GLOBAL['comptaTypes'] ?>
-            </a>
-          </li>
-          <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=settings"
-               style="text-decoration:none">
-              <i class="fas fa-sliders fa-fw" aria-hidden="true"></i><?= $GLOBAL['settings'] ?>
-            </a>
-          </li>
-          <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=users"
-               style="text-decoration:none">
-              <i class="fas fa-user-shield fa-fw" aria-hidden="true"></i><?= $GLOBAL['users'] ?>
-            </a>
-          </li>
-          <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=audit"
-               style="text-decoration:none">
-              <i class="fas fa-clock-rotate-left fa-fw" aria-hidden="true"></i><?= $GLOBAL['journal'] ?>
-            </a>
-          </li>
-          <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=settings&tab=integrity"
-               style="text-decoration:none">
-              <i class="fas fa-stethoscope fa-fw" aria-hidden="true"></i><?= $GLOBAL['integrity'] ?>
-            </a>
-          </li>
-          <li role="presentation">
-            <a class="ca-settings-nav-btn ca-settings-nav-btn--active" href="<?= appUrl() ?>?view=inactiveUsers"
-               style="text-decoration:none" aria-current="page">
-              <i class="fas fa-archive fa-fw" aria-hidden="true"></i><?= $GLOBAL['archived'] ?>
-            </a>
-          </li>
-          <?php endif ?>
-        </ul>
-      </nav>
+      <?php mbRenderSettingsNav('inactiveUsers', true); ?>
 
       <!-- Content -->
       <div class="ca-settings-content">

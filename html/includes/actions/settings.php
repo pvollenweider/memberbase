@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'applyContactTypes'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'applyContactTypes', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -184,7 +184,7 @@ if ($action == 'saveSettings') {
     // Flags absent from the request keep their current value: the inline edit
     // form only sends label/color/order — it must not reset the flags to 0
     // (only the flag-toggle mini-forms send them explicitly).
-    $_ctCur = db()->prepare("SELECT is_cotisation, is_excluded_from_donation, is_institutional, is_financial_institution, is_company FROM compta_type WHERE id=?");
+    $_ctCur = db()->prepare("SELECT is_cotisation, is_excluded_from_donation, is_institutional, is_financial_institution, is_company, is_archived FROM compta_type WHERE id=?");
     $_ctCur->execute([$id]);
     $_ctCurRow = $_ctCur->fetchObject();
     $isCotisation    = isset($_REQUEST['is_cotisation']) ? (int)$_REQUEST['is_cotisation'] : (int)($_ctCurRow->is_cotisation ?? 0);
@@ -192,9 +192,10 @@ if ($action == 'saveSettings') {
     $isInstitutional = isset($_REQUEST['is_institutional']) ? (int)$_REQUEST['is_institutional'] : (int)($_ctCurRow->is_institutional ?? 0);
     $isFinancial     = isset($_REQUEST['is_financial_institution']) ? (int)$_REQUEST['is_financial_institution'] : (int)($_ctCurRow->is_financial_institution ?? 0);
     $isCompany       = isset($_REQUEST['is_company']) ? (int)$_REQUEST['is_company'] : (int)($_ctCurRow->is_company ?? 0);
+    $isArchived      = isset($_REQUEST['is_archived']) ? (int)$_REQUEST['is_archived'] : (int)($_ctCurRow->is_archived ?? 0);
     $color = mbValidComptaTypeColor($_REQUEST['color'] ?? 'bg-light');
     if ($id > 0 && $label !== '') {
-        db()->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=?, is_institutional=?, is_financial_institution=?, is_company=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $isInstitutional, $isFinancial, $isCompany, $id]);
+        db()->prepare("UPDATE compta_type SET label=?, color=?, sort_order=?, is_cotisation=?, is_excluded_from_donation=?, is_institutional=?, is_financial_institution=?, is_company=?, is_archived=? WHERE id=?")->execute([$label, $color, $sortOrder, $isCotisation, $isExcluded, $isInstitutional, $isFinancial, $isCompany, $isArchived, $id]);
         // Only sent by the edit form — the flag-toggle mini-forms omit it and
         // must not wipe the stored value.
         if (isset($_REQUEST['default_libele'])) {
@@ -233,6 +234,42 @@ if ($action == 'saveSettings') {
     $_returnView = ($_REQUEST['returnView'] ?? '') === 'settings' ? 'settings' : 'contactTypes';
     $_ctUrl = appUrl() . '?view=' . $_returnView . '&tab=contactTypes&contactTypesApplied=' . $_appliedCount;
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { header('Location: ' . $_ctUrl); }
+    exit;
+
+} elseif ($action === 'updateContactTypeLabel') {
+    $_ctlId = (int)($_REQUEST['id'] ?? 0);
+    $_ctlLabel = trim(unquote($_REQUEST['label'] ?? ''));
+    // Strip a pasted "fa-" prefix and anything but Font Awesome's own
+    // charset (letters/digits/hyphen) — rendered inside a class="fas fa-…"
+    // attribute, so this also guards against breaking out of it.
+    $_ctlIcon = preg_replace('/[^a-z0-9-]/', '', strtolower(trim((string)($_REQUEST['icon'] ?? ''))));
+    $_ctlIcon = preg_replace('/^fa-/', '', $_ctlIcon);
+    if ($_ctlId > 0 && $_ctlLabel !== '') {
+        $_ctlBefore = db()->prepare("SELECT label FROM contact_type WHERE id=?");
+        $_ctlBefore->execute([$_ctlId]);
+        $_ctlOldLabel = (string)($_ctlBefore->fetchColumn() ?: '');
+        db()->prepare("UPDATE contact_type SET label=?, icon=? WHERE id=?")->execute([$_ctlLabel, $_ctlIcon, $_ctlId]);
+        auditLog(db(), 'updateContactTypeLabel', "id=$_ctlId | «$_ctlOldLabel» → «$_ctlLabel» | icon=$_ctlIcon");
+    }
+    $_returnView = ($_REQUEST['returnView'] ?? '') === 'settings' ? 'settings' : 'contactTypes';
+    $_ctlUrl = appUrl() . '?view=' . $_returnView . '&tab=contactTypes&contactTypeLabelSaved=' . $_ctlId;
+    if ($isHtmx) { header('HX-Location: ' . $_ctlUrl); } else { header('Location: ' . $_ctlUrl); }
+    exit;
+
+} elseif ($action === 'updateContactTypeComptaMatrixColumn') {
+    // Auto-save: fired on every checkbox change, one contact_type_id column
+    // at a time — see settings_contact_types.php's inline script. Discard
+    // the already-buffered full-page HTML (index.php wraps everything in
+    // ob_start() before dispatching, even for non-htmx requests) so the
+    // response body is JSON only.
+    while (ob_get_level()) { ob_end_clean(); }
+    require_once __DIR__ . '/../lib/contact_type.php';
+    header('Content-Type: application/json; charset=utf-8');
+    $_ctmContactTypeId  = (int)($_REQUEST['contact_type_id'] ?? 0);
+    $_ctmComptaTypeIds  = array_map('intval', (array)($_REQUEST['compta_type_ids'] ?? []));
+    mbSaveContactTypeComptaMatrixRow(db(), $_ctmContactTypeId, $_ctmComptaTypeIds);
+    auditLog(db(), 'updateContactTypeComptaMatrixColumn', "contact_type_id=$_ctmContactTypeId | compta_type_ids=" . implode(',', $_ctmComptaTypeIds));
+    echo json_encode(['ok' => true]);
     exit;
 
 } elseif ($action === 'purgeEmailLog') {

@@ -8,19 +8,33 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard', () => {
-  test('reachable via ?view=dashboard, shows KPI and task panels', async ({ page }) => {
+  test('reachable via ?view=dashboard, shows shortcuts and documentation panels', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
     await expect(page.locator('h1', { hasText: 'Tableau de bord' })).toBeVisible();
-    await expect(page.locator('.card-header', { hasText: 'En un coup d’œil' }).or(page.locator('.card-header', { hasText: "En un coup d'œil" }))).toBeVisible();
+    await expect(page.locator('.card-header', { hasText: 'Raccourcis' })).toBeVisible();
     await expect(page.locator('.card-header', { hasText: 'Documentation' })).toBeVisible();
   });
 
-  test('unpaid cotisation KPI links to the lapsed members view', async ({ page }) => {
+  test('admin guide link is no longer shown, user guide link stays', async ({ page }) => {
+    await page.goto('/index.php?view=dashboard');
+    await expect(page.locator('a', { hasText: 'Guide utilisateur' })).toBeVisible();
+    await expect(page.locator('a', { hasText: 'Guide administrateur' })).toHaveCount(0);
+  });
+
+  test('tasks card and nav link are removed', async ({ page }) => {
+    await page.goto('/index.php?view=dashboard');
+    await expect(page.locator('.card-header', { hasText: 'Tâches à traiter' })).toHaveCount(0);
+    await expect(page.locator('.navbar-nav .nav-link', { hasText: 'Tâches' })).toHaveCount(0);
+  });
+
+  test('unpaid cotisation KPI links to the lapsed members tab in the hub', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
     const kpiLink = page.locator('a', { hasText: 'Cotisation' });
     await expect(kpiLink).toBeVisible();
     await kpiLink.click();
-    await expect(page).toHaveURL(/view=lapsedMembers/);
+    await expect(page).toHaveURL(/view=peopleFinance/);
+    await expect(page).toHaveURL(/tab=lapsed/);
+    await expect(page.locator('#pf-tab-lapsed-btn')).toHaveClass(/active/);
   });
 
   test('nav bar exposes a dashboard shortcut, active state highlights it', async ({ page }) => {
@@ -35,9 +49,9 @@ test.describe('Dashboard', () => {
     await expect(page).toHaveURL(/view=peopleFinance/);
   });
 
-  test('bare landing (no view param) is unaffected — still the member list', async ({ page }) => {
+  test('bare landing (no view param) defaults to the dashboard', async ({ page }) => {
     await page.goto('/index.php');
-    await expect(page.locator('h1', { hasText: 'Tableau de bord' })).not.toBeVisible();
+    await expect(page.locator('h1', { hasText: 'Tableau de bord' })).toBeVisible();
   });
 
   test('compta search shortcut: typing a name shows results, clicking jumps to the member\'s Compta tab', async ({ page }) => {

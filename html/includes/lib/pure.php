@@ -192,10 +192,50 @@ function mbComptaTypeReturnUrl(?string $returnView, ?string $returnTab): string
     return '?view=' . $view . '&tab=' . $tab;
 }
 
+/**
+ * Default $view when the request has no explicit `view` param. Bare
+ * `?segment=X` / `?combinedSegment=X` / `?searchString=X` / `?contactTypeId=X`
+ * links exist all over the app (quick filters, segment dropdown, lapsed-segment
+ * creation redirect…) built without `view=list` since `list` used to be the
+ * unconditional default — falls back to `list` when any of those filter
+ * params are present, `dashboard` otherwise (landing page, #153).
+ */
+function mbDefaultView(array $request): string
+{
+    if (isset($request['view'])) {
+        return (string)$request['view'];
+    }
+    $listFilterParams = ['segment', 'combinedSegment', 'searchString', 'contactTypeId'];
+    foreach ($listFilterParams as $param) {
+        if (isset($request[$param])) {
+            return 'list';
+        }
+    }
+    return 'dashboard';
+}
+
 const CONTACT_TYPE_PRIVATE     = 'private';
 const CONTACT_TYPE_INSTITUTION = 'institution';
 const CONTACT_TYPE_FINANCIAL   = 'financial';
 const CONTACT_TYPE_COMPANY     = 'company';
+
+/**
+ * Filters $comptaTypeIds (all non-archived compta_type ids) down to the ones
+ * selectable when creating an entry for a contact of a given contact_type.
+ * Permissive by default: an empty $restrictedIds (no matrix row configured
+ * for that contact_type) means every non-archived type stays offered.
+ *
+ * @param int[] $comptaTypeIds  candidate ids (already excludes archived types)
+ * @param int[] $restrictedIds  contact_type_compta_type rows for this contact_type
+ * @return int[]
+ */
+function mbAllowedComptaTypeIds(array $comptaTypeIds, array $restrictedIds): array
+{
+    if (empty($restrictedIds)) {
+        return $comptaTypeIds;
+    }
+    return array_values(array_intersect($comptaTypeIds, $restrictedIds));
+}
 
 /**
  * Contact type classification rule (issue #165), priority order, first

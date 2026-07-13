@@ -294,10 +294,15 @@ foreach ($comptaTypes as $_ctId => $_ctObj) {
 }
 ?>
 <?php if (canWrite()): ?>
+<?php
+require_once __DIR__ . '/../lib/contact_type.php';
+$_addAllowedTypeIds = mbAllowedComptaTypeIdsForContact(db(), $user->getContactTypeId(), (array)$comptaTypes);
+?>
 <tr>
     <td>
         <select name="type_id" id="ca-add-type" class="form-control">
             <?php foreach ($comptaTypes as $ct): ?>
+            <?php if (!in_array((int)$ct->id, $_addAllowedTypeIds, true)) continue; ?>
             <option value="<?= (int)$ct->id ?>"><?= htmlentities($ct->label, ENT_COMPAT, $charset) ?></option>
             <?php endforeach ?>
         </select>

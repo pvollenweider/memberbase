@@ -34,10 +34,6 @@ if (isset ($_REQUEST["searchString"])) {
                    href="<?= appUrl() ?>?view=journals" title="<?= $GLOBAL['journalsPageTitle'] ?>" aria-label="<?= $GLOBAL['journalsPageTitle'] ?>">
                     <i class="fas fa-book"></i>
                 </a>
-                <a class="nav-link text-white px-2<?= $view === 'tasks' ? ' opacity-100' : ' opacity-75' ?>"
-                   href="<?= appUrl() ?>?view=tasks" title="<?= $GLOBAL['tasks'] ?>" aria-label="<?= $GLOBAL['tasks'] ?>">
-                    <i class="fas fa-list-check"></i>
-                </a>
             </div>
             <!-- Right: search, settings, user -->
             <div class="d-flex align-items-center gap-1">
@@ -84,9 +80,6 @@ if (isset ($_REQUEST["searchString"])) {
                 </li>
                 <li class="nav-item<?= in_array($view, ['journals','lastEntryCompta','lastEntrySuivi']) ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=journals"><i class="fas fa-book me-1" aria-hidden="true"></i><?= $GLOBAL['journalsPageTitle'] ?></a>
-                </li>
-                <li class="nav-item<?= $view == 'tasks' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= appUrl() ?>?view=tasks"><i class="fas fa-list-check me-1" aria-hidden="true"></i><?= $GLOBAL['tasks'] ?></a>
                 </li>
             </ul>
 

@@ -8,8 +8,10 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $showAll             = isset($_REQUEST['showAll']) && $_REQUEST['showAll'] == '1';
 $includeAttestation  = !isset($_REQUEST['includeAttestation']) || $_REQUEST['includeAttestation'] == '1';
-$minSum              = $showAll ? 0 : max(0, (int)(isset($_REQUEST['minSum']) ? $_REQUEST['minSum'] : 100));
-if (!$showAll && !in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 100; }
+// CHF 300 is the Swiss threshold above which a donation is normally
+// tax-deductible without a specific request — default filter and preset.
+$minSum              = $showAll ? 0 : max(0, (int)(isset($_REQUEST['minSum']) ? $_REQUEST['minSum'] : 300));
+if (!$showAll && !in_array($minSum, [1, 100, 200, 300, 500, 1000])) { $minSum = 300; }
 
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year === -1) { $year = (int)date("Y"); }
@@ -269,7 +271,7 @@ rendered on the standalone page, not when embedded in the hub (#164). */ ?>
     </div>
     <?php if (!empty($_kMembresLapsed) && $_kMembresLapsed > 0): ?>
     <div style="font-size:0.75rem;margin-top:0.3rem">
-      <a href="<?= appUrl() ?>?view=lapsedMembers&amp;year=<?= $year ?>"
+      <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed&amp;year=<?= $year ?>"
          title="<?= sprintf($GLOBAL['membersNotRenewed'], $year-1, $year) ?>"
          style="color:var(--bs-danger);text-decoration:none"
          hx-boost="false"
@@ -376,7 +378,7 @@ if ($_showPie) {
       <?= $_amountLabel ?>
     </button>
     <ul class="dropdown-menu">
-      <?php foreach ([1, 100, 200, 500, 1000] as $_ms): ?>
+      <?php foreach ([1, 100, 200, 300, 500, 1000] as $_ms): ?>
       <li><a class="dropdown-item<?= (!$showAll && $minSum == $_ms) ? ' active' : '' ?>"
              href="<?= appUrl() ?>?view=resume&amp;minSum=<?= $_ms ?>&amp;year=<?= $year ?>&amp;includeAttestation=<?= $includeAttestation ? 1 : 0 ?>">
         <?= sprintf($GLOBAL['minAmountChf'], number_format($_ms, 0, '.', '\'')) ?>

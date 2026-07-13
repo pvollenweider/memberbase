@@ -4,7 +4,7 @@
  *
  * Data is passed via data-* attributes on the root element:
  *   data-member-id, data-initial (JSON), data-gender-labels (JSON),
- *   data-contact-type-labels (JSON, id => label)
+ *   data-contact-type-labels (JSON, id => label), data-contact-type-icons (JSON, id => FA icon name)
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -20,12 +20,14 @@ function memberGeneralForm() {
         draft:        {},
         genderLabels: {},
         contactTypeLabels: {},
+        contactTypeIcons: {},
 
         init() {
             this.memberId          = parseInt(this.$el.dataset.memberId || '0', 10);
             this.data              = JSON.parse(this.$el.dataset.initial           || '{}');
             this.genderLabels      = JSON.parse(this.$el.dataset.genderLabels      || '{}');
             this.contactTypeLabels = JSON.parse(this.$el.dataset.contactTypeLabels || '{}');
+            this.contactTypeIcons  = JSON.parse(this.$el.dataset.contactTypeIcons  || '{}');
             this.draft             = { ...this.data };
         },
 

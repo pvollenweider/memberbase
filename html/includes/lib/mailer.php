@@ -535,13 +535,13 @@ function mbGetTemplate(PDO $pdo, string $key): object
  * @param array  $vars    Placeholder values
  * @return bool
  */
-function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars, ?int $userId = null): bool|string
+function mbSendTemplate(PDO $pdo, string $to, string $tplKey, array $vars, ?int $userId = null, bool $bcc = false): bool|string
 {
     $tpl      = mbGetTemplate($pdo, $tplKey);
     $subject  = mbRenderTemplate($tpl->subject,   $vars);
     $bodyText = mbRenderTemplate($tpl->body_text, $vars);
     $bodyHtml = isset($tpl->body_html) ? mbRenderTemplate($tpl->body_html, $vars) : '';
-    return mbSendMailWithError($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText, $userId, $tplKey);
+    return mbSendMailWithError($pdo, $to, $subject, $bodyHtml !== '' ? $bodyHtml : $bodyText, $bodyText, $userId, $tplKey, [], $bcc);
 }
 
 /**

@@ -24,6 +24,14 @@ $_isCotiType = isset($comptaTypes[(int)$typeId]) && (int)$comptaTypes[(int)$type
 $_cotiTypeIdsEdit = array_values(array_map('intval',
     array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1))
 ));
+require_once __DIR__ . '/../lib/contact_type.php';
+// Always keep the entry's current type selectable even if it's since been
+// archived or excluded from the matrix — only the CHOICES for switching to
+// a different type are restricted, an already-saved entry never disappears.
+$_editAllowedTypeIds = array_unique(array_merge(
+    mbAllowedComptaTypeIdsForContact(db(), $user->getContactTypeId(), (array)$comptaTypes),
+    [(int)$typeId]
+));
 ?>
 
 <div class="row justify-content-center mt-3">
@@ -50,6 +58,7 @@ $_cotiTypeIdsEdit = array_values(array_map('intval',
         <div class="col-8 col-sm-9">
           <select name="type_id" class="form-select form-select-sm" id="type_id">
             <?php foreach ($comptaTypes as $ct): ?>
+            <?php if (!in_array((int)$ct->id, $_editAllowedTypeIds, true)) continue; ?>
             <option value="<?= (int)$ct->id ?>" <?= $typeId == $ct->id ? 'selected' : '' ?>>
               <?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>
             </option>

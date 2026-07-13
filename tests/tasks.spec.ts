@@ -31,10 +31,12 @@ test.describe.serial('Tasks', () => {
     await expect(page.locator('text=Task E2E overdue')).toBeVisible({ timeout: 10_000 });
   });
 
-  test('overdue task shows red badge on member fiche tab', async ({ page }) => {
+  test('tasks tab is hidden from the member fiche nav for now', async ({ page }) => {
     await page.goto(`/index.php?view=generalData&userid=${USER_ID}`);
-    const tasksTab = page.locator('a', { hasText: 'Tâches' });
-    await expect(tasksTab.locator('.badge.bg-danger')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.nav-tabs a', { hasText: 'Tâches' })).toHaveCount(0);
+    // Direct navigation to the route still works — only the nav entry is hidden.
+    await page.goto(`/index.php?view=memberTasks&userid=${USER_ID}`);
+    await expect(page.locator('text=Task E2E overdue')).toBeVisible({ timeout: 10_000 });
   });
 
   test('overdue task appears in global tasks view', async ({ page }) => {

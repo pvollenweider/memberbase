@@ -66,6 +66,16 @@ if ($fromSegment > 0) {
         </div>
       </div>
       <div class="row mb-2 align-items-center">
+        <label for="contact_type_id" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end" style="font-size:0.82rem"><?= $GLOBAL['contactTypesTitle'] ?></label>
+        <div class="col-8 col-sm-9">
+          <select id="contact_type_id" name="contact_type_id" class="form-select form-select-sm">
+            <?php foreach (db()->query("SELECT id, label FROM contact_type ORDER BY sort_order")->fetchAll(PDO::FETCH_OBJ) as $_ct): ?>
+            <option value="<?= (int)$_ct->id ?>"><?= htmlspecialchars($_ct->label, ENT_QUOTES, $charset) ?></option>
+            <?php endforeach ?>
+          </select>
+        </div>
+      </div>
+      <div class="row mb-2 align-items-center">
         <label for="title" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end" style="font-size:0.82rem"><?= $GLOBAL['title'] ?></label>
         <div class="col-8 col-sm-9">
           <input type="text" id="title" name="title" class="form-control form-control-sm"

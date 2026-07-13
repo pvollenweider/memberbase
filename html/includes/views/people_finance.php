@@ -1,22 +1,24 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * Unified "Membres & finances" hub — tab shell over the three list views
- * that used to be separate destinations (#164). All three tabs are now
- * fully ported: Membres (users_list.php), Relances cotisation
- * (compta_recap.php, managers only), Dons & attestations
+ * Unified "Membres & finances" hub — tab shell over four list views that
+ * used to be separate destinations (#164). Liste (users_list.php),
+ * Notification de versement (compta_recap.php, managers only — pending
+ * unnotified compta entries), Cotisations non renouvelées
+ * (members_lapsed.php, managers only), Dons & attestations
  * (donors_summary.php — KPI cards/pie already live on the dashboard,
  * #153, so they're suppressed here via $_pfEmbedded).
  *
- * Linked from the navbar ("Membres & finances", desktop and mobile),
- * replacing the old separate Listes / Relances cotisation / Aperçu des
- * dons entries. The three underlying routes (?view=list, ?view=comptaRecap,
- * ?view=resume) still work — only removed from the menu.
+ * Linked from the navbar ("Membres & finances", desktop and mobile). The
+ * underlying standalone routes (?view=list, ?view=comptaRecap, ?view=resume)
+ * still work — only removed from the menu. ?view=lapsedMembers no longer
+ * exists as its own route; it redirects to this hub's "lapsed" tab
+ * (includes/routing/views.php).
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-$_pfTab = in_array($_REQUEST['tab'] ?? '', ['members', 'recap', 'dons'], true) ? $_REQUEST['tab'] : 'members';
+$_pfTab = in_array($_REQUEST['tab'] ?? '', ['members', 'recap', 'lapsed', 'dons'], true) ? $_REQUEST['tab'] : 'members';
 $_pfPane = fn(string $tab): string => $_pfTab === $tab ? ' show active' : '';
 
 // Each tab's content is an independently-written view file, never designed
@@ -51,6 +53,13 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
       <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabRecap'] ?>
     </button>
   </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link<?= $_pfTab === 'lapsed' ? ' active' : '' ?>" id="pf-tab-lapsed-btn"
+            data-bs-toggle="tab" data-bs-target="#pf-tab-lapsed" type="button" role="tab"
+            aria-controls="pf-tab-lapsed" aria-selected="<?= $_pfTab === 'lapsed' ? 'true' : 'false' ?>">
+      <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabLapsed'] ?>
+    </button>
+  </li>
   <?php endif ?>
   <li class="nav-item" role="presentation">
     <button class="nav-link<?= $_pfTab === 'dons' ? ' active' : '' ?>" id="pf-tab-dons-btn"
@@ -69,6 +78,10 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
   <?php if (isManager()): ?>
   <div class="tab-pane fade<?= $_pfPane('recap') ?>" id="pf-tab-recap" role="tabpanel" aria-labelledby="pf-tab-recap-btn">
     <?php $_pfRequireIsolated(__DIR__ . '/compta_recap.php', ['_pfEmbedded' => true]); ?>
+  </div>
+
+  <div class="tab-pane fade<?= $_pfPane('lapsed') ?>" id="pf-tab-lapsed" role="tabpanel" aria-labelledby="pf-tab-lapsed-btn">
+    <?php $_pfRequireIsolated(__DIR__ . '/members_lapsed.php', ['_pfEmbedded' => true]); ?>
   </div>
   <?php endif ?>
 
@@ -89,11 +102,13 @@ document.getElementById('pf-tab-dons-btn')?.addEventListener('shown.bs.tab', fun
   if (window.CA_DT_INSTANCE_DONS) { CA_DT_INSTANCE_DONS.columns.adjust(); }
 });
 
-// Filter links inside the Relances/Dons tabs still point at their own
-// standalone route (?view=comptaRecap / ?view=resume) — rewrite them to
-// stay inside the hub, and keep ?tab= in sync when switching tabs so the
-// current tab is directly linkable.
+// Filter links inside the Relances/Cotisations non renouvelées/Dons tabs
+// still point at their own standalone route (?view=comptaRecap /
+// ?view=lapsedMembers / ?view=resume) — rewrite them to stay inside the
+// hub, and keep ?tab= in sync when switching tabs so the current tab is
+// directly linkable.
 caHubRewriteEmbeddedLinks('#pf-tab-recap', 'comptaRecap', 'peopleFinance', 'recap');
+caHubRewriteEmbeddedLinks('#pf-tab-lapsed', 'lapsedMembers', 'peopleFinance', 'lapsed');
 caHubRewriteEmbeddedLinks('#pf-tab-dons', 'resume', 'peopleFinance', 'dons');
-caHubEnableTabDeepLink('#pf-tab-members-btn, #pf-tab-recap-btn, #pf-tab-dons-btn', /^pf-tab-(\w+)-btn$/);
+caHubEnableTabDeepLink('#pf-tab-members-btn, #pf-tab-recap-btn, #pf-tab-lapsed-btn, #pf-tab-dons-btn', /^pf-tab-(\w+)-btn$/);
 </script>

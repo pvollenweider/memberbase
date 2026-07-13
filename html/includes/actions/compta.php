@@ -15,6 +15,13 @@ $action = $_REQUEST['action'];
 if ($action == 'addCompta') {
     $_rawSum = trim(str_replace(',', '.', $_REQUEST['sum'] ?? ''));
     if (!preg_match('/^[0-9]+(\.[0-9]+)?$/', $_rawSum)) { http_response_code(422); exit; }
+
+    require_once __DIR__ . '/../lib/contact_type.php';
+    $_addUser = new Contact();
+    $_addUser->lookupUser((int)$_REQUEST['userid']);
+    $_addAllowedTypeIds = mbAllowedComptaTypeIdsForContact(db(), $_addUser->getContactTypeId(), (array)$comptaTypes);
+    if (!in_array((int)$_REQUEST['type_id'], $_addAllowedTypeIds, true)) { http_response_code(422); exit; }
+
     $compta = new Compta();
     $compta->userId = (int)$_REQUEST['userid'];
     $compta->setTypeId((int)$_REQUEST['type_id']);
@@ -72,6 +79,18 @@ if ($action == 'addCompta') {
     if (!preg_match('/^[0-9]+(\.[0-9]+)?$/', $_rawSum2)) { http_response_code(422); exit; }
     $compta = new Compta();
     $compta->lookupCompta((int)$_REQUEST['comptaid']);
+
+    require_once __DIR__ . '/../lib/contact_type.php';
+    $_updUser = new Contact();
+    $_updUser->lookupUser((int)$compta->userId);
+    // The entry's ORIGINAL type stays a valid choice (no-op resubmission of
+    // an already-archived/excluded type must not be rejected) — only
+    // switching to a genuinely disallowed type is blocked.
+    $_updAllowedTypeIds = array_unique(array_merge(
+        mbAllowedComptaTypeIdsForContact(db(), $_updUser->getContactTypeId(), (array)$comptaTypes),
+        [(int)$compta->type_id]
+    ));
+    if (!in_array((int)$_REQUEST['type_id'], $_updAllowedTypeIds, true)) { http_response_code(422); exit; }
     $_auBefore2 = [
         'type'           => ($comptaTypes[(int)$compta->type_id]->label ?? "type={$compta->type_id}"),
         'date'           => timeStampToformatedDate((int)$compta->date),

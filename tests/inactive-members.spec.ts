@@ -67,3 +67,23 @@ test.describe.serial('Inactive members', () => {
     }
   });
 });
+
+test.describe('Settings sidebar consistency', () => {
+  test('?view=inactiveUsers shares the same sidebar items as ?view=settings (issue: stale hardcoded duplicate)', async ({ page }) => {
+    await page.goto('/index.php?view=settings&tab=groups');
+    const realNavLabels = await page.locator('.ca-settings-nav .ca-settings-nav-btn').allTextContents();
+
+    await page.goto('/index.php?view=inactiveUsers');
+    const inactiveNavLabels = await page.locator('.ca-settings-nav .ca-settings-nav-btn').allTextContents();
+
+    expect(inactiveNavLabels.map((s) => s.trim())).toEqual(realNavLabels.map((s) => s.trim()));
+    // Regression guard: these three were missing from the old hardcoded copy.
+    expect(inactiveNavLabels.join(' ')).toContain('Type de contact');
+    expect(inactiveNavLabels.join(' ')).toContain('Santé');
+  });
+
+  test('mobile select is present on ?view=inactiveUsers (previously absent entirely)', async ({ page }) => {
+    await page.goto('/index.php?view=inactiveUsers');
+    await expect(page.locator('#settings-select')).toBeAttached();
+  });
+});

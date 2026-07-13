@@ -41,12 +41,15 @@ $_gLabels = json_encode([
 
 // Contact type (#165) — id => label map for the view-mode display and the
 // edit-mode <select> options; always present (4 seeded rows, admin-editable).
-$_contactTypes = db()->query("SELECT id, code, label FROM contact_type ORDER BY sort_order")->fetchAll(PDO::FETCH_OBJ);
+$_contactTypes = db()->query("SELECT id, code, label, icon FROM contact_type ORDER BY sort_order")->fetchAll(PDO::FETCH_OBJ);
 $_ctLabelsById = [];
+$_ctIconsById  = [];
 foreach ($_contactTypes as $_ct) {
     $_ctLabelsById[(string)$_ct->id] = $_ct->label;
+    $_ctIconsById[(string)$_ct->id]  = $_ct->icon !== '' ? $_ct->icon : 'circle-question';
 }
 $_ctLabelsJson = json_encode($_ctLabelsById, JSON_HEX_QUOT | JSON_HEX_TAG | JSON_UNESCAPED_UNICODE);
+$_ctIconsJson  = json_encode($_ctIconsById, JSON_HEX_QUOT | JSON_HEX_TAG | JSON_UNESCAPED_UNICODE);
 
 $_noCotiSegment = (int)($appSettings['member_no_coti_segment'] ?? 0);
 $_showCotiWarn = (int)$_stats->ever_coti > 0
@@ -111,6 +114,7 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
      data-initial="<?= htmlspecialchars($_iData, ENT_QUOTES, 'UTF-8') ?>"
      data-gender-labels="<?= htmlspecialchars($_gLabels, ENT_QUOTES, 'UTF-8') ?>"
      data-contact-type-labels="<?= htmlspecialchars($_ctLabelsJson, ENT_QUOTES, 'UTF-8') ?>"
+     data-contact-type-icons="<?= htmlspecialchars($_ctIconsJson, ENT_QUOTES, 'UTF-8') ?>"
      data-no-dirty>
 
     <template x-if="saved"><div id="casa-save-ok"></div></template>
@@ -157,7 +161,12 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
 
             <div>
                 <div class="ca-field-label"><?= $GLOBAL['contactTypesTitle'] ?></div>
-                <div class="ca-field-value" x-text="contactTypeLabels[data.contactTypeId] ?? data.contactTypeId"></div>
+                <div class="ca-field-value">
+                    <span class="badge rounded-pill text-bg-primary" style="font-size:0.85rem;font-weight:600">
+                        <i class="fas me-1" :class="'fa-' + (contactTypeIcons[data.contactTypeId] ?? 'circle-question')" aria-hidden="true"></i>
+                        <span x-text="contactTypeLabels[data.contactTypeId] ?? data.contactTypeId"></span>
+                    </span>
+                </div>
             </div>
 
             <div x-show="data.title">

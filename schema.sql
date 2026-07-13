@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS `contact_type` (
   `id`         int(11)      NOT NULL AUTO_INCREMENT,
   `code`       varchar(20)  NOT NULL,
   `label`      varchar(255) NOT NULL,
+  `icon`       varchar(50)  NOT NULL DEFAULT '',
   `sort_order` int(11)      NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_contact_type_code` (`code`)
@@ -49,11 +50,11 @@ CREATE TABLE IF NOT EXISTS `contact` (
   CONSTRAINT `fk_contact_contact_type` FOREIGN KEY (`contact_type_id`) REFERENCES `contact_type` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT IGNORE INTO `contact_type` (`id`, `code`, `label`, `sort_order`) VALUES
-  (1, 'private',     'Donateur privé',           0),
-  (2, 'institution',  'Institution',              1),
-  (3, 'financial',    'Établissement financier',  2),
-  (4, 'company',      'Entreprise',               3);
+INSERT IGNORE INTO `contact_type` (`id`, `code`, `label`, `icon`, `sort_order`) VALUES
+  (1, 'private',     'Donateur privé',           'user',              0),
+  (2, 'institution',  'Institution',              'landmark',          1),
+  (3, 'financial',    'Établissement financier',  'building-columns',  2),
+  (4, 'company',      'Entreprise',               'building',          3);
 
 -- Segments (formerly "teams" / groups)
 CREATE TABLE IF NOT EXISTS `segment` (
@@ -154,7 +155,22 @@ CREATE TABLE IF NOT EXISTS `compta_type` (
   `is_institutional`          tinyint(1)   NOT NULL DEFAULT 0,
   `is_financial_institution`  tinyint(1)   NOT NULL DEFAULT 0,
   `is_company`                tinyint(1)   NOT NULL DEFAULT 0,
+  `is_archived`               tinyint(1)   NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Contact type × compta type matrix (issue: entry-type picker restriction).
+-- Permissive by default: a contact_type_id with no rows here is unrestricted
+-- (every non-archived compta_type stays selectable for it); once at least
+-- one row exists for a contact_type_id, only the listed compta_type_ids are
+-- offered when creating an entry for a contact of that type.
+CREATE TABLE IF NOT EXISTS `contact_type_compta_type` (
+  `contact_type_id` int(11) NOT NULL,
+  `compta_type_id`  int(11) NOT NULL,
+  PRIMARY KEY (`contact_type_id`, `compta_type_id`),
+  KEY `idx_ctct_compta_type` (`compta_type_id`),
+  CONSTRAINT `fk_ctct_contact_type` FOREIGN KEY (`contact_type_id`) REFERENCES `contact_type` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ctct_compta_type` FOREIGN KEY (`compta_type_id`) REFERENCES `compta_type` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Accounting entries

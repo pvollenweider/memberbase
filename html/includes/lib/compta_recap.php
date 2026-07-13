@@ -174,17 +174,25 @@ function mbRecapBuildVars(array $entries, array $appSettings): array
         $totalLines .= "\nMontant déductible fiscalement : CHF " . $donationFmt;
     }
 
+    $contactEmail = $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? '');
+
     // Fiscal note: only mention attestation when there are attestable amounts.
+    // CHF 300/year is this org's own threshold for an automatic attestation
+    // (not a fixed legal minimum — Swiss federal law only requires an
+    // aggregate annual total of CHF 100 for the donor's own deduction to
+    // apply); smaller amounts stay deductible and can be attested on request.
+    $_attestBelowThreshold = $contactEmail !== ''
+        ? " Pour un montant inférieur, une attestation peut être demandée à {$contactEmail}."
+        : '';
     $attestNote         = $sumDonation > 0.0
-        ? "Attestation de dons : Une attestation de dons vous sera envoyée au début de l'année prochaine pour votre déclaration fiscale."
+        ? "Attestation de dons : Une attestation de dons vous sera envoyée au début de l'année prochaine pour votre déclaration fiscale, pour un total annuel de dons de CHF 300 ou plus." . $_attestBelowThreshold
         : '';
     $attestNoteHtml     = $sumDonation > 0.0
         ? '<p style="margin-top:20px;padding:14px 16px;background:#eaf4fb;border-left:4px solid #1a5276;font-size:14px;color:#1a5276">'
-          . '<strong>Attestation de dons :</strong> Une attestation de dons vous sera envoyée au début de l\'année prochaine pour votre déclaration fiscale.'
+          . '<strong>Attestation de dons :</strong> Une attestation de dons vous sera envoyée au début de l\'année prochaine pour votre déclaration fiscale, pour un total annuel de dons de CHF 300 ou plus.'
+          . htmlspecialchars($_attestBelowThreshold, ENT_QUOTES, 'UTF-8')
           . '</p>'
         : '';
-
-    $contactEmail = $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? '');
     $first        = $entries[0];
     $salutation   = mbBuildSalutation(
         $first['firstname'] ?? '',

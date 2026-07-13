@@ -34,7 +34,7 @@ include "classes/suivi_task_class.php";
 $isHtmx = !empty($_SERVER['HTTP_HX_REQUEST']);
 if ($isHtmx) {
     $userid = -1;
-    $view = $_REQUEST['view'] ?? 'list';
+    $view = mbDefaultView($_REQUEST);
     include __DIR__ . "/includes/routing/actions.php";
     include __DIR__ . "/includes/routing/views.php";
     ob_end_flush();

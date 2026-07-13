@@ -157,11 +157,17 @@ if ($_extended) {
 <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
   <span class="text-muted small"><i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapPreviewHint'] ?></span>
   <?php if ($_sendableCount > 0): ?>
-  <form method="post" action="<?= appUrl() ?>" class="d-inline">
+  <form method="post" action="<?= appUrl() ?>" class="d-inline d-flex align-items-center gap-2">
     <input type="hidden" name="action" value="sendComptaRecap">
     <input type="hidden" name="view"   value="<?= !empty($_pfEmbedded) ? 'peopleFinance' : 'comptaRecap' ?>">
     <?php if (!empty($_pfEmbedded)): ?><input type="hidden" name="tab" value="recap"><?php endif ?>
     <input type="hidden" name="year"   value="<?= $_year ?>">
+    <?php if (trim($appSettings['smtp_reply_to'] ?? '') !== ''): ?>
+    <div class="form-check mb-0">
+      <input class="form-check-input" type="checkbox" id="recap-bulk-bcc" name="bcc" value="1">
+      <label class="form-check-label small" for="recap-bulk-bcc"><?= sprintf($GLOBAL['sendBccCopyLabel'], htmlspecialchars($appSettings['smtp_reply_to'], ENT_QUOTES, $charset)) ?></label>
+    </div>
+    <?php endif ?>
     <button type="submit" class="btn btn-primary btn-sm">
       <i class="fas fa-paper-plane me-1" aria-hidden="true"></i>
       <?= sprintf($GLOBAL['comptaRecapSendBtn'], $_sendableCount) ?>
@@ -303,6 +309,7 @@ $psmId          = 'recap';
 $psmTitle       = $GLOBAL['comptaRecapModalTitle'];
 $psmCancelLabel = $GLOBAL['comptaRecapSendLater'];
 $psmSendLabel   = $GLOBAL['comptaRecapSendOne'];
+$psmBcc         = trim($appSettings['smtp_reply_to'] ?? '') !== '';
 require __DIR__ . '/../partials/preview_send_modal.php';
 ?>
 
@@ -325,6 +332,7 @@ require __DIR__ . '/../partials/preview_send_modal.php';
     triggerSelector: '.recap-row',
     previewAction: 'previewComptaRecap',
     sendAction: 'sendComptaRecapOne',
+    bcc: <?= $psmBcc ? 'true' : 'false' ?>,
     getMetaText: function (el) { return el.dataset.name + (el.dataset.email ? ' <' + el.dataset.email + '>' : ''); },
     getPreviewParams: function (el) {
       return 'view=comptaRecap&user_id=' + encodeURIComponent(el.dataset.userid)

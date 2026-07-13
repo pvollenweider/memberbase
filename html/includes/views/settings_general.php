@@ -22,91 +22,16 @@ $_paneClass = function(string $tab) use ($_activeTab): string {
     return $active === $tab ? ' show active' : '';
 };
 
-function _settings_nav_item(string $tab, string $icon, string $label, string $activeTab, bool $drillDown, string $self): void {
-    if ($activeTab === 'teams' || $activeTab === 'segments') $activeTab = 'groups';
-    $isActive   = $activeTab === $tab;
-    $activeClass = $isActive ? ' active' : '';
-    if ($drillDown) {
-        $url = htmlspecialchars($self . '?view=settings&tab=' . $tab, ENT_QUOTES);
-        echo '<li role="presentation">'
-           . '<a class="ca-settings-nav-btn' . $activeClass . '" href="' . $url . '" style="text-decoration:none">'
-           . '<i class="' . $icon . ' fa-fw" aria-hidden="true"></i>' . htmlspecialchars($label)
-           . '</a></li>';
-    } else {
-        $ariaSelected = $isActive ? 'true' : 'false';
-        echo '<li role="presentation">'
-           . '<button class="ca-settings-nav-btn' . $activeClass . '" id="tab-' . $tab . '-btn"'
-           . ' data-bs-toggle="tab" data-bs-target="#tab-' . $tab . '"'
-           . ' type="button" role="tab" aria-controls="tab-' . $tab . '" aria-selected="' . $ariaSelected . '">'
-           . '<i class="' . $icon . ' fa-fw" aria-hidden="true"></i>' . htmlspecialchars($label)
-           . '</button></li>';
-    }
-}
+require_once __DIR__ . '/../partials/settings_nav.php';
 ?>
 <div class="row justify-content-center mt-4">
   <div class="col-12 col-xl-10">
 
-    <!-- Mobile: select replaces sidebar on small screens -->
-    <div class="ca-settings-select-wrap">
-      <select class="form-select form-select-sm" id="settings-select" aria-label="<?= $GLOBAL['settingsSectionAria'] ?>">
-        <option value="#tab-groups"><?= $GLOBAL['groups'] ?></option>
-        <option value="#tab-categories"><?= $GLOBAL['categories'] ?></option>
-        <option value="#tab-filters"><?= $GLOBAL['combinedSegments'] ?></option>
-        <?php if (isManager()): ?>
-        <option value="#tab-compta"><?= $GLOBAL['comptaTypes'] ?></option>
-        <?php endif ?>
-        <?php if (isAdmin()): ?>
-        <option value="#tab-contactTypes"><?= $GLOBAL['contactTypesTitle'] ?></option>
-        <option value="#tab-settings"><?= $GLOBAL['settings'] ?></option>
-        <option value="#tab-email"><?= $GLOBAL['smtpSettings'] ?></option>
-        <option value="#tab-users"><?= $GLOBAL['users'] ?></option>
-        <option value="#tab-audit"><?= $GLOBAL['journal'] ?></option>
-        <option value="#tab-integrity"><?= $GLOBAL['integrity'] ?></option>
-        <option value="#tab-health"><?= $GLOBAL['health'] ?></option>
-        <?php endif ?>
-      </select>
-    </div>
+    <?php mbRenderSettingsMobileSelect($_activeTab ?? 'groups', $_settingsDrillDown); ?>
 
     <div class="ca-settings-layout">
 
-      <!-- Sidebar nav -->
-      <nav class="ca-settings-nav" aria-label="<?= $GLOBAL['settingsSectionsAria'] ?>">
-        <ul role="tablist" aria-orientation="vertical" id="settings-tabs">
-          <?php
-          $_navSelf = appUrl();
-          $_navActive = $_activeTab ?? 'groups';
-          _settings_nav_item('groups',     'fas fa-users',       $GLOBAL['groups'],           $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('categories', 'fas fa-tag',         $GLOBAL['categories'],       $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('filters',    'fas fa-layer-group', $GLOBAL['combinedSegments'], $_navActive, $_settingsDrillDown, $_navSelf);
-          if (isManager()):
-          ?>
-          <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['management'] ?></li>
-          <?php
-          _settings_nav_item('compta',     'fas fa-tags',        $GLOBAL['comptaTypes'], $_navActive, $_settingsDrillDown, $_navSelf);
-          if (isAdmin()):
-          _settings_nav_item('contactTypes', 'fas fa-id-card',   $GLOBAL['contactTypesTitle'], $_navActive, $_settingsDrillDown, $_navSelf);
-          endif;
-          endif;
-          if (isAdmin()):
-          ?>
-          <li role="presentation" class="ca-settings-nav-divider" aria-hidden="true"><?= $GLOBAL['administration'] ?></li>
-          <?php
-          _settings_nav_item('settings',   'fas fa-sliders',     $GLOBAL['settings'],     $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('email',      'fas fa-envelope',    $GLOBAL['smtpSettings'], $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('users',      'fas fa-user-shield', $GLOBAL['users'],        $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('audit',      'fas fa-clock-rotate-left', $GLOBAL['journal'], $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('integrity',  'fas fa-stethoscope', $GLOBAL['integrity'], $_navActive, $_settingsDrillDown, $_navSelf);
-          _settings_nav_item('health',     'fas fa-heart-pulse', $GLOBAL['health'],    $_navActive, $_settingsDrillDown, $_navSelf);
-          ?>
-          <li role="presentation">
-            <a class="ca-settings-nav-btn" href="<?= appUrl() ?>?view=inactiveUsers"
-               style="text-decoration:none">
-              <i class="fas fa-archive fa-fw" aria-hidden="true"></i><?= $GLOBAL['archived'] ?>
-            </a>
-          </li>
-          <?php endif ?>
-        </ul>
-      </nav>
+      <?php mbRenderSettingsNav($_activeTab ?? 'groups', $_settingsDrillDown); ?>
 
       <!-- Content panels -->
       <div class="ca-settings-content">

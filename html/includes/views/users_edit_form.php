@@ -94,45 +94,18 @@ $_taskOpenCount    = SuiviTask::openCountForUser($user->getId());
 $_taskOverdueCount = SuiviTask::overdueCountForUser($user->getId());
 ?>
 
-<div class="d-flex align-items-center justify-content-between mb-3 gap-2 flex-wrap" style="border-bottom:1px solid var(--ca-border,#dee2e6);padding-bottom:0.5rem">
-    <div class="d-flex align-items-center gap-1 flex-wrap">
-        <?php $_memberLabel = trim($user->getSociety() . ' ' . $user->getFirstName() . ' ' . $user->getLastName());
-              if ($_memberLabel === '') { $_memberLabel = sprintf($GLOBAL['noNameId'], (int)$user->getId()); } ?>
-        <span class="text-muted small fw-semibold me-2 w-100 w-sm-auto" style="white-space:normal">
-            <?= htmlentities($_memberLabel, ENT_COMPAT, $charset) ?>
-        </span>
-        <a class="btn btn-sm <?= $view === 'generalData' ? 'btn-primary' : 'btn-outline-secondary' ?>"
-           href="<?= appUrl() ?>?view=generalData&amp;userid=<?= $user->getId() ?>">
-            <i class="far fa-id-card me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['generalData'] ?></span><span class="d-sm-none"><?= $GLOBAL['memberSheet'] ?></span>
-        </a>
-        <a class="btn btn-sm <?= $view === 'compta' ? 'btn-primary' : 'btn-outline-secondary' ?>"
-           href="<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?>">
-            <i class="fas fa-file-contract me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?>
-            <?php if ((int)$_stats->compta_count > 0): ?>
-            <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= (int)$_stats->compta_count ?></span>
-            <?php endif ?>
-        </a>
-        <a class="btn btn-sm <?= $view === 'suivi' ? 'btn-primary' : 'btn-outline-secondary' ?>"
-           href="<?= appUrl() ?>?view=suivi&amp;userid=<?= $user->getId() ?>">
-            <i class="far fa-rectangle-list me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?>
-            <?php if ($_suiviCount > 0): ?>
-            <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= $_suiviCount ?></span>
-            <?php endif ?>
-        </a>
-        <a class="btn btn-sm <?= $view === 'memberTasks' ? 'btn-primary' : 'btn-outline-secondary' ?>"
-           href="<?= appUrl() ?>?view=memberTasks&amp;userid=<?= $user->getId() ?>">
-            <i class="fas fa-list-check me-1" aria-hidden="true"></i><?= $GLOBAL['tasks'] ?>
-            <?php if ($_taskOverdueCount > 0): ?>
-            <span class="badge bg-danger ms-1" style="font-size:0.65rem" title="<?= $GLOBAL['taskOverdue'] ?>"><?= $_taskOverdueCount ?></span>
-            <?php elseif ($_taskOpenCount > 0): ?>
-            <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= $_taskOpenCount ?></span>
-            <?php endif ?>
-        </a>
-        <?php if (isAdmin()): ?>
-        <a class="btn btn-sm <?= $view === 'userHistory' ? 'btn-primary' : 'btn-outline-secondary' ?>"
-           href="<?= appUrl() ?>?view=userHistory&amp;userid=<?= $user->getId() ?>">
-            <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['history'] ?></span><span class="d-sm-none"><?= $GLOBAL['historyShort'] ?></span>
-        </a>
+<div class="page-title-row mb-2 d-flex align-items-start justify-content-between gap-2 flex-wrap">
+    <?php
+    $_memberLabel = trim($user->getFirstName() . ' ' . $user->getLastName());
+    $_memberSociety = trim($user->getSociety());
+    if ($_memberLabel === '' && $_memberSociety === '') { $_memberLabel = sprintf($GLOBAL['noNameId'], (int)$user->getId()); }
+    ?>
+    <div>
+        <?php if ($_memberSociety !== ''): ?>
+        <div class="text-muted" style="font-size:1rem;font-weight:600"><?= htmlentities($_memberSociety, ENT_COMPAT, $charset) ?></div>
+        <?php endif ?>
+        <?php if ($_memberLabel !== ''): ?>
+        <h1 class="page-title mb-0"><?= htmlentities($_memberLabel, ENT_COMPAT, $charset) ?></h1>
         <?php endif ?>
     </div>
     <?php if (isManager()): ?>
@@ -153,6 +126,42 @@ $_taskOverdueCount = SuiviTask::overdueCountForUser($user->getId());
     <span class="small text-muted"><?= $user->status ? $GLOBAL['active'] : $GLOBAL['archivedOne'] ?></span>
     <?php endif ?>
 </div>
+
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item" role="presentation">
+        <a class="nav-link<?= $view === 'generalData' ? ' active' : '' ?>"
+           href="<?= appUrl() ?>?view=generalData&amp;userid=<?= $user->getId() ?>">
+            <i class="far fa-id-card me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['generalData'] ?></span><span class="d-sm-none"><?= $GLOBAL['memberSheet'] ?></span>
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link<?= $view === 'compta' ? ' active' : '' ?>"
+           href="<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?>">
+            <i class="fas fa-file-contract me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?>
+            <?php if ((int)$_stats->compta_count > 0): ?>
+            <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= (int)$_stats->compta_count ?></span>
+            <?php endif ?>
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link<?= $view === 'suivi' ? ' active' : '' ?>"
+           href="<?= appUrl() ?>?view=suivi&amp;userid=<?= $user->getId() ?>">
+            <i class="far fa-rectangle-list me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?>
+            <?php if ($_suiviCount > 0): ?>
+            <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= $_suiviCount ?></span>
+            <?php endif ?>
+        </a>
+    </li>
+    <?php /* Tasks tab hidden for now — dashboard shortcuts are the entry point into tasks going forward. */ ?>
+    <?php if (isAdmin()): ?>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link<?= $view === 'userHistory' ? ' active' : '' ?>"
+           href="<?= appUrl() ?>?view=userHistory&amp;userid=<?= $user->getId() ?>">
+            <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['history'] ?></span><span class="d-sm-none"><?= $GLOBAL['historyShort'] ?></span>
+        </a>
+    </li>
+    <?php endif ?>
+</ul>
 
 <?php if ($user->status): ?>
 <div class="modal fade" id="deactivate-modal" tabindex="-1" aria-labelledby="deactivate-modal-label" aria-hidden="true">

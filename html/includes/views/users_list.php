@@ -27,6 +27,8 @@ $unassignSegment = -1;
 if (isset ($_REQUEST["unassignSegment"])) {
     $unassignSegment = $_REQUEST["unassignSegment"];
 }
+$contactTypeId = (int)($_REQUEST['contactTypeId'] ?? 0);
+$_ctFilterOptions = db()->query("SELECT id, label FROM contact_type ORDER BY sort_order")->fetchAll(PDO::FETCH_OBJ);
 
 $allowedColumns = ['lastname', 'firstname', 'society', 'npa', 'email', 'id'];
 $allowedSorts   = ['ASC', 'DESC'];
@@ -46,7 +48,7 @@ if (isset($_REQUEST['year'])) {
 }
 
 // AJAX search is safe when no complex server-side filter is active
-$_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$segment, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
+$_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((int)$segment, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
 
 ?>
 <?php if (!empty($_GET['import_done'])): ?>
@@ -138,9 +140,11 @@ $_ajaxSearchOk = ($combinedSegment === 0 && in_array((int)$segment, [0, FILTER_A
                     <a class="dropdown-item" style="padding-left:1.5rem"
                        href="<?= appUrl() . '?segment=' . FILTER_NO_ACTIVITY_10Y ?>"><?= $GLOBAL['nothingLast10Years'] ?></a>
                     <a class="dropdown-item" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?segment=' . FILTER_UNPAID_COTI_CURRENT ?>"><?= $GLOBAL['cotiUnpayed'] ?></a>
-                    <a class="dropdown-item" style="padding-left:1.5rem"
                        href="<?= appUrl() . '?segment=' . FILTER_NON_INSTIT_LAST_YEAR ?>"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
+                    <?php foreach ($_ctFilterOptions as $_cto): ?>
+                    <a class="dropdown-item<?= $contactTypeId === (int)$_cto->id ? ' active' : '' ?>" style="padding-left:1.5rem"
+                       href="<?= appUrl() . '?contactTypeId=' . (int)$_cto->id ?>"><?= htmlspecialchars($_cto->label, ENT_QUOTES, $charset) ?></a>
+                    <?php endforeach ?>
 
                         <?php
                         $prevCatId = -1;
@@ -328,6 +332,7 @@ if ($segment == FILTER_NO_ACTIVITY_10Y) {
 $_allRows = Contact::listWithFilters([
     'segment'         => (int)$segment,
     'combinedSegment'    => $combinedSegment,
+    'contactTypeId' => $contactTypeId,
     'searchString' => $searchString,
     'action'       => $action,
     'membreSegment' => $membre,

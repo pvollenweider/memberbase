@@ -239,8 +239,8 @@ if ($_REQUEST['action'] == 'updateUser') {
         db()->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$uid]);
         auditLog(db(), 'deactivateUser', 'id=' . $uid . ' | ' . trim($user->firstName . ' ' . $user->lastName), $uid);
     }
-    if ($isHtmx) { header('HX-Location: ' . appUrl()); exit; }
-    header('Location: ' . appUrl()); exit;
+    if ($isHtmx) { header('HX-Location: ' . appUrl() . '?view=list'); exit; }
+    header('Location: ' . appUrl() . '?view=list'); exit;
 
 } elseif ($_REQUEST['action'] == 'reactivateUser') {
     if (!isManager()) { http_response_code(403); exit; }
@@ -256,11 +256,13 @@ if ($_REQUEST['action'] == 'updateUser') {
     header('Location: ' . appUrl() . $redirectTarget); exit;
 
 } elseif ($_REQUEST['action'] == 'addUser') {
+    require_once __DIR__ . '/../lib/contact_type.php';
     $user = new Contact();
     $user->firstName = unquote($_REQUEST['firstName'] ?? '');
     $user->lastName = unquote($_REQUEST['lastName'] ?? '');
     $user->society = unquote($_REQUEST['society'] ?? '');
     $user->sexe = unquote($_REQUEST['sexe'] ?? '');
+    $user->setContactTypeId(mbValidContactTypeId(db(), (int)($_REQUEST['contact_type_id'] ?? 1)));
     $user->title = unquote($_REQUEST['title'] ?? '');
     $user->address = unquote($_REQUEST['address'] ?? '');
     $user->npa = unquote($_REQUEST['npa'] ?? '');

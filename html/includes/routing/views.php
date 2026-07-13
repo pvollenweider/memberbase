@@ -46,8 +46,7 @@ $UA_VIEW_ROUTES = [
     'anonymizeUser'       => ['users_anonymize.php',       'isAdmin'],
     'mergeUsers'          => ['users_merge.php',           'isManager'],
     'inactiveUsers'       => ['users_inactive.php'],
-    'lapsedMembers'       => ['members_lapsed.php'],
-
+    
     // Import CSV (wizard 3 étapes)
     'importStep1'         => ['import_step1.php',          'isManager'],
     'importStep2'         => ['import_step2.php',          'isManager'],
@@ -87,11 +86,18 @@ $UA_VIEW_ROUTES = [
     'changePassword'      => ['auth_change_password.php'],
 ];
 
-$uaRequestedView = $_REQUEST['view'] ?? 'list';
+$uaRequestedView = mbDefaultView($_REQUEST);
 
 // Legacy view — redirect to settings segments tab
 if ($uaRequestedView === 'manageTeam') {
     header('Location: ' . appUrl() . '?view=settings&tab=segments');
+    exit;
+}
+
+// Legacy view — folded into the "Membres & finances" hub as its own tab
+if ($uaRequestedView === 'lapsedMembers') {
+    $_lmYear = isset($_REQUEST['year']) ? '&year=' . (int)$_REQUEST['year'] : '';
+    header('Location: ' . appUrl() . '?view=peopleFinance&tab=lapsed' . $_lmYear);
     exit;
 }
 

@@ -34,4 +34,10 @@ test.describe('Resume (statistics)', () => {
     // The amount filter button reflects the selection
     await expect(page.locator('button[aria-label="Montant minimum"]')).toContainText('100');
   });
+
+  test('default min amount is CHF 300', async ({ page }) => {
+    await page.goto('/index.php?view=resume');
+    await page.waitForLoadState('load');
+    await expect(page.locator('button[aria-label="Montant minimum"]')).toContainText("300");
+  });
 });

@@ -18,14 +18,14 @@ async function getNewUserId(page: Page): Promise<string> {
 
 test.describe('Members', () => {
   test('view member list — table visible with at least 2 rows', async ({ page }) => {
-    await page.goto('/index.php');
+    await page.goto('/index.php?view=list');
     const rows = page.locator('table.table tbody tr');
     await expect(rows.first()).toBeVisible();
     expect(await rows.count()).toBeGreaterThanOrEqual(2);
   });
 
   test('search for a member by name', async ({ page }) => {
-    await page.goto('/index.php?action=search&searchString=Dupont');
+    await page.goto('/index.php?view=list&action=search&searchString=Dupont');
     const rows = page.locator('table.table tbody tr');
     await expect(rows.first()).toBeVisible();
     await expect(rows.first()).toContainText('Dupont');
@@ -44,6 +44,19 @@ test.describe('Members', () => {
     // Navigate directly to the new member's profile to confirm creation
     await page.goto(`/index.php?view=generalData&userid=${uid}`);
     await expect(page.locator('.ca-view-zone')).toContainText('Testmembre', { timeout: 10_000 });
+  });
+
+  test('add a new member with a non-default contact type', async ({ page }) => {
+    await page.goto('/index.php?view=addUser');
+    await page.fill('#lastName', 'Testmembre2');
+    await page.fill('#firstName', 'E2E');
+    await expect(page.locator('#contact_type_id option')).toHaveCount(4);
+    await page.selectOption('#contact_type_id', { label: 'Institution' });
+    await page.click('button[type="submit"].btn-success');
+
+    const uid = await getNewUserId(page);
+    await page.goto(`/index.php?view=generalData&userid=${uid}`);
+    await expect(page.locator('.ca-field-value .badge', { hasText: 'Institution' })).toBeVisible();
   });
 
   test('edit a member firstname and verify updated', async ({ page }) => {
@@ -92,5 +105,28 @@ test.describe('Members', () => {
     await page.goto('/index.php?view=updateSegment&id=1');
     await expect(page.locator('#tab-groups')).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('#name')).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('filter the member list by contact type via quick filters', async ({ page }) => {
+    await page.goto('/index.php?view=list');
+    const allRowCount = await page.locator('table.table tbody tr').count();
+
+    await page.locator('#navbarDropdown').click();
+    await page.locator('.dropdown-menu.show a.dropdown-item[href*="contactTypeId="]', { hasText: 'Institution' }).click();
+    await expect(page).toHaveURL(/contactTypeId=/);
+
+    // Every seed contact defaults to "Donateur privé" — filtering to
+    // Institution should narrow the result set.
+    const filteredRowCount = await page.locator('table.table tbody tr').count();
+    expect(filteredRowCount).toBeLessThan(allRowCount);
+  });
+
+  test('member fiche header shows a prominent name and uses nav-tabs, tasks tab hidden', async ({ page }) => {
+    await page.goto('/index.php?view=generalData&userid=1');
+    await expect(page.locator('h1.page-title')).toBeVisible();
+    await expect(page.locator('.nav-tabs .nav-link.active', { hasText: 'Données' })).toBeVisible();
+    await expect(page.locator('.nav-tabs a', { hasText: 'Compta' })).toBeVisible();
+    await expect(page.locator('.nav-tabs a', { hasText: 'Suivi' })).toBeVisible();
+    await expect(page.locator('.nav-tabs a', { hasText: 'Tâches' })).toHaveCount(0);
   });
 });

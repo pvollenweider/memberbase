@@ -99,3 +99,79 @@ function mbApplyContactTypes(PDO $db, array $typeIdByUserId): int
     }
     return $applied;
 }
+
+/**
+ * Full contact_type × compta_type matrix for the settings UI.
+ *
+ * @return array<int,int[]> contact_type_id => list of allowed compta_type_id
+ *                           (empty array = unrestricted, every non-archived
+ *                           compta_type stays offered for that contact_type)
+ */
+function mbContactTypeComptaMatrix(PDO $db): array
+{
+    $contactTypeIds = array_map('intval', array_column($db->query("SELECT id FROM contact_type")->fetchAll(PDO::FETCH_OBJ), 'id'));
+    $matrix = array_fill_keys($contactTypeIds, []);
+    $rows = $db->query("SELECT contact_type_id, compta_type_id FROM contact_type_compta_type")->fetchAll(PDO::FETCH_OBJ);
+    foreach ($rows as $row) {
+        $matrix[(int)$row->contact_type_id][] = (int)$row->compta_type_id;
+    }
+    return $matrix;
+}
+
+/**
+ * Replaces the allowed compta_type_id set for one contact_type_id (empty
+ * array = unrestrict it — every non-archived compta_type stays offered).
+ *
+ * If $comptaTypeIds covers every currently non-archived compta_type (i.e.
+ * every checkbox the admin could see was checked), stores it as unrestricted
+ * (no rows) rather than an explicit full list — so a compta_type added
+ * later stays auto-included instead of silently excluded.
+ *
+ * @param int[] $comptaTypeIds
+ */
+function mbSaveContactTypeComptaMatrixRow(PDO $db, int $contactTypeId, array $comptaTypeIds): void
+{
+    $validContactTypeIds = array_map('intval', array_column($db->query("SELECT id FROM contact_type")->fetchAll(PDO::FETCH_OBJ), 'id'));
+    if (!in_array($contactTypeId, $validContactTypeIds, true)) {
+        return;
+    }
+    $activeComptaTypeIds = array_map('intval', array_column($db->query("SELECT id FROM compta_type WHERE is_archived = 0")->fetchAll(PDO::FETCH_OBJ), 'id'));
+    $comptaTypeIds = array_values(array_intersect(array_map('intval', $comptaTypeIds), $activeComptaTypeIds));
+
+    if (empty(array_diff($activeComptaTypeIds, $comptaTypeIds))) {
+        $comptaTypeIds = [];
+    }
+
+    $db->beginTransaction();
+    $db->prepare("DELETE FROM contact_type_compta_type WHERE contact_type_id = ?")->execute([$contactTypeId]);
+    if (!empty($comptaTypeIds)) {
+        $ins = $db->prepare("INSERT INTO contact_type_compta_type (contact_type_id, compta_type_id) VALUES (?, ?)");
+        foreach ($comptaTypeIds as $comptaTypeId2) {
+            $ins->execute([$contactTypeId, $comptaTypeId2]);
+        }
+    }
+    $db->commit();
+}
+
+/**
+ * compta_type ids selectable when creating a NEW entry for a contact of the
+ * given contact_type_id: excludes archived types always, then applies the
+ * matrix restriction (permissive if unconfigured for this contact_type).
+ *
+ * @param array<int,object> $comptaTypes id => compta_type row (needs ->is_archived)
+ * @return int[]
+ */
+function mbAllowedComptaTypeIdsForContact(PDO $db, int $contactTypeId, array $comptaTypes): array
+{
+    $activeIds = [];
+    foreach ($comptaTypes as $id => $ct) {
+        if (empty($ct->is_archived)) {
+            $activeIds[] = (int)$id;
+        }
+    }
+    $stmt = $db->prepare("SELECT compta_type_id FROM contact_type_compta_type WHERE contact_type_id = ?");
+    $stmt->execute([$contactTypeId]);
+    $restrictedIds = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+
+    return mbAllowedComptaTypeIds($activeIds, $restrictedIds);
+}

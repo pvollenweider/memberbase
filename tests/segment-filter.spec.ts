@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Segment filter dropdown', () => {
   test('dropdown opens and shows filterable items', async ({ page }) => {
-    await page.goto('/index.php');
+    await page.goto('/index.php?view=list');
 
     const toggle = page.locator('#navbarDropdown');
     await toggle.click();
@@ -20,7 +20,7 @@ test.describe('Segment filter dropdown', () => {
   });
 
   test('filter input is focused when dropdown opens', async ({ page }) => {
-    await page.goto('/index.php');
+    await page.goto('/index.php?view=list');
 
     await page.locator('#navbarDropdown').click();
     await page.waitForTimeout(100); // let shown.bs.dropdown + setTimeout(focus, 0) settle
@@ -30,7 +30,7 @@ test.describe('Segment filter dropdown', () => {
   });
 
   test('typing filters items by name — matching items visible, others hidden', async ({ page }) => {
-    await page.goto('/index.php');
+    await page.goto('/index.php?view=list');
 
     await page.locator('#navbarDropdown').click();
     const items = page.locator('.segment-filterable');
@@ -57,7 +57,7 @@ test.describe('Segment filter dropdown', () => {
   });
 
   test('category headers hidden when all items in that category are filtered out', async ({ page }) => {
-    await page.goto('/index.php');
+    await page.goto('/index.php?view=list');
 
     await page.locator('#navbarDropdown').click();
     const input = page.locator('#segment-filter-input');
@@ -72,7 +72,7 @@ test.describe('Segment filter dropdown', () => {
   });
 
   test('clearing the filter restores all items', async ({ page }) => {
-    await page.goto('/index.php');
+    await page.goto('/index.php?view=list');
 
     await page.locator('#navbarDropdown').click();
     const items = page.locator('.segment-filterable');
@@ -93,7 +93,7 @@ test.describe('Segment filter dropdown', () => {
   });
 
   test('filter survives htmx navigation — works after boost swap', async ({ page }) => {
-    await page.goto('/index.php');
+    await page.goto('/index.php?view=list');
     await page.locator('#navbarDropdown').click();
 
     const items = page.locator('.segment-filterable');
@@ -118,7 +118,7 @@ test.describe('Segment filter dropdown', () => {
   });
 
   test('keyboard navigation: ArrowDown moves focus, Enter navigates', async ({ page }) => {
-    await page.goto('/index.php');
+    await page.goto('/index.php?view=list');
 
     await page.locator('#navbarDropdown').click();
     const items = page.locator('.segment-filterable');
@@ -137,7 +137,7 @@ test.describe('Segment filter dropdown', () => {
   });
 
   test('Escape closes the dropdown', async ({ page }) => {
-    await page.goto('/index.php');
+    await page.goto('/index.php?view=list');
 
     await page.locator('#navbarDropdown').click();
     await expect(page.locator('.dropdown-menu[aria-labelledby="navbarDropdown"]')).toBeVisible();
@@ -147,7 +147,7 @@ test.describe('Segment filter dropdown', () => {
   });
 
   test('diacritic normalization — searching without accents finds accented labels', async ({ page }) => {
-    await page.goto('/index.php');
+    await page.goto('/index.php?view=list');
 
     await page.locator('#navbarDropdown').click();
     await expect(page.locator('.segment-filterable').first()).toBeVisible();

@@ -64,3 +64,64 @@ test.describe('Contact type classification tool — access guard', () => {
     await expect(page.locator('#main-content')).toContainText('Accès refusé');
   });
 });
+
+test.describe('Contact type category management', () => {
+  test('shows the 4 seeded categories and lets an admin rename a label', async ({ page }) => {
+    await page.goto('/index.php?view=settings&tab=contactTypes');
+    const table = page.locator('#contact-type-management-table');
+    await expect(table.locator('tbody tr')).toHaveCount(4);
+    const labelValues = await table.locator('input[name="label"]').evaluateAll(
+      (els) => els.map((el) => (el as HTMLInputElement).value)
+    );
+    expect(labelValues).toEqual(expect.arrayContaining([
+      'Donateur privé', 'Institution', 'Établissement financier', 'Entreprise',
+    ]));
+
+    const row = table.locator('tbody tr').filter({ has: page.locator('input[value="Entreprise"]') });
+    await row.locator('input[name="label"]').fill('Entreprise E2E');
+    await row.locator('button[type="submit"]').click();
+
+    await expect(page).toHaveURL(/contactTypeLabelSaved=/);
+    await expect(page.locator('#tab-contactTypes .alert-success')).toBeVisible();
+    const renamedRow = table.locator('tbody tr').filter({ has: page.locator('input[value="Entreprise E2E"]') });
+    await expect(renamedRow).toBeVisible();
+
+    // Revert to keep the seed label stable for other tests/runs.
+    await renamedRow.locator('input[name="label"]').fill('Entreprise');
+    await renamedRow.locator('button[type="submit"]').click();
+    await expect(page).toHaveURL(/contactTypeLabelSaved=/);
+  });
+});
+
+test.describe('Contact type × compta type matrix — auto-save', () => {
+  test('toggling a cell auto-saves without a page reload, column header toggles the whole column', async ({ page }) => {
+    await page.goto('/index.php?view=settings&tab=contactTypes');
+    const matrix = page.locator('#contact-type-matrix-table');
+    await expect(matrix).toBeVisible();
+
+    const firstCell = matrix.locator('tbody tr').first().locator('.ctm-cell').first();
+    await expect(firstCell).toBeChecked();
+    await firstCell.uncheck();
+    await expect(page.locator('#contact-type-matrix-status')).toContainText('enregistrée', { timeout: 5_000 });
+    // No navigation happened — still on the same page, cell state persists after reload.
+    await expect(page).toHaveURL(/tab=contactTypes/);
+    await page.reload();
+    await expect(matrix.locator('tbody tr').first().locator('.ctm-cell').first()).not.toBeChecked();
+
+    // Re-check to restore the unrestricted default for other tests.
+    await matrix.locator('tbody tr').first().locator('.ctm-cell').first().check();
+    await expect(page.locator('#contact-type-matrix-status')).toContainText('enregistrée', { timeout: 5_000 });
+
+    // Column header toggle: unchecks every cell in that column, then re-checking restores it.
+    const colToggle = matrix.locator('.ctm-col-toggle').first();
+    const colId = await colToggle.getAttribute('data-contact-type-id');
+    const colCells = matrix.locator(`.ctm-cell[data-contact-type-id="${colId}"]`);
+    await colToggle.click();
+    await expect(page.locator('#contact-type-matrix-status')).toContainText('enregistrée', { timeout: 5_000 });
+    for (const cb of await colCells.all()) { await expect(cb).not.toBeChecked(); }
+
+    await colToggle.click();
+    await expect(page.locator('#contact-type-matrix-status')).toContainText('enregistrée', { timeout: 5_000 });
+    for (const cb of await colCells.all()) { await expect(cb).toBeChecked(); }
+  });
+});

@@ -285,4 +285,51 @@ final class PureHelpersTest extends TestCase
     {
         $this->assertFalse(mbTaskIsOverdue(strtotime('+1 day'), null));
     }
+
+    public function testDefaultViewIsDashboardWhenBare(): void
+    {
+        $this->assertSame('dashboard', mbDefaultView([]));
+    }
+
+    public function testDefaultViewIsExplicitViewWhenSet(): void
+    {
+        $this->assertSame('peopleFinance', mbDefaultView(['view' => 'peopleFinance']));
+    }
+
+    public function testDefaultViewIsListWhenSegmentPresent(): void
+    {
+        $this->assertSame('list', mbDefaultView(['segment' => '5']));
+    }
+
+    public function testDefaultViewIsListWhenCombinedSegmentPresent(): void
+    {
+        $this->assertSame('list', mbDefaultView(['combinedSegment' => '2']));
+    }
+
+    public function testDefaultViewIsListWhenSearchStringPresent(): void
+    {
+        $this->assertSame('list', mbDefaultView(['searchString' => 'Dupont']));
+    }
+
+    public function testDefaultViewIsListWhenContactTypeIdPresent(): void
+    {
+        $this->assertSame('list', mbDefaultView(['contactTypeId' => '2']));
+    }
+
+    public function testAllowedComptaTypeIdsUnrestrictedWhenNoMatrixRow(): void
+    {
+        $this->assertSame([1, 2, 3], mbAllowedComptaTypeIds([1, 2, 3], []));
+    }
+
+    public function testAllowedComptaTypeIdsRestrictedToMatrixRow(): void
+    {
+        $this->assertSame([1, 3], mbAllowedComptaTypeIds([1, 2, 3], [1, 3]));
+    }
+
+    public function testAllowedComptaTypeIdsRestrictionExcludesArchivedCandidate(): void
+    {
+        // $comptaTypeIds already excludes archived types upstream — a
+        // restriction listing an id not in the candidate set is simply ignored.
+        $this->assertSame([1], mbAllowedComptaTypeIds([1], [1, 99]));
+    }
 }

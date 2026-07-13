@@ -28,18 +28,18 @@ $colorOptions = [
 // tab and apply the pending migration.
 try {
     $types = db()->query("
-        SELECT ct.id, ct.label, ct.color, ct.default_libele, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, ct.is_financial_institution, ct.is_company, COUNT(c.id) AS cnt
+        SELECT ct.id, ct.label, ct.color, ct.default_libele, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, ct.is_financial_institution, ct.is_company, ct.is_archived, COUNT(c.id) AS cnt
         FROM compta_type ct
         LEFT JOIN compta c ON c.type_id = ct.id
-        GROUP BY ct.id, ct.label, ct.color, ct.default_libele, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, ct.is_financial_institution, ct.is_company
+        GROUP BY ct.id, ct.label, ct.color, ct.default_libele, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, ct.is_financial_institution, ct.is_company, ct.is_archived
         ORDER BY ct.sort_order ASC, ct.label ASC
     ")->fetchAll(PDO::FETCH_OBJ);
 } catch (PDOException $e) {
     $types = db()->query("
-        SELECT ct.id, ct.label, ct.color, '' AS default_libele, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, ct.is_financial_institution, ct.is_company, COUNT(c.id) AS cnt
+        SELECT ct.id, ct.label, ct.color, '' AS default_libele, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, ct.is_financial_institution, ct.is_company, ct.is_archived, COUNT(c.id) AS cnt
         FROM compta_type ct
         LEFT JOIN compta c ON c.type_id = ct.id
-        GROUP BY ct.id, ct.label, ct.color, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, ct.is_financial_institution, ct.is_company
+        GROUP BY ct.id, ct.label, ct.color, ct.sort_order, ct.is_cotisation, ct.is_excluded_from_donation, ct.is_institutional, ct.is_financial_institution, ct.is_company, ct.is_archived
         ORDER BY ct.sort_order ASC, ct.label ASC
     ")->fetchAll(PDO::FETCH_OBJ);
 }
@@ -130,6 +130,7 @@ try {
           <th style="width:60px" class="text-center" title="<?= $GLOBAL['institTooltip'] ?>"><?= $GLOBAL['institShort'] ?></th>
           <th style="width:60px" class="text-center" title="<?= $GLOBAL['financialInstTooltip'] ?>"><?= $GLOBAL['financialInstShort'] ?></th>
           <th style="width:60px" class="text-center" title="<?= $GLOBAL['companyTypeTooltip'] ?>"><?= $GLOBAL['companyTypeShort'] ?></th>
+          <th style="width:60px" class="text-center" title="<?= $GLOBAL['archivedTooltip'] ?>"><?= $GLOBAL['archivedShort'] ?></th>
           <th style="width:130px"></th>
         </tr>
       </thead>
@@ -244,6 +245,27 @@ try {
               </button>
             </form>
           </td>
+          <td class="text-center">
+            <form method="post" action="<?= appUrl() ?>">
+              <input type="hidden" name="action" value="updateComptaType">
+              <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
+              <input type="hidden" name="returnTab" value="<?= htmlentities($ctReturnTab, ENT_COMPAT, $charset) ?>">
+              <input type="hidden" name="id" value="<?= $ct->id ?>">
+              <input type="hidden" name="label" value="<?= htmlentities($ct->label, ENT_COMPAT, $charset) ?>">
+              <input type="hidden" name="color" value="<?= htmlentities($ct->color, ENT_COMPAT, $charset) ?>">
+              <input type="hidden" name="sort_order" value="<?= $ct->sort_order ?>">
+              <input type="hidden" name="is_cotisation" value="<?= $ct->is_cotisation ?>">
+              <input type="hidden" name="is_excluded_from_donation" value="<?= $ct->is_excluded_from_donation ?>">
+              <input type="hidden" name="is_institutional" value="<?= $ct->is_institutional ?>">
+              <input type="hidden" name="is_financial_institution" value="<?= $ct->is_financial_institution ?>">
+              <input type="hidden" name="is_company" value="<?= $ct->is_company ?>">
+              <input type="hidden" name="is_archived" value="<?= $ct->is_archived ? 0 : 1 ?>">
+              <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent"
+                      title="<?= $ct->is_archived ? $GLOBAL['yesClickToDisable'] : $GLOBAL['noClickToEnable'] ?>">
+                <i class="fas <?= $ct->is_archived ? 'fa-check-circle text-dark' : 'fa-circle text-muted' ?>"></i>
+              </button>
+            </form>
+          </td>
           <td class="text-end">
             <button type="button" class="btn btn-outline-secondary btn-sm py-0"
                     onclick="toggleEdit(<?= $ct->id ?>)"><?= $GLOBAL['edit'] ?></button>
@@ -255,7 +277,7 @@ try {
           </td>
         </tr>
         <tr id="edit-<?= $ct->id ?>" style="display:none" class="table-light">
-          <td colspan="11" class="py-2">
+          <td colspan="12" class="py-2">
             <form action="<?= appUrl() ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
               <input type="hidden" name="action" value="updateComptaType">
               <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">

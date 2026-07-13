@@ -13,32 +13,58 @@ require_once __DIR__ . '/../lib/cotisation.php';
 
 $_year = (int)date('Y');
 
-$_urgentStmt = db()->prepare(
-    "SELECT t.id, t.title, t.rule_key, t.due_date, t.user_id,
-            u.firstname, u.lastname, u.society, u.email
-     FROM suivi_task t
-     LEFT JOIN contact u ON u.id = t.user_id
-     WHERE t.done_at IS NULL AND t.due_date IS NOT NULL AND t.due_date <= ?
-     ORDER BY t.due_date ASC, t.priority ASC
-     LIMIT 5"
-);
-$_urgentStmt->execute([date('Y-m-d', strtotime('+3 days'))]);
-$_urgentTasks = $_urgentStmt->fetchAll(PDO::FETCH_OBJ);
-
-$_openTaskCount = (int)db()->query("SELECT COUNT(*) FROM suivi_task WHERE done_at IS NULL")->fetchColumn();
-
-$_hasCotiTask = false;
-foreach ($_urgentTasks as $_t) {
-    if ($_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_')) {
-        $_hasCotiTask = true;
-        break;
-    }
-}
-
 $_cotiTypeIds     = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
 $_noCotiSegment   = (int)($appSettings['member_no_coti_segment'] ?? 0);
 $_lapsedCount     = count(mbGetLapsedMembers(db(), $_year, $_cotiTypeIds, $_noCotiSegment));
 $_pendingMigrationsCount = isAdmin() ? count(pendingMigrations($pdo)) : 0;
+
+// Shortcut: pending compta-recap notifications for the current year (same
+// count as compta_recap.php's own stat card).
+$_pendingRecapCount = 0;
+if (isManager()) {
+    $_pendingRecapStmt = db()->prepare(
+        "SELECT COUNT(DISTINCT c.user_id) FROM compta c
+         JOIN contact u ON u.id = c.user_id AND u.status = 1
+         WHERE c.notified_at IS NULL AND c.sum <> 0 AND YEAR(c.date) = ?"
+    );
+    $_pendingRecapStmt->execute([$_year]);
+    $_pendingRecapCount = (int)$_pendingRecapStmt->fetchColumn();
+}
+
+// Shortcut: attestable donors for the just-completed year — only surfaced in
+// January, when attestations for the prior year are normally sent out.
+$_isJanuary          = (int)date('n') === 1;
+$_attestableDonsCount = 0;
+if ($_isJanuary && isManager()) {
+    $_attestYear = $_year - 1;
+    $_exclSub    = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
+    $_attestStmt = db()->prepare(
+        "SELECT COUNT(*) FROM (
+            SELECT c.user_id
+            FROM compta c
+            JOIN contact u ON u.id = c.user_id AND u.status = 1
+            WHERE c.date > ? AND c.date < ?
+            GROUP BY c.user_id
+            HAVING SUM(CASE WHEN c.type_id NOT IN ($_exclSub) THEN c.sum ELSE 0 END) >= 300
+                OR MAX(c.wants_attestation) = 1
+         ) donors"
+    );
+    $_attestStmt->execute([
+        mbDateTimeBound(mktime(0, 0, 0, 1, 0, $_attestYear)),
+        mbDateTimeBound(mktime(0, 0, 0, 1, 1, $_attestYear + 1)),
+    ]);
+    $_attestableDonsCount = (int)$_attestStmt->fetchColumn();
+}
+
+// Last N accounting entries, light view.
+$_recentCompta = canWrite() ? db()->query(
+    "SELECT c.id, c.sum, c.user_id, u.society, u.lastname, u.firstname, ct.label AS type_label
+     FROM compta c
+     JOIN contact u ON u.id = c.user_id
+     LEFT JOIN compta_type ct ON ct.id = c.type_id
+     ORDER BY c.date DESC, c.id DESC
+     LIMIT 8"
+)->fetchAll(PDO::FETCH_OBJ) : [];
 ?>
 
 <div class="page-title-row mb-3">
@@ -179,73 +205,27 @@ $_pendingMigrationsCount = isAdmin() ? count(pendingMigrations($pdo)) : 0;
 <div class="row g-3">
   <div class="col-12 col-lg-7">
     <div class="card h-100">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <span><?= $GLOBAL['dashboardTasksTitle'] ?></span>
-        <span class="text-muted small"><?= sprintf($GLOBAL['dashboardOpenTaskCount'], $_openTaskCount) ?></span>
-      </div>
-      <?php if (empty($_urgentTasks)): ?>
-      <div class="card-body">
-        <p class="text-muted mb-0"><i class="fas fa-circle-check me-1 text-success" aria-hidden="true"></i><?= $GLOBAL['noOpenTasks'] ?></p>
-      </div>
-      <?php else: ?>
+      <div class="card-header"><?= $GLOBAL['dashboardShortcutsTitle'] ?></div>
       <div class="list-group list-group-flush">
-        <?php foreach ($_urgentTasks as $_t):
-            $_dueTs   = strtotime($_t->due_date);
-            $_overdue = mbTaskIsOverdue($_dueTs, null);
-            $_name    = $_t->user_id
-                ? trim(($_t->society ? htmlentities($_t->society, ENT_COMPAT, $charset) . ' ' : '') .
-                       htmlentities($_t->lastname, ENT_COMPAT, $charset) . ' ' .
-                       htmlentities($_t->firstname, ENT_COMPAT, $charset))
-                : $GLOBAL['globalTask'];
-            $_href = $_t->user_id
-                ? appUrl() . '?view=memberTasks&userid=' . (int)$_t->user_id
-                : appUrl() . '?view=updateTask&taskid=' . (int)$_t->id;
-            $_statusLabel = $_overdue ? $GLOBAL['taskOverdue'] : date('d.m.Y', $_dueTs);
-            $_rowLabel = sprintf('%s: %s — %s (%s)', $GLOBAL['taskTitle'], $_t->title, $_statusLabel,
-                $_t->user_id ? trim(($_t->society ? $_t->society . ' ' : '') . $_t->lastname . ' ' . $_t->firstname) : $GLOBAL['globalTask']);
-        ?>
-        <div class="list-group-item d-flex align-items-center gap-2 position-relative">
-          <i class="fas fa-circle <?= $_overdue ? 'text-danger' : 'text-warning' ?>" style="font-size:0.5rem" aria-hidden="true"></i>
-          <span class="flex-grow-1">
-            <span class="fw-medium"><?= htmlspecialchars($_t->title, ENT_QUOTES, $charset) ?></span>
-            <span class="text-muted small d-block"><?= $_name ?></span>
-          </span>
-          <span class="small fw-semibold <?= $_overdue ? 'text-danger' : 'text-warning' ?> text-nowrap">
-            <?= $_overdue
-                ? $GLOBAL['taskOverdue']
-                : htmlspecialchars(date('d.m.Y', $_dueTs), ENT_QUOTES, $charset) ?>
-          </span>
-          <?php if ($_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_') && $_t->user_id && trim((string)$_t->email) !== ''): ?>
-          <button type="button" class="btn btn-outline-primary btn-sm js-task-send-coti" style="position:relative;z-index:2"
-                  data-user-id="<?= (int)$_t->user_id ?>"
-                  data-year="<?= $_year ?>"
-                  data-task-id="<?= (int)$_t->id ?>"
-                  data-confirm="<?= htmlspecialchars(sprintf($GLOBAL['cotiReminderConfirmOne'], trim(($_t->firstname ?? '') . ' ' . ($_t->lastname ?? ''))), ENT_QUOTES, $charset) ?>"
-                  data-msg-fail="<?= htmlspecialchars($GLOBAL['cotiReminderSentFail'], ENT_QUOTES, $charset) ?>"
-                  data-label-sending="<?= htmlspecialchars($GLOBAL['sendCotiRemindersSending'], ENT_QUOTES, $charset) ?>">
-              <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendCotiRemindersBtnOne'] ?>
-          </button>
-          <?php endif ?>
-          <a href="<?= $_href ?>" class="stretched-link" hx-boost="false"
-             aria-label="<?= htmlspecialchars($_rowLabel, ENT_QUOTES, $charset) ?>"></a>
-        </div>
-        <?php endforeach ?>
-      </div>
-      <?php endif ?>
-      <div class="card-footer">
-        <a href="<?= appUrl() ?>?view=tasks"><?= $GLOBAL['dashboardViewAllTasks'] ?></a>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-12 col-lg-5 d-flex flex-column gap-3">
-    <div class="card">
-      <div class="card-header"><?= $GLOBAL['dashboardKpiTitle'] ?></div>
-      <div class="list-group list-group-flush">
-        <a href="<?= appUrl() . '?view=lapsedMembers&year=' . $_year ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+        <a href="<?= appUrl() . '?view=peopleFinance&tab=lapsed&year=' . $_year ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
           <span><?= $GLOBAL['cotiUnpayed'] ?></span>
           <span class="fw-bold"><?= $_lapsedCount ?></span>
         </a>
+        <?php if (isManager()): ?>
+        <a href="<?= appUrl() ?>?view=peopleFinance<?= $_pendingRecapCount > 0 ? '&tab=recap' : '' ?>"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+          <span><?= $GLOBAL['peopleFinanceTabRecap'] ?></span>
+          <?php if ($_pendingRecapCount > 0): ?>
+          <span class="fw-bold"><?= $_pendingRecapCount ?></span>
+          <?php endif ?>
+        </a>
+        <?php endif ?>
+        <?php if ($_isJanuary && $_attestableDonsCount > 0): ?>
+        <a href="<?= appUrl() ?>?view=peopleFinance&tab=dons" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+          <span><?= $GLOBAL['peopleFinanceTabDons'] ?></span>
+          <span class="fw-bold"><?= $_attestableDonsCount ?></span>
+        </a>
+        <?php endif ?>
         <?php if (isAdmin() && $_pendingMigrationsCount > 0): ?>
         <a href="<?= appUrl() ?>?view=settings&amp;tab=health" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
           <span><?= sprintf($GLOBAL['pendingDbMigrationsLabel'], $_pendingMigrationsCount > 1 ? 's' : '') ?></span>
@@ -254,6 +234,43 @@ $_pendingMigrationsCount = isAdmin() ? count(pendingMigrations($pdo)) : 0;
         <?php endif ?>
       </div>
     </div>
+  </div>
+
+  <div class="col-12 col-lg-5 d-flex flex-column gap-3">
+    <?php if (!empty($_recentCompta)): ?>
+    <div class="card">
+      <a href="<?= appUrl() ?>?view=journals&amp;tab=compta" class="card-header text-decoration-none d-block" hx-boost="false">
+        <?= $GLOBAL['dashboardRecentComptaTitle'] ?>
+      </a>
+      <div class="table-responsive">
+        <table id="dashboard-recent-compta" class="table table-sm table-hover mb-0" style="font-size:0.8rem">
+          <tbody>
+          <?php foreach ($_recentCompta as $_ce):
+              $_ceName = trim(($_ce->society ? $_ce->society . ' ' : '') . $_ce->lastname . ' ' . $_ce->firstname);
+              $_ceType = mb_strtoupper(mb_substr(trim((string)$_ce->type_label), 0, 3));
+          ?>
+          <tr class="ca-row-link" style="cursor:pointer" data-href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$_ce->user_id ?>">
+            <td class="text-nowrap"><?= htmlspecialchars($_ceName, ENT_QUOTES, $charset) ?></td>
+            <td class="text-end text-nowrap">CHF <?= number_format((float)$_ce->sum, 2, '.', "'") ?></td>
+            <td class="text-muted text-nowrap"><?= htmlspecialchars($_ceType, ENT_QUOTES, $charset) ?></td>
+          </tr>
+          <?php endforeach ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <script>
+    (function () {
+      var tbody = document.querySelector('#dashboard-recent-compta tbody');
+      if (!tbody) return;
+      tbody.addEventListener('click', function (e) {
+        var tr = e.target.closest('tr.ca-row-link');
+        if (!tr) return;
+        window.location.href = tr.dataset.href;
+      });
+    })();
+    </script>
+    <?php endif ?>
 
     <div class="card">
       <div class="card-header"><?= $GLOBAL['documentation'] ?></div>
@@ -261,16 +278,7 @@ $_pendingMigrationsCount = isAdmin() ? count(pendingMigrations($pdo)) : 0;
         <a href="https://pvollenweider.github.io/memberbase/docs/user.html" target="_blank" rel="noopener" class="list-group-item list-group-item-action">
           <i class="fas fa-book me-2" aria-hidden="true"></i><?= $GLOBAL['dashboardUserGuideLink'] ?>
         </a>
-        <?php if (isManager()): ?>
-        <a href="https://pvollenweider.github.io/memberbase/docs/admin.html" target="_blank" rel="noopener" class="list-group-item list-group-item-action">
-          <i class="fas fa-screwdriver-wrench me-2" aria-hidden="true"></i><?= $GLOBAL['dashboardAdminGuideLink'] ?>
-        </a>
-        <?php endif ?>
       </div>
     </div>
   </div>
 </div>
-
-<?php if ($_hasCotiTask): ?>
-<?php require __DIR__ . '/../partials/task_coti_reminder_modal.php'; ?>
-<?php endif ?>

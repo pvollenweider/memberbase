@@ -296,6 +296,7 @@ class Contact
      *     searchString:    string  text search (applied when action == 'search')
      *     action:          string  request action ('search' enables the text filter)
      *     membreSegment:   int     "membre" segment ID (legacy -1234 filter)
+     *     contactTypeId:   int     contact_type.id filter (0 = all types)
      *     orderColumn:     string  MUST be pre-validated against a whitelist
      *     orderSort:       string  'ASC' | 'DESC' (pre-validated)
      * }
@@ -306,6 +307,7 @@ class Contact
 
         $segment         = (int)($opts['segment'] ?? 0);
         $combinedSegment = (int)($opts['combinedSegment'] ?? 0);
+        $contactTypeId   = (int)($opts['contactTypeId'] ?? 0);
         $orderColumn = $opts['orderColumn'] ?? 'lastname';
         $orderSort   = $opts['orderSort'] ?? 'ASC';
 
@@ -336,6 +338,11 @@ class Contact
                     . " OR contact.comment LIKE ?"
                     . " OR contact.address LIKE ?)";
             $queryParams = array_fill(0, 9, $like);
+        }
+
+        if ($contactTypeId > 0) {
+            $query .= " AND contact.contact_type_id = ?";
+            $queryParams[] = $contactTypeId;
         }
 
         if ($combinedSegment > 0) {
