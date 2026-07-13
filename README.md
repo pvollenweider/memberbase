@@ -32,6 +32,14 @@ Avec le temps, l'application a été refactorisée pour devenir aussi génériqu
 
 ## Fonctionnalités
 
+### Tableau de bord
+
+Page d'accueil par défaut après connexion (depuis la v5.2.0, `?view=dashboard`) : cartes KPI
+(contributions de l'année vs N-1, donateurs fidèles/nouveaux/perdus, membres actifs), graphique
+de revenu mensuel, camembert de répartition par type de compta, recherche rapide d'une entrée
+compta par nom de membre, et raccourcis contextuels vers les entrées récentes (compta, suivi,
+nouveaux contacts).
+
 ### Gestion des membres
 
 - Liste paginée et filtrée des membres avec recherche textuelle
@@ -41,12 +49,29 @@ Avec le temps, l'application a été refactorisée pour devenir aussi génériqu
 - Suivi individuel (notes de contact)
 - **Import de contacts CSV / TSV** — assistant en 3 étapes (upload → mapping des colonnes → doublons), réservé aux rôles Manager/Admin. Détection d'encodage et de délimiteur, normalisation de la civilité, détection des doublons (email ou nom+prénom), et ajout optionnel des contacts à un segment (existant, nouveau, ou `Import <date>` par défaut). Voir [doc/user.md](doc/user.md).
 
+### Type de contact
+
+Depuis la v5.2.0, chaque membre a un **type de contact** (`contact_type`, ex. « Donateur
+privé », « Institution », personnalisables avec icône et couleur) qui détermine quels
+**types de compta** peuvent lui être appliqués (matrice type de contact × type de compta,
+Réglages → Types de contact). Un outil d'administration permet de forcer en masse le type de
+contact de tous les membres d'un segment.
+
+### Tâches
+
+Table `suivi_task` : tâches de suivi générées automatiquement (ex. relance d'un membre dont la
+cotisation n'a pas été renouvelée) ou créées manuellement, avec dédoublonnage par clé de règle
+(`rule_key`) pour éviter les doublons lors d'une régénération. Liste globale accessible depuis
+la barre de navigation ; auto-clôture quand la condition qui a généré la tâche n'est plus vraie
+(ex. le membre paie par un autre biais).
+
 ### Segments et segments combinés
 
 > Terminologie : depuis la v3.5.4, l'interface parle de **Segment** (anciennement « groupe »). Depuis la v5.0.0, l'entité technique elle-même est renommée `team` → `segment` (table, classe, API). Depuis la v5.1.0, les « segments combinés » (anciennement « métagroupes ») sont renommés en base et en code : table `metagroup` → `combined_segment`, classe `Metagroup` → `CombinedSegment` — voir [CHANGELOG](CHANGELOG.md#510--2026-07-11).
 
 - Création et gestion de segments (`segment`) avec visibilité configurable (actif/masqué)
 - Segments combinés (`combined_segment`, anciennement « métagroupes ») : regrouper des segments en catégories pour filtrage
+- **Règles d'auto-assignation** (`segment_cascade_rule`, depuis v5.2.0) : segment source → segment cible, à un seul niveau
 - Filtre de la liste membres par segment ou segment combiné
 - Recherche incrémentale dans le dropdown de sélection de segment
 - Filtre rapide par statut: tout le monde sauf archives, cotisation non payée, rien ces 10 dernières années, non-instit ayant versé l'année passée
@@ -68,17 +93,24 @@ Avec le temps, l'application a été refactorisée pour devenir aussi génériqu
 - Coloration des lignes par type dans toutes les vues compta
 - Génération d'attestation de don (PDF téléchargeable, gabarit AcroForm)
 
-### Vues d'activité
+### Hubs à onglets (Membres & finances, Journaux)
 
-| Vue | Description |
-|-----|-------------|
-| **Compta** (`lastEntryCompta`) | Dernières entrées compta, filtrable par type et année, export DataTables |
-| **Suivi** (`lastEntrySuivi`) | Dernières notes de suivi, filtrable par année |
-| **Contributions** (`resume`) | Donateurs classés par total annuel, filtre min CHF (1 / 100 / 200 / 500 / 1000), filtre année, mode "toutes entrées", filtre "attestation demandée". KPIs: total CHF, delta même période N-1, progression vs total N-1, donateurs fidèles/nouveaux/perdus cliquables, répartition par type |
-| **Donateurs fidèles** (`loyalDonors`) | Donateurs ayant contribué en N et N-1, avec comparaison des deux montants |
-| **Nouveaux donateurs** (`newDonors`) | Primo-donateurs de l'année (pas de don en N-1) |
-| **Donateurs perdus** (`lapsedDonors`) | Donateurs de N-1 absents en N, avec création de segment de relance |
-| **Membres perdus** (`lapsedMembers`) | Membres de l'équipe N-1 non reconduits en N, avec création de segment de relance |
+Depuis la v5.2.0, les anciennes vues séparées sont réunies en deux hubs à onglets
+(navbar) — chaque onglet correspond à une ancienne route, toujours fonctionnelle en
+lien direct :
+
+| Hub | Onglet | Ancienne route | Description |
+|-----|--------|-----------------|-------------|
+| **Membres & finances** | Membres | `list` | Liste membres + filtres segment/rapide (défaut) |
+| | Relances cotisation (Manager+) | `comptaRecap` | Membres à cotisation impayée, envoi de rappel |
+| | Dons & attestations | `resume` | Donateurs classés par total annuel, KPIs, attestations |
+| | Mouvements membres | `lapsedMembers` | Membres N-1 non reconduits en N, création de segment de relance |
+| | Mouvements donateurs | `lapsedDonors` | Donateurs de N-1 absents en N, création de segment de relance |
+| **Journaux** | Compta | `lastEntryCompta` | Dernières entrées compta tous membres, filtre type/année |
+| | Suivi | `lastEntrySuivi` | Dernières notes de suivi tous membres, filtre année |
+
+Voir aussi **Donateurs fidèles** (`loyalDonors`, contribué en N et N-1) et **Nouveaux
+donateurs** (`newDonors`, primo-donateurs de l'année), toujours en vues standalone.
 
 ### Attestations de dons (PDF)
 
@@ -139,6 +171,7 @@ Endpoints JSON disponibles sous `/api/` (authentification de session requise) :
 | `DELETE` | `/api/contacts/{id}` | Désactiver (`status=0`) ou supprimer (`?dispose=delete`, admin) |
 | `GET` | `/api/contacts/{id}/groups` | Segments du membre |
 | `GET` | `/api/contacts/{id}?sub=compta` | Entrées comptables du membre |
+| — | `contactTypeId` (depuis v5.2.0) | Champ `POST`/réponse : ID de `contact_type`, défaut `1` (donateur privé) — voir [doc/api.md](doc/api.md) |
 | `GET` | `/api/segments` | Liste des segments avec comptage membres |
 | `POST` | `/api/segments` | Créer un segment (manager) |
 | `GET` | `/api/segments/{id}` | Détail d'un segment |
@@ -202,22 +235,29 @@ html/
 │   │   ├── views.php           # View router
 │   │   └── actions.php         # POST action dispatcher
 │   ├── views/                  # Page fragments, prefixed by domain
+│   │   ├── dashboard.php       # Page d'accueil par défaut (KPIs, graphique, raccourcis) — v5.2.0
+│   │   ├── people_finance.php  # Hub "Membres & finances" (5 onglets, tab-shell) — v5.2.0
+│   │   ├── journals.php        # Hub "Journaux" (Compta/Suivi, tab-shell) — v5.2.0
 │   │   ├── users_list.php      # Member list + segment filter dropdown
 │   │   ├── users_general_data.php # Fiche membre (view/edit Alpine toggle)
 │   │   ├── users_edit_form.php # Onglets compta, suivi, historique
 │   │   ├── donors_summary.php  # Contributions KPIs + donor list
 │   │   ├── settings_general.php# Settings (groupes, catégories, filtres, compta, comptes)
 │   │   ├── settings_app_users.php # Gestion des comptes utilisateurs (admin)
+│   │   ├── settings_contact_types.php # Types de contact + matrice compta — v5.2.0
 │   │   └── ...
 │   ├── partials/
 │   │   ├── menu.php            # Nav sidebar
 │   │   └── donor_table.php     # Shared donor table partial
-│   └── actions/                # CRUD handlers (contacts, segments, compta, compta_recap, cotisation_reminder…)
+│   ├── lib/
+│   │   └── contact_type.php    # Types de contact, matrice type de contact × type de compta — v5.2.0
+│   └── actions/                # CRUD handlers (contacts, segments, compta, compta_recap, cotisation_reminder, suivi_tasks…)
 ├── classes/
-│   ├── contact_class.php       # Classe Contact (CRUD, cotisation, dons)
+│   ├── contact_class.php       # Classe Contact (CRUD, cotisation, dons, contact_type_id)
 │   ├── segment_class.php       # Classe Segment (segments)
 │   ├── compta_class.php        # Classe Compta (écritures comptables)
 │   ├── combined_segment_class.php # Classe CombinedSegment (catégories de segments)
+│   ├── suivi_task_class.php    # Classe SuiviTask (tâches de suivi) — v5.2.0
 │   └── property_class.php      # Classe UserProperty (appartenance, suivi)
 ├── locales/
 │   ├── resources_fr.php        # Libellés français (UTF-8, base complète)
@@ -230,6 +270,7 @@ html/
 │   └── vendor/                 # Bootstrap, DataTables, Font Awesome CSS
 ├── js/
 │   ├── member-general-form.js  # Alpine component: view/edit toggle fiche membre
+│   ├── hub-tabs.js              # Helpers partagés par les hubs à onglets (deep-link, liens embarqués) — v5.2.0
 │   └── vendor/                 # Bootstrap, DataTables, moment, Chart.js, htmx, Alpine.js
 └── fonts/
     └── inter/                  # Inter woff2 (latin + latin-ext)
