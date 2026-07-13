@@ -1,13 +1,15 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * Unified "Membres & finances" hub — tab shell over four list views that
+ * Unified "Membres & finances" hub — tab shell over five list views that
  * used to be separate destinations (#164). Liste (users_list.php),
  * Notification de versement (compta_recap.php, managers only — pending
- * unnotified compta entries), Cotisations non renouvelées
- * (members_lapsed.php, managers only), Dons & attestations
- * (donors_summary.php — KPI cards/pie already live on the dashboard,
- * #153, so they're suppressed here via $_pfEmbedded).
+ * unnotified compta entries), Mouvements membres/donateurs (members_lapsed.php
+ * /members_new.php/donors_lapsed.php/donors_new.php — open to all roles;
+ * the actions inside (send reminder, create segment) are individually
+ * isManager()-gated), Dons & attestations (donors_summary.php — KPI
+ * cards/pie already live on the dashboard, #153, so they're suppressed here
+ * via $_pfEmbedded).
  *
  * Linked from the navbar ("Membres & finances", desktop and mobile). The
  * underlying standalone routes (?view=list, ?view=comptaRecap, ?view=resume)
@@ -61,7 +63,6 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
       <i class="fas fa-hand-holding-heart me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabDons'] ?>
     </button>
   </li>
-  <?php if (isManager()): ?>
   <li class="nav-item" role="presentation">
     <button class="nav-link<?= $_pfTab === 'lapsed' ? ' active' : '' ?>" id="pf-tab-lapsed-btn"
             data-bs-toggle="tab" data-bs-target="#pf-tab-lapsed" type="button" role="tab"
@@ -76,12 +77,11 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
       <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabLapsedDonors'] ?>
     </button>
   </li>
-  <?php endif ?>
 </ul>
 
 <div class="tab-content">
   <div class="tab-pane fade<?= $_pfPane('members') ?>" id="pf-tab-members" role="tabpanel" aria-labelledby="pf-tab-members-btn">
-    <?php $_pfRequireIsolated(__DIR__ . '/users_list.php'); ?>
+    <?php $_pfRequireIsolated(__DIR__ . '/users_list.php', ['_pfEmbedded' => true]); ?>
   </div>
 
   <?php if (isManager()): ?>
@@ -94,7 +94,6 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
     <?php $_pfRequireIsolated(__DIR__ . '/donors_summary.php', ['_pfEmbedded' => true]); ?>
   </div>
 
-  <?php if (isManager()): ?>
   <div class="tab-pane fade<?= $_pfPane('lapsed') ?>" id="pf-tab-lapsed" role="tabpanel" aria-labelledby="pf-tab-lapsed-btn">
     <?php $_pfCohortMembers = ($_REQUEST['cohort'] ?? '') === 'new' ? 'new' : 'lapsed'; ?>
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
@@ -127,9 +126,7 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
       </div>
     </div>
   </div>
-  <?php endif ?>
 
-  <?php if (isManager()): ?>
   <div class="tab-pane fade<?= $_pfPane('lapsedDonors') ?>" id="pf-tab-lapsedDonors" role="tabpanel" aria-labelledby="pf-tab-lapsedDonors-btn">
     <?php $_pfCohortDonors = ($_REQUEST['cohort'] ?? '') === 'new' ? 'new' : 'lapsed'; ?>
     <ul class="nav nav-pills mb-3" role="tablist">
@@ -157,7 +154,6 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
       </div>
     </div>
   </div>
-  <?php endif ?>
 </div>
 
 <script src="js/hub-tabs.js?v=<?= APP_VERSION ?>"></script>

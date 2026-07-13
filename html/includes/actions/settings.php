@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'applyContactTypes', 'addContactType', 'deleteContactType', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn', 'bulkSetContactTypeBySegment'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'addContactType', 'deleteContactType', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn', 'bulkSetContactTypeBySegment'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -220,20 +220,6 @@ if ($action == 'saveSettings') {
     }
     $_ctUrl = appUrl() . mbComptaTypeReturnUrl($_REQUEST['returnView'] ?? null, $_REQUEST['returnTab'] ?? null);
     if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { echo '<script>window.location.replace(' . json_encode($_ctUrl) . ');</script>'; }
-    exit;
-
-} elseif ($action === 'applyContactTypes') {
-    require_once __DIR__ . '/../lib/contact_type.php';
-    $_applyRaw = (array)($_REQUEST['apply'] ?? []);
-    $_typeIdByUserId = [];
-    foreach ($_applyRaw as $_userId => $_typeId) {
-        $_typeIdByUserId[(int)$_userId] = (int)$_typeId;
-    }
-    $_appliedCount = mbApplyContactTypes(db(), $_typeIdByUserId);
-    auditLog(db(), 'applyContactTypes', "applied=$_appliedCount");
-    $_returnView = ($_REQUEST['returnView'] ?? '') === 'settings' ? 'settings' : 'contactTypes';
-    $_ctUrl = appUrl() . '?view=' . $_returnView . '&tab=contactTypes&contactTypesApplied=' . $_appliedCount;
-    if ($isHtmx) { header('HX-Location: ' . $_ctUrl); } else { header('Location: ' . $_ctUrl); }
     exit;
 
 } elseif ($action === 'deleteContactType') {

@@ -58,10 +58,12 @@ $prevSegmentId  = 1; // non-zero so the table renders
 <?php else: ?>
 
 <div class="d-flex gap-2 mb-3 flex-wrap">
+<?php if (isManager()): ?>
 <button type="button" class="btn btn-outline-warning btn-sm"
         data-bs-toggle="modal" data-bs-target="#modal-create-lapsed-members">
   <i class="fas fa-users me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['createSegmentLapsedMembers'], $year) ?>
 </button>
+<?php endif ?>
 <?php if (isManager() && $count > 0): ?>
 <button type="button" class="btn btn-outline-primary btn-sm"
         data-bs-toggle="modal" data-bs-target="#modal-send-coti-reminders"

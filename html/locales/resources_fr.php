@@ -247,15 +247,6 @@ $GLOBAL['journalsPageTitle']   = "Journaux";
 $GLOBAL['integrity']           = "Intégrité";
 $GLOBAL['health']              = "Santé";
 $GLOBAL['contactTypesTitle']         = "Type de contact";
-$GLOBAL['contactTypesHelp']          = "Suggère un type de contact (donateur privé, institution, établissement financier, entreprise) pour chaque contact actif, à partir des types d'écritures compta associées et du champ Société. Rien n'est appliqué sans validation ci-dessous.";
-$GLOBAL['contactTypesAppliedMsg']    = "%d contact(s) mis à jour.";
-$GLOBAL['contactTypesNoFlaggedTypes'] = "Aucun type compta n'est flagué « institutionnel », « établissement financier » ou « entreprise » — configurez-les dans";
-$GLOBAL['contactTypesNoDiffs']       = "Tous les contacts ont déjà le type suggéré.";
-$GLOBAL['contactTypesDiffCount']     = "%d contact(s) avec un type suggéré différent";
-$GLOBAL['contactTypesApplySelection'] = "Appliquer la sélection";
-$GLOBAL['contactTypeCurrent']        = "Type actuel";
-$GLOBAL['contactTypeSuggested']      = "Type suggéré";
-$GLOBAL['contactTypesClassifyTitle'] = "Suggestion de classement";
 $GLOBAL['contactTypeCode']           = "Code";
 $GLOBAL['contactTypeLabel']          = "Libellé";
 $GLOBAL['contactTypeCodeHelp']       = "Code interne unique (minuscules, chiffres, underscore, max 20 car.)";
@@ -1029,8 +1020,8 @@ $GLOBAL['currentPassword'] = "Mot de passe actuel";
 $GLOBAL['newPassword'] = "Nouveau mot de passe";
 $GLOBAL['confirmationLabel'] = "Confirmation";
 $GLOBAL['pendingDbMigrationsLabel'] = "migration%s de base de données en attente";
-$GLOBAL['pendingMigrationsBannerBody'] = "Appliquez-la%s depuis
-            <a href=\"%s?view=settings&amp;tab=health\">Réglages → Santé</a>
+$GLOBAL['pendingMigrationsBannerBody'] = "Appliquez-les depuis
+            <a href=\"%2\$s?view=settings&amp;tab=health\">Réglages → Santé</a>
             (sans SSH), ou en ligne de commande <code>php html/tools/migrate.php</code>,
             après avoir sauvegardé la base. Tant que ce n'est pas fait, certaines
             fonctionnalités peuvent ne pas marcher correctement.\n";

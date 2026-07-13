@@ -265,7 +265,7 @@ if ($_comptaUntouched > 0):
 </div>
 <?php endif ?>
 
-<?php
+<?php if (!in_array('0035_contact_type', $pending, true)):
 $_bulkCtSegments = db()->query("SELECT id, name FROM segment WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
 $_bulkCtTypes    = db()->query("SELECT id, label FROM contact_type ORDER BY sort_order")->fetchAll(PDO::FETCH_OBJ);
 ?>
@@ -307,6 +307,7 @@ $_bulkCtTypes    = db()->query("SELECT id, label FROM contact_type ORDER BY sort
     </form>
   </div>
 </div>
+<?php endif ?>
 
 <p class="text-muted small mt-3 mb-0">
   <i class="fas fa-circle-info me-1" aria-hidden="true"></i>

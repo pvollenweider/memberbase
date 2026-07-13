@@ -38,10 +38,12 @@ $count = count($rows);
   </div>
 </div>
 
+<?php if (isManager()): ?>
 <button type="button" class="btn btn-outline-warning btn-sm mb-3"
         data-bs-toggle="modal" data-bs-target="#modal-create-lapsed-donors">
   <i class="fas fa-users me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['createSegmentLapsedDonors'], $year) ?>
 </button>
+<?php endif ?>
 
 <div class="modal fade" id="modal-create-lapsed-donors" tabindex="-1" aria-labelledby="modal-create-lapsed-donors-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">

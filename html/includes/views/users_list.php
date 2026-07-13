@@ -35,6 +35,14 @@ if (isset ($_REQUEST["unassignSegment"])) {
 $contactTypeId = (int)($_REQUEST['contactTypeId'] ?? 0);
 $_ctFilterOptions = db()->query("SELECT id, label FROM contact_type ORDER BY sort_order")->fetchAll(PDO::FETCH_OBJ);
 
+// Embedded in the peopleFinance hub's "Segments" tab — segment/quick-filter
+// links must carry view=peopleFinance&tab=members or clicking one kicks the
+// user out to the bare standalone ?view=list page (mbDefaultView() routes
+// any request bearing ?segment=/?contactTypeId=/etc with no explicit ?view=
+// there).
+$_pfEmbedded = $_pfEmbedded ?? false;
+$_pfLinkPrefix = !empty($_pfEmbedded) ? 'view=peopleFinance&tab=members&' : '';
+
 $allowedColumns = ['lastname', 'firstname', 'society', 'npa', 'email', 'id'];
 $allowedSorts   = ['ASC', 'DESC'];
 $orderSort = "ASC";
@@ -106,6 +114,14 @@ $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((in
                         } catch (PDOException $e) {
                             $currentSegmentTitle = $GLOBAL['list'];
                         }
+                    } else if ($contactTypeId > 0) {
+                        $currentSegmentTitle = $GLOBAL['list'];
+                        foreach ($_ctFilterOptions as $_cto) {
+                            if ((int)$_cto->id === $contactTypeId) {
+                                $currentSegmentTitle = $_cto->label;
+                                break;
+                            }
+                        }
                     } else {
                         $currentSegmentTitle = $GLOBAL['list'];
                     }
@@ -127,7 +143,7 @@ $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((in
                     <h6 class="dropdown-header" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.08em"><?= $GLOBAL['combinedSegments'] ?></h6>
                     <?php foreach ($combinedSegments as $mg): ?>
                     <a class="dropdown-item segment-filterable <?= ($combinedSegment === (int)$mg->id) ? 'active' : '' ?>"
-                       href="<?= appUrl() ?>?combinedSegment=<?= (int)$mg->id ?>"
+                       href="<?= appUrl() ?>?<?= $_pfLinkPrefix ?>combinedSegment=<?= (int)$mg->id ?>"
                        data-label="<?= htmlentities(mb_strtolower($mg->name), ENT_COMPAT, $charset) ?>">
                         <i class="fas fa-layer-group me-1 text-muted" aria-hidden="true" style="font-size:0.75rem"></i><?= htmlentities($mg->name, ENT_COMPAT, $charset) ?>
                     </a>
@@ -139,20 +155,20 @@ $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((in
                       <i class="fas fa-bolt me-1" aria-hidden="true"></i><?= $GLOBAL['quickFilters'] ?>
                     </h6>
                     <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?segment=' . FILTER_ALL_EXCEPT_ARCHIVES ?>"
+                       href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=' . FILTER_ALL_EXCEPT_ARCHIVES ?>"
                        data-label="<?= htmlentities(mb_strtolower($GLOBAL['allExceptArchives']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['allExceptArchives'] ?></a>
                     <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?segment=' . FILTER_UNPAID_COTI_3Y ?>"
+                       href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=' . FILTER_UNPAID_COTI_3Y ?>"
                        data-label="<?= htmlentities(mb_strtolower($GLOBAL['cotiUnpayedLast3Years']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['cotiUnpayedLast3Years'] ?></a>
                     <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?segment=' . FILTER_NO_ACTIVITY_10Y ?>"
+                       href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=' . FILTER_NO_ACTIVITY_10Y ?>"
                        data-label="<?= htmlentities(mb_strtolower($GLOBAL['nothingLast10Years']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['nothingLast10Years'] ?></a>
                     <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?segment=' . FILTER_NON_INSTIT_LAST_YEAR ?>"
+                       href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=' . FILTER_NON_INSTIT_LAST_YEAR ?>"
                        data-label="<?= htmlentities(mb_strtolower($GLOBAL['nonInstitPayedSomethingLastYear']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
                     <?php foreach ($_ctFilterOptions as $_cto): ?>
                     <a class="dropdown-item segment-filterable<?= $contactTypeId === (int)$_cto->id ? ' active' : '' ?>" style="padding-left:1.5rem"
-                       href="<?= appUrl() . '?segment=0&contactTypeId=' . (int)$_cto->id ?>"
+                       href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=0&contactTypeId=' . (int)$_cto->id ?>"
                        data-label="<?= htmlentities(mb_strtolower($_cto->label), ENT_COMPAT, $charset) ?>"><?= htmlspecialchars($_cto->label, ENT_QUOTES, $charset) ?></a>
                     <?php endforeach ?>
 
@@ -168,7 +184,7 @@ $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((in
                             }
                             ?>
                             <a class="dropdown-item segment-filterable d-flex align-items-center justify-content-between <?php if ($segment == $row->id) { ?>active<?php } ?>"
-                               href="<?= appUrl() ?>?segment=<?= (int)$row->id ?>"
+                               href="<?= appUrl() ?>?<?= $_pfLinkPrefix ?>segment=<?= (int)$row->id ?>"
                                data-label="<?= htmlentities(mb_strtolower($row->name), ENT_COMPAT, $charset) ?>"
                                data-cat="<?= $catId ?>"
                                style="padding-left:1.5rem">

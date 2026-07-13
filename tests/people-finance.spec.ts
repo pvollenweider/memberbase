@@ -130,6 +130,19 @@ test.describe('People/finance hub — role guard on Relances tab', () => {
   test('Relances cotisation tab is hidden for a non-manager role', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance');
     await expect(page.locator('#pf-tab-recap-btn')).toHaveCount(0);
-    await expect(page.locator('#pf-tab-lapsed-btn')).toHaveCount(0);
+  });
+
+  test('Mouvements membres/donateurs tabs are visible but read-only for a non-manager role', async ({ page }) => {
+    await page.goto('/index.php?view=peopleFinance&tab=lapsed');
+    await expect(page.locator('#pf-tab-lapsed-btn')).toBeVisible();
+    await expect(page.locator('#pf-cohort-members-lapsed table')).toBeVisible();
+    // Manager-only action triggers (create segment, send reminders) must not render.
+    await expect(page.locator('#pf-cohort-members-lapsed button', { hasText: 'segment' })).toHaveCount(0);
+    await expect(page.locator('#pf-cohort-members-lapsed [data-bs-target="#modal-send-coti-reminders"]')).toHaveCount(0);
+
+    await page.goto('/index.php?view=peopleFinance&tab=lapsedDonors');
+    await expect(page.locator('#pf-tab-lapsedDonors-btn')).toBeVisible();
+    await expect(page.locator('#pf-cohort-donors-lapsed table')).toBeVisible();
+    await expect(page.locator('#pf-cohort-donors-lapsed button', { hasText: 'segment' })).toHaveCount(0);
   });
 });

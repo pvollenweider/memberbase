@@ -518,7 +518,7 @@ $_recentContacts = db()->query(
         </a>
         <?php endif ?>
         <?php if (isManager()): ?>
-        <a href="<?= appUrl() ?>?view=peopleFinance<?= $_pendingRecapCount > 0 ? '&tab=recap' : '' ?>"
+        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=recap"
            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
           <span><?= $GLOBAL['peopleFinanceTabRecap'] ?></span>
           <?php if ($_pendingRecapCount > 0): ?>
@@ -553,7 +553,7 @@ $_recentContacts = db()->query(
           <span class="fw-bold"><?= $_lapsedCount ?></span>
         </a>
         <?php if ($_lastYearSegmentId > 0): ?>
-        <a href="<?= appUrl() ?>?view=list&amp;segment=<?= $_lastYearSegmentId ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members&amp;segment=<?= $_lastYearSegmentId ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
           <span><?= $GLOBAL['dashboardShortcutLastYearMembers'] ?></span>
           <span class="fw-bold"><?= $_lastYearSegmentCount ?></span>
         </a>
