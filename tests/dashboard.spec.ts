@@ -83,7 +83,7 @@ test.describe('Dashboard', () => {
     await expect(cards).toContainText('CHF');
     await expect(cards).toContainText('Donateurs');
     await expect(cards.locator('a', { hasText: 'fidèles' })).toBeVisible();
-    await expect(cards.locator('a', { hasText: 'Nouveaux' })).toBeVisible();
+    await expect(cards.locator('a', { hasText: /^\d+ Nouveaux$/ })).toBeVisible();
   });
 
   test('KPI cards are absent for a role without write access', async ({ page, browser }) => {
