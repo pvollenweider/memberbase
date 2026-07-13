@@ -69,6 +69,7 @@ if (isset($_REQUEST['action'])) {
         'deleteContactType' => 'settings',
         'updateContactTypeLabel' => 'settings',
         'updateContactTypeComptaMatrixColumn' => 'settings',
+        'bulkSetContactTypeBySegment' => 'settings',
         'previewCotisationReminder' => 'cotisation_reminder',
         'sendCotisationReminders'   => 'cotisation_reminder',
         'sendCotisationReminderOne' => 'cotisation_reminder',

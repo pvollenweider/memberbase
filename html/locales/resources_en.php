@@ -1143,6 +1143,17 @@ $GLOBAL['comptaBulkBtn']             = "Mark all as handled";
 $GLOBAL['comptaBulkOk']              = "%d entry/entries marked as handled.";
 $GLOBAL['comptaBulkErrDate']         = "Invalid reference date (cannot be in the future).";
 $GLOBAL['comptaBulkErrConfirm']      = "Please check the confirmation checkbox.";
+
+// Bulk contact-type-by-segment (Settings → Health, admin only)
+$GLOBAL['bulkCtTitle']        = "Force a segment's contact type";
+$GLOBAL['bulkCtDesc']         = "One-off action: applies a contact type to every active member of a given segment, overwriting their current type.";
+$GLOBAL['bulkCtSegmentLabel'] = "Segment";
+$GLOBAL['bulkCtTypeLabel']    = "Contact type to apply";
+$GLOBAL['bulkCtConfirm']      = "I understand this overwrites the contact type of every member in the segment";
+$GLOBAL['bulkCtBtn']          = "Apply";
+$GLOBAL['bulkCtOkMsg']        = "%d member(s) updated.";
+$GLOBAL['bulkCtErrConfirm']   = "Please check the confirmation checkbox.";
+$GLOBAL['bulkCtErrInvalid']   = "Invalid segment or contact type.";
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Payment receipt confirmation";
 $GLOBAL['emailTemplateComptaRecap']    = "Payment summary";

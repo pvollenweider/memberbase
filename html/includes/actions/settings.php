@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'applyContactTypes', 'addContactType', 'deleteContactType', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'applyContactTypes', 'addContactType', 'deleteContactType', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn', 'bulkSetContactTypeBySegment'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -399,4 +399,54 @@ if ($action == 'saveSettings') {
     }
     echo json_encode($result);
     exit;
+
+} elseif ($action === 'bulkSetContactTypeBySegment') {
+    // Admin-only, one-off bulk write (Settings → Santé): forces every member
+    // of a chosen segment to a chosen contact_type. No standing UI elsewhere
+    // — this is an occasional maintenance action, not a routine workflow.
+    if (!isAdmin()) { http_response_code(403); exit; }
+
+    $isHtmx = isset($_SERVER['HTTP_HX_REQUEST']);
+    $redirect = static function (string $q) use ($isHtmx): void {
+        $url = appUrl() . '?view=settings&tab=health&' . $q;
+        if ($isHtmx) { header('HX-Location: ' . $url); } else { header('Location: ' . $url); }
+        exit;
+    };
+
+    if (empty($_REQUEST['confirm_bulk_ct'])) {
+        $redirect('bulkCtErr=noConfirm');
+    }
+
+    $segmentId = (int)($_REQUEST['bulk_ct_segment'] ?? 0);
+    $typeId    = (int)($_REQUEST['bulk_ct_type'] ?? 0);
+
+    $segCheck = db()->prepare("SELECT COUNT(*) FROM segment WHERE id=?");
+    $segCheck->execute([$segmentId]);
+    $typeCheck = db()->prepare("SELECT COUNT(*) FROM contact_type WHERE id=?");
+    $typeCheck->execute([$typeId]);
+    if ($segmentId <= 0 || $typeId <= 0 || (int)$segCheck->fetchColumn() === 0 || (int)$typeCheck->fetchColumn() === 0) {
+        $redirect('bulkCtErr=invalid');
+    }
+
+    // Count matched members up front — rowCount() on an UPDATE...JOIN only
+    // reflects rows whose value actually changed, not rows matched, so
+    // re-running this (e.g. a double-click) would otherwise misreport
+    // "0 membres" on an already-applied, harmless no-op.
+    $countStmt = db()->prepare(
+        "SELECT COUNT(*) FROM contact u
+         JOIN contact_segment cs ON cs.user_id = u.id AND cs.segment_id = ?
+         WHERE u.status = 1"
+    );
+    $countStmt->execute([$segmentId]);
+    $n = (int)$countStmt->fetchColumn();
+
+    $stmt = db()->prepare(
+        "UPDATE contact u
+         JOIN contact_segment cs ON cs.user_id = u.id AND cs.segment_id = ?
+         SET u.contact_type_id = ?
+         WHERE u.status = 1"
+    );
+    $stmt->execute([$segmentId, $typeId]);
+    auditLog(db(), 'bulkSetContactTypeBySegment', "segment_id=$segmentId → contact_type_id=$typeId ($n membre(s))");
+    $redirect('bulkCtOk=' . $n);
 }

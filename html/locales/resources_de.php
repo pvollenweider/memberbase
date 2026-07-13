@@ -1143,6 +1143,17 @@ $GLOBAL['comptaBulkBtn']             = "Alle als erledigt markieren";
 $GLOBAL['comptaBulkOk']              = "%d Eintrag/Eintr\u{00E4}ge als erledigt markiert.";
 $GLOBAL['comptaBulkErrDate']         = "Ung\u{00FC}ltiges Referenzdatum (darf nicht in der Zukunft liegen).";
 $GLOBAL['comptaBulkErrConfirm']      = "Bitte Best\u{00E4}tigungs-Checkbox ankreuzen.";
+
+// Bulk contact-type-by-segment (Einstellungen → Gesundheit, nur Admin)
+$GLOBAL['bulkCtTitle']        = "Kontakttyp eines Segments erzwingen";
+$GLOBAL['bulkCtDesc']         = "Einmalige Aktion: wendet einen Kontakttyp auf alle aktiven Mitglieder eines Segments an und überschreibt deren aktuellen Typ.";
+$GLOBAL['bulkCtSegmentLabel'] = "Segment";
+$GLOBAL['bulkCtTypeLabel']    = "Anzuwendender Kontakttyp";
+$GLOBAL['bulkCtConfirm']      = "Ich verstehe, dass dies den Kontakttyp aller Mitglieder des Segments überschreibt";
+$GLOBAL['bulkCtBtn']          = "Anwenden";
+$GLOBAL['bulkCtOkMsg']        = "%d Mitglied(er) aktualisiert.";
+$GLOBAL['bulkCtErrConfirm']   = "Bitte Bestätigungs-Checkbox ankreuzen.";
+$GLOBAL['bulkCtErrInvalid']   = "Ungültiges Segment oder Kontakttyp.";
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Zahlungseingangsbestätigung";
 $GLOBAL['emailTemplateComptaRecap']    = "Zahlungsübersicht";

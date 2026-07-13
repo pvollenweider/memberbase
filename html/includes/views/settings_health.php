@@ -66,7 +66,16 @@ $_migOk  = isset($_GET['migOk']) ? (int)$_GET['migOk'] : null;
 $_migErr = $_GET['migErr'] ?? null;
 $_bulkComptaOk   = isset($_GET['bulkComptaOk'])   ? (int)$_GET['bulkComptaOk']   : null;
 $_bulkComptaErr  = $_GET['bulkComptaErr'] ?? null;
+$_bulkCtOk       = isset($_GET['bulkCtOk'])  ? (int)$_GET['bulkCtOk']  : null;
+$_bulkCtErr      = $_GET['bulkCtErr'] ?? null;
 ?>
+<?php if ($_bulkCtOk !== null): ?>
+  <div class="alert alert-success py-2" role="alert"><i class="fas fa-circle-check me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['bulkCtOkMsg'], $_bulkCtOk) ?></div>
+<?php elseif ($_bulkCtErr === 'invalid'): ?>
+  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['bulkCtErrInvalid'] ?></div>
+<?php elseif ($_bulkCtErr !== null): ?>
+  <div class="alert alert-warning py-2" role="alert"><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['bulkCtErrConfirm'] ?></div>
+<?php endif ?>
 <?php if ($_bulkComptaOk !== null): ?>
   <div class="alert alert-success py-2" role="alert"><i class="fas fa-circle-check me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['comptaBulkOk'], $_bulkComptaOk) ?></div>
 <?php elseif ($_bulkComptaErr === 'invalidDate'): ?>
@@ -255,6 +264,49 @@ if ($_comptaUntouched > 0):
   </div>
 </div>
 <?php endif ?>
+
+<?php
+$_bulkCtSegments = db()->query("SELECT id, name FROM segment WHERE hidden = 0 ORDER BY name")->fetchAll(PDO::FETCH_OBJ);
+$_bulkCtTypes    = db()->query("SELECT id, label FROM contact_type ORDER BY sort_order")->fetchAll(PDO::FETCH_OBJ);
+?>
+<div class="card mt-3 border-warning-subtle">
+  <div class="card-body">
+    <h6 class="card-title text-muted mb-2">
+      <i class="fas fa-users-gear me-1" aria-hidden="true"></i><?= $GLOBAL['bulkCtTitle'] ?>
+    </h6>
+    <p class="small text-muted mb-2"><?= $GLOBAL['bulkCtDesc'] ?></p>
+    <form method="post" action="<?= appUrl() ?>" class="d-flex flex-column gap-2" style="max-width:380px" hx-boost="false">
+      <input type="hidden" name="action" value="bulkSetContactTypeBySegment">
+      <input type="hidden" name="view"   value="settings">
+      <input type="hidden" name="tab"    value="health">
+      <div>
+        <label class="form-label small" for="bulk_ct_segment"><?= $GLOBAL['bulkCtSegmentLabel'] ?></label>
+        <select class="form-select form-select-sm" name="bulk_ct_segment" id="bulk_ct_segment" required data-no-dirty>
+          <option value=""></option>
+          <?php foreach ($_bulkCtSegments as $_s): ?>
+          <option value="<?= (int)$_s->id ?>"><?= htmlspecialchars($_s->name, ENT_QUOTES, $charset) ?></option>
+          <?php endforeach ?>
+        </select>
+      </div>
+      <div>
+        <label class="form-label small" for="bulk_ct_type"><?= $GLOBAL['bulkCtTypeLabel'] ?></label>
+        <select class="form-select form-select-sm" name="bulk_ct_type" id="bulk_ct_type" required data-no-dirty>
+          <option value=""></option>
+          <?php foreach ($_bulkCtTypes as $_t): ?>
+          <option value="<?= (int)$_t->id ?>"><?= htmlspecialchars($_t->label, ENT_QUOTES, $charset) ?></option>
+          <?php endforeach ?>
+        </select>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="confirm_bulk_ct" id="confirm_bulk_ct" required data-no-dirty>
+        <label class="form-check-label small" for="confirm_bulk_ct"><?= $GLOBAL['bulkCtConfirm'] ?></label>
+      </div>
+      <button type="submit" class="btn btn-outline-warning btn-sm">
+        <i class="fas fa-users-gear me-1" aria-hidden="true"></i><?= $GLOBAL['bulkCtBtn'] ?>
+      </button>
+    </form>
+  </div>
+</div>
 
 <p class="text-muted small mt-3 mb-0">
   <i class="fas fa-circle-info me-1" aria-hidden="true"></i>

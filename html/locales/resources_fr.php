@@ -1143,6 +1143,17 @@ $GLOBAL['comptaBulkBtn']             = "Marquer toutes comme traitées";
 $GLOBAL['comptaBulkOk']              = "%d entrée(s) marquée(s) comme traitées.";
 $GLOBAL['comptaBulkErrConfirm']      = "Veuillez cocher la case de confirmation.";
 $GLOBAL['comptaBulkErrDate']         = "Date de référence invalide (ne peut pas être dans le futur).";
+
+// Bulk contact-type-by-segment (Settings → Santé, admin only)
+$GLOBAL['bulkCtTitle']        = "Forcer le type de contact d'un segment";
+$GLOBAL['bulkCtDesc']         = "Action ponctuelle : applique un type de contact à tous les membres actifs d'un segment donné, en écrasant leur type actuel.";
+$GLOBAL['bulkCtSegmentLabel'] = "Segment";
+$GLOBAL['bulkCtTypeLabel']    = "Type de contact à appliquer";
+$GLOBAL['bulkCtConfirm']      = "Je comprends que cette action écrase le type de contact de tous les membres du segment";
+$GLOBAL['bulkCtBtn']          = "Appliquer";
+$GLOBAL['bulkCtOkMsg']        = "%d membre(s) mis à jour.";
+$GLOBAL['bulkCtErrConfirm']   = "Veuillez cocher la case de confirmation.";
+$GLOBAL['bulkCtErrInvalid']   = "Segment ou type de contact invalide.";
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Confirmation de réception de paiement";
 $GLOBAL['emailTemplateComptaRecap']    = "Récapitulatif de versements";

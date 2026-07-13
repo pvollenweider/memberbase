@@ -1145,6 +1145,17 @@ $GLOBAL['comptaBulkBtn']             = "Marcar todas como tratadas";
 $GLOBAL['comptaBulkOk']              = "%d entrada(s) marcada(s) como tratadas.";
 $GLOBAL['comptaBulkErrDate']         = "Fecha de referencia inválida (no puede estar en el futuro).";
 $GLOBAL['comptaBulkErrConfirm']      = "Por favor, marque la casilla de confirmación.";
+
+// Bulk contact-type-by-segment (Configuración → Salud, solo admin)
+$GLOBAL['bulkCtTitle']        = "Forzar el tipo de contacto de un segmento";
+$GLOBAL['bulkCtDesc']         = "Acción puntual: aplica un tipo de contacto a todos los miembros activos de un segmento, sobrescribiendo su tipo actual.";
+$GLOBAL['bulkCtSegmentLabel'] = "Segmento";
+$GLOBAL['bulkCtTypeLabel']    = "Tipo de contacto a aplicar";
+$GLOBAL['bulkCtConfirm']      = "Entiendo que esto sobrescribe el tipo de contacto de todos los miembros del segmento";
+$GLOBAL['bulkCtBtn']          = "Aplicar";
+$GLOBAL['bulkCtOkMsg']        = "%d miembro(s) actualizado(s).";
+$GLOBAL['bulkCtErrConfirm']   = "Por favor, marque la casilla de confirmación.";
+$GLOBAL['bulkCtErrInvalid']   = "Segmento o tipo de contacto inválido.";
 // Payment receipt email (confirmation on compta entry add)
 $GLOBAL['emailTemplatePaymentReceipt'] = "Confirmación de recepción de pago";
 $GLOBAL['emailTemplateComptaRecap']    = "Resumen de versamentos";
