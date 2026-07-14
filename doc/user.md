@@ -369,9 +369,13 @@ Un avertissement *Cotisation AAAA non payée* s'affiche si le membre n'a pas cot
 L'onglet **Compta** liste tous les versements du membre et propose des graphiques (répartition
 par type et évolution mensuelle / cumulée).
 
+![Onglet Compta d'un membre](images/compta-onglet.png)
+
 ### Ajouter une entrée (rôles Utilisateur et plus)
 
 Le formulaire est en haut du tableau :
+
+![Ligne d'ajout d'une entrée compta](images/compta-ajouter-ligne.png)
 
 1. **Type** — sélectionner le type de versement (cotisation, don…).
 2. **Date** — format JJ/MM/AAAA (date du jour pré-remplie).
@@ -394,6 +398,8 @@ l'entrée.
 
 ### Filtres et outils
 
+![Filtres Année et Dons uniquement](images/compta-filtres.png)
+
 - **Année** : filtrer par année, ou **Toutes** pour l'historique complet.
 - **Dons uniquement** : masquer les entrées non-don (ventes, remboursements…). Les entrées
   non comptées comme don portent la mention « non-don ».
@@ -405,6 +411,8 @@ l'entrée.
 ## 7. Suivi d'un membre (onglet Suivi)
 
 L'onglet **Suivi** enregistre des notes de contact individuelles.
+
+![Onglet Suivi d'un membre](images/suivi-onglet.png)
 
 1. **Date** (date du jour pré-remplie) et **Commentaires**.
 2. Cliquer **Ajouter**.
@@ -488,6 +496,8 @@ Ces vues transversales sont accessibles depuis la barre de navigation, via les h
 
 Toutes les entrées comptables, tous membres confondus.
 
+![Journal comptable global](images/journaux-compta.png)
+
 - Filtrer par **type** de versement et par **année** (avec options *12 derniers mois* /
   *24 derniers mois* / *Toutes les années*). Les deux filtres ne proposent que les options
   réellement présentes dans les données (un type ou une année sans aucune écriture n'apparaît
@@ -499,6 +509,8 @@ Toutes les entrées comptables, tous membres confondus.
 #### Suivi — journal des notes global
 
 Toutes les notes de suivi, tous membres confondus, avec les mêmes outils d'export.
+
+![Journal des notes de suivi global](images/journaux-suivi.png)
 
 ### Membres & finances — onglet Attestation (aperçu des dons)
 
@@ -523,6 +535,8 @@ Le tableau liste les donateurs avec leur statut (membre / don institutionnel), l
 dons et l'indicateur d'attestation. Cliquer une ligne ouvre la compta du membre ; l'icône PDF
 génère son attestation.
 
+![Onglet Attestation — aperçu des dons](images/dons-apercu.png)
+
 ### Membres & finances — Mouvements membres / Mouvements donateurs
 
 Deux onglets remplaçant les anciennes pages séparées « Cotisations non renouvelées »,
@@ -539,6 +553,10 @@ l'onglet **Mouvements membres** correspond aux rappels de cotisation impayée (v
 pastille **Perdus** de **Mouvements donateurs** propose un bouton **Créer segment « Donateurs
 à relancer AAAA »** qui rassemble ces personnes dans un nouveau segment pour faciliter la
 relance.
+
+![Mouvements membres — pastille Perdus](images/mouvements-membres.png)
+
+![Mouvements donateurs — pastille Perdus](images/mouvements-donateurs.png)
 
 ---
 
@@ -578,6 +596,8 @@ novembre 2023) sur la déductibilité des libéralités.
   ouvert). Sont inclus tous les donateurs dont le total de versements de l'année dépasse le
   montant minimum sélectionné (mêmes critères que le tableau **Aperçu des dons**).
 
+![Menu Attestations AAAA](images/attestations-menu.png)
+
 ### Envoyer par email (rôles Manager et Admin)
 
 - **Individuel** : bouton enveloppe à côté du PDF (fiche membre onglet Compta, ou ligne du
@@ -607,6 +627,8 @@ réservée aux Managers et Admins), onglets **Segments**, **Catégories** et **S
 ### Créer un segment
 
 Dans l'onglet **Segments**, saisir le nom dans le champ prévu et valider.
+
+![Onglet Segments des Réglages](images/segments-liste.png)
 
 ### Règles d'auto-assignation
 
@@ -647,12 +669,16 @@ Cliquer le nom d'un segment ouvre sa page d'édition, qui permet de :
 L'onglet **Catégories** organise visuellement les segments en sections (titres) dans le menu de
 filtrage et dans les fiches membres.
 
+![Onglet Catégories](images/segments-categories.png)
+
 ### Segments combinés
 
 Un **segment combiné** regroupe plusieurs segments : le sélectionner dans la liste affiche
 l'**union** de leurs membres. Depuis l'onglet **Segments combinés**, saisir un nom pour en créer
 un, puis cliquer son nom pour choisir les segments à inclure. Il apparaît ensuite en tête du
 menu de filtrage de la liste des membres.
+
+![Onglet Segments combinés](images/segments-combines.png)
 
 ---
 
@@ -676,6 +702,8 @@ les sections disponibles dépendent du rôle.
 | Santé | Admin | Export de la base, application des migrations en attente |
 | Archivés | Admin | Liste des membres archivés |
 
+![Barre latérale des Réglages (vue Admin)](images/reglages-sidebar.png)
+
 ### Types compta
 
 Pour chaque type de versement :
@@ -686,6 +714,8 @@ Pour chaque type de versement :
 - **Est une cotisation** : pris en compte par les filtres de cotisation ;
 - **Exclu des dons** : non comptabilisé dans les totaux de dons ni les attestations ;
 - **Institutionnel** : exclu du filtre « donateurs non institutionnels ».
+
+![Types de compta](images/types-compta.png)
 
 ### Types de contact (Admin)
 
@@ -708,6 +738,8 @@ des types personnalisés ajoutés au besoin.
   création d'écriture pour ce type de contact. Le libellé en tête de colonne bascule toute la
   colonne d'un coup. Enregistrement automatique à chaque case cochée/décochée.
 
+![Types de contact et matrice avec les types de compta](images/types-contact.png)
+
 ### Réglages (généraux, Admin)
 
 | Paramètre | Description |
@@ -722,6 +754,9 @@ des types personnalisés ajoutés au besoin.
 | Statut d'exonération fiscale | Saisie manuelle (ex. « Exonérée AFC-GE depuis 2018 ») |
 | IBAN | Numéro IBAN de l'association, utilisé pour générer le bulletin de versement QR joint aux rappels de cotisation (voir §16) |
 | Description du montant (rappels de cotisation) | Texte affiché dans l'email de rappel et sur le bulletin QR (champ « Montant »), ex. « min. CHF 50.- / pers. · CHF 80.- / famille » — laissé vide, une valeur par défaut est utilisée |
+| Page « Devenir membre » | URL de la page d'adhésion du site de l'association, utilisée dans les emails de rappel de cotisation via la variable `{{membership_url}}` |
+
+![Réglages généraux](images/reglages-generaux.png)
 
 ### Utilisateurs (Admin)
 
@@ -734,16 +769,22 @@ Gestion des comptes de connexion :
 - **Modifier**, **Réinitialiser le mot de passe** (l'utilisateur devra le changer à la
   prochaine connexion), **Supprimer**, activer / désactiver un compte.
 
+![Comptes utilisateurs](images/utilisateurs.png)
+
 ### Journal (Admin)
 
 Trace les actions effectuées (création, modification, suppression) avec date, utilisateur et
 détail.
+
+![Journal d'activité](images/journal-admin.png)
 
 ### Journal des emails (Réglages → Email, Admin)
 
 Sous l'onglet **Email**, un journal liste tous les emails envoyés par l'application (récapitulatifs
 comptables, rappels de cotisation, tests SMTP…) avec date, destinataire, template utilisé et
 statut (envoyé / erreur).
+
+![Journal des envois](images/journal-emails.png)
 
 ### Intégrité (Admin)
 
@@ -752,6 +793,8 @@ bouton **Fusionner**), segments masqués encore assignés à une catégorie / un
 des membres, montants ou dates comptables invalides, entrées sans type, e-mails ou e-mails alt.
 mal formatés, genre hors valeurs, date de naissance dans le futur, membres sans nom ni société.
 Un message « Tout est clean » s'affiche si rien n'est détecté.
+
+![Intégrité — aucun problème détecté](images/integrite.png)
 
 #### Fusionner deux fiches
 
@@ -809,15 +852,18 @@ Cliquer son **nom d'utilisateur** en haut à droite, puis **Déconnexion**.
 
 ## 16. Récapitulatifs comptables par email
 
-Accès : menu **Emails** (Manager / Admin). Envoie à chaque membre un email récapitulant ses
-entrées comptables pas encore notifiées (cotisations, dons…), regroupées en une seule fois
-plutôt qu'une notification par entrée.
+Accès : **Membres & finances** → onglet **Notification de versement** (`?view=peopleFinance&tab=recap`,
+Manager / Admin). Envoie à chaque membre un email récapitulant ses entrées comptables pas
+encore notifiées (cotisations, dons…), regroupées en une seule fois plutôt qu'une notification
+par entrée.
 
 1. Choisir l'**année** à traiter.
 2. La liste affiche les membres avec entrées en attente, séparés entre ceux **avec email**
    (envoi possible) et **sans email** (repliable, non envoyables).
 3. Cliquer une ligne ouvre un **aperçu** de l'email tel qu'il sera reçu (rendu HTML réel du
    template configuré dans Réglages → Email).
+
+![Notification de versement — récapitulatifs comptables](images/recap-liste.png)
 4. **Envoyer les récapitulatifs** (bouton en haut) envoie à tous les membres avec email en une
    fois, ou **Envoyer** dans la modale d'aperçu pour un envoi individuel.
 5. **Mode étendu** (case à cocher) affiche aussi les membres déjà notifiés cette année, avec
@@ -834,6 +880,8 @@ décembre 2026), l'email le précise explicitement.
 Accès : **Membres & finances** → onglet **Mouvements membres** → pastille **Perdus**
 (`?view=peopleFinance&tab=lapsed&cohort=lapsed`). Liste les membres ayant cotisé l'année
 précédente mais pas encore l'année en cours.
+
+![Rappels de cotisation impayée](images/mouvements-membres.png)
 
 - **Envoyer un rappel** sur une ligne individuelle, ou en masse pour toute la liste. L'envoi
   individuel (et le renvoi) affiche d'abord un **aperçu de l'email** (sujet + rendu tel qu'il
