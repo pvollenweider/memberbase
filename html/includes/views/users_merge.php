@@ -18,6 +18,8 @@ if ($_muIdA <= 0 || $_muIdB <= 0 || $_muIdA === $_muIdB) { ?>
 $_muUserA = new Contact(); $_muUserA->lookupUser($_muIdA);
 $_muUserB = new Contact(); $_muUserB->lookupUser($_muIdB);
 
+$_muContactTypeLabels = db()->query("SELECT id, label FROM contact_type")->fetchAll(PDO::FETCH_KEY_PAIR);
+
 if (!$_muUserA->getId() || !$_muUserB->getId()) { ?>
 <div class="alert alert-danger mt-4" role="alert">
   <i class="fas fa-triangle-exclamation me-2" aria-hidden="true"></i><?= $GLOBAL['memberNotFound'] ?>
@@ -40,6 +42,7 @@ $_muFields = [
     'firstName' => [$GLOBAL['firstName'],   (string)$_muUserA->firstName,                               (string)$_muUserB->firstName],
     'lastName'  => [$GLOBAL['lastName'],    (string)$_muUserA->lastName,                                (string)$_muUserB->lastName],
     'society'   => [$GLOBAL['society'],     (string)$_muUserA->society,                                 (string)$_muUserB->society],
+    'contactTypeId' => [$GLOBAL['contactTypesTitle'], $_muContactTypeLabels[$_muUserA->contactTypeId] ?? '', $_muContactTypeLabels[$_muUserB->contactTypeId] ?? ''],
     'sexe'      => [$GLOBAL['sexLabel'],    (string)$_muUserA->sexe,                                    (string)$_muUserB->sexe],
     'title'     => [$GLOBAL['title'],       (string)$_muUserA->title,                                   (string)$_muUserB->title],
     'address'   => [$GLOBAL['address'],     (string)$_muUserA->address,                                 (string)$_muUserB->address],

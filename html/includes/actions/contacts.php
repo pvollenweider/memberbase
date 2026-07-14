@@ -96,7 +96,7 @@ if ($_REQUEST['action'] == 'updateUser') {
 
     $disposal = ($_REQUEST['disposal'] ?? 'hide') === 'delete' ? 'delete' : 'hide';
 
-    $allowed = ['firstName','lastName','society','sexe','title','address','npa','tel','telProf','portable','fax','email','emailAlt','web','birthDay','comment'];
+    $allowed = ['firstName','lastName','society','contactTypeId','sexe','title','address','npa','tel','telProf','portable','fax','email','emailAlt','web','birthDay','comment'];
     $fields  = array_intersect_key($_REQUEST['fields'] ?? [], array_flip($allowed));
     $changedFields = [];
     foreach ($fields as $k => $side) {
