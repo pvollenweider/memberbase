@@ -147,6 +147,8 @@ $_recentContacts = db()->query(
   var status  = document.getElementById('dashboard-compta-status');
   if (!input || !results) return;
 
+  input.focus();
+
   var baseUrl = <?= json_encode(appUrl()) ?>;
   var items = [];
   var activeIndex = -1;

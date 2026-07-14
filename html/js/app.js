@@ -107,6 +107,25 @@
 })();
 
 // ---------------------------------------------------------------------------
+// Global navigation shortcuts: Option/Alt+Cmd/Meta+1/2/3 → dashboard,
+// Membres & finances, Journaux. Routed through htmx.ajax (not
+// window.location) so it behaves exactly like clicking a nav link: same
+// SPA partial swap, same dirty-form confirm via htmx:beforeRequest.
+// ---------------------------------------------------------------------------
+(function () {
+    var VIEW_BY_KEY = { '1': 'dashboard', '2': 'peopleFinance', '3': 'journals' };
+
+    document.addEventListener('keydown', function (e) {
+        if (!e.altKey || !e.metaKey) return;
+        var view = VIEW_BY_KEY[e.key];
+        if (!view) return;
+        e.preventDefault();
+        var scriptName = location.pathname.substring(location.pathname.lastIndexOf('/') + 1) || 'index.php';
+        htmx.ajax('GET', scriptName + '?view=' + view, { target: '#main-content', swap: 'innerHTML', pushUrl: true });
+    });
+})();
+
+// ---------------------------------------------------------------------------
 // jQuery plugin bootstrapping (initial page load)
 // ---------------------------------------------------------------------------
 $('table').datahref();

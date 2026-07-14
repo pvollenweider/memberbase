@@ -93,4 +93,38 @@ test.describe('Dashboard', () => {
     await expect(p.locator('.ca-resume-cards')).toHaveCount(0);
     await ctx.close();
   });
+
+  test('quick search input auto-focuses on load', async ({ page }) => {
+    await page.goto('/index.php?view=list');
+    await page.goto('/index.php?view=dashboard');
+    await expect.poll(() => page.evaluate(() => document.activeElement?.id))
+      .toBe('dashboard-compta-search');
+  });
+});
+
+test.describe('Global navigation shortcuts (Alt/Option+Cmd+1/2/3)', () => {
+  test('navigates to Membres & finances, Journaux, then back to the dashboard', async ({ page }) => {
+    await page.goto('/index.php?view=dashboard');
+
+    await page.keyboard.down('Alt');
+    await page.keyboard.down('Meta');
+    await page.keyboard.press('2');
+    await page.keyboard.up('Meta');
+    await page.keyboard.up('Alt');
+    await expect(page).toHaveURL(/view=peopleFinance/);
+
+    await page.keyboard.down('Alt');
+    await page.keyboard.down('Meta');
+    await page.keyboard.press('3');
+    await page.keyboard.up('Meta');
+    await page.keyboard.up('Alt');
+    await expect(page).toHaveURL(/view=journals/);
+
+    await page.keyboard.down('Alt');
+    await page.keyboard.down('Meta');
+    await page.keyboard.press('1');
+    await page.keyboard.up('Meta');
+    await page.keyboard.up('Alt');
+    await expect(page).toHaveURL(/view=dashboard/);
+  });
 });
