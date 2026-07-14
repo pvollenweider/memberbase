@@ -17,16 +17,15 @@ Guide pratique pour la gestion quotidienne des membres, segments, comptabilité,
 5. [Fiche membre](#5-fiche-membre)
 6. [Comptabilité d'un membre (onglet Compta)](#6-comptabilité-dun-membre-onglet-compta)
 7. [Suivi d'un membre (onglet Suivi)](#7-suivi-dun-membre-onglet-suivi)
-8. [Tâches](#8-tâches)
-9. [Journaux et aperçu des dons](#9-journaux-et-aperçu-des-dons)
-10. [Attestations de dons](#10-attestations-de-dons)
-11. [Segments](#11-segments)
-12. [Réglages](#12-réglages)
-13. [Rôles utilisateurs et matrice des droits](#13-rôles-utilisateurs-et-matrice-des-droits)
-14. [Changer son mot de passe](#14-changer-son-mot-de-passe)
-15. [Déconnexion](#15-déconnexion)
-16. [Récapitulatifs comptables par email](#16-récapitulatifs-comptables-par-email)
-17. [Rappels de cotisation impayée](#17-rappels-de-cotisation-impayée)
+8. [Journaux et aperçu des dons](#8-journaux-et-aperçu-des-dons)
+9. [Attestations de dons](#9-attestations-de-dons)
+10. [Segments](#10-segments)
+11. [Réglages](#11-réglages)
+12. [Rôles utilisateurs et matrice des droits](#12-rôles-utilisateurs-et-matrice-des-droits)
+13. [Changer son mot de passe](#13-changer-son-mot-de-passe)
+14. [Déconnexion](#14-déconnexion)
+15. [Récapitulatifs comptables par email](#15-récapitulatifs-comptables-par-email)
+16. [Rappels de cotisation impayée](#16-rappels-de-cotisation-impayée)
 
 ---
 
@@ -163,7 +162,7 @@ Cliquer dessus ouvre un menu déroulant contenant :
 | Donateur non institutionnel actif en AAAA-1 | Membres ayant fait au moins un versement non institutionnel l'année précédente |
 
 - Une entrée de filtre rapide par **type de contact** configuré (Réglages → Types de contact,
-  voir §12), pour isoler par exemple les institutions ou les entreprises.
+  voir §11), pour isoler par exemple les institutions ou les entreprises.
 - La liste de tous les segments, regroupés par **catégorie**. Le badge à droite de chaque
   segment indique son nombre de membres.
 
@@ -328,7 +327,7 @@ dernière modification est indiquée en bas.
 ### Type de contact
 
 Chaque membre a un **type de contact** — donateur privé, institution, établissement financier,
-entreprise, ou un type personnalisé ajouté par un administrateur (voir §12). Il est affiché en
+entreprise, ou un type personnalisé ajouté par un administrateur (voir §11). Il est affiché en
 lecture sous forme de badge (icône + libellé) et modifiable via un menu déroulant en édition. Ce
 type peut restreindre les types de compta proposés à la création d'une écriture pour ce membre
 (matrice configurée en Réglages → Types de contact) et sert de critère pour certains filtres
@@ -423,67 +422,7 @@ sont réservés aux rôles Utilisateur et plus.
 
 ---
 
-## 8. Tâches
-
-Distinctes des notes de suivi, les **tâches** ont un titre, une échéance optionnelle, une
-priorité et un statut ouvert/fermé — pensées pour le suivi d'actions à faire plutôt que pour
-l'historique de contact.
-
-### Depuis la fiche d'un membre
-
-La fiche membre n'a pas d'onglet Tâches dédié — on y accède via l'URL
-`?view=memberTasks&userid=…` (par exemple depuis un lien de la vue globale, voir ci-dessous),
-qui liste les tâches liées à ce membre et propose un formulaire d'ajout (titre, échéance,
-priorité, description).
-
-![Tâches d'un membre](images/taches-membre.png)
-
-Sur chaque ligne : coche pour marquer **terminée** (ou rouvrir une tâche déjà terminée), icône
-crayon pour modifier, icône corbeille pour supprimer.
-
-### Vue globale
-
-L'URL directe `?view=tasks` ouvre la liste de **toutes les tâches ouvertes**,
-tous membres confondus, triées par échéance puis priorité. Les tâches en retard sont mises en
-évidence en rouge. Cliquer une ligne ouvre la fiche du membre concerné (ou la tâche elle-même
-si elle n'est liée à aucun membre en particulier).
-
-![Vue globale des tâches](images/taches-globale.png)
-
-Un formulaire d'ajout y est aussi disponible pour créer une **tâche générale**, non rattachée
-à un membre (ex. « renouveler l'assurance RC », « préparer l'AG »).
-
-### Génération automatique (rôles Manager et Admin)
-
-Le bouton **Générer les tâches de relance cotisation** crée une tâche par membre correspondant
-au filtre « Cotisation impayée cette année » (même règle que dans la liste des membres), sans
-créer de doublon si une tâche de relance est déjà ouverte pour ce membre. Relancer la génération
-plus tard ne recrée donc que les tâches manquantes.
-
-Si un membre a entre-temps payé sa cotisation par un autre biais (saisie directe dans l'onglet
-Compta, par exemple), relancer la génération **ferme automatiquement** la tâche de relance
-devenue inutile — inutile de la chercher pour la marquer terminée à la main.
-
-### Envoyer le rappel directement depuis la tâche
-
-Une tâche de relance cotisation affiche un bouton **Envoyer le rappel** qui ouvre le même
-aperçu email (sujet + rendu, bulletin de versement QR en pièce jointe) que la pastille
-**Perdus** de l'onglet **Mouvements membres** (voir §17). Confirmer l'envoi **ferme
-automatiquement la tâche** — pas besoin de la marquer terminée séparément après l'envoi.
-
-L'ajout, la modification, la fermeture et la suppression de tâches sont réservés aux rôles
-Utilisateur et plus.
-
-### Rappel automatique par email (équipe)
-
-Si l'administrateur système a configuré une tâche planifiée (cron, voir le guide administrateur),
-un e-mail récapitulatif des tâches en retard ou à échéance dans les 3 prochains jours est envoyé
-automatiquement à l'adresse configurée dans Réglages → Email. Sans cron configuré, il faut
-consulter la vue globale des tâches soi-même.
-
----
-
-## 9. Journaux et aperçu des dons
+## 8. Journaux et aperçu des dons
 
 Ces vues transversales sont accessibles depuis la barre de navigation, via les hubs
 **Journaux** et **Membres & finances**.
@@ -529,7 +468,7 @@ Filtres et options :
 - **Inclure si attestation demandée** : ajoute les personnes ayant coché « souhaite une
   attestation » même sous le montant minimum.
 - **Attestations AAAA** : génère toutes les attestations de l'année en un seul PDF ou les
-  envoie par email en masse (voir §10).
+  envoie par email en masse (voir §9).
 
 Le tableau liste les donateurs avec leur statut (membre / don institutionnel), le montant des
 dons et l'indicateur d'attestation. Cliquer une ligne ouvre la compta du membre ; l'icône PDF
@@ -549,7 +488,7 @@ pastilles :
 
 Ouverts à tous les rôles (lecture seule) ; les actions à l'intérieur (envoi de rappel, création
 de segment) restent réservées aux **Managers** et **Admins**. La pastille **Perdus** de
-l'onglet **Mouvements membres** correspond aux rappels de cotisation impayée (voir §17) ; la
+l'onglet **Mouvements membres** correspond aux rappels de cotisation impayée (voir §16) ; la
 pastille **Perdus** de **Mouvements donateurs** propose un bouton **Créer segment « Donateurs
 à relancer AAAA »** qui rassemble ces personnes dans un nouveau segment pour faciliter la
 relance.
@@ -560,7 +499,7 @@ relance.
 
 ---
 
-## 10. Attestations de dons
+## 9. Attestations de dons
 
 Une attestation de don est un PDF officiel remis au donateur pour sa déclaration fiscale. Elle
 reprend les versements de l'année (hors types marqués « exclu des dons »), avec en option le
@@ -618,7 +557,7 @@ novembre 2023) sur la déductibilité des libéralités.
 
 ---
 
-## 11. Segments
+## 10. Segments
 
 Les segments découpent les membres en sous-ensembles (membres d'une année, comité, partenaires,
 donateurs à relancer…). Leur gestion se trouve dans les **Réglages** (icône engrenage,
@@ -682,7 +621,7 @@ menu de filtrage de la liste des membres.
 
 ---
 
-## 12. Réglages
+## 11. Réglages
 
 Accès via l'icône **engrenage** (Managers et Admins). La barre latérale liste les sections ;
 les sections disponibles dépendent du rôle.
@@ -810,7 +749,7 @@ Depuis Intégrité, cliquer **Fusionner** sur un doublon ouvre l'écran de fusio
 
 ---
 
-## 13. Rôles utilisateurs et matrice des droits
+## 12. Rôles utilisateurs et matrice des droits
 
 L'application distingue quatre rôles : **Lecture seule**, **Utilisateur**, **Manager** et
 **Admin**. La matrice ci-dessous est consultable directement à la création d'un compte (icône
@@ -832,7 +771,7 @@ saisir compta et suivi, mais pas gérer les segments.
 
 ---
 
-## 14. Changer son mot de passe
+## 13. Changer son mot de passe
 
 1. Cliquer son **nom d'utilisateur** en haut à droite.
 2. Choisir **Mot de passe**.
@@ -844,13 +783,13 @@ connexion suivante.
 
 ---
 
-## 15. Déconnexion
+## 14. Déconnexion
 
 Cliquer son **nom d'utilisateur** en haut à droite, puis **Déconnexion**.
 
 ---
 
-## 16. Récapitulatifs comptables par email
+## 15. Récapitulatifs comptables par email
 
 Accès : **Membres & finances** → onglet **Notification de versement** (`?view=peopleFinance&tab=recap`,
 Manager / Admin). Envoie à chaque membre un email récapitulant ses entrées comptables pas
@@ -875,7 +814,7 @@ décembre 2026), l'email le précise explicitement.
 
 ---
 
-## 17. Rappels de cotisation impayée
+## 16. Rappels de cotisation impayée
 
 Accès : **Membres & finances** → onglet **Mouvements membres** → pastille **Perdus**
 (`?view=peopleFinance&tab=lapsed&cohort=lapsed`). Liste les membres ayant cotisé l'année
