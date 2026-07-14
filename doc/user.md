@@ -42,12 +42,16 @@ Lors de la première connexion, ou après une réinitialisation par un administr
 l'application demande immédiatement de choisir un nouveau mot de passe. Si vous avez reçu
 un **lien d'invitation**, il vous permet de définir vous-même votre mot de passe.
 
+![Page de connexion](images/login.png)
+
 ### Changer la langue de l'interface
 
 Depuis le menu *Nom d'utilisateur → Mot de passe*, une carte **Langue** permet de choisir
 la langue de l'interface : français (par défaut), anglais, allemand ou espagnol. Le choix
 est enregistré sur le compte et s'applique à toutes vos futures connexions, sur n'importe
 quel poste.
+
+![Carte Langue sur la page Mot de passe](images/langue.png)
 
 ### La barre de navigation
 
@@ -58,10 +62,11 @@ En haut de chaque page, la barre bleue contient :
 | **Tableau de bord** (icône jauge) | Page d'accueil par défaut après connexion : KPIs, graphique, raccourcis (voir ci-dessous) |
 | **Membres & finances** (icône personnes) | Segments, notification de versement, attestations, mouvements membres/donateurs — cinq onglets |
 | **Journaux** (icône livre) | Journal comptable et journal de suivi, tous membres confondus — deux onglets |
-| **Tâches** | Liste globale des tâches ouvertes (voir §8) |
 | **Engrenage** (à droite) | Réglages — visible uniquement pour les rôles Manager et Admin |
 | **Nom d'utilisateur** (à droite) | Menu : *Mot de passe*, *Déconnexion* |
 | **Chercher** | Recherche rapide globale |
+
+![Barre de navigation](images/navbar.png)
 
 Il n'y a plus de menu « Rapports » ni « Groupes » séparé, ni de liens distincts Listes /
 Relances / Aperçu des dons / Compta / Suivi : la gestion des segments se fait dans les
@@ -77,6 +82,8 @@ et l'icône utilisateur regroupe le profil.
 
 Page d'accueil par défaut après connexion (également accessible via l'icône jauge de la barre
 de navigation, `?view=dashboard`). Il regroupe :
+
+![Tableau de bord](images/dashboard.png)
 
 - **Cartes KPI** — Contributions, Donateurs et Membres actifs de l'année en cours, chacune avec
   sa variation par rapport à l'année précédente et, pour l'année en cours, par rapport à la même
@@ -114,6 +121,8 @@ La liste des membres est l'onglet **Segments** du hub **Membres & finances**
 (`?view=peopleFinance&tab=members`, premier onglet). Elle affiche par défaut le segment
 configuré comme segment de référence (par exemple « Membre 2026 »).
 
+![Liste des membres](images/liste-membres.png)
+
 ### Colonnes affichées
 
 | Colonne | Description |
@@ -134,8 +143,11 @@ bouton **Colonnes**.
 
 ### Filtrer par segment
 
-Le bouton en haut à gauche de la liste affiche le segment actif. Cliquer dessus ouvre un menu
-déroulant contenant :
+Le bouton en haut à gauche de la liste affiche le segment actif.
+
+![Bouton de segment actif](images/liste-bouton-segment.png)
+
+Cliquer dessus ouvre un menu déroulant contenant :
 
 - Un champ **Filtrer…** pour retrouver un segment par son nom (navigation clavier : flèches +
   Entrée).
@@ -155,6 +167,8 @@ déroulant contenant :
 - La liste de tous les segments, regroupés par **catégorie**. Le badge à droite de chaque
   segment indique son nombre de membres.
 
+![Menu déroulant du filtre segment](images/liste-filtre-segment.png)
+
 Une phrase d'explication s'affiche sous le bouton lorsqu'un filtre rapide est actif.
 
 ### Rechercher un membre
@@ -170,12 +184,16 @@ Une phrase d'explication s'affiche sous le bouton lorsqu'un filtre rapide est ac
 - La barre d'outils au-dessus du tableau propose : **Copier**, **Excel**, **PDF**,
   **Imprimer**, **Colonnes**. Seules les lignes visibles (après filtrage) sont exportées.
 
+![Barre d'outils Exporter et Colonnes](images/liste-toolbar-export.png)
+
 ### Boutons d'action de la liste
 
 | Bouton | Rôle requis | Action |
 |---|---|---|
 | **Importer** (icône import) | Manager / Admin | Assistant d'import de contacts (voir §4) |
 | **Ajouter** (icône personne +) | Utilisateur et plus | Créer un nouveau membre (voir §3) |
+
+![Boutons Importer et Ajouter](images/liste-boutons-action.png)
 
 ---
 
@@ -395,7 +413,7 @@ crayon pour modifier, icône corbeille pour supprimer.
 
 ### Vue globale
 
-Le lien **Tâches** de la barre de navigation ouvre la liste de **toutes les tâches ouvertes**,
+L'URL directe `?view=tasks` ouvre la liste de **toutes les tâches ouvertes**,
 tous membres confondus, triées par échéance puis priorité. Les tâches en retard sont mises en
 évidence en rouge. Cliquer une ligne ouvre la fiche du membre concerné (ou la tâche elle-même
 si elle n'est liée à aucun membre en particulier).
