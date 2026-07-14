@@ -214,9 +214,10 @@ a.crumb-link:hover { color: var(--ink); text-decoration: underline; }
   transition: grid-template-rows .22s ease;
 }
 .faq-body.open { grid-template-rows: 1fr; }
-.faq-body-inner { overflow: hidden; }
+.faq-body-inner { overflow: hidden; min-height: 0; padding-bottom: 0; transition: padding-bottom .22s ease; }
+.faq-body.open .faq-body-inner { padding-bottom: 1.1rem; }
 .faq-body-inner > * + * { margin-top: .9rem; }
-.faq-body-inner { padding-bottom: 1.1rem; color: var(--ink-mid); font-size: .98rem; line-height: 1.72; }
+.faq-body-inner { color: var(--ink-mid); font-size: .98rem; line-height: 1.72; }
 .faq-body-inner p strong, .faq-body-inner li strong { color: var(--ink); }
 .faq-body-inner ol, .faq-body-inner ul { padding-left: 1.4rem; }
 .faq-body-inner li + li { margin-top: .3rem; }
