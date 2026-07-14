@@ -218,6 +218,8 @@ Une phrase d'explication s'affiche sous le bouton lorsqu'un filtre rapide est ac
 | Date de naissance | Format JJ/MM/AAAA |
 | Compétences / remarques | Zone de texte libre |
 
+![Formulaire d'ajout d'un membre](images/ajouter-membre.png)
+
 3. Si vous avez ouvert le formulaire depuis un segment actif, une case
    **Ajouter au segment « … »** est proposée en bas.
 4. Cliquer **Ajouter**.
@@ -240,6 +242,8 @@ L'import en masse est réservé aux rôles **Manager** et **Admin**. Cliquer le 
 - Limites : **5 MB** et **5 000 lignes**. Au-delà, un avertissement s'affiche et seules les
   5 000 premières lignes sont importées (découper le fichier pour importer le reste).
 
+![Étape 1 — sélection du fichier](images/import-etape1.png)
+
 ### Étape 2 — Correspondance des colonnes
 
 - Pour chaque colonne du fichier, choisir le **champ membre** correspondant (Nom, Prénom,
@@ -255,6 +259,8 @@ L'import en masse est réservé aux rôles **Manager** et **Admin**. Cliquer le 
   - **Ne pas ajouter à un segment**.
 - Cliquer **Importer**.
 
+![Étape 2 — correspondance des colonnes](images/import-etape2.png)
+
 ### Étape 3 — Résultats et doublons
 
 - Un bandeau indique le nombre de contacts **créés** et, le cas échéant, le nombre de contacts
@@ -265,6 +271,8 @@ L'import en masse est réservé aux rôles **Manager** et **Admin**. Cliquer le 
   - **Compléter les champs vides** (n'écrase pas l'existant) ;
   - **Écraser** (remplace les valeurs par celles du fichier).
 - Cliquer **Appliquer les choix**, ou **Terminer sans appliquer**.
+
+![Étape 3 — résultats et doublons détectés](images/import-etape3.png)
 
 ---
 
@@ -281,12 +289,16 @@ Cliquer une ligne de la liste ouvre la fiche. Une barre d'onglets donne accès a
 | Suivi | Notes de contact (voir §7) |
 | Historique | Journal des modifications de la fiche — **admins uniquement** |
 
+![Barre d'onglets de la fiche membre](images/fiche-onglets.png)
+
 Le nombre d'entrées est affiché en petit à côté des onglets Compta et Suivi.
 
 ### Actif / Archivé
 
 Un commutateur **Actif / Archivé** est affiché en haut à droite (modifiable par les **Managers**
 et **Admins**).
+
+![Commutateur Actif / Archivé](images/fiche-actif-archive.png)
 
 - **Actif** : le membre apparaît dans toutes les listes.
 - **Archivé** : le profil est retiré de toutes les listes de filtrage (une confirmation est
@@ -300,6 +312,8 @@ Pour un membre **archivé**, un administrateur peut :
   financier est conservé.
 
 ### Données générales (mode lecture / édition)
+
+![Fiche membre — données générales](images/fiche-donnees-generales.png)
 
 Par défaut, les données s'affichent en **lecture** ; les champs vides sont masqués. Un lien
 **Google Maps** apparaît sous l'adresse.
@@ -320,10 +334,14 @@ type peut restreindre les types de compta proposés à la création d'une écrit
 (matrice configurée en Réglages → Types de contact) et sert de critère pour certains filtres
 rapides (§2) et rapports.
 
+![Badge Type de contact](images/fiche-type-contact.png)
+
 ### Appartenance aux segments
 
 La colonne de droite liste les **Segments** du membre, regroupés par catégorie. Les segments
 masqués portent une icône œil barré.
+
+![Segments et résumé financier du membre](images/fiche-segments.png)
 
 Pour ajouter ou retirer un segment (rôles **Manager** et **Admin**) : cliquer la croix d'une
 pastille pour retirer, ou déplier **Ajouter un segment** pour en ajouter. Chaque changement est
@@ -338,6 +356,8 @@ premier versement) :
 - **Dons** : versements comptés comme dons ;
 - **Autres versements** : versements de types exclus des dons (avec le détail des types) ;
 - **Total** de tous les versements confondus.
+
+![Encart Dons du résumé financier](images/fiche-resume-financier.png)
 
 Un avertissement *Cotisation AAAA non payée* s'affiche si le membre n'a pas cotisé cette année
 (sauf s'il appartient au segment « membres sans cotisation »).
@@ -403,10 +423,12 @@ l'historique de contact.
 
 ### Depuis la fiche d'un membre
 
-L'onglet **Tâches** de la fiche membre liste les tâches liées à ce membre et propose un
-formulaire d'ajout (titre, échéance, priorité, description). Un badge sur l'onglet indique le
-nombre de tâches ouvertes ; il devient **rouge** dès qu'au moins une tâche est en retard
-(échéance dépassée et non terminée).
+La fiche membre n'a pas d'onglet Tâches dédié — on y accède via l'URL
+`?view=memberTasks&userid=…` (par exemple depuis un lien de la vue globale, voir ci-dessous),
+qui liste les tâches liées à ce membre et propose un formulaire d'ajout (titre, échéance,
+priorité, description).
+
+![Tâches d'un membre](images/taches-membre.png)
 
 Sur chaque ligne : coche pour marquer **terminée** (ou rouvrir une tâche déjà terminée), icône
 crayon pour modifier, icône corbeille pour supprimer.
@@ -417,6 +439,8 @@ L'URL directe `?view=tasks` ouvre la liste de **toutes les tâches ouvertes**,
 tous membres confondus, triées par échéance puis priorité. Les tâches en retard sont mises en
 évidence en rouge. Cliquer une ligne ouvre la fiche du membre concerné (ou la tâche elle-même
 si elle n'est liée à aucun membre en particulier).
+
+![Vue globale des tâches](images/taches-globale.png)
 
 Un formulaire d'ajout y est aussi disponible pour créer une **tâche générale**, non rattachée
 à un membre (ex. « renouveler l'assurance RC », « préparer l'AG »).
