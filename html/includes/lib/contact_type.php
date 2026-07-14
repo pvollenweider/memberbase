@@ -131,9 +131,16 @@ function mbAllowedComptaTypeIdsForContact(PDO $db, int $contactTypeId, array $co
  */
 function mbDefaultComptaTypeIdForContact(PDO $db, int $contactTypeId, array $allowedComptaTypeIds): ?int
 {
-    $stmt = $db->prepare("SELECT default_compta_type_id FROM contact_type WHERE id = ?");
-    $stmt->execute([$contactTypeId]);
-    $defaultId = $stmt->fetchColumn();
+    // Guard: default_compta_type_id is migration 0038 — a not-yet-migrated
+    // instance doesn't have it. Fail open (no default, previous behavior)
+    // rather than fataling every member fiche until the migration runs.
+    try {
+        $stmt = $db->prepare("SELECT default_compta_type_id FROM contact_type WHERE id = ?");
+        $stmt->execute([$contactTypeId]);
+        $defaultId = $stmt->fetchColumn();
+    } catch (PDOException $e) {
+        return null;
+    }
     if ($defaultId === false || $defaultId === null) {
         return null;
     }

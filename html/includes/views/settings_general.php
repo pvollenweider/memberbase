@@ -25,7 +25,7 @@ $_settingsDrillDown = in_array($_REQUEST['view'] ?? '', ['updateSegment', 'updat
 // migration in the first place. Detect and show a notice instead.
 $_ctSchemaPending = (bool)array_intersect(
     pendingMigrations($pdo),
-    ['0035_contact_type', '0036_compta_type_matrix_archive', '0037_contact_type_icon']
+    ['0035_contact_type', '0036_compta_type_matrix_archive', '0037_contact_type_icon', '0038_contact_type_default_compta_type']
 );
 
 $_paneClass = function(string $tab) use ($_activeTab): string {
