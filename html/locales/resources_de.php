@@ -266,6 +266,10 @@ $GLOBAL['contactTypeMatrixNoComptaTypes'] = "Kein aktiver (nicht archivierter) B
 $GLOBAL['contactTypeMatrixComptaType'] = "Buchungstyp";
 $GLOBAL['contactTypeMatrixUncheckAllHelp'] = "Wenn alle Kästchen einer Spalte deaktiviert werden, ist die Erstellung von Einträgen für diesen Kontakttyp blockiert. Jede Änderung wird automatisch gespeichert.";
 $GLOBAL['contactTypeMatrixToggleColumn'] = "Alle für %s an-/abwählen";
+$GLOBAL['contactTypeMatrixDefaultHelp']  = "Das Optionsfeld legt den im Formular „Buchung hinzufügen“ vorausgewählten Buchungstyp für diesen Kontakttyp fest. „Keiner“ = erster zulässiger Typ, wie bisher.";
+$GLOBAL['contactTypeMatrixDefaultNone']  = "Keiner";
+$GLOBAL['contactTypeMatrixDefaultRadioTitle'] = "Als Standardtyp festlegen";
+$GLOBAL['contactTypeMatrixDefaultRadioLabel'] = "%s als Standardtyp für %s festlegen";
 $GLOBAL['management']          = "Verwaltung";
 $GLOBAL['settingsSectionsAria']= "Bereiche der Einstellungen";
 

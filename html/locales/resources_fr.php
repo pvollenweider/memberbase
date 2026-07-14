@@ -267,6 +267,10 @@ $GLOBAL['contactTypeMatrixNoComptaTypes'] = "Aucun type de compta actif (non arc
 $GLOBAL['contactTypeMatrixComptaType'] = "Type de compta";
 $GLOBAL['contactTypeMatrixUncheckAllHelp'] = "Décocher toutes les cases d'une colonne bloque la création d'écritures pour ce type de contact. Chaque modification est enregistrée automatiquement.";
 $GLOBAL['contactTypeMatrixToggleColumn'] = "Tout cocher/décocher pour %s";
+$GLOBAL['contactTypeMatrixDefaultHelp']  = "Le bouton radio choisit le type de compta pré-sélectionné dans le formulaire d'ajout d'écriture pour ce type de contact. « Aucun » = premier type autorisé, comme avant.";
+$GLOBAL['contactTypeMatrixDefaultNone']  = "Aucun";
+$GLOBAL['contactTypeMatrixDefaultRadioTitle'] = "Définir comme type par défaut";
+$GLOBAL['contactTypeMatrixDefaultRadioLabel'] = "Définir %s comme type par défaut pour %s";
 $GLOBAL['management']          = "Gestion";
 $GLOBAL['settingsSectionsAria']= "Sections des réglages";
 

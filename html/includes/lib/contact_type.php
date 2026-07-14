@@ -117,3 +117,47 @@ function mbAllowedComptaTypeIdsForContact(PDO $db, int $contactTypeId, array $co
 
     return mbAllowedComptaTypeIds($activeIds, $restrictedIds);
 }
+
+/**
+ * The compta_type to pre-select in the "add entry" form for a contact of the
+ * given contact_type_id (issue #165, phase 2), or null for no default
+ * (first allowed option stays implicitly selected, previous behavior).
+ *
+ * Returns null if the configured default is no longer valid — archived,
+ * deleted, or excluded from the matrix since it was set — rather than
+ * pre-selecting a stale/wrong type silently.
+ *
+ * @param int[] $allowedComptaTypeIds result of mbAllowedComptaTypeIdsForContact()
+ */
+function mbDefaultComptaTypeIdForContact(PDO $db, int $contactTypeId, array $allowedComptaTypeIds): ?int
+{
+    $stmt = $db->prepare("SELECT default_compta_type_id FROM contact_type WHERE id = ?");
+    $stmt->execute([$contactTypeId]);
+    $defaultId = $stmt->fetchColumn();
+    if ($defaultId === false || $defaultId === null) {
+        return null;
+    }
+    $defaultId = (int)$defaultId;
+    return in_array($defaultId, $allowedComptaTypeIds, true) ? $defaultId : null;
+}
+
+/**
+ * Sets (or clears, if $comptaTypeId is null) the default compta_type
+ * pre-selected for a given contact_type. Silently no-ops on an unknown
+ * contact_type_id/compta_type_id — same defensive pattern as
+ * mbSaveContactTypeComptaMatrixRow().
+ */
+function mbSetContactTypeDefaultComptaType(PDO $db, int $contactTypeId, ?int $comptaTypeId): void
+{
+    $validContactTypeIds = array_map('intval', array_column($db->query("SELECT id FROM contact_type")->fetchAll(PDO::FETCH_OBJ), 'id'));
+    if (!in_array($contactTypeId, $validContactTypeIds, true)) {
+        return;
+    }
+    if ($comptaTypeId !== null) {
+        $validComptaTypeIds = array_map('intval', array_column($db->query("SELECT id FROM compta_type WHERE is_archived = 0")->fetchAll(PDO::FETCH_OBJ), 'id'));
+        if (!in_array($comptaTypeId, $validComptaTypeIds, true)) {
+            return;
+        }
+    }
+    $db->prepare("UPDATE contact_type SET default_compta_type_id = ? WHERE id = ?")->execute([$comptaTypeId, $contactTypeId]);
+}

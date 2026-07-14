@@ -266,6 +266,10 @@ $GLOBAL['contactTypeMatrixNoComptaTypes'] = "Ningún tipo de compta activo (no a
 $GLOBAL['contactTypeMatrixComptaType'] = "Tipo de compta";
 $GLOBAL['contactTypeMatrixUncheckAllHelp'] = "Desmarcar todas las casillas de una columna bloquea la creación de asientos para ese tipo de contacto. Cada cambio se guarda automáticamente.";
 $GLOBAL['contactTypeMatrixToggleColumn'] = "Marcar/desmarcar todo para %s";
+$GLOBAL['contactTypeMatrixDefaultHelp']  = "El botón de opción define el tipo de contabilidad preseleccionado en el formulario de nueva entrada para ese tipo de contacto. \"Ninguno\" = primer tipo permitido, como antes.";
+$GLOBAL['contactTypeMatrixDefaultNone']  = "Ninguno";
+$GLOBAL['contactTypeMatrixDefaultRadioTitle'] = "Definir como tipo por defecto";
+$GLOBAL['contactTypeMatrixDefaultRadioLabel'] = "Definir %s como tipo por defecto para %s";
 $GLOBAL['management']          = "Gestión";
 $GLOBAL['settingsSectionsAria']= "Secciones de los ajustes";
 

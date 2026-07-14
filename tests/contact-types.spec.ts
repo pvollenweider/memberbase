@@ -116,3 +116,49 @@ test.describe('Contact type × compta type matrix — auto-save', () => {
     for (const cb of await colCells.all()) { await expect(cb).toBeChecked(); }
   });
 });
+
+test.describe('Contact type × compta type matrix — default type (#165 phase 2)', () => {
+  test('picking a default radio pre-selects that compta type in the add-entry form', async ({ page }) => {
+    await page.goto('/index.php?view=settings&tab=contactTypes');
+    const matrix = page.locator('#contact-type-matrix-table');
+    await expect(matrix).toBeVisible();
+
+    // First contact_type column, second compta_type row (first row is often
+    // already the implicit default via list order — pick the second to make
+    // the assertion meaningful).
+    const rows = matrix.locator('tbody tr');
+    const secondRowRadio = rows.nth(1).locator('.ctm-default-cell').first();
+    const colId = await secondRowRadio.getAttribute('data-contact-type-id');
+    const comptaTypeId = await secondRowRadio.getAttribute('value');
+
+    await secondRowRadio.check();
+    await expect(page.locator('#contact-type-matrix-status')).toContainText('enregistrée', { timeout: 5_000 });
+    await page.reload();
+    await expect(matrix.locator(`.ctm-default-cell[data-contact-type-id="${colId}"][value="${comptaTypeId}"]`)).toBeChecked();
+
+    // Restore "Aucun" so other tests/manual QA see the unrestricted default.
+    await matrix.locator(`.ctm-default-cell[data-contact-type-id="${colId}"][value=""]`).check();
+    await expect(page.locator('#contact-type-matrix-status')).toContainText('enregistrée', { timeout: 5_000 });
+  });
+
+  test('unchecking a compta type disables and clears it as default', async ({ page }) => {
+    await page.goto('/index.php?view=settings&tab=contactTypes');
+    const matrix = page.locator('#contact-type-matrix-table');
+    const firstRow = matrix.locator('tbody tr').first();
+    const cell = firstRow.locator('.ctm-cell').first();
+    const radio = firstRow.locator('.ctm-default-cell').first();
+    const colId = await cell.getAttribute('data-contact-type-id');
+
+    await radio.check();
+    await expect(page.locator('#contact-type-matrix-status')).toContainText('enregistrée', { timeout: 5_000 });
+
+    await cell.uncheck();
+    await expect(page.locator('#contact-type-matrix-status')).toContainText('enregistrée', { timeout: 5_000 });
+    await expect(radio).toBeDisabled();
+    await expect(matrix.locator(`.ctm-default-cell[data-contact-type-id="${colId}"][value=""]`)).toBeChecked();
+
+    // Restore.
+    await cell.check();
+    await expect(page.locator('#contact-type-matrix-status')).toContainText('enregistrée', { timeout: 5_000 });
+  });
+});

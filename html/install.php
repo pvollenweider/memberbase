@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS `contact_type` (
   `label`      varchar(255) NOT NULL,
   `icon`       varchar(50)  NOT NULL DEFAULT '',
   `sort_order` int(11)      NOT NULL DEFAULT 0,
+  `default_compta_type_id` int(11) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_contact_type_code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -177,6 +178,9 @@ CREATE TABLE IF NOT EXISTS `contact_type_compta_type` (
   CONSTRAINT `fk_ctct_contact_type` FOREIGN KEY (`contact_type_id`) REFERENCES `contact_type` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ctct_compta_type` FOREIGN KEY (`compta_type_id`) REFERENCES `compta_type` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `contact_type` ADD CONSTRAINT `fk_contact_type_default_compta_type`
+  FOREIGN KEY (`default_compta_type_id`) REFERENCES `compta_type` (`id`) ON DELETE SET NULL;
 
 CREATE TABLE IF NOT EXISTS `compta` (
   `id`                int(8)       NOT NULL AUTO_INCREMENT,

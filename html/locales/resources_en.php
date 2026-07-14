@@ -267,6 +267,10 @@ $GLOBAL['contactTypeMatrixNoComptaTypes'] = "No active (non-archived) compta typ
 $GLOBAL['contactTypeMatrixComptaType'] = "Compta type";
 $GLOBAL['contactTypeMatrixUncheckAllHelp'] = "Unchecking every box in a column blocks entry creation for that contact type. Every change is saved automatically.";
 $GLOBAL['contactTypeMatrixToggleColumn'] = "Check/uncheck all for %s";
+$GLOBAL['contactTypeMatrixDefaultHelp']  = "The radio button picks the compta type pre-selected in the entry-add form for that contact type. \"None\" = first allowed type, as before.";
+$GLOBAL['contactTypeMatrixDefaultNone']  = "None";
+$GLOBAL['contactTypeMatrixDefaultRadioTitle'] = "Set as default type";
+$GLOBAL['contactTypeMatrixDefaultRadioLabel'] = "Set %s as default type for %s";
 $GLOBAL['management']          = "Management";
 $GLOBAL['settingsSectionsAria']= "Settings sections";
 

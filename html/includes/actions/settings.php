@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'addContactType', 'deleteContactType', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn', 'bulkSetContactTypeBySegment'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'addContactType', 'deleteContactType', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn', 'updateContactTypeDefaultComptaType', 'bulkSetContactTypeBySegment'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -309,6 +309,22 @@ if ($action == 'saveSettings') {
     $_ctmComptaTypeIds  = array_map('intval', (array)($_REQUEST['compta_type_ids'] ?? []));
     mbSaveContactTypeComptaMatrixRow(db(), $_ctmContactTypeId, $_ctmComptaTypeIds);
     auditLog(db(), 'updateContactTypeComptaMatrixColumn', "contact_type_id=$_ctmContactTypeId | compta_type_ids=" . implode(',', $_ctmComptaTypeIds));
+    echo json_encode(['ok' => true]);
+    exit;
+
+} elseif ($action === 'updateContactTypeDefaultComptaType') {
+    // Auto-save: fired when the admin picks the radio "default" for one
+    // contact_type row — same discard-buffered-output pattern as the
+    // matrix column above (index.php always ob_start()s before dispatch).
+    while (ob_get_level()) { ob_end_clean(); }
+    require_once __DIR__ . '/../lib/contact_type.php';
+    header('Content-Type: application/json; charset=utf-8');
+    $_ctdContactTypeId = (int)($_REQUEST['contact_type_id'] ?? 0);
+    $_ctdComptaTypeId  = isset($_REQUEST['compta_type_id']) && $_REQUEST['compta_type_id'] !== ''
+        ? (int)$_REQUEST['compta_type_id']
+        : null;
+    mbSetContactTypeDefaultComptaType(db(), $_ctdContactTypeId, $_ctdComptaTypeId);
+    auditLog(db(), 'updateContactTypeDefaultComptaType', "contact_type_id=$_ctdContactTypeId | default_compta_type_id=" . ($_ctdComptaTypeId ?? 'null'));
     echo json_encode(['ok' => true]);
     exit;
 

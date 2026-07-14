@@ -25,6 +25,11 @@ $_ctMatrix       = mbContactTypeComptaMatrix(db());
 $_ctComptaTypes  = db()->query(
     "SELECT id, label, is_archived FROM compta_type WHERE is_archived = 0 ORDER BY sort_order, label"
 )->fetchAll(PDO::FETCH_OBJ);
+$_ctDefaults     = array_column(
+    db()->query("SELECT id, default_compta_type_id FROM contact_type")->fetchAll(PDO::FETCH_OBJ),
+    'default_compta_type_id',
+    'id'
+);
 ?>
 <?php if (!$_ctEmbedded): ?>
 <div class="row justify-content-center mt-4">
@@ -178,20 +183,40 @@ document.getElementById('modal-delete-contact-type').addEventListener('show.bs.m
         <?php
           $_restricted = $_ctMatrix[(int)$_ct->id] ?? [];
           $_checked = empty($_restricted) || in_array((int)$_compTy->id, $_restricted, true);
+          $_isDefault = (int)($_ctDefaults[$_ct->id] ?? 0) === (int)$_compTy->id;
         ?>
         <td class="text-center">
           <input type="checkbox" class="form-check-input ctm-cell"
                  data-contact-type-id="<?= (int)$_ct->id ?>" value="<?= (int)$_compTy->id ?>"
                  <?= $_checked ? 'checked' : '' ?>
                  aria-label="<?= htmlspecialchars($_compTy->label . ' — ' . $_ct->label, ENT_QUOTES, $charset) ?>">
+          <input type="radio" class="form-check-input ctm-default-cell ms-2"
+                 name="ctm-default-<?= (int)$_ct->id ?>"
+                 data-contact-type-id="<?= (int)$_ct->id ?>" value="<?= (int)$_compTy->id ?>"
+                 <?= $_isDefault ? 'checked' : '' ?> <?= $_checked ? '' : 'disabled' ?>
+                 title="<?= htmlspecialchars($GLOBAL['contactTypeMatrixDefaultRadioTitle'], ENT_QUOTES, $charset) ?>"
+                 aria-label="<?= htmlspecialchars(sprintf($GLOBAL['contactTypeMatrixDefaultRadioLabel'], $_compTy->label, $_ct->label), ENT_QUOTES, $charset) ?>">
         </td>
         <?php endforeach ?>
       </tr>
     <?php endforeach ?>
+    <tr class="table-light">
+      <td class="text-muted small"><?= $GLOBAL['contactTypeMatrixDefaultNone'] ?></td>
+      <?php foreach ($_ctRows as $_ct): ?>
+      <td class="text-center">
+        <input type="radio" class="form-check-input ctm-default-cell"
+               name="ctm-default-<?= (int)$_ct->id ?>"
+               data-contact-type-id="<?= (int)$_ct->id ?>" value=""
+               <?= empty($_ctDefaults[$_ct->id]) ? 'checked' : '' ?>
+               aria-label="<?= htmlspecialchars(sprintf($GLOBAL['contactTypeMatrixDefaultRadioLabel'], $GLOBAL['contactTypeMatrixDefaultNone'], $_ct->label), ENT_QUOTES, $charset) ?>">
+      </td>
+      <?php endforeach ?>
+    </tr>
     </tbody>
   </table>
   </div>
   <p class="text-muted small mb-0"><?= $GLOBAL['contactTypeMatrixUncheckAllHelp'] ?></p>
+  <p class="text-muted small mb-0"><?= $GLOBAL['contactTypeMatrixDefaultHelp'] ?></p>
   <div id="contact-type-matrix-status" class="small text-success mt-1" style="min-height:1.2em"></div>
 </div>
 <script>
@@ -229,17 +254,56 @@ document.getElementById('modal-delete-contact-type').addEventListener('show.bs.m
       .catch(function () { showStatus(errMsg, true); });
   }
 
+  function saveDefault(contactTypeId, comptaTypeId) {
+    var body = new URLSearchParams();
+    body.append('action', 'updateContactTypeDefaultComptaType');
+    body.append('contact_type_id', contactTypeId);
+    body.append('compta_type_id', comptaTypeId || '');
+    fetch(baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true', 'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : '' },
+      body: body.toString()
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) { showStatus(data.ok ? savedMsg : errMsg, !data.ok); })
+      .catch(function () { showStatus(errMsg, true); });
+  }
+
   table.addEventListener('change', function (e) {
+    if (e.target.classList.contains('ctm-default-cell')) {
+      saveDefault(e.target.dataset.contactTypeId, e.target.value);
+      return;
+    }
     if (!e.target.classList.contains('ctm-cell')) return;
-    saveColumn(e.target.dataset.contactTypeId);
+    var contactTypeId = e.target.dataset.contactTypeId;
+    // Unchecking a cell disables its "default" radio; if it was the
+    // selected default, fall back to "Aucun" and persist that.
+    var radio = table.querySelector('.ctm-default-cell[data-contact-type-id="' + contactTypeId + '"][value="' + e.target.value + '"]');
+    if (radio) {
+      radio.disabled = !e.target.checked;
+      if (!e.target.checked && radio.checked) {
+        var noneRadio = table.querySelector('.ctm-default-cell[data-contact-type-id="' + contactTypeId + '"][value=""]');
+        if (noneRadio) { noneRadio.checked = true; }
+        radio.checked = false;
+        saveDefault(contactTypeId, '');
+      }
+    }
+    saveColumn(contactTypeId);
   });
 
   table.querySelectorAll('.ctm-col-toggle').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var contactTypeId = btn.dataset.contactTypeId;
       var boxes = table.querySelectorAll('.ctm-cell[data-contact-type-id="' + contactTypeId + '"]');
+      var radios = table.querySelectorAll('.ctm-default-cell[data-contact-type-id="' + contactTypeId + '"]');
       var allChecked = Array.from(boxes).every(function (cb) { return cb.checked; });
       boxes.forEach(function (cb) { cb.checked = !allChecked; });
+      radios.forEach(function (r) { r.disabled = allChecked && r.value !== ''; });
+      if (allChecked) {
+        // Column just got fully unchecked — clear whichever default was set.
+        var noneRadio = table.querySelector('.ctm-default-cell[data-contact-type-id="' + contactTypeId + '"][value=""]');
+        if (noneRadio && !noneRadio.checked) { noneRadio.checked = true; saveDefault(contactTypeId, ''); }
+      }
       saveColumn(contactTypeId);
     });
   });
