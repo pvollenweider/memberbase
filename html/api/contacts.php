@@ -147,6 +147,8 @@ function emitMemberList(array $rows, int $page, int $limit, int $total, bool $in
             'address'   => $r->address      ?: null,
             'gender'    => $r->sexe         ?: null,
             'createdAt' => $r->creationDate ? date('c', (int)$r->creationDate) : null,
+            'contactTypeIcon'  => $r->contactTypeIcon  ?? null,
+            'contactTypeLabel' => $r->contactTypeLabel ?? null,
         ];
         if ($includeTypes) {
             $row['types'] = $typesByUser[(int)$r->id] ?? [];
@@ -275,8 +277,11 @@ function handleList(): void
     $sql = "SELECT DISTINCT
                 contact.id, contact.firstname, contact.lastname, contact.society,
                 contact.email, contact.npa, contact.address, contact.sexe,
-                UNIX_TIMESTAMP(contact.creationDate) AS creationDate
-            FROM contact $joins $where
+                UNIX_TIMESTAMP(contact.creationDate) AS creationDate,
+                ct.icon AS contactTypeIcon, ct.label AS contactTypeLabel
+            FROM contact $joins
+            LEFT JOIN contact_type ct ON ct.id = contact.contact_type_id
+            $where
             ORDER BY contact.lastname ASC, contact.firstname ASC
             LIMIT ? OFFSET ?";
 

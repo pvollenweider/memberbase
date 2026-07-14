@@ -181,8 +181,11 @@ $_recentContacts = db()->query(
     results.innerHTML = items.map(function (m, i) {
       var name = (m.lastName + ' ' + m.firstName).trim() || m.society || '?';
       var sub  = m.email ? ' <span class="text-muted small">' + m.email + '</span>' : '';
+      var icon = m.contactTypeIcon
+          ? '<i class="fas fa-' + m.contactTypeIcon + ' text-muted me-2" title="' + (m.contactTypeLabel || '') + '" aria-hidden="true"></i>'
+          : '';
       return '<li class="list-group-item list-group-item-action" style="cursor:pointer" role="option" '
-          + 'aria-selected="false" id="dashboard-compta-opt-' + i + '" data-user-id="' + m.id + '">' + name + sub + '</li>';
+          + 'aria-selected="false" id="dashboard-compta-opt-' + i + '" data-user-id="' + m.id + '">' + icon + name + sub + '</li>';
     }).join('');
     results.style.display = '';
     input.setAttribute('aria-expanded', 'true');

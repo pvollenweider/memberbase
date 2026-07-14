@@ -323,7 +323,7 @@ $_addDefaultTypeId  = mbDefaultComptaTypeIdForContact(db(), $user->getContactTyp
         </select>
     </td>
     <td><input type="text" name="libele" class="form-control" maxlength="255"/></td>
-    <td><input type="text" name="sum" size="10" class="form-control" maxlength="64"
+    <td><input type="text" name="sum" id="ca-add-sum" size="10" class="form-control" maxlength="64"
              inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" title="<?= $GLOBAL['numericAmountHint'] ?>"
              required oninvalid="this.setCustomValidity(this.validity.valueMissing ? <?= json_encode($GLOBAL['sumRequired']) ?> : <?= json_encode($GLOBAL['numericAmountHint']) ?>)"
              oninput="this.setCustomValidity('')"/></td>
@@ -524,6 +524,11 @@ function _comptaListInit() {
         toggleCotiYear();
         applyDefaultLibele();
     }
+
+    // Land directly in the amount field — the secretary's next action after
+    // opening a member's compta tab is almost always "add an entry".
+    var sumInput = document.getElementById('ca-add-sum');
+    if (sumInput) sumInput.focus();
 }
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', _comptaListInit);
