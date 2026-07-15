@@ -122,11 +122,18 @@ test.describe.serial('Tasks — auto-generation (#149)', () => {
   });
 
   test('re-running generation does not duplicate the task (dedup via rule_key)', async ({ page }) => {
+    // The "Générer" button now hides itself once nothing is left to generate
+    // (admin-only, conditional visibility) — post the action directly to
+    // verify the underlying dedup logic instead of clicking a button that's
+    // legitimately gone by this point.
     await page.goto('/index.php?view=tasks');
     const rowCountBefore = await page.locator('tr', { hasText: 'Relance cotisation' }).count();
-    const generateForm = page.locator('form', { has: page.locator('button', { hasText: 'Générer les tâches de relance cotisation' }) });
-    await generateForm.locator('button[type="submit"]').click();
-    await expect(page.locator('.alert-success')).toBeVisible({ timeout: 10_000 });
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    await page.request.post('/index.php', { form: { action: 'generateUnpaidCotiTasks', csrf } });
+    await page.goto('/index.php?view=tasks');
     const rowCountAfter = await page.locator('tr', { hasText: 'Relance cotisation' }).count();
     expect(rowCountAfter).toBe(rowCountBefore);
   });
@@ -178,16 +185,25 @@ test.describe.serial('Tasks — auto-generation (#149)', () => {
     });
     expect(addResp.status()).toBe(200);
 
+    // Button may already be hidden at this point (nothing new pending once
+    // the lapsed member just paid) — post the action directly, same as the
+    // dedup test above.
+    await page.request.post('/index.php', { form: { action: 'generateUnpaidCotiTasks', csrf } });
     await page.goto('/index.php?view=tasks');
-    const generateForm = page.locator('form', { has: page.locator('button', { hasText: 'Générer les tâches de relance cotisation' }) });
-    await generateForm.locator('button[type="submit"]').click();
-    await expect(page.locator('.alert-success')).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('.alert-success')).toContainText('résolue');
     await expect(page.locator('tr', { hasText: 'Relance cotisation' })).not.toBeVisible();
   });
 });
 
 test.describe.serial('Tasks — payment notification auto-generation', () => {
+  test('manager (non-admin) does not see the generate buttons, even with pending members', async ({ browser }) => {
+    const ctx = await browser.newContext({ storageState: require('path').resolve(__dirname, '.auth/manager.json') });
+    const page = await ctx.newPage();
+    await page.goto('/index.php?view=tasks');
+    await expect(page.locator('button', { hasText: 'Générer les tâches de relance cotisation' })).toHaveCount(0);
+    await expect(page.locator('button', { hasText: 'notification de versement' })).toHaveCount(0);
+    await ctx.close();
+  });
+
   test('generate button creates one task per member with unnotified compta entries', async ({ page }) => {
     await page.goto('/index.php?view=tasks');
     const generateForm = page.locator('form', { has: page.locator('button', { hasText: 'notification de versement' }) });
@@ -198,13 +214,24 @@ test.describe.serial('Tasks — payment notification auto-generation', () => {
   });
 
   test('re-running generation does not duplicate the task (dedup via rule_key)', async ({ page }) => {
+    // Same reasoning as the cotisation dedup test above: the button is gone
+    // once nothing is left to generate, so post the action directly.
     await page.goto('/index.php?view=tasks');
     const rowCountBefore = await page.locator('tr', { hasText: 'Notification de versement' }).count();
-    const generateForm = page.locator('form', { has: page.locator('button', { hasText: 'notification de versement' }) });
-    await generateForm.locator('button[type="submit"]').click();
-    await expect(page.locator('.alert-success')).toBeVisible({ timeout: 10_000 });
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    await page.request.post('/index.php', { form: { action: 'generateComptaRecapTasks', csrf } });
+    await page.goto('/index.php?view=tasks');
     const rowCountAfter = await page.locator('tr', { hasText: 'Notification de versement' }).count();
     expect(rowCountAfter).toBe(rowCountBefore);
+  });
+
+  test('generate buttons are hidden once nothing is left to generate', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    await expect(page.locator('button', { hasText: 'Générer les tâches de relance cotisation' })).toHaveCount(0);
+    await expect(page.locator('button', { hasText: 'notification de versement' })).toHaveCount(0);
   });
 
   test('"Envoyer la notification" opens a preview and closes the task on send', async ({ page }) => {

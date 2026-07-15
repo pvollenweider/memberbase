@@ -209,6 +209,31 @@ class SuiviTask
     }
 
     /**
+     * How many members currently match FILTER_UNPAID_COTI_CURRENT for $year
+     * without already having an open reminder task, i.e. what
+     * generateUnpaidCotiTasks() would actually create right now. Used to hide
+     * the "Générer" button when there's nothing to generate, rather than
+     * showing a button that always reports "0 tâche créée".
+     */
+    public static function countUnpaidCotiPendingGeneration(int $year, array $appSettings): int
+    {
+        $memberIds = MemberFilter::resolveIds(FILTER_UNPAID_COTI_CURRENT, db(), $year, $appSettings);
+        if (empty($memberIds)) {
+            return 0;
+        }
+        $stmt = db()->prepare("SELECT user_id FROM suivi_task WHERE rule_key=? AND done_at IS NULL");
+        $stmt->execute(["unpaid_coti_current_$year"]);
+        $existing = array_fill_keys(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)), true);
+        $count = 0;
+        foreach (array_keys($memberIds) as $uid) {
+            if (empty($existing[$uid])) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    /**
      * Generates one task per member with unnotified compta entries for $year
      * (same source of truth as compta_recap.php's pending list). Dedup via
      * rule_key, same pattern as generateUnpaidCotiTasks() — closes tasks whose
@@ -266,5 +291,37 @@ class SuiviTask
             $created++;
         }
         return ['created' => $created, 'closed' => $closed];
+    }
+
+    /**
+     * How many members with unnotified compta entries for $year don't
+     * already have an open notification task, i.e. what
+     * generateComptaRecapTasks() would actually create right now. Same
+     * purpose as countUnpaidCotiPendingGeneration(): hide the "Générer"
+     * button when there's nothing to generate.
+     */
+    public static function countComptaRecapPendingGeneration(int $year): int
+    {
+        $stmt = db()->prepare(
+            "SELECT DISTINCT c.user_id
+             FROM compta c
+             JOIN contact u ON u.id = c.user_id AND u.status = 1
+             WHERE c.notified_at IS NULL AND c.sum <> 0 AND YEAR(c.date) = ?"
+        );
+        $stmt->execute([$year]);
+        $memberIds = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+        if (empty($memberIds)) {
+            return 0;
+        }
+        $stmt = db()->prepare("SELECT user_id FROM suivi_task WHERE rule_key=? AND done_at IS NULL");
+        $stmt->execute(["compta_recap_pending_$year"]);
+        $existing = array_fill_keys(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)), true);
+        $count = 0;
+        foreach ($memberIds as $uid) {
+            if (empty($existing[$uid])) {
+                $count++;
+            }
+        }
+        return $count;
     }
 }

@@ -485,10 +485,26 @@ test.describe('Server — task action guards', () => {
     await api.dispose();
   });
 
-  test('user: action=generateUnpaidCotiTasks → 403 (manager-only)', async ({ playwright }) => {
+  test('user: action=generateUnpaidCotiTasks → 403 (admin-only)', async ({ playwright }) => {
     const api = await apiAs(playwright, 'user');
     const csrf = await csrfFor(api);
     const r = await api.post('/index.php', { form: { csrf, action: 'generateUnpaidCotiTasks' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('manager: action=generateUnpaidCotiTasks → 403 (admin-only)', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'manager');
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'generateUnpaidCotiTasks' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('manager: action=generateComptaRecapTasks → 403 (admin-only)', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'manager');
+    const csrf = await csrfFor(api);
+    const r = await api.post('/index.php', { form: { csrf, action: 'generateComptaRecapTasks' } });
     expect(r.status()).toBe(403);
     await api.dispose();
   });

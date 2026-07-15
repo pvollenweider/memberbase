@@ -10,7 +10,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 //          generateUnpaidCotiTasks, generateComptaRecapTasks
 
 if (in_array($_REQUEST['action'], ['generateUnpaidCotiTasks', 'generateComptaRecapTasks'], true)) {
-    if (!isManager()) { http_response_code(403); exit; }
+    if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (!canWrite()) {
     http_response_code(403); exit;
 }

@@ -32,6 +32,8 @@ foreach ($_tasks as $_t) {
         $_hasRecapTask = true;
     }
 }
+$_cotiPendingGen  = isAdmin() ? SuiviTask::countUnpaidCotiPendingGeneration($_year, $appSettings) : 0;
+$_recapPendingGen = isAdmin() ? SuiviTask::countComptaRecapPendingGeneration($_year) : 0;
 ?>
 
 <div class="page-title-row mb-3">
@@ -43,25 +45,29 @@ foreach ($_tasks as $_t) {
   <i class="fas fa-circle-check me-1" aria-hidden="true"></i>
   <?= sprintf($GLOBAL['taskGeneratedCount'], (int)$_GET['generated']) ?>
   <?php if ((int)($_GET['closed'] ?? 0) > 0): ?>
-  &nbsp;—&nbsp;<?= sprintf($GLOBAL['taskAutoClosedCount'], (int)$_GET['closed']) ?>
+  <?= sprintf($GLOBAL['taskAutoClosedCount'], (int)$_GET['closed']) ?>
   <?php endif ?>
 </div>
 <?php endif ?>
 
-<?php if (isManager()): ?>
+<?php if (isAdmin() && ($_cotiPendingGen > 0 || $_recapPendingGen > 0)): ?>
 <div class="d-flex flex-wrap gap-2 mb-3">
+<?php if ($_cotiPendingGen > 0): ?>
 <form action="<?= appUrl() ?>" method="post" data-no-dirty>
   <input type="hidden" name="action" value="generateUnpaidCotiTasks"/>
   <button type="submit" class="btn btn-outline-primary btn-sm">
     <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateBtn'] ?>
   </button>
 </form>
+<?php endif ?>
+<?php if ($_recapPendingGen > 0): ?>
 <form action="<?= appUrl() ?>" method="post" data-no-dirty>
   <input type="hidden" name="action" value="generateComptaRecapTasks"/>
   <button type="submit" class="btn btn-outline-primary btn-sm">
     <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateRecapBtn'] ?>
   </button>
 </form>
+<?php endif ?>
 </div>
 <?php endif ?>
 
