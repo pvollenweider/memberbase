@@ -1,0 +1,4 @@
+# MemberBase scheduled jobs (dev container). Every 5 minutes here purely for
+# local testing convenience — a production deployment should run this daily
+# (see html/tools/cron.php header for the suggested "0 7 * * *" cadence).
+*/5 * * * * www-data php /var/www/html/tools/cron.php >> /var/www/logs/cron.log 2>&1

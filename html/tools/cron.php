@@ -28,7 +28,9 @@ if (in_array('--help', $args, true) || in_array('-h', $args, true)) {
     fwrite(STDOUT, <<<TXT
 Tâches planifiées MemberBase
 
-  php html/tools/cron.php     exécute toutes les tâches (digest de tâches en retard/à échéance)
+  php html/tools/cron.php     génère les tâches auto (cotisation impayée,
+                              notification de versement) puis envoie le
+                              digest de tâches en retard/à échéance
   php html/tools/cron.php --help
 
 TXT);
@@ -40,10 +42,28 @@ define('APP_ENTRY', true);
 require_once __DIR__ . '/../includes/lib/locale.php';
 mbLoadLocale(null);
 require_once __DIR__ . '/../includes/lib/bootstrap.php';
+require_once __DIR__ . '/../classes/member_filter_class.php';
 require_once __DIR__ . '/../classes/suivi_task_class.php';
 require_once __DIR__ . '/../includes/lib/mailer.php';
 
 $exitCode = 0;
+
+// Job: auto-generate reminder tasks (unpaid cotisation, pending payment
+// notifications) — same logic as the admin "Générer" buttons
+// (includes/actions/suivi_tasks.php), called directly here since cron has no
+// HTTP session/CSRF to go through. Runs before the digest below so anything
+// just created is included in the same email.
+$_cronYear = (int)date('Y');
+$_cotiGen  = SuiviTask::generateUnpaidCotiTasks($_cronYear, $appSettings, null);
+fwrite(STDOUT, "[unpaid-coti-gen] créées: {$_cotiGen['created']} | closes: {$_cotiGen['closed']}\n");
+if ($_cotiGen['created'] > 0 || $_cotiGen['closed'] > 0) {
+    auditLog($pdo, 'generateUnpaidCotiTasks', "année: $_cronYear | créées: {$_cotiGen['created']} | closes (résolues ailleurs): {$_cotiGen['closed']} (cron)");
+}
+$_recapGen = SuiviTask::generateComptaRecapTasks($_cronYear, null);
+fwrite(STDOUT, "[compta-recap-gen] créées: {$_recapGen['created']} | closes: {$_recapGen['closed']}\n");
+if ($_recapGen['created'] > 0 || $_recapGen['closed'] > 0) {
+    auditLog($pdo, 'generateComptaRecapTasks', "année: $_cronYear | créées: {$_recapGen['created']} | closes (résolues ailleurs): {$_recapGen['closed']} (cron)");
+}
 
 // ── Job: digest of overdue/soon-due tasks, sent to the team ────────────────
 fwrite(STDOUT, "[task-digest] ");

@@ -79,14 +79,23 @@ function mbRunIntegrityChecks(PDO $db): array
             ORDER BY email
         ")->fetchAll(PDO::FETCH_OBJ),
 
-        'dateInvalid' => $db->query("
-            SELECT c.id, c.date, c.user_id, u.firstname, u.lastname, c.libele
-            FROM compta c
-            LEFT JOIN contact u ON u.id = c.user_id
-            WHERE c.date IS NULL OR c.date > NOW()
-            ORDER BY c.id DESC
-            LIMIT 100
-        ")->fetchAll(PDO::FETCH_OBJ),
+        // "Future" is computed in PHP (Europe/Zurich, forced app-wide) rather
+        // than SQL NOW() -- MySQL's session timezone is typically UTC in this
+        // container, 1-2h behind Zurich, which flagged same-day entries saved
+        // in the last couple hours as spuriously "in the future" (see #143's
+        // timezone fix for other columns; this query was missed then).
+        'dateInvalid' => (function () use ($db) {
+            $stmt = $db->prepare("
+                SELECT c.id, c.date, c.user_id, u.firstname, u.lastname, c.libele
+                FROM compta c
+                LEFT JOIN contact u ON u.id = c.user_id
+                WHERE c.date IS NULL OR c.date > ?
+                ORDER BY c.id DESC
+                LIMIT 100
+            ");
+            $stmt->execute([date('Y-m-d H:i:s')]);
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        })(),
 
         'typeNull' => $db->query("
             SELECT c.id, c.user_id, u.firstname, u.lastname, c.libele, c.sum
@@ -125,12 +134,16 @@ function mbRunIntegrityChecks(PDO $db): array
             ORDER BY lastname, firstname
         ")->fetchAll(PDO::FETCH_OBJ),
 
-        'birthdayFuture' => $db->query("
-            SELECT id, firstname, lastname, birthday
-            FROM contact
-            WHERE status=1 AND birthday IS NOT NULL AND birthday > CURDATE()
-            ORDER BY lastname, firstname
-        ")->fetchAll(PDO::FETCH_OBJ),
+        'birthdayFuture' => (function () use ($db) {
+            $stmt = $db->prepare("
+                SELECT id, firstname, lastname, birthday
+                FROM contact
+                WHERE status=1 AND birthday IS NOT NULL AND birthday > ?
+                ORDER BY lastname, firstname
+            ");
+            $stmt->execute([date('Y-m-d')]);
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        })(),
         ];
     } catch (PDOException $e) {
         $contactChecks = [
