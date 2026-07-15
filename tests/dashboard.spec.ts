@@ -21,10 +21,10 @@ test.describe('Dashboard', () => {
     await expect(page.locator('a', { hasText: 'Guide administrateur' })).toHaveCount(0);
   });
 
-  test('tasks card and nav link are removed', async ({ page }) => {
+  test('no dedicated tasks card on the dashboard, but the nav link is present', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
     await expect(page.locator('.card-header', { hasText: 'Tâches à traiter' })).toHaveCount(0);
-    await expect(page.locator('.navbar-nav .nav-link', { hasText: 'Tâches' })).toHaveCount(0);
+    await expect(page.locator('.navbar-nav .nav-link', { hasText: 'Tâches' })).toBeVisible();
   });
 
   test('unpaid cotisation KPI links to the lapsed members tab in the hub', async ({ page }) => {

@@ -123,6 +123,12 @@ class SuiviTask
         return (int)$stmt->fetchColumn();
     }
 
+    /** Count all open tasks (any member, plus global tasks), for the nav badge. */
+    public static function openCount(): int
+    {
+        return (int)db()->query("SELECT COUNT(*) FROM suivi_task WHERE done_at IS NULL")->fetchColumn();
+    }
+
     /**
      * Open tasks that are overdue or due within $horizonDays, for the cron
      * digest email (#150). Threshold computed in PHP, not via a MySQL date

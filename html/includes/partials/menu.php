@@ -14,6 +14,7 @@ $searchString = "";
 if (isset ($_REQUEST["searchString"])) {
     $searchString = trim($_REQUEST["searchString"]);
 }
+$_navOpenTaskCount = SuiviTask::openCount();
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-2">
@@ -34,9 +35,14 @@ if (isset ($_REQUEST["searchString"])) {
                    href="<?= appUrl() ?>?view=journals" title="<?= $GLOBAL['journalsPageTitle'] ?>" aria-label="<?= $GLOBAL['journalsPageTitle'] ?>">
                     <i class="fas fa-book"></i>
                 </a>
-                <a class="nav-link text-white px-2<?= $view === 'tasks' ? ' opacity-100' : ' opacity-75' ?>"
+                <a class="nav-link text-white px-2 position-relative<?= $view === 'tasks' ? ' opacity-100' : ' opacity-75' ?>"
                    href="<?= appUrl() ?>?view=tasks" title="<?= $GLOBAL['tasks'] ?>" aria-label="<?= $GLOBAL['tasks'] ?>">
                     <i class="fas fa-list-check"></i>
+                    <?php if ($_navOpenTaskCount > 0): ?>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem">
+                        <?= $_navOpenTaskCount ?><span class="visually-hidden"><?= $GLOBAL['tasks'] ?></span>
+                    </span>
+                    <?php endif ?>
                 </a>
             </div>
             <!-- Right: search, settings, user -->
@@ -86,7 +92,12 @@ if (isset ($_REQUEST["searchString"])) {
                     <a class="nav-link" href="<?= appUrl() ?>?view=journals"><i class="fas fa-book me-1" aria-hidden="true"></i><?= $GLOBAL['journalsPageTitle'] ?></a>
                 </li>
                 <li class="nav-item<?= $view == 'tasks' ? ' active' : '' ?>">
-                    <a class="nav-link" href="<?= appUrl() ?>?view=tasks"><i class="fas fa-list-check me-1" aria-hidden="true"></i><?= $GLOBAL['tasks'] ?></a>
+                    <a class="nav-link" href="<?= appUrl() ?>?view=tasks">
+                        <i class="fas fa-list-check me-1" aria-hidden="true"></i><?= $GLOBAL['tasks'] ?>
+                        <?php if ($_navOpenTaskCount > 0): ?>
+                        <span class="badge rounded-pill bg-danger ms-1"><?= $_navOpenTaskCount ?></span>
+                        <?php endif ?>
+                    </a>
                 </li>
             </ul>
 

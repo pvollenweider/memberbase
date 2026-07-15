@@ -150,6 +150,50 @@ $(function () {
     });
 });
 
+// widgetParent:'body' leaves the widget with no top/left of its own in this
+// plugin version — it just falls to wherever it sits in DOM flow (end of
+// <body>). The plugin doesn't reliably fire a bubbling 'dp.show' event we
+// can hook (its internal show path bypasses the notify/trigger pipeline
+// used for change/error/update), so watch for the widget node itself
+// appearing in <body> and reposition it under its input once it does.
+(function () {
+    var lastFocused = null;
+    document.addEventListener('focusin', function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains('datepicker')) {
+            lastFocused = e.target;
+        }
+    });
+    document.addEventListener('mousedown', function (e) {
+        if (e.target && e.target.classList && e.target.classList.contains('datepicker')) {
+            lastFocused = e.target;
+        }
+    });
+
+    function positionWidget(widget) {
+        if (!lastFocused) return;
+        var input  = lastFocused;
+        var rect   = input.getBoundingClientRect();
+        var top    = rect.bottom + window.scrollY + 2;
+        var left   = rect.left + window.scrollX;
+        var maxLeft = window.scrollX + document.documentElement.clientWidth - widget.offsetWidth - 8;
+        if (left > maxLeft) left = Math.max(8, maxLeft);
+        widget.style.position = 'absolute';
+        widget.style.top = top + 'px';
+        widget.style.left = left + 'px';
+        widget.style.right = 'auto';
+    }
+
+    new MutationObserver(function (mutations) {
+        mutations.forEach(function (m) {
+            m.addedNodes.forEach(function (node) {
+                if (node.nodeType === 1 && node.classList && node.classList.contains('bootstrap-datetimepicker-widget')) {
+                    positionWidget(node);
+                }
+            });
+        });
+    }).observe(document.body, { childList: true });
+})();
+
 // Destroy DataTables before htmx snapshots the DOM for history cache
 // (prevents htmx restoring a DataTables-wrapped DOM that causes column mismatch on re-init)
 document.addEventListener('htmx:beforeHistorySave', function () {
