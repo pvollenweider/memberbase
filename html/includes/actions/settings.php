@@ -113,7 +113,7 @@ if ($action == 'saveSettings') {
 } elseif ($action === 'saveSmtp') {
     require_once __DIR__ . '/../lib/mailer.php';
     $encKey = mbSmtpGetOrCreateEncKey(db());
-    $strKeys = ['smtp_host', 'smtp_encryption', 'smtp_user', 'smtp_from_email', 'smtp_from_name', 'smtp_reply_to'];
+    $strKeys = ['smtp_host', 'smtp_encryption', 'smtp_user', 'smtp_from_email', 'smtp_from_name', 'smtp_reply_to', 'app_base_url'];
     $stmt = db()->prepare("INSERT INTO app_settings (`key`,`value`) VALUES (?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)");
     foreach ($strKeys as $key) {
         if (isset($_REQUEST[$key])) {

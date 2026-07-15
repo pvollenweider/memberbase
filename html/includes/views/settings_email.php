@@ -94,6 +94,14 @@ if (!isAdmin()) { ?>
     <div class="form-text"><?= $GLOBAL['smtpReplyToHelp'] ?></div>
   </div>
 
+  <div class="mb-4">
+    <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_app_base_url"><?= $GLOBAL['appBaseUrl'] ?></label>
+    <input type="url" name="app_base_url" id="s_app_base_url" class="form-control form-control-sm" style="max-width:420px"
+           placeholder="https://membres.mon-asso.ch"
+           value="<?= htmlspecialchars($appSettings['app_base_url'] ?? '', ENT_QUOTES, $charset) ?>">
+    <div class="form-text"><?= $GLOBAL['appBaseUrlHelp'] ?></div>
+  </div>
+
   <div class="d-flex gap-2 align-items-center flex-wrap">
     <button type="submit" class="btn btn-primary btn-sm">
       <i class="fas fa-floppy-disk me-1" aria-hidden="true"></i><?= $GLOBAL['save'] ?>

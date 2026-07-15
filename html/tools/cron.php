@@ -51,6 +51,12 @@ $recipient = trim($appSettings['smtp_reply_to'] ?? '');
 if ($recipient === '') {
     fwrite(STDOUT, "skip (app_settings.smtp_reply_to non configuré)\n");
 } else {
+    // Base URL for clickable action links in the digest — optional (Réglages →
+    // Email → URL publique de l'application). Without it, the digest stays
+    // plain text/HTML with no links rather than emitting broken relative URLs
+    // (this script runs in CLI, there's no HTTP host to infer one from).
+    $baseUrl = rtrim(trim($appSettings['app_base_url'] ?? ''), '/');
+
     $tasks = SuiviTask::dueSoonOrOverdue(3);
     if (!$tasks) {
         fwrite(STDOUT, "rien à signaler (0 tâche en retard ou à échéance proche)\n");
@@ -65,11 +71,18 @@ if ($recipient === '') {
                 ? trim(($t->society ? $t->society . ' ' : '') . $t->lastname . ' ' . $t->firstname)
                 : 'Tâche générale';
             $flag = $overdue ? ' [EN RETARD]' : '';
-            $textLines[] = "- {$due}{$flag} — {$t->title} ({$who})";
+            $taskUrl = $baseUrl !== ''
+                ? $baseUrl . '/index.php?view=' . ($t->user_id ? 'memberTasks&userid=' . (int)$t->user_id : 'tasks')
+                : null;
+            $textLines[] = "- {$due}{$flag} — {$t->title} ({$who})" . ($taskUrl ? " → {$taskUrl}" : '');
+            $actionCell = $taskUrl
+                ? '<a href="' . htmlspecialchars($taskUrl, ENT_QUOTES, 'UTF-8') . '" style="display:inline-block;padding:3px 10px;background:#2563eb;color:#fff;border-radius:4px;text-decoration:none;font-size:12px">Traiter</a>'
+                : '';
             $htmlRows[]  = '<tr' . ($overdue ? ' style="color:#c0392b"' : '') . '>'
                 . '<td style="padding:4px 8px;border-bottom:1px solid #eee">' . htmlspecialchars($due, ENT_QUOTES, 'UTF-8') . ($overdue ? ' <strong>(en retard)</strong>' : '') . '</td>'
                 . '<td style="padding:4px 8px;border-bottom:1px solid #eee">' . htmlspecialchars($t->title, ENT_QUOTES, 'UTF-8') . '</td>'
                 . '<td style="padding:4px 8px;border-bottom:1px solid #eee">' . htmlspecialchars($who, ENT_QUOTES, 'UTF-8') . '</td>'
+                . '<td style="padding:4px 8px;border-bottom:1px solid #eee">' . $actionCell . '</td>'
                 . '</tr>';
         }
         $vars = [
@@ -79,7 +92,8 @@ if ($recipient === '') {
             'tasks_html' => '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;width:100%">'
                 . '<tr><th style="text-align:left;padding:4px 8px;border-bottom:2px solid #ccc">Échéance</th>'
                 . '<th style="text-align:left;padding:4px 8px;border-bottom:2px solid #ccc">Tâche</th>'
-                . '<th style="text-align:left;padding:4px 8px;border-bottom:2px solid #ccc">Membre</th></tr>'
+                . '<th style="text-align:left;padding:4px 8px;border-bottom:2px solid #ccc">Membre</th>'
+                . '<th style="text-align:left;padding:4px 8px;border-bottom:2px solid #ccc"></th></tr>'
                 . implode('', $htmlRows) . '</table>',
         ];
         $result = mbSendTemplate($pdo, $recipient, 'tpl_task_digest', $vars);

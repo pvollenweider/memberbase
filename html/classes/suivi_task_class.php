@@ -134,7 +134,7 @@ class SuiviTask
     {
         $threshold = date('Y-m-d', strtotime("+$horizonDays days"));
         $stmt = db()->prepare("
-            SELECT t.id, t.title, t.due_date, t.priority, u.firstname, u.lastname, u.society
+            SELECT t.id, t.user_id, t.title, t.due_date, t.priority, u.firstname, u.lastname, u.society
             FROM suivi_task t
             LEFT JOIN contact u ON u.id = t.user_id
             WHERE t.done_at IS NULL AND t.due_date IS NOT NULL AND t.due_date <= ?
