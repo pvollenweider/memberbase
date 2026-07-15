@@ -19,7 +19,7 @@ $stmt = db()->query(
      FROM suivi_task t
      LEFT JOIN contact u ON u.id = t.user_id
      WHERE t.done_at IS NULL
-     ORDER BY t.due_date IS NULL, t.due_date ASC, t.priority ASC"
+     ORDER BY t.priority ASC, t.due_date IS NULL, t.due_date ASC"
 );
 $_tasks = $stmt->fetchAll(PDO::FETCH_OBJ);
 $_hasCotiTask = false;

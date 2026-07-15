@@ -49,7 +49,7 @@ $_priorityLabels = [
 $_taskStmt = db()->prepare(
     "SELECT id,title,body,priority,rule_key,due_date,done_at FROM suivi_task
      WHERE user_id = ?
-     ORDER BY (done_at IS NULL) DESC, due_date IS NULL, due_date ASC, priority ASC"
+     ORDER BY (done_at IS NULL) DESC, priority ASC, due_date IS NULL, due_date ASC"
 );
 $_taskStmt->execute([(int)$user->getId()]);
 $_tasks = $_taskStmt->fetchAll(PDO::FETCH_OBJ);
