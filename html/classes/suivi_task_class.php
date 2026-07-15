@@ -133,28 +133,51 @@ class SuiviTask
         return $stmt->rowCount();
     }
 
-    /** Count open tasks whose due_date is in the past, for a member's overdue badge. */
+    /**
+     * Count open tasks whose due_date is in the past, for a member's overdue
+     * badge. Guard: paused_at is migration 0039 — a not-yet-migrated
+     * instance doesn't have it. Fail open (0, previous behavior) rather than
+     * fataling every member fiche until the migration runs.
+     */
     public static function overdueCountForUser(int $userId): int
     {
-        $stmt = db()->prepare(
-            "SELECT COUNT(*) FROM suivi_task WHERE user_id=? AND done_at IS NULL AND paused_at IS NULL AND due_date IS NOT NULL AND due_date < ?"
-        );
-        $stmt->execute([$userId, date('Y-m-d')]);
-        return (int)$stmt->fetchColumn();
+        try {
+            $stmt = db()->prepare(
+                "SELECT COUNT(*) FROM suivi_task WHERE user_id=? AND done_at IS NULL AND paused_at IS NULL AND due_date IS NOT NULL AND due_date < ?"
+            );
+            $stmt->execute([$userId, date('Y-m-d')]);
+            return (int)$stmt->fetchColumn();
+        } catch (PDOException $e) {
+            return 0;
+        }
     }
 
-    /** Count open (non-paused) tasks for a member, for the fiche tab badge. */
+    /** Count open (non-paused) tasks for a member, for the fiche tab badge. Same 0039 guard as overdueCountForUser(). */
     public static function openCountForUser(int $userId): int
     {
-        $stmt = db()->prepare("SELECT COUNT(*) FROM suivi_task WHERE user_id=? AND done_at IS NULL AND paused_at IS NULL");
-        $stmt->execute([$userId]);
-        return (int)$stmt->fetchColumn();
+        try {
+            $stmt = db()->prepare("SELECT COUNT(*) FROM suivi_task WHERE user_id=? AND done_at IS NULL AND paused_at IS NULL");
+            $stmt->execute([$userId]);
+            return (int)$stmt->fetchColumn();
+        } catch (PDOException $e) {
+            return 0;
+        }
     }
 
-    /** Count all open, non-paused tasks (any member, plus global tasks), for the nav badge. */
+    /**
+     * Count all open, non-paused tasks (any member, plus global tasks), for
+     * the nav badge. Called unconditionally from menu.php on every single
+     * page — same 0039 guard as overdueCountForUser(), but here it's not
+     * optional: without it, the whole app 500s on every page until the
+     * migration runs, not just one view.
+     */
     public static function openCount(): int
     {
-        return (int)db()->query("SELECT COUNT(*) FROM suivi_task WHERE done_at IS NULL AND paused_at IS NULL")->fetchColumn();
+        try {
+            return (int)db()->query("SELECT COUNT(*) FROM suivi_task WHERE done_at IS NULL AND paused_at IS NULL")->fetchColumn();
+        } catch (PDOException $e) {
+            return 0;
+        }
     }
 
     /**

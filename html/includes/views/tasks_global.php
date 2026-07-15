@@ -6,6 +6,14 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
+// Guard: paused_at is migration 0039 -- a not-yet-migrated instance doesn't
+// have it, and every query below references it. Show a notice instead of
+// fataling (same pattern as settings_general.php's $_ctSchemaPending).
+if (in_array('0039_suivi_task_paused_at', pendingMigrations($pdo), true)) {
+    include __DIR__ . '/settings_schema_pending_notice.php';
+    return;
+}
+
 $_priorityLabels = [
     SuiviTask::PRIORITY_HIGH   => $GLOBAL['taskPriorityHigh'],
     SuiviTask::PRIORITY_NORMAL => $GLOBAL['taskPriorityNormal'],
