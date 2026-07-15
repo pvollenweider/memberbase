@@ -72,6 +72,16 @@ if ($_attAction === 'sendAttestationOne') {
     if ($result === true) {
         auditLog(db(), 'attestationSent',
             "sent to {$member->firstname} {$member->lastname} <{$member->email}> year=$year");
+        // Sent from a task's "Envoyer" button — close the linked task too.
+        $_attTaskId = (int)($_REQUEST['task_id'] ?? 0);
+        if ($_attTaskId > 0) {
+            $_attTask = new SuiviTask();
+            $_attTask->lookupTask($_attTaskId);
+            if ($_attTask->getId() && $_attTask->isOpen()) {
+                $_attTask->close();
+                auditLog(db(), 'closeTask', "id={$_attTask->getId()} | {$_attTask->getTitle()} (auto, attestation envoyée)", $_attTask->getUserId());
+            }
+        }
         echo json_encode(['ok' => true]);
     } else {
         echo json_encode(['ok' => false, 'error' => is_string($result) ? $result : 'send_failed']);

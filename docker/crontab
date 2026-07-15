@@ -1,4 +1,10 @@
-# MemberBase scheduled jobs (dev container). Every 5 minutes here purely for
-# local testing convenience — a production deployment should run this daily
+# MemberBase scheduled jobs (dev container). Every 5 minutes here, purely for
+# local testing convenience. A production deployment should run this daily
 # (see html/tools/cron.php header for the suggested "0 7 * * *" cadence).
+#
+# PATH set explicitly: cron's own default environment doesn't include
+# /usr/local/bin, where this base image installs the php binary, so a plain
+# "php ..." command fails with "php: not found" even though it works fine
+# from an interactive shell.
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 */5 * * * * www-data php /var/www/html/tools/cron.php >> /var/www/logs/cron.log 2>&1

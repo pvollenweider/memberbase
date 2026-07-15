@@ -55,12 +55,16 @@ $_taskStmt->execute([(int)$user->getId()]);
 $_tasks = $_taskStmt->fetchAll(PDO::FETCH_OBJ);
 $_hasCotiTask = false;
 $_hasRecapTask = false;
+$_hasAttestationTask = false;
 foreach ($_tasks as $_t) {
     if (!$_t->done_at && !$_t->paused_at && $_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_')) {
         $_hasCotiTask = true;
     }
     if (!$_t->done_at && !$_t->paused_at && $_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_')) {
         $_hasRecapTask = true;
+    }
+    if (!$_t->done_at && !$_t->paused_at && $_t->rule_key && str_starts_with($_t->rule_key, 'attestation_pending_')) {
+        $_hasAttestationTask = true;
     }
 }
 ?>
@@ -84,6 +88,7 @@ foreach ($_tasks as $_t) {
     $_pausedTs = $_t->paused_at ? strtotime($_t->paused_at) : null;
     $_doneTs  = $_t->done_at ? strtotime($_t->done_at) : null;
     $_overdue = mbTaskIsOverdue($_dueTs, $_doneTs);
+    $_isRecapTask = $_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_');
 ?>
 <tr>
     <td class="<?= $_doneTs ? 'text-muted text-decoration-line-through' : '' ?>">
@@ -119,6 +124,17 @@ foreach ($_tasks as $_t) {
             <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendRecapBtnOne'] ?>
         </button>
         <?php endif ?>
+        <?php if (!$_doneTs && !$_pausedTs && $_t->rule_key && str_starts_with($_t->rule_key, 'attestation_pending_') && trim((string)$user->getEmail()) !== ''): ?>
+        <button type="button" class="btn btn-outline-primary btn-sm js-task-send-attestation"
+                data-user-id="<?= $user->getId() ?>"
+                data-year="<?= (int)substr($_t->rule_key, strlen('attestation_pending_')) ?>"
+                data-task-id="<?= (int)$_t->id ?>"
+                data-confirm="<?= htmlspecialchars(sprintf($GLOBAL['sendAttestationConfirmOne'], trim($user->getFirstName() . ' ' . $user->getLastName())), ENT_QUOTES, $charset) ?>"
+                data-msg-fail="<?= htmlspecialchars($GLOBAL['sendAttestationSentFail'], ENT_QUOTES, $charset) ?>"
+                data-label-sending="<?= htmlspecialchars($GLOBAL['sendAttestationSending'], ENT_QUOTES, $charset) ?>">
+            <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendAttestationBtnOne'] ?>
+        </button>
+        <?php endif ?>
         <?php if (canWrite()): ?>
         <?php if ($_pausedTs && !$_doneTs): ?>
         <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty>
@@ -136,7 +152,7 @@ foreach ($_tasks as $_t) {
             <input type="hidden" name="taskid" value="<?= (int)$_t->id ?>">
             <input type="hidden" name="view" value="memberTasks">
             <input type="hidden" name="userid" value="<?= $user->getId() ?>">
-            <button type="submit" class="btn btn-sm py-0 px-1 text-muted" title="<?= $_doneTs ? $GLOBAL['reopen'] : $GLOBAL['taskMarkDone'] ?>">
+            <button type="submit" class="btn btn-sm py-0 px-1 text-muted" title="<?= $_doneTs ? $GLOBAL['reopen'] : ($_isRecapTask ? $GLOBAL['taskMarkDoneRecap'] : $GLOBAL['taskMarkDone']) ?>">
                 <i class="fas <?= $_doneTs ? 'fa-rotate-left' : 'fa-check' ?>" style="font-size:0.75rem" aria-hidden="true"></i>
             </button>
         </form>
@@ -174,4 +190,7 @@ foreach ($_tasks as $_t) {
 <?php endif ?>
 <?php if ($_hasRecapTask): ?>
 <?php require __DIR__ . '/../partials/task_recap_notify_modal.php'; ?>
+<?php endif ?>
+<?php if ($_hasAttestationTask): ?>
+<?php require __DIR__ . '/../partials/task_attestation_modal.php'; ?>
 <?php endif ?>

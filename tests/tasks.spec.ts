@@ -332,3 +332,78 @@ test.describe.serial('Tasks — paused state', () => {
     await expect(page.locator('tr', { hasText: 'Relance cotisation' })).toHaveCount(1);
   });
 });
+
+test.describe.serial('Tasks — closing a payment-notification task without sending', () => {
+  test('closing via the checkmark (no email on file) still marks compta entries as notified', async ({ page }) => {
+    // User 5 (Lapsed Dave, seed): has a 2025 cotisation entry, no email on
+    // file -- the send-recap button never appears for them, only the
+    // generic close checkmark. Post the generation action directly rather
+    // than clicking the UI button, which may legitimately be hidden by this
+    // point in the file if earlier tests already generated every pending
+    // task (the button only shows when there's something new to create).
+    await page.goto('/index.php?view=tasks');
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    await page.request.post('/index.php', { form: { action: 'generateComptaRecapTasks', csrf } });
+
+    await page.goto('/index.php?view=memberTasks&userid=5');
+    const row = page.locator('tr', { hasText: 'Notification de versement' });
+    await expect(row).toBeVisible();
+    await expect(row.locator('.js-task-send-recap')).toHaveCount(0);
+    const closeBtn = row.locator('button[title*="notifié"]');
+    await expect(closeBtn).toBeVisible();
+    await closeBtn.click();
+    await page.waitForTimeout(400);
+
+    // Regenerating must not recreate an open task for user 5: the underlying
+    // compta entries are now notified, so they no longer match the
+    // generator's "pending" criteria.
+    await page.request.post('/index.php', { form: { action: 'generateComptaRecapTasks', csrf } });
+    await page.goto('/index.php?view=memberTasks&userid=5');
+    await expect(page.locator('tr', { hasText: 'Notification de versement' }).filter({ hasText: 'Ouverte' })).toHaveCount(0);
+  });
+});
+
+test.describe.serial('Tasks — duplicate contacts and hidden segments', () => {
+  test('generates a task for a genuine full-name duplicate, dedups on re-run', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    // Seed has no duplicate names -- create one. Post generation directly
+    // (not via the UI button) so this test doesn't depend on whether some
+    // other pending group already made the button visible/hidden by this
+    // point in the file.
+    await page.request.post('/index.php', {
+      form: { action: 'addUser', firstName: 'Alice', lastName: 'Dupont', email: 'alice2@example.com', csrf },
+    });
+    await page.request.post('/index.php', { form: { action: 'generateDuplicateTasks', csrf } });
+
+    await page.goto('/index.php?view=tasks');
+    await expect(page.locator('td', { hasText: 'Doublon potentiel : Alice Dupont' })).toBeVisible();
+
+    const rowCountBefore = await page.locator('tr', { hasText: 'Doublon potentiel' }).count();
+    await page.request.post('/index.php', { form: { action: 'generateDuplicateTasks', csrf } });
+    await page.goto('/index.php?view=tasks');
+    const rowCountAfter = await page.locator('tr', { hasText: 'Doublon potentiel' }).count();
+    expect(rowCountAfter).toBe(rowCountBefore);
+  });
+
+  test('generates a task for a hidden segment still holding active members', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    // Segment 1 ("Membre 2025") has active members (1, 2, 4) in the seed --
+    // hide it to trigger the check.
+    await page.request.post('/index.php', { form: { action: 'updateSegment', id: '1', name: 'Membre 2025', hidden: '1', csrf } });
+    await page.request.post('/index.php', { form: { action: 'generateHiddenSegmentTasks', csrf } });
+
+    await page.goto('/index.php?view=tasks');
+    await expect(page.locator('td', { hasText: 'Segment masqué encore assigné' })).toBeVisible();
+  });
+});

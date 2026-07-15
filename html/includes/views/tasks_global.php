@@ -24,6 +24,7 @@ $stmt = db()->query(
 $_tasks = $stmt->fetchAll(PDO::FETCH_OBJ);
 $_hasCotiTask = false;
 $_hasRecapTask = false;
+$_hasAttestationTask = false;
 foreach ($_tasks as $_t) {
     if ($_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_')) {
         $_hasCotiTask = true;
@@ -31,9 +32,15 @@ foreach ($_tasks as $_t) {
     if ($_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_')) {
         $_hasRecapTask = true;
     }
+    if ($_t->rule_key && str_starts_with($_t->rule_key, 'attestation_pending_')) {
+        $_hasAttestationTask = true;
+    }
 }
-$_cotiPendingGen  = isAdmin() ? SuiviTask::countUnpaidCotiPendingGeneration($_year, $appSettings) : 0;
-$_recapPendingGen = isAdmin() ? SuiviTask::countComptaRecapPendingGeneration($_year) : 0;
+$_cotiPendingGen        = isAdmin() ? SuiviTask::countUnpaidCotiPendingGeneration($_year, $appSettings) : 0;
+$_recapPendingGen       = isAdmin() ? SuiviTask::countComptaRecapPendingGeneration($_year) : 0;
+$_dupPendingGen         = isAdmin() ? SuiviTask::countDuplicatePendingGeneration() : 0;
+$_hiddenSegPendingGen   = isAdmin() ? SuiviTask::countHiddenSegmentPendingGeneration() : 0;
+$_attestationPendingGen = isAdmin() ? SuiviTask::countAttestationPendingGeneration() : 0;
 
 // Completed tasks: separate, capped query — this view's main table is open
 // tasks only, done ones don't belong mixed in with what still needs action.
@@ -80,7 +87,7 @@ $_pausedTasks = $_pausedStmt->fetchAll(PDO::FETCH_OBJ);
 </div>
 <?php endif ?>
 
-<?php if (isAdmin() && ($_cotiPendingGen > 0 || $_recapPendingGen > 0)): ?>
+<?php if (isAdmin() && ($_cotiPendingGen > 0 || $_recapPendingGen > 0 || $_dupPendingGen > 0 || $_hiddenSegPendingGen > 0 || $_attestationPendingGen > 0)): ?>
 <div class="d-flex flex-wrap gap-2 mb-3">
 <?php if ($_cotiPendingGen > 0): ?>
 <form action="<?= appUrl() ?>" method="post" data-no-dirty>
@@ -95,6 +102,30 @@ $_pausedTasks = $_pausedStmt->fetchAll(PDO::FETCH_OBJ);
   <input type="hidden" name="action" value="generateComptaRecapTasks"/>
   <button type="submit" class="btn btn-outline-primary btn-sm">
     <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateRecapBtn'] ?>
+  </button>
+</form>
+<?php endif ?>
+<?php if ($_dupPendingGen > 0): ?>
+<form action="<?= appUrl() ?>" method="post" data-no-dirty>
+  <input type="hidden" name="action" value="generateDuplicateTasks"/>
+  <button type="submit" class="btn btn-outline-primary btn-sm">
+    <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateDupBtn'] ?>
+  </button>
+</form>
+<?php endif ?>
+<?php if ($_hiddenSegPendingGen > 0): ?>
+<form action="<?= appUrl() ?>" method="post" data-no-dirty>
+  <input type="hidden" name="action" value="generateHiddenSegmentTasks"/>
+  <button type="submit" class="btn btn-outline-primary btn-sm">
+    <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateHiddenSegBtn'] ?>
+  </button>
+</form>
+<?php endif ?>
+<?php if ($_attestationPendingGen > 0): ?>
+<form action="<?= appUrl() ?>" method="post" data-no-dirty>
+  <input type="hidden" name="action" value="generateAttestationTasks"/>
+  <button type="submit" class="btn btn-outline-primary btn-sm">
+    <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateAttestationBtn'] ?>
   </button>
 </form>
 <?php endif ?>
@@ -158,6 +189,7 @@ $_pausedTasks = $_pausedStmt->fetchAll(PDO::FETCH_OBJ);
     $_href = $_t->user_id
         ? appUrl() . '?view=memberTasks&userid=' . (int)$_t->user_id
         : appUrl() . '?view=updateTask&taskid=' . (int)$_t->id;
+    $_isRecapTask = $_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_');
 ?>
     <tr class="position-relative">
         <td class="text-nowrap <?= $_overdue ? 'text-danger fw-semibold' : '' ?>">
@@ -193,12 +225,23 @@ $_pausedTasks = $_pausedStmt->fetchAll(PDO::FETCH_OBJ);
                 <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendRecapBtnOne'] ?>
             </button>
             <?php endif ?>
+            <?php if ($_t->rule_key && str_starts_with($_t->rule_key, 'attestation_pending_') && $_t->user_id && trim((string)$_t->email) !== ''): ?>
+            <button type="button" class="btn btn-outline-primary btn-sm js-task-send-attestation" style="position:relative;z-index:2"
+                    data-user-id="<?= (int)$_t->user_id ?>"
+                    data-year="<?= (int)substr($_t->rule_key, strlen('attestation_pending_')) ?>"
+                    data-task-id="<?= (int)$_t->id ?>"
+                    data-confirm="<?= htmlspecialchars(sprintf($GLOBAL['sendAttestationConfirmOne'], trim(($_t->firstname ?? '') . ' ' . ($_t->lastname ?? ''))), ENT_QUOTES, $charset) ?>"
+                    data-msg-fail="<?= htmlspecialchars($GLOBAL['sendAttestationSentFail'], ENT_QUOTES, $charset) ?>"
+                    data-label-sending="<?= htmlspecialchars($GLOBAL['sendAttestationSending'], ENT_QUOTES, $charset) ?>">
+                <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendAttestationBtnOne'] ?>
+            </button>
+            <?php endif ?>
             <?php if (canWrite()): ?>
             <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty style="position:relative;z-index:2">
                 <input type="hidden" name="action" value="closeTask">
                 <input type="hidden" name="taskid" value="<?= (int)$_t->id ?>">
                 <input type="hidden" name="view" value="tasks">
-                <button type="submit" class="btn btn-sm py-0 px-1 text-muted" title="<?= $GLOBAL['taskMarkDone'] ?>">
+                <button type="submit" class="btn btn-sm py-0 px-1 text-muted" title="<?= $_isRecapTask ? $GLOBAL['taskMarkDoneRecap'] : $GLOBAL['taskMarkDone'] ?>">
                     <i class="fas fa-check" aria-hidden="true"></i>
                 </button>
             </form>
@@ -388,4 +431,7 @@ $(document).ready(function() {
 <?php endif ?>
 <?php if ($_hasRecapTask): ?>
 <?php require __DIR__ . '/../partials/task_recap_notify_modal.php'; ?>
+<?php endif ?>
+<?php if ($_hasAttestationTask): ?>
+<?php require __DIR__ . '/../partials/task_attestation_modal.php'; ?>
 <?php endif ?>

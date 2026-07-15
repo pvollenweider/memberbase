@@ -8,9 +8,13 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 // actions: addTask, updateTask, closeTask, reopenTask, pauseTask, resumeTask,
 //          deleteTask, generateUnpaidCotiTasks, generateComptaRecapTasks,
-//          bulkDeleteCompletedTasks
+//          generateDuplicateTasks, generateHiddenSegmentTasks,
+//          generateAttestationTasks, bulkDeleteCompletedTasks
 
-if (in_array($_REQUEST['action'], ['generateUnpaidCotiTasks', 'generateComptaRecapTasks'], true)) {
+if (in_array($_REQUEST['action'], [
+    'generateUnpaidCotiTasks', 'generateComptaRecapTasks',
+    'generateDuplicateTasks', 'generateHiddenSegmentTasks', 'generateAttestationTasks',
+], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif ($_REQUEST['action'] === 'bulkDeleteCompletedTasks') {
     if (!isManager()) { http_response_code(403); exit; }
@@ -33,6 +37,27 @@ if ($action == 'generateUnpaidCotiTasks') {
     $_genYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
     $_genResult = SuiviTask::generateComptaRecapTasks($_genYear, (int)($_authUser->id ?? 0));
     auditLog(db(), 'generateComptaRecapTasks', "année: $_genYear | créées: {$_genResult['created']} | closes (résolues ailleurs): {$_genResult['closed']}");
+    $_genTarget = '?view=tasks&generated=' . $_genResult['created'] . '&closed=' . $_genResult['closed'];
+    if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_genTarget); exit; }
+    header('Location: ' . appUrl() . $_genTarget); exit;
+
+} elseif ($action == 'generateDuplicateTasks') {
+    $_genResult = SuiviTask::generateDuplicateTasks((int)($_authUser->id ?? 0));
+    auditLog(db(), 'generateDuplicateTasks', "créées: {$_genResult['created']} | closes (résolus ailleurs): {$_genResult['closed']}");
+    $_genTarget = '?view=tasks&generated=' . $_genResult['created'] . '&closed=' . $_genResult['closed'];
+    if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_genTarget); exit; }
+    header('Location: ' . appUrl() . $_genTarget); exit;
+
+} elseif ($action == 'generateHiddenSegmentTasks') {
+    $_genResult = SuiviTask::generateHiddenSegmentTasks((int)($_authUser->id ?? 0));
+    auditLog(db(), 'generateHiddenSegmentTasks', "créées: {$_genResult['created']} | closes (résolus ailleurs): {$_genResult['closed']}");
+    $_genTarget = '?view=tasks&generated=' . $_genResult['created'] . '&closed=' . $_genResult['closed'];
+    if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_genTarget); exit; }
+    header('Location: ' . appUrl() . $_genTarget); exit;
+
+} elseif ($action == 'generateAttestationTasks') {
+    $_genResult = SuiviTask::generateAttestationTasks((int)($_authUser->id ?? 0));
+    auditLog(db(), 'generateAttestationTasks', "créées: {$_genResult['created']} | closes (résolues ailleurs): {$_genResult['closed']}");
     $_genTarget = '?view=tasks&generated=' . $_genResult['created'] . '&closed=' . $_genResult['closed'];
     if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_genTarget); exit; }
     header('Location: ' . appUrl() . $_genTarget); exit;
@@ -64,6 +89,28 @@ if ($action == 'generateUnpaidCotiTasks') {
     $task->lookupTask((int)$_REQUEST['taskid']);
     $task->close();
     auditLog(db(), 'closeTask', "id={$task->getId()} | {$task->getTitle()}", $task->getUserId());
+
+    // Closing a payment-notification task via the generic "mark done" button
+    // (typically because the member has no email — the "Envoyer" button
+    // that normally sets compta.notified_at never appeared) must still mark
+    // the underlying entries as notified. Otherwise the data stays
+    // inconsistent with the task being closed, and the next generation run
+    // recreates an identical task for the same member (same criteria the
+    // generator itself uses to decide something is still pending).
+    $_closedRuleKey = $task->getRuleKey();
+    if ($_closedRuleKey && str_starts_with($_closedRuleKey, 'compta_recap_pending_') && $task->getUserId()) {
+        $_recapYear = (int)substr($_closedRuleKey, strlen('compta_recap_pending_'));
+        $_markStmt = db()->prepare(
+            "UPDATE compta SET notified_at = NOW()
+             WHERE user_id = ? AND notified_at IS NULL AND sum <> 0 AND YEAR(date) = ?"
+        );
+        $_markStmt->execute([$task->getUserId(), $_recapYear]);
+        if ($_markStmt->rowCount() > 0) {
+            auditLog(db(), 'markComptaNotifiedViaTaskClose',
+                "user_id={$task->getUserId()} | année={$_recapYear} | {$_markStmt->rowCount()} écriture(s) marquée(s) notifiée(s) (tâche fermée sans envoi d'email)",
+                $task->getUserId());
+        }
+    }
 
 } elseif ($action == 'reopenTask') {
     $task = new SuiviTask();
