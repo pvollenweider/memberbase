@@ -2,13 +2,17 @@
 declare(strict_types=1);
 /**
  * Scheduled jobs entry point (issue #150). Meant to be called from the
- * system crontab, e.g. once a day:
+ * system crontab. Task generation (unpaid cotisation, payment
+ * notifications, duplicates, hidden segments, attestations) is idempotent
+ * and safe to run often, e.g. hourly:
  *
- *   0 7 * * * php /path/to/html/tools/cron.php >> /var/log/memberbase-cron.log 2>&1
+ *   0 * * * * php /path/to/html/tools/cron.php >> /var/log/memberbase-cron.log 2>&1
  *
- * Jobs run unconditionally each invocation — none of them are so frequent
- * that they need their own schedule yet. Split into separate cron lines
- * later if that changes.
+ * The digest email throttles itself to once per calendar day
+ * (app_settings.task_digest_last_sent_date) regardless of how often this
+ * script runs — an hourly cron doesn't mean an hourly inbox of the same
+ * overdue tasks. A plain daily cron (0 7 * * *) also works fine if you'd
+ * rather keep it simple; generation just won't reflect fixes as quickly.
  *
  * Usage (CLI) :
  *   php html/tools/cron.php            runs all jobs
@@ -84,10 +88,18 @@ if ($_attestationGen['created'] > 0 || $_attestationGen['closed'] > 0) {
 }
 
 // ── Job: digest of overdue/soon-due tasks, sent to the team ────────────────
+// Sent at most once per calendar day, however often this script itself
+// runs (task generation above is idempotent and benefits from running
+// hourly; a digest email re-listing the same tasks every hour would just
+// be noise, not a digest).
 fwrite(STDOUT, "[task-digest] ");
 $recipient = trim($appSettings['smtp_reply_to'] ?? '');
+$_digestToday = date('Y-m-d');
+$_digestLastSent = trim($appSettings['task_digest_last_sent_date'] ?? '');
 if ($recipient === '') {
     fwrite(STDOUT, "skip (app_settings.smtp_reply_to non configuré)\n");
+} elseif ($_digestLastSent === $_digestToday) {
+    fwrite(STDOUT, "skip (déjà envoyé aujourd'hui)\n");
 } else {
     // Base URL for clickable action links in the digest — optional (Réglages →
     // Email → URL publique de l'application). Without it, the digest stays
@@ -136,6 +148,8 @@ if ($recipient === '') {
         ];
         $result = mbSendTemplate($pdo, $recipient, 'tpl_task_digest', $vars);
         if ($result === true) {
+            $pdo->prepare("INSERT INTO app_settings (`key`,`value`) VALUES ('task_digest_last_sent_date', ?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)")
+                ->execute([$_digestToday]);
             auditLog($pdo, 'cronTaskDigest', 'sent to ' . $recipient . ' | ' . count($tasks) . ' tâche(s)');
             fwrite(STDOUT, "envoyé à {$recipient} (" . count($tasks) . " tâche(s))\n");
         } else {
