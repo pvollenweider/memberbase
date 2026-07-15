@@ -175,6 +175,7 @@ $GLOBAL['taskPausedTitle']         = "%d tâche(s) en pause";
 $GLOBAL['taskGenerateDupBtn']         = "Générer les tâches de doublons potentiels";
 $GLOBAL['taskGenerateHiddenSegBtn']   = "Générer les tâches de segments masqués";
 $GLOBAL['taskGenerateAttestationBtn'] = "Générer les tâches d'attestations de dons";
+$GLOBAL['taskViewInIntegrity']        = "Voir dans Réglages → Intégrité";
 $GLOBAL['taskRuleDupNameTitle']       = "Doublon potentiel : %s";
 $GLOBAL['taskRuleDupEmailTitle']      = "Doublon potentiel (email) : %s";
 $GLOBAL['taskRuleHiddenSegmentTitle'] = "Segment masqué encore assigné : %s (%d membre(s))";

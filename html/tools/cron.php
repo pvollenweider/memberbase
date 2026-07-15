@@ -65,6 +65,24 @@ if ($_recapGen['created'] > 0 || $_recapGen['closed'] > 0) {
     auditLog($pdo, 'generateComptaRecapTasks', "année: $_cronYear | créées: {$_recapGen['created']} | closes (résolues ailleurs): {$_recapGen['closed']} (cron)");
 }
 
+$_dupGen = SuiviTask::generateDuplicateTasks(null);
+fwrite(STDOUT, "[duplicate-gen] créées: {$_dupGen['created']} | closes: {$_dupGen['closed']}\n");
+if ($_dupGen['created'] > 0 || $_dupGen['closed'] > 0) {
+    auditLog($pdo, 'generateDuplicateTasks', "créées: {$_dupGen['created']} | closes (résolus ailleurs): {$_dupGen['closed']} (cron)");
+}
+
+$_hiddenSegGen = SuiviTask::generateHiddenSegmentTasks(null);
+fwrite(STDOUT, "[hidden-segment-gen] créées: {$_hiddenSegGen['created']} | closes: {$_hiddenSegGen['closed']}\n");
+if ($_hiddenSegGen['created'] > 0 || $_hiddenSegGen['closed'] > 0) {
+    auditLog($pdo, 'generateHiddenSegmentTasks', "créées: {$_hiddenSegGen['created']} | closes (résolus ailleurs): {$_hiddenSegGen['closed']} (cron)");
+}
+
+$_attestationGen = SuiviTask::generateAttestationTasks(null);
+fwrite(STDOUT, "[attestation-gen] créées: {$_attestationGen['created']} | closes: {$_attestationGen['closed']}\n");
+if ($_attestationGen['created'] > 0 || $_attestationGen['closed'] > 0) {
+    auditLog($pdo, 'generateAttestationTasks', "créées: {$_attestationGen['created']} | closes (résolues ailleurs): {$_attestationGen['closed']} (cron)");
+}
+
 // ── Job: digest of overdue/soon-due tasks, sent to the team ────────────────
 fwrite(STDOUT, "[task-digest] ");
 $recipient = trim($appSettings['smtp_reply_to'] ?? '');

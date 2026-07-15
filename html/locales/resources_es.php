@@ -174,6 +174,7 @@ $GLOBAL['taskPausedTitle']         = "%d tarea(s) en pausa";
 $GLOBAL['taskGenerateDupBtn']         = "Generar tareas de posibles duplicados";
 $GLOBAL['taskGenerateHiddenSegBtn']   = "Generar tareas de segmentos ocultos";
 $GLOBAL['taskGenerateAttestationBtn'] = "Generar tareas de certificados de donación";
+$GLOBAL['taskViewInIntegrity']        = "Ver en Ajustes → Integridad";
 $GLOBAL['taskRuleDupNameTitle']       = "Posible duplicado: %s";
 $GLOBAL['taskRuleDupEmailTitle']      = "Posible duplicado (correo): %s";
 $GLOBAL['taskRuleHiddenSegmentTitle'] = "Segmento oculto aún asignado: %s (%d miembro(s))";

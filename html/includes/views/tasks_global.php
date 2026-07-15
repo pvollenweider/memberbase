@@ -198,6 +198,7 @@ $_pausedTasks = $_pausedStmt->fetchAll(PDO::FETCH_OBJ);
         ? appUrl() . '?view=memberTasks&userid=' . (int)$_t->user_id
         : appUrl() . '?view=updateTask&taskid=' . (int)$_t->id;
     $_isRecapTask = $_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_');
+    $_isIntegrityTask = $_t->rule_key && (str_starts_with($_t->rule_key, 'dup_') || str_starts_with($_t->rule_key, 'hidden_segment_'));
 ?>
     <tr class="position-relative">
         <td class="text-nowrap <?= $_overdue ? 'text-danger fw-semibold' : '' ?>">
@@ -243,6 +244,11 @@ $_pausedTasks = $_pausedStmt->fetchAll(PDO::FETCH_OBJ);
                     data-label-sending="<?= htmlspecialchars($GLOBAL['sendAttestationSending'], ENT_QUOTES, $charset) ?>">
                 <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendAttestationBtnOne'] ?>
             </button>
+            <?php endif ?>
+            <?php if ($_isIntegrityTask): ?>
+            <a href="<?= appUrl() ?>?view=settings&amp;tab=integrity" class="btn btn-sm py-0 px-1 text-muted" style="position:relative;z-index:2" title="<?= $GLOBAL['taskViewInIntegrity'] ?>" hx-boost="false">
+                <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
             <?php endif ?>
             <?php if (canWrite()): ?>
             <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty style="position:relative;z-index:2">

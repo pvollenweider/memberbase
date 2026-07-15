@@ -174,6 +174,7 @@ $GLOBAL['taskPausedTitle']         = "%d pausierte Aufgabe(n)";
 $GLOBAL['taskGenerateDupBtn']         = "Aufgaben für mögliche Duplikate erstellen";
 $GLOBAL['taskGenerateHiddenSegBtn']   = "Aufgaben für versteckte Segmente erstellen";
 $GLOBAL['taskGenerateAttestationBtn'] = "Aufgaben für Spendenbescheinigungen erstellen";
+$GLOBAL['taskViewInIntegrity']        = "In Einstellungen → Integrität ansehen";
 $GLOBAL['taskRuleDupNameTitle']       = "Mögliches Duplikat: %s";
 $GLOBAL['taskRuleDupEmailTitle']      = "Mögliches Duplikat (E-Mail): %s";
 $GLOBAL['taskRuleHiddenSegmentTitle'] = "Verstecktes Segment noch zugewiesen: %s (%d Mitglied(er))";

@@ -406,4 +406,26 @@ test.describe.serial('Tasks — duplicate contacts and hidden segments', () => {
     await page.goto('/index.php?view=tasks');
     await expect(page.locator('td', { hasText: 'Segment masqué encore assigné' })).toBeVisible();
   });
+
+  test('fixing the duplicate closes the task on the next generation run (what cron does)', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    // Delete the duplicate created in the previous test -- same effect as
+    // fixing it via Réglages → Intégrité (merge or delete), without needing
+    // to click "Marquer comme terminée" on the task at all.
+    const apiResp = await page.request.get('/api/contacts?search=alice2%40example.com');
+    const { data } = await apiResp.json();
+    await page.request.post('/index.php', {
+      form: { action: 'deleteOrDeactivateUser', id: String(data[0].id), dispose: 'delete', csrf },
+    });
+
+    // Re-running generation (what the cron does every 5 min) must close the
+    // now-obsolete task on its own, no manual close needed.
+    await page.request.post('/index.php', { form: { action: 'generateDuplicateTasks', csrf } });
+    await page.goto('/index.php?view=tasks');
+    await expect(page.locator('#tasks-table td', { hasText: 'Doublon potentiel : Alice Dupont' })).toHaveCount(0);
+  });
 });
