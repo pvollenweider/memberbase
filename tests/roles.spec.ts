@@ -242,6 +242,30 @@ test.describe('UI — group management (isManager)', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// UI — tasks nav link (isManager)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('UI — tasks nav link (isManager)', () => {
+  for (const role of ['readonly', 'user']) {
+    test(`${role}: tasks nav link hidden`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto('/index.php');
+      await expect(page.locator('a[href*="view=tasks"]')).toHaveCount(0);
+      await ctx.close();
+    });
+  }
+
+  for (const role of ['manager', 'admin']) {
+    test(`${role}: tasks nav link visible`, async ({ browser }) => {
+      const { page, ctx } = await openAs(browser, role);
+      await page.goto('/index.php');
+      await expect(page.locator('.navbar-collapse a[href*="view=tasks"]')).toBeVisible();
+      await ctx.close();
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // UI — delete / anonymize on archived profile (isAdmin)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -301,6 +325,13 @@ test.describe('UI — view access guards', () => {
   test('manager: view=deleteUser shows access denied', async ({ browser }) => {
     const { page, ctx } = await openAs(browser, 'manager');
     await page.goto(`/index.php?view=deleteUser&id=${ARCHIVED_MEMBER_ID}`);
+    await expect(page.locator('.alert-danger')).toBeVisible();
+    await ctx.close();
+  });
+
+  test('user: view=tasks shows access denied', async ({ browser }) => {
+    const { page, ctx } = await openAs(browser, 'user');
+    await page.goto('/index.php?view=tasks');
     await expect(page.locator('.alert-danger')).toBeVisible();
     await ctx.close();
   });

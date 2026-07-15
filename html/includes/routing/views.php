@@ -71,7 +71,7 @@ $UA_VIEW_ROUTES = [
     'removeSuivi'         => ['suivi_delete_confirm.php',  'canWrite'],
 
     // Tâches
-    'tasks'               => ['tasks_global.php'],
+    'tasks'               => ['tasks_global.php',        'isManager'],
     'updateTask'          => ['tasks_edit_form.php',       null, [], 'memberTasks'],
     'removeTask'          => ['tasks_delete_confirm.php',  'canWrite'],
 

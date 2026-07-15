@@ -14,7 +14,7 @@ $searchString = "";
 if (isset ($_REQUEST["searchString"])) {
     $searchString = trim($_REQUEST["searchString"]);
 }
-$_navOpenTaskCount = SuiviTask::openCount();
+$_navOpenTaskCount = isManager() ? SuiviTask::openCount() : 0;
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-2">
@@ -35,6 +35,7 @@ $_navOpenTaskCount = SuiviTask::openCount();
                    href="<?= appUrl() ?>?view=journals" title="<?= $GLOBAL['journalsPageTitle'] ?>" aria-label="<?= $GLOBAL['journalsPageTitle'] ?>">
                     <i class="fas fa-book"></i>
                 </a>
+                <?php if (isManager()): ?>
                 <a class="nav-link text-white px-2 position-relative<?= $view === 'tasks' ? ' opacity-100' : ' opacity-75' ?>"
                    href="<?= appUrl() ?>?view=tasks" title="<?= $GLOBAL['tasks'] ?>" aria-label="<?= $GLOBAL['tasks'] ?>">
                     <i class="fas fa-list-check"></i>
@@ -44,6 +45,7 @@ $_navOpenTaskCount = SuiviTask::openCount();
                     </span>
                     <?php endif ?>
                 </a>
+                <?php endif ?>
             </div>
             <!-- Right: search, settings, user -->
             <div class="d-flex align-items-center gap-1">
@@ -91,6 +93,7 @@ $_navOpenTaskCount = SuiviTask::openCount();
                 <li class="nav-item<?= in_array($view, ['journals','lastEntryCompta','lastEntrySuivi']) ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=journals"><i class="fas fa-book me-1" aria-hidden="true"></i><?= $GLOBAL['journalsPageTitle'] ?></a>
                 </li>
+                <?php if (isManager()): ?>
                 <li class="nav-item<?= $view == 'tasks' ? ' active' : '' ?>">
                     <a class="nav-link" href="<?= appUrl() ?>?view=tasks">
                         <i class="fas fa-list-check me-1" aria-hidden="true"></i><?= $GLOBAL['tasks'] ?>
@@ -99,6 +102,7 @@ $_navOpenTaskCount = SuiviTask::openCount();
                         <?php endif ?>
                     </a>
                 </li>
+                <?php endif ?>
             </ul>
 
             <?php $__authUser = authUser(); ?>
