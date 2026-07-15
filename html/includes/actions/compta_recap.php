@@ -128,8 +128,18 @@ if ($action === 'sendComptaRecap') {
         $ph = implode(',', array_fill(0, count($ids), '?'));
         db()->prepare("UPDATE compta SET notified_at = NOW() WHERE id IN ($ph)")->execute($ids);
         auditLog(db(), 'sendComptaRecapOne',
-            "sent to {$first['firstname']} {$first['lastname']} <{$first['email']}> (year=$recapYear force=" . ($force ? '1' : '0') . ") — "
+            "sent to {$first['firstname']} {$first['lastname']} <{$first['email']}> (year=$recapYear force=" . ($force ? '1' : '0') . "), "
             . count($entries) . ' entr(ies), CHF ' . $total);
+        // Sent from a task's "Envoyer" button — close the linked task too.
+        $_recapTaskId = (int)($_REQUEST['task_id'] ?? 0);
+        if ($_recapTaskId > 0) {
+            $_recapTask = new SuiviTask();
+            $_recapTask->lookupTask($_recapTaskId);
+            if ($_recapTask->getId() && $_recapTask->isOpen()) {
+                $_recapTask->close();
+                auditLog(db(), 'closeTask', "id={$_recapTask->getId()} | {$_recapTask->getTitle()} (auto, notification envoyée)", $_recapTask->getUserId());
+            }
+        }
         echo json_encode(['ok' => true]);
     } else {
         echo json_encode(['ok' => false, 'error' => is_string($result) ? $result : 'send_failed']);

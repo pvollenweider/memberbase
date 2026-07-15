@@ -23,10 +23,13 @@ $stmt = db()->query(
 );
 $_tasks = $stmt->fetchAll(PDO::FETCH_OBJ);
 $_hasCotiTask = false;
+$_hasRecapTask = false;
 foreach ($_tasks as $_t) {
     if ($_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_')) {
         $_hasCotiTask = true;
-        break;
+    }
+    if ($_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_')) {
+        $_hasRecapTask = true;
     }
 }
 ?>
@@ -46,12 +49,20 @@ foreach ($_tasks as $_t) {
 <?php endif ?>
 
 <?php if (isManager()): ?>
-<form action="<?= appUrl() ?>" method="post" class="mb-3" data-no-dirty>
+<div class="d-flex flex-wrap gap-2 mb-3">
+<form action="<?= appUrl() ?>" method="post" data-no-dirty>
   <input type="hidden" name="action" value="generateUnpaidCotiTasks"/>
   <button type="submit" class="btn btn-outline-primary btn-sm">
     <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateBtn'] ?>
   </button>
 </form>
+<form action="<?= appUrl() ?>" method="post" data-no-dirty>
+  <input type="hidden" name="action" value="generateComptaRecapTasks"/>
+  <button type="submit" class="btn btn-outline-primary btn-sm">
+    <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateRecapBtn'] ?>
+  </button>
+</form>
+</div>
 <?php endif ?>
 
 <?php if (canWrite()): ?>
@@ -135,6 +146,17 @@ foreach ($_tasks as $_t) {
                 <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendCotiRemindersBtnOne'] ?>
             </button>
             <?php endif ?>
+            <?php if ($_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_') && $_t->user_id && trim((string)$_t->email) !== ''): ?>
+            <button type="button" class="btn btn-outline-primary btn-sm js-task-send-recap" style="position:relative;z-index:2"
+                    data-user-id="<?= (int)$_t->user_id ?>"
+                    data-year="<?= $_year ?>"
+                    data-task-id="<?= (int)$_t->id ?>"
+                    data-confirm="<?= htmlspecialchars(sprintf($GLOBAL['sendRecapConfirmOne'], trim(($_t->firstname ?? '') . ' ' . ($_t->lastname ?? ''))), ENT_QUOTES, $charset) ?>"
+                    data-msg-fail="<?= htmlspecialchars($GLOBAL['sendRecapSentFail'], ENT_QUOTES, $charset) ?>"
+                    data-label-sending="<?= htmlspecialchars($GLOBAL['sendRecapSending'], ENT_QUOTES, $charset) ?>">
+                <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendRecapBtnOne'] ?>
+            </button>
+            <?php endif ?>
             <a href="<?= $_href ?>" class="stretched-link" hx-boost="false"
                aria-label="<?= $GLOBAL['taskTitle'] ?>: <?= htmlspecialchars($_t->title, ENT_QUOTES, $charset) ?>"></a>
         </td>
@@ -182,4 +204,7 @@ $(document).ready(function() {
 
 <?php if ($_hasCotiTask): ?>
 <?php require __DIR__ . '/../partials/task_coti_reminder_modal.php'; ?>
+<?php endif ?>
+<?php if ($_hasRecapTask): ?>
+<?php require __DIR__ . '/../partials/task_recap_notify_modal.php'; ?>
 <?php endif ?>

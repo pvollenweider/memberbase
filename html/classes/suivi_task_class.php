@@ -207,4 +207,64 @@ class SuiviTask
         }
         return ['created' => $created, 'closed' => $closed];
     }
+
+    /**
+     * Generates one task per member with unnotified compta entries for $year
+     * (same source of truth as compta_recap.php's pending list). Dedup via
+     * rule_key, same pattern as generateUnpaidCotiTasks() — closes tasks whose
+     * member no longer has anything pending (sent through the batch flow,
+     * entries deleted, etc.) instead of leaving them stale.
+     *
+     * @return array{created:int,closed:int}
+     */
+    public static function generateComptaRecapTasks(int $year, ?int $createdBy): array
+    {
+        global $GLOBAL;
+        $ruleKey = "compta_recap_pending_$year";
+
+        $stmt = db()->prepare(
+            "SELECT DISTINCT c.user_id
+             FROM compta c
+             JOIN contact u ON u.id = c.user_id AND u.status = 1
+             WHERE c.notified_at IS NULL AND c.sum <> 0 AND YEAR(c.date) = ?"
+        );
+        $stmt->execute([$year]);
+        $memberIds = array_fill_keys(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)), true);
+
+        $stmt = db()->prepare("SELECT id, user_id FROM suivi_task WHERE rule_key=? AND done_at IS NULL");
+        $stmt->execute([$ruleKey]);
+        $openTasks = $stmt->fetchAll(PDO::FETCH_OBJ);
+        $existingByUser = [];
+        foreach ($openTasks as $t) {
+            $existingByUser[(int)$t->user_id] = (int)$t->id;
+        }
+
+        $closed = 0;
+        foreach ($existingByUser as $uid => $taskId) {
+            if (empty($memberIds[$uid])) {
+                $task = new SuiviTask();
+                $task->lookupTask($taskId);
+                if ($task->getId()) {
+                    $task->close();
+                    $closed++;
+                }
+            }
+        }
+
+        $created = 0;
+        foreach (array_keys($memberIds) as $uid) {
+            if (isset($existingByUser[$uid])) {
+                continue;
+            }
+            $task = new SuiviTask();
+            $task->setUserId($uid);
+            $task->setCreatedBy($createdBy);
+            $task->setTitle(sprintf($GLOBAL['taskRuleComptaRecapTitle'], $year));
+            $task->setPriority(self::PRIORITY_NORMAL);
+            $task->setRuleKey($ruleKey);
+            $task->save();
+            $created++;
+        }
+        return ['created' => $created, 'closed' => $closed];
+    }
 }

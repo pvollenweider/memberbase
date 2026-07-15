@@ -54,10 +54,13 @@ $_taskStmt = db()->prepare(
 $_taskStmt->execute([(int)$user->getId()]);
 $_tasks = $_taskStmt->fetchAll(PDO::FETCH_OBJ);
 $_hasCotiTask = false;
+$_hasRecapTask = false;
 foreach ($_tasks as $_t) {
     if (!$_t->done_at && $_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_')) {
         $_hasCotiTask = true;
-        break;
+    }
+    if (!$_t->done_at && $_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_')) {
+        $_hasRecapTask = true;
     }
 }
 ?>
@@ -104,6 +107,17 @@ foreach ($_tasks as $_t) {
             <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendCotiRemindersBtnOne'] ?>
         </button>
         <?php endif ?>
+        <?php if (!$_doneTs && $_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_') && trim((string)$user->getEmail()) !== ''): ?>
+        <button type="button" class="btn btn-outline-primary btn-sm js-task-send-recap"
+                data-user-id="<?= $user->getId() ?>"
+                data-year="<?= (int)date('Y') ?>"
+                data-task-id="<?= (int)$_t->id ?>"
+                data-confirm="<?= htmlspecialchars(sprintf($GLOBAL['sendRecapConfirmOne'], trim($user->getFirstName() . ' ' . $user->getLastName())), ENT_QUOTES, $charset) ?>"
+                data-msg-fail="<?= htmlspecialchars($GLOBAL['sendRecapSentFail'], ENT_QUOTES, $charset) ?>"
+                data-label-sending="<?= htmlspecialchars($GLOBAL['sendRecapSending'], ENT_QUOTES, $charset) ?>">
+            <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendRecapBtnOne'] ?>
+        </button>
+        <?php endif ?>
         <?php if (canWrite()): ?>
         <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty>
             <input type="hidden" name="action" value="<?= $_doneTs ? 'reopenTask' : 'closeTask' ?>">
@@ -133,4 +147,7 @@ foreach ($_tasks as $_t) {
 
 <?php if ($_hasCotiTask): ?>
 <?php require __DIR__ . '/../partials/task_coti_reminder_modal.php'; ?>
+<?php endif ?>
+<?php if ($_hasRecapTask): ?>
+<?php require __DIR__ . '/../partials/task_recap_notify_modal.php'; ?>
 <?php endif ?>

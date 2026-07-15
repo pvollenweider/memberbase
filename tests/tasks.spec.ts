@@ -186,3 +186,39 @@ test.describe.serial('Tasks — auto-generation (#149)', () => {
     await expect(page.locator('tr', { hasText: 'Relance cotisation' })).not.toBeVisible();
   });
 });
+
+test.describe.serial('Tasks — payment notification auto-generation', () => {
+  test('generate button creates one task per member with unnotified compta entries', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const generateForm = page.locator('form', { has: page.locator('button', { hasText: 'notification de versement' }) });
+    await expect(generateForm).toBeVisible();
+    await generateForm.locator('button[type="submit"]').click();
+    await expect(page.locator('.alert-success')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('tr', { hasText: 'Notification de versement' }).first()).toBeVisible();
+  });
+
+  test('re-running generation does not duplicate the task (dedup via rule_key)', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const rowCountBefore = await page.locator('tr', { hasText: 'Notification de versement' }).count();
+    const generateForm = page.locator('form', { has: page.locator('button', { hasText: 'notification de versement' }) });
+    await generateForm.locator('button[type="submit"]').click();
+    await expect(page.locator('.alert-success')).toBeVisible({ timeout: 10_000 });
+    const rowCountAfter = await page.locator('tr', { hasText: 'Notification de versement' }).count();
+    expect(rowCountAfter).toBe(rowCountBefore);
+  });
+
+  test('"Envoyer la notification" opens a preview and closes the task on send', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const rowsBefore = await page.locator('.js-task-send-recap').count();
+    expect(rowsBefore).toBeGreaterThan(0);
+
+    await page.locator('.js-task-send-recap').first().click();
+    await expect(page.locator('#taskRecapPreviewModal')).toBeVisible();
+    await expect(page.locator('#task-recap-modal-subject')).not.toHaveText('');
+
+    await page.locator('#btn-task-recap-send').click();
+    await page.waitForTimeout(1000);
+    const rowsAfter = await page.locator('.js-task-send-recap').count();
+    expect(rowsAfter).toBe(rowsBefore - 1);
+  });
+});

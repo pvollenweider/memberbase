@@ -6,9 +6,10 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// actions: addTask, updateTask, closeTask, reopenTask, deleteTask, generateUnpaidCotiTasks
+// actions: addTask, updateTask, closeTask, reopenTask, deleteTask,
+//          generateUnpaidCotiTasks, generateComptaRecapTasks
 
-if ($_REQUEST['action'] === 'generateUnpaidCotiTasks') {
+if (in_array($_REQUEST['action'], ['generateUnpaidCotiTasks', 'generateComptaRecapTasks'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
 } elseif (!canWrite()) {
     http_response_code(403); exit;
@@ -21,6 +22,14 @@ if ($action == 'generateUnpaidCotiTasks') {
     $_genYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
     $_genResult = SuiviTask::generateUnpaidCotiTasks($_genYear, $appSettings, (int)($_authUser->id ?? 0));
     auditLog(db(), 'generateUnpaidCotiTasks', "année: $_genYear | créées: {$_genResult['created']} | closes (résolues ailleurs): {$_genResult['closed']}");
+    $_genTarget = '?view=tasks&generated=' . $_genResult['created'] . '&closed=' . $_genResult['closed'];
+    if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_genTarget); exit; }
+    header('Location: ' . appUrl() . $_genTarget); exit;
+
+} elseif ($action == 'generateComptaRecapTasks') {
+    $_genYear = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date('Y');
+    $_genResult = SuiviTask::generateComptaRecapTasks($_genYear, (int)($_authUser->id ?? 0));
+    auditLog(db(), 'generateComptaRecapTasks', "année: $_genYear | créées: {$_genResult['created']} | closes (résolues ailleurs): {$_genResult['closed']}");
     $_genTarget = '?view=tasks&generated=' . $_genResult['created'] . '&closed=' . $_genResult['closed'];
     if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_genTarget); exit; }
     header('Location: ' . appUrl() . $_genTarget); exit;
