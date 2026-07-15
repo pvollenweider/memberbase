@@ -250,3 +250,85 @@ test.describe.serial('Tasks — payment notification auto-generation', () => {
     expect(rowsAfter).toBe(rowsBefore - 1);
   });
 });
+
+test.describe.serial('Tasks — paused state', () => {
+  test('pausing a global task hides it from the open table and the nav badge', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const form = page.locator('form[name="addTask"]');
+    await form.locator('input[name="title"]').fill('Task E2E pause test');
+    await form.locator('button[type="submit"]').click();
+    await expect(page.locator('text=Task E2E pause test')).toBeVisible({ timeout: 15000 });
+
+    await page.goto('/index.php?view=tasks');
+    const badgeLocator = page.locator('.navbar-nav .nav-item a[href*="view=tasks"] .badge');
+    const badgeCountBefore = (await badgeLocator.count()) > 0 ? Number(await badgeLocator.innerText()) : 0;
+
+    const row = page.locator('#tasks-table tbody tr', { hasText: 'Task E2E pause test' });
+    await row.locator('button[title="Mettre en pause"]').click();
+    await page.waitForTimeout(400);
+    await page.goto('/index.php?view=tasks');
+
+    await expect(page.locator('#tasks-table tr', { hasText: 'Task E2E pause test' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: /tâche\(s\) en pause/ })).toBeVisible();
+    await expect(page.locator('#paused-tasks-table td', { hasText: 'Task E2E pause test' })).toBeVisible();
+
+    // Badge disappears entirely once no open (non-paused) task is left,
+    // rather than showing "0" — read it defensively either way.
+    const badgeCountAfter = (await badgeLocator.count()) > 0 ? Number(await badgeLocator.innerText()) : 0;
+    expect(badgeCountAfter).toBe(badgeCountBefore - 1);
+  });
+
+  test('resuming a paused task brings it back to the open table', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const row = page.locator('#paused-tasks-table tbody tr', { hasText: 'Task E2E pause test' });
+    await row.locator('button[title="Reprendre"]').click();
+    await page.waitForTimeout(400);
+    await page.goto('/index.php?view=tasks');
+
+    await expect(page.locator('#tasks-table tr', { hasText: 'Task E2E pause test' })).toBeVisible();
+  });
+
+  test('a paused reminder task does not show its send button, but still blocks a duplicate from being generated', async ({ page, browser }) => {
+    // Fresh member, untouched by the earlier auto-generation describe block
+    // (which already pays off LAPSED_USER_ID=4). Needs an email (required
+    // for the send-reminder button) and no 2026 cotisation entry.
+    const adminCtx = await browser.newContext({ storageState: require('path').resolve(__dirname, '.auth/admin.json') });
+    const adminPage = await adminCtx.newPage();
+    await adminPage.goto('/index.php?view=list');
+    const csrf = await adminPage.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    await adminPage.request.post('/index.php', {
+      form: { action: 'addUser', firstName: 'Pause', lastName: 'TestUser', email: 'pause-test@example.com', csrf },
+    });
+    const apiResp = await adminPage.request.get('/api/contacts?search=pause-test%40example.com');
+    const apiJson = await apiResp.json();
+    const NEW_USER_ID = apiJson.data[0].id;
+
+    await adminPage.request.post('/index.php', { form: { action: 'assignSegment', id: String(NEW_USER_ID), segmentId: '2', csrf } });
+    await adminPage.request.post('/index.php', { form: { action: 'generateUnpaidCotiTasks', csrf } });
+    await adminCtx.close();
+
+    await page.goto(`/index.php?view=memberTasks&userid=${NEW_USER_ID}`);
+    const row = page.locator('tr', { hasText: 'Relance cotisation' });
+    await expect(row.locator('.js-task-send-coti')).toBeVisible();
+    await row.locator('button[title="Mettre en pause"]').click();
+    await page.waitForTimeout(400);
+
+    const pausedRow = page.locator('tr', { hasText: 'Relance cotisation' });
+    await expect(pausedRow.locator('.js-task-send-coti')).toHaveCount(0);
+    await expect(pausedRow.locator('button[title="Reprendre"]')).toBeVisible();
+
+    // Regenerating must not create a duplicate while the task is paused,
+    // the dedup query only checks done_at, paused_at is irrelevant to it.
+    const csrf2 = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    await page.request.post('/index.php', { form: { action: 'generateUnpaidCotiTasks', csrf: csrf2 } });
+
+    await page.goto(`/index.php?view=memberTasks&userid=${NEW_USER_ID}`);
+    await expect(page.locator('tr', { hasText: 'Relance cotisation' })).toHaveCount(1);
+  });
+});

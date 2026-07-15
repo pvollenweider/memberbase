@@ -95,6 +95,8 @@ if (isset($_REQUEST['action'])) {
         'updateTask'           => 'suivi_tasks',
         'closeTask'            => 'suivi_tasks',
         'reopenTask'           => 'suivi_tasks',
+        'pauseTask'            => 'suivi_tasks',
+        'resumeTask'           => 'suivi_tasks',
         'deleteTask'           => 'suivi_tasks',
         'generateUnpaidCotiTasks' => 'suivi_tasks',
         'generateComptaRecapTasks' => 'suivi_tasks',

@@ -6,8 +6,9 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// actions: addTask, updateTask, closeTask, reopenTask, deleteTask,
-//          generateUnpaidCotiTasks, generateComptaRecapTasks, bulkDeleteCompletedTasks
+// actions: addTask, updateTask, closeTask, reopenTask, pauseTask, resumeTask,
+//          deleteTask, generateUnpaidCotiTasks, generateComptaRecapTasks,
+//          bulkDeleteCompletedTasks
 
 if (in_array($_REQUEST['action'], ['generateUnpaidCotiTasks', 'generateComptaRecapTasks'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
@@ -69,6 +70,18 @@ if ($action == 'generateUnpaidCotiTasks') {
     $task->lookupTask((int)$_REQUEST['taskid']);
     db()->prepare("UPDATE suivi_task SET done_at=NULL WHERE id=?")->execute([$task->getId()]);
     auditLog(db(), 'reopenTask', "id={$task->getId()} | {$task->getTitle()}", $task->getUserId());
+
+} elseif ($action == 'pauseTask') {
+    $task = new SuiviTask();
+    $task->lookupTask((int)$_REQUEST['taskid']);
+    $task->pause();
+    auditLog(db(), 'pauseTask', "id={$task->getId()} | {$task->getTitle()}", $task->getUserId());
+
+} elseif ($action == 'resumeTask') {
+    $task = new SuiviTask();
+    $task->lookupTask((int)$_REQUEST['taskid']);
+    $task->resume();
+    auditLog(db(), 'resumeTask', "id={$task->getId()} | {$task->getTitle()}", $task->getUserId());
 
 } elseif ($action == 'bulkDeleteCompletedTasks') {
     $_bulkDeletedCount = SuiviTask::deleteAllCompleted();

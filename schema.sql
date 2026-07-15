@@ -114,6 +114,7 @@ CREATE TABLE IF NOT EXISTS `suivi_task` (
   `priority`    tinyint(1)   NOT NULL DEFAULT 2,
   `rule_key`    varchar(64)  DEFAULT NULL,
   `due_date`    date         DEFAULT NULL,
+  `paused_at`   datetime     DEFAULT NULL,
   `done_at`     datetime     DEFAULT NULL,
   `created_at`  datetime     NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),

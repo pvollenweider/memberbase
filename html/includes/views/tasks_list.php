@@ -47,7 +47,7 @@ $_priorityLabels = [
 
 <?php
 $_taskStmt = db()->prepare(
-    "SELECT id,title,body,priority,rule_key,due_date,done_at FROM suivi_task
+    "SELECT id,title,body,priority,rule_key,due_date,paused_at,done_at FROM suivi_task
      WHERE user_id = ?
      ORDER BY (done_at IS NULL) DESC, priority ASC, due_date IS NULL, due_date ASC"
 );
@@ -56,10 +56,10 @@ $_tasks = $_taskStmt->fetchAll(PDO::FETCH_OBJ);
 $_hasCotiTask = false;
 $_hasRecapTask = false;
 foreach ($_tasks as $_t) {
-    if (!$_t->done_at && $_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_')) {
+    if (!$_t->done_at && !$_t->paused_at && $_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_')) {
         $_hasCotiTask = true;
     }
-    if (!$_t->done_at && $_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_')) {
+    if (!$_t->done_at && !$_t->paused_at && $_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_')) {
         $_hasRecapTask = true;
     }
 }
@@ -81,6 +81,7 @@ foreach ($_tasks as $_t) {
 <tbody>
 <?php foreach ($_tasks as $_t):
     $_dueTs   = $_t->due_date ? strtotime($_t->due_date) : null;
+    $_pausedTs = $_t->paused_at ? strtotime($_t->paused_at) : null;
     $_doneTs  = $_t->done_at ? strtotime($_t->done_at) : null;
     $_overdue = mbTaskIsOverdue($_dueTs, $_doneTs);
 ?>
@@ -94,9 +95,9 @@ foreach ($_tasks as $_t) {
         <?php if ($_overdue): ?><i class="fas fa-triangle-exclamation ms-1" aria-hidden="true" title="<?= $GLOBAL['taskOverdue'] ?>"></i><?php endif ?>
     </td>
     <td><?= htmlspecialchars($_priorityLabels[(int)$_t->priority] ?? '', ENT_QUOTES, $charset) ?></td>
-    <td><?= $_doneTs ? $GLOBAL['taskDone'] : $GLOBAL['taskOpen'] ?></td>
+    <td><?= $_doneTs ? $GLOBAL['taskDone'] : ($_pausedTs ? $GLOBAL['taskPausedStatus'] : $GLOBAL['taskOpen']) ?></td>
     <td class="text-end" style="white-space:nowrap">
-        <?php if (!$_doneTs && $_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_') && trim((string)$user->getEmail()) !== ''): ?>
+        <?php if (!$_doneTs && !$_pausedTs && $_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_') && trim((string)$user->getEmail()) !== ''): ?>
         <button type="button" class="btn btn-outline-primary btn-sm js-task-send-coti"
                 data-user-id="<?= $user->getId() ?>"
                 data-year="<?= (int)date('Y') ?>"
@@ -107,7 +108,7 @@ foreach ($_tasks as $_t) {
             <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendCotiRemindersBtnOne'] ?>
         </button>
         <?php endif ?>
-        <?php if (!$_doneTs && $_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_') && trim((string)$user->getEmail()) !== ''): ?>
+        <?php if (!$_doneTs && !$_pausedTs && $_t->rule_key && str_starts_with($_t->rule_key, 'compta_recap_pending_') && trim((string)$user->getEmail()) !== ''): ?>
         <button type="button" class="btn btn-outline-primary btn-sm js-task-send-recap"
                 data-user-id="<?= $user->getId() ?>"
                 data-year="<?= (int)date('Y') ?>"
@@ -119,6 +120,17 @@ foreach ($_tasks as $_t) {
         </button>
         <?php endif ?>
         <?php if (canWrite()): ?>
+        <?php if ($_pausedTs && !$_doneTs): ?>
+        <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty>
+            <input type="hidden" name="action" value="resumeTask">
+            <input type="hidden" name="taskid" value="<?= (int)$_t->id ?>">
+            <input type="hidden" name="view" value="memberTasks">
+            <input type="hidden" name="userid" value="<?= $user->getId() ?>">
+            <button type="submit" class="btn btn-sm py-0 px-1 text-muted" title="<?= $GLOBAL['taskResume'] ?>">
+                <i class="fas fa-play" style="font-size:0.75rem" aria-hidden="true"></i>
+            </button>
+        </form>
+        <?php else: ?>
         <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty>
             <input type="hidden" name="action" value="<?= $_doneTs ? 'reopenTask' : 'closeTask' ?>">
             <input type="hidden" name="taskid" value="<?= (int)$_t->id ?>">
@@ -128,6 +140,18 @@ foreach ($_tasks as $_t) {
                 <i class="fas <?= $_doneTs ? 'fa-rotate-left' : 'fa-check' ?>" style="font-size:0.75rem" aria-hidden="true"></i>
             </button>
         </form>
+        <?php if (!$_doneTs): ?>
+        <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty>
+            <input type="hidden" name="action" value="pauseTask">
+            <input type="hidden" name="taskid" value="<?= (int)$_t->id ?>">
+            <input type="hidden" name="view" value="memberTasks">
+            <input type="hidden" name="userid" value="<?= $user->getId() ?>">
+            <button type="submit" class="btn btn-sm py-0 px-1 text-muted" title="<?= $GLOBAL['taskPause'] ?>">
+                <i class="fas fa-pause" style="font-size:0.75rem" aria-hidden="true"></i>
+            </button>
+        </form>
+        <?php endif ?>
+        <?php endif ?>
         <a href="<?= appUrl() ?>?view=updateTask&amp;taskid=<?= (int)$_t->id ?>&amp;userid=<?= $user->getId() ?>"
            class="btn btn-sm py-0 px-1 text-muted" title="<?= $GLOBAL['edit'] ?>">
             <i class="fas fa-pen" style="font-size:0.75rem" aria-hidden="true"></i>

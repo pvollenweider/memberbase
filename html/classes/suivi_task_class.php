@@ -22,6 +22,7 @@ class SuiviTask
     public $priority = self::PRIORITY_NORMAL;
     public $ruleKey;   // string identifying the business rule that generated this task, or null (manual)
     public $dueDate;   // Unix timestamp or 0/null
+    public $pausedAt;  // Unix timestamp or null — parked, hidden from the active list without being done
     public $doneAt;    // Unix timestamp or null (null = open)
     public $createdAt; // Unix timestamp
 
@@ -32,7 +33,7 @@ class SuiviTask
     public function lookupTask(int $id): void
     {
         $stmt = db()->prepare(
-            "SELECT id,user_id,created_by,title,body,priority,rule_key,due_date,done_at,created_at FROM suivi_task WHERE id=?"
+            "SELECT id,user_id,created_by,title,body,priority,rule_key,due_date,paused_at,done_at,created_at FROM suivi_task WHERE id=?"
         );
         $stmt->execute([$id]);
         $row = $stmt->fetchObject();
@@ -45,6 +46,7 @@ class SuiviTask
             $this->priority  = (int)$row->priority;
             $this->ruleKey   = $row->rule_key;
             $this->dueDate   = $row->due_date ? strtotime($row->due_date) : null;
+            $this->pausedAt  = $row->paused_at ? strtotime($row->paused_at) : null;
             $this->doneAt    = $row->done_at ? strtotime($row->done_at) : null;
             $this->createdAt = $row->created_at ? strtotime($row->created_at) : null;
         }
@@ -58,8 +60,10 @@ class SuiviTask
     public function getPriority()  { return $this->priority; }
     public function getDueDate()   { return $this->dueDate; }
     public function getDoneAt()    { return $this->doneAt; }
+    public function getPausedAt()  { return $this->pausedAt; }
     public function getRuleKey()   { return $this->ruleKey; }
     public function isOpen()       { return $this->doneAt === null; }
+    public function isPaused()     { return $this->doneAt === null && $this->pausedAt !== null; }
 
     public function setUserId($v)    { $this->userId = $v !== null ? (int)$v : null; }
     public function setCreatedBy($v) { $this->createdBy = $v !== null ? (int)$v : null; }
@@ -73,14 +77,15 @@ class SuiviTask
     {
         // Dates are formatted via PHP's date(), never a MySQL date function —
         // same convention as Compta/UserProperty (see #143).
-        $dueDateVal = ((int)$this->dueDate) > 0 ? date('Y-m-d', (int)$this->dueDate) : null;
-        $doneAtVal  = ((int)$this->doneAt)  > 0 ? date('Y-m-d H:i:s', (int)$this->doneAt) : null;
+        $dueDateVal   = ((int)$this->dueDate)  > 0 ? date('Y-m-d', (int)$this->dueDate) : null;
+        $pausedAtVal  = ((int)$this->pausedAt) > 0 ? date('Y-m-d H:i:s', (int)$this->pausedAt) : null;
+        $doneAtVal    = ((int)$this->doneAt)   > 0 ? date('Y-m-d H:i:s', (int)$this->doneAt) : null;
         if ($this->id) {
             db()->prepare(
-                "UPDATE suivi_task SET user_id=?,title=?,body=?,priority=?,due_date=?,done_at=? WHERE id=?"
+                "UPDATE suivi_task SET user_id=?,title=?,body=?,priority=?,due_date=?,paused_at=?,done_at=? WHERE id=?"
             )->execute([
                 $this->userId, $this->title, $this->body, $this->priority,
-                $dueDateVal, $doneAtVal, $this->id,
+                $dueDateVal, $pausedAtVal, $doneAtVal, $this->id,
             ]);
         } else {
             db()->prepare(
@@ -95,9 +100,25 @@ class SuiviTask
 
     public function close(): void
     {
-        $this->doneAt = time();
-        db()->prepare("UPDATE suivi_task SET done_at=? WHERE id=?")
+        $this->doneAt   = time();
+        $this->pausedAt = null;
+        db()->prepare("UPDATE suivi_task SET done_at=?, paused_at=NULL WHERE id=?")
             ->execute([date('Y-m-d H:i:s'), $this->id]);
+    }
+
+    /** Parks an open task — hidden from the active list, not counted as done. */
+    public function pause(): void
+    {
+        $this->pausedAt = time();
+        db()->prepare("UPDATE suivi_task SET paused_at=? WHERE id=?")
+            ->execute([date('Y-m-d H:i:s'), $this->id]);
+    }
+
+    /** Brings a paused task back to the active list. */
+    public function resume(): void
+    {
+        $this->pausedAt = null;
+        db()->prepare("UPDATE suivi_task SET paused_at=NULL WHERE id=?")->execute([$this->id]);
     }
 
     public function remove(): void
@@ -116,24 +137,24 @@ class SuiviTask
     public static function overdueCountForUser(int $userId): int
     {
         $stmt = db()->prepare(
-            "SELECT COUNT(*) FROM suivi_task WHERE user_id=? AND done_at IS NULL AND due_date IS NOT NULL AND due_date < ?"
+            "SELECT COUNT(*) FROM suivi_task WHERE user_id=? AND done_at IS NULL AND paused_at IS NULL AND due_date IS NOT NULL AND due_date < ?"
         );
         $stmt->execute([$userId, date('Y-m-d')]);
         return (int)$stmt->fetchColumn();
     }
 
-    /** Count open tasks for a member, for the fiche tab badge. */
+    /** Count open (non-paused) tasks for a member, for the fiche tab badge. */
     public static function openCountForUser(int $userId): int
     {
-        $stmt = db()->prepare("SELECT COUNT(*) FROM suivi_task WHERE user_id=? AND done_at IS NULL");
+        $stmt = db()->prepare("SELECT COUNT(*) FROM suivi_task WHERE user_id=? AND done_at IS NULL AND paused_at IS NULL");
         $stmt->execute([$userId]);
         return (int)$stmt->fetchColumn();
     }
 
-    /** Count all open tasks (any member, plus global tasks), for the nav badge. */
+    /** Count all open, non-paused tasks (any member, plus global tasks), for the nav badge. */
     public static function openCount(): int
     {
-        return (int)db()->query("SELECT COUNT(*) FROM suivi_task WHERE done_at IS NULL")->fetchColumn();
+        return (int)db()->query("SELECT COUNT(*) FROM suivi_task WHERE done_at IS NULL AND paused_at IS NULL")->fetchColumn();
     }
 
     /**
@@ -150,7 +171,7 @@ class SuiviTask
             SELECT t.id, t.user_id, t.title, t.due_date, t.priority, u.firstname, u.lastname, u.society
             FROM suivi_task t
             LEFT JOIN contact u ON u.id = t.user_id
-            WHERE t.done_at IS NULL AND t.due_date IS NOT NULL AND t.due_date <= ?
+            WHERE t.done_at IS NULL AND t.paused_at IS NULL AND t.due_date IS NOT NULL AND t.due_date <= ?
             ORDER BY t.due_date ASC, t.priority ASC
         ");
         $stmt->execute([$threshold]);

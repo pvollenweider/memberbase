@@ -18,7 +18,7 @@ $stmt = db()->query(
             u.firstname, u.lastname, u.society, u.email
      FROM suivi_task t
      LEFT JOIN contact u ON u.id = t.user_id
-     WHERE t.done_at IS NULL
+     WHERE t.done_at IS NULL AND t.paused_at IS NULL
      ORDER BY t.priority ASC, t.due_date IS NULL, t.due_date ASC"
 );
 $_tasks = $stmt->fetchAll(PDO::FETCH_OBJ);
@@ -47,6 +47,17 @@ $_doneStmt = db()->query(
      LIMIT 200"
 );
 $_doneTasks = $_doneStmt->fetchAll(PDO::FETCH_OBJ);
+
+// Paused tasks: parked, out of the active list, but not done or forgotten.
+$_pausedStmt = db()->query(
+    "SELECT t.id, t.title, t.priority, t.user_id, t.paused_at,
+            u.firstname, u.lastname, u.society
+     FROM suivi_task t
+     LEFT JOIN contact u ON u.id = t.user_id
+     WHERE t.done_at IS NULL AND t.paused_at IS NOT NULL
+     ORDER BY t.paused_at DESC"
+);
+$_pausedTasks = $_pausedStmt->fetchAll(PDO::FETCH_OBJ);
 ?>
 
 <div class="page-title-row mb-3">
@@ -191,6 +202,14 @@ $_doneTasks = $_doneStmt->fetchAll(PDO::FETCH_OBJ);
                     <i class="fas fa-check" aria-hidden="true"></i>
                 </button>
             </form>
+            <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty style="position:relative;z-index:2">
+                <input type="hidden" name="action" value="pauseTask">
+                <input type="hidden" name="taskid" value="<?= (int)$_t->id ?>">
+                <input type="hidden" name="view" value="tasks">
+                <button type="submit" class="btn btn-sm py-0 px-1 text-muted" title="<?= $GLOBAL['taskPause'] ?>">
+                    <i class="fas fa-pause" aria-hidden="true"></i>
+                </button>
+            </form>
             <?php endif ?>
             <a href="<?= $_href ?>" class="stretched-link" hx-boost="false"
                aria-label="<?= $GLOBAL['taskTitle'] ?>: <?= htmlspecialchars($_t->title, ENT_QUOTES, $charset) ?>"></a>
@@ -249,7 +268,7 @@ $(document).ready(function() {
     </button>
     <?php endif ?>
   </div>
-  <table class="table table-sm table-hover opacity-75">
+  <table id="completed-tasks-table" class="table table-sm table-hover opacity-75">
     <thead class="table-light">
       <tr>
         <th><?= $GLOBAL['taskTitle'] ?></th>
@@ -313,6 +332,55 @@ $(document).ready(function() {
   </div>
 </div>
 <?php endif ?>
+<?php endif ?>
+
+<?php if (!empty($_pausedTasks)): ?>
+<div class="mt-4">
+  <h6 class="text-muted fw-semibold mb-2" style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.04em">
+    <i class="fas fa-pause me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['taskPausedTitle'], count($_pausedTasks)) ?>
+  </h6>
+  <table id="paused-tasks-table" class="table table-sm table-hover opacity-75">
+    <thead class="table-light">
+      <tr>
+        <th><?= $GLOBAL['taskTitle'] ?></th>
+        <th><?= $GLOBAL['priority'] ?></th>
+        <th><?= $GLOBAL['member'] ?></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($_pausedTasks as $_pt):
+        $_ptName = $_pt->user_id
+            ? trim(($_pt->society ? htmlentities($_pt->society, ENT_COMPAT, $charset) . ' ' : '') .
+                   htmlentities((string)$_pt->lastname, ENT_COMPAT, $charset) . ' ' .
+                   htmlentities((string)$_pt->firstname, ENT_COMPAT, $charset))
+            : '';
+    ?>
+      <tr>
+        <td><?= htmlspecialchars($_pt->title, ENT_QUOTES, $charset) ?></td>
+        <td><?= htmlspecialchars($_priorityLabels[(int)$_pt->priority] ?? '', ENT_QUOTES, $charset) ?></td>
+        <td class="text-nowrap"><?= $_ptName ?: '<span class="text-muted">' . $GLOBAL['globalTask'] . '</span>' ?></td>
+        <td class="text-end" style="white-space:nowrap">
+          <?php if (canWrite()): ?>
+          <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty>
+              <input type="hidden" name="action" value="resumeTask">
+              <input type="hidden" name="taskid" value="<?= (int)$_pt->id ?>">
+              <input type="hidden" name="view" value="tasks">
+              <button type="submit" class="btn btn-sm py-0 px-1 text-muted" title="<?= $GLOBAL['taskResume'] ?>">
+                  <i class="fas fa-play" style="font-size:0.75rem" aria-hidden="true"></i>
+              </button>
+          </form>
+          <a href="<?= appUrl() ?>?view=removeTask&amp;taskid=<?= (int)$_pt->id ?>&amp;userid=<?= (int)$_pt->user_id ?>"
+             class="btn btn-sm py-0 px-1 text-muted" title="<?= $GLOBAL['deleteThisEntry'] ?>">
+              <i class="fas fa-trash-can" style="font-size:0.75rem" aria-hidden="true"></i>
+          </a>
+          <?php endif ?>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+</div>
 <?php endif ?>
 
 <?php if ($_hasCotiTask): ?>
