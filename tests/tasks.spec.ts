@@ -65,9 +65,10 @@ test.describe.serial('Tasks', () => {
     await expect(page.locator('tr', { hasText: 'Task E2E edited' }).locator('text=Terminée')).toBeVisible({ timeout: 10_000 });
   });
 
-  test('closed task no longer appears in global open tasks view', async ({ page }) => {
+  test('closed task no longer appears in the open tasks table, only in the completed section', async ({ page }) => {
     await page.goto('/index.php?view=tasks');
-    await expect(page.locator('text=Task E2E edited')).not.toBeVisible();
+    await expect(page.locator('#tasks-table tr', { hasText: 'Task E2E edited' })).toHaveCount(0);
+    await expect(page.locator('td.text-decoration-line-through', { hasText: 'Task E2E edited' })).toBeVisible();
   });
 
   test('delete a task via confirmation page', async ({ page }) => {
@@ -190,7 +191,7 @@ test.describe.serial('Tasks — auto-generation (#149)', () => {
     // dedup test above.
     await page.request.post('/index.php', { form: { action: 'generateUnpaidCotiTasks', csrf } });
     await page.goto('/index.php?view=tasks');
-    await expect(page.locator('tr', { hasText: 'Relance cotisation' })).not.toBeVisible();
+    await expect(page.locator('#tasks-table tr', { hasText: 'Relance cotisation' })).toHaveCount(0);
   });
 });
 

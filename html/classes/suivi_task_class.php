@@ -105,6 +105,13 @@ class SuiviTask
         db()->prepare("DELETE FROM suivi_task WHERE id=?")->execute([$this->id]);
     }
 
+    /** Permanently deletes every completed (done_at IS NOT NULL) task. Returns the count removed. */
+    public static function deleteAllCompleted(): int
+    {
+        $stmt = db()->query("DELETE FROM suivi_task WHERE done_at IS NOT NULL");
+        return $stmt->rowCount();
+    }
+
     /** Count open tasks whose due_date is in the past, for a member's overdue badge. */
     public static function overdueCountForUser(int $userId): int
     {

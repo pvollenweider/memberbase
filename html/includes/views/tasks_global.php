@@ -34,6 +34,19 @@ foreach ($_tasks as $_t) {
 }
 $_cotiPendingGen  = isAdmin() ? SuiviTask::countUnpaidCotiPendingGeneration($_year, $appSettings) : 0;
 $_recapPendingGen = isAdmin() ? SuiviTask::countComptaRecapPendingGeneration($_year) : 0;
+
+// Completed tasks: separate, capped query — this view's main table is open
+// tasks only, done ones don't belong mixed in with what still needs action.
+$_doneStmt = db()->query(
+    "SELECT t.id, t.title, t.priority, t.user_id, t.done_at,
+            u.firstname, u.lastname, u.society
+     FROM suivi_task t
+     LEFT JOIN contact u ON u.id = t.user_id
+     WHERE t.done_at IS NOT NULL
+     ORDER BY t.done_at DESC
+     LIMIT 200"
+);
+$_doneTasks = $_doneStmt->fetchAll(PDO::FETCH_OBJ);
 ?>
 
 <div class="page-title-row mb-3">
@@ -47,6 +60,12 @@ $_recapPendingGen = isAdmin() ? SuiviTask::countComptaRecapPendingGeneration($_y
   <?php if ((int)($_GET['closed'] ?? 0) > 0): ?>
   <?= sprintf($GLOBAL['taskAutoClosedCount'], (int)$_GET['closed']) ?>
   <?php endif ?>
+</div>
+<?php endif ?>
+
+<?php if (isset($_GET['bulkDeleted'])): ?>
+<div class="alert alert-success py-2" role="alert">
+  <i class="fas fa-circle-check me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['taskBulkDeletedCount'], (int)$_GET['bulkDeleted']) ?>
 </div>
 <?php endif ?>
 
@@ -163,6 +182,16 @@ $_recapPendingGen = isAdmin() ? SuiviTask::countComptaRecapPendingGeneration($_y
                 <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['sendRecapBtnOne'] ?>
             </button>
             <?php endif ?>
+            <?php if (canWrite()): ?>
+            <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty style="position:relative;z-index:2">
+                <input type="hidden" name="action" value="closeTask">
+                <input type="hidden" name="taskid" value="<?= (int)$_t->id ?>">
+                <input type="hidden" name="view" value="tasks">
+                <button type="submit" class="btn btn-sm py-0 px-1 text-muted" title="<?= $GLOBAL['taskMarkDone'] ?>">
+                    <i class="fas fa-check" aria-hidden="true"></i>
+                </button>
+            </form>
+            <?php endif ?>
             <a href="<?= $_href ?>" class="stretched-link" hx-boost="false"
                aria-label="<?= $GLOBAL['taskTitle'] ?>: <?= htmlspecialchars($_t->title, ENT_QUOTES, $charset) ?>"></a>
         </td>
@@ -206,6 +235,84 @@ $(document).ready(function() {
     });
 });
 </script>
+<?php endif ?>
+
+<?php if (!empty($_doneTasks)): ?>
+<div class="mt-4">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <h6 class="text-muted fw-semibold mb-0" style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.04em">
+      <i class="fas fa-check-double me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['taskCompletedTitle'], count($_doneTasks)) ?>
+    </h6>
+    <?php if (isManager()): ?>
+    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk-delete-done-tasks">
+      <i class="fas fa-trash-can me-1" aria-hidden="true"></i><?= $GLOBAL['taskBulkDeleteBtn'] ?>
+    </button>
+    <?php endif ?>
+  </div>
+  <table class="table table-sm table-hover opacity-75">
+    <thead class="table-light">
+      <tr>
+        <th><?= $GLOBAL['taskTitle'] ?></th>
+        <th><?= $GLOBAL['member'] ?></th>
+        <th><?= $GLOBAL['status'] ?></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($_doneTasks as $_dt):
+        $_dtName = $_dt->user_id
+            ? trim(($_dt->society ? htmlentities($_dt->society, ENT_COMPAT, $charset) . ' ' : '') .
+                   htmlentities((string)$_dt->lastname, ENT_COMPAT, $charset) . ' ' .
+                   htmlentities((string)$_dt->firstname, ENT_COMPAT, $charset))
+            : '';
+    ?>
+      <tr>
+        <td class="text-decoration-line-through"><?= htmlspecialchars($_dt->title, ENT_QUOTES, $charset) ?></td>
+        <td class="text-nowrap"><?= $_dtName ?: '<span class="text-muted">' . $GLOBAL['globalTask'] . '</span>' ?></td>
+        <td class="text-muted small"><?= htmlspecialchars(date('d.m.Y', strtotime($_dt->done_at)), ENT_QUOTES, $charset) ?></td>
+        <td class="text-end" style="white-space:nowrap">
+          <?php if (canWrite()): ?>
+          <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty>
+              <input type="hidden" name="action" value="reopenTask">
+              <input type="hidden" name="taskid" value="<?= (int)$_dt->id ?>">
+              <input type="hidden" name="view" value="tasks">
+              <button type="submit" class="btn btn-sm py-0 px-1 text-muted" title="<?= $GLOBAL['reopen'] ?>">
+                  <i class="fas fa-rotate-left" style="font-size:0.75rem" aria-hidden="true"></i>
+              </button>
+          </form>
+          <a href="<?= appUrl() ?>?view=removeTask&amp;taskid=<?= (int)$_dt->id ?>&amp;userid=<?= (int)$_dt->user_id ?>"
+             class="btn btn-sm py-0 px-1 text-muted" title="<?= $GLOBAL['deleteThisEntry'] ?>">
+              <i class="fas fa-trash-can" style="font-size:0.75rem" aria-hidden="true"></i>
+          </a>
+          <?php endif ?>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+</div>
+
+<?php if (isManager()): ?>
+<div class="modal fade" id="modal-bulk-delete-done-tasks" tabindex="-1" aria-labelledby="modal-bulk-delete-done-tasks-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-bulk-delete-done-tasks-label"><?= $GLOBAL['taskBulkDeleteBtn'] ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body"><?= sprintf($GLOBAL['taskBulkDeleteConfirm'], count($_doneTasks)) ?></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <form method="post" action="<?= appUrl() ?>" data-no-dirty>
+          <input type="hidden" name="action" value="bulkDeleteCompletedTasks">
+          <input type="hidden" name="view" value="tasks">
+          <button type="submit" class="btn btn-danger"><?= $GLOBAL['delete'] ?></button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif ?>
 <?php endif ?>
 
 <?php if ($_hasCotiTask): ?>

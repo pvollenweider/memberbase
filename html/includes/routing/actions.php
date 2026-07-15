@@ -98,6 +98,7 @@ if (isset($_REQUEST['action'])) {
         'deleteTask'           => 'suivi_tasks',
         'generateUnpaidCotiTasks' => 'suivi_tasks',
         'generateComptaRecapTasks' => 'suivi_tasks',
+        'bulkDeleteCompletedTasks' => 'suivi_tasks',
         'logout'               => 'auth',
         'changePassword'       => 'auth',
         'changeLocale'         => 'auth',

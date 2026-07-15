@@ -7,10 +7,12 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 // actions: addTask, updateTask, closeTask, reopenTask, deleteTask,
-//          generateUnpaidCotiTasks, generateComptaRecapTasks
+//          generateUnpaidCotiTasks, generateComptaRecapTasks, bulkDeleteCompletedTasks
 
 if (in_array($_REQUEST['action'], ['generateUnpaidCotiTasks', 'generateComptaRecapTasks'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
+} elseif ($_REQUEST['action'] === 'bulkDeleteCompletedTasks') {
+    if (!isManager()) { http_response_code(403); exit; }
 } elseif (!canWrite()) {
     http_response_code(403); exit;
 }
@@ -67,6 +69,13 @@ if ($action == 'generateUnpaidCotiTasks') {
     $task->lookupTask((int)$_REQUEST['taskid']);
     db()->prepare("UPDATE suivi_task SET done_at=NULL WHERE id=?")->execute([$task->getId()]);
     auditLog(db(), 'reopenTask', "id={$task->getId()} | {$task->getTitle()}", $task->getUserId());
+
+} elseif ($action == 'bulkDeleteCompletedTasks') {
+    $_bulkDeletedCount = SuiviTask::deleteAllCompleted();
+    auditLog(db(), 'bulkDeleteCompletedTasks', "{$_bulkDeletedCount} tâche(s) terminée(s) supprimée(s)");
+    $_bulkTarget = '?view=tasks&bulkDeleted=' . $_bulkDeletedCount;
+    if (isset($_SERVER['HTTP_HX_REQUEST'])) { header('HX-Location: ' . appUrl() . $_bulkTarget); exit; }
+    header('Location: ' . appUrl() . $_bulkTarget); exit;
 
 } elseif ($action == 'deleteTask') {
     $task = new SuiviTask();
