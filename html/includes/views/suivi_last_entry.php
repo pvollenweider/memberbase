@@ -31,10 +31,10 @@ try {
     $stmtEmail = db()->query(
         "SELECT u.id AS user_id, u.firstname, u.lastname, u.society,
                 UNIX_TIMESTAMP(el.created_at) AS ts, el.subject AS content,
-                'email' AS kind, el.id AS email_log_id
+                'email' AS kind, el.id AS email_log_id, el.status, el.error_msg
          FROM email_log el
          JOIN contact u ON u.id = el.user_id
-         WHERE el.user_id IS NOT NULL AND el.status = 'sent'"
+         WHERE el.user_id IS NOT NULL"
     );
     $emailRows = $stmtEmail->fetchAll(PDO::FETCH_OBJ);
 } catch (\Throwable $e) {
@@ -72,13 +72,16 @@ if (empty($_jhEmbedded)) {
     $name = trim(($row->society ? htmlentities($row->society, ENT_COMPAT, $charset) . ' ' : '') .
                  htmlentities($row->lastname, ENT_COMPAT, $charset) . ' ' .
                  htmlentities($row->firstname, ENT_COMPAT, $charset));
-    $isEmail = $row->kind === 'email';
+    $isEmail  = $row->kind === 'email';
+    $isFailed = $isEmail && ($row->status ?? null) === 'error';
 ?>
-    <tr class="position-relative">
+    <tr class="position-relative<?= $isFailed ? ' table-danger' : '' ?>">
         <td class="text-nowrap"><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
         <td class="text-nowrap"><?= $name ?></td>
         <td>
-            <?php if ($isEmail): ?>
+            <?php if ($isFailed): ?>
+            <i class="fas fa-envelope me-1 text-danger" aria-hidden="true" title="<?= htmlspecialchars($row->error_msg ?: $GLOBAL['emailStatusError'], ENT_QUOTES, $charset) ?>"></i>
+            <?php elseif ($isEmail): ?>
             <i class="fas fa-envelope me-1 text-primary" aria-hidden="true" title="<?= $GLOBAL['emailSent'] ?>"></i>
             <?php endif ?>
             <!-- Legacy rows store entity-encoded text: decode first, then escape for output -->

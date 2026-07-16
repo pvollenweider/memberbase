@@ -145,7 +145,7 @@ if (!$ctEmbedded):
       </thead>
       <tbody id="ct-tbody">
         <?php foreach ($types as $ct): ?>
-        <tr id="row-<?= $ct->id ?>" draggable="true" data-id="<?= $ct->id ?>">
+        <tr id="row-<?= $ct->id ?>" draggable="true" data-id="<?= $ct->id ?>" class="<?= $ct->is_archived ? 'opacity-50' : '' ?>">
           <td class="text-center text-muted" style="cursor:grab;font-size:0.9rem">
             <i class="fas fa-grip-vertical" aria-hidden="true"></i>
           </td>

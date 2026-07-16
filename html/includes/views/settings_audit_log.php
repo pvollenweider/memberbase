@@ -112,11 +112,13 @@ $auditActions = db()->query("SELECT DISTINCT action FROM audit_log ORDER BY acti
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($rows as $r): ?>
-        <tr>
+        <?php foreach ($rows as $r):
+            $_isDestructive = (bool)preg_match('/^(delete|flush|purge|anonymize|deactivate)/i', $r->action);
+        ?>
+        <tr class="<?= $_isDestructive ? 'table-danger' : '' ?>">
             <td data-order="<?= htmlspecialchars($r->created_at) ?>" style="white-space:nowrap"><?= htmlspecialchars($r->created_at) ?></td>
             <td><?= htmlspecialchars($r->username ?? '') ?></td>
-            <td><code><?= htmlspecialchars($r->action) ?></code></td>
+            <td><code><?php if ($_isDestructive): ?><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?php endif ?><?= htmlspecialchars($r->action) ?></code></td>
             <td class="text-muted small"><?= htmlspecialchars($r->detail ?? '') ?></td>
         </tr>
         <?php endforeach; ?>

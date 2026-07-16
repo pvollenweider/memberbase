@@ -307,7 +307,7 @@ $_addDefaultTypeId  = mbDefaultComptaTypeIdForContact(db(), $user->getContactTyp
 ?>
 <tr>
     <td>
-        <select name="type_id" id="ca-add-type" class="form-control">
+        <select name="type_id" id="ca-add-type" class="form-control form-control-sm">
             <?php foreach ($comptaTypes as $ct): ?>
             <?php if (!in_array((int)$ct->id, $_addAllowedTypeIds, true)) continue; ?>
             <option value="<?= (int)$ct->id ?>" <?= $_addDefaultTypeId === (int)$ct->id ? 'selected' : '' ?>><?= htmlentities($ct->label, ENT_COMPAT, $charset) ?></option>
@@ -315,7 +315,7 @@ $_addDefaultTypeId  = mbDefaultComptaTypeIdForContact(db(), $user->getContactTyp
         </select>
     </td>
     <td>
-        <input type="text" name="date" id="date" class="form-control datepicker" maxlength="30" value="<?=date("d/m/Y")?>" />
+        <input type="text" name="date" id="date" class="form-control form-control-sm datepicker" maxlength="30" value="<?=date("d/m/Y")?>" />
         <select name="cotisation_year" id="ca-coti-year"
                 class="form-control form-control-sm mt-1" style="display:none;width:90px"
                 title="<?= $GLOBAL['cotisationYearLabel'] ?>">
@@ -327,12 +327,12 @@ $_addDefaultTypeId  = mbDefaultComptaTypeIdForContact(db(), $user->getContactTyp
             <?php endfor ?>
         </select>
     </td>
-    <td><input type="text" name="libele" class="form-control" maxlength="255"/></td>
-    <td><input type="text" name="sum" id="ca-add-sum" size="10" class="form-control" maxlength="64"
+    <td><input type="text" name="libele" class="form-control form-control-sm" maxlength="255"/></td>
+    <td><input type="text" name="sum" id="ca-add-sum" size="10" class="form-control form-control-sm" maxlength="64"
              inputmode="decimal" pattern="^[0-9]+([.,][0-9]+)?$" title="<?= $GLOBAL['numericAmountHint'] ?>"
              required oninvalid="this.setCustomValidity(this.validity.valueMissing ? <?= json_encode($GLOBAL['sumRequired']) ?> : <?= json_encode($GLOBAL['numericAmountHint']) ?>)"
              oninput="this.setCustomValidity('')"/></td>
-    <td class="d-none d-sm-table-cell"><input type="text" name="comment" size="10" class="form-control" maxlength="64"/></td>
+    <td class="d-none d-sm-table-cell"><input type="text" name="comment" size="10" class="form-control form-control-sm" maxlength="64"/></td>
     <td class="d-none d-sm-table-cell text-center"><input type="checkbox" name="wants_attestation" value="1" /></td>
     <td class="d-none d-sm-table-cell text-center">
       <?php if ($user->getEmail()): ?>
