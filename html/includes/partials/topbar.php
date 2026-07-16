@@ -13,11 +13,11 @@ $searchString = isset($_REQUEST['searchString']) ? trim($_REQUEST['searchString'
 $_navOpenTaskCount = isManager() ? SuiviTask::openCount() : 0;
 $__authUser = authUser();
 ?>
-<?php /* hx-boost="false": the topbar is rendered once on full page load and
-         lives outside #main-content, so a boosted click here would swap the
-         content but leave the settings-gear "active" state stale — force a
-         real navigation so the topbar re-renders correctly. */ ?>
-<nav class="ca-topbar" hx-boost="false">
+<?php /* Boosted now: index.php's htmx branch re-renders this whole nav as an
+         out-of-band swap (id="ca-topbar" + hx-swap-oob) on every boosted
+         request, so the "active" settings-gear state stays in sync without
+         forcing a full reload (the previous fix, before OOB swapping). */ ?>
+<nav class="ca-topbar" id="ca-topbar"<?= !empty($_snOob) ? ' hx-swap-oob="true"' : '' ?>>
     <button class="ca-icon-btn" type="button" id="sidebarToggle" aria-label="<?= $GLOBAL['toggleSidebar'] ?>">
         <i class="fas fa-bars"></i>
     </button>
@@ -25,6 +25,8 @@ $__authUser = authUser();
 
     <form class="ca-topbar-search me-auto d-none d-lg-block" role="search" action="<?= appUrl() ?>" method="get" data-no-dirty id="main-search-form">
         <input type="hidden" name="action" value="search"/>
+        <input type="hidden" name="view" value="peopleFinance"/>
+        <input type="hidden" name="tab" value="members"/>
         <input type="hidden" name="segment" value="<?= FILTER_ALL_EXCEPT_ARCHIVES ?>"/>
         <div class="input-group">
             <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-magnifying-glass"></i></span>
@@ -49,22 +51,5 @@ $__authUser = authUser();
             </a>
         </li>
         <?php endif ?>
-        <li class="nav-item dropdown">
-            <a class="nav-link" id="navbarDropdownUserImage" href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-circle-user fa-lg"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUserImage">
-                <li><span class="dropdown-item-text small text-muted"><?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?></span></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="<?= appUrl() ?>?view=changePassword"><?= $GLOBAL['changePassword'] ?></a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <form method="post" action="<?= appUrl() ?>" data-no-dirty hx-boost="false">
-                        <input type="hidden" name="action" value="logout">
-                        <button type="submit" class="dropdown-item text-danger"><?= $GLOBAL['logout'] ?></button>
-                    </form>
-                </li>
-            </ul>
-        </li>
     </ul>
 </nav>

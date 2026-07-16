@@ -52,6 +52,10 @@
 
     stampForms(document);
     document.addEventListener('htmx:afterSwap', function (e) { stampForms(e.target); });
+    // Exposed for content injected outside htmx's own swap cycle (e.g. a
+    // <template> cloned into the DOM on demand) that still contains a
+    // POST form needing the token stamped.
+    window.casaStampForms = stampForms;
 })();
 
 // ---------------------------------------------------------------------------
@@ -195,10 +199,11 @@ $(function () {
 })();
 
 // ---------------------------------------------------------------------------
-// Perceived-performance cue for hx-boost="false" navigation (sidebar,
-// topbar, hub tab bars): these cause a full page reload with no htmx
-// loading state, so a slim top progress bar gives instant feedback that
-// the click registered.
+// Perceived-performance cue for navigation: a slim top progress bar gives
+// instant feedback that a click registered, for both remaining full-reload
+// links (hx-boost="false" — modals' standalone routes, etc.) and regular
+// htmx-boosted navigation (sidebar/topbar/hub tab bar, now boosted so their
+// "active" state stays in sync via OOB swap instead of a full reload).
 // ---------------------------------------------------------------------------
 document.addEventListener('click', function (e) {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -212,6 +217,19 @@ document.addEventListener('click', function (e) {
     setTimeout(function () {
         document.documentElement.classList.remove('ca-nav-loading');
     }, 2000);
+});
+document.addEventListener('htmx:beforeRequest', function (e) {
+    if (!e.detail || !e.detail.boosted) return;
+    document.documentElement.classList.add('ca-nav-loading');
+    // Safety net: if the dirty-form guard's own beforeRequest listener cancels
+    // this same event (e.preventDefault()), no request is sent and neither
+    // afterSwap nor afterRequest will fire to clear the bar — self-heal.
+    setTimeout(function () {
+        document.documentElement.classList.remove('ca-nav-loading');
+    }, 2000);
+});
+document.addEventListener('htmx:afterSwap', function () {
+    document.documentElement.classList.remove('ca-nav-loading');
 });
 
 // Destroy DataTables before htmx snapshots the DOM for history cache
@@ -285,3 +303,24 @@ document.addEventListener('htmx:afterSwap', function (e) {
         bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 5000 }).show();
     }
 });
+
+// ---------------------------------------------------------------------------
+// Live topbar search: after 3+ characters (debounced), submit the search
+// form automatically instead of waiting for Enter — the form already points
+// at the peopleFinance hub (tab=members) and is htmx-boosted like the rest
+// of the app, so this reuses the normal boosted-submit path (OOB sidebar
+// refresh included) rather than a manual fetch/ajax call.
+// ---------------------------------------------------------------------------
+(function () {
+    var input = document.getElementById('search');
+    var form  = document.getElementById('main-search-form');
+    if (!input || !form) return;
+    var timer = null;
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            var len = input.value.trim().length;
+            if (len === 0 || len >= 3) form.requestSubmit();
+        }, 350);
+    });
+})();

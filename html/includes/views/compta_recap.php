@@ -375,7 +375,7 @@ require __DIR__ . '/../partials/preview_send_modal.php';
     },
     sendBtnHtml: '<i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= addslashes($GLOBAL['comptaRecapSendOne']) ?>',
     sendingText: '<?= addslashes($GLOBAL['sending'] ?? 'Envoi…') ?>',
-    genericErrorText: '<?= addslashes($GLOBAL['error'] ?? 'Erreur') ?>'
+    genericErrorText: <?= json_encode($GLOBAL['loadError']) ?>
   });
 }());
 </script>

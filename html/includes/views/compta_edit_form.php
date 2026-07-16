@@ -126,7 +126,7 @@ if (!$_ceEmbedded) {
           $_ceSelYear = $compta->getCotisationYear() ?? (int)date('Y', (int)$compta->getDate());
           $_ceNow = (int)date('Y');
           ?>
-          <select class="form-control form-control-sm" id="cotisation_year" name="cotisation_year">
+          <select class="form-select form-select-sm" id="cotisation_year" name="cotisation_year">
             <?php for ($_cey = $_ceNow + 1; $_cey >= $_ceNow - 10; $_cey--): ?>
             <option value="<?= $_cey ?>"<?= $_cey === (int)$_ceSelYear ? ' selected' : '' ?>><?= $_cey ?></option>
             <?php endfor ?>

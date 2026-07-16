@@ -109,7 +109,7 @@ $_comptaYears = array_map('intval', $_comptaYearsStmt->fetchAll(PDO::FETCH_COLUM
             <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
           </div>
           <div id="attest-modal-error" class="alert alert-danger m-3" style="display:none"></div>
-          <iframe id="attest-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin allow-scripts"></iframe>
+          <iframe id="attest-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin"></iframe>
         </div>
         <?php if ((int)date('n') !== 1): ?>
         <div class="alert alert-warning d-flex align-items-start gap-2 mx-3 mb-0 py-2" role="alert" style="font-size:0.85rem">
@@ -537,7 +537,7 @@ function _comptaListInit() {
                 if (window.casaInit) casaInit(modalBody);
             })
             .catch(function () {
-                modalBody.innerHTML = '<div class="alert alert-danger mb-0">' + <?= json_encode($GLOBAL['loadError'] ?? 'Erreur de chargement') ?> + '</div>';
+                modalBody.innerHTML = '<div class="alert alert-danger mb-0">' + <?= json_encode($GLOBAL['loadError']) ?> + '</div>';
             });
     });
 
@@ -642,7 +642,7 @@ if (document.readyState === 'loading') {
           <span id="recap-user-empty-msg"></span>
         </div>
         <div id="recap-user-subject" class="text-muted small mb-2" style="display:none"></div>
-        <iframe id="recap-user-frame" style="width:100%;border:none;min-height:400px;display:none" sandbox="allow-same-origin allow-scripts"></iframe>
+        <iframe id="recap-user-frame" style="width:100%;border:none;min-height:400px;display:none" sandbox="allow-same-origin"></iframe>
       </div>
       <div class="modal-footer gap-2">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
@@ -741,7 +741,7 @@ if (document.readyState === 'loading') {
           document.getElementById('recap-user-empty').style.display = '';
         } else {
           var el = document.getElementById('recap-user-error');
-          el.textContent = data.error || '<?= addslashes($GLOBAL['error'] ?? 'Erreur') ?>';
+          el.textContent = data.error || '<?= addslashes($GLOBAL['loadError']) ?>';
           el.style.display = '';
         }
         return;
@@ -761,7 +761,7 @@ if (document.readyState === 'loading') {
     .catch(function () {
       showRecapUserLoading(false);
       var el = document.getElementById('recap-user-error');
-      el.textContent = '<?= addslashes($GLOBAL['error'] ?? 'Erreur réseau') ?>';
+      el.textContent = '<?= addslashes($GLOBAL['loadError']) ?>';
       el.style.display = '';
     });
   }
@@ -790,7 +790,7 @@ if (document.readyState === 'loading') {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i><?= addslashes($GLOBAL['comptaRecapSendOne']) ?>';
         var el = document.getElementById('recap-user-error');
-        el.textContent = data.error || '<?= addslashes($GLOBAL['error'] ?? 'Erreur') ?>';
+        el.textContent = data.error || '<?= addslashes($GLOBAL['loadError']) ?>';
         el.style.display = '';
       }
     })

@@ -248,6 +248,7 @@ if (empty($_pfEmbedded)) {
   </a>
   <?php endif ?>
 </div><!-- .card-header -->
+<div class="card-body">
 <script>
 function filterSegmentDropdown(q) {
   var val = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -338,7 +339,6 @@ $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
 <p id="ca-filter-desc" class="text-muted mb-2" style="font-size:0.78rem<?= empty($currentFilterDesc) ? ';display:none' : '' ?>">
   <i class="fas fa-circle-info me-1" aria-hidden="true"></i><span id="ca-filter-desc-text"><?= htmlspecialchars($currentFilterDesc, ENT_COMPAT, $charset) ?></span>
 </p>
-<div class="card-body">
 <div class="table-responsive">
 <table class="table table-hover table-sm export">
 <thead>
@@ -466,7 +466,9 @@ foreach ($_allRows as $row) {
         #}
         $emailStr = str_replace(",","<br/>",$emailStr);
         ?>
-        <tr class="ca-row-link" data-href="<?=appUrl()?>?view=generalData&id=<?=(int)$id?>" style="cursor:pointer">
+        <?php $_rowLabel = trim(($society !== '' ? htmlspecialchars($society, ENT_QUOTES, $charset) . ' ' : '') . $lastName . ' ' . $firstName); ?>
+        <tr class="ca-row-link" data-href="<?=appUrl()?>?view=generalData&id=<?=(int)$id?>" style="cursor:pointer"
+            tabindex="0" role="link" aria-label="<?= $_rowLabel ?>">
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=$sexe?></td>
             <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
             <td class="text-nowrap"><?=$lastName?></td>
@@ -540,6 +542,14 @@ document.querySelector('.export tbody') && document.querySelector('.export tbody
     if (e.target.closest('a, button')) return;
     window.location.href = tr.dataset.href;
 });
+// Keyboard equivalent (role="link" + tabindex="0" on the row): Enter activates it,
+// same as a native link — click-only rows are unreachable for keyboard/screen-reader users.
+document.querySelector('.export tbody') && document.querySelector('.export tbody').addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    var tr = e.target.closest('tr.ca-row-link');
+    if (!tr || e.target.closest('a, button')) return;
+    window.location.href = tr.dataset.href;
+});
 
 var CA_DT_INSTANCE = null;
 function caInitDT() {
@@ -609,7 +619,8 @@ $(document).ready(caInitDT);
     var href = BASE_PATH + '?view=generalData&id=' + m.id;
     var email = m.email ? '<a href="mailto:' + esc(m.email) + '">' + esc(m.email).replace(',','<br>') + '</a>' : '';
     var typesOrGroups = m.groups && m.groups.length ? groupsBadges(m.groups) : typesBadges(m.types, m.id);
-    return '<tr class="ca-row-link" data-href="' + href + '" style="cursor:pointer">' +
+    var rowLabel = [m.society, m.lastName, m.firstName].filter(Boolean).join(' ');
+    return '<tr class="ca-row-link" data-href="' + href + '" style="cursor:pointer" tabindex="0" role="link" aria-label="' + esc(rowLabel) + '">' +
       '<td class="d-none d-sm-table-cell d-md-table-cell">' + sexeIcon(m.gender) + '</td>' +
       '<td class="bold"><div class="text-truncate" style="max-width:200px">' + esc(m.society||'') + '</div></td>' +
       '<td class="text-nowrap">' + esc(m.lastName||'') + '</td>' +

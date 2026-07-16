@@ -585,6 +585,8 @@ $GLOBAL['renameError'] = "Error while renaming";
 // --- settings_general ---
 $GLOBAL['settingsSectionAria'] = "Settings section";
 $GLOBAL['organization'] = "Organization";
+$GLOBAL['orgFinanceSectionTitle'] = "Finance";
+$GLOBAL['orgMembershipSectionTitle'] = "Membership";
 $GLOBAL['orgName'] = "Organization name";
 $GLOBAL['npaShort'] = "NPA";
 $GLOBAL['memberSegmentPrefixLabel'] = 'Member segments prefix';
@@ -853,6 +855,15 @@ $GLOBAL['archivedBanner'] = "This profile is <strong>archived</strong> — it do
 $GLOBAL['totalSince'] = "Total since %s";
 $GLOBAL['otherPayments'] = "Other payments";
 $GLOBAL['anonymizeTooltip'] = "This profile has accounting data — deletion is impossible. Anonymization erases the personal data while keeping the accounting history.";
+$GLOBAL['deletionEligibleLabel'] = "Eligible for deletion";
+$GLOBAL['deletionBlockedBadge'] = "Accounting data";
+$GLOBAL['bulkDeleteBtn'] = "Delete";
+$GLOBAL['bulkAnonymizeBtn'] = "Anonymize";
+$GLOBAL['bulkDeleteConfirmTitle'] = "Permanently delete these accounts?";
+$GLOBAL['bulkAnonymizeConfirmTitle'] = "Anonymize these accounts?";
+$GLOBAL['bulkDeleteIrreversibleWarning'] = "This action is irreversible. Check the list below before confirming — an account archived \"to stop receiving emails\" isn't necessarily one to delete.";
+$GLOBAL['bulkDeleteIneligibleWarning'] = "%d of the selected accounts have accounting data and will not be deleted (use Anonymize for those).";
+$GLOBAL['bulkAnonymizeIneligibleWarning'] = "%d of the selected accounts have no accounting data and will not be changed (use Delete for those).";
 
 // --- users_general_data.php ---
 $GLOBAL['clickToEdit'] = "Click to edit";
@@ -1058,6 +1069,8 @@ $GLOBAL['actionIrreversible'] = "This action is irreversible.";
 $GLOBAL['content'] = "Content";
 $GLOBAL['forcePasswordChangeNotice'] = "Please set a new password before continuing.";
 $GLOBAL['changePasswordTitle'] = "Change the password";
+$GLOBAL['myProfileTitle'] = "My profile";
+$GLOBAL['myAccountLabel'] = "My account";
 $GLOBAL['currentPassword'] = "Current password";
 $GLOBAL['newPassword'] = "New password";
 $GLOBAL['confirmationLabel'] = "Confirmation";

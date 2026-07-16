@@ -45,36 +45,40 @@ include __DIR__ . '/../partials/page_header.php';
 ?>
 
 <div class="container-xl px-4 ca-hero-overlap">
-<?php /* Real links (full reload), not a JS tab widget: the sidebar's
-         active-state fix (hx-boost="false") relies on a real navigation
-         to re-render correctly, so this bar follows the same paradigm
-         instead of introducing a second, inconsistent nav behavior. */ ?>
-<ul class="nav nav-tabs mb-3">
+<?php /* Mobile-only substitute for the sidebar (hidden ≥991.98px, the exact
+         breakpoint where .ca-sidebar-col itself collapses — see custom.css):
+         real links, boosted like the rest of the app now that the sidebar
+         refreshes itself via OOB swap on every boosted request regardless of
+         which link triggered it. Visual language deliberately mirrors
+         .ca-sidebar-body .nav-link (light-tint active pill) instead of a
+         generic Bootstrap nav-tabs strip, so it doesn't read as a second,
+         contradictory navigation system. */ ?>
+<ul class="nav ca-hub-tabs mb-3">
   <li class="nav-item">
-    <a class="nav-link<?= $_pfTab === 'members' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members" hx-boost="false">
-      <i class="fas fa-users me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabMembers'] ?>
+    <a class="nav-link<?= $_pfTab === 'members' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members">
+      <i class="fas fa-users ca-hub-tab-icon" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabMembers'] ?>
     </a>
   </li>
   <?php if (isManager()): ?>
   <li class="nav-item">
-    <a class="nav-link<?= $_pfTab === 'recap' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=recap" hx-boost="false">
-      <i class="fas fa-money-check-dollar me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabRecap'] ?>
+    <a class="nav-link<?= $_pfTab === 'recap' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=recap">
+      <i class="fas fa-money-check-dollar ca-hub-tab-icon" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabRecap'] ?>
     </a>
   </li>
   <?php endif ?>
   <li class="nav-item">
-    <a class="nav-link<?= $_pfTab === 'dons' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=dons" hx-boost="false">
-      <i class="fas fa-file-pdf me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabDons'] ?>
+    <a class="nav-link<?= $_pfTab === 'dons' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=dons">
+      <i class="fas fa-file-pdf ca-hub-tab-icon" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabDons'] ?>
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link<?= $_pfTab === 'lapsed' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed" hx-boost="false">
-      <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabLapsed'] ?>
+    <a class="nav-link<?= $_pfTab === 'lapsed' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed">
+      <i class="fas fa-user-clock ca-hub-tab-icon" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabLapsed'] ?>
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link<?= $_pfTab === 'lapsedDonors' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors" hx-boost="false">
-      <i class="fas fa-hand-holding-dollar me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabLapsedDonors'] ?>
+    <a class="nav-link<?= $_pfTab === 'lapsedDonors' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors">
+      <i class="fas fa-hand-holding-dollar ca-hub-tab-icon" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabLapsedDonors'] ?>
     </a>
   </li>
 </ul>
@@ -104,7 +108,7 @@ include __DIR__ . '/../partials/page_header.php';
           </button>
         </li>
       </ul>
-      <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members" class="btn btn-outline-secondary btn-sm" hx-boost="false">
+      <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members" class="btn btn-outline-light btn-sm">
         <i class="fas fa-users me-1" aria-hidden="true"></i><?= $GLOBAL['viewAllCurrentMembers'] ?>
       </a>
     </div>

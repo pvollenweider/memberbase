@@ -232,7 +232,7 @@ include __DIR__ . '/../partials/donor_table.php';
           <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
         </div>
         <div id="coti-modal-error" class="alert alert-danger m-3" style="display:none"></div>
-        <iframe id="coti-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin allow-scripts"></iframe>
+        <iframe id="coti-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin"></iframe>
       </div>
       <?php if (trim($appSettings['smtp_reply_to'] ?? '') !== ''): ?>
       <div class="px-3 pt-2">

@@ -37,6 +37,27 @@ if ($isHtmx) {
     $view = mbDefaultView($_REQUEST);
     include __DIR__ . "/includes/routing/actions.php";
     include __DIR__ . "/includes/routing/views.php";
+    // Real htmx-boosted navigation (sidebar/topbar/hub links, all targeting
+    // #main-content per the hx-target on <body>) sends HX-Target: main-content.
+    // Many existing modal-loading flows (compta_list.php, suivi_list.php,
+    // email/attestation previews, task modals…) spoof HX-Request: true on a
+    // raw fetch() to reach this same fast-path and get a bare view fragment
+    // for innerHTML injection into a .modal-body — they never set HX-Target.
+    // Appending the OOB sidebar/topbar unconditionally used to leak into
+    // those modal fragments (duplicated markup, and htmx.process() on the
+    // modal body would then actually swap the page's real nav out-of-band).
+    if (($_SERVER['HTTP_HX_TARGET'] ?? '') === 'main-content') {
+        // The sidebar/topbar live outside #main-content (htmx's default boost
+        // target), so a plain boosted swap would leave their "active" nav-link
+        // stale after navigating — re-render both here as out-of-band swaps so
+        // every boosted click keeps them in sync, instead of forcing a full
+        // reload via hx-boost="false" on the two navs (the previous fix).
+        $__authUser = authUser();
+        $_navOpenTaskCount = isManager() ? SuiviTask::openCount() : 0;
+        $_snOob = true;
+        include __DIR__ . "/includes/partials/topbar.php";
+        include __DIR__ . "/includes/partials/sidebar_nav.php";
+    }
     ob_end_flush();
     exit;
 }

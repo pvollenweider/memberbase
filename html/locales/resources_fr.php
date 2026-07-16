@@ -585,6 +585,8 @@ $GLOBAL['renameError'] = "Erreur lors du renommage";
 // --- settings_general ---
 $GLOBAL['settingsSectionAria'] = "Section des réglages";
 $GLOBAL['organization'] = "Organisation";
+$GLOBAL['orgFinanceSectionTitle'] = "Finances";
+$GLOBAL['orgMembershipSectionTitle'] = "Adhésion";
 $GLOBAL['orgName'] = "Nom de l'organisation";
 $GLOBAL['npaShort'] = "NPA";
 $GLOBAL['memberSegmentPrefixLabel'] = "Préfixe des segments membres";
@@ -853,6 +855,15 @@ $GLOBAL['archivedBanner'] = "Ce profil est <strong>archivé</strong> — il n'ap
 $GLOBAL['totalSince'] = "Total depuis %s";
 $GLOBAL['otherPayments'] = "Autres versements";
 $GLOBAL['anonymizeTooltip'] = "Ce profil a des données comptables — la suppression est impossible. L'anonymisation efface les données personnelles tout en conservant l'historique comptable.";
+$GLOBAL['deletionEligibleLabel'] = "Éligible à la suppression";
+$GLOBAL['deletionBlockedBadge'] = "Données comptables";
+$GLOBAL['bulkDeleteBtn'] = "Supprimer";
+$GLOBAL['bulkAnonymizeBtn'] = "Anonymiser";
+$GLOBAL['bulkDeleteConfirmTitle'] = "Supprimer définitivement ces comptes ?";
+$GLOBAL['bulkAnonymizeConfirmTitle'] = "Anonymiser ces comptes ?";
+$GLOBAL['bulkDeleteIrreversibleWarning'] = "Cette action est irréversible. Vérifiez la liste ci-dessous avant de confirmer — un compte archivé « pour ne plus recevoir d'emails » n'est pas forcément un compte à supprimer.";
+$GLOBAL['bulkDeleteIneligibleWarning'] = "%d des comptes sélectionnés ont des données comptables et ne seront pas supprimés (utilisez Anonymiser pour ceux-ci).";
+$GLOBAL['bulkAnonymizeIneligibleWarning'] = "%d des comptes sélectionnés n'ont aucune donnée comptable et ne seront pas modifiés (utilisez Supprimer pour ceux-ci).";
 
 // --- users_general_data.php ---
 $GLOBAL['clickToEdit'] = "Cliquer pour modifier";
@@ -1058,6 +1069,8 @@ $GLOBAL['actionIrreversible'] = "Cette action est irréversible.";
 $GLOBAL['content'] = "Contenu";
 $GLOBAL['forcePasswordChangeNotice'] = "Veuillez définir un nouveau mot de passe avant de continuer.";
 $GLOBAL['changePasswordTitle'] = "Changer le mot de passe";
+$GLOBAL['myProfileTitle'] = "Mon profil";
+$GLOBAL['myAccountLabel'] = "Mon compte";
 $GLOBAL['currentPassword'] = "Mot de passe actuel";
 $GLOBAL['newPassword'] = "Nouveau mot de passe";
 $GLOBAL['confirmationLabel'] = "Confirmation";

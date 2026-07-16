@@ -968,6 +968,17 @@ body.ca-sidebar-collapsed .ca-sidebar-panel {
     margin-top: -8rem;
 }
 
+/* Status switch sitting directly on the hero gradient (user fiche "Actif"
+   toggle): Bootstrap's checked track (#0d6efd) is the same blue family as
+   the gradient itself, so the whole track disappears — only the white knob
+   stayed visible. Invert to a white track + colored knob so both states
+   read clearly against the gradient. */
+.ca-hero .form-switch .form-check-input:checked {
+    background-color: #fff;
+    border-color: #fff;
+    --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%230d6efd'/%3e%3c/svg%3e");
+}
+
 /* Outline buttons sitting directly on the hero gradient via the overlap
    (e.g. the member fiche's tab switcher, rendered right at the top of this
    overlapping container): plain .btn-outline-light text/border contrast
@@ -1004,4 +1015,64 @@ body.ca-sidebar-collapsed .ca-sidebar-panel {
 @keyframes ca-nav-progress {
     from { width: 0; }
     to   { width: 90%; }
+}
+
+/* Hub tab bar (people_finance.php): deliberately mirrors .ca-sidebar-body
+   .nav-link (same colors/weights/radius) rather than a generic Bootstrap
+   nav-tabs strip, so the hub doesn't introduce a second, contradictory
+   navigation style right next to the sidebar it's duplicating. Wrapped in
+   its own opaque surface (not left bare on .ca-hero's gradient) so link
+   color never depends on what's behind the hero — the same class of
+   contrast bug already hit twice on this gradient this session.
+   Desktop hides it entirely (redundant with the visible sidebar); it only
+   earns its place below 991.98px, the exact breakpoint where .ca-sidebar-col
+   itself collapses (custom.css ~819) — the bar becomes the mobile substitute
+   for the same 5 destinations, not a permanent duplicate next to them. */
+.ca-hub-tabs {
+    display: none;
+    background: var(--ca-surface);
+    border-radius: 10px;
+    padding: 0.35rem;
+    gap: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+@media (max-width: 991.98px) {
+    .ca-hub-tabs { display: flex; }
+}
+.ca-hub-tabs .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 0.5rem;
+    color: var(--ca-ink-mid);
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+.ca-hub-tabs .nav-link:hover {
+    background: var(--ca-ground);
+    color: var(--ca-ink);
+}
+.ca-hub-tabs .nav-link.active {
+    background: var(--ca-primary-light);
+    color: var(--ca-primary-dark);
+    font-weight: 600;
+}
+.ca-hub-tab-icon {
+    color: var(--ca-ink-muted);
+}
+.ca-hub-tabs .nav-link.active .ca-hub-tab-icon {
+    color: var(--ca-primary-dark);
+}
+
+/* Inactive .nav-pills text (cohort filters: "Perdus"/"Nouveaux" on lapsed
+   members/donors) inherits --bs-link-color (#1da1f5), which computes to
+   ~2.8:1 on white — below WCAG AA. Bootstrap only themes the active pill
+   (bg + white text); the inactive state falls through to the link color
+   unless overridden. */
+.nav-pills .nav-link {
+    color: var(--ca-ink-mid);
+}
+.nav-pills .nav-link:hover {
+    color: var(--ca-ink);
 }

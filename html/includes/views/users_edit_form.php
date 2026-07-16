@@ -159,14 +159,14 @@ $_contactType = $_ctStmt->fetchObject();
        href="<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?>">
         <i class="fas fa-file-contract me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?>
         <?php if ((int)$_stats->compta_count > 0): ?>
-        <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= (int)$_stats->compta_count ?></span>
+        <span class="ms-1" style="font-size:0.7rem"><?= (int)$_stats->compta_count ?></span>
         <?php endif ?>
     </a>
     <a class="btn <?= $view === 'suivi' ? 'btn-light' : 'btn-outline-light' ?>"
        href="<?= appUrl() ?>?view=suivi&amp;userid=<?= $user->getId() ?>">
         <i class="far fa-rectangle-list me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?>
         <?php if ($_suiviCount > 0): ?>
-        <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= $_suiviCount ?></span>
+        <span class="ms-1" style="font-size:0.7rem"><?= $_suiviCount ?></span>
         <?php endif ?>
     </a>
     <?php /* Tasks tab hidden for now — dashboard shortcuts are the entry point into tasks going forward. */ ?>

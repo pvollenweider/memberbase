@@ -23,13 +23,12 @@ $_snSettingsTab = $_REQUEST['tab'] ?? 'groups';
 if ($_snSettingsTab === 'teams' || $_snSettingsTab === 'segments') { $_snSettingsTab = 'groups'; }
 $_snAdminActive = in_array($view, ['settings', 'updateSegment', 'updateCombinedSegment', 'manageComptaTypes', 'contactTypes', 'manageAppUsers', 'auditLog', 'inactiveUsers'], true);
 ?>
-<div class="ca-sidebar-col">
-    <?php /* hx-boost="false": the sidebar is rendered once on full page load
-             and lives outside #main-content (htmx's default boost target),
-             so a boosted click here would swap the content but leave every
-             nav-link's "active" class stale — force a real navigation so the
-             sidebar re-renders with the correct active state. */ ?>
-    <nav class="ca-sidebar-panel d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary" hx-boost="false">
+<div class="ca-sidebar-col" id="ca-sidebar-col"<?= !empty($_snOob) ? ' hx-swap-oob="true"' : '' ?>>
+    <?php /* Boosted now: index.php's htmx branch re-renders this whole column
+             as an out-of-band swap (id="ca-sidebar-col" + hx-swap-oob) on
+             every boosted request, so "active" stays in sync without forcing
+             a full reload (the previous fix, before OOB swapping). */ ?>
+    <nav class="ca-sidebar-panel d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary">
         <div class="ca-sidebar-body">
             <div class="nav accordion" id="ca-sidebar-accordion">
                 <a class="nav-link<?= $view === 'dashboard' ? '' : ' collapsed' ?>" href="<?= appUrl() ?>?view=dashboard">
@@ -92,9 +91,12 @@ $_snAdminActive = in_array($view, ['settings', 'updateSegment', 'updateCombinedS
                 <div class="collapse<?= $_snAdminActive ? ' show' : '' ?>" id="collapseAdmin">
                     <nav class="ca-sidebar-submenu nav">
                         <?php
+                        // Two sub-groups, split by role rather than technical theme: everything
+                        // a manager can already reach (Segments) vs. admin-only settings (the old
+                        // Application/Diagnostics split was two admin-only groups side by side —
+                        // same role, no reason to keep them apart).
                         $_snAdminSegmentsActive = $_snAdminActive && in_array($_snSettingsTab, ['groups', 'categories', 'filters', 'compta'], true);
-                        $_snAdminAppActive      = $_snAdminActive && in_array($_snSettingsTab, ['settings', 'email', 'users', 'health'], true);
-                        $_snAdminDiagActive     = ($_snAdminActive && in_array($_snSettingsTab, ['audit', 'integrity'], true)) || $view === 'inactiveUsers';
+                        $_snAdminAppActive      = $_snAdminActive && in_array($_snSettingsTab, ['settings', 'email', 'users', 'health', 'contactTypes', 'audit', 'integrity'], true) || $view === 'inactiveUsers';
                         ?>
                         <a class="nav-link<?= $_snAdminSegmentsActive ? '' : ' collapsed' ?>" href="javascript:void(0);" data-bs-toggle="collapse"
                            data-bs-target="#collapseAdminSegments" aria-expanded="<?= $_snAdminSegmentsActive ? 'true' : 'false' ?>" aria-controls="collapseAdminSegments">
@@ -107,9 +109,6 @@ $_snAdminActive = in_array($view, ['settings', 'updateSegment', 'updateCombinedS
                                 <a class="nav-link<?= $_snAdminActive && $_snSettingsTab === 'filters' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=settings&tab=filters"><?= $GLOBAL['combinedSegments'] ?></a>
                                 <a class="nav-link<?= $_snAdminActive && $_snSettingsTab === 'categories' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=settings&tab=categories"><?= $GLOBAL['categories'] ?></a>
                                 <a class="nav-link<?= $_snAdminActive && $_snSettingsTab === 'compta' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=settings&tab=compta"><?= $GLOBAL['comptaTypes'] ?></a>
-                                <?php if (isAdmin()): ?>
-                                <a class="nav-link<?= $_snAdminActive && $_snSettingsTab === 'contactTypes' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=settings&tab=contactTypes"><?= $GLOBAL['contactTypesTitle'] ?></a>
-                                <?php endif ?>
                             </nav>
                         </div>
 
@@ -122,19 +121,10 @@ $_snAdminActive = in_array($view, ['settings', 'updateSegment', 'updateCombinedS
                         <div class="collapse<?= $_snAdminAppActive ? ' show' : '' ?>" id="collapseAdminApp">
                             <nav class="ca-sidebar-submenu nav">
                                 <a class="nav-link<?= $_snAdminActive && $_snSettingsTab === 'settings' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=settings&tab=settings"><?= $GLOBAL['settings'] ?></a>
+                                <a class="nav-link<?= $_snAdminActive && $_snSettingsTab === 'contactTypes' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=settings&tab=contactTypes"><?= $GLOBAL['contactTypesTitle'] ?></a>
                                 <a class="nav-link<?= $_snAdminActive && $_snSettingsTab === 'email' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=settings&tab=email"><?= $GLOBAL['smtpSettings'] ?></a>
                                 <a class="nav-link<?= $_snAdminActive && $_snSettingsTab === 'users' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=settings&tab=users"><?= $GLOBAL['users'] ?></a>
                                 <a class="nav-link<?= $_snAdminActive && $_snSettingsTab === 'health' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=settings&tab=health"><?= $GLOBAL['health'] ?></a>
-                            </nav>
-                        </div>
-
-                        <a class="nav-link<?= $_snAdminDiagActive ? '' : ' collapsed' ?>" href="javascript:void(0);" data-bs-toggle="collapse"
-                           data-bs-target="#collapseAdminDiag" aria-expanded="<?= $_snAdminDiagActive ? 'true' : 'false' ?>" aria-controls="collapseAdminDiag">
-                            <?= $GLOBAL['adminGroupDiagnostics'] ?>
-                            <span class="ca-sidebar-caret"><i class="fas fa-angle-down"></i></span>
-                        </a>
-                        <div class="collapse<?= $_snAdminDiagActive ? ' show' : '' ?>" id="collapseAdminDiag">
-                            <nav class="ca-sidebar-submenu nav">
                                 <a class="nav-link<?= $_snAdminActive && $_snSettingsTab === 'audit' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=settings&tab=audit"><?= $GLOBAL['journal'] ?></a>
                                 <a class="nav-link<?= $_snAdminActive && $_snSettingsTab === 'integrity' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=settings&tab=integrity"><?= $GLOBAL['integrity'] ?></a>
                                 <a class="nav-link<?= $view === 'inactiveUsers' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=inactiveUsers"><?= $GLOBAL['archived'] ?></a>
@@ -146,9 +136,25 @@ $_snAdminActive = in_array($view, ['settings', 'updateSegment', 'updateCombinedS
                 <?php endif ?>
             </div>
         </div>
-        <div class="ca-sidebar-footer">
-            <div class="ca-sidebar-footer-org"><?= htmlspecialchars($appSettings['org_name'] ?? '', ENT_QUOTES, $charset) ?></div>
-            <div class="ca-sidebar-footer-name"><?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?></div>
+        <div class="ca-sidebar-footer dropup">
+            <a href="javascript:void(0);" class="ca-sidebar-footer-toggle d-flex align-items-center text-decoration-none dropdown-toggle"
+               id="sidebarUserMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-circle-user fa-lg me-2" aria-hidden="true"></i>
+                <span class="flex-grow-1 text-truncate">
+                    <span class="ca-sidebar-footer-org d-block"><?= htmlspecialchars($appSettings['org_name'] ?? '', ENT_QUOTES, $charset) ?></span>
+                    <span class="ca-sidebar-footer-name d-block"><?= htmlspecialchars($__authUser->display_name, ENT_QUOTES, $charset) ?></span>
+                </span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end w-100" aria-labelledby="sidebarUserMenu">
+                <li><a class="dropdown-item" href="<?= appUrl() ?>?view=changePassword"><i class="fas fa-user-gear me-2" aria-hidden="true"></i><?= $GLOBAL['myAccountLabel'] ?></a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form method="post" action="<?= appUrl() ?>" data-no-dirty hx-boost="false">
+                        <input type="hidden" name="action" value="logout">
+                        <button type="submit" class="dropdown-item text-danger"><i class="fas fa-right-from-bracket me-2" aria-hidden="true"></i><?= $GLOBAL['logout'] ?></button>
+                    </form>
+                </li>
+            </ul>
         </div>
     </nav>
 </div>

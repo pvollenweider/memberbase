@@ -42,13 +42,15 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <?php else: ?>
 
 <?php if (!empty($dupNames)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-user-group me-1 text-danger" aria-hidden="true"></i>
     <?= $GLOBAL['membersSameName'] ?>
     <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dupNames) ?></span>
   </summary>
-  <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+  <div class="ca-integrity-body"></div>
+  <template>
+<table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
         <th><?= $GLOBAL['firstLastName'] ?></th>
@@ -90,17 +92,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($dupEmails)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-envelope me-1 text-danger" aria-hidden="true"></i>
     <?= $GLOBAL['membersSameEmail'] ?>
     <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dupEmails) ?></span>
   </summary>
-  <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+  <div class="ca-integrity-body"></div>
+  <template>
+<table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
         <th><?= $GLOBAL['email'] ?></th>
@@ -142,17 +148,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($hiddenInCats)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-tag me-1 text-warning" aria-hidden="true"></i>
     <?= $GLOBAL['hiddenSegmentsInCategory'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenInCats) ?></span>
   </summary>
-  <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+  <div class="ca-integrity-body"></div>
+  <template>
+<table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
         <th><?= $GLOBAL['hiddenSegment'] ?></th>
@@ -176,17 +186,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($hiddenInMeta)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-layer-group me-1 text-warning" aria-hidden="true"></i>
     <?= $GLOBAL['hiddenSegmentsInCombined'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenInMeta) ?></span>
   </summary>
-  <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+  <div class="ca-integrity-body"></div>
+  <template>
+<table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
         <th><?= $GLOBAL['hiddenSegment'] ?></th>
@@ -210,17 +224,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($hiddenWithMembers)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-users me-1 text-warning" aria-hidden="true"></i>
     <?= $GLOBAL['hiddenSegmentsWithMembers'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($hiddenWithMembers) ?></span>
   </summary>
-  <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+  <div class="ca-integrity-body"></div>
+  <template>
+<table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
         <th><?= $GLOBAL['hiddenSegment'] ?></th>
@@ -244,17 +262,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($cascadeMissing)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-arrows-turn-to-dots me-1 text-warning" aria-hidden="true"></i>
     <?= $GLOBAL['cascadeRuleMissingTitle'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($cascadeMissing) ?></span>
   </summary>
-  <p class="small text-muted mt-2 mb-1"><?= $GLOBAL['cascadeRuleMissingHelp'] ?></p>
+  <div class="ca-integrity-body"></div>
+  <template>
+<p class="small text-muted mt-2 mb-1"><?= $GLOBAL['cascadeRuleMissingHelp'] ?></p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
     <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['cascadeRuleSourceColumn'] ?></th><th><?= $GLOBAL['cascadeRuleTargetColumn'] ?></th><th></th></tr></thead>
     <tbody>
@@ -279,17 +301,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($noName)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-id-card me-1 text-danger" aria-hidden="true"></i>
     <?= $GLOBAL['membersNoNameTitle'] ?>
     <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($noName) ?></span>
   </summary>
-  <p class="small text-muted mt-2 mb-1"><?= $GLOBAL['membersNoNameHelp'] ?></p>
+  <div class="ca-integrity-body"></div>
+  <template>
+<p class="small text-muted mt-2 mb-1"><?= $GLOBAL['membersNoNameHelp'] ?></p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
     <thead><tr><th><?= $GLOBAL['firstName'] ?></th><th></th></tr></thead>
     <tbody>
@@ -304,17 +330,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($dateInvalid)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-calendar-xmark me-1 text-danger" aria-hidden="true"></i>
     <?= $GLOBAL['invalidComptaDates'] ?>
     <span class="badge text-bg-danger ms-1" style="font-size:0.7rem"><?= count($dateInvalid) ?></span>
   </summary>
-  <p class="small text-muted mt-2 mb-1"><?= $GLOBAL['invalidComptaDatesHelp'] ?></p>
+  <div class="ca-integrity-body"></div>
+  <template>
+<p class="small text-muted mt-2 mb-1"><?= $GLOBAL['invalidComptaDatesHelp'] ?></p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
     <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['libele'] ?></th><th><?= $GLOBAL['date'] ?></th><th></th></tr></thead>
     <tbody>
@@ -331,17 +361,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($typeNull)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-tag me-1 text-warning" aria-hidden="true"></i>
     <?= $GLOBAL['comptaEntriesWithoutType'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($typeNull) ?></span>
   </summary>
-  <p class="small text-muted mt-2 mb-1"><?= $GLOBAL['comptaEntriesWithoutTypeHelp'] ?></p>
+  <div class="ca-integrity-body"></div>
+  <template>
+<p class="small text-muted mt-2 mb-1"><?= $GLOBAL['comptaEntriesWithoutTypeHelp'] ?></p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
     <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['libele'] ?></th><th><?= $GLOBAL['amount'] ?></th><th></th></tr></thead>
     <tbody>
@@ -358,17 +392,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($emailInvalid)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-at me-1 text-warning" aria-hidden="true"></i>
     <?= $GLOBAL['malformedEmails'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($emailInvalid) ?></span>
   </summary>
-  <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+  <div class="ca-integrity-body"></div>
+  <template>
+<table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['email'] ?></th><th></th></tr></thead>
     <tbody>
     <?php foreach ($emailInvalid as $r): ?>
@@ -383,17 +421,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($emailAltInvalid)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-at me-1 text-warning" aria-hidden="true"></i>
     <?= $GLOBAL['malformedAltEmails'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($emailAltInvalid) ?></span>
   </summary>
-  <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+  <div class="ca-integrity-body"></div>
+  <template>
+<table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['emailAlt'] ?></th><th></th></tr></thead>
     <tbody>
     <?php foreach ($emailAltInvalid as $r): ?>
@@ -408,17 +450,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($sexeInvalid)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-venus-mars me-1 text-warning" aria-hidden="true"></i>
     <?= $GLOBAL['invalidGenderTitle'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($sexeInvalid) ?></span>
   </summary>
-  <p class="small text-muted mt-2 mb-1"><?= $GLOBAL['expectedGenderValues'] ?></p>
+  <div class="ca-integrity-body"></div>
+  <template>
+<p class="small text-muted mt-2 mb-1"><?= $GLOBAL['expectedGenderValues'] ?></p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
     <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['valueLabel'] ?></th><th></th></tr></thead>
     <tbody>
@@ -434,17 +480,21 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
 <?php if (!empty($birthdayFuture)): ?>
-<details class="ca-integrity-section mb-3" open>
+<details class="ca-integrity-section mb-3">
   <summary class="ca-integrity-summary">
     <i class="fas fa-cake-candles me-1 text-warning" aria-hidden="true"></i>
     <?= $GLOBAL['birthdayInFuture'] ?>
     <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($birthdayFuture) ?></span>
   </summary>
-  <table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+  <div class="ca-integrity-body"></div>
+  <template>
+<table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
     <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['birthDateLabel'] ?></th><th></th></tr></thead>
     <tbody>
     <?php foreach ($birthdayFuture as $r): ?>
@@ -459,6 +509,8 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
     <?php endforeach ?>
     </tbody>
   </table>
+
+  </template>
 </details>
 <?php endif ?>
 
@@ -466,3 +518,22 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 
 </div><!-- .card-body -->
 </div><!-- .card -->
+
+<script>
+// Each check's table sits inert in a <template> (parsed, but its content
+// isn't in the live DOM — no layout/render cost) until the section is
+// actually opened; deferring construction of the (potentially large)
+// row tables until the user asks for them, without a second server call.
+document.querySelectorAll('.ca-integrity-section').forEach(function (details) {
+  details.addEventListener('toggle', function () {
+    if (!details.open) return;
+    var body = details.querySelector('.ca-integrity-body');
+    var tpl  = details.querySelector('template');
+    if (!body || !tpl || body.dataset.loaded) return;
+    body.appendChild(tpl.content.cloneNode(true));
+    body.dataset.loaded = '1';
+    if (window.htmx) htmx.process(body);
+    if (window.casaStampForms) casaStampForms(body);
+  });
+});
+</script>

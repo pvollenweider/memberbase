@@ -66,6 +66,7 @@ foreach ($_slRows as $row):
     ?>
     <tr class="js-email-row-link<?= ($row->status ?? '') === 'error' ? ' table-danger' : '' ?>" style="cursor:pointer"
         data-email-id="<?= (int)$row->email_log_id ?>"
+        tabindex="0" role="button" aria-label="<?= htmlspecialchars($GLOBAL['viewEmail'], ENT_QUOTES, $charset) ?>"
         <?php if (($row->status ?? '') === 'error' && !empty($row->error_msg)): ?>
         title="<?= htmlspecialchars($row->error_msg, ENT_QUOTES, $charset) ?>"
         <?php endif ?>>
@@ -80,7 +81,7 @@ foreach ($_slRows as $row):
         <td>&nbsp;</td>
     </tr>
     <?php else: ?>
-     <tr <?= canWrite() ? 'class="ca-row-link" data-suivi-href="' . appUrl() . '?view=updateSuivi&suiviid=' . (int)$row->id . '&userid=' . (int)$user->getId() . '" style="cursor:pointer"' : '' ?>>
+     <tr <?= canWrite() ? 'class="ca-row-link" data-suivi-href="' . appUrl() . '?view=updateSuivi&suiviid=' . (int)$row->id . '&userid=' . (int)$user->getId() . '" style="cursor:pointer" tabindex="0" role="button" aria-label="' . htmlspecialchars($GLOBAL['updateSuivi'], ENT_QUOTES, $charset) . '"' : '' ?>>
         <td><?=timeStampToformatedDate((int)$row->ts)?></td>
         <!-- Legacy rows store entity-encoded text: decode first, then escape for output -->
         <td><?= htmlspecialchars(html_entity_decode($row->content, ENT_COMPAT, $charset), ENT_QUOTES, $charset) ?></td>
@@ -150,10 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var tbody = document.querySelector('form[name="addSuivi"] tbody');
     var suiviModalEl   = document.getElementById('suivi-edit-modal');
     var suiviModalBody = document.getElementById('suivi-edit-modal-body');
-    if (tbody && suiviModalEl && suiviModalBody) tbody.addEventListener('click', function(e) {
-        var tr = e.target.closest('tr.ca-row-link');
-        if (!tr) return;
-        if (e.target.closest('a, button')) return;
+    function openSuiviRow(tr) {
         suiviModalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div></div>';
         bootstrap.Modal.getOrCreateInstance(suiviModalEl).show();
         fetch(tr.dataset.suiviHref + '&embedded=1', { headers: { 'HX-Request': 'true' } })
@@ -171,36 +169,74 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(function () {
                 suiviModalBody.innerHTML = '<div class="alert alert-danger mb-0">' + <?= json_encode($GLOBAL['loadError']) ?> + '</div>';
             });
+    }
+    if (tbody && suiviModalEl && suiviModalBody) tbody.addEventListener('click', function(e) {
+        var tr = e.target.closest('tr.ca-row-link');
+        if (!tr) return;
+        if (e.target.closest('a, button')) return;
+        openSuiviRow(tr);
+    });
+    // Keyboard equivalent (role="button" + tabindex="0" on the row).
+    if (tbody && suiviModalEl && suiviModalBody) tbody.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        var tr = e.target.closest('tr.ca-row-link');
+        if (!tr || e.target.closest('a, button')) return;
+        e.preventDefault();
+        openSuiviRow(tr);
     });
 
     // Email rows: load the preview into a modal instead of navigating away.
     var modalEl   = document.getElementById('email-detail-modal');
     var modalBody = document.getElementById('email-detail-modal-body');
     if (!modalEl || !modalBody) return;
+    function openEmailRow(row) {
+        modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div></div>';
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        var url = <?= json_encode(appUrl()) ?> + '?view=emailDetail&emailid=' + encodeURIComponent(row.dataset.emailId) + '&embedded=1';
+        fetch(url, { headers: { 'HX-Request': 'true' } })
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+                modalBody.innerHTML = html;
+                // <script> tags set via innerHTML never execute — the
+                // iframe-population script in the fetched fragment needs
+                // to be manually re-created to actually run.
+                modalBody.querySelectorAll('script').forEach(function (old) {
+                    var s = document.createElement('script');
+                    if (old.src) { s.src = old.src; } else { s.textContent = old.textContent; }
+                    old.replaceWith(s);
+                });
+                if (window.htmx) htmx.process(modalBody);
+                if (window.casaInit) casaInit(modalBody);
+            })
+            .catch(function () {
+                modalBody.innerHTML = '<div class="alert alert-danger mb-0">' + <?= json_encode($GLOBAL['loadError']) ?> + '</div>';
+            });
+    }
     document.querySelectorAll('tr.js-email-row-link').forEach(function (row) {
         row.addEventListener('click', function (e) {
             if (e.target.closest('a, button')) return;
-            modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div></div>';
-            bootstrap.Modal.getOrCreateInstance(modalEl).show();
-            var url = <?= json_encode(appUrl()) ?> + '?view=emailDetail&emailid=' + encodeURIComponent(row.dataset.emailId) + '&embedded=1';
-            fetch(url, { headers: { 'HX-Request': 'true' } })
-                .then(function (r) { return r.text(); })
-                .then(function (html) {
-                    modalBody.innerHTML = html;
-                    // <script> tags set via innerHTML never execute — the
-                    // iframe-population script in the fetched fragment needs
-                    // to be manually re-created to actually run.
-                    modalBody.querySelectorAll('script').forEach(function (old) {
-                        var s = document.createElement('script');
-                        if (old.src) { s.src = old.src; } else { s.textContent = old.textContent; }
-                        old.replaceWith(s);
-                    });
-                    if (window.htmx) htmx.process(modalBody);
-                    if (window.casaInit) casaInit(modalBody);
-                })
-                .catch(function () {
-                    modalBody.innerHTML = '<div class="alert alert-danger mb-0">' + <?= json_encode($GLOBAL['loadError']) ?> + '</div>';
-                });
+            openEmailRow(row);
+        });
+        // Keyboard equivalent (role="button" + tabindex="0" on the row).
+        row.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            if (e.target.closest('a, button')) return;
+            e.preventDefault();
+            openEmailRow(row);
+        });
+    });
+
+    // Bootstrap sets aria-hidden="true" on hide before it moves focus back to
+    // the trigger — if the row that opened the modal is now keyboard-focusable
+    // (tabindex="0", added for a11y) and still holds focus at that moment,
+    // the browser blocks it: "aria-hidden on an element because its descendant
+    // retained focus". Blur proactively so hide() never fights the focused row.
+    [suiviModalEl, modalEl].forEach(function (el) {
+        if (!el) return;
+        el.addEventListener('hide.bs.modal', function () {
+            if (document.activeElement && el.contains(document.activeElement)) {
+                document.activeElement.blur();
+            }
         });
     });
 });

@@ -48,17 +48,16 @@ include __DIR__ . '/../partials/page_header.php';
             <?php if (!isAdmin()): ?>
             <div class="alert alert-danger" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i><?= $GLOBAL['adminOnly'] ?></div>
             <?php else: ?>
-            <div class="card mb-4">
-            <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['settings'] ?></h2></div>
-            <div class="card-body">
-            <div id="settings-save-msg"></div>
             <form action="<?= appUrl() ?>" method="post"
                   hx-post="<?= appUrl() ?>"
                   hx-target="#settings-save-msg"
                   hx-swap="innerHTML">
               <input type="hidden" name="action" value="saveSettings"/>
               <input type="hidden" name="view" value="settings"/>
-              <p class="form-section-title"><i class="fas fa-building me-1" aria-hidden="true"></i><?= $GLOBAL['organization'] ?></p>
+
+            <div class="card mb-4">
+            <div class="card-header"><h2 class="h6 mb-0"><i class="fas fa-building me-1" aria-hidden="true"></i><?= $GLOBAL['organization'] ?></h2></div>
+            <div class="card-body">
               <div class="mb-3">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_name"><?= $GLOBAL['orgName'] ?></label>
                 <input type="text" name="org_name" id="s_org_name" class="form-control form-control-sm" style="max-width:320px"
@@ -114,7 +113,12 @@ include __DIR__ . '/../partials/page_header.php';
                        placeholder="<?= htmlspecialchars($GLOBAL['orgTaxStatusPlaceholder'], ENT_QUOTES, $charset) ?>"
                        value="<?= htmlspecialchars($appSettings['org_tax_status'] ?? '', ENT_QUOTES, $charset) ?>">
               </div>
+            </div><!-- .card-body -->
+            </div><!-- .card -->
 
+            <div class="card mb-4">
+            <div class="card-header"><h2 class="h6 mb-0"><i class="fas fa-file-invoice-dollar me-1" aria-hidden="true"></i><?= $GLOBAL['orgFinanceSectionTitle'] ?></h2></div>
+            <div class="card-body">
               <div class="mb-3">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_org_iban"><?= $GLOBAL['orgIban'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['orgIbanHelp'] ?></p>
@@ -129,7 +133,12 @@ include __DIR__ . '/../partials/page_header.php';
                        placeholder="<?= htmlspecialchars($GLOBAL['orgCotiAmountDescPlaceholder'], ENT_QUOTES, $charset) ?>"
                        value="<?= htmlspecialchars($appSettings['org_coti_amount_desc'] ?? '', ENT_QUOTES, $charset) ?>">
               </div>
+            </div><!-- .card-body -->
+            </div><!-- .card -->
 
+            <div class="card mb-4">
+            <div class="card-header"><h2 class="h6 mb-0"><i class="fas fa-user-plus me-1" aria-hidden="true"></i><?= $GLOBAL['orgMembershipSectionTitle'] ?></h2></div>
+            <div class="card-body">
               <div class="mb-3">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_membership_url"><?= $GLOBAL['membershipUrlLabel'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['membershipUrlHelp'] ?></p>
@@ -144,7 +153,12 @@ include __DIR__ . '/../partials/page_header.php';
                 <input type="text" name="membre_segment_prefix" id="s_membre_segment_prefix" class="form-control form-control-sm" style="max-width:200px"
                        value="<?= htmlspecialchars($appSettings['membre_segment_prefix'] ?? 'Membre', ENT_QUOTES, $charset) ?>">
               </div>
-              <p class="form-section-title"><i class="fas fa-sliders me-1" aria-hidden="true"></i><?= $GLOBAL['groups'] ?></p>
+            </div><!-- .card-body -->
+            </div><!-- .card -->
+
+            <div class="card mb-4">
+            <div class="card-header"><h2 class="h6 mb-0"><i class="fas fa-sliders me-1" aria-hidden="true"></i><?= $GLOBAL['groups'] ?></h2></div>
+            <div class="card-body">
               <div class="mb-4">
                 <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_default_segment"><?= $GLOBAL['defaultSegmentLabel'] ?></label>
                 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['defaultSegmentHelp'] ?></p>
@@ -179,10 +193,12 @@ include __DIR__ . '/../partials/page_header.php';
                   <?php endforeach ?>
                 </select>
               </div>
-              <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['save'] ?></button>
-            </form>
             </div><!-- .card-body -->
             </div><!-- .card -->
+
+            <div id="settings-save-msg" class="mb-2"></div>
+            <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['save'] ?></button>
+            </form>
             <?php endif ?>
             <?php if (isAdmin()): ?>
             <script>

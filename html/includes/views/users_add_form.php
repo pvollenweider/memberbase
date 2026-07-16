@@ -110,11 +110,11 @@ include __DIR__ . '/../partials/page_header.php';
       </div>
       <div class="row mb-2 align-items-center">
         <label for="emailAlt" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end" style="font-size:0.82rem">
-          <i class="fas fa-envelope" aria-hidden="true"></i> E-mail alt.
+          <i class="fas fa-envelope" aria-hidden="true"></i> <?= $GLOBAL['emailAltLong'] ?>
         </label>
         <div class="col-8 col-sm-9">
           <input type="text" id="emailAlt" name="emailAlt" class="form-control form-control-sm"
-                 placeholder="Adresse alternative / historique"/>
+                 placeholder="<?= htmlentities($GLOBAL['emailAltHint'], ENT_COMPAT, $charset) ?>"/>
         </div>
       </div>
       <div class="row mb-2 align-items-center">

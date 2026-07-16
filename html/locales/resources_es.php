@@ -585,6 +585,8 @@ $GLOBAL['renameError'] = "Error al renombrar";
 // --- settings_general ---
 $GLOBAL['settingsSectionAria'] = "Sección de ajustes";
 $GLOBAL['organization'] = "Organización";
+$GLOBAL['orgFinanceSectionTitle'] = "Finanzas";
+$GLOBAL['orgMembershipSectionTitle'] = "Afiliación";
 $GLOBAL['orgName'] = "Nombre de la organización";
 $GLOBAL['npaShort'] = "CP";
 $GLOBAL['memberSegmentPrefixLabel'] = "Prefijo de los segmentos de miembros";
@@ -853,6 +855,15 @@ $GLOBAL['archivedBanner'] = "Este perfil está <strong>archivado</strong> — no
 $GLOBAL['totalSince'] = "Total desde %s";
 $GLOBAL['otherPayments'] = "Otros pagos";
 $GLOBAL['anonymizeTooltip'] = "Este perfil tiene datos contables — la eliminación es imposible. La anonimización borra los datos personales conservando el historial contable.";
+$GLOBAL['deletionEligibleLabel'] = "Elegible para eliminación";
+$GLOBAL['deletionBlockedBadge'] = "Datos contables";
+$GLOBAL['bulkDeleteBtn'] = "Eliminar";
+$GLOBAL['bulkAnonymizeBtn'] = "Anonimizar";
+$GLOBAL['bulkDeleteConfirmTitle'] = "¿Eliminar definitivamente estas cuentas?";
+$GLOBAL['bulkAnonymizeConfirmTitle'] = "¿Anonimizar estas cuentas?";
+$GLOBAL['bulkDeleteIrreversibleWarning'] = "Esta acción es irreversible. Revise la lista antes de confirmar — una cuenta archivada \"para dejar de recibir correos\" no es necesariamente una cuenta a eliminar.";
+$GLOBAL['bulkDeleteIneligibleWarning'] = "%d de las cuentas seleccionadas tienen datos contables y no se eliminarán (use Anonimizar para esas).";
+$GLOBAL['bulkAnonymizeIneligibleWarning'] = "%d de las cuentas seleccionadas no tienen datos contables y no se modificarán (use Eliminar para esas).";
 
 // --- users_general_data.php ---
 $GLOBAL['clickToEdit'] = "Clic para modificar";
@@ -1058,6 +1069,8 @@ $GLOBAL['actionIrreversible'] = "Esta acción es irreversible.";
 $GLOBAL['content'] = "Contenido";
 $GLOBAL['forcePasswordChangeNotice'] = "Defina una nueva contraseña antes de continuar.";
 $GLOBAL['changePasswordTitle'] = "Cambiar la contraseña";
+$GLOBAL['myProfileTitle'] = "Mi perfil";
+$GLOBAL['myAccountLabel'] = "Mi cuenta";
 $GLOBAL['currentPassword'] = "Contraseña actual";
 $GLOBAL['newPassword'] = "Nueva contraseña";
 $GLOBAL['confirmationLabel'] = "Confirmación";

@@ -236,7 +236,7 @@ document.getElementById('modal-delete-contact-type').addEventListener('show.bs.m
   var status  = document.getElementById('contact-type-matrix-status');
   var baseUrl = <?= json_encode(appUrl()) ?>;
   var savedMsg = <?= json_encode($GLOBAL['contactTypeMatrixSavedMsg']) ?>;
-  var errMsg   = <?= json_encode($GLOBAL['error'] ?? 'Erreur') ?>;
+  var errMsg   = <?= json_encode($GLOBAL['loadError']) ?>;
   var statusTimer = null;
 
   function showStatus(text, isError) {
