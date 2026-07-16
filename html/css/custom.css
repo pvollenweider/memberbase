@@ -954,7 +954,13 @@ body.ca-sidebar-collapsed .ca-sidebar-panel {
     opacity: 0.6;
 }
 .ca-hero-subtitle {
-    color: rgba(255,255,255,0.5);
+    /* Plain white text on the lighter end of the .ca-hero gradient only
+       reaches ~2.8:1 even at full opacity (below WCAG AA 4.5:1) — a solid
+       scrim (as used for .btn-outline-light below) would be too heavy for
+       a full-width line of running text, so a text-shadow carries the
+       real contrast instead. */
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.45);
     font-size: 1.15rem;
     margin-top: 0.25rem;
 }
@@ -974,4 +980,28 @@ body.ca-sidebar-collapsed .ca-sidebar-panel {
 .ca-hero-overlap .btn-outline-light:hover,
 .ca-hero-overlap .btn-outline-light:focus {
     background-color: #fff;
+}
+
+/* Perceived-performance cue for full-page navigations (hx-boost="false"
+   links: sidebar, topbar, hub tab bars). These reload the whole document,
+   so htmx's own loading states don't apply — a slim top bar gives instant
+   feedback that the click registered, instead of a silent pause until the
+   new page paints. */
+.ca-nav-loading::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 90%;
+    background: var(--ca-primary-dark);
+    z-index: 1100;
+    animation: ca-nav-progress 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+    .ca-nav-loading::before { animation-duration: 0.01ms; }
+}
+@keyframes ca-nav-progress {
+    from { width: 0; }
+    to   { width: 90%; }
 }

@@ -155,6 +155,7 @@ $_comptaYears = array_map('intval', $_comptaYearsStmt->fetchAll(PDO::FETCH_COLUM
 
       var baseUrl  = <?= json_encode(appUrl()) ?>;
       var userId   = <?= (int)$user->getId() ?>;
+      var loadErr  = <?= json_encode($GLOBAL['loadError']) ?>;
       function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
 
       var modal        = new bootstrap.Modal(document.getElementById('attestPreviewModal'));
@@ -195,7 +196,7 @@ $_comptaYears = array_map('intval', $_comptaYearsStmt->fetchAll(PDO::FETCH_COLUM
               .then(function (data) {
                   loadingEl.style.display = 'none';
                   if (!data.ok) {
-                      errorEl.textContent = data.error || '?';
+                      errorEl.textContent = data.error || loadErr;
                       errorEl.style.display = '';
                       return;
                   }
@@ -211,7 +212,7 @@ $_comptaYears = array_map('intval', $_comptaYearsStmt->fetchAll(PDO::FETCH_COLUM
               })
               .catch(function () {
                   loadingEl.style.display = 'none';
-                  errorEl.textContent = '?';
+                  errorEl.textContent = loadErr;
                   errorEl.style.display = '';
               });
           });

@@ -37,6 +37,8 @@ $prevSegmentId  = 1; // non-zero so the table renders
   <?php endif ?>
   <span class="me-2"><?= sprintf($GLOBAL['lapsedMembersTitle'], $year-1, $year) ?></span>
 
+  <div class="vr d-none d-sm-block mx-1" aria-hidden="true"></div>
+
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <?= $year ?>
@@ -255,8 +257,9 @@ include __DIR__ . '/../partials/donor_table.php';
     var rowBtns = document.querySelectorAll('.js-send-one');
     if (!rowBtns.length) return;
 
-    var baseUrl = <?= json_encode(appUrl()) ?>;
-    var year    = <?= (int)$year ?>;
+    var baseUrl  = <?= json_encode(appUrl()) ?>;
+    var year     = <?= (int)$year ?>;
+    var loadErr  = <?= json_encode($GLOBAL['loadError']) ?>;
     function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
 
     var modal      = new bootstrap.Modal(document.getElementById('cotiPreviewModal'));
@@ -291,7 +294,7 @@ include __DIR__ . '/../partials/donor_table.php';
             .then(function (data) {
                 loadingEl.style.display = 'none';
                 if (!data.ok) {
-                    errorEl.textContent = data.error || '?';
+                    errorEl.textContent = data.error || loadErr;
                     errorEl.style.display = '';
                     return;
                 }
@@ -307,7 +310,7 @@ include __DIR__ . '/../partials/donor_table.php';
             })
             .catch(function () {
                 loadingEl.style.display = 'none';
-                errorEl.textContent = '?';
+                errorEl.textContent = loadErr;
                 errorEl.style.display = '';
             });
         });

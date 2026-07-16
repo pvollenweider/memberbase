@@ -194,6 +194,26 @@ $(function () {
     }).observe(document.body, { childList: true });
 })();
 
+// ---------------------------------------------------------------------------
+// Perceived-performance cue for hx-boost="false" navigation (sidebar,
+// topbar, hub tab bars): these cause a full page reload with no htmx
+// loading state, so a slim top progress bar gives instant feedback that
+// the click registered.
+// ---------------------------------------------------------------------------
+document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest('a[href][hx-boost="false"]');
+    if (!a || a.target === '_blank') return;
+    document.documentElement.classList.add('ca-nav-loading');
+    // Safety net: if the dirty-form guard's beforeunload confirm() gets
+    // cancelled, the page never actually navigates away — self-heal instead
+    // of leaving the bar stuck. A real navigation replaces the document
+    // well before this fires, so it's a no-op in the common case.
+    setTimeout(function () {
+        document.documentElement.classList.remove('ca-nav-loading');
+    }, 2000);
+});
+
 // Destroy DataTables before htmx snapshots the DOM for history cache
 // (prevents htmx restoring a DataTables-wrapped DOM that causes column mismatch on re-init)
 document.addEventListener('htmx:beforeHistorySave', function () {

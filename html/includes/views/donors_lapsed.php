@@ -24,6 +24,8 @@ $count = count($rows);
   <?php endif ?>
   <span class="me-2"><?= sprintf($GLOBAL['lapsedDonorsTitle'], $year-1, $year) ?></span>
 
+  <div class="vr d-none d-sm-block mx-1" aria-hidden="true"></div>
+
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <?= $year ?>
