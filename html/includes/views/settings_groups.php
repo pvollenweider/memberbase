@@ -73,9 +73,11 @@ if (!empty($_SESSION['segment_toast'])) {
 }
 ?>
 
-<p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['addSegment'] ?></p>
+<div class="card mb-4">
+<div class="card-header"><?= $GLOBAL['addSegment'] ?></div>
+<div class="card-body">
 
-<form role="form" action="<?= appUrl() ?>" method="post" name="addSegment" class="mb-4">
+<form role="form" action="<?= appUrl() ?>" method="post" name="addSegment" class="mb-0">
   <input type="hidden" name="action" value="addSegmentWithImport"/>
   <input type="hidden" name="view"   value="settings"/>
   <input type="hidden" name="tab"    value="groups"/>
@@ -144,7 +146,12 @@ if (!empty($_SESSION['segment_toast'])) {
   </details>
   <?php endif ?>
 </form>
+</div><!-- .card-body -->
+</div><!-- .card -->
 
+<div class="card mb-4">
+<div class="card-header"><?= $GLOBAL['groups'] ?></div>
+<div class="card-body">
 <form id="bulk-form" action="<?= appUrl() ?>" method="post">
   <input type="hidden" name="action" id="bulk-action" value=""/>
   <input type="hidden" name="view" value="settings"/>
@@ -277,6 +284,8 @@ while ($stmt && $row = $stmt->fetchObject()) {
     </tbody>
   </table>
 </form>
+</div><!-- .card-body -->
+</div><!-- .card -->
 
 <script>
 function toggleHiddenSection(btn) {
@@ -451,8 +460,9 @@ function toggleHiddenSection(btn) {
 </script>
 
 <?php if (count($allSegments) > 1): ?>
-<hr class="my-4">
-<p class="fw-semibold mb-1" style="font-size:0.85rem"><?= $GLOBAL['segmentCascadeRules'] ?></p>
+<div class="card mb-4">
+<div class="card-header"><?= $GLOBAL['segmentCascadeRules'] ?></div>
+<div class="card-body">
 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['segmentCascadeRulesHint'] ?></p>
 
 <?php if ($cascadeRules): ?>
@@ -493,5 +503,7 @@ function toggleHiddenSection(btn) {
   </select>
   <button type="submit" class="btn btn-outline-primary btn-sm"><?= $GLOBAL['addBtn'] ?></button>
 </form>
+</div><!-- .card-body -->
+</div><!-- .card -->
 <?php endif ?>
 

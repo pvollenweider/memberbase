@@ -20,9 +20,9 @@ try {
     // Migration may be pending — show empty state gracefully
 }
 ?>
-<div class="col-md-10">
-  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-    <p class="form-section-title mb-0"><i class="fas fa-list me-1" aria-hidden="true"></i><?= $GLOBAL['emailLog'] ?></p>
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <span><i class="fas fa-list me-1" aria-hidden="true"></i><?= $GLOBAL['emailLog'] ?></span>
     <?php if (!empty($_logRows)): ?>
     <button type="button" class="btn btn-outline-danger btn-sm" id="btn-email-log-purge"
             data-confirm="<?= htmlspecialchars($GLOBAL['emailLogPurgeConfirm'], ENT_QUOTES, $charset) ?>"
@@ -30,7 +30,8 @@ try {
       <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['emailLogPurge'] ?>
     </button>
     <?php endif ?>
-  </div>
+</div><!-- .card-header -->
+<div class="card-body">
   <div id="email-log-purge-msg" class="mb-2"></div>
 
 <?php if (empty($_logRows)): ?>
@@ -82,7 +83,8 @@ try {
   </table>
   </div>
 <?php endif ?>
-</div>
+</div><!-- .card-body -->
+</div><!-- .card -->
 
 <script>
 (function () {

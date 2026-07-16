@@ -63,6 +63,13 @@ if (isset($_REQUEST['year'])) {
 // AJAX search is safe when no complex server-side filter is active
 $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((int)$segment, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
 
+if (empty($_pfEmbedded)) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-users';
+    $_phTitle = $GLOBAL['peopleFinanceTabMembers'];
+    include __DIR__ . '/../partials/page_header.php';
+    echo '<div class="container-xl px-4 ca-hero-overlap">';
+}
 ?>
 <?php if (!empty($_GET['import_done'])): ?>
 <div class="alert alert-success py-2 px-3 mb-3" role="alert" style="font-size:0.85rem">
@@ -73,7 +80,9 @@ $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((in
   <?php endif ?>
 </div>
 <?php endif ?>
-<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-2 flex-wrap">
+  <span class="me-2"><?= $GLOBAL['peopleFinanceTabMembers'] ?></span>
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" id="navbarDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 
@@ -124,6 +133,29 @@ $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((in
                         }
                     } else {
                         $currentSegmentTitle = $GLOBAL['list'];
+                    }
+
+                    // Track for the dashboard's "recent segments" card — session-only,
+                    // most-recent-first, capped, deduped by key. Covers real segments,
+                    // combined segments, and the quick-filter presets, but not the plain
+                    // contact-type filter or the no-filter default (not really "segments").
+                    if ($combinedSegment > 0) {
+                        $_rsegKey = 'cs:' . $combinedSegment;
+                        $_rsegUrl = '?view=peopleFinance&tab=members&combinedSegment=' . $combinedSegment;
+                    } elseif ($segment > 0 || in_array((int)$segment, [FILTER_ALL_EXCEPT_ARCHIVES, FILTER_UNPAID_COTI_3Y, FILTER_NO_ACTIVITY_10Y, FILTER_NON_INSTIT_LAST_YEAR, FILTER_UNPAID_COTI_CURRENT], true)) {
+                        $_rsegKey = ($segment > 0 ? 'sg:' : 'qf:') . $segment;
+                        $_rsegUrl = '?view=peopleFinance&tab=members&segment=' . $segment;
+                    } else {
+                        $_rsegKey = null;
+                    }
+                    if ($_rsegKey !== null) {
+                        $_SESSION['recent_segments'] = array_slice(
+                            array_merge(
+                                [['key' => $_rsegKey, 'url' => $_rsegUrl, 'name' => $currentSegmentTitle]],
+                                array_filter($_SESSION['recent_segments'] ?? [], fn($s) => ($s['key'] ?? '') !== $_rsegKey)
+                            ),
+                            0, 5
+                        );
                     }
                     ?>
 
@@ -215,7 +247,7 @@ $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((in
     <span><?= $GLOBAL['addUser'] ?></span>
   </a>
   <?php endif ?>
-</div>
+</div><!-- .card-header -->
 <script>
 function filterSegmentDropdown(q) {
   var val = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -306,6 +338,7 @@ $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
 <p id="ca-filter-desc" class="text-muted mb-2" style="font-size:0.78rem<?= empty($currentFilterDesc) ? ';display:none' : '' ?>">
   <i class="fas fa-circle-info me-1" aria-hidden="true"></i><span id="ca-filter-desc-text"><?= htmlspecialchars($currentFilterDesc, ENT_COMPAT, $charset) ?></span>
 </p>
+<div class="card-body">
 <div class="table-responsive">
 <table class="table table-hover table-sm export">
 <thead>
@@ -476,6 +509,9 @@ foreach ($_allRows as $row) {
 </tbody>
 </table>
 </div>
+</div>
+</div>
+<?php if (empty($_pfEmbedded)): ?></div><?php endif ?>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 if ($searchString) {

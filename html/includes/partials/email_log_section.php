@@ -45,7 +45,7 @@ try {
   </thead>
   <tbody>
   <?php foreach ($_emailLogs as $_el): ?>
-    <tr<?= $_el->status === 'error' ? ' class="table-danger"' : '' ?>
+    <tr class="js-email-row-link<?= $_el->status === 'error' ? ' table-danger' : '' ?>" style="cursor:pointer" data-email-id="<?= (int)$_el->id ?>"
         <?php if ($_el->status === 'error' && $_el->error_msg): ?>
         title="<?= htmlspecialchars($_el->error_msg, ENT_QUOTES, $charset) ?>"
         <?php endif ?>>
@@ -64,4 +64,55 @@ try {
   <?php endforeach ?>
   </tbody>
 </table>
+
+<!-- Sent-email detail, loaded on demand into this modal on row click instead
+     of navigating to a separate page. -->
+<div class="modal fade" id="email-detail-modal" tabindex="-1" aria-labelledby="email-detail-modal-label" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="email-detail-modal-label"><?= $GLOBAL['viewEmail'] ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= htmlspecialchars($GLOBAL['close'], ENT_QUOTES, $charset) ?>"></button>
+      </div>
+      <div class="modal-body" id="email-detail-modal-body">
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var modalEl   = document.getElementById('email-detail-modal');
+  var modalBody = document.getElementById('email-detail-modal-body');
+  if (!modalEl || !modalBody) return;
+  document.querySelectorAll('tr.js-email-row-link').forEach(function (row) {
+    row.addEventListener('click', function (e) {
+      if (e.target.closest('a, button')) return;
+      modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div></div>';
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
+      var url = <?= json_encode(appUrl()) ?> + '?view=emailDetail&emailid=' + encodeURIComponent(row.dataset.emailId) + '&embedded=1';
+      fetch(url, { headers: { 'HX-Request': 'true' } })
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+          modalBody.innerHTML = html;
+          // <script> tags set via innerHTML never execute — the
+          // iframe-population script in the fetched fragment needs to be
+          // manually re-created to actually run.
+          modalBody.querySelectorAll('script').forEach(function (old) {
+              var s = document.createElement('script');
+              if (old.src) { s.src = old.src; } else { s.textContent = old.textContent; }
+              old.replaceWith(s);
+          });
+          if (window.htmx) htmx.process(modalBody);
+          if (window.casaInit) casaInit(modalBody);
+        })
+        .catch(function () {
+          modalBody.innerHTML = '<div class="alert alert-danger mb-0">' + <?= json_encode($GLOBAL['loadError']) ?> + '</div>';
+        });
+    });
+  });
+})();
+</script>
 <?php endif ?>

@@ -106,7 +106,8 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
   <div class="col-md-6 d-flex flex-column gap-4">
 
     <!-- Edit form -->
-    <div>
+    <div class="card mb-4">
+    <div class="card-body">
       <div class="d-flex align-items-baseline justify-content-between mb-1">
         <p class="form-section-title mb-0"><?= $GLOBAL['editSegment'] ?></p>
         <a href="<?= appUrl() ?>?segment=<?= (int)$id ?>" class="small">
@@ -159,11 +160,13 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
           <a href="<?=appUrl()?>?view=settings&amp;tab=groups" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
         </div>
       </form>
-    </div>
+    </div><!-- .card-body -->
+    </div><!-- .card -->
 
     <!-- Import members -->
     <?php if (count($otherSegments) > 0): ?>
-    <div>
+    <div class="card mb-4">
+    <div class="card-body">
       <form action="<?= appUrl() ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
         <input type="hidden" name="action" value="importSegmentMembers"/>
 
@@ -208,11 +211,13 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
           </div>
         </details>
       </form>
-    </div>
+    </div><!-- .card-body -->
+    </div><!-- .card -->
     <?php endif ?>
 
     <!-- Import cotisation payers by year -->
-    <div>
+    <div class="card mb-4">
+    <div class="card-body">
       <form action="<?= appUrl() ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
         <input type="hidden" name="action" value="importCotisants"/>
 
@@ -256,10 +261,12 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
           </div>
         </details>
       </form>
-    </div>
+    </div><!-- .card-body -->
+    </div><!-- .card -->
 
     <!-- Import donors by year -->
-    <div>
+    <div class="card mb-4">
+    <div class="card-body">
       <form action="<?= appUrl() ?>?view=updateSegment&amp;id=<?= $segment->getId() ?>" method="post">
         <input type="hidden" name="action" value="importDonors"/>
 
@@ -342,10 +349,12 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
           </div>
         </details>
       </form>
-    </div>
+    </div><!-- .card-body -->
+    </div><!-- .card -->
 
     <!-- Delete section -->
-    <div>
+    <div class="card mb-4">
+    <div class="card-body">
       <details>
         <summary class="text-muted" style="cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:0.35rem;font-size:0.8rem">
           <i class="fas fa-chevron-right" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
@@ -443,7 +452,8 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
 
         </div>
       </details>
-    </div>
+    </div><!-- .card-body -->
+    </div><!-- .card -->
 
   </div>
 </div>

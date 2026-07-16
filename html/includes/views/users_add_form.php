@@ -18,12 +18,15 @@ if ($fromSegment > 0) {
     $fromSegmentName = (string)($_ft->fetchColumn() ?: '');
     unset($_ft);
 }
+$_noOuterContainer = true;
+$_phIcon = 'fa-user-plus';
+$_phTitle = $GLOBAL['addUser'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
 
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="row justify-content-center mt-3">
   <div class="col-md-9 col-lg-7">
-
-    <h6 class="form-section-title" style="margin-top:0"><?= $GLOBAL['addUser'] ?></h6>
 
     <form action="<?= appUrl() ?>?action=addUser&amp;view=updateUser" method="post" id="addUser">
       <?php if ($fromSegment > 0): ?>
@@ -198,4 +201,5 @@ if ($fromSegment > 0) {
 
     </form>
   </div>
+</div>
 </div>

@@ -14,8 +14,15 @@ $donsOnly = !empty($_REQUEST['dons_only']);
 $filterTypeId = isset($_REQUEST['type_id']) ? (int)$_REQUEST['type_id'] : 0;
 $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
 $to = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
+
+// Years actually holding a compta entry for this member — no point offering
+// a filter/recap year with nothing in it.
+$_comptaYearsStmt = db()->prepare("SELECT DISTINCT YEAR(date) AS y FROM compta WHERE user_id = ? ORDER BY y DESC");
+$_comptaYearsStmt->execute([(int)$user->getId()]);
+$_comptaYears = array_map('intval', $_comptaYearsStmt->fetchAll(PDO::FETCH_COLUMN));
 ?>
-<div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-2 flex-wrap">
 
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -25,14 +32,10 @@ $to = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
       <li><a class="dropdown-item<?= $year == -2 ? ' active' : '' ?>"
              href="<?=appUrl()?>?view=compta&amp;userid=<?=$user->getId()?>&amp;year=-2"><?=$GLOBAL['allYear']?></a></li>
       <li><hr class="dropdown-divider"></li>
-      <?php
-      $currentYear = date("Y");
-      for ($i = 0; $i < 10; $i++) {
-          $y = $currentYear - $i;
-          ?><li><a class="dropdown-item<?= $year == $y ? ' active' : '' ?>"
-               href="<?=appUrl()?>?view=compta&amp;userid=<?=$user->getId()?>&amp;year=<?=$y?>"><?=$y?></a></li><?php
-      }
-      ?>
+      <?php foreach ($_comptaYears as $y): ?>
+      <li><a class="dropdown-item<?= $year == $y ? ' active' : '' ?>"
+             href="<?=appUrl()?>?view=compta&amp;userid=<?=$user->getId()?>&amp;year=<?=$y?>"><?=$y?></a></li>
+      <?php endforeach ?>
     </ul>
   </div>
 
@@ -44,6 +47,7 @@ $to = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
     <label class="form-check-label small" for="dons-only-toggle"><?= $GLOBAL['donationsOnly'] ?></label>
   </div>
 
+  <?php $currentYear = date("Y"); ?>
   <?php if ($year != -2): ?>
   <?php
   // Count excluded-from-donation entries in the current year view (without type filter to give full picture)
@@ -253,7 +257,8 @@ $to = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
   </button>
   <?php endif ?>
 
-</div>
+</div><!-- .card-header -->
+<div class="card-body">
 
 <?php if (($year ?? -2) != -2 && ($_exclCount ?? 0) > 0): ?>
 <div class="alert alert-warning py-2 d-flex align-items-start gap-2" style="font-size:0.85rem" role="alert">
@@ -399,7 +404,12 @@ while ($row = $stmt->fetchObject()) {
     ];
     $rowStyle = isset($bgVarMap[$ctColor]) ? '--bs-table-bg:' . $bgVarMap[$ctColor] : '';
     ?>
-     <tr <?= canWrite() ? 'class="ca-row-link" data-href="' . appUrl() . '?view=updateCompta&comptaid=' . (int)$id . '&userid=' . (int)$user->getId() . '&year=' . (int)$year . '" style="cursor:pointer;' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' : 'style="' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' ?>>
+     <?php /* data-compta-href (not data-href): this row's click is handled by
+              _comptaListInit() below to open the edit modal — the generic
+              datahref jQuery plugin (app.js casaInit(), used for other
+              row-link tables in this app) binds to any [data-href] element,
+              which would otherwise race with and override this modal. */ ?>
+     <tr <?= canWrite() ? 'class="ca-row-link" data-compta-href="' . appUrl() . '?view=updateCompta&comptaid=' . (int)$id . '&userid=' . (int)$user->getId() . '&year=' . (int)$year . '" style="cursor:pointer;' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' : 'style="' . htmlentities($rowStyle, ENT_COMPAT, $charset) . '"' ?>>
         <td>
             <?= htmlentities($row->ct_label ?? '', ENT_COMPAT, $charset) ?>
             <?php if ($row->ct_coti && $row->cotisation_year): ?>
@@ -468,15 +478,66 @@ while ($row = $stmt->fetchObject()) {
   </a>
 </p>
 <?php endif ?>
+</div><!-- .card-body -->
+</div><!-- .card -->
+
+<!-- Compta entry edit form, loaded on demand into this modal on row click
+     (compta_list.php's own row-click handler below) instead of navigating to
+     a separate page. -->
+<div class="modal fade" id="compta-edit-modal" tabindex="-1" aria-labelledby="compta-edit-modal-label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="compta-edit-modal-label"><?= $GLOBAL['editCompta'] ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= htmlspecialchars($GLOBAL['close'], ENT_QUOTES, $charset) ?>"></button>
+      </div>
+      <div class="modal-body" id="compta-edit-modal-body">
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 function _comptaListInit() {
-    // Row click navigation
+    // Row click: load the edit form into a modal instead of navigating away.
+    // Plain fetch() (not htmx.ajax()) with a spoofed HX-Request header — the
+    // app-wide htmx:afterSwap handler in app.js strips any open modal's
+    // backdrop on every htmx-driven swap, which would fight an htmx.ajax()
+    // load into this same modal. htmx.process() re-scans the injected HTML
+    // afterward so the form's hx-boost submit still works normally; on a
+    // successful save the server's HX-Location response drives htmx's own
+    // boosted navigation, which replaces #main-content (including this
+    // modal's whole DOM subtree) with the refreshed list.
     var tbody = document.querySelector('form[name="addCompta"] tbody');
-    if (tbody) tbody.addEventListener('click', function(e) {
+    var modalEl = document.getElementById('compta-edit-modal');
+    var modalBody = document.getElementById('compta-edit-modal-body');
+    if (tbody && modalEl && modalBody) tbody.addEventListener('click', function(e) {
         var tr = e.target.closest('tr.ca-row-link');
         if (!tr) return;
         if (e.target.closest('a, button')) return;
-        window.location.href = tr.dataset.href;
+        modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div></div>';
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        fetch(tr.dataset.comptaHref + '&embedded=1', { headers: { 'HX-Request': 'true' } })
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+                modalBody.innerHTML = html;
+                // <script> tags set via innerHTML never execute — the
+                // cotisation-year toggle script in the fetched form needs to
+                // be manually re-created to actually run.
+                modalBody.querySelectorAll('script').forEach(function (old) {
+                    var s = document.createElement('script');
+                    if (old.src) { s.src = old.src; } else { s.textContent = old.textContent; }
+                    old.replaceWith(s);
+                });
+                if (window.htmx) htmx.process(modalBody);
+                if (window.casaInit) casaInit(modalBody);
+            })
+            .catch(function () {
+                modalBody.innerHTML = '<div class="alert alert-danger mb-0">' + <?= json_encode($GLOBAL['loadError'] ?? 'Erreur de chargement') ?> + '</div>';
+            });
     });
 
     // Show cotisation_year field only for cotisation types
@@ -538,6 +599,7 @@ if (document.readyState === 'loading') {
 </script>
 
 <?php if (isManager() && trim($user->getEmail()) !== ''): ?>
+<?php $_recapYears = $_comptaYears ?: [(int)date('Y')]; ?>
 <!-- Recap send modal for this user -->
 <div class="modal fade" id="modal-send-recap-user" tabindex="-1"
      aria-labelledby="modal-send-recap-user-label" aria-hidden="true">
@@ -553,25 +615,23 @@ if (document.readyState === 'loading') {
       <div class="modal-body" style="overflow:visible;min-height:500px">
         <!-- Controls -->
         <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+          <?php $_recapDefaultYear = $_recapYears[0]; ?>
           <div class="dropdown">
             <button class="ca-filter-btn dropdown-toggle" type="button" id="recap-user-year-btn"
                     data-bs-toggle="dropdown" aria-expanded="false">
-              <?= (int)date('Y') ?>
+              <?= $_recapDefaultYear ?>
             </button>
             <ul class="dropdown-menu" id="recap-user-year-menu">
-              <?php for ($i = 0; $i < 10; $i++): $y = (int)date('Y') - $i; ?>
-              <li><a class="dropdown-item recap-user-year-item<?= $i === 0 ? ' active' : '' ?>"
+              <?php foreach ($_recapYears as $y): ?>
+              <li><a class="dropdown-item recap-user-year-item<?= $y === $_recapDefaultYear ? ' active' : '' ?>"
                      data-year="<?= $y ?>" href="#"><?= $y ?></a></li>
-              <?php endfor ?>
+              <?php endforeach ?>
             </ul>
           </div>
           <div id="recap-scope-toggle-wrap" class="form-check form-switch mb-0" style="font-size:0.875rem">
             <input class="form-check-input" type="checkbox" role="switch" id="recap-scope-all" data-no-dirty>
             <label class="form-check-label text-muted" for="recap-scope-all"><?= $GLOBAL['comptaRecapScopeAll'] ?></label>
           </div>
-          <button type="button" class="btn btn-outline-primary btn-sm" id="btn-recap-user-preview">
-            <i class="fas fa-eye me-1" aria-hidden="true"></i><?= $GLOBAL['preview'] ?? 'Prévisualiser' ?>
-          </button>
         </div>
         <!-- Preview area -->
         <div id="recap-user-loading" style="display:none;align-items:center;justify-content:center;padding:3rem 0"></div>
@@ -598,8 +658,8 @@ if (document.readyState === 'loading') {
   function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
   var baseUrl    = <?= json_encode(appUrl()) ?>;
   var userId     = <?= (int)$user->getId() ?>;
-  var recapYear  = <?= (int)date('Y') ?>;
-  var currentYear = recapYear;
+  var recapYear  = <?= $_recapDefaultYear ?>;
+  var currentYear = <?= (int)date('Y') ?>;
 
   function isForceScope() {
     var el = document.getElementById('recap-scope-all');
@@ -628,13 +688,16 @@ if (document.readyState === 'loading') {
       document.querySelectorAll('.recap-user-year-item').forEach(function (el) { el.classList.remove('active'); });
       this.classList.add('active');
       updateScopeToggle();
-      // Reset preview
-      document.getElementById('recap-user-frame').style.display   = 'none';
-      document.getElementById('recap-user-subject').style.display = 'none';
-      document.getElementById('recap-user-empty').style.display   = 'none';
-      document.getElementById('btn-recap-user-send').disabled     = true;
+      loadPreview();
     });
   });
+
+  document.getElementById('recap-scope-all').addEventListener('change', loadPreview);
+
+  // Always show the preview — nothing to configure that isn't already
+  // reflected by the year/scope controls above, no reason to make the
+  // manager click an extra "Prévisualiser" button first.
+  document.getElementById('modal-send-recap-user').addEventListener('shown.bs.modal', loadPreview);
 
   function showRecapUserLoading(on) {
     var el = document.getElementById('recap-user-loading');
@@ -642,7 +705,7 @@ if (document.readyState === 'loading') {
     if (on) el.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>';
   }
 
-  document.getElementById('btn-recap-user-preview').addEventListener('click', function () {
+  function loadPreview() {
     var force = isForceScope() ? '1' : '';
     showRecapUserLoading(true);
     document.getElementById('recap-user-error').style.display   = 'none';
@@ -669,7 +732,7 @@ if (document.readyState === 'loading') {
           if (scopeVisible && !document.getElementById('recap-scope-all').checked) {
             // Current year, new-only mode → auto-switch to all and retry
             document.getElementById('recap-scope-all').checked = true;
-            document.getElementById('btn-recap-user-preview').click();
+            loadPreview();
             return;
           }
           // Force was already on and still nothing — truly no entries
@@ -700,7 +763,7 @@ if (document.readyState === 'loading') {
       el.textContent = '<?= addslashes($GLOBAL['error'] ?? 'Erreur réseau') ?>';
       el.style.display = '';
     });
-  });
+  }
 
   document.getElementById('btn-recap-user-send').addEventListener('click', function () {
     var force = isForceScope() ? '1' : '';
@@ -818,20 +881,28 @@ $_showTimeline = count($_periodAgg) >= 2;
 
   <!-- Donut: répartition par type -->
   <div class="col-md-5">
-    <p class="text-muted small fw-semibold mb-2 text-center"><?= $GLOBAL['distByType'] ?></p>
-    <div style="position:relative;height:300px">
-      <canvas id="myChart"></canvas>
+    <div class="card">
+      <div class="card-header"><?= $GLOBAL['distByType'] ?></div>
+      <div class="card-body">
+        <div style="position:relative;height:300px">
+          <canvas id="myChart"></canvas>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Timeline -->
   <?php if ($_showTimeline): ?>
   <div class="col-md-7">
-    <p class="text-muted small fw-semibold mb-2 text-center">
-      <?= $year == -2 ? $GLOBAL['historyByYear'] : $GLOBAL['monthlyVsCumulative'] ?>
-    </p>
-    <div style="position:relative;height:260px">
-      <canvas id="timelineChart"></canvas>
+    <div class="card">
+      <div class="card-header">
+        <?= $year == -2 ? $GLOBAL['historyByYear'] : $GLOBAL['monthlyVsCumulative'] ?>
+      </div>
+      <div class="card-body">
+        <div style="position:relative;height:260px">
+          <canvas id="timelineChart"></canvas>
+        </div>
+      </div>
     </div>
   </div>
   <?php endif ?>

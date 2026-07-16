@@ -73,8 +73,13 @@ $_muDivergentJson = json_encode($_muDivergent);
 $_muDefaultsJson  = json_encode($_muDefaults);
 $_muNameA = htmlspecialchars(trim($_muUserA->firstName . ' ' . $_muUserA->lastName), ENT_QUOTES, $charset);
 $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastName), ENT_QUOTES, $charset);
+$_noOuterContainer = true;
+$_phIcon = 'fa-code-merge';
+$_phTitle = $GLOBAL['mergeTwoMembers'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
 
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="ca-merge-wrap" x-data="mergeApp()" x-cloak>
 
   <div class="d-flex align-items-center gap-2 mb-4" style="font-size:0.8rem">
@@ -85,9 +90,6 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
     <span class="text-muted"><?= $GLOBAL['memberMerge'] ?></span>
   </div>
 
-  <div class="d-flex align-items-baseline gap-3 mb-1">
-    <h1 class="ca-merge-title"><?= $GLOBAL['mergeTwoMembers'] ?></h1>
-  </div>
   <p class="text-muted mb-4" style="font-size:0.85rem">
     <?= $GLOBAL['mergeInstruction'] ?>
     <?php if (empty($_muDivergent)): ?>
@@ -308,6 +310,7 @@ $_muNameB = htmlspecialchars(trim($_muUserB->firstName . ' ' . $_muUserB->lastNa
   </dialog>
 
 </div><!-- .ca-merge-wrap -->
+</div>
 
 <script>
 function mergeApp() {

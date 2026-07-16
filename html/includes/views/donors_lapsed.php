@@ -15,17 +15,16 @@ require_once __DIR__ . '/../lib/donor.php';
 $rows  = mbGetLapsedDonors(db(), $year);
 $count = count($rows);
 ?>
-<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-2 flex-wrap">
   <?php if (empty($_pfEmbedded)): ?>
   <a href="<?= appUrl() ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToDonationOverview'] ?>
   </a>
   <?php endif ?>
-  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    <?= sprintf($GLOBAL['lapsedDonorsTitle'], $year-1, $year) ?>
-  </span>
+  <span class="me-2"><?= sprintf($GLOBAL['lapsedDonorsTitle'], $year-1, $year) ?></span>
 
-  <div class="dropdown ms-1">
+  <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <?= $year ?>
     </button>
@@ -36,14 +35,15 @@ $count = count($rows);
       <?php endfor ?>
     </ul>
   </div>
-</div>
 
-<?php if (isManager()): ?>
-<button type="button" class="btn btn-outline-warning btn-sm mb-3"
-        data-bs-toggle="modal" data-bs-target="#modal-create-lapsed-donors">
-  <i class="fas fa-users me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['createSegmentLapsedDonors'], $year) ?>
-</button>
-<?php endif ?>
+  <?php if (isManager()): ?>
+  <button type="button" class="btn btn-outline-warning btn-sm ms-auto"
+          data-bs-toggle="modal" data-bs-target="#modal-create-lapsed-donors">
+    <i class="fas fa-users me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['createSegmentLapsedDonors'], $year) ?>
+  </button>
+  <?php endif ?>
+</div><!-- .card-header -->
+<div class="card-body">
 
 <div class="modal fade" id="modal-create-lapsed-donors" tabindex="-1" aria-labelledby="modal-create-lapsed-donors-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -96,3 +96,5 @@ $extra_columns = [
 $row_href = fn($row) => appUrl() . '?view=compta&userid=' . (int)$row->id;
 include __DIR__ . '/../partials/donor_table.php';
 ?>
+</div><!-- .card-body -->
+</div><!-- .card -->

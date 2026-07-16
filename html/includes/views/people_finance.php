@@ -1,100 +1,58 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * Unified "Membres & finances" hub — tab shell over five list views that
- * used to be separate destinations (#164). Liste (users_list.php),
- * Notification de versement (compta_recap.php, managers only — pending
- * unnotified compta entries), Mouvements membres/donateurs (members_lapsed.php
- * /members_new.php/donors_lapsed.php/donors_new.php — open to all roles;
- * the actions inside (send reminder, create segment) are individually
- * isManager()-gated), Dons & attestations (donors_summary.php — KPI
- * cards/pie already live on the dashboard, #153, so they're suppressed here
- * via $_pfEmbedded).
+ * "Membres & finances" hub — the sidebar nav navigates straight to a
+ * specific tab via ?tab=, so this renders only the ONE matching pane per
+ * request rather than all five.
+ * Liste (users_list.php), Notification de versement (compta_recap.php,
+ * managers only — pending unnotified compta entries), Mouvements
+ * membres/donateurs (members_lapsed.php/members_new.php/donors_lapsed.php
+ * /donors_new.php — open to all roles; the actions inside (send reminder,
+ * create segment) are individually isManager()-gated), Dons & attestations
+ * (donors_summary.php — KPI cards/pie already live on the dashboard,
+ * so they're suppressed here via $_pfEmbedded).
  *
- * Linked from the navbar ("Membres & finances", desktop and mobile). The
- * underlying standalone routes (?view=list, ?view=comptaRecap, ?view=resume)
- * still work — only removed from the menu. ?view=lapsedMembers no longer
- * exists as its own route; it redirects to this hub's "lapsed" tab
- * (includes/routing/views.php).
+ * Linked from the sidebar nav ("Membres & finances" submenu). The underlying
+ * standalone routes (?view=list, ?view=comptaRecap, ?view=resume) still
+ * work. ?view=lapsedMembers no longer exists as its own route; it redirects
+ * to this hub's "lapsed" tab (includes/routing/views.php).
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 $_pfTab = in_array($_REQUEST['tab'] ?? '', ['members', 'recap', 'lapsed', 'lapsedDonors', 'dons'], true) ? $_REQUEST['tab'] : 'members';
-$_pfPane = fn(string $tab): string => $_pfTab === $tab ? ' show active' : '';
+if ($_pfTab === 'recap' && !isManager()) {
+    $_pfTab = 'members'; // guard against a stale/crafted ?tab=recap for non-managers
+}
 
-// Each tab's content is an independently-written view file, never designed
-// to coexist in one request (Bootstrap tabs render every pane server-side,
-// only toggling CSS visibility client-side — so with 2+ real tabs, more
-// than one of these actually executes per request). A closure gives each
-// its own local scope so top-level variable names (both use $year!) can't
-// collide, while still exposing the handful of bootstrap globals they read.
+// Each embedded view file is independently written, not designed to coexist
+// in one request — a closure gives it its own local scope so top-level
+// variable names (both use $year!) can't collide, while still exposing the
+// handful of bootstrap globals it reads.
 $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $charset, $appSettings, $comptaTypes, $pdo) {
     extract($vars);
     require $file;
 };
+
+// Hero header needs to span edge-to-edge under the topbar, so this view
+// owns its own container-xl instead of being boxed by index.php's generic
+// wrapper.
+$_noOuterContainer = true;
+$_phIcon = 'fa-users';
+$_phTitle = $GLOBAL['peopleFinancePageTitle'];
+$_phSubtitle = $GLOBAL['peopleFinanceTab' . ucfirst($_pfTab)] ?? '';
+include __DIR__ . '/../partials/page_header.php';
 ?>
 
-<div class="page-title-row mb-3">
-  <h1 class="page-title"><?= $GLOBAL['peopleFinancePageTitle'] ?></h1>
-</div>
-
-<ul class="nav nav-tabs mb-3" role="tablist">
-  <li class="nav-item" role="presentation">
-    <button class="nav-link<?= $_pfTab === 'members' ? ' active' : '' ?>" id="pf-tab-members-btn"
-            data-bs-toggle="tab" data-bs-target="#pf-tab-members" type="button" role="tab"
-            aria-controls="pf-tab-members" aria-selected="<?= $_pfTab === 'members' ? 'true' : 'false' ?>">
-      <i class="fas fa-users me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabMembers'] ?>
-    </button>
-  </li>
-  <?php if (isManager()): ?>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link<?= $_pfTab === 'recap' ? ' active' : '' ?>" id="pf-tab-recap-btn"
-            data-bs-toggle="tab" data-bs-target="#pf-tab-recap" type="button" role="tab"
-            aria-controls="pf-tab-recap" aria-selected="<?= $_pfTab === 'recap' ? 'true' : 'false' ?>">
-      <i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabRecap'] ?>
-    </button>
-  </li>
-  <?php endif ?>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link<?= $_pfTab === 'dons' ? ' active' : '' ?>" id="pf-tab-dons-btn"
-            data-bs-toggle="tab" data-bs-target="#pf-tab-dons" type="button" role="tab"
-            aria-controls="pf-tab-dons" aria-selected="<?= $_pfTab === 'dons' ? 'true' : 'false' ?>">
-      <i class="fas fa-hand-holding-heart me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabDons'] ?>
-    </button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link<?= $_pfTab === 'lapsed' ? ' active' : '' ?>" id="pf-tab-lapsed-btn"
-            data-bs-toggle="tab" data-bs-target="#pf-tab-lapsed" type="button" role="tab"
-            aria-controls="pf-tab-lapsed" aria-selected="<?= $_pfTab === 'lapsed' ? 'true' : 'false' ?>">
-      <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabLapsed'] ?>
-    </button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link<?= $_pfTab === 'lapsedDonors' ? ' active' : '' ?>" id="pf-tab-lapsedDonors-btn"
-            data-bs-toggle="tab" data-bs-target="#pf-tab-lapsedDonors" type="button" role="tab"
-            aria-controls="pf-tab-lapsedDonors" aria-selected="<?= $_pfTab === 'lapsedDonors' ? 'true' : 'false' ?>">
-      <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabLapsedDonors'] ?>
-    </button>
-  </li>
-</ul>
-
-<div class="tab-content">
-  <div class="tab-pane fade<?= $_pfPane('members') ?>" id="pf-tab-members" role="tabpanel" aria-labelledby="pf-tab-members-btn">
+<div class="container-xl px-4 ca-hero-overlap">
+<div id="pf-active-pane">
+  <?php if ($_pfTab === 'members'): ?>
     <?php $_pfRequireIsolated(__DIR__ . '/users_list.php', ['_pfEmbedded' => true]); ?>
-  </div>
-
-  <?php if (isManager()): ?>
-  <div class="tab-pane fade<?= $_pfPane('recap') ?>" id="pf-tab-recap" role="tabpanel" aria-labelledby="pf-tab-recap-btn">
+  <?php elseif ($_pfTab === 'recap'): ?>
     <?php $_pfRequireIsolated(__DIR__ . '/compta_recap.php', ['_pfEmbedded' => true]); ?>
-  </div>
-  <?php endif ?>
-
-  <div class="tab-pane fade<?= $_pfPane('dons') ?>" id="pf-tab-dons" role="tabpanel" aria-labelledby="pf-tab-dons-btn">
+  <?php elseif ($_pfTab === 'dons'): ?>
     <?php $_pfRequireIsolated(__DIR__ . '/donors_summary.php', ['_pfEmbedded' => true]); ?>
-  </div>
-
-  <div class="tab-pane fade<?= $_pfPane('lapsed') ?>" id="pf-tab-lapsed" role="tabpanel" aria-labelledby="pf-tab-lapsed-btn">
+  <?php elseif ($_pfTab === 'lapsed'): ?>
     <?php $_pfCohortMembers = ($_REQUEST['cohort'] ?? '') === 'new' ? 'new' : 'lapsed'; ?>
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
       <ul class="nav nav-pills mb-0" role="tablist">
@@ -125,9 +83,8 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
         <?php $_pfRequireIsolated(__DIR__ . '/members_new.php', ['_pfEmbedded' => true]); ?>
       </div>
     </div>
-  </div>
 
-  <div class="tab-pane fade<?= $_pfPane('lapsedDonors') ?>" id="pf-tab-lapsedDonors" role="tabpanel" aria-labelledby="pf-tab-lapsedDonors-btn">
+  <?php elseif ($_pfTab === 'lapsedDonors'): ?>
     <?php $_pfCohortDonors = ($_REQUEST['cohort'] ?? '') === 'new' ? 'new' : 'lapsed'; ?>
     <ul class="nav nav-pills mb-3" role="tablist">
       <li class="nav-item" role="presentation">
@@ -153,36 +110,24 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
         <?php $_pfRequireIsolated(__DIR__ . '/donors_new.php', ['_pfEmbedded' => true]); ?>
       </div>
     </div>
-  </div>
+  <?php endif ?>
+</div>
 </div>
 
 <script src="js/hub-tabs.js?v=<?= APP_VERSION ?>"></script>
 <script>
-// If the page lands on a non-Membres tab (?tab=recap/dons) the DataTable
-// initializes while its pane is hidden and mis-measures column widths —
-// force a re-adjust once the Membres tab is actually shown.
-document.getElementById('pf-tab-members-btn')?.addEventListener('shown.bs.tab', function () {
-  if (window.CA_DT_INSTANCE) { CA_DT_INSTANCE.columns.adjust(); }
-});
-document.getElementById('pf-tab-dons-btn')?.addEventListener('shown.bs.tab', function () {
-  if (window.CA_DT_INSTANCE_DONS) { CA_DT_INSTANCE_DONS.columns.adjust(); }
-});
-
-// Filter links inside the Relances/Cotisations non renouvelées/Dons tabs
-// still point at their own standalone route (?view=comptaRecap /
-// ?view=lapsedMembers / ?view=resume) — rewrite them to stay inside the
-// hub, and keep ?tab= in sync when switching tabs so the current tab is
-// directly linkable.
-caHubRewriteEmbeddedLinks('#pf-tab-recap', 'comptaRecap', 'peopleFinance', 'recap');
-caHubRewriteEmbeddedLinks('#pf-tab-lapsed', 'lapsedMembers', 'peopleFinance', 'lapsed');
-caHubRewriteEmbeddedLinks('#pf-tab-dons', 'resume', 'peopleFinance', 'dons');
-caHubRewriteEmbeddedLinks('#pf-tab-lapsedDonors', 'lapsedDonors', 'peopleFinance', 'lapsedDonors');
-caHubEnableTabDeepLink('#pf-tab-members-btn, #pf-tab-recap-btn, #pf-tab-lapsed-btn, #pf-tab-dons-btn, #pf-tab-lapsedDonors-btn', /^pf-tab-(\w+)-btn$/);
+// Filter links inside the active pane still point at their own standalone
+// route (?view=comptaRecap / ?view=lapsedMembers / ?view=resume) — rewrite
+// them to stay inside the hub (sidebar-nav-driven ?view=peopleFinance&tab=...).
+caHubRewriteEmbeddedLinks('#pf-active-pane', 'comptaRecap', 'peopleFinance', 'recap');
+caHubRewriteEmbeddedLinks('#pf-active-pane', 'lapsedMembers', 'peopleFinance', 'lapsed');
+caHubRewriteEmbeddedLinks('#pf-active-pane', 'resume', 'peopleFinance', 'dons');
+caHubRewriteEmbeddedLinks('#pf-active-pane', 'lapsedDonors', 'peopleFinance', 'lapsedDonors');
 
 // "Perdus"/"Nouveaux" cohort pills inside the lapsed-members and
-// lapsed-donors tabs — keep ?cohort= in sync the same way ?tab= is, so a
-// direct cohort pill is bookmarkable/shareable (dashboard shortcuts link
-// straight to ?tab=lapsed&cohort=new, for instance).
+// lapsed-donors panes — keep ?cohort= in sync so a direct cohort pill is
+// bookmarkable/shareable (dashboard shortcuts link straight to
+// ?tab=lapsed&cohort=new, for instance).
 caHubEnableTabDeepLink('#pf-cohort-members-lapsed-btn, #pf-cohort-members-new-btn', /^pf-cohort-members-(\w+)-btn$/, 'cohort');
 caHubEnableTabDeepLink('#pf-cohort-donors-lapsed-btn, #pf-cohort-donors-new-btn', /^pf-cohort-donors-(\w+)-btn$/, 'cohort');
 </script>

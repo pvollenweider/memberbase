@@ -32,8 +32,21 @@ $_editAllowedTypeIds = array_unique(array_merge(
     mbAllowedComptaTypeIdsForContact(db(), $user->getContactTypeId(), (array)$comptaTypes),
     [(int)$typeId]
 ));
+// Embedded mode: loaded via fetch() into the compta list's edit modal
+// (compta_list.php's row-click handler) instead of navigating to this view's
+// own page — skip the hero header and the page's own centering wrapper,
+// the modal already provides both title and framing.
+$_ceEmbedded = !empty($_REQUEST['embedded']);
+if (!$_ceEmbedded) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-file-contract';
+    $_phTitle = $GLOBAL['compta'];
+    include __DIR__ . '/../partials/page_header.php';
+}
 ?>
 
+<?php if (!$_ceEmbedded): ?>
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="row justify-content-center mt-3">
   <div class="col-md-7 col-lg-5">
 
@@ -46,6 +59,7 @@ $_editAllowedTypeIds = array_unique(array_merge(
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= htmlentities($user->getFirstName(), ENT_COMPAT, $charset) ?> <?= htmlentities($user->getLastName(), ENT_COMPAT, $charset) ?>
       </a>
     </div>
+    <?php endif ?>
 
     <form role="form" action="<?= appUrl() ?>" name="updateCompta" method="post">
       <input type="hidden" name="comptaid" value="<?= $compta->getId() ?>"/>
@@ -135,6 +149,9 @@ $_editAllowedTypeIds = array_unique(array_merge(
       <div class="row">
         <div class="col-8 offset-4 col-sm-9 offset-sm-3 d-flex align-items-center gap-3">
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
+          <?php if ($_ceEmbedded): ?>
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+          <?php endif ?>
           <a href="<?= appUrl() ?>?userid=<?= $user->getId() ?>&amp;view=removeCompta&amp;comptaid=<?= $comptaid ?>"
              class="btn btn-outline-danger btn-sm">
             <i class="fas fa-xmark me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
@@ -143,8 +160,11 @@ $_editAllowedTypeIds = array_unique(array_merge(
       </div>
 
     </form>
+<?php if (!$_ceEmbedded): ?>
   </div>
 </div>
+</div>
+<?php endif ?>
 <script>
 (function() {
     var cotiIds = <?= json_encode($_cotiTypeIdsEdit) ?>;

@@ -13,27 +13,21 @@ $inactiveUsers = db()->query(
      ORDER BY society, lastName, firstName"
 )->fetchAll(PDO::FETCH_OBJ);
 $allSegments = db()->query("SELECT id, name, hidden FROM segment ORDER BY hidden ASC, name ASC")->fetchAll(PDO::FETCH_OBJ);
-require_once __DIR__ . '/../partials/settings_nav.php';
+
+$_noOuterContainer = true;
+$_phIcon = 'fa-gear';
+$_phTitle = $GLOBAL['administration'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
-<div class="row justify-content-center mt-4">
-  <div class="col-12 col-xl-10">
+<div class="container-xl px-4 ca-hero-overlap">
 
-    <?php mbRenderSettingsMobileSelect('inactiveUsers', true); ?>
-
-    <div class="ca-settings-layout">
-
-      <?php mbRenderSettingsNav('inactiveUsers', true); ?>
-
-      <!-- Content -->
-      <div class="ca-settings-content">
-
-        <p class="form-section-title mb-1">
-          <i class="fas fa-archive me-1" aria-hidden="true"></i><?= $GLOBAL['archivedMembers'] ?>
-        </p>
+        <div class="card mb-4">
+        <div class="card-header"><i class="fas fa-archive me-1" aria-hidden="true"></i><?= $GLOBAL['archivedMembers'] ?></div>
+        <div class="card-body">
         <p class="small text-muted mb-4"><?= $GLOBAL['archivedMembersHint'] ?></p>
 
         <?php if (empty($inactiveUsers)): ?>
-        <div class="alert alert-success py-2 px-3" role="alert" style="font-size:0.85rem">
+        <div class="alert alert-success py-2 px-3 mb-0" role="alert" style="font-size:0.85rem">
           <i class="fas fa-check-circle me-1" aria-hidden="true"></i><?= $GLOBAL['noArchivedMembers'] ?>
         </div>
         <?php else: ?>
@@ -71,8 +65,8 @@ require_once __DIR__ . '/../partials/settings_nav.php';
           </tbody>
         </table>
         <?php endif ?>
-
-      </div><!-- /.ca-settings-content -->
+        </div><!-- .card-body -->
+        </div><!-- .card -->
 
       <!-- Modal désarchivage (réutilisé pour toutes les lignes) -->
       <div class="modal fade" id="unarchive-modal" tabindex="-1" aria-labelledby="unarchive-modal-label" aria-hidden="true">
@@ -115,6 +109,4 @@ require_once __DIR__ . '/../partials/settings_nav.php';
         document.getElementById('unarchive-form').submit();
       });
       </script>
-    </div><!-- /.ca-settings-layout -->
-  </div>
 </div>

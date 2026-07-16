@@ -30,9 +30,9 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
       && empty($noName) && empty($cascadeMissing);
 ?>
 
-<p class="form-section-title mb-1">
-  <i class="fas fa-stethoscope me-1" aria-hidden="true"></i><?= $GLOBAL['integrity'] ?>
-</p>
+<div class="card mb-4">
+<div class="card-header"><i class="fas fa-stethoscope me-1" aria-hidden="true"></i><?= $GLOBAL['integrity'] ?></div>
+<div class="card-body">
 <p class="small text-muted mb-3"><?= $GLOBAL['integrityHelp'] ?></p>
 
 <?php if ($allOk): ?>
@@ -463,3 +463,6 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
 <?php endif ?>
 
 <?php endif ?>
+
+</div><!-- .card-body -->
+</div><!-- .card -->

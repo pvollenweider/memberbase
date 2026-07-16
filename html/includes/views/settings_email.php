@@ -10,7 +10,9 @@ if (!isAdmin()) { ?>
   <div class="alert alert-danger" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i><?= $GLOBAL['adminOnly'] ?></div>
 <?php return; } ?>
 
-<div class="col-md-8">
+<div class="card mb-4">
+<div class="card-header"><?= $GLOBAL['smtpSettings'] ?></div>
+<div class="card-body">
 <div id="smtp-save-msg"></div>
 <form action="<?= appUrl() ?>" method="post"
       hx-post="<?= appUrl() ?>"
@@ -19,7 +21,7 @@ if (!isAdmin()) { ?>
   <input type="hidden" name="action" value="saveSmtp"/>
   <input type="hidden" name="view"   value="settings"/>
 
-  <p class="form-section-title"><i class="fas fa-server me-1" aria-hidden="true"></i><?= $GLOBAL['smtpServer'] ?></p>
+  <p class="form-section-title" style="margin-top:0"><i class="fas fa-server me-1" aria-hidden="true"></i><?= $GLOBAL['smtpServer'] ?></p>
 
   <div class="row g-2 mb-3">
     <div class="col-sm-8">
@@ -108,11 +110,13 @@ if (!isAdmin()) { ?>
     </button>
   </div>
 </form>
-
-<hr class="my-4">
+</div><!-- .card-body -->
+</div><!-- .card -->
 
 <!-- Test email -->
-<p class="form-section-title"><i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['smtpTest'] ?></p>
+<div class="card mb-4">
+<div class="card-header"><i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['smtpTest'] ?></div>
+<div class="card-body">
 <div class="d-flex gap-2 align-items-end flex-wrap mb-2" style="max-width:440px">
   <div class="flex-grow-1">
     <label class="form-label fw-semibold" style="font-size:0.85rem" for="s_smtp_test_to"><?= $GLOBAL['smtpTestTo'] ?></label>
@@ -125,13 +129,10 @@ if (!isAdmin()) { ?>
   </button>
 </div>
 <div id="smtp-test-result" style="font-size:0.85rem"></div>
-</div>
-
-<hr class="my-4">
+</div><!-- .card-body -->
+</div><!-- .card -->
 
 <?php include __DIR__ . '/settings_email_log.php'; ?>
-
-<hr class="my-4">
 
 <p class="form-section-title"><i class="fas fa-file-alt me-1" aria-hidden="true"></i><?= $GLOBAL['emailTemplates'] ?></p>
 <?php include __DIR__ . '/settings_email_templates.php'; ?>

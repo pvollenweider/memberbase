@@ -6,14 +6,25 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-if (!isAdmin()) { echo '<div class="alert alert-danger">' . $GLOBAL['accessDenied'] . '</div>'; return; } ?>
+if (!isAdmin()) { echo '<div class="alert alert-danger">' . $GLOBAL['accessDenied'] . '</div>'; return; }
+$_stEmbedded = $_stEmbedded ?? false;
+if (!$_stEmbedded) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-clock-rotate-left';
+    $_phTitle = $GLOBAL['administration'];
+    include __DIR__ . '/../partials/page_header.php';
+    echo '<div class="container-xl px-4 ca-hero-overlap">';
+}
+?>
 
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="mb-0"><?= $GLOBAL['activityLog'] ?></h2>
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center justify-content-between">
+    <span><?= $GLOBAL['activityLog'] ?></span>
     <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#flushPanel">
         <i class="fas fa-trash-can me-1"></i><?= $GLOBAL['cleanUp'] ?>
     </button>
-</div>
+</div><!-- .card-header -->
+<div class="card-body">
 
 <?php if (isset($_GET['flushed'])): ?>
 <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -156,6 +167,9 @@ $(function () {
     });
 });
 </script>
+</div><!-- .card-body -->
+</div><!-- .card -->
+<?php if (!$_stEmbedded) { echo '</div>'; } ?>
 
 <div class="modal fade" id="modal-flush-all" tabindex="-1" aria-labelledby="modal-flush-all-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">

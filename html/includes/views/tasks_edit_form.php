@@ -17,8 +17,14 @@ $_priorityLabels = [
 $_backUrl = $task->getUserId()
     ? appUrl() . '?view=memberTasks&userid=' . $task->getUserId()
     : appUrl() . '?view=tasks';
+
+$_noOuterContainer = true;
+$_phIcon = 'fa-list-check';
+$_phTitle = $GLOBAL['updateTask'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
 
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="row justify-content-center mt-3">
   <div class="col-md-7 col-lg-5">
 
@@ -83,4 +89,5 @@ $_backUrl = $task->getUserId()
 
     </form>
   </div>
+</div>
 </div>

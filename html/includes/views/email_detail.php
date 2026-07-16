@@ -38,17 +38,26 @@ if (!$log) { ?>
 
 $sentAt  = date('d.m.Y H:i', strtotime($log->created_at));
 $isHtml  = isset($log->body_html) && $log->body_html !== '';
+
+// Embedded mode: loaded via fetch() into a modal (suivi_last_entry.php's row
+// click handler) instead of navigating to this view's own page.
+$_edEmbedded = !empty($_REQUEST['embedded']);
+if (!$_edEmbedded) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-envelope';
+    $_phTitle = htmlspecialchars($log->subject, ENT_QUOTES, $charset);
+    include __DIR__ . '/../partials/page_header.php';
+}
 ?>
 
-<div class="page-title-row mb-3">
-  <h1 class="page-title">
-    <i class="fas fa-envelope me-2" aria-hidden="true"></i><?= htmlspecialchars($log->subject, ENT_QUOTES, $charset) ?>
-  </h1>
-</div>
+<?php if (!$_edEmbedded): ?>
+<div class="container-xl px-4 ca-hero-overlap">
+<?php endif ?>
 
 <div class="card mb-3" style="max-width:700px">
-  <div class="card-body py-2 px-3" style="font-size:0.85rem">
-    <div class="row g-1">
+  <div class="card-header"><?= htmlspecialchars($log->subject, ENT_QUOTES, $charset) ?></div>
+  <div class="card-body">
+    <div class="row g-1" style="font-size:0.85rem">
       <div class="col-sm-3 text-muted"><?= $GLOBAL['date'] ?></div>
       <div class="col-sm-9"><?= htmlspecialchars($sentAt, ENT_QUOTES, $charset) ?></div>
       <div class="col-sm-3 text-muted"><?= $GLOBAL['emailTo'] ?></div>
@@ -72,10 +81,10 @@ $isHtml  = isset($log->body_html) && $log->body_html !== '';
         <?php endif ?>
       </div>
     </div>
-  </div>
-</div>
 
-<?php if ($isHtml): ?>
+    <hr>
+
+    <?php if ($isHtml): ?>
 <!-- HTML preview in sandboxed iframe -->
 <div class="mb-2 d-flex gap-2 align-items-center">
   <span class="badge bg-light text-dark border">HTML</span>
@@ -106,12 +115,17 @@ $isHtml  = isset($log->body_html) && $log->body_html !== '';
 <?php endif ?>
 
 <div class="mt-3 d-flex gap-2">
+  <?php if (!$_edEmbedded): ?>
   <a href="<?= appUrl() ?>?view=lastEntrySuivi" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['back'] ?>
   </a>
+  <?php endif ?>
   <?php if (($log->tpl_key ?? '') === 'tpl_attestation_don' && $log->user_id): ?>
   <a href="/attestation_don.php?emailid=<?= (int)$log->id ?>" target="_blank" class="btn btn-outline-primary btn-sm">
     <i class="fas fa-file-pdf me-1" aria-hidden="true"></i><?= $GLOBAL['regenerateAttestationBtn'] ?>
   </a>
   <?php endif ?>
 </div>
+  </div><!-- .card-body -->
+</div><!-- .card -->
+<?php if (!$_edEmbedded): ?></div><?php endif ?>

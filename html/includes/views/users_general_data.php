@@ -141,32 +141,9 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
 
         <div class="row row-cols-1 row-cols-md-2 g-2 mb-3">
 
-            <div x-show="data.society">
-                <div class="ca-field-label"><?= $GLOBAL['society'] ?></div>
-                <div class="ca-field-value" x-text="data.society"></div>
-            </div>
-
-            <div>
-                <div class="ca-field-label"><?= $GLOBAL['lastName'] ?> / <?= $GLOBAL['firstName'] ?></div>
-                <div class="ca-field-value fw-semibold">
-                    <span x-text="data.lastName"></span>
-                    <span x-text="data.firstName ? ' ' + data.firstName : ''"></span>
-                </div>
-            </div>
-
             <div x-show="data.gender && data.gender !== 'na'">
                 <div class="ca-field-label"><?= $GLOBAL['sexe'] ?></div>
                 <div class="ca-field-value" x-text="genderLabels[data.gender] ?? data.gender"></div>
-            </div>
-
-            <div>
-                <div class="ca-field-label"><?= $GLOBAL['contactTypesTitle'] ?></div>
-                <div class="ca-field-value">
-                    <span class="badge rounded-pill text-bg-primary" style="font-size:0.85rem;font-weight:600">
-                        <i class="fas me-1" :class="'fa-' + (contactTypeIcons[data.contactTypeId] ?? 'circle-question')" aria-hidden="true"></i>
-                        <span x-text="contactTypeLabels[data.contactTypeId] ?? data.contactTypeId"></span>
-                    </span>
-                </div>
             </div>
 
             <div x-show="data.title">
@@ -186,13 +163,6 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
                        target="_blank" class="text-muted small" @click.stop>
                         <i class="fas fa-location-dot me-1" aria-hidden="true"></i><?= $GLOBAL['googleMaps'] ?>
                     </a>
-                </div>
-            </div>
-
-            <div x-show="data.email">
-                <div class="ca-field-label"><i class="fas fa-envelope me-1" aria-hidden="true"></i><?= $GLOBAL['email'] ?></div>
-                <div class="ca-field-value d-flex align-items-center gap-2 flex-wrap">
-                    <a :href="'mailto:' + data.email" x-text="data.email" @click.stop></a>
                 </div>
             </div>
 

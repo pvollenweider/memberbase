@@ -14,7 +14,13 @@ $_cpOk     = false;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_REQUEST['action'] ?? '') === 'changePassword') {
     // handled in manage_actions.inc — we won't reach this block directly
 }
+
+$_noOuterContainer = true;
+$_phIcon = 'fa-key';
+$_phTitle = $GLOBAL['changePasswordTitle'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="d-flex flex-column align-items-center pt-4 gap-3">
   <div class="card shadow-sm border-0" style="max-width:440px;width:100%">
     <div class="card-body p-4">
@@ -85,4 +91,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_REQUEST['action'] ?? '') === 'ch
     </div>
   </div>
   <?php endif ?>
+</div>
 </div>

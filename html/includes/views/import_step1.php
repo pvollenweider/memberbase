@@ -7,13 +7,19 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 $_err = $_GET['err'] ?? '';
+$_noOuterContainer = true;
+$_phIcon = 'fa-file-import';
+$_phTitle = $GLOBAL['import'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="row justify-content-center mt-4">
   <div class="col-12 col-md-7 col-lg-5">
-
-    <p class="form-section-title mb-1">
+  <div class="card">
+    <div class="card-header">
       <i class="fas fa-file-import me-1" aria-hidden="true"></i><?= $GLOBAL['importContacts'] ?>
-    </p>
+    </div>
+    <div class="card-body">
     <p class="small text-muted mb-4"><?= $GLOBAL['importStep1Subtitle'] ?></p>
 
     <?php if ($_err === 'upload'): ?>
@@ -56,6 +62,8 @@ $_err = $_GET['err'] ?? '';
         <a href="<?= appUrl() ?>" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
       </div>
     </form>
-
+    </div>
   </div>
+  </div>
+</div>
 </div>

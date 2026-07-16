@@ -34,19 +34,13 @@ $_paneClass = function(string $tab) use ($_activeTab): string {
     return $active === $tab ? ' show active' : '';
 };
 
-require_once __DIR__ . '/../partials/settings_nav.php';
+$_noOuterContainer = true;
+$_phIcon = 'fa-gear';
+$_phTitle = $GLOBAL['administration'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
-<div class="row justify-content-center mt-4">
-  <div class="col-12 col-xl-10">
+<div class="container-xl px-4 ca-hero-overlap">
 
-    <?php mbRenderSettingsMobileSelect($_activeTab ?? 'groups', $_settingsDrillDown); ?>
-
-    <div class="ca-settings-layout">
-
-      <?php mbRenderSettingsNav($_activeTab ?? 'groups', $_settingsDrillDown); ?>
-
-      <!-- Content panels -->
-      <div class="ca-settings-content">
         <div class="tab-content">
 
           <!-- Réglages -->
@@ -54,7 +48,9 @@ require_once __DIR__ . '/../partials/settings_nav.php';
             <?php if (!isAdmin()): ?>
             <div class="alert alert-danger" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i><?= $GLOBAL['adminOnly'] ?></div>
             <?php else: ?>
-            <div class="col-md-8">
+            <div class="card mb-4">
+            <div class="card-header"><?= $GLOBAL['settings'] ?></div>
+            <div class="card-body">
             <div id="settings-save-msg"></div>
             <form action="<?= appUrl() ?>" method="post"
                   hx-post="<?= appUrl() ?>"
@@ -185,7 +181,8 @@ require_once __DIR__ . '/../partials/settings_nav.php';
               </div>
               <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['save'] ?></button>
             </form>
-            </div>
+            </div><!-- .card-body -->
+            </div><!-- .card -->
             <?php endif ?>
             <?php if (isAdmin()): ?>
             <script>
@@ -276,19 +273,24 @@ require_once __DIR__ . '/../partials/settings_nav.php';
 
           <!-- Catégories -->
           <div class="tab-pane fade<?= $_paneClass('categories') ?>" id="tab-categories" role="tabpanel" aria-labelledby="tab-categories-btn">
-            <div class="mt-1 col-md-9">
-            <p class="form-section-title" style="margin-top:0"><i class="fas fa-tag me-1" aria-hidden="true"></i><?= $GLOBAL['categories'] ?></p>
+            <div class="card mb-4">
+            <div class="card-header"><i class="fas fa-tag me-1" aria-hidden="true"></i><?= $GLOBAL['categories'] ?></div>
+            <div class="card-body">
             <?php include __DIR__ . '/settings_categories.php'; ?>
-            </div>
+            </div><!-- .card-body -->
+            </div><!-- .card -->
           </div><!-- #tab-categories -->
 
           <!-- Segments combinés -->
           <div class="tab-pane fade<?= $_paneClass('filters') ?>" id="tab-filters" role="tabpanel" aria-labelledby="tab-filters-btn">
-            <div class="mt-1 col-md-9">
             <?php if (($_REQUEST['view'] ?? '') === 'updateCombinedSegment'): include __DIR__ . '/settings_filter_edit.php'; else: ?>
-            <p class="form-section-title" style="margin-top:0"><i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['combinedSegments'] ?></p>
-            <?php include __DIR__ . '/settings_filters.php'; endif; ?>
-            </div>
+            <div class="card mb-4">
+            <div class="card-header"><i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['combinedSegments'] ?></div>
+            <div class="card-body">
+            <?php include __DIR__ . '/settings_filters.php'; ?>
+            </div><!-- .card-body -->
+            </div><!-- .card -->
+            <?php endif ?>
           </div><!-- #tab-filters -->
 
           <?php if (isAdmin()): ?>
@@ -299,12 +301,12 @@ require_once __DIR__ . '/../partials/settings_nav.php';
 
           <!-- Utilisateurs app -->
           <div class="tab-pane fade<?= $_paneClass('users') ?>" id="tab-users" role="tabpanel" aria-labelledby="tab-users-btn">
-            <?php include __DIR__ . '/settings_app_users.php'; ?>
+            <?php $_stEmbedded = true; include __DIR__ . '/settings_app_users.php'; ?>
           </div><!-- #tab-users -->
 
           <!-- Journal d'activité -->
           <div class="tab-pane fade<?= $_paneClass('audit') ?>" id="tab-audit" role="tabpanel" aria-labelledby="tab-audit-btn">
-            <?php include __DIR__ . '/settings_audit_log.php'; ?>
+            <?php $_stEmbedded = true; include __DIR__ . '/settings_audit_log.php'; ?>
           </div><!-- #tab-audit -->
 
           <!-- Intégrité -->
@@ -323,83 +325,5 @@ require_once __DIR__ . '/../partials/settings_nav.php';
           <?php endif ?>
 
         </div><!-- .tab-content -->
-      </div><!-- .ca-settings-content -->
 
-    </div><!-- .ca-settings-layout -->
-
-    <script>
-    (function() {
-      var STORAGE_KEY = 'admin_activeTab';
-      var tabs = document.getElementById('settings-tabs');
-      var sel  = document.getElementById('settings-select');
-      if (!tabs) return;
-
-      var urlTab = <?= json_encode($_activeTab) ?>;
-      var tabMap = {
-        'settings':   '#tab-settings',
-        'email':      '#tab-email',
-        'compta':     '#tab-compta',
-        'groups':     '#tab-groups',
-        'categories': '#tab-categories',
-        'filters':    '#tab-filters',
-        'users':      '#tab-users',
-        'audit':      '#tab-audit',
-        'integrity':  '#tab-integrity',
-        'health':     '#tab-health',
-        'contactTypes': '#tab-contactTypes',
-        'teams':      '#tab-groups',
-        'segments':   '#tab-groups',
-      };
-      var targetPane = urlTab && tabMap[urlTab] ? tabMap[urlTab]
-                     : sessionStorage.getItem(STORAGE_KEY)
-                     || '#tab-groups';
-
-      var btn = tabs.querySelector('[data-bs-target="' + targetPane + '"]');
-      if (btn) {
-        bootstrap.Tab.getOrCreateInstance(btn).show();
-      } else {
-        var first = tabs.querySelector('[data-bs-toggle="tab"]');
-        if (first) {
-          bootstrap.Tab.getOrCreateInstance(first).show();
-        } else {
-          // drill-down mode: no tab buttons — activate pane directly via PHP show active
-          var pane = document.querySelector(targetPane);
-          if (pane) { pane.classList.add('show', 'active'); }
-        }
-      }
-
-      // Sync select value to active pane
-      function syncSelect(pane) {
-        if (!sel) return;
-        var opt = sel.querySelector('option[value="' + pane + '"]');
-        if (opt) sel.value = pane;
-      }
-
-      tabs.addEventListener('shown.bs.tab', function(e) {
-        var pane = e.target.getAttribute('data-bs-target');
-        sessionStorage.setItem(STORAGE_KEY, pane);
-        syncSelect(pane);
-        var key = Object.keys(tabMap).find(function(k) { return tabMap[k] === pane && k !== 'teams'; });
-        if (key && history.replaceState) {
-          var url = new URL(window.location.href);
-          url.searchParams.set('tab', key);
-          history.replaceState(null, '', url.toString());
-        }
-        if (pane === '#tab-audit' && window.auditLogDT) {
-          window.auditLogDT.columns.adjust().draw(false);
-        }
-      });
-
-      // Mobile select → show corresponding tab
-      if (sel) {
-        sel.addEventListener('change', function() {
-          var target = sel.value;
-          var btn = tabs.querySelector('[data-bs-target="' + target + '"]');
-          if (btn) bootstrap.Tab.getOrCreateInstance(btn).show();
-        });
-      }
-    })();
-    </script>
-
-  </div>
 </div>

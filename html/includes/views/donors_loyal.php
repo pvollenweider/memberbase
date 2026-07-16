@@ -12,15 +12,20 @@ if ($year <= 0) { $year = (int)date("Y"); }
 require_once __DIR__ . '/../lib/donor.php';
 $rows  = mbGetLoyalDonors(db(), $year);
 $count = count($rows);
+
+$_noOuterContainer = true;
+$_phIcon = 'fa-heart';
+$_phTitle = sprintf($GLOBAL['loyalDonorsTitle'], $year);
+include __DIR__ . '/../partials/page_header.php';
 ?>
-<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+<div class="container-xl px-4 ca-hero-overlap">
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-2 flex-wrap">
   <a href="<?= appUrl() ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToDonationOverview'] ?>
   </a>
-  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    <?= sprintf($GLOBAL['loyalDonorsTitle'], $year) ?>
-  </span>
-  <div class="dropdown ms-1">
+  <span class="me-2"><?= sprintf($GLOBAL['loyalDonorsTitle'], $year) ?></span>
+  <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <?= $year ?>
     </button>
@@ -31,7 +36,8 @@ $count = count($rows);
       <?php endfor ?>
     </ul>
   </div>
-</div>
+</div><!-- .card-header -->
+<div class="card-body">
 
 <div class="alert d-flex align-items-start gap-2 py-2 mb-3" role="status"
      style="font-size:0.85rem;background:rgba(25,135,84,0.1);border:1px solid rgba(25,135,84,0.3);border-radius:6px">
@@ -59,3 +65,6 @@ $extra_columns = [
 $row_href = fn($row) => appUrl() . '?view=compta&userid=' . (int)$row->id;
 include __DIR__ . '/../partials/donor_table.php';
 ?>
+</div><!-- .card-body -->
+</div><!-- .card -->
+</div>

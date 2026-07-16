@@ -16,17 +16,24 @@ require_once __DIR__ . '/../lib/cotisation.php';
 $cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
 $rows        = mbGetNewMembers(db(), $year, $cotiTypeIds);
 $count       = count($rows);
+
+if (empty($_pfEmbedded)) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-star';
+    $_phTitle = sprintf($GLOBAL['newMembersTitle'], $year);
+    include __DIR__ . '/../partials/page_header.php';
+    echo '<div class="container-xl px-4 ca-hero-overlap">';
+}
 ?>
-<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-2 flex-wrap">
   <?php if (empty($_pfEmbedded)): ?>
   <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm" hx-boost="false">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToMemberOverview'] ?>
   </a>
   <?php endif ?>
-  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    <?= sprintf($GLOBAL['newMembersTitle'], $year) ?>
-  </span>
-  <div class="dropdown ms-1">
+  <span class="me-2"><?= sprintf($GLOBAL['newMembersTitle'], $year) ?></span>
+  <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <?= $year ?>
     </button>
@@ -37,10 +44,11 @@ $count       = count($rows);
       <?php endfor ?>
     </ul>
   </div>
-</div>
+</div><!-- .card-header -->
+<div class="card-body">
 
 <?php if (empty($cotiTypeIds)): ?>
-<div class="alert alert-secondary" style="font-size:0.85rem">
+<div class="alert alert-secondary mb-0" style="font-size:0.85rem">
   <?= $GLOBAL['noComptaCotiType'] ?>
 </div>
 <?php else: ?>
@@ -58,3 +66,6 @@ $row_href      = fn($row) => appUrl() . '?view=compta&userid=' . (int)$row->id;
 include __DIR__ . '/../partials/donor_table.php';
 ?>
 <?php endif ?>
+</div><!-- .card-body -->
+</div><!-- .card -->
+<?php if (empty($_pfEmbedded)): ?></div><?php endif ?>

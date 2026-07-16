@@ -8,10 +8,18 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 if (!isAdmin()) { echo '<div class="alert alert-danger">' . $GLOBAL['accessDenied'] . '</div>'; return; }
 
+$_stEmbedded = $_stEmbedded ?? false;
 $_auRows = db()->query(
     "SELECT id, username, display_name, email, role, is_active, force_password_change, created_at, last_login, reset_token, token_expires_at
      FROM app_users ORDER BY role DESC, username ASC"
 )->fetchAll(PDO::FETCH_OBJ);
+if (!$_stEmbedded) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-users-gear';
+    $_phTitle = $GLOBAL['administration'];
+    include __DIR__ . '/../partials/page_header.php';
+    echo '<div class="container-xl px-4 ca-hero-overlap">';
+}
 ?>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
@@ -52,14 +60,14 @@ if ($__flash):
   </span>
 </div>
 <?php endif ?>
-<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    <i class="fas fa-user-shield me-1" aria-hidden="true"></i><?= $GLOBAL['appUsersTitle'] ?>
-  </span>
-  <button type="button" class="btn btn-sm btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modal-create-user">
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-2 flex-wrap">
+  <span class="me-auto"><i class="fas fa-user-shield me-1" aria-hidden="true"></i><?= $GLOBAL['appUsersTitle'] ?></span>
+  <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modal-create-user">
     <i class="fas fa-plus me-1" aria-hidden="true"></i><?= $GLOBAL['newUser'] ?>
   </button>
-</div>
+</div><!-- .card-header -->
+<div class="card-body">
 
 <table class="table table-hover table-sm" style="font-size:0.875rem">
 <thead>
@@ -141,6 +149,9 @@ if ($__flash):
 <?php endforeach ?>
 </tbody>
 </table>
+</div><!-- .card-body -->
+</div><!-- .card -->
+<?php if (!$_stEmbedded) { echo '</div>'; } ?>
 
 <!-- Modal: créer utilisateur -->
 <div class="modal fade" id="modal-create-user" tabindex="-1" aria-labelledby="modal-create-user-title" aria-modal="true" role="dialog">

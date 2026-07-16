@@ -11,8 +11,20 @@ $userProperty = new UserProperty();
 $userProperty->lookupUserProperty($suiviid);
 $suivi_user = new Contact();
 $suivi_user->lookupUser($userProperty->getUserId());
+
+// Embedded mode: loaded via fetch() into a modal (suivi_list.php's row click
+// handler) instead of navigating to this view's own page.
+$_seEmbedded = !empty($_REQUEST['embedded']);
+if (!$_seEmbedded) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-rectangle-list';
+    $_phTitle = $GLOBAL['updateSuivi'];
+    include __DIR__ . '/../partials/page_header.php';
+}
 ?>
 
+<?php if (!$_seEmbedded): ?>
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="row justify-content-center mt-3">
   <div class="col-md-7 col-lg-5">
 
@@ -25,6 +37,7 @@ $suivi_user->lookupUser($userProperty->getUserId());
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= htmlentities($suivi_user->getFirstName(), ENT_COMPAT, $charset) ?> <?= htmlentities($suivi_user->getLastName(), ENT_COMPAT, $charset) ?>
       </a>
     </div>
+    <?php endif ?>
 
     <form role="form" action="<?= appUrl() ?>" method="post" name="updateSuivi">
       <input type="hidden" name="suiviid"   value="<?= $userProperty->getId() ?>"/>
@@ -52,6 +65,9 @@ $suivi_user->lookupUser($userProperty->getUserId());
       <div class="row">
         <div class="col-sm-9 offset-sm-3 d-flex align-items-center gap-3">
           <button type="submit" class="btn btn-primary btn-sm"><?= $GLOBAL['update'] ?></button>
+          <?php if ($_seEmbedded): ?>
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+          <?php endif ?>
           <a href="<?= appUrl() ?>?userid=<?= $userProperty->getUserId() ?>&amp;view=removeSuivi&amp;suiviid=<?= $suiviid ?>"
              class="btn btn-outline-danger btn-sm">
             <i class="fas fa-xmark me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
@@ -60,5 +76,8 @@ $suivi_user->lookupUser($userProperty->getUserId());
       </div>
 
     </form>
+<?php if (!$_seEmbedded): ?>
   </div>
 </div>
+</div>
+<?php endif ?>

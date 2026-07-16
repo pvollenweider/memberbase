@@ -84,8 +84,9 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
     </div>
 
     <!-- Rename + type form -->
-    <div>
-      <p class="form-section-title"><?= $GLOBAL['editCombinedSegment'] ?></p>
+    <div class="card mb-4">
+    <div class="card-body">
+      <p class="form-section-title" style="margin-top:0"><?= $GLOBAL['editCombinedSegment'] ?></p>
       <form action="<?= appUrl() ?>" method="post">
         <input type="hidden" name="action" value="updateCombinedSegment"/>
         <input type="hidden" name="view" value="settings"/>
@@ -107,10 +108,12 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
           <a href="<?= appUrl() ?>?view=settings&amp;tab=<?= $_mgBackTab ?>" class="btn btn-outline-secondary btn-sm"><?= $GLOBAL['cancel'] ?></a>
         </div>
       </form>
-    </div>
+    </div><!-- .card-body -->
+    </div><!-- .card -->
 
     <!-- Segment membership -->
-    <div>
+    <div class="card mb-4">
+    <div class="card-body">
       <?php if ($isFilter): ?>
 
       <!-- SEGMENT COMBINÉ: all segments grouped by category, checkboxes -->
@@ -274,7 +277,8 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
       </div>
 
       <?php endif ?>
-    </div>
+    </div><!-- .card-body -->
+    </div><!-- .card -->
 
     <!-- Toast -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100">
@@ -422,8 +426,9 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
     </script>
 
     <!-- Delete -->
-    <div>
-      <p class="form-section-title" style="color:var(--ca-danger)"><?= $GLOBAL['delete'] ?></p>
+    <div class="card mb-4">
+    <div class="card-body">
+      <p class="form-section-title" style="color:var(--ca-danger);margin-top:0"><?= $GLOBAL['delete'] ?></p>
       <p class="small text-muted mb-2"><?= $GLOBAL['deleteCombinedSegmentHelp'] ?></p>
       <form action="<?= appUrl() ?>" method="post" hx-boost="false">
         <input type="hidden" name="action" value="deleteCombinedSegment"/>
@@ -435,7 +440,8 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
           <i class="fas fa-trash me-1" aria-hidden="true"></i><?= $GLOBAL['delete'] ?>
         </button>
       </form>
-    </div>
+    </div><!-- .card-body -->
+    </div><!-- .card -->
 
   </div>
 </div>
