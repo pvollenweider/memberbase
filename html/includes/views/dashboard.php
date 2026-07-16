@@ -294,9 +294,9 @@ include __DIR__ . '/../partials/page_header.php';
 <?php if ($_kpi): ?>
 <div class="ca-resume-cards d-flex gap-2 mb-3 flex-wrap">
   <!-- Contributions -->
-  <div style="flex:2 0 0;min-width:200px;background:var(--ca-primary-dark);color:#fff;border-radius:10px;padding:0.85rem 1rem">
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.8"><?= $GLOBAL['contributions'] ?> <?= $_year ?></div>
-    <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem">
+  <div class="ca-kpi-box" style="flex:2 0 0;min-width:200px;background:var(--ca-primary-dark)">
+    <div class="ca-kpi-label"><?= $GLOBAL['contributions'] ?> <?= $_year ?></div>
+    <div class="ca-kpi-value">
       <?= number_format($_kpi->kTotal, 0, '.', '\'') ?> <span style="font-size:1rem;font-weight:400">CHF</span>
     </div>
     <?php if ($_kpi->kYtd !== null):
@@ -304,14 +304,13 @@ include __DIR__ . '/../partials/page_header.php';
       $_kGap     = $_kpi->kTotal1 - $_kpi->kTotal;
       $_mois     = $GLOBAL['monthsShort'][(int)date('m')];
     ?>
-    <div style="font-size:0.78rem;margin-top:0.3rem;opacity:0.85">
+    <div class="ca-kpi-meta">
       <?php if ($_kYtdChf >= 0): ?>
         <i class="fas fa-arrow-up me-1" aria-hidden="true"></i>+<?= number_format($_kYtdChf, 0, '.', '\'') ?> CHF
         <span style="opacity:0.75">(+<?= number_format($_kpi->kYtd, 1) ?>%)</span>
         <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?>
       <?php else: ?>
-        <i class="fas fa-arrow-down me-1" aria-hidden="true"></i><?= number_format($_kYtdChf, 0, '.', '\'') ?> CHF
-        <span style="opacity:0.75">(<?= number_format($_kpi->kYtd, 1) ?>%)</span>
+        <span class="ca-kpi-delta ca-kpi-delta--down"><i class="fas fa-arrow-down" aria-hidden="true"></i><?= number_format($_kYtdChf, 0, '.', '\'') ?> CHF (<?= number_format($_kpi->kYtd, 1) ?>%)</span>
         <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?>
       <?php endif ?>
     </div>
@@ -336,15 +335,15 @@ include __DIR__ . '/../partials/page_header.php';
   </div>
 
   <!-- Donateurs -->
-  <div style="flex:1 0 0;min-width:160px;background:#0a5f3e;color:#fff;border-radius:10px;padding:0.85rem 1rem">
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.8"><?= $GLOBAL['donors'] ?></div>
-    <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem"><?= $_kpi->kDonateurs ?></div>
+  <div class="ca-kpi-box" style="flex:1 0 0;min-width:160px;background:#0a5f3e">
+    <div class="ca-kpi-label"><?= $GLOBAL['donors'] ?></div>
+    <div class="ca-kpi-value"><?= $_kpi->kDonateurs ?></div>
     <?php if ($_kpi->kDonDelta !== null): ?>
-    <div style="font-size:0.78rem;margin-top:0.3rem;opacity:0.85">
+    <div class="ca-kpi-meta">
       <?php if ($_kpi->kDonDelta >= 0): ?>
         <i class="fas fa-arrow-up me-1" aria-hidden="true"></i><?= number_format($_kpi->kDonDelta, 1) ?>% vs <?= $_year - 1 ?> (<?= $_kpi->kDonateurs1 ?>)
       <?php else: ?>
-        <i class="fas fa-arrow-down me-1" aria-hidden="true"></i><?= number_format(abs($_kpi->kDonDelta), 1) ?>% vs <?= $_year - 1 ?> (<?= $_kpi->kDonateurs1 ?>)
+        <span class="ca-kpi-delta ca-kpi-delta--down"><i class="fas fa-arrow-down" aria-hidden="true"></i><?= number_format(abs($_kpi->kDonDelta), 1) ?>%</span> vs <?= $_year - 1 ?> (<?= $_kpi->kDonateurs1 ?>)
       <?php endif ?>
     </div>
     <?php endif ?>
@@ -352,11 +351,11 @@ include __DIR__ . '/../partials/page_header.php';
       $_kDonYtdDelta = $_kpi->kDonateursYtd1 > 0 ? (($_kpi->kDonateurs - $_kpi->kDonateursYtd1) / $_kpi->kDonateursYtd1 * 100) : null;
       $_mois = $_mois ?? $GLOBAL['monthsShort'][(int)date('m')];
     ?>
-    <div style="font-size:0.78rem;margin-top:0.3rem;opacity:0.85">
+    <div class="ca-kpi-meta">
       <?php if ($_kDonYtdDelta !== null && $_kDonYtdDelta >= 0): ?>
         <i class="fas fa-arrow-up me-1" aria-hidden="true"></i>+<?= number_format($_kDonYtdDelta, 1) ?>% <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?> (<?= $_kpi->kDonateursYtd1 ?>)
       <?php elseif ($_kDonYtdDelta !== null): ?>
-        <i class="fas fa-arrow-down me-1" aria-hidden="true"></i><?= number_format($_kDonYtdDelta, 1) ?>% <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?> (<?= $_kpi->kDonateursYtd1 ?>)
+        <span class="ca-kpi-delta ca-kpi-delta--down"><i class="fas fa-arrow-down" aria-hidden="true"></i><?= number_format($_kDonYtdDelta, 1) ?>%</span> <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?> (<?= $_kpi->kDonateursYtd1 ?>)
       <?php else: ?>
         <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['samePeriodCount'], $_year - 1, $_kpi->kDonateursYtd1) ?>
       <?php endif ?>
@@ -379,15 +378,15 @@ include __DIR__ . '/../partials/page_header.php';
 
   <!-- Membres actifs -->
   <?php if ($_kpi->membreSegmentId > 0): ?>
-  <div style="flex:1 0 0;min-width:160px;background:var(--ca-secondary,#8039da);color:#fff;border-radius:10px;padding:0.85rem 1rem">
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.8"><?= $GLOBAL['dashboardMembersLabel'] ?></div>
-    <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem"><?= $_kpi->kMembres ?></div>
+  <div class="ca-kpi-box" style="flex:1 0 0;min-width:160px;background:var(--ca-secondary,#8039da)">
+    <div class="ca-kpi-label"><?= $GLOBAL['dashboardMembersLabel'] ?></div>
+    <div class="ca-kpi-value"><?= $_kpi->kMembres ?></div>
     <?php if ($_kpi->kMembresDelta !== null): ?>
-    <div style="font-size:0.78rem;margin-top:0.3rem;opacity:0.85">
+    <div class="ca-kpi-meta">
       <?php if ($_kpi->kMembresDelta >= 0): ?>
         <i class="fas fa-arrow-up me-1" aria-hidden="true"></i><?= number_format($_kpi->kMembresDelta, 1) ?>% vs <?= $_year - 1 ?> (<?= $_kpi->kMembresPrev ?>)
       <?php else: ?>
-        <i class="fas fa-arrow-down me-1" aria-hidden="true"></i><?= number_format(abs($_kpi->kMembresDelta), 1) ?>% vs <?= $_year - 1 ?> (<?= $_kpi->kMembresPrev ?>)
+        <span class="ca-kpi-delta ca-kpi-delta--down"><i class="fas fa-arrow-down" aria-hidden="true"></i><?= number_format(abs($_kpi->kMembresDelta), 1) ?>%</span> vs <?= $_year - 1 ?> (<?= $_kpi->kMembresPrev ?>)
       <?php endif ?>
     </div>
     <?php endif ?>
@@ -546,8 +545,14 @@ include __DIR__ . '/../partials/page_header.php';
 <div class="row g-3">
   <div class="col-12 col-lg-7">
     <div class="card">
-      <div class="card-header"><?= $GLOBAL['dashboardShortcutsTitle'] ?></div>
+      <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['dashboardShortcutsTitle'] ?></h2></div>
       <div class="list-group list-group-flush" style="font-size:0.85rem">
+        <?php if (isAdmin() && $_pendingMigrationsCount > 0): ?>
+        <a href="<?= appUrl() ?>?view=settings&amp;tab=health" class="list-group-item list-group-item-action list-group-item-warning d-flex justify-content-between align-items-center py-1" hx-boost="false">
+          <span><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['pendingDbMigrationsLabel'], $_pendingMigrationsCount > 1 ? 's' : '') ?></span>
+          <span class="fw-bold"><?= $_pendingMigrationsCount ?></span>
+        </a>
+        <?php endif ?>
         <?php if ($_isJanuary && $_attestableDonsCount > 0): ?>
         <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=dons" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
           <span><?= $GLOBAL['dashboardShortcutAttestations'] ?></span>
@@ -595,19 +600,13 @@ include __DIR__ . '/../partials/page_header.php';
           <span class="fw-bold"><?= $_lastYearSegmentCount ?></span>
         </a>
         <?php endif ?>
-        <?php if (isAdmin() && $_pendingMigrationsCount > 0): ?>
-        <a href="<?= appUrl() ?>?view=settings&amp;tab=health" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
-          <span><?= sprintf($GLOBAL['pendingDbMigrationsLabel'], $_pendingMigrationsCount > 1 ? 's' : '') ?></span>
-          <span class="fw-bold"><?= $_pendingMigrationsCount ?></span>
-        </a>
-        <?php endif ?>
       </div>
     </div>
 
     <?php if (!empty($_recentSuivi)): ?>
     <div class="card mt-3">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <span><?= $GLOBAL['suiviActivityListTitle'] ?></span>
+        <h2 class="h6 mb-0"><?= $GLOBAL['suiviActivityListTitle'] ?></h2>
         <a href="<?= appUrl() ?>?view=journals&amp;tab=suivi" hx-boost="false" class="small"><?= $GLOBAL['seeAllEntries'] ?></a>
       </div>
       <div class="list-group list-group-flush">
@@ -637,7 +636,7 @@ include __DIR__ . '/../partials/page_header.php';
 
     <?php if (!empty($_SESSION['recent_segments'])): ?>
     <div class="card mt-3">
-      <div class="card-header"><?= $GLOBAL['dashboardRecentSegmentsTitle'] ?></div>
+      <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['dashboardRecentSegmentsTitle'] ?></h2></div>
       <div class="list-group list-group-flush">
         <?php foreach ($_SESSION['recent_segments'] as $_rseg): ?>
         <?php if (empty($_rseg['url'])) continue; ?>
@@ -655,7 +654,7 @@ include __DIR__ . '/../partials/page_header.php';
     <?php if (!empty($_recentCompta)): ?>
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <span><?= $GLOBAL['dashboardRecentComptaTitle'] ?></span>
+        <h2 class="h6 mb-0"><?= $GLOBAL['dashboardRecentComptaTitle'] ?></h2>
         <a href="<?= appUrl() ?>?view=journals&amp;tab=compta" hx-boost="false" class="small"><?= $GLOBAL['seeAllEntries'] ?></a>
       </div>
       <div class="list-group list-group-flush">
@@ -688,7 +687,7 @@ include __DIR__ . '/../partials/page_header.php';
 
     <?php if (!empty($_recentContacts)): ?>
     <div class="card">
-      <div class="card-header"><?= $GLOBAL['dashboardRecentContactsTitle'] ?></div>
+      <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['dashboardRecentContactsTitle'] ?></h2></div>
       <div class="list-group list-group-flush">
         <?php foreach ($_recentContacts as $_rc):
             $_rcName = trim(($_rc->society ? $_rc->society . ' ' : '') . $_rc->lastname . ' ' . $_rc->firstname);
@@ -704,7 +703,7 @@ include __DIR__ . '/../partials/page_header.php';
     <?php endif ?>
 
     <div class="card">
-      <div class="card-header"><?= $GLOBAL['documentation'] ?></div>
+      <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['documentation'] ?></h2></div>
       <div class="list-group list-group-flush">
         <a href="https://pvollenweider.github.io/memberbase/docs/user.html" target="_blank" rel="noopener" class="list-group-item list-group-item-action">
           <i class="fas fa-book me-2" aria-hidden="true"></i><?= $GLOBAL['dashboardUserGuideLink'] ?>

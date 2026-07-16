@@ -24,7 +24,12 @@ if ($_snSettingsTab === 'teams' || $_snSettingsTab === 'segments') { $_snSetting
 $_snAdminActive = in_array($view, ['settings', 'updateSegment', 'updateCombinedSegment', 'manageComptaTypes', 'contactTypes', 'manageAppUsers', 'auditLog', 'inactiveUsers'], true);
 ?>
 <div class="ca-sidebar-col">
-    <nav class="ca-sidebar-panel d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary">
+    <?php /* hx-boost="false": the sidebar is rendered once on full page load
+             and lives outside #main-content (htmx's default boost target),
+             so a boosted click here would swap the content but leave every
+             nav-link's "active" class stale — force a real navigation so the
+             sidebar re-renders with the correct active state. */ ?>
+    <nav class="ca-sidebar-panel d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary" hx-boost="false">
         <div class="ca-sidebar-body">
             <div class="nav accordion" id="ca-sidebar-accordion">
                 <a class="nav-link<?= $view === 'dashboard' ? '' : ' collapsed' ?>" href="<?= appUrl() ?>?view=dashboard">

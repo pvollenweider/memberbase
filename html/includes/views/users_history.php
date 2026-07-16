@@ -20,7 +20,7 @@ $history = $histRows->fetchAll(PDO::FETCH_OBJ);
 ?>
 
 <div class="card mb-4">
-<div class="card-header"><i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><?= $GLOBAL['changeHistory'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><?= $GLOBAL['changeHistory'] ?></h2></div>
 <div class="card-body">
 <p class="small text-muted mb-3"><?= $GLOBAL['changeHistoryHint'] ?></p>
 

@@ -275,7 +275,7 @@ if ($view == "compta") {
               <?php if ((int)$_stats->don_count > 0): ?>
               <div class="card mb-3">
                 <div class="card-header">
-                  <i class="fas fa-hand-holding-heart me-1" aria-hidden="true"></i><?= $GLOBAL['donations'] ?>
+                  <h2 class="h6 mb-0"><i class="fas fa-hand-holding-heart me-1" aria-hidden="true"></i><?= $GLOBAL['donations'] ?></h2>
                 </div>
                 <div class="card-body">
                 <div class="d-flex flex-column gap-1">
@@ -309,7 +309,7 @@ if ($view == "compta") {
               <?php $_otherTypeLabels = implode(', ', array_map(fn($t) => htmlentities((string)$t->label, ENT_COMPAT, $charset), array_filter($_otherTypes, fn($t) => (int)$t->this_year_count > 0 || (int)$t->last_year_count > 0))); ?>
               <div class="card mb-3">
                 <div class="card-header">
-                  <i class="fas fa-receipt me-1" aria-hidden="true"></i><?= $GLOBAL['otherPayments'] ?><?php if ($_otherTypeLabels): ?> <span class="fw-normal text-lowercase" style="letter-spacing:0">(<?= $_otherTypeLabels ?>)</span><?php endif ?>
+                  <h2 class="h6 mb-0"><i class="fas fa-receipt me-1" aria-hidden="true"></i><?= $GLOBAL['otherPayments'] ?><?php if ($_otherTypeLabels): ?> <span class="fw-normal text-lowercase" style="letter-spacing:0">(<?= $_otherTypeLabels ?>)</span><?php endif ?></h2>
                 </div>
                 <div class="card-body">
                 <div class="d-flex flex-column gap-1">

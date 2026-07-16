@@ -144,7 +144,7 @@ include __DIR__ . '/../partials/page_header.php';
 
 <?php if (canWrite()): ?>
 <div class="card mb-4">
-<div class="card-header"><?= $GLOBAL['taskAddNew'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['taskAddNew'] ?></h2></div>
 <div class="card-body">
 <form action="<?= appUrl() ?>" method="post" name="addTask" class="mb-0">
 <input type="hidden" name="action" value="addTask"/>
@@ -180,7 +180,7 @@ include __DIR__ . '/../partials/page_header.php';
 <?php endif ?>
 
 <div class="card mb-4">
-<div class="card-header"><?= $GLOBAL['tasksPageTitle'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['tasksPageTitle'] ?></h2></div>
 <div class="card-body">
 <?php if (empty($_tasks)): ?>
 <p class="text-muted mb-0"><i class="fas fa-circle-check me-1 text-success" aria-hidden="true"></i><?= $GLOBAL['noOpenTasks'] ?></p>

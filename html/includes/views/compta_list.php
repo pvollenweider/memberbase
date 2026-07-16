@@ -882,7 +882,7 @@ $_showTimeline = count($_periodAgg) >= 2;
   <!-- Donut: répartition par type -->
   <div class="col-md-5">
     <div class="card">
-      <div class="card-header"><?= $GLOBAL['distByType'] ?></div>
+      <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['distByType'] ?></h2></div>
       <div class="card-body">
         <div style="position:relative;height:300px">
           <canvas id="myChart"></canvas>
@@ -896,7 +896,7 @@ $_showTimeline = count($_periodAgg) >= 2;
   <div class="col-md-7">
     <div class="card">
       <div class="card-header">
-        <?= $year == -2 ? $GLOBAL['historyByYear'] : $GLOBAL['monthlyVsCumulative'] ?>
+        <h2 class="h6 mb-0"><?= $year == -2 ? $GLOBAL['historyByYear'] : $GLOBAL['monthlyVsCumulative'] ?></h2>
       </div>
       <div class="card-body">
         <div style="position:relative;height:260px">

@@ -22,7 +22,7 @@ include __DIR__ . '/../partials/page_header.php';
 <div class="container-xl px-4 ca-hero-overlap">
 
         <div class="card mb-4">
-        <div class="card-header"><i class="fas fa-archive me-1" aria-hidden="true"></i><?= $GLOBAL['archivedMembers'] ?></div>
+        <div class="card-header"><h2 class="h6 mb-0"><i class="fas fa-archive me-1" aria-hidden="true"></i><?= $GLOBAL['archivedMembers'] ?></h2></div>
         <div class="card-body">
         <p class="small text-muted mb-4"><?= $GLOBAL['archivedMembersHint'] ?></p>
 

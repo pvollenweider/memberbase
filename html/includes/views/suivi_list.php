@@ -8,7 +8,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 ?>
 <div class="card mb-4">
-<div class="card-header"><?= $GLOBAL['suivi'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['suivi'] ?></h2></div>
 <div class="card-body">
 <form action="<?=appUrl()?>" method="post" name="addSuivi">
 <input type="hidden" name="action" value="addSuivi"/>

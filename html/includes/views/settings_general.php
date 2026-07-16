@@ -49,7 +49,7 @@ include __DIR__ . '/../partials/page_header.php';
             <div class="alert alert-danger" role="alert"><i class="fas fa-lock me-2" aria-hidden="true"></i><?= $GLOBAL['adminOnly'] ?></div>
             <?php else: ?>
             <div class="card mb-4">
-            <div class="card-header"><?= $GLOBAL['settings'] ?></div>
+            <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['settings'] ?></h2></div>
             <div class="card-body">
             <div id="settings-save-msg"></div>
             <form action="<?= appUrl() ?>" method="post"
@@ -274,7 +274,7 @@ include __DIR__ . '/../partials/page_header.php';
           <!-- Catégories -->
           <div class="tab-pane fade<?= $_paneClass('categories') ?>" id="tab-categories" role="tabpanel" aria-labelledby="tab-categories-btn">
             <div class="card mb-4">
-            <div class="card-header"><i class="fas fa-tag me-1" aria-hidden="true"></i><?= $GLOBAL['categories'] ?></div>
+            <div class="card-header"><h2 class="h6 mb-0"><i class="fas fa-tag me-1" aria-hidden="true"></i><?= $GLOBAL['categories'] ?></h2></div>
             <div class="card-body">
             <?php include __DIR__ . '/settings_categories.php'; ?>
             </div><!-- .card-body -->
@@ -285,7 +285,7 @@ include __DIR__ . '/../partials/page_header.php';
           <div class="tab-pane fade<?= $_paneClass('filters') ?>" id="tab-filters" role="tabpanel" aria-labelledby="tab-filters-btn">
             <?php if (($_REQUEST['view'] ?? '') === 'updateCombinedSegment'): include __DIR__ . '/settings_filter_edit.php'; else: ?>
             <div class="card mb-4">
-            <div class="card-header"><i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['combinedSegments'] ?></div>
+            <div class="card-header"><h2 class="h6 mb-0"><i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['combinedSegments'] ?></h2></div>
             <div class="card-body">
             <?php include __DIR__ . '/settings_filters.php'; ?>
             </div><!-- .card-body -->

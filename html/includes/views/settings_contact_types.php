@@ -48,7 +48,7 @@ if (!$_ctEmbedded):
 <?php endif ?>
 
 <div class="card mb-4">
-  <div class="card-header"><?= $GLOBAL['newContactType'] ?></div>
+  <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['newContactType'] ?></h2></div>
   <div class="card-body">
     <form id="add-contact-type-form" action="<?= appUrl() ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
       <input type="hidden" name="action" value="addContactType">
@@ -70,7 +70,7 @@ if (!$_ctEmbedded):
 </div>
 
 <div class="card mb-4">
-<div class="card-header"><?= $GLOBAL['contactTypesTitle'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['contactTypesTitle'] ?></h2></div>
 <div class="card-body">
 <div class="table-responsive">
 <table id="contact-type-management-table" class="table table-sm table-hover align-middle">
@@ -161,7 +161,7 @@ document.getElementById('modal-delete-contact-type').addEventListener('show.bs.m
 </script>
 
 <div class="card mb-4">
-<div class="card-header"><?= $GLOBAL['contactTypeMatrixTitle'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['contactTypeMatrixTitle'] ?></h2></div>
 <div class="card-body">
 <p class="text-muted small"><?= $GLOBAL['contactTypeMatrixHelp'] ?></p>
 

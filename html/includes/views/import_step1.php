@@ -17,7 +17,7 @@ include __DIR__ . '/../partials/page_header.php';
   <div class="col-12 col-md-7 col-lg-5">
   <div class="card">
     <div class="card-header">
-      <i class="fas fa-file-import me-1" aria-hidden="true"></i><?= $GLOBAL['importContacts'] ?>
+      <h2 class="h6 mb-0"><i class="fas fa-file-import me-1" aria-hidden="true"></i><?= $GLOBAL['importContacts'] ?></h2>
     </div>
     <div class="card-body">
     <p class="small text-muted mb-4"><?= $GLOBAL['importStep1Subtitle'] ?></p>

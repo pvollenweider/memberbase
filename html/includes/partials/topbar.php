@@ -13,7 +13,11 @@ $searchString = isset($_REQUEST['searchString']) ? trim($_REQUEST['searchString'
 $_navOpenTaskCount = isManager() ? SuiviTask::openCount() : 0;
 $__authUser = authUser();
 ?>
-<nav class="ca-topbar">
+<?php /* hx-boost="false": the topbar is rendered once on full page load and
+         lives outside #main-content, so a boosted click here would swap the
+         content but leave the settings-gear "active" state stale — force a
+         real navigation so the topbar re-renders correctly. */ ?>
+<nav class="ca-topbar" hx-boost="false">
     <button class="ca-icon-btn" type="button" id="sidebarToggle" aria-label="<?= $GLOBAL['toggleSidebar'] ?>">
         <i class="fas fa-bars"></i>
     </button>

@@ -86,7 +86,7 @@ body {
 .card-header {
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
-    height: 3.5rem;
+    min-height: 3.5rem;
     display: flex;
     align-items: center;
     font-weight: 500;
@@ -621,6 +621,45 @@ tr.position-relative { cursor: pointer; }
     .ca-merge-cell     { padding: 0.35rem 0.4rem; font-size: 0.78rem; }
 }
 
+/* dashboard KPI cards — shared box/label/value tokens (per-card bg, flex, min-width stay inline) */
+.ca-kpi-box {
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  color: #fff;
+}
+.ca-kpi-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+.ca-kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 0.25rem;
+}
+.ca-kpi-meta {
+  font-size: 0.78rem;
+  margin-top: 0.3rem;
+  opacity: 0.85;
+}
+
+/* KPI delta chip — colors the decline reading so direction isn't icon-only */
+.ca-kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #fff;
+}
+.ca-kpi-delta--down {
+  background: var(--bs-danger-text-emphasis, #802218);
+}
+
 /* resume.inc — responsive stats cards */
 @media (max-width: 575.98px) {
   .ca-resume-cards {
@@ -639,7 +678,7 @@ tr.position-relative { cursor: pointer; }
     padding: 0.6rem 0.7rem !important;
   }
   /* tighten secondary card numbers */
-  .ca-resume-cards > div:not(:first-child) > div[style*="font-size:1.75rem"] {
+  .ca-resume-cards > div:not(:first-child) .ca-kpi-value {
     font-size: 1.3rem !important;
   }
 }
@@ -751,7 +790,10 @@ tr.position-relative { cursor: pointer; }
     width: var(--ca-sidebar-width);
     padding-top: var(--ca-topbar-height);
     overflow: hidden;
-    transition: flex-basis 0.15s ease-out, width 0.15s ease-out;
+    /* No transition here — this spacer is invisible (overflow:hidden filler
+       that reserves/frees width for .ca-app-content). Animating width/flex-basis
+       is a layout-thrashing anti-pattern; the visible slide is the fixed panel's
+       own transform below, which is compositor-only. */
 }
 .ca-sidebar-panel {
     position: fixed;

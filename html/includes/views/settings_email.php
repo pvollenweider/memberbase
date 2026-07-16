@@ -11,7 +11,7 @@ if (!isAdmin()) { ?>
 <?php return; } ?>
 
 <div class="card mb-4">
-<div class="card-header"><?= $GLOBAL['smtpSettings'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['smtpSettings'] ?></h2></div>
 <div class="card-body">
 <div id="smtp-save-msg"></div>
 <form action="<?= appUrl() ?>" method="post"
@@ -115,7 +115,7 @@ if (!isAdmin()) { ?>
 
 <!-- Test email -->
 <div class="card mb-4">
-<div class="card-header"><i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['smtpTest'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= $GLOBAL['smtpTest'] ?></h2></div>
 <div class="card-body">
 <div class="d-flex gap-2 align-items-end flex-wrap mb-2" style="max-width:440px">
   <div class="flex-grow-1">

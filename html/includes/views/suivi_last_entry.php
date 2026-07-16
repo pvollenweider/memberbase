@@ -55,7 +55,7 @@ if (empty($_jhEmbedded)) {
 ?>
 
 <div class="card mb-4">
-<div class="card-header"><?= $GLOBAL['suiviActivityListTitle'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['suiviActivityListTitle'] ?></h2></div>
 <div class="card-body">
 <table id="suivi-table" class="table table-sm table-striped table-hover mt-2">
 <thead>

@@ -55,7 +55,7 @@ if (!$_edEmbedded) {
 <?php endif ?>
 
 <div class="card mb-3" style="max-width:700px">
-  <div class="card-header"><?= htmlspecialchars($log->subject, ENT_QUOTES, $charset) ?></div>
+  <div class="card-header"><h2 class="h6 mb-0"><?= htmlspecialchars($log->subject, ENT_QUOTES, $charset) ?></h2></div>
   <div class="card-body">
     <div class="row g-1" style="font-size:0.85rem">
       <div class="col-sm-3 text-muted"><?= $GLOBAL['date'] ?></div>

@@ -90,7 +90,7 @@ if (!$ctEmbedded):
 
     <!-- Add form -->
     <div class="card mb-4">
-      <div class="card-header"><?= $GLOBAL['newComptaType'] ?></div>
+      <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['newComptaType'] ?></h2></div>
       <div class="card-body">
         <form action="<?= appUrl() ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
           <input type="hidden" name="action" value="addComptaType">
@@ -124,7 +124,7 @@ if (!$ctEmbedded):
 
     <!-- Types table -->
     <div class="card mb-4">
-    <div class="card-header"><?= $GLOBAL['comptaTypes'] ?></div>
+    <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['comptaTypes'] ?></h2></div>
     <div class="card-body">
     <table class="table table-sm table-hover align-middle">
       <thead>

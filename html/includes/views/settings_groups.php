@@ -74,7 +74,7 @@ if (!empty($_SESSION['segment_toast'])) {
 ?>
 
 <div class="card mb-4">
-<div class="card-header"><?= $GLOBAL['addSegment'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['addSegment'] ?></h2></div>
 <div class="card-body">
 
 <form role="form" action="<?= appUrl() ?>" method="post" name="addSegment" class="mb-0">
@@ -150,7 +150,7 @@ if (!empty($_SESSION['segment_toast'])) {
 </div><!-- .card -->
 
 <div class="card mb-4">
-<div class="card-header"><?= $GLOBAL['groups'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['groups'] ?></h2></div>
 <div class="card-body">
 <form id="bulk-form" action="<?= appUrl() ?>" method="post">
   <input type="hidden" name="action" id="bulk-action" value=""/>
@@ -461,7 +461,7 @@ function toggleHiddenSection(btn) {
 
 <?php if (count($allSegments) > 1): ?>
 <div class="card mb-4">
-<div class="card-header"><?= $GLOBAL['segmentCascadeRules'] ?></div>
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['segmentCascadeRules'] ?></h2></div>
 <div class="card-body">
 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['segmentCascadeRulesHint'] ?></p>
 
