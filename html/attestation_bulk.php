@@ -11,6 +11,9 @@ define('APP_ENTRY', true);
 
 require_once __DIR__ . '/includes/lib/auth.php';
 requireLogin();
+// Bulk attestations expose nominative donation data — restrict to managers/admins,
+// matching the sendAttestation* actions (attestation_email.php).
+if (!isManager()) { http_response_code(403); exit('Forbidden'); }
 ob_start();
 set_time_limit(120);
 

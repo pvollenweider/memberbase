@@ -448,6 +448,15 @@ test.describe('Server — CSRF guard', () => {
     await api.dispose();
   });
 
+  // GET actions are gated too: a forged cross-site GET (e.g. <img src>) driving
+  // a $_REQUEST-backed mutation must be rejected without a valid token.
+  test('admin: GET action without CSRF token → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'admin');
+    const r = await api.get('/index.php?action=deactivateUser&id=2');
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
   // Same action WITH a valid token passes the CSRF guard (then role/logic apply).
   test('admin: POST action with a valid CSRF token → not 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'admin');
