@@ -67,9 +67,9 @@ async function csrfFor(api: APIRequestContext): Promise<string> {
 // UI — navigation bar
 // ─────────────────────────────────────────────────────────────────────────────
 
-test.describe('UI — settings gear (isManager)', () => {
+test.describe('UI — Administration entry (isManager)', () => {
   for (const role of ['readonly', 'user']) {
-    test(`${role}: settings gear hidden`, async ({ browser }) => {
+    test(`${role}: Administration hidden`, async ({ browser }) => {
       const { page, ctx } = await openAs(browser, role);
       await page.goto('/index.php');
       await expect(page.locator('a[href*="view=settings"]')).toHaveCount(0);
@@ -78,10 +78,11 @@ test.describe('UI — settings gear (isManager)', () => {
   }
 
   for (const role of ['manager', 'admin']) {
-    test(`${role}: settings gear visible`, async ({ browser }) => {
+    test(`${role}: Administration visible`, async ({ browser }) => {
       const { page, ctx } = await openAs(browser, role);
       await page.goto('/index.php');
-      await expect(page.locator('#ca-topbar a[href*="view=settings"]')).toBeVisible();
+      // Administration lives only in the sidebar now (no topbar gear).
+      await expect(page.locator('#ca-sidebar-col a[data-bs-target="#collapseAdmin"]')).toBeVisible();
       await ctx.close();
     });
   }
