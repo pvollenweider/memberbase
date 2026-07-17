@@ -141,6 +141,21 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
 
         <div class="row row-cols-1 row-cols-md-2 g-2 mb-3">
 
+            <div>
+                <div class="ca-field-label"><?= $GLOBAL['name'] ?></div>
+                <div class="ca-field-value" x-text="(data.lastName + ' ' + data.firstName).trim()"></div>
+            </div>
+
+            <div>
+                <div class="ca-field-label"><?= $GLOBAL['contactTypesTitle'] ?></div>
+                <div class="ca-field-value">
+                    <span class="badge text-bg-light border">
+                        <i class="fas" :class="'fa-' + (contactTypeIcons[data.contactTypeId] || 'circle-question')" aria-hidden="true"></i>
+                        <span x-text="contactTypeLabels[data.contactTypeId] ?? ''"></span>
+                    </span>
+                </div>
+            </div>
+
             <div x-show="data.gender && data.gender !== 'na'">
                 <div class="ca-field-label"><?= $GLOBAL['sexe'] ?></div>
                 <div class="ca-field-value" x-text="genderLabels[data.gender] ?? data.gender"></div>

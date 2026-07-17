@@ -87,7 +87,10 @@ test.describe('Dashboard', () => {
     await expect(cards).toContainText('CHF');
     await expect(cards).toContainText('Donateurs');
     await expect(cards.locator('a', { hasText: 'fidèles' })).toBeVisible();
-    await expect(cards.locator('a', { hasText: /^\d+ Nouveaux$/ })).toBeVisible();
+    // Unanchored: the anchor's raw textContent carries the template's
+    // surrounding whitespace/newlines (e.g. "\n        4 Nouveaux      "),
+    // which a ^...$-anchored regex won't match against.
+    await expect(cards.locator('a', { hasText: /\d+ Nouveaux/ })).toBeVisible();
   });
 
   test('KPI cards are absent for a role without write access', async ({ page, browser }) => {

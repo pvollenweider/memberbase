@@ -335,17 +335,27 @@ test.describe.serial('Tasks — paused state', () => {
 
 test.describe.serial('Tasks — closing a payment-notification task without sending', () => {
   test('closing via the checkmark (no email on file) still marks compta entries as notified', async ({ page }) => {
-    // User 5 (Lapsed Dave, seed): has a 2025 cotisation entry, no email on
-    // file -- the send-recap button never appears for them, only the
-    // generic close checkmark. Post the generation action directly rather
-    // than clicking the UI button, which may legitimately be hidden by this
-    // point in the file if earlier tests already generated every pending
-    // task (the button only shows when there's something new to create).
-    await page.goto('/index.php?view=tasks');
+    // User 5 (Lapsed Dave, seed): has no email on file -- the send-recap
+    // button never appears for them, only the generic close checkmark.
+    // The earlier "payment notification auto-generation" describe block
+    // (above) already runs a global generate + send-first-task cycle across
+    // the whole suite, which can consume user 5's original seeded unnotified
+    // entry before this block ever runs (order-dependent across the file) —
+    // create a fresh one here so this test doesn't depend on what's left
+    // over from that fixture.
+    await page.goto(`/index.php?view=generalData&userid=5`);
     const csrf = await page.evaluate(() => {
       const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
       return m?.content ?? '';
     });
+    // generateComptaRecapTasks defaults to the CURRENT year (date('Y'))
+    // when no ?year= is posted — the entry must be dated within it.
+    const currentYear = new Date().getFullYear();
+    await page.request.post('/api/compta', {
+      data: { memberId: 5, typeId: 1, date: `${currentYear}-04-01`, amount: 42 },
+    });
+
+    await page.goto('/index.php?view=tasks');
     await page.request.post('/index.php', { form: { action: 'generateComptaRecapTasks', csrf } });
 
     await page.goto('/index.php?view=memberTasks&userid=5');

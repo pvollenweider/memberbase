@@ -59,10 +59,21 @@ test.describe.serial('Segment cascade rules', () => {
 
   test('integrity check flags the historical gap and the fix button resolves it (#156)', async ({ page }) => {
     await page.goto('/index.php?view=settings&tab=integrity');
-    const gapRow = page.locator('#tab-integrity tr').filter({ hasText: 'Cascade E2E Source' }).filter({ hasText: 'Cascade E2E Target' });
+    // Diagnostic sections are collapsed by default and lazy-load their
+    // content into a <template> only once opened (see settings_integrity.php)
+    // — expand the "cascade rule missing" section before looking for the row.
+    const section = page.locator('#tab-integrity details.ca-integrity-section')
+      .filter({ has: page.locator('summary', { hasText: "auto-assignation" }) });
+    await section.locator('summary').click();
+
+    const gapRow = section.locator('tr').filter({ hasText: 'Cascade E2E Source' }).filter({ hasText: 'Cascade E2E Target' });
     await expect(gapRow).toBeVisible({ timeout: 10_000 });
+    // The fix button's form posts to a bare "index.php" action (view/tab
+    // are POST body fields, not URL params) and renders the Groups tab in
+    // response — the address bar itself never gains a ?tab=groups query, so
+    // wait on that tab's own content instead of the URL.
     await gapRow.locator('button[type="submit"]').click();
-    await expect(page.locator('#tab-integrity tr').filter({ hasText: 'Cascade E2E Source' }).filter({ hasText: 'Cascade E2E Target' })).not.toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('form[name="addSegment"]')).toBeVisible({ timeout: 10_000 });
 
     await page.goto(`/index.php?view=generalData&userid=${USER_ID}`);
     await expect(page.locator('a', { hasText: 'Cascade E2E Target' })).toBeVisible();

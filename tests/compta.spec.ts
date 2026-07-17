@@ -55,13 +55,16 @@ test.describe('Compta (accounting)', () => {
 
     await expect(page.locator('text=ToDeleteEntry')).toBeVisible({ timeout: 10_000 });
 
-    // Get the edit link for the new entry (data-href on the row, or ca-row-link-anchor)
+    // Compta rows open the edit form in a modal (data-compta-href, not
+    // data-href — see the comment in compta_list.php); a real but visually
+    // hidden <a href> sits in the row too (ca-row-link-anchor), grab that
+    // instead of clicking through the modal.
     const row = page.locator('tr.ca-row-link').filter({ hasText: 'ToDeleteEntry' }).first();
-    const dataHref = await row.getAttribute('data-href');
-    if (!dataHref) throw new Error('Could not find row data-href for ToDeleteEntry');
+    const editHref = await row.locator('a.ca-row-link-anchor').getAttribute('href');
+    if (!editHref) throw new Error('Could not find row edit link for ToDeleteEntry');
 
     // Navigate to edit form
-    await page.goto(dataHref.startsWith('/') ? dataHref : '/' + dataHref);
+    await page.goto(editHref.startsWith('/') ? editHref : '/' + editHref);
 
     // Click delete link on edit form → goes to removeCompta confirmation page
     await page.locator('a[href*="view=removeCompta"]').click();
