@@ -2,14 +2,13 @@
  * E2E tests — role-gated elements of the mobile nav (fixed topbar + slide-in
  * sidebar, replacing the old separate `.d-lg-none` menu bar)
  *
- * The topbar (partials/topbar.php) is shared markup between desktop and
- * mobile — it doesn't change with viewport, only the sidebar's visibility
- * does (slides in from off-screen via #sidebarToggle below the 991.98px
- * breakpoint, see .ca-sidebar-panel in custom.css). The settings gear's
- * isManager() gate lives in the topbar, so it's viewport-independent;
- * roles.spec.ts already covers it at desktop viewport — this spec re-checks
- * it at a phone viewport so a breakpoint-specific regression can't slip
- * through, and covers the sidebar's mobile slide-in toggle.
+ * The topbar (partials/topbar.php) only carries the sidebar toggle, brand,
+ * and search now — everything role-gated (Tâches, Administration) lives
+ * exclusively in the sidebar, which slides in from off-screen via
+ * #sidebarToggle below the 991.98px breakpoint (.ca-sidebar-panel in
+ * custom.css). roles.spec.ts already covers the isManager() gate at desktop
+ * viewport; this spec re-checks it at a phone viewport, behind the slide-in
+ * toggle, so a breakpoint-specific regression can't slip through.
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -35,21 +34,22 @@ async function openMobileAs(browser: Browser, role: string) {
   return { page, ctx };
 }
 
-test.describe('mobile bar — settings gear (isManager)', () => {
+test.describe('mobile bar — Administration entry (isManager)', () => {
   for (const role of ['readonly', 'user']) {
-    test(`${role}: gear hidden on mobile`, async ({ browser }) => {
+    test(`${role}: Administration hidden on mobile`, async ({ browser }) => {
       const { page, ctx } = await openMobileAs(browser, role);
       await page.goto('/index.php');
-      await expect(page.locator('#ca-topbar a[href*="view=settings"]')).toHaveCount(0);
+      await expect(page.locator('#ca-sidebar-col a[data-bs-target="#collapseAdmin"]')).toHaveCount(0);
       await ctx.close();
     });
   }
 
   for (const role of ['manager', 'admin']) {
-    test(`${role}: gear visible on mobile`, async ({ browser }) => {
+    test(`${role}: Administration visible on mobile`, async ({ browser }) => {
       const { page, ctx } = await openMobileAs(browser, role);
       await page.goto('/index.php');
-      await expect(page.locator('#ca-topbar a[href*="view=settings"]').first()).toBeVisible();
+      await page.locator('#sidebarToggle').click();
+      await expect(page.locator('#ca-sidebar-col a[data-bs-target="#collapseAdmin"]')).toBeVisible();
       await ctx.close();
     });
   }

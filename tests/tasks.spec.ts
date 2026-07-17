@@ -260,7 +260,7 @@ test.describe.serial('Tasks — paused state', () => {
     await expect(page.locator('text=Task E2E pause test')).toBeVisible({ timeout: 15000 });
 
     await page.goto('/index.php?view=tasks');
-    const badgeLocator = page.locator('.navbar-nav .nav-item a[href*="view=tasks"] .badge');
+    const badgeLocator = page.locator('#ca-sidebar-col a[href*="view=tasks"] .badge');
     const badgeCountBefore = (await badgeLocator.count()) > 0 ? Number(await badgeLocator.innerText()) : 0;
 
     const row = page.locator('#tasks-table tbody tr', { hasText: 'Task E2E pause test' });
