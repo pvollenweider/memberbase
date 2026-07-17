@@ -23,11 +23,17 @@ try {
         GROUP BY m.id, m.name
         ORDER BY MIN(m.sort_order) ASC, m.name ASC
     ")->fetchAll(PDO::FETCH_OBJ);
+    $_catsLoadError = false;
 } catch (PDOException $e) {
     $allCats = [];
+    $_catsLoadError = true;
 }
 ?>
-<?php if (count($allCats) > 0): ?>
+<?php if ($_catsLoadError): ?>
+<div class="alert alert-warning py-2 px-3 mb-3" style="font-size:0.85rem">
+  <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['loadError'] ?>
+</div>
+<?php elseif (count($allCats) > 0): ?>
 <table class="table table-sm table-hover align-middle mb-3" style="font-size:0.82rem">
   <tbody id="cat-order-tbody">
   <?php foreach ($allCats as $cat): ?>

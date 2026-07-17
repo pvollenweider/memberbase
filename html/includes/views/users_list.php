@@ -63,6 +63,13 @@ if (isset($_REQUEST['year'])) {
 // AJAX search is safe when no complex server-side filter is active
 $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((int)$segment, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
 
+if (empty($_pfEmbedded)) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-users';
+    $_phTitle = $GLOBAL['peopleFinanceTabMembers'];
+    include __DIR__ . '/../partials/page_header.php';
+    echo '<div class="container-xl px-4 ca-hero-overlap">';
+}
 ?>
 <?php if (!empty($_GET['import_done'])): ?>
 <div class="alert alert-success py-2 px-3 mb-3" role="alert" style="font-size:0.85rem">
@@ -73,7 +80,9 @@ $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((in
   <?php endif ?>
 </div>
 <?php endif ?>
-<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-2 flex-wrap">
+  <span class="me-2"><?= $GLOBAL['peopleFinanceTabMembers'] ?></span>
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" id="navbarDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 
@@ -124,6 +133,29 @@ $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((in
                         }
                     } else {
                         $currentSegmentTitle = $GLOBAL['list'];
+                    }
+
+                    // Track for the dashboard's "recent segments" card — session-only,
+                    // most-recent-first, capped, deduped by key. Covers real segments,
+                    // combined segments, and the quick-filter presets, but not the plain
+                    // contact-type filter or the no-filter default (not really "segments").
+                    if ($combinedSegment > 0) {
+                        $_rsegKey = 'cs:' . $combinedSegment;
+                        $_rsegUrl = '?view=peopleFinance&tab=members&combinedSegment=' . $combinedSegment;
+                    } elseif ($segment > 0 || in_array((int)$segment, [FILTER_ALL_EXCEPT_ARCHIVES, FILTER_UNPAID_COTI_3Y, FILTER_NO_ACTIVITY_10Y, FILTER_NON_INSTIT_LAST_YEAR, FILTER_UNPAID_COTI_CURRENT], true)) {
+                        $_rsegKey = ($segment > 0 ? 'sg:' : 'qf:') . $segment;
+                        $_rsegUrl = '?view=peopleFinance&tab=members&segment=' . $segment;
+                    } else {
+                        $_rsegKey = null;
+                    }
+                    if ($_rsegKey !== null) {
+                        $_SESSION['recent_segments'] = array_slice(
+                            array_merge(
+                                [['key' => $_rsegKey, 'url' => $_rsegUrl, 'name' => $currentSegmentTitle]],
+                                array_filter($_SESSION['recent_segments'] ?? [], fn($s) => ($s['key'] ?? '') !== $_rsegKey)
+                            ),
+                            0, 5
+                        );
                     }
                     ?>
 
@@ -215,7 +247,8 @@ $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((in
     <span><?= $GLOBAL['addUser'] ?></span>
   </a>
   <?php endif ?>
-</div>
+</div><!-- .card-header -->
+<div class="card-body">
 <script>
 function filterSegmentDropdown(q) {
   var val = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -433,7 +466,9 @@ foreach ($_allRows as $row) {
         #}
         $emailStr = str_replace(",","<br/>",$emailStr);
         ?>
-        <tr class="ca-row-link" data-href="<?=appUrl()?>?view=generalData&id=<?=(int)$id?>" style="cursor:pointer">
+        <?php $_rowLabel = trim(($society !== '' ? htmlspecialchars($society, ENT_QUOTES, $charset) . ' ' : '') . $lastName . ' ' . $firstName); ?>
+        <tr class="ca-row-link" data-href="<?=appUrl()?>?view=generalData&id=<?=(int)$id?>" style="cursor:pointer"
+            tabindex="0" role="link" aria-label="<?= $_rowLabel ?>">
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=$sexe?></td>
             <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
             <td class="text-nowrap"><?=$lastName?></td>
@@ -476,6 +511,9 @@ foreach ($_allRows as $row) {
 </tbody>
 </table>
 </div>
+</div>
+</div>
+<?php if (empty($_pfEmbedded)): ?></div><?php endif ?>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 if ($searchString) {
@@ -502,6 +540,14 @@ document.querySelector('.export tbody') && document.querySelector('.export tbody
     var tr = e.target.closest('tr.ca-row-link');
     if (!tr) return;
     if (e.target.closest('a, button')) return;
+    window.location.href = tr.dataset.href;
+});
+// Keyboard equivalent (role="link" + tabindex="0" on the row): Enter activates it,
+// same as a native link — click-only rows are unreachable for keyboard/screen-reader users.
+document.querySelector('.export tbody') && document.querySelector('.export tbody').addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    var tr = e.target.closest('tr.ca-row-link');
+    if (!tr || e.target.closest('a, button')) return;
     window.location.href = tr.dataset.href;
 });
 
@@ -573,7 +619,8 @@ $(document).ready(caInitDT);
     var href = BASE_PATH + '?view=generalData&id=' + m.id;
     var email = m.email ? '<a href="mailto:' + esc(m.email) + '">' + esc(m.email).replace(',','<br>') + '</a>' : '';
     var typesOrGroups = m.groups && m.groups.length ? groupsBadges(m.groups) : typesBadges(m.types, m.id);
-    return '<tr class="ca-row-link" data-href="' + href + '" style="cursor:pointer">' +
+    var rowLabel = [m.society, m.lastName, m.firstName].filter(Boolean).join(' ');
+    return '<tr class="ca-row-link" data-href="' + href + '" style="cursor:pointer" tabindex="0" role="link" aria-label="' + esc(rowLabel) + '">' +
       '<td class="d-none d-sm-table-cell d-md-table-cell">' + sexeIcon(m.gender) + '</td>' +
       '<td class="bold"><div class="text-truncate" style="max-width:200px">' + esc(m.society||'') + '</div></td>' +
       '<td class="text-nowrap">' + esc(m.lastName||'') + '</td>' +

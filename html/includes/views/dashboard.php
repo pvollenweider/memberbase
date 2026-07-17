@@ -101,7 +101,7 @@ if ($_isJanuary && isManager()) {
 
 // Last N accounting entries, light view.
 $_recentCompta = canWrite() ? db()->query(
-    "SELECT c.id, c.sum, c.user_id, u.society, u.lastname, u.firstname, ct.label AS type_label, ct.color AS type_color
+    "SELECT c.id, c.sum, c.date, c.user_id, u.society, u.lastname, u.firstname, ct.label AS type_label, ct.color AS type_color
      FROM compta c
      JOIN contact u ON u.id = c.user_id
      LEFT JOIN compta_type ct ON ct.id = c.type_id
@@ -117,11 +117,43 @@ $_recentContacts = db()->query(
      ORDER BY creationDate DESC, id DESC
      LIMIT 8"
 )->fetchAll(PDO::FETCH_OBJ);
+
+// Last N follow-up (suivi) entries, merged with sent emails — same source
+// data as journals&tab=suivi (suivi_last_entry.php), just capped shorter.
+$_recentSuiviRows = db()->query(
+    "SELECT up.user_id, up.date AS ts, up.value AS content, u.society, u.lastname, u.firstname,
+            'suivi' AS kind, NULL AS email_log_id
+     FROM contact_properties up
+     JOIN contact u ON u.id = up.user_id AND u.status = 1
+     WHERE up.parameter = 'suivi'"
+)->fetchAll(PDO::FETCH_OBJ);
+$_recentEmailRows = [];
+try {
+    $_recentEmailRows = db()->query(
+        "SELECT u.id AS user_id, UNIX_TIMESTAMP(el.created_at) AS ts, el.subject AS content,
+                u.society, u.lastname, u.firstname, 'email' AS kind, el.id AS email_log_id
+         FROM email_log el
+         JOIN contact u ON u.id = el.user_id AND u.status = 1
+         WHERE el.user_id IS NOT NULL AND el.status = 'sent'"
+    )->fetchAll(PDO::FETCH_OBJ);
+} catch (\Throwable $e) {
+    // email_log.user_id column not yet migrated — skip silently
+}
+foreach ($_recentSuiviRows as $_r) { $_r->ts = $_r->ts ? strtotime($_r->ts) : 0; }
+$_recentSuivi = array_merge($_recentSuiviRows, $_recentEmailRows);
+usort($_recentSuivi, fn($a, $b) => (int)$b->ts - (int)$a->ts);
+$_recentSuivi = array_slice($_recentSuivi, 0, 8);
 ?>
 
-<div class="page-title-row mb-3">
-  <h1 class="page-title"><?= htmlspecialchars(trim($appSettings['org_name'] ?? '') !== '' ? $appSettings['org_name'] : $GLOBAL['dashboardPageTitle'], ENT_QUOTES, $charset) ?></h1>
-</div>
+<?php
+// Hero header owns its own container-xl instead of being boxed by
+// index.php's generic wrapper.
+$_noOuterContainer = true;
+$_phIcon = 'fa-gauge';
+$_phTitle = htmlspecialchars(trim($appSettings['org_name'] ?? '') !== '' ? $appSettings['org_name'] : $GLOBAL['dashboardPageTitle'], ENT_QUOTES, $charset);
+include __DIR__ . '/../partials/page_header.php';
+?>
+<div class="container-xl px-4 ca-hero-overlap">
 
 <?php if (canWrite()): ?>
 <div class="d-flex align-items-start gap-2 mb-3 flex-wrap">
@@ -262,9 +294,9 @@ $_recentContacts = db()->query(
 <?php if ($_kpi): ?>
 <div class="ca-resume-cards d-flex gap-2 mb-3 flex-wrap">
   <!-- Contributions -->
-  <div style="flex:2 0 0;min-width:200px;background:var(--ca-primary);color:#fff;border-radius:10px;padding:0.85rem 1rem">
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;opacity:0.8"><?= $GLOBAL['contributions'] ?> <?= $_year ?></div>
-    <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem">
+  <div class="ca-kpi-box" style="flex:2 0 0;min-width:200px;background:var(--ca-primary-dark)">
+    <div class="ca-kpi-label"><?= $GLOBAL['contributions'] ?> <?= $_year ?></div>
+    <div class="ca-kpi-value">
       <?= number_format($_kpi->kTotal, 0, '.', '\'') ?> <span style="font-size:1rem;font-weight:400">CHF</span>
     </div>
     <?php if ($_kpi->kYtd !== null):
@@ -272,14 +304,13 @@ $_recentContacts = db()->query(
       $_kGap     = $_kpi->kTotal1 - $_kpi->kTotal;
       $_mois     = $GLOBAL['monthsShort'][(int)date('m')];
     ?>
-    <div style="font-size:0.78rem;margin-top:0.3rem;opacity:0.85">
+    <div class="ca-kpi-meta">
       <?php if ($_kYtdChf >= 0): ?>
         <i class="fas fa-arrow-up me-1" aria-hidden="true"></i>+<?= number_format($_kYtdChf, 0, '.', '\'') ?> CHF
         <span style="opacity:0.75">(+<?= number_format($_kpi->kYtd, 1) ?>%)</span>
         <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?>
       <?php else: ?>
-        <i class="fas fa-arrow-down me-1" aria-hidden="true"></i><?= number_format($_kYtdChf, 0, '.', '\'') ?> CHF
-        <span style="opacity:0.75">(<?= number_format($_kpi->kYtd, 1) ?>%)</span>
+        <span class="ca-kpi-delta ca-kpi-delta--down"><i class="fas fa-arrow-down" aria-hidden="true"></i><?= number_format($_kYtdChf, 0, '.', '\'') ?> CHF (<?= number_format($_kpi->kYtd, 1) ?>%)</span>
         <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?>
       <?php endif ?>
     </div>
@@ -304,15 +335,15 @@ $_recentContacts = db()->query(
   </div>
 
   <!-- Donateurs -->
-  <div style="flex:1 0 0;min-width:160px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem">
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)"><?= $GLOBAL['donors'] ?></div>
-    <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem;color:var(--ca-ink,#212529)"><?= $_kpi->kDonateurs ?></div>
+  <div class="ca-kpi-box" style="flex:1 0 0;min-width:160px;background:#0a5f3e">
+    <div class="ca-kpi-label"><?= $GLOBAL['donors'] ?></div>
+    <div class="ca-kpi-value"><?= $_kpi->kDonateurs ?></div>
     <?php if ($_kpi->kDonDelta !== null): ?>
-    <div style="font-size:0.78rem;margin-top:0.3rem;color:var(--ca-ink-muted)">
+    <div class="ca-kpi-meta">
       <?php if ($_kpi->kDonDelta >= 0): ?>
-        <i class="fas fa-arrow-up me-1" aria-hidden="true" style="color:var(--bs-success)"></i><?= number_format($_kpi->kDonDelta, 1) ?>% vs <?= $_year - 1 ?> (<?= $_kpi->kDonateurs1 ?>)
+        <i class="fas fa-arrow-up me-1" aria-hidden="true"></i><?= number_format($_kpi->kDonDelta, 1) ?>% vs <?= $_year - 1 ?> (<?= $_kpi->kDonateurs1 ?>)
       <?php else: ?>
-        <i class="fas fa-arrow-down me-1" aria-hidden="true" style="color:var(--bs-danger)"></i><?= number_format(abs($_kpi->kDonDelta), 1) ?>% vs <?= $_year - 1 ?> (<?= $_kpi->kDonateurs1 ?>)
+        <span class="ca-kpi-delta ca-kpi-delta--down"><i class="fas fa-arrow-down" aria-hidden="true"></i><?= number_format(abs($_kpi->kDonDelta), 1) ?>%</span> vs <?= $_year - 1 ?> (<?= $_kpi->kDonateurs1 ?>)
       <?php endif ?>
     </div>
     <?php endif ?>
@@ -320,25 +351,25 @@ $_recentContacts = db()->query(
       $_kDonYtdDelta = $_kpi->kDonateursYtd1 > 0 ? (($_kpi->kDonateurs - $_kpi->kDonateursYtd1) / $_kpi->kDonateursYtd1 * 100) : null;
       $_mois = $_mois ?? $GLOBAL['monthsShort'][(int)date('m')];
     ?>
-    <div style="font-size:0.78rem;margin-top:0.3rem;color:var(--ca-ink-muted)">
+    <div class="ca-kpi-meta">
       <?php if ($_kDonYtdDelta !== null && $_kDonYtdDelta >= 0): ?>
-        <i class="fas fa-arrow-up me-1" aria-hidden="true" style="color:var(--bs-success)"></i>+<?= number_format($_kDonYtdDelta, 1) ?>% <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?> (<?= $_kpi->kDonateursYtd1 ?>)
+        <i class="fas fa-arrow-up me-1" aria-hidden="true"></i>+<?= number_format($_kDonYtdDelta, 1) ?>% <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?> (<?= $_kpi->kDonateursYtd1 ?>)
       <?php elseif ($_kDonYtdDelta !== null): ?>
-        <i class="fas fa-arrow-down me-1" aria-hidden="true" style="color:var(--bs-danger)"></i><?= number_format($_kDonYtdDelta, 1) ?>% <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?> (<?= $_kpi->kDonateursYtd1 ?>)
+        <span class="ca-kpi-delta ca-kpi-delta--down"><i class="fas fa-arrow-down" aria-hidden="true"></i><?= number_format($_kDonYtdDelta, 1) ?>%</span> <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?> (<?= $_kpi->kDonateursYtd1 ?>)
       <?php else: ?>
         <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['samePeriodCount'], $_year - 1, $_kpi->kDonateursYtd1) ?>
       <?php endif ?>
     </div>
     <?php endif ?>
-    <div style="font-size:0.75rem;color:var(--ca-ink-muted);margin-top:0.3rem;display:flex;gap:0.6rem;flex-wrap:wrap">
+    <div style="font-size:0.75rem;opacity:0.85;margin-top:0.3rem;display:flex;gap:0.6rem;flex-wrap:wrap">
       <a href="<?= appUrl() ?>?view=loyalDonors&amp;year=<?= $_year ?>" style="color:inherit;text-decoration:none">
-        <i class="fas fa-rotate me-1" aria-hidden="true" style="color:var(--bs-success)"></i><?= sprintf($GLOBAL['loyalShort'], $_kpi->kRecurrents) ?>
+        <i class="fas fa-rotate me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['loyalShort'], $_kpi->kRecurrents) ?>
       </a>
       <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors&amp;cohort=new&amp;year=<?= $_year ?>" style="color:inherit;text-decoration:none" hx-boost="false">
-        <i class="fas fa-star me-1" aria-hidden="true" style="color:var(--bs-warning)"></i><?= $_kpi->kNouveaux ?> <?= $GLOBAL['newDonors'] ?>
+        <i class="fas fa-star me-1" aria-hidden="true"></i><?= $_kpi->kNouveaux ?> <?= $GLOBAL['newDonors'] ?>
       </a>
       <?php if ($_kpi->kLapsed > 0): ?>
-      <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors&amp;cohort=lapsed&amp;year=<?= $_year ?>" style="color:var(--bs-danger);text-decoration:none" hx-boost="false">
+      <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors&amp;cohort=lapsed&amp;year=<?= $_year ?>" style="color:inherit;text-decoration:none" hx-boost="false">
         <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['lapsedShort'], $_kpi->kLapsed) ?>
       </a>
       <?php endif ?>
@@ -347,27 +378,27 @@ $_recentContacts = db()->query(
 
   <!-- Membres actifs -->
   <?php if ($_kpi->membreSegmentId > 0): ?>
-  <div style="flex:1 0 0;min-width:160px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem">
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)"><?= $GLOBAL['dashboardMembersLabel'] ?></div>
-    <div style="font-size:1.75rem;font-weight:700;line-height:1.2;margin-top:0.25rem;color:var(--ca-ink,#212529)"><?= $_kpi->kMembres ?></div>
+  <div class="ca-kpi-box" style="flex:1 0 0;min-width:160px;background:var(--ca-secondary,#8039da)">
+    <div class="ca-kpi-label"><?= $GLOBAL['dashboardMembersLabel'] ?></div>
+    <div class="ca-kpi-value"><?= $_kpi->kMembres ?></div>
     <?php if ($_kpi->kMembresDelta !== null): ?>
-    <div style="font-size:0.78rem;margin-top:0.3rem;color:var(--ca-ink-muted)">
+    <div class="ca-kpi-meta">
       <?php if ($_kpi->kMembresDelta >= 0): ?>
-        <i class="fas fa-arrow-up me-1" aria-hidden="true" style="color:var(--bs-success)"></i><?= number_format($_kpi->kMembresDelta, 1) ?>% vs <?= $_year - 1 ?> (<?= $_kpi->kMembresPrev ?>)
+        <i class="fas fa-arrow-up me-1" aria-hidden="true"></i><?= number_format($_kpi->kMembresDelta, 1) ?>% vs <?= $_year - 1 ?> (<?= $_kpi->kMembresPrev ?>)
       <?php else: ?>
-        <i class="fas fa-arrow-down me-1" aria-hidden="true" style="color:var(--bs-danger)"></i><?= number_format(abs($_kpi->kMembresDelta), 1) ?>% vs <?= $_year - 1 ?> (<?= $_kpi->kMembresPrev ?>)
+        <span class="ca-kpi-delta ca-kpi-delta--down"><i class="fas fa-arrow-down" aria-hidden="true"></i><?= number_format(abs($_kpi->kMembresDelta), 1) ?>%</span> vs <?= $_year - 1 ?> (<?= $_kpi->kMembresPrev ?>)
       <?php endif ?>
     </div>
     <?php endif ?>
     <?php if ($_newMembersCount > 0 || $_kpi->kMembresLapsed > 0): ?>
-    <div style="font-size:0.75rem;color:var(--ca-ink-muted);margin-top:0.3rem;display:flex;gap:0.6rem;flex-wrap:wrap">
+    <div style="font-size:0.75rem;opacity:0.85;margin-top:0.3rem;display:flex;gap:0.6rem;flex-wrap:wrap">
       <?php if ($_newMembersCount > 0): ?>
       <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed&amp;cohort=new&amp;year=<?= $_year ?>" style="color:inherit;text-decoration:none" hx-boost="false">
-        <i class="fas fa-star me-1" aria-hidden="true" style="color:var(--bs-warning)"></i><?= $_newMembersCount ?> <?= $GLOBAL['newMembers'] ?>
+        <i class="fas fa-star me-1" aria-hidden="true"></i><?= $_newMembersCount ?> <?= $GLOBAL['newMembers'] ?>
       </a>
       <?php endif ?>
       <?php if ($_kpi->kMembresLapsed > 0): ?>
-      <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed&amp;cohort=lapsed&amp;year=<?= $_year ?>" style="color:var(--bs-danger);text-decoration:none" hx-boost="false">
+      <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed&amp;cohort=lapsed&amp;year=<?= $_year ?>" style="color:inherit;text-decoration:none" hx-boost="false">
         <i class="fas fa-user-clock me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['lapsedShort'], $_kpi->kMembresLapsed) ?>
       </a>
       <?php endif ?>
@@ -513,18 +544,24 @@ $_recentContacts = db()->query(
 
 <div class="row g-3">
   <div class="col-12 col-lg-7">
-    <div class="card h-100">
-      <div class="card-header"><?= $GLOBAL['dashboardShortcutsTitle'] ?></div>
-      <div class="list-group list-group-flush">
+    <div class="card">
+      <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['dashboardShortcutsTitle'] ?></h2></div>
+      <div class="list-group list-group-flush" style="font-size:0.85rem">
+        <?php if (isAdmin() && $_pendingMigrationsCount > 0): ?>
+        <a href="<?= appUrl() ?>?view=settings&amp;tab=health" class="list-group-item list-group-item-action list-group-item-warning d-flex justify-content-between align-items-center py-1" hx-boost="false">
+          <span><i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['pendingDbMigrationsLabel'], $_pendingMigrationsCount > 1 ? 's' : '') ?></span>
+          <span class="fw-bold"><?= $_pendingMigrationsCount ?></span>
+        </a>
+        <?php endif ?>
         <?php if ($_isJanuary && $_attestableDonsCount > 0): ?>
-        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=dons" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=dons" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
           <span><?= $GLOBAL['dashboardShortcutAttestations'] ?></span>
           <span class="fw-bold"><?= $_attestableDonsCount ?></span>
         </a>
         <?php endif ?>
         <?php if (isManager()): ?>
         <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=recap"
-           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
           <span><?= $GLOBAL['peopleFinanceTabRecap'] ?></span>
           <?php if ($_pendingRecapCount > 0): ?>
           <span class="fw-bold"><?= $_pendingRecapCount ?></span>
@@ -532,127 +569,141 @@ $_recentContacts = db()->query(
         </a>
         <?php endif ?>
         <?php if ($_kpi && $_kpi->kNouveaux > 0): ?>
-        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors&amp;cohort=new&amp;year=<?= $_year ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors&amp;cohort=new&amp;year=<?= $_year ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
           <span><?= $GLOBAL['dashboardShortcutNewDonors'] ?></span>
           <span class="fw-bold"><?= $_kpi->kNouveaux ?></span>
         </a>
         <?php endif ?>
         <?php if ($_kpi && $_kpi->kLapsed > 0): ?>
-        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors&amp;cohort=lapsed&amp;year=<?= $_year ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors&amp;cohort=lapsed&amp;year=<?= $_year ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
           <span><?= $GLOBAL['dashboardShortcutLapsedDonors'] ?> (<?= $GLOBAL['dashboardToRelaunchSuffix'] ?>)</span>
           <span class="fw-bold"><?= $_kpi->kLapsed ?></span>
         </a>
         <?php endif ?>
-        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
           <span><?= $GLOBAL['dashboardShortcutCurrentMembers'] ?></span>
           <span class="fw-bold"><?= $_currentMembersCount ?></span>
         </a>
         <?php if ($_newMembersCount > 0): ?>
-        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed&amp;cohort=new&amp;year=<?= $_year ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed&amp;cohort=new&amp;year=<?= $_year ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
           <span><?= $GLOBAL['dashboardShortcutNewMembers'] ?></span>
           <span class="fw-bold"><?= $_newMembersCount ?></span>
         </a>
         <?php endif ?>
-        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed&amp;cohort=lapsed&amp;year=<?= $_year ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed&amp;cohort=lapsed&amp;year=<?= $_year ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
           <span><?= $GLOBAL['cotiUnpayed'] ?> (<?= $GLOBAL['dashboardToRelaunchSuffix'] ?>)</span>
           <span class="fw-bold"><?= $_lapsedCount ?></span>
         </a>
         <?php if ($_lastYearSegmentId > 0): ?>
-        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members&amp;segment=<?= $_lastYearSegmentId ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
+        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members&amp;segment=<?= $_lastYearSegmentId ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
           <span><?= $GLOBAL['dashboardShortcutLastYearMembers'] ?></span>
           <span class="fw-bold"><?= $_lastYearSegmentCount ?></span>
         </a>
         <?php endif ?>
-        <?php if (isAdmin() && $_pendingMigrationsCount > 0): ?>
-        <a href="<?= appUrl() ?>?view=settings&amp;tab=health" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" hx-boost="false">
-          <span><?= sprintf($GLOBAL['pendingDbMigrationsLabel'], $_pendingMigrationsCount > 1 ? 's' : '') ?></span>
-          <span class="fw-bold"><?= $_pendingMigrationsCount ?></span>
-        </a>
-        <?php endif ?>
       </div>
     </div>
+
+    <?php if (!empty($_recentSuivi)): ?>
+    <div class="card mt-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="h6 mb-0"><?= $GLOBAL['suiviActivityListTitle'] ?></h2>
+        <a href="<?= appUrl() ?>?view=journals&amp;tab=suivi" hx-boost="false" class="small"><?= $GLOBAL['seeAllEntries'] ?></a>
+      </div>
+      <div class="list-group list-group-flush">
+        <?php foreach ($_recentSuivi as $_rs):
+            $_rsName = trim(($_rs->society ? $_rs->society . ' ' : '') . $_rs->lastname . ' ' . $_rs->firstname);
+            $_rsContent = html_entity_decode((string)$_rs->content, ENT_COMPAT, $charset);
+            $_rsIsEmail = $_rs->kind === 'email';
+            $_rsHref = $_rsIsEmail && $_rs->email_log_id
+                ? appUrl() . '?view=emailDetail&emailid=' . (int)$_rs->email_log_id
+                : appUrl() . '?view=suivi&userid=' . (int)$_rs->user_id;
+        ?>
+        <a href="<?= htmlspecialchars($_rsHref, ENT_QUOTES, $charset) ?>" hx-boost="false"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" style="font-size:0.8rem">
+          <span class="text-truncate me-2">
+            <?php if ($_rsIsEmail): ?>
+            <i class="fas fa-envelope me-1 text-primary" aria-hidden="true" title="<?= $GLOBAL['emailSent'] ?>"></i>
+            <?php endif ?>
+            <span class="fw-semibold"><?= htmlspecialchars($_rsName, ENT_QUOTES, $charset) ?></span>
+            <span class="text-muted"> — <?= htmlspecialchars($_rsContent, ENT_QUOTES, $charset) ?></span>
+          </span>
+          <span class="text-muted text-nowrap ms-2"><?= $_rs->ts ? timeStampToformatedDate((int)$_rs->ts) : '' ?></span>
+        </a>
+        <?php endforeach ?>
+      </div>
+    </div>
+    <?php endif ?>
+
+    <?php if (!empty($_SESSION['recent_segments'])): ?>
+    <div class="card mt-3">
+      <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['dashboardRecentSegmentsTitle'] ?></h2></div>
+      <div class="list-group list-group-flush">
+        <?php foreach ($_SESSION['recent_segments'] as $_rseg): ?>
+        <?php if (empty($_rseg['url'])) continue; ?>
+        <a href="<?= appUrl() . htmlspecialchars($_rseg['url'], ENT_QUOTES, $charset) ?>" hx-boost="false"
+           class="list-group-item list-group-item-action" style="font-size:0.85rem">
+          <i class="fas fa-users me-1 text-muted" aria-hidden="true"></i><?= htmlspecialchars($_rseg['name'] ?? '', ENT_QUOTES, $charset) ?>
+        </a>
+        <?php endforeach ?>
+      </div>
+    </div>
+    <?php endif ?>
   </div>
 
   <div class="col-12 col-lg-5 d-flex flex-column gap-3">
     <?php if (!empty($_recentCompta)): ?>
     <div class="card">
-      <a href="<?= appUrl() ?>?view=journals&amp;tab=compta" class="card-header text-decoration-none d-block" hx-boost="false">
-        <?= $GLOBAL['dashboardRecentComptaTitle'] ?>
-      </a>
-      <div class="table-responsive">
-        <table id="dashboard-recent-compta" class="table table-sm table-hover mb-0" style="font-size:0.8rem">
-          <tbody>
-          <?php
-          $_ctBadge = function (string $color, string $label) use ($charset): string {
-              $bg  = $color !== '' ? $color : 'bg-secondary-subtle';
-              $txt = (str_contains($bg, '-subtle') || $bg === 'bg-light') ? '#212529' : '#fff';
-              return '<span class="d-inline-flex align-items-center justify-content-center rounded border ' . htmlspecialchars($bg, ENT_QUOTES, $charset) . '"'
-                   . ' style="width:28px;height:20px;font-size:0.55rem;font-weight:700;line-height:1;letter-spacing:0.02em;color:' . $txt . '"'
-                   . ' title="' . htmlspecialchars($label, ENT_QUOTES, $charset) . '">'
-                   . htmlspecialchars(mb_strtoupper(mb_substr(trim($label), 0, 3)), ENT_QUOTES, $charset)
-                   . '</span>';
-          };
-          foreach ($_recentCompta as $_ce):
-              $_ceName = trim(($_ce->society ? $_ce->society . ' ' : '') . $_ce->lastname . ' ' . $_ce->firstname);
-          ?>
-          <tr class="ca-row-link" style="cursor:pointer" data-href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$_ce->user_id ?>">
-            <td class="text-nowrap"><?= htmlspecialchars($_ceName, ENT_QUOTES, $charset) ?></td>
-            <td class="text-end text-nowrap"><?= number_format((float)$_ce->sum, 2, '.', "'") ?></td>
-            <td class="text-nowrap"><?= $_ctBadge((string)$_ce->type_color, (string)$_ce->type_label) ?></td>
-          </tr>
-          <?php endforeach ?>
-          </tbody>
-        </table>
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="h6 mb-0"><?= $GLOBAL['dashboardRecentComptaTitle'] ?></h2>
+        <a href="<?= appUrl() ?>?view=journals&amp;tab=compta" hx-boost="false" class="small"><?= $GLOBAL['seeAllEntries'] ?></a>
+      </div>
+      <div class="list-group list-group-flush">
+        <?php
+        $_ctBadge = function (string $color, string $label) use ($charset): string {
+            $bg  = $color !== '' ? $color : 'bg-secondary-subtle';
+            $txt = (str_contains($bg, '-subtle') || $bg === 'bg-light') ? '#212529' : '#fff';
+            return '<span class="d-inline-flex align-items-center justify-content-center rounded border ' . htmlspecialchars($bg, ENT_QUOTES, $charset) . '"'
+                 . ' style="width:28px;height:20px;font-size:0.55rem;font-weight:700;line-height:1;letter-spacing:0.02em;color:' . $txt . '"'
+                 . ' title="' . htmlspecialchars($label, ENT_QUOTES, $charset) . '">'
+                 . htmlspecialchars(mb_strtoupper(mb_substr(trim($label), 0, 3)), ENT_QUOTES, $charset)
+                 . '</span>';
+        };
+        foreach ($_recentCompta as $_ce):
+            $_ceName = trim(($_ce->society ? $_ce->society . ' ' : '') . $_ce->lastname . ' ' . $_ce->firstname);
+        ?>
+        <a href="<?= appUrl() ?>?view=compta&amp;userid=<?= (int)$_ce->user_id ?>" hx-boost="false"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" style="font-size:0.8rem">
+          <span class="text-nowrap text-truncate"><?= htmlspecialchars($_ceName, ENT_QUOTES, $charset) ?></span>
+          <span class="d-flex align-items-center gap-2 text-nowrap ms-2">
+            <span class="text-muted"><?= htmlspecialchars(timeStampToformatedDate(strtotime($_ce->date)), ENT_QUOTES, $charset) ?></span>
+            <span><?= number_format((float)$_ce->sum, 2, '.', "'") ?></span>
+            <?= $_ctBadge((string)$_ce->type_color, (string)$_ce->type_label) ?>
+          </span>
+        </a>
+        <?php endforeach ?>
       </div>
     </div>
-    <script>
-    (function () {
-      var tbody = document.querySelector('#dashboard-recent-compta tbody');
-      if (!tbody) return;
-      tbody.addEventListener('click', function (e) {
-        var tr = e.target.closest('tr.ca-row-link');
-        if (!tr) return;
-        window.location.href = tr.dataset.href;
-      });
-    })();
-    </script>
     <?php endif ?>
 
     <?php if (!empty($_recentContacts)): ?>
     <div class="card">
-      <a href="<?= appUrl() ?>?view=list" class="card-header text-decoration-none d-block" hx-boost="false">
-        <?= $GLOBAL['dashboardRecentContactsTitle'] ?>
-      </a>
-      <div class="table-responsive">
-        <table id="dashboard-recent-contacts" class="table table-sm table-hover mb-0" style="font-size:0.8rem">
-          <tbody>
-          <?php foreach ($_recentContacts as $_rc):
-              $_rcName = trim(($_rc->society ? $_rc->society . ' ' : '') . $_rc->lastname . ' ' . $_rc->firstname);
-          ?>
-          <tr class="ca-row-link" style="cursor:pointer" data-href="<?= appUrl() ?>?view=generalData&amp;id=<?= (int)$_rc->id ?>">
-            <td class="text-nowrap"><?= htmlspecialchars($_rcName, ENT_QUOTES, $charset) ?></td>
-            <td class="text-muted text-end text-nowrap"><?= $_rc->creationDate ? timeStampToformatedDate(strtotime($_rc->creationDate)) : '' ?></td>
-          </tr>
-          <?php endforeach ?>
-          </tbody>
-        </table>
+      <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['dashboardRecentContactsTitle'] ?></h2></div>
+      <div class="list-group list-group-flush">
+        <?php foreach ($_recentContacts as $_rc):
+            $_rcName = trim(($_rc->society ? $_rc->society . ' ' : '') . $_rc->lastname . ' ' . $_rc->firstname);
+        ?>
+        <a href="<?= appUrl() ?>?view=generalData&amp;id=<?= (int)$_rc->id ?>" hx-boost="false"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" style="font-size:0.8rem">
+          <span class="text-nowrap text-truncate"><?= htmlspecialchars($_rcName, ENT_QUOTES, $charset) ?></span>
+          <span class="text-muted text-nowrap ms-2"><?= $_rc->creationDate ? timeStampToformatedDate(strtotime($_rc->creationDate)) : '' ?></span>
+        </a>
+        <?php endforeach ?>
       </div>
     </div>
-    <script>
-    (function () {
-      var tbody = document.querySelector('#dashboard-recent-contacts tbody');
-      if (!tbody) return;
-      tbody.addEventListener('click', function (e) {
-        var tr = e.target.closest('tr.ca-row-link');
-        if (!tr) return;
-        window.location.href = tr.dataset.href;
-      });
-    })();
-    </script>
     <?php endif ?>
 
     <div class="card">
-      <div class="card-header"><?= $GLOBAL['documentation'] ?></div>
+      <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['documentation'] ?></h2></div>
       <div class="list-group list-group-flush">
         <a href="https://pvollenweider.github.io/memberbase/docs/user.html" target="_blank" rel="noopener" class="list-group-item list-group-item-action">
           <i class="fas fa-book me-2" aria-hidden="true"></i><?= $GLOBAL['dashboardUserGuideLink'] ?>
@@ -660,4 +711,5 @@ $_recentContacts = db()->query(
       </div>
     </div>
   </div>
+</div>
 </div>

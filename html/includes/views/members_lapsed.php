@@ -28,17 +28,18 @@ $count       = count($rows);
 $alreadySent = count($reminderSentMap);
 $prevSegmentId  = 1; // non-zero so the table renders
 ?>
-<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-2 flex-wrap">
   <?php if (empty($_pfEmbedded)): ?>
   <a href="<?= appUrl() ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToDonationOverview'] ?>
   </a>
   <?php endif ?>
-  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    <?= sprintf($GLOBAL['lapsedMembersTitle'], $year-1, $year) ?>
-  </span>
+  <span class="me-2"><?= sprintf($GLOBAL['lapsedMembersTitle'], $year-1, $year) ?></span>
 
-  <div class="dropdown ms-1">
+  <div class="vr d-none d-sm-block mx-1" aria-hidden="true"></div>
+
+  <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <?= $year ?>
     </button>
@@ -49,29 +50,32 @@ $prevSegmentId  = 1; // non-zero so the table renders
       <?php endfor ?>
     </ul>
   </div>
-</div>
+
+  <?php if (!empty($cotiTypeIds)): ?>
+  <div class="d-flex gap-2 flex-wrap ms-auto">
+  <?php if (isManager()): ?>
+  <button type="button" class="btn btn-outline-warning btn-sm"
+          data-bs-toggle="modal" data-bs-target="#modal-create-lapsed-members">
+    <i class="fas fa-users me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['createSegmentLapsedMembers'], $year) ?>
+  </button>
+  <?php endif ?>
+  <?php if (isManager() && $count > 0): ?>
+  <button type="button" class="btn btn-outline-primary btn-sm"
+          data-bs-toggle="modal" data-bs-target="#modal-send-coti-reminders"
+          data-count="<?= $count ?>">
+    <i class="fas fa-envelope me-1" aria-hidden="true"></i><?= $GLOBAL['sendCotiRemindersBtn'] ?>
+  </button>
+  <?php endif ?>
+  </div>
+  <?php endif ?>
+</div><!-- .card-header -->
+<div class="card-body">
 
 <?php if (empty($cotiTypeIds)): ?>
-<div class="alert alert-secondary" style="font-size:0.85rem">
+<div class="alert alert-secondary mb-0" style="font-size:0.85rem">
   <?= $GLOBAL['noComptaCotiType'] ?>
 </div>
 <?php else: ?>
-
-<div class="d-flex gap-2 mb-3 flex-wrap">
-<?php if (isManager()): ?>
-<button type="button" class="btn btn-outline-warning btn-sm"
-        data-bs-toggle="modal" data-bs-target="#modal-create-lapsed-members">
-  <i class="fas fa-users me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['createSegmentLapsedMembers'], $year) ?>
-</button>
-<?php endif ?>
-<?php if (isManager() && $count > 0): ?>
-<button type="button" class="btn btn-outline-primary btn-sm"
-        data-bs-toggle="modal" data-bs-target="#modal-send-coti-reminders"
-        data-count="<?= $count ?>">
-  <i class="fas fa-envelope me-1" aria-hidden="true"></i><?= $GLOBAL['sendCotiRemindersBtn'] ?>
-</button>
-<?php endif ?>
-</div>
 
 <div class="modal fade" id="modal-create-lapsed-members" tabindex="-1" aria-labelledby="modal-create-lapsed-members-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -208,6 +212,8 @@ include __DIR__ . '/../partials/donor_table.php';
 ?>
 <?php endif ?>
 <?php endif ?>
+</div><!-- .card-body -->
+</div><!-- .card -->
 
 <?php if (isManager() && $count > 0): ?>
 <!-- Preview modal for individual send/resend -->
@@ -226,7 +232,7 @@ include __DIR__ . '/../partials/donor_table.php';
           <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
         </div>
         <div id="coti-modal-error" class="alert alert-danger m-3" style="display:none"></div>
-        <iframe id="coti-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin allow-scripts"></iframe>
+        <iframe id="coti-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin"></iframe>
       </div>
       <?php if (trim($appSettings['smtp_reply_to'] ?? '') !== ''): ?>
       <div class="px-3 pt-2">
@@ -251,8 +257,9 @@ include __DIR__ . '/../partials/donor_table.php';
     var rowBtns = document.querySelectorAll('.js-send-one');
     if (!rowBtns.length) return;
 
-    var baseUrl = <?= json_encode(appUrl()) ?>;
-    var year    = <?= (int)$year ?>;
+    var baseUrl  = <?= json_encode(appUrl()) ?>;
+    var year     = <?= (int)$year ?>;
+    var loadErr  = <?= json_encode($GLOBAL['loadError']) ?>;
     function getCsrf() { return window.casaCsrfToken ? window.casaCsrfToken() : ''; }
 
     var modal      = new bootstrap.Modal(document.getElementById('cotiPreviewModal'));
@@ -287,7 +294,7 @@ include __DIR__ . '/../partials/donor_table.php';
             .then(function (data) {
                 loadingEl.style.display = 'none';
                 if (!data.ok) {
-                    errorEl.textContent = data.error || '?';
+                    errorEl.textContent = data.error || loadErr;
                     errorEl.style.display = '';
                     return;
                 }
@@ -303,7 +310,7 @@ include __DIR__ . '/../partials/donor_table.php';
             })
             .catch(function () {
                 loadingEl.style.display = 'none';
-                errorEl.textContent = '?';
+                errorEl.textContent = loadErr;
                 errorEl.style.display = '';
             });
         });

@@ -73,11 +73,13 @@ $_pausedStmt = db()->query(
      ORDER BY t.paused_at DESC"
 );
 $_pausedTasks = $_pausedStmt->fetchAll(PDO::FETCH_OBJ);
+$_noOuterContainer = true;
+$_phIcon = 'fa-list-check';
+$_phTitle = $GLOBAL['tasksPageTitle'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
 
-<div class="page-title-row mb-3">
-  <h1 class="page-title"><?= $GLOBAL['tasksPageTitle'] ?></h1>
-</div>
+<div class="container-xl px-4 ca-hero-overlap">
 
 <?php if (isset($_GET['generated'])): ?>
 <div class="alert alert-success py-2" role="alert">
@@ -141,7 +143,10 @@ $_pausedTasks = $_pausedStmt->fetchAll(PDO::FETCH_OBJ);
 <?php endif ?>
 
 <?php if (canWrite()): ?>
-<form action="<?= appUrl() ?>" method="post" name="addTask" class="mb-4">
+<div class="card mb-4">
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['taskAddNew'] ?></h2></div>
+<div class="card-body">
+<form action="<?= appUrl() ?>" method="post" name="addTask" class="mb-0">
 <input type="hidden" name="action" value="addTask"/>
 <input type="hidden" name="view" value="tasks"/>
 <div class="row g-2 align-items-end">
@@ -170,10 +175,15 @@ $_pausedTasks = $_pausedStmt->fetchAll(PDO::FETCH_OBJ);
   </div>
 </div>
 </form>
+</div><!-- .card-body -->
+</div><!-- .card -->
 <?php endif ?>
 
+<div class="card mb-4">
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['tasksPageTitle'] ?></h2></div>
+<div class="card-body">
 <?php if (empty($_tasks)): ?>
-<p class="text-muted"><i class="fas fa-circle-check me-1 text-success" aria-hidden="true"></i><?= $GLOBAL['noOpenTasks'] ?></p>
+<p class="text-muted mb-0"><i class="fas fa-circle-check me-1 text-success" aria-hidden="true"></i><?= $GLOBAL['noOpenTasks'] ?></p>
 <?php else: ?>
 <table id="tasks-table" class="table table-sm table-striped table-hover mt-2">
 <thead>
@@ -205,7 +215,7 @@ $_pausedTasks = $_pausedStmt->fetchAll(PDO::FETCH_OBJ);
             <?= $_dueTs ? htmlspecialchars(date('d.m.Y', $_dueTs), ENT_QUOTES, $charset) : '—' ?>
             <?php if ($_overdue): ?><i class="fas fa-triangle-exclamation ms-1" aria-hidden="true" title="<?= $GLOBAL['taskOverdue'] ?>"></i><?php endif ?>
         </td>
-        <td><?= htmlspecialchars($_priorityLabels[(int)$_t->priority] ?? '', ENT_QUOTES, $charset) ?></td>
+        <td><?= (int)$_t->priority === SuiviTask::PRIORITY_HIGH ? '<span class="text-danger fw-semibold">' . htmlspecialchars($_priorityLabels[(int)$_t->priority] ?? '', ENT_QUOTES, $charset) . '</span>' : htmlspecialchars($_priorityLabels[(int)$_t->priority] ?? '', ENT_QUOTES, $charset) ?></td>
         <td>
             <?= htmlspecialchars($_t->title, ENT_QUOTES, $charset) ?>
             <?php if ($_t->body): ?><div class="text-muted small"><?= htmlspecialchars($_t->body, ENT_QUOTES, $charset) ?></div><?php endif ?>
@@ -312,19 +322,20 @@ $(document).ready(function() {
 });
 </script>
 <?php endif ?>
+</div><!-- .card-body -->
+</div><!-- .card -->
 
 <?php if (!empty($_doneTasks)): ?>
-<div class="mt-4">
-  <div class="d-flex align-items-center justify-content-between mb-2">
-    <h6 class="text-muted fw-semibold mb-0" style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.04em">
-      <i class="fas fa-check-double me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['taskCompletedTitle'], count($_doneTasks)) ?>
-    </h6>
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <h6 class="mb-0"><i class="fas fa-check-double me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['taskCompletedTitle'], count($_doneTasks)) ?></h6>
     <?php if (isManager()): ?>
     <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk-delete-done-tasks">
       <i class="fas fa-trash-can me-1" aria-hidden="true"></i><?= $GLOBAL['taskBulkDeleteBtn'] ?>
     </button>
     <?php endif ?>
   </div>
+  <div class="card-body">
   <table id="completed-tasks-table" class="table table-sm table-hover opacity-75">
     <thead class="table-light">
       <tr>
@@ -366,7 +377,8 @@ $(document).ready(function() {
     <?php endforeach ?>
     </tbody>
   </table>
-</div>
+  </div><!-- .card-body -->
+</div><!-- .card -->
 
 <?php if (isManager()): ?>
 <div class="modal fade" id="modal-bulk-delete-done-tasks" tabindex="-1" aria-labelledby="modal-bulk-delete-done-tasks-label" aria-modal="true">
@@ -392,10 +404,11 @@ $(document).ready(function() {
 <?php endif ?>
 
 <?php if (!empty($_pausedTasks)): ?>
-<div class="mt-4">
-  <h6 class="text-muted fw-semibold mb-2" style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.04em">
-    <i class="fas fa-pause me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['taskPausedTitle'], count($_pausedTasks)) ?>
-  </h6>
+<div class="card mb-4">
+  <div class="card-header">
+    <h6 class="mb-0"><i class="fas fa-pause me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['taskPausedTitle'], count($_pausedTasks)) ?></h6>
+  </div>
+  <div class="card-body">
   <table id="paused-tasks-table" class="table table-sm table-hover opacity-75">
     <thead class="table-light">
       <tr>
@@ -437,8 +450,10 @@ $(document).ready(function() {
     <?php endforeach ?>
     </tbody>
   </table>
-</div>
+  </div><!-- .card-body -->
+</div><!-- .card -->
 <?php endif ?>
+</div>
 
 <?php if ($_hasCotiTask): ?>
 <?php require __DIR__ . '/../partials/task_coti_reminder_modal.php'; ?>

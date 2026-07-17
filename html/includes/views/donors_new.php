@@ -14,17 +14,25 @@ $_selfQuery  = !empty($_pfEmbedded) ? 'view=peopleFinance&tab=lapsedDonors&cohor
 require_once __DIR__ . '/../lib/donor.php';
 $rows  = mbGetNewDonors(db(), $year);
 $count = count($rows);
+
+if (empty($_pfEmbedded)) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-star';
+    $_phTitle = sprintf($GLOBAL['newDonorsTitle'], $year);
+    include __DIR__ . '/../partials/page_header.php';
+    echo '<div class="container-xl px-4 ca-hero-overlap">';
+}
 ?>
-<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-2 flex-wrap">
   <?php if (empty($_pfEmbedded)): ?>
   <a href="<?= appUrl() ?>?view=resume&amp;year=<?= $year ?>" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['backToDonationOverview'] ?>
   </a>
   <?php endif ?>
-  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
-    <?= sprintf($GLOBAL['newDonorsTitle'], $year) ?>
-  </span>
-  <div class="dropdown ms-1">
+  <span class="me-2"><?= sprintf($GLOBAL['newDonorsTitle'], $year) ?></span>
+  <div class="vr d-none d-sm-block mx-1" aria-hidden="true"></div>
+  <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <?= $year ?>
     </button>
@@ -35,7 +43,8 @@ $count = count($rows);
       <?php endfor ?>
     </ul>
   </div>
-</div>
+</div><!-- .card-header -->
+<div class="card-body">
 
 <div class="alert d-flex align-items-start gap-2 py-2 mb-3" role="status"
      style="font-size:0.85rem;background:rgba(255,193,7,0.12);border:1px solid rgba(255,193,7,0.4);border-radius:6px">
@@ -63,3 +72,6 @@ $extra_columns = [
 $row_href = fn($row) => appUrl() . '?view=compta&userid=' . (int)$row->id;
 include __DIR__ . '/../partials/donor_table.php';
 ?>
+</div><!-- .card-body -->
+</div><!-- .card -->
+<?php if (empty($_pfEmbedded)) { echo '</div>'; } ?>

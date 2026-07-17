@@ -111,6 +111,7 @@ $tplLabels = [
             <?= $GLOBAL['emailTemplateHtmlHelp'] ?>
             <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline"
                     data-bs-toggle="modal" data-bs-target="#tpl-vars-modal"
+                    title="<?= $GLOBAL['emailTemplateVarsHelp'] ?? 'Aide sur les variables' ?>"
                     style="font-size:0.8rem;line-height:1">(?)</button>
           </div>
         </div>

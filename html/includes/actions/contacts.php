@@ -255,6 +255,48 @@ if ($_REQUEST['action'] == 'updateUser') {
     if ($isHtmx) { header('HX-Location: ' . appUrl() . $redirectTarget); exit; }
     header('Location: ' . appUrl() . $redirectTarget); exit;
 
+} elseif ($_REQUEST['action'] == 'bulkDeleteUsers') {
+    // Archived-members bulk cleanup (users_inactive.php). Only deletes accounts
+    // with zero compta rows — same "nothing financial to lose" rule the UI
+    // uses to mark a row eligible; re-checked here in case the page was stale
+    // when submitted (e.g. an entry was added between page load and bulk action).
+    if (!isAdmin()) { http_response_code(403); exit; }
+    $ids = array_map('intval', array_filter($_REQUEST['ids'] ?? [], 'is_numeric'));
+    $_bduDeleted = 0;
+    foreach ($ids as $uid) {
+        $chk = db()->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
+        $chk->execute([$uid]);
+        if ((int)$chk->fetchColumn() > 0) continue; // skip: has compta data, not eligible
+        $user = new Contact();
+        $user->lookupUser($uid);
+        if (!$user->id) continue;
+        auditLog(db(), 'deleteUser', 'id=' . $uid . ' | ' . trim($user->firstName . ' ' . $user->lastName) . ' | bulkDeleteUsers');
+        $user->remove();
+        $_bduDeleted++;
+    }
+    if ($isHtmx) { header('HX-Location: ' . appUrl() . '?view=inactiveUsers'); exit; }
+    header('Location: ' . appUrl() . '?view=inactiveUsers'); exit;
+
+} elseif ($_REQUEST['action'] == 'bulkAnonymizeUsers') {
+    // Same eligibility guard as the single anonymizeUser action (only
+    // accounts that DO have compta data — otherwise there's nothing to
+    // anonymize-while-preserving, a plain delete is the correct action).
+    if (!isAdmin()) { http_response_code(403); exit; }
+    $ids = array_map('intval', array_filter($_REQUEST['ids'] ?? [], 'is_numeric'));
+    foreach ($ids as $uid) {
+        $chk = db()->prepare("SELECT COUNT(*) FROM compta WHERE user_id=?");
+        $chk->execute([$uid]);
+        if ((int)$chk->fetchColumn() === 0) continue;
+        db()->prepare("UPDATE contact SET
+            firstName='Anonymisé', lastName='', society='', sexe='na', title='',
+            address='', npa='', tel='', telprof='', portable='', fax='',
+            email='', web='', birthday=NULL, comment='', status=0
+            WHERE id=?")->execute([$uid]);
+        auditLog(db(), 'anonymizeUser', 'id=' . $uid . ' | bulkAnonymizeUsers', $uid);
+    }
+    if ($isHtmx) { header('HX-Location: ' . appUrl() . '?view=inactiveUsers'); exit; }
+    header('Location: ' . appUrl() . '?view=inactiveUsers'); exit;
+
 } elseif ($_REQUEST['action'] == 'addUser') {
     require_once __DIR__ . '/../lib/contact_type.php';
     $user = new Contact();

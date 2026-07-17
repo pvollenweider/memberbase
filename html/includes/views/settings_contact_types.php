@@ -30,13 +30,16 @@ $_ctDefaults     = array_column(
     'default_compta_type_id',
     'id'
 );
+if (!$_ctEmbedded):
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-address-card';
+    $_phTitle = $GLOBAL['administration'];
+    include __DIR__ . '/../partials/page_header.php';
 ?>
-<?php if (!$_ctEmbedded): ?>
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="row justify-content-center mt-4">
   <div class="col-lg-10">
 <?php endif ?>
-
-<p class="form-section-title" style="margin-top:0"><?= $GLOBAL['contactTypesTitle'] ?></p>
 
 <?php if ($_ctLabelSavedId !== null): ?>
 <div class="alert alert-success py-2" role="alert">
@@ -44,9 +47,9 @@ $_ctDefaults     = array_column(
 </div>
 <?php endif ?>
 
-<div class="card mb-3">
-  <div class="card-body py-3">
-    <p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['newContactType'] ?></p>
+<div class="card mb-4">
+  <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['newContactType'] ?></h2></div>
+  <div class="card-body">
     <form id="add-contact-type-form" action="<?= appUrl() ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
       <input type="hidden" name="action" value="addContactType">
       <input type="hidden" name="returnView" value="<?= $_ctEmbedded ? 'settings' : 'contactTypes' ?>">
@@ -66,7 +69,10 @@ $_ctDefaults     = array_column(
   </div>
 </div>
 
-<div class="table-responsive mb-4">
+<div class="card mb-4">
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['contactTypesTitle'] ?></h2></div>
+<div class="card-body">
+<div class="table-responsive">
 <table id="contact-type-management-table" class="table table-sm table-hover align-middle">
   <thead class="table-light">
     <tr>
@@ -128,7 +134,9 @@ document.querySelectorAll('.ctm-icon-input').forEach(function (input) {
   });
 });
 </script>
-</div>
+</div><!-- .table-responsive -->
+</div><!-- .card-body -->
+</div><!-- .card -->
 
 <div class="modal fade" id="modal-delete-contact-type" tabindex="-1" aria-labelledby="modal-delete-contact-type-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -152,13 +160,15 @@ document.getElementById('modal-delete-contact-type').addEventListener('show.bs.m
 });
 </script>
 
-<p class="form-section-title"><?= $GLOBAL['contactTypeMatrixTitle'] ?></p>
+<div class="card mb-4">
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['contactTypeMatrixTitle'] ?></h2></div>
+<div class="card-body">
 <p class="text-muted small"><?= $GLOBAL['contactTypeMatrixHelp'] ?></p>
 
 <?php if (empty($_ctComptaTypes)): ?>
-<p class="text-muted"><?= $GLOBAL['contactTypeMatrixNoComptaTypes'] ?></p>
+<p class="text-muted mb-0"><?= $GLOBAL['contactTypeMatrixNoComptaTypes'] ?></p>
 <?php else: ?>
-<div class="mb-4">
+<div class="mb-0">
   <div class="table-responsive">
   <table id="contact-type-matrix-table" class="table table-sm table-hover align-middle">
     <thead class="table-light">
@@ -226,7 +236,7 @@ document.getElementById('modal-delete-contact-type').addEventListener('show.bs.m
   var status  = document.getElementById('contact-type-matrix-status');
   var baseUrl = <?= json_encode(appUrl()) ?>;
   var savedMsg = <?= json_encode($GLOBAL['contactTypeMatrixSavedMsg']) ?>;
-  var errMsg   = <?= json_encode($GLOBAL['error'] ?? 'Erreur') ?>;
+  var errMsg   = <?= json_encode($GLOBAL['loadError']) ?>;
   var statusTimer = null;
 
   function showStatus(text, isError) {
@@ -310,8 +320,11 @@ document.getElementById('modal-delete-contact-type').addEventListener('show.bs.m
 })();
 </script>
 <?php endif ?>
+</div><!-- .card-body -->
+</div><!-- .card -->
 
 <?php if (!$_ctEmbedded): ?>
   </div>
+</div>
 </div>
 <?php endif ?>

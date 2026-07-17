@@ -94,74 +94,89 @@ $_taskOpenCount    = SuiviTask::openCountForUser($user->getId());
 $_taskOverdueCount = SuiviTask::overdueCountForUser($user->getId());
 ?>
 
-<div class="page-title-row mb-2 d-flex align-items-start justify-content-between gap-2 flex-wrap">
-    <?php
-    $_memberLabel = trim($user->getFirstName() . ' ' . $user->getLastName());
-    $_memberSociety = trim($user->getSociety());
-    if ($_memberLabel === '' && $_memberSociety === '') { $_memberLabel = sprintf($GLOBAL['noNameId'], (int)$user->getId()); }
-    ?>
-    <div>
-        <?php if ($_memberSociety !== ''): ?>
-        <div class="text-muted" style="font-size:1rem;font-weight:600"><?= htmlentities($_memberSociety, ENT_COMPAT, $charset) ?></div>
-        <?php endif ?>
-        <?php if ($_memberLabel !== ''): ?>
-        <h1 class="page-title mb-0"><?= htmlentities($_memberLabel, ENT_COMPAT, $charset) ?></h1>
-        <?php endif ?>
-    </div>
-    <?php if (isManager()): ?>
-    <form method="post" action="<?= appUrl() ?>" class="d-flex align-items-center" data-no-dirty id="status-toggle-form">
-        <input type="hidden" name="action"   value="<?= $user->status ? 'deactivateUser' : 'reactivateUser' ?>">
-        <input type="hidden" name="id"       value="<?= (int)$user->getId() ?>">
-        <input type="hidden" name="redirect" value="updateUser">
-        <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" role="switch" id="status-toggle"
-                   <?= $user->status ? 'checked' : '' ?>
-                   onchange="<?= $user->status
-                     ? 'this.checked=true;var m=new bootstrap.Modal(document.getElementById(\'deactivate-modal\'));m.show()'
-                     : 'document.getElementById(\'status-toggle-form\').submit()' ?>">
-            <label class="form-check-label small" for="status-toggle"><?= $user->status ? $GLOBAL['active'] : $GLOBAL['archivedOne'] ?></label>
+<?php
+// Hero header (same pattern as the other hubs), enriched with contact
+// type / company / email under the name and a right-side status toggle
+// this view builds by hand instead of via page_header.php.
+$_noOuterContainer = true;
+$_memberLabel = trim($user->getFirstName() . ' ' . $user->getLastName());
+$_memberSociety = trim($user->getSociety());
+if ($_memberLabel === '' && $_memberSociety === '') { $_memberLabel = sprintf($GLOBAL['noNameId'], (int)$user->getId()); }
+$_ctStmt = db()->prepare("SELECT label, icon FROM contact_type WHERE id = ?");
+$_ctStmt->execute([$user->getContactTypeId()]);
+$_contactType = $_ctStmt->fetchObject();
+?>
+<header class="ca-hero">
+  <div class="container-xl px-4">
+      <div class="row align-items-center justify-content-between">
+        <div class="col-auto">
+          <h1 class="ca-hero-title">
+            <span class="ca-hero-icon"><i class="fas fa-user"></i></span>
+            <?= htmlentities($_memberLabel, ENT_COMPAT, $charset) ?>
+          </h1>
+          <div class="ca-hero-subtitle d-flex flex-wrap gap-3">
+            <?php if ($_contactType): ?>
+            <span><i class="<?= htmlspecialchars($_contactType->icon ?: 'fas fa-tag', ENT_QUOTES, $charset) ?> me-1" aria-hidden="true"></i><?= htmlspecialchars($_contactType->label, ENT_QUOTES, $charset) ?></span>
+            <?php endif ?>
+            <?php if ($_memberSociety !== ''): ?>
+            <span><i class="fas fa-building me-1" aria-hidden="true"></i><?= htmlentities($_memberSociety, ENT_COMPAT, $charset) ?></span>
+            <?php endif ?>
+            <?php if (trim((string)$user->getEmail()) !== ''): ?>
+            <span><i class="fas fa-envelope me-1" aria-hidden="true"></i><?= htmlspecialchars($user->getEmail(), ENT_QUOTES, $charset) ?></span>
+            <?php endif ?>
+          </div>
         </div>
-    </form>
-    <?php else: ?>
-    <span class="small text-muted"><?= $user->status ? $GLOBAL['active'] : $GLOBAL['archivedOne'] ?></span>
-    <?php endif ?>
-</div>
+        <div class="col-12 col-xl-auto mt-4">
+          <?php if (isManager()): ?>
+          <form method="post" action="<?= appUrl() ?>" class="d-flex align-items-center" data-no-dirty id="status-toggle-form">
+              <input type="hidden" name="action"   value="<?= $user->status ? 'deactivateUser' : 'reactivateUser' ?>">
+              <input type="hidden" name="id"       value="<?= (int)$user->getId() ?>">
+              <input type="hidden" name="redirect" value="updateUser">
+              <div class="form-check form-switch mb-0">
+                  <input class="form-check-input" type="checkbox" role="switch" id="status-toggle"
+                         <?= $user->status ? 'checked' : '' ?>
+                         onchange="<?= $user->status
+                           ? 'this.checked=true;var m=new bootstrap.Modal(document.getElementById(\'deactivate-modal\'));m.show()'
+                           : 'document.getElementById(\'status-toggle-form\').submit()' ?>">
+                  <label class="form-check-label small text-white" for="status-toggle"><?= $user->status ? $GLOBAL['active'] : $GLOBAL['archivedOne'] ?></label>
+              </div>
+          </form>
+          <?php else: ?>
+          <span class="small text-white-50"><?= $user->status ? $GLOBAL['active'] : $GLOBAL['archivedOne'] ?></span>
+          <?php endif ?>
+        </div>
+      </div>
+  </div>
+</header>
 
-<ul class="nav nav-tabs mb-3" role="tablist">
-    <li class="nav-item" role="presentation">
-        <a class="nav-link<?= $view === 'generalData' ? ' active' : '' ?>"
-           href="<?= appUrl() ?>?view=generalData&amp;userid=<?= $user->getId() ?>">
-            <i class="far fa-id-card me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['generalData'] ?></span><span class="d-sm-none"><?= $GLOBAL['memberSheet'] ?></span>
-        </a>
-    </li>
-    <li class="nav-item" role="presentation">
-        <a class="nav-link<?= $view === 'compta' ? ' active' : '' ?>"
-           href="<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?>">
-            <i class="fas fa-file-contract me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?>
-            <?php if ((int)$_stats->compta_count > 0): ?>
-            <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= (int)$_stats->compta_count ?></span>
-            <?php endif ?>
-        </a>
-    </li>
-    <li class="nav-item" role="presentation">
-        <a class="nav-link<?= $view === 'suivi' ? ' active' : '' ?>"
-           href="<?= appUrl() ?>?view=suivi&amp;userid=<?= $user->getId() ?>">
-            <i class="far fa-rectangle-list me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?>
-            <?php if ($_suiviCount > 0): ?>
-            <span class="ms-1 opacity-60" style="font-size:0.7rem"><?= $_suiviCount ?></span>
-            <?php endif ?>
-        </a>
-    </li>
+<div class="container-xl px-4 ca-hero-overlap">
+<div class="d-flex flex-wrap gap-2 mb-3" role="group" aria-label="<?= htmlspecialchars($GLOBAL['generalData'], ENT_QUOTES, $charset) ?>">
+    <a class="btn <?= $view === 'generalData' ? 'btn-light' : 'btn-outline-light' ?>"
+       href="<?= appUrl() ?>?view=generalData&amp;userid=<?= $user->getId() ?>">
+        <i class="far fa-id-card me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['generalData'] ?></span><span class="d-sm-none"><?= $GLOBAL['memberSheet'] ?></span>
+    </a>
+    <a class="btn <?= $view === 'compta' ? 'btn-light' : 'btn-outline-light' ?>"
+       href="<?= appUrl() ?>?view=compta&amp;userid=<?= $user->getId() ?>">
+        <i class="fas fa-file-contract me-1" aria-hidden="true"></i><?= $GLOBAL['compta'] ?>
+        <?php if ((int)$_stats->compta_count > 0): ?>
+        <span class="ms-1" style="font-size:0.7rem"><?= (int)$_stats->compta_count ?></span>
+        <?php endif ?>
+    </a>
+    <a class="btn <?= $view === 'suivi' ? 'btn-light' : 'btn-outline-light' ?>"
+       href="<?= appUrl() ?>?view=suivi&amp;userid=<?= $user->getId() ?>">
+        <i class="far fa-rectangle-list me-1" aria-hidden="true"></i><?= $GLOBAL['suivi'] ?>
+        <?php if ($_suiviCount > 0): ?>
+        <span class="ms-1" style="font-size:0.7rem"><?= $_suiviCount ?></span>
+        <?php endif ?>
+    </a>
     <?php /* Tasks tab hidden for now — dashboard shortcuts are the entry point into tasks going forward. */ ?>
     <?php if (isAdmin()): ?>
-    <li class="nav-item" role="presentation">
-        <a class="nav-link<?= $view === 'userHistory' ? ' active' : '' ?>"
-           href="<?= appUrl() ?>?view=userHistory&amp;userid=<?= $user->getId() ?>">
-            <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['history'] ?></span><span class="d-sm-none"><?= $GLOBAL['historyShort'] ?></span>
-        </a>
-    </li>
+    <a class="btn <?= $view === 'userHistory' ? 'btn-light' : 'btn-outline-light' ?>"
+       href="<?= appUrl() ?>?view=userHistory&amp;userid=<?= $user->getId() ?>">
+        <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><span class="d-none d-sm-inline"><?= $GLOBAL['history'] ?></span><span class="d-sm-none"><?= $GLOBAL['historyShort'] ?></span>
+    </a>
     <?php endif ?>
-</ul>
+</div>
 
 <?php if ($user->status): ?>
 <div class="modal fade" id="deactivate-modal" tabindex="-1" aria-labelledby="deactivate-modal-label" aria-hidden="true">
@@ -245,15 +260,24 @@ if ($view == "compta") {
 
       <div class="row">
           <div class="col-md-8 ca-mobile-expandable">
+            <div class="card mb-3">
+              <div class="card-body">
               <?php include __DIR__ . "/users_general_data.php"; ?>
+              </div>
+            </div>
           </div>
           <div class="col-md-4 small">
+            <div class="card mb-3">
+              <div class="card-body">
               <?php include __DIR__ . "/users_member_of.php"; ?>
+              </div>
+            </div>
               <?php if ((int)$_stats->don_count > 0): ?>
-              <div class="ca-stats-mini mt-3 p-3 rounded border" style="background:var(--bs-light)">
-                <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">
-                  <i class="fas fa-hand-holding-heart me-1" aria-hidden="true"></i><?= $GLOBAL['donations'] ?>
+              <div class="card mb-3">
+                <div class="card-header">
+                  <h2 class="h6 mb-0"><i class="fas fa-hand-holding-heart me-1" aria-hidden="true"></i><?= $GLOBAL['donations'] ?></h2>
                 </div>
+                <div class="card-body">
                 <div class="d-flex flex-column gap-1">
                   <div class="d-flex justify-content-between align-items-baseline">
                     <span style="font-size:0.8rem"><?= $_year ?></span>
@@ -278,14 +302,16 @@ if ($view == "compta") {
                     </span>
                   </div>
                 </div>
+                </div>
               </div>
               <?php endif ?>
               <?php if ((int)$_stats->other_count > 0): ?>
               <?php $_otherTypeLabels = implode(', ', array_map(fn($t) => htmlentities((string)$t->label, ENT_COMPAT, $charset), array_filter($_otherTypes, fn($t) => (int)$t->this_year_count > 0 || (int)$t->last_year_count > 0))); ?>
-              <div class="ca-stats-mini mt-2 p-3 rounded border" style="background:var(--bs-light)">
-                <div class="fw-semibold mb-2 text-muted" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em">
-                  <i class="fas fa-receipt me-1" aria-hidden="true"></i><?= $GLOBAL['otherPayments'] ?><?php if ($_otherTypeLabels): ?> <span class="fw-normal text-lowercase" style="letter-spacing:0">(<?= $_otherTypeLabels ?>)</span><?php endif ?>
+              <div class="card mb-3">
+                <div class="card-header">
+                  <h2 class="h6 mb-0"><i class="fas fa-receipt me-1" aria-hidden="true"></i><?= $GLOBAL['otherPayments'] ?><?php if ($_otherTypeLabels): ?> <span class="fw-normal text-lowercase" style="letter-spacing:0">(<?= $_otherTypeLabels ?>)</span><?php endif ?></h2>
                 </div>
+                <div class="card-body">
                 <div class="d-flex flex-column gap-1">
                   <div class="d-flex justify-content-between align-items-baseline">
                     <span style="font-size:0.8rem"><?= $_year ?></span>
@@ -310,14 +336,17 @@ if ($view == "compta") {
                     </span>
                   </div>
                 </div>
+                </div>
               </div>
               <?php endif ?>
               <?php if ((int)$_stats->compta_count > 0): ?>
-              <div class="mt-2 px-3 py-2 rounded border d-flex justify-content-between align-items-baseline" style="background:var(--bs-light)">
+              <div class="card mb-3">
+                <div class="card-body d-flex justify-content-between align-items-baseline">
                 <span class="text-muted" style="font-size:0.75rem"><?= sprintf($GLOBAL['totalSince'], $_stats->all_first_ts ? date('Y', strtotime($_stats->all_first_ts)) : '—') ?></span>
                 <span class="fw-semibold" style="font-size:0.85rem">
                   <?= number_format((float)$_stats->all_time_amount, 2, '.', "'") ?> <small class="fw-normal text-muted" style="font-size:0.7rem">CHF</small>
                 </span>
+                </div>
               </div>
               <?php endif ?>
           </div>
@@ -348,6 +377,6 @@ if ($view == "compta") {
     <?php endif ?>
     <?php
 }
-
-
 ?>
+</div>
+

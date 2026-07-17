@@ -107,7 +107,7 @@ foreach ($_tasks as $_t) {
         <?= $_dueTs ? htmlspecialchars(date('d.m.Y', $_dueTs), ENT_QUOTES, $charset) : '—' ?>
         <?php if ($_overdue): ?><i class="fas fa-triangle-exclamation ms-1" aria-hidden="true" title="<?= $GLOBAL['taskOverdue'] ?>"></i><?php endif ?>
     </td>
-    <td><?= htmlspecialchars($_priorityLabels[(int)$_t->priority] ?? '', ENT_QUOTES, $charset) ?></td>
+    <td class="<?= (!$_doneTs && (int)$_t->priority === SuiviTask::PRIORITY_HIGH) ? 'text-danger fw-semibold' : '' ?>"><?= htmlspecialchars($_priorityLabels[(int)$_t->priority] ?? '', ENT_QUOTES, $charset) ?></td>
     <td><?= $_doneTs ? $GLOBAL['taskDone'] : ($_pausedTs ? $GLOBAL['taskPausedStatus'] : $GLOBAL['taskOpen']) ?></td>
     <td class="text-end" style="white-space:nowrap">
         <?php if (!$_doneTs && !$_pausedTs && $_t->rule_key && str_starts_with($_t->rule_key, 'unpaid_coti_current_') && trim((string)$user->getEmail()) !== ''): ?>

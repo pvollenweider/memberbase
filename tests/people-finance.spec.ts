@@ -1,13 +1,14 @@
 /**
  * E2E tests — "Membres & finances" hub (#164)
  *
- * All three tabs are now fully ported: Membres (users_list.php), Relances
- * cotisation (compta_recap.php, managers only), Dons & attestations
- * (donors_summary.php — KPI cards/pie suppressed here, they live on the
- * dashboard, #153). Each tab's require goes through an isolated closure
- * since Bootstrap tabs render every pane server-side (all three views'
- * PHP runs in the same request; none of them were designed to coexist).
- * Linked from the navbar as "Membres & finances" (see menu.php tests).
+ * Server renders only the active tab's pane per request (id="pf-tab-<tab>",
+ * class="pf-active-pane") — navigating between tabs is a real (htmx-boosted)
+ * request, not a client-side show/hide of coexisting panes. The tab bar
+ * itself (#pf-tab-*-btn) is a mobile-only substitute for the sidebar (hidden
+ * ≥991.98px, see custom.css) — tests here run at desktop viewport, so those
+ * links exist in the DOM (their "active" class is still assertable) but are
+ * not visible/clickable; real navigation goes through page.goto() or the
+ * sidebar, same as a desktop user would use.
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -34,14 +35,18 @@ test.describe('People/finance hub — Phase 1', () => {
     await expect(page.locator('#pf-tab-recap #recap-bulk-bcc')).toHaveCount(0);
   });
 
-  test('all three tabs execute in one request without variable collisions', async ({ page }) => {
-    // Regression guard for the closure-isolation fix: all three panes' own
-    // content (which independently define similarly-named variables like
-    // $year, $rows, $email...) must render correctly side by side.
-    await page.goto('/index.php?view=peopleFinance&tab=recap');
+  test('each tab renders independently without variable collisions', async ({ page }) => {
+    // Regression guard for the closure-isolation fix: each tab's own content
+    // (which independently defines similarly-named variables like $year,
+    // $rows, $email...) must render correctly on its own request.
+    await page.goto('/index.php?view=peopleFinance&tab=members');
     await expect(page.locator('#pf-tab-members table.export')).toBeAttached();
     await expect(page.locator('#pf-tab-members')).toContainText('Dupont');
+
+    await page.goto('/index.php?view=peopleFinance&tab=recap');
     await expect(page.locator('#pf-tab-recap')).toBeVisible();
+
+    await page.goto('/index.php?view=peopleFinance&tab=dons');
     await expect(page.locator('#pf-tab-dons table.resume-export')).toBeAttached();
   });
 
@@ -53,26 +58,26 @@ test.describe('People/finance hub — Phase 1', () => {
     await expect(page.locator('#pf-tab-dons .ca-resume-cards')).toHaveCount(0);
   });
 
-  test('switching tabs client-side works without reload', async ({ page }) => {
+  test('navigating between tabs via the sidebar updates the active pane and URL', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance');
-    await page.locator('#pf-tab-dons-btn').click();
-    await expect(page.locator('#pf-tab-dons')).toBeVisible();
-    await expect(page.locator('#pf-tab-members')).toBeHidden();
-  });
-
-  test('switching tabs updates the URL for direct linking', async ({ page }) => {
-    await page.goto('/index.php?view=peopleFinance');
-    await page.locator('#pf-tab-recap-btn').click();
-    await expect(page).toHaveURL(/[?&]tab=recap/);
-    await page.locator('#pf-tab-dons-btn').click();
+    // "Dons" lives in the sidebar's "Finances" submenu, collapsed by default
+    // when the active tab is "members" — expand it before clicking through.
+    await page.locator('#ca-sidebar-col a.nav-link', { hasText: 'Finances' }).click();
+    await page.locator('#ca-sidebar-col a.nav-link[href*="tab=dons"]').click();
     await expect(page).toHaveURL(/[?&]tab=dons/);
+    await expect(page.locator('#pf-tab-dons')).toBeVisible();
+    await expect(page.locator('#pf-tab-members')).toHaveCount(0);
   });
 
   test('Relances tab: changing the year filter stays inside the hub', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance&tab=recap');
+    // The recap year picker only lists years actually holding a compta entry
+    // (compta_recap.php) — seed data is single-year, so pick whichever other
+    // year is on offer instead of assuming last year specifically exists.
     await page.locator('#pf-tab-recap .dropdown-toggle', { hasText: String(new Date().getFullYear()) }).click();
-    const yearLink = page.locator('#pf-tab-recap .dropdown-menu.show a', { hasText: String(new Date().getFullYear() - 1) }).first();
-    await yearLink.click();
+    const otherYearLinks = page.locator('#pf-tab-recap .dropdown-menu.show a:not(.active)');
+    if (await otherYearLinks.count() === 0) test.skip(true, 'seed data has only one compta year');
+    await otherYearLinks.first().click();
     await expect(page).toHaveURL(/view=peopleFinance/);
     await expect(page).toHaveURL(/tab=recap/);
     await expect(page.locator('#pf-tab-recap-btn')).toHaveClass(/active/);
@@ -134,14 +139,16 @@ test.describe('People/finance hub — role guard on Relances tab', () => {
 
   test('Mouvements membres/donateurs tabs are visible but read-only for a non-manager role', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance&tab=lapsed');
-    await expect(page.locator('#pf-tab-lapsed-btn')).toBeVisible();
+    // "Visible" as in role-gated presence, not desktop-viewport visibility —
+    // #pf-tab-lapsed-btn is the mobile-only tab bar, css-hidden ≥991.98px.
+    await expect(page.locator('#pf-tab-lapsed-btn')).toBeAttached();
     await expect(page.locator('#pf-cohort-members-lapsed table')).toBeVisible();
     // Manager-only action triggers (create segment, send reminders) must not render.
     await expect(page.locator('#pf-cohort-members-lapsed button', { hasText: 'segment' })).toHaveCount(0);
     await expect(page.locator('#pf-cohort-members-lapsed [data-bs-target="#modal-send-coti-reminders"]')).toHaveCount(0);
 
     await page.goto('/index.php?view=peopleFinance&tab=lapsedDonors');
-    await expect(page.locator('#pf-tab-lapsedDonors-btn')).toBeVisible();
+    await expect(page.locator('#pf-tab-lapsedDonors-btn')).toBeAttached();
     await expect(page.locator('#pf-cohort-donors-lapsed table')).toBeVisible();
     await expect(page.locator('#pf-cohort-donors-lapsed button', { hasText: 'segment' })).toHaveCount(0);
   });

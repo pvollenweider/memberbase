@@ -31,10 +31,10 @@ try {
     $stmtEmail = db()->query(
         "SELECT u.id AS user_id, u.firstname, u.lastname, u.society,
                 UNIX_TIMESTAMP(el.created_at) AS ts, el.subject AS content,
-                'email' AS kind, el.id AS email_log_id
+                'email' AS kind, el.id AS email_log_id, el.status, el.error_msg
          FROM email_log el
          JOIN contact u ON u.id = el.user_id
-         WHERE el.user_id IS NOT NULL AND el.status = 'sent'"
+         WHERE el.user_id IS NOT NULL"
     );
     $emailRows = $stmtEmail->fetchAll(PDO::FETCH_OBJ);
 } catch (\Throwable $e) {
@@ -44,12 +44,19 @@ try {
 // Merge and sort by date desc
 $allRows = array_merge($rows, $emailRows);
 usort($allRows, fn($a, $b) => (int)$b->ts - (int)$a->ts);
+
+if (empty($_jhEmbedded)) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-book-open';
+    $_phTitle = $GLOBAL['lastEntrySuivi'];
+    include __DIR__ . '/../partials/page_header.php';
+    echo '<div class="container-xl px-4 ca-hero-overlap">';
+}
 ?>
 
-<div class="d-flex align-items-center gap-2 mb-3">
-  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em"><?= $GLOBAL['lastEntrySuivi'] ?></span>
-</div>
-
+<div class="card mb-4">
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['suiviActivityListTitle'] ?></h2></div>
+<div class="card-body">
 <table id="suivi-table" class="table table-sm table-striped table-hover mt-2">
 <thead>
 <tr>
@@ -65,13 +72,16 @@ usort($allRows, fn($a, $b) => (int)$b->ts - (int)$a->ts);
     $name = trim(($row->society ? htmlentities($row->society, ENT_COMPAT, $charset) . ' ' : '') .
                  htmlentities($row->lastname, ENT_COMPAT, $charset) . ' ' .
                  htmlentities($row->firstname, ENT_COMPAT, $charset));
-    $isEmail = $row->kind === 'email';
+    $isEmail  = $row->kind === 'email';
+    $isFailed = $isEmail && ($row->status ?? null) === 'error';
 ?>
-    <tr class="position-relative">
+    <tr class="position-relative<?= $isFailed ? ' table-danger' : '' ?>">
         <td class="text-nowrap"><?= htmlentities($date, ENT_COMPAT, $charset) ?></td>
         <td class="text-nowrap"><?= $name ?></td>
         <td>
-            <?php if ($isEmail): ?>
+            <?php if ($isFailed): ?>
+            <i class="fas fa-envelope me-1 text-danger" aria-hidden="true" title="<?= htmlspecialchars($row->error_msg ?: $GLOBAL['emailStatusError'], ENT_QUOTES, $charset) ?>"></i>
+            <?php elseif ($isEmail): ?>
             <i class="fas fa-envelope me-1 text-primary" aria-hidden="true" title="<?= $GLOBAL['emailSent'] ?>"></i>
             <?php endif ?>
             <!-- Legacy rows store entity-encoded text: decode first, then escape for output -->
@@ -80,7 +90,8 @@ usort($allRows, fn($a, $b) => (int)$b->ts - (int)$a->ts);
         <td class="text-end" style="white-space:nowrap">
             <?php if ($isEmail && $row->email_log_id): ?>
             <a href="<?= appUrl() ?>?view=emailDetail&amp;emailid=<?= (int)$row->email_log_id ?>"
-               class="stretched-link" hx-boost="false"
+               class="stretched-link js-email-row-link" hx-boost="false"
+               data-email-id="<?= (int)$row->email_log_id ?>"
                title="<?= $GLOBAL['viewEmail'] ?>"></a>
             <?php else: ?>
             <a href="<?= appUrl() ?>?view=suivi&amp;userid=<?= (int)$row->user_id ?>"
@@ -92,6 +103,60 @@ usort($allRows, fn($a, $b) => (int)$b->ts - (int)$a->ts);
 <?php endforeach ?>
 </tbody>
 </table>
+</div><!-- .card-body -->
+</div><!-- .card -->
+<?php if (empty($_jhEmbedded)): ?></div><?php endif ?>
+
+<!-- Sent-email detail, loaded on demand into this modal on row click instead
+     of navigating to a separate page. -->
+<div class="modal fade" id="email-detail-modal" tabindex="-1" aria-labelledby="email-detail-modal-label" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="email-detail-modal-label"><?= $GLOBAL['viewEmail'] ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= htmlspecialchars($GLOBAL['close'], ENT_QUOTES, $charset) ?>"></button>
+      </div>
+      <div class="modal-body" id="email-detail-modal-body">
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var modalEl   = document.getElementById('email-detail-modal');
+  var modalBody = document.getElementById('email-detail-modal-body');
+  if (!modalEl || !modalBody) return;
+  document.querySelectorAll('.js-email-row-link').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div></div>';
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
+      var url = <?= json_encode(appUrl()) ?> + '?view=emailDetail&emailid=' + encodeURIComponent(link.dataset.emailId) + '&embedded=1';
+      fetch(url, { headers: { 'HX-Request': 'true' } })
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+          modalBody.innerHTML = html;
+          // <script> tags set via innerHTML never execute — the
+          // iframe-population script in the fetched fragment needs to be
+          // manually re-created to actually run.
+          modalBody.querySelectorAll('script').forEach(function (old) {
+              var s = document.createElement('script');
+              if (old.src) { s.src = old.src; } else { s.textContent = old.textContent; }
+              old.replaceWith(s);
+          });
+          if (window.htmx) htmx.process(modalBody);
+          if (window.casaInit) casaInit(modalBody);
+        })
+        .catch(function () {
+          modalBody.innerHTML = '<div class="alert alert-danger mb-0">' + <?= json_encode($GLOBAL['loadError']) ?> + '</div>';
+        });
+    });
+  });
+})();
+</script>
 
 <script>
 $(document).ready(function() {

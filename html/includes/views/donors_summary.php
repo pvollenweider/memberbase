@@ -140,6 +140,13 @@ if ($year != -2) {
         // -- shown as prev segment count, already computed as $_kMembresPrev
     }
 }
+if (empty($_pfEmbedded)) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-hand-holding-heart';
+    $_phTitle = $GLOBAL['peopleFinanceTabDons'];
+    include __DIR__ . '/../partials/page_header.php';
+    echo '<div class="container-xl px-4 ca-hero-overlap">';
+}
 ?>
 <?php /* KPI cards + pie chart — moved to the dashboard (#153). Still computed
 above (cheap enough, keeps this block a single self-contained diff) but only
@@ -367,9 +374,10 @@ if ($_showPie) {
 </script>
 <?php endif ?>
 
-<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-2 flex-wrap">
 
-  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em"><?= $GLOBAL['contributions'] ?></span>
+  <span class="me-2"><?= $GLOBAL['contributions'] ?></span>
 
   <!-- Montant minimum -->
   <div class="dropdown">
@@ -476,7 +484,8 @@ if ($_showPie) {
   </div>
   <?php endif ?>
 
-</div>
+</div><!-- .card-header -->
+<div class="card-body">
 <?php if ($showAll):
     $excludedLabels = array_map(
         fn($ct) => htmlentities($ct->label, ENT_COMPAT, $charset),
@@ -663,6 +672,9 @@ $(document).ready(function() {
     });
 });
 </script>
+</div><!-- .card-body -->
+</div><!-- .card -->
+<?php if (empty($_pfEmbedded)): ?></div><?php endif ?>
 
 <!-- Modal confirmation attestations bulk -->
 <div class="modal fade" id="bulk-attest-modal" tabindex="-1" aria-labelledby="bulk-attest-title" aria-modal="true" role="dialog">
@@ -767,7 +779,7 @@ require __DIR__ . '/../partials/preview_send_modal.php';
         },
         sendBtnHtml: '<i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= addslashes($GLOBAL['sendAttestationBtn']) ?>',
         sendingText: '<?= addslashes($GLOBAL['sending'] ?? 'Envoi…') ?>',
-        genericErrorText: '?'
+        genericErrorText: <?= json_encode($GLOBAL['loadError']) ?>
     });
 })();
 </script>

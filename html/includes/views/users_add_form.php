@@ -18,12 +18,15 @@ if ($fromSegment > 0) {
     $fromSegmentName = (string)($_ft->fetchColumn() ?: '');
     unset($_ft);
 }
+$_noOuterContainer = true;
+$_phIcon = 'fa-user-plus';
+$_phTitle = $GLOBAL['addUser'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
 
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="row justify-content-center mt-3">
   <div class="col-md-9 col-lg-7">
-
-    <h6 class="form-section-title" style="margin-top:0"><?= $GLOBAL['addUser'] ?></h6>
 
     <form action="<?= appUrl() ?>?action=addUser&amp;view=updateUser" method="post" id="addUser">
       <?php if ($fromSegment > 0): ?>
@@ -107,11 +110,11 @@ if ($fromSegment > 0) {
       </div>
       <div class="row mb-2 align-items-center">
         <label for="emailAlt" class="col-4 col-sm-3 col-form-label col-form-label-sm text-end" style="font-size:0.82rem">
-          <i class="fas fa-envelope" aria-hidden="true"></i> E-mail alt.
+          <i class="fas fa-envelope" aria-hidden="true"></i> <?= $GLOBAL['emailAltLong'] ?>
         </label>
         <div class="col-8 col-sm-9">
           <input type="text" id="emailAlt" name="emailAlt" class="form-control form-control-sm"
-                 placeholder="Adresse alternative / historique"/>
+                 placeholder="<?= htmlentities($GLOBAL['emailAltHint'], ENT_COMPAT, $charset) ?>"/>
         </div>
       </div>
       <div class="row mb-2 align-items-center">
@@ -198,4 +201,5 @@ if ($fromSegment > 0) {
 
     </form>
   </div>
+</div>
 </div>

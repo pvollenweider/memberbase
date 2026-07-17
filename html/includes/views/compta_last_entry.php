@@ -52,11 +52,18 @@ if (isset($_REQUEST['addMem'])) {
 if ($addMem != -1) {
     ?><?= $GLOBAL['assignSegmentEntry'] ?> <?=$addMem?><?php
 }
+if (empty($_jhEmbedded)) {
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-coins';
+    $_phTitle = $GLOBAL['lastEntryCompta'];
+    include __DIR__ . '/../partials/page_header.php';
+    echo '<div class="container-xl px-4 ca-hero-overlap">';
+}
 ?>
 
-
-<div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-  <span class="text-muted" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em"><?= $GLOBAL['lastEntryCompta'] ?></span>
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-2 flex-wrap">
+  <span class="me-2"><?= $GLOBAL['lastEntryCompta'] ?></span>
 
   <?php
   function _lec_type_swatch(string $color, string $label, string $charset): string {
@@ -136,7 +143,7 @@ if ($addMem != -1) {
       ?>
     </ul>
   </div>
-</div>
+</div><!-- .card-header -->
 
 <style>
 .text-bg-ca-orange { background-color: rgb(253,126,20) !important; color: #fff !important; }
@@ -146,6 +153,7 @@ if ($addMem != -1) {
 .text-bg-ca-indigo { background-color: rgb(102,16,242) !important; color: #fff !important; }
 .text-bg-ca-lime   { background-color: rgb(128,189,64) !important; color: #000 !important; }
 </style>
+<div class="card-body">
 <div class="table-responsive">
 <table class="table  table-hover table-sm export">
 <thead>
@@ -252,6 +260,8 @@ while ($row = $stmt->fetchObject()) {
 </tfoot>
 </table>
 </div>
+</div><!-- .card-body -->
+</div><!-- .card -->
 <script>
     $.fn.dataTable.moment('DD/MM/YYYY');
 
@@ -342,29 +352,38 @@ $_tBgL      = array_values(array_map(fn($v) => $_ctBgL[$v['color']] ?? 'rgba(108
 $_tBorderL  = array_values(array_map(fn($v) => $_ctBorderL[$v['color']] ?? 'rgba(108,117,125,1)', $_typeAggL));
 $_showTimeline = count($_monthly) >= 2;
 ?>
-<div class="row mt-4 g-4 align-items-start">
+<div class="row g-4 align-items-start">
 
   <?php if (count($_typeAggL) > 0): ?>
   <div class="col-md-4">
-    <p class="text-muted small fw-semibold mb-2 text-center"><?= $GLOBAL['distByType'] ?></p>
-    <div style="position:relative;height:300px">
-      <canvas id="lecDonut"></canvas>
+    <div class="card mb-4 h-100">
+      <div class="card-header text-center"><?= $GLOBAL['distByType'] ?></div>
+      <div class="card-body">
+        <div style="position:relative;height:300px">
+          <canvas id="lecDonut"></canvas>
+        </div>
+      </div>
     </div>
   </div>
   <?php endif ?>
 
   <?php if ($_showTimeline): ?>
   <div class="col-md-<?= count($_typeAggL) > 0 ? '8' : '12' ?>">
-    <p class="text-muted small fw-semibold mb-2 text-center">
-      <?= $year == -2 ? $GLOBAL['historyByYear'] : $GLOBAL['monthlyVsCumulative'] ?>
-    </p>
-    <div style="position:relative;height:300px">
-      <canvas id="lecTimeline"></canvas>
+    <div class="card mb-4 h-100">
+      <div class="card-header text-center">
+        <?= $year == -2 ? $GLOBAL['historyByYear'] : $GLOBAL['monthlyVsCumulative'] ?>
+      </div>
+      <div class="card-body">
+        <div style="position:relative;height:300px">
+          <canvas id="lecTimeline"></canvas>
+        </div>
+      </div>
     </div>
   </div>
   <?php endif ?>
 
 </div>
+<?php if (empty($_jhEmbedded)): ?></div><?php endif ?>
 <script>
 (function() {
     function destroyChart(id) {

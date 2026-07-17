@@ -1,7 +1,7 @@
 :root {
-    --ca-primary:       #4f7ac7;
-    --ca-primary-dark:  #3a5fa0;
-    --ca-primary-light: #e8eef8;
+    --ca-primary:       #1da1f5;
+    --ca-primary-dark:  #1781c4;
+    --ca-primary-light: #e8f6ff;
     --ca-ink:           #1f2937;
     --ca-ink-mid:       #374151;
     --ca-ink-muted:     #6b7280;
@@ -9,19 +9,87 @@
     --ca-ground:        #f9fafb;
     --ca-border:        #e5e7eb;
     --ca-border-strong: #d1d5db;
+    --ca-shadow:        var(--bs-box-shadow, 0 0.5rem 1rem rgba(0,0,0,0.15));
     --ca-male:          #3b82f6;
     --ca-female:        #f472b6;
-    --ca-danger:        #b91c1c;
-    --ca-danger-light:  #fee2e2;
+    --ca-danger:        #e83d2c;
+    --ca-danger-light:  #fdecea;
+    --ca-secondary:     #8039da;
+
+    /* Admin shell (sidebar + topbar + hero) */
+    --ca-sidebar-width:       15.5rem;
+    --ca-sidebar-width-mini:  4rem;
+    --ca-topbar-height:       3.75rem;
+}
+
+/* Brand palette — overrides Bootstrap's theme-color CSS variables so every
+   built-in component (buttons, text/bg/border utilities, badges, alerts,
+   links) picks up the brand colors without recompiling Bootstrap from SCSS. */
+:root {
+    --bs-primary:              #1da1f5;
+    --bs-primary-rgb:           29,161,245;
+    --bs-primary-bg-subtle:    #e8f6ff;
+    --bs-primary-border-subtle:#a5d9fb;
+    --bs-primary-text-emphasis:#105987;
+
+    --bs-secondary:              #8039da;
+    --bs-secondary-rgb:           128,57,218;
+    --bs-secondary-bg-subtle:    #f2ebfc;
+    --bs-secondary-border-subtle:#ccb0f0;
+    --bs-secondary-text-emphasis:#461f78;
+
+    --bs-success:              #12ac70;
+    --bs-success-rgb:           18,172,112;
+    --bs-success-bg-subtle:    #e8f7f1;
+    --bs-success-border-subtle:#a0dec6;
+    --bs-success-text-emphasis:#0a5f3e;
+
+    --bs-danger:              #e83d2c;
+    --bs-danger-rgb:           232,61,44;
+    --bs-danger-bg-subtle:    #fdecea;
+    --bs-danger-border-subtle:#f6b1ab;
+    --bs-danger-text-emphasis:#802218;
+
+    --bs-warning:              #ffc147;
+    --bs-warning-rgb:           255,193,71;
+    --bs-warning-bg-subtle:    #fff9ed;
+    --bs-warning-border-subtle:#ffe6b5;
+    --bs-warning-text-emphasis:#8c6a27;
+
+    --bs-info:              #2ccfd4;
+    --bs-info-rgb:           44,207,212;
+    --bs-info-bg-subtle:    #eafbfb;
+    --bs-info-border-subtle:#abecee;
+    --bs-info-text-emphasis:#187275;
+
+    --bs-link-color:      #1da1f5;
+    --bs-link-color-rgb:   29,161,245;
+    --bs-link-hover-color: #1781c4;
+
+    --bs-body-font-family: Metropolis, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 /* Base */
 body {
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-family: var(--bs-body-font-family);
     font-size: 14px;
     line-height: 1.5;
     color: var(--ca-ink);
-    background-color: var(--ca-ground);
+    background-color: #f2f6fc;
+}
+
+/* Cards */
+.card {
+    border-color: var(--ca-border);
+    box-shadow: var(--ca-shadow);
+}
+.card-header {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    min-height: 3.5rem;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
 }
 
 /* Bootstrap primary override */
@@ -295,104 +363,6 @@ div.dataTables_info {
 /* DataTables sort helpers — visually hidden but readable by screen readers */
 .hide, .hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 
-/* Settings page — sidebar nav layout */
-.ca-settings-layout {
-    display: grid;
-    grid-template-columns: 210px 1fr;
-    gap: 1.5rem;
-    align-items: start;
-    margin-top: 1rem;
-}
-
-.ca-settings-nav {
-    position: sticky;
-    top: 0.75rem;
-    background: var(--ca-surface);
-    border: 1px solid var(--ca-border);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.ca-settings-nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0.375rem 0;
-}
-
-.ca-settings-nav-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 0.45rem 1rem;
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--ca-ink-mid);
-    background: none;
-    border: none;
-    border-left: 3px solid transparent;
-    text-align: left;
-    cursor: pointer;
-    line-height: 1.4;
-    transition: background 0.12s, color 0.12s, border-left-color 0.12s;
-}
-
-.ca-settings-nav-btn:hover {
-    background: var(--ca-ground);
-    color: var(--ca-ink);
-}
-
-.ca-settings-nav-btn:focus-visible {
-    outline: 2px solid var(--ca-primary);
-    outline-offset: -2px;
-}
-
-.ca-settings-nav-btn[aria-selected="true"],
-.ca-settings-nav-btn--active {
-    background: var(--ca-primary-light);
-    color: var(--ca-primary-dark);
-    border-left-color: var(--ca-primary);
-    font-weight: 600;
-}
-
-.ca-settings-nav-btn .fa-fw {
-    opacity: 0.55;
-    flex-shrink: 0;
-    font-size: 0.78rem;
-}
-
-.ca-settings-nav-btn[aria-selected="true"] .fa-fw {
-    opacity: 0.8;
-}
-
-.ca-settings-nav-divider {
-    padding: 0.55rem 1rem 0.2rem;
-    font-size: 0.62rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    color: var(--ca-ink-muted);
-    border-top: 1px solid var(--ca-border);
-    margin-top: 0.375rem;
-}
-
-.ca-settings-content {
-    min-width: 0;
-}
-
-/* Mobile: collapse sidebar to select */
-.ca-settings-select-wrap { display: none; }
-
-@media (max-width: 767px) {
-    .ca-settings-layout {
-        grid-template-columns: 1fr;
-        gap: 0;
-        margin-top: 0.75rem;
-    }
-    .ca-settings-nav     { display: none; }
-    .ca-settings-select-wrap { display: block; margin-bottom: 1rem; }
-}
-
 /* Extended compta-type color swatches */
 .ca-orange-subtle { background-color: rgba(253,126,20,0.18) !important; }
 .ca-teal-subtle   { background-color: rgba(32,201,151,0.18) !important; }
@@ -651,6 +621,45 @@ tr.position-relative { cursor: pointer; }
     .ca-merge-cell     { padding: 0.35rem 0.4rem; font-size: 0.78rem; }
 }
 
+/* dashboard KPI cards — shared box/label/value tokens (per-card bg, flex, min-width stay inline) */
+.ca-kpi-box {
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  color: #fff;
+}
+.ca-kpi-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+.ca-kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 0.25rem;
+}
+.ca-kpi-meta {
+  font-size: 0.78rem;
+  margin-top: 0.3rem;
+  opacity: 0.85;
+}
+
+/* KPI delta chip — colors the decline reading so direction isn't icon-only */
+.ca-kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #fff;
+}
+.ca-kpi-delta--down {
+  background: var(--bs-danger-text-emphasis, #802218);
+}
+
 /* resume.inc — responsive stats cards */
 @media (max-width: 575.98px) {
   .ca-resume-cards {
@@ -669,7 +678,7 @@ tr.position-relative { cursor: pointer; }
     padding: 0.6rem 0.7rem !important;
   }
   /* tighten secondary card numbers */
-  .ca-resume-cards > div:not(:first-child) > div[style*="font-size:1.75rem"] {
+  .ca-resume-cards > div:not(:first-child) .ca-kpi-value {
     font-size: 1.3rem !important;
   }
 }
@@ -717,4 +726,353 @@ tr.position-relative { cursor: pointer; }
 .member-view-value {
     flex: 1;
     word-break: break-word;
+}
+
+/* ===========================================================================
+ * Admin shell — original layout (fixed topbar + collapsible sidebar + hero
+ * header), built from scratch for MemberBase. Not derived from any
+ * third-party theme: own class names (ca-* prefix), own layout mechanics
+ * (flexbox, not a copied grid), own spacing/color scale.
+ * =========================================================================== */
+
+/* --- App shell (topbar + sidebar + content) --- */
+.ca-app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.ca-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--ca-topbar-height);
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 1rem;
+    background: var(--ca-surface);
+    border-bottom: 1px solid var(--ca-border);
+}
+
+.ca-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--ca-ink-mid);
+}
+.ca-icon-btn:hover {
+    background: var(--ca-ground);
+    color: var(--ca-ink);
+}
+
+.ca-brand {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--ca-ink);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.ca-brand:hover { color: var(--ca-ink); }
+
+.ca-topbar-search {
+    max-width: 22rem;
+}
+
+.ca-sidebar-col {
+    flex: 0 0 var(--ca-sidebar-width);
+    width: var(--ca-sidebar-width);
+    padding-top: var(--ca-topbar-height);
+    overflow: hidden;
+    /* No transition here — this spacer is invisible (overflow:hidden filler
+       that reserves/frees width for .ca-app-content). Animating width/flex-basis
+       is a layout-thrashing anti-pattern; the visible slide is the fixed panel's
+       own transform below, which is compositor-only. */
+}
+.ca-sidebar-panel {
+    position: fixed;
+    top: var(--ca-topbar-height);
+    left: 0;
+    bottom: 0;
+    width: var(--ca-sidebar-width);
+    overflow-y: auto;
+    border-right: 1px solid var(--ca-border);
+    z-index: 1020;
+    transition: transform 0.15s ease-out;
+}
+/* .ca-sidebar-panel is position:fixed, so it ignores its parent's margin —
+   the collapse toggle must transform the fixed panel itself; .ca-sidebar-col
+   is just a flex spacer that reserves/frees the width for .ca-app-content. */
+body.ca-sidebar-collapsed .ca-sidebar-col {
+    flex-basis: 0;
+    width: 0;
+}
+body.ca-sidebar-collapsed .ca-sidebar-panel {
+    transform: translateX(-100%);
+}
+@media (max-width: 991.98px) {
+    .ca-sidebar-col { flex-basis: 0; width: 0; }
+    .ca-sidebar-panel { transform: translateX(-100%); }
+    body.ca-sidebar-collapsed .ca-sidebar-col { flex-basis: var(--ca-sidebar-width); width: var(--ca-sidebar-width); }
+    body.ca-sidebar-collapsed .ca-sidebar-panel { transform: translateX(0); }
+}
+
+.ca-sidebar-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+.ca-sidebar-body .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 0.5rem;
+    color: var(--ca-ink-mid);
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+.ca-sidebar-body .nav-link:hover {
+    background: var(--ca-ground);
+    color: var(--ca-ink);
+}
+.ca-sidebar-body .nav-link.active {
+    background: var(--ca-primary-light);
+    color: var(--ca-primary-dark);
+    font-weight: 600;
+}
+.ca-sidebar-body .nav-link[aria-expanded="true"] .ca-sidebar-caret {
+    transform: rotate(180deg);
+}
+
+.ca-sidebar-link-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    flex-shrink: 0;
+    color: var(--ca-ink-muted);
+}
+.ca-sidebar-body .nav-link.active .ca-sidebar-link-icon { color: var(--ca-primary-dark); }
+
+.ca-sidebar-caret {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--ca-ink-muted);
+    transition: transform 0.15s ease-out;
+}
+
+.ca-sidebar-submenu {
+    display: flex;
+    flex-direction: column;
+    padding-left: 1.9rem;
+    margin: 0.1rem 0 0.35rem;
+}
+.ca-sidebar-submenu .nav-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.83rem;
+    font-weight: 400;
+    color: var(--ca-ink-muted);
+}
+.ca-sidebar-submenu .nav-link.active {
+    color: var(--ca-primary-dark);
+    font-weight: 600;
+    background: transparent;
+}
+.ca-sidebar-submenu .ca-sidebar-submenu {
+    padding-left: 1rem;
+}
+
+.ca-sidebar-footer {
+    flex-shrink: 0;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--ca-border);
+}
+.ca-sidebar-footer-org {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ca-ink-muted);
+}
+.ca-sidebar-footer-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ca-ink);
+}
+
+.ca-app-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-top: var(--ca-topbar-height);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+/* mt-auto on .ca-app-footer only pushes it to the bottom if it's a sibling
+   flex item of a flex-column container that grows — <main> is that item. */
+.ca-app-content > main {
+    flex: 1 1 auto;
+}
+
+.ca-app-footer {
+    padding: 1rem 0;
+    color: var(--ca-ink-muted);
+    border-top: 1px solid var(--ca-border);
+}
+.ca-app-footer a { color: var(--ca-ink-muted); text-decoration: underline; }
+
+/* --- Hero header (page title band) --- */
+.ca-hero {
+    background: linear-gradient(160deg, var(--ca-primary-dark) 0%, var(--ca-primary) 100%);
+    color: #fff;
+    padding-top: 2.25rem;
+    padding-bottom: 10rem;
+}
+.ca-hero-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 2.25rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+.ca-hero-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.65rem;
+    font-size: 1.5rem;
+    opacity: 0.6;
+}
+.ca-hero-subtitle {
+    /* Plain white text on the lighter end of the .ca-hero gradient only
+       reaches ~2.8:1 even at full opacity (below WCAG AA 4.5:1) — a solid
+       scrim (as used for .btn-outline-light below) would be too heavy for
+       a full-width line of running text, so a text-shadow carries the
+       real contrast instead. */
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.45);
+    font-size: 1.15rem;
+    margin-top: 0.25rem;
+}
+.ca-hero-overlap {
+    margin-top: -8rem;
+}
+
+/* Status switch sitting directly on the hero gradient (user fiche "Actif"
+   toggle): Bootstrap's checked track (#0d6efd) is the same blue family as
+   the gradient itself, so the whole track disappears — only the white knob
+   stayed visible. Invert to a white track + colored knob so both states
+   read clearly against the gradient. */
+.ca-hero .form-switch .form-check-input:checked {
+    background-color: #fff;
+    border-color: #fff;
+    --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%230d6efd'/%3e%3c/svg%3e");
+}
+
+/* Outline buttons sitting directly on the hero gradient via the overlap
+   (e.g. the member fiche's tab switcher, rendered right at the top of this
+   overlapping container): plain .btn-outline-light text/border contrast
+   against the lighter end of the gradient computes to ~2.8:1, below WCAG AA.
+   A dark scrim behind the button brings it to ~4.7:1 while keeping the
+   outline look (as opposed to a solid fill). */
+.ca-hero-overlap .btn-outline-light {
+    background-color: rgba(0, 0, 0, 0.25);
+}
+.ca-hero-overlap .btn-outline-light:hover,
+.ca-hero-overlap .btn-outline-light:focus {
+    background-color: #fff;
+}
+
+/* Perceived-performance cue for full-page navigations (hx-boost="false"
+   links: sidebar, topbar, hub tab bars). These reload the whole document,
+   so htmx's own loading states don't apply — a slim top bar gives instant
+   feedback that the click registered, instead of a silent pause until the
+   new page paints. */
+.ca-nav-loading::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 90%;
+    background: var(--ca-primary-dark);
+    z-index: 1100;
+    animation: ca-nav-progress 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+    .ca-nav-loading::before { animation-duration: 0.01ms; }
+}
+@keyframes ca-nav-progress {
+    from { width: 0; }
+    to   { width: 90%; }
+}
+
+/* Hub tab bar (people_finance.php): deliberately mirrors .ca-sidebar-body
+   .nav-link (same colors/weights/radius) rather than a generic Bootstrap
+   nav-tabs strip, so the hub doesn't introduce a second, contradictory
+   navigation style right next to the sidebar it's duplicating. Wrapped in
+   its own opaque surface (not left bare on .ca-hero's gradient) so link
+   color never depends on what's behind the hero — the same class of
+   contrast bug already hit twice on this gradient this session.
+   Desktop hides it entirely (redundant with the visible sidebar); it only
+   earns its place below 991.98px, the exact breakpoint where .ca-sidebar-col
+   itself collapses (custom.css ~819) — the bar becomes the mobile substitute
+   for the same 5 destinations, not a permanent duplicate next to them. */
+.ca-hub-tabs {
+    display: none;
+    background: var(--ca-surface);
+    border-radius: 10px;
+    padding: 0.35rem;
+    gap: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+@media (max-width: 991.98px) {
+    .ca-hub-tabs { display: flex; }
+}
+.ca-hub-tabs .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 0.5rem;
+    color: var(--ca-ink-mid);
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+.ca-hub-tabs .nav-link:hover {
+    background: var(--ca-ground);
+    color: var(--ca-ink);
+}
+.ca-hub-tabs .nav-link.active {
+    background: var(--ca-primary-light);
+    color: var(--ca-primary-dark);
+    font-weight: 600;
+}
+.ca-hub-tab-icon {
+    color: var(--ca-ink-muted);
+}
+.ca-hub-tabs .nav-link.active .ca-hub-tab-icon {
+    color: var(--ca-primary-dark);
+}
+
+/* Inactive .nav-pills text (cohort filters: "Perdus"/"Nouveaux" on lapsed
+   members/donors) inherits --bs-link-color (#1da1f5), which computes to
+   ~2.8:1 on white — below WCAG AA. Bootstrap only themes the active pill
+   (bg + white text); the inactive state falls through to the link color
+   unless overridden. */
+.nav-pills .nav-link {
+    color: var(--ca-ink-mid);
+}
+.nav-pills .nav-link:hover {
+    color: var(--ca-ink);
 }

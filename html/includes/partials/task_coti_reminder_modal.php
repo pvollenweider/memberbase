@@ -29,7 +29,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
           <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
         </div>
         <div id="task-coti-modal-error" class="alert alert-danger m-3" style="display:none"></div>
-        <iframe id="task-coti-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin allow-scripts"></iframe>
+        <iframe id="task-coti-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin"></iframe>
       </div>
       <div class="modal-footer gap-2">
         <div class="me-auto small text-muted" id="task-coti-modal-subject"></div>

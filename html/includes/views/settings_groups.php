@@ -73,9 +73,11 @@ if (!empty($_SESSION['segment_toast'])) {
 }
 ?>
 
-<p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['addSegment'] ?></p>
+<div class="card mb-4">
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['addSegment'] ?></h2></div>
+<div class="card-body">
 
-<form role="form" action="<?= appUrl() ?>" method="post" name="addSegment" class="mb-4">
+<form role="form" action="<?= appUrl() ?>" method="post" name="addSegment" class="mb-0">
   <input type="hidden" name="action" value="addSegmentWithImport"/>
   <input type="hidden" name="view"   value="settings"/>
   <input type="hidden" name="tab"    value="groups"/>
@@ -144,7 +146,88 @@ if (!empty($_SESSION['segment_toast'])) {
   </details>
   <?php endif ?>
 </form>
+</div><!-- .card-body -->
+</div><!-- .card -->
 
+<?php
+defined('APP_ENTRY') or die('Direct access not permitted.');
+try {
+    $_gsStmt = db()->query("
+        SELECT t.id, t.name, t.hidden,
+               COALESCE(cat.name, '') AS cat_name,
+               COALESCE(cat.id, 0) AS cat_id,
+               COALESCE(cat.sort_order, 99999) AS cat_sort
+        FROM segment t
+        LEFT JOIN (
+            SELECT mm.segment_id, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
+            FROM combined_segment_member mm
+            JOIN combined_segment c ON c.id = mm.combined_segment_id AND c.is_filter = 0
+            GROUP BY mm.segment_id
+        ) cat ON cat.segment_id = t.id
+        ORDER BY t.hidden ASC, cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
+    ")->fetchAll(PDO::FETCH_OBJ);
+    $_gsLoadError = false;
+} catch (PDOException $e) {
+    $_gsStmt = [];
+    $_gsLoadError = true;
+}
+$_gsVisible = array_filter($_gsStmt, fn($r) => !(int)$r->hidden);
+$_gsHidden  = array_filter($_gsStmt, fn($r) => (int)$r->hidden);
+
+// Shared row renderer for both the visible and hidden segment tables —
+// identical markup, only the category-divider row differs (hidden segments
+// aren't grouped by category).
+$_gsRenderRow = function ($row) use ($charset, $segmentCounts) {
+    $id       = $row->id;
+    $name     = htmlentities($row->name, ENT_COMPAT, $charset);
+    $isHidden = (int) $row->hidden;
+    ?>
+    <tr class="<?= $isHidden ? 'text-muted' : '' ?>" data-segment-id="<?= $id ?>">
+      <td style="width:1.5rem">
+        <input type="checkbox" class="form-check-input bulk-cb" name="ids[]" value="<?= $id ?>">
+      </td>
+      <td>
+        <!-- Static view -->
+        <span class="segment-name-view">
+          <a href="<?= appUrl() ?>?segment=<?= $id ?>"
+             class="text-decoration-none <?= $isHidden ? 'text-muted' : '' ?>">
+            <?= $name ?>
+          </a>
+          <?php $cnt = $segmentCounts[$id] ?? 0; if ($cnt > 0): ?>
+          <span class="badge rounded-pill ms-1" style="font-size:0.65rem;font-weight:500;background:var(--ca-primary-light);color:var(--ca-primary-dark)"><?= $cnt ?></span>
+          <?php endif ?>
+        </span>
+        <!-- Inline rename input (hidden by default) -->
+        <span class="segment-name-edit" style="display:none">
+          <input type="text" class="form-control form-control-sm d-inline-block segment-rename-input"
+                 value="<?= $name ?>" maxlength="255"
+                 style="width:auto;max-width:220px;font-size:0.82rem;padding:0.15rem 0.4rem;height:auto"
+                 aria-label="<?= sprintf($GLOBAL['renameSegmentAria'], $name) ?>"/>
+          <button type="button" class="btn btn-sm btn-success segment-rename-save ms-1 px-2 py-0"
+                  aria-label="<?= $GLOBAL['saveEnterAria'] ?>" style="font-size:0.75rem;line-height:1.6">
+            <i class="fas fa-check" aria-hidden="true"></i>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary segment-rename-cancel px-2 py-0"
+                  aria-label="<?= $GLOBAL['cancelEscapeAria'] ?>" style="font-size:0.75rem;line-height:1.6">
+            <i class="fas fa-xmark" aria-hidden="true"></i>
+          </button>
+        </span>
+      </td>
+      <td class="text-end" style="width:4rem;white-space:nowrap">
+        <button type="button"
+                class="btn btn-link btn-sm segment-rename-btn p-0 me-2 text-muted"
+                aria-label="<?= sprintf($GLOBAL['renameNameAria'], $name) ?>" style="font-size:0.78rem;line-height:1">
+          <i class="fas fa-i-cursor" aria-hidden="true"></i>
+        </button>
+        <a href="<?= appUrl() ?>?view=updateSegment&amp;id=<?= $id ?>"
+           class="text-decoration-none text-muted" aria-label="<?= sprintf($GLOBAL['segmentSettingsAria'], $name) ?>" style="font-size:0.78rem">
+          <i class="fas fa-gear" aria-hidden="true"></i>
+        </a>
+      </td>
+    </tr>
+    <?php
+};
+?>
 <form id="bulk-form" action="<?= appUrl() ?>" method="post">
   <input type="hidden" name="action" id="bulk-action" value=""/>
   <input type="hidden" name="view" value="settings"/>
@@ -165,6 +248,14 @@ if (!empty($_SESSION['segment_toast'])) {
     <button type="button" class="btn btn-sm btn-link text-muted p-0" onclick="clearSelection()"><?= $GLOBAL['deselect'] ?></button>
   </div>
 
+<div class="card mb-4">
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['groups'] ?></h2></div>
+<div class="card-body">
+  <?php if ($_gsLoadError): ?>
+  <div class="alert alert-warning py-2 px-3 mb-0" style="font-size:0.85rem">
+    <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['loadError'] ?>
+  </div>
+  <?php else: ?>
   <table class="table table-sm table-hover align-middle mb-0" style="font-size:0.82rem">
     <thead>
       <tr>
@@ -176,51 +267,12 @@ if (!empty($_SESSION['segment_toast'])) {
     </thead>
     <tbody>
 <?php
-defined('APP_ENTRY') or die('Direct access not permitted.');
-try {
-    $stmt = db()->query("
-        SELECT t.id, t.name, t.hidden,
-               COALESCE(cat.name, '') AS cat_name,
-               COALESCE(cat.id, 0) AS cat_id,
-               COALESCE(cat.sort_order, 99999) AS cat_sort
-        FROM segment t
-        LEFT JOIN (
-            SELECT mm.segment_id, MIN(c.id) AS id, MIN(c.name) AS name, MIN(c.sort_order) AS sort_order
-            FROM combined_segment_member mm
-            JOIN combined_segment c ON c.id = mm.combined_segment_id AND c.is_filter = 0
-            GROUP BY mm.segment_id
-        ) cat ON cat.segment_id = t.id
-        ORDER BY t.hidden ASC, cat_sort ASC, COALESCE(cat.name, 'ZZZZ'), t.name
-    ");
-} catch (PDOException $e) { $stmt = null; }
-$prevHidden = 0;
-$prevCatId  = -1;
-while ($stmt && $row = $stmt->fetchObject()) {
-    $id       = $row->id;
-    $name     = htmlentities($row->name, ENT_COMPAT, $charset);
-    $isHidden = (int) $row->hidden;
-    $catId    = (int) $row->cat_id;
-    if ($isHidden && !$prevHidden) {
-        $prevHidden = 1;
-        $prevCatId  = -1;
-        ?>
-        </tbody>
-        <tbody>
-        <tr><td colspan="3" class="pt-2 pb-1" style="border:none">
-          <button type="button"
-                  style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted);background:none;border:none;padding:0;cursor:pointer"
-                  onclick="toggleHiddenSection(this)">
-            <i class="fas fa-eye-slash me-1" aria-hidden="true"></i><?= $GLOBAL['hiddenPlural'] ?>
-            <i class="fas fa-chevron-right ms-1" style="font-size:0.6rem;transition:transform 0.15s" aria-hidden="true"></i>
-          </button>
-        </td></tr>
-        </tbody>
-        <tbody id="hidden-section" style="display:none">
-        <?php
-    }
-    if (!$isHidden && $catId !== $prevCatId) {
-        $prevCatId = $catId;
-        $catLabel  = $row->cat_name ?: $GLOBAL['noCategoryLabel'];
+$_gsPrevCatId = -1;
+foreach ($_gsVisible as $row) {
+    $catId = (int) $row->cat_id;
+    if ($catId !== $_gsPrevCatId) {
+        $_gsPrevCatId = $catId;
+        $catLabel = $row->cat_name ?: $GLOBAL['noCategoryLabel'];
         ?>
         <tr><td colspan="3" class="pt-3 pb-1" style="border:none">
           <span style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)">
@@ -229,63 +281,48 @@ while ($stmt && $row = $stmt->fetchObject()) {
         </td></tr>
         <?php
     }
-    ?>
-        <tr class="<?= $isHidden ? 'text-muted' : '' ?>" data-segment-id="<?= $id ?>">
-          <td style="width:1.5rem">
-            <input type="checkbox" class="form-check-input bulk-cb" name="ids[]" value="<?= $id ?>">
-          </td>
-          <td>
-            <!-- Static view -->
-            <span class="segment-name-view">
-              <a href="<?= appUrl() ?>?segment=<?= $id ?>"
-                 class="text-decoration-none <?= $isHidden ? 'text-muted' : '' ?>">
-                <?= $name ?>
-              </a>
-              <?php $cnt = $segmentCounts[$id] ?? 0; if ($cnt > 0): ?>
-              <span class="badge rounded-pill ms-1" style="font-size:0.65rem;font-weight:500;background:var(--ca-primary-light);color:var(--ca-primary-dark)"><?= $cnt ?></span>
-              <?php endif ?>
-            </span>
-            <!-- Inline rename input (hidden by default) -->
-            <span class="segment-name-edit" style="display:none">
-              <input type="text" class="form-control form-control-sm d-inline-block segment-rename-input"
-                     value="<?= $name ?>" maxlength="255"
-                     style="width:auto;max-width:220px;font-size:0.82rem;padding:0.15rem 0.4rem;height:auto"
-                     aria-label="<?= sprintf($GLOBAL['renameSegmentAria'], $name) ?>"/>
-              <button type="button" class="btn btn-sm btn-success segment-rename-save ms-1 px-2 py-0"
-                      aria-label="<?= $GLOBAL['saveEnterAria'] ?>" style="font-size:0.75rem;line-height:1.6">
-                <i class="fas fa-check" aria-hidden="true"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-secondary segment-rename-cancel px-2 py-0"
-                      aria-label="<?= $GLOBAL['cancelEscapeAria'] ?>" style="font-size:0.75rem;line-height:1.6">
-                <i class="fas fa-xmark" aria-hidden="true"></i>
-              </button>
-            </span>
-          </td>
-          <td class="text-end" style="width:4rem;white-space:nowrap">
-            <button type="button"
-                    class="btn btn-link btn-sm segment-rename-btn p-0 me-2 text-muted"
-                    aria-label="<?= sprintf($GLOBAL['renameNameAria'], $name) ?>" style="font-size:0.78rem;line-height:1">
-              <i class="fas fa-i-cursor" aria-hidden="true"></i>
-            </button>
-            <a href="<?= appUrl() ?>?view=updateSegment&amp;id=<?= $id ?>"
-               class="text-decoration-none text-muted" aria-label="<?= sprintf($GLOBAL['segmentSettingsAria'], $name) ?>" style="font-size:0.78rem">
-              <i class="fas fa-gear" aria-hidden="true"></i>
-            </a>
-          </td>
-        </tr>
-<?php } ?>
+    $_gsRenderRow($row);
+}
+?>
     </tbody>
   </table>
+  <?php endif ?>
+</div><!-- .card-body -->
+</div><!-- .card -->
+
+<?php if (!$_gsLoadError && count($_gsHidden) > 0): ?>
+<div class="card mb-4">
+  <div class="card-header" style="cursor:pointer" onclick="toggleHiddenCard(this)" role="button" tabindex="0"
+       onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleHiddenCard(this);}">
+    <h2 class="h6 mb-0 d-flex align-items-center justify-content-between">
+      <span><i class="fas fa-eye-slash me-1" aria-hidden="true"></i><?= $GLOBAL['hiddenPlural'] ?> (<?= count($_gsHidden) ?>)</span>
+      <i class="fas fa-chevron-right" id="hidden-card-chevron" style="font-size:0.75rem;transition:transform 0.15s" aria-hidden="true"></i>
+    </h2>
+  </div>
+  <div class="collapse" id="hidden-segments-body">
+    <div class="card-body">
+      <table class="table table-sm table-hover align-middle mb-0" style="font-size:0.82rem">
+        <tbody>
+<?php foreach ($_gsHidden as $row) { $_gsRenderRow($row); } ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<?php endif ?>
 </form>
 
 <script>
-function toggleHiddenSection(btn) {
-  var sec = document.getElementById('hidden-section');
-  var chev = btn.querySelector('.fa-chevron-right');
-  var open = sec.style.display !== 'none';
-  sec.style.display = open ? 'none' : '';
-  chev.style.transform = open ? '' : 'rotate(90deg)';
+function toggleHiddenCard() {
+  bootstrap.Collapse.getOrCreateInstance(document.getElementById('hidden-segments-body')).toggle();
 }
+(function () {
+  var sec = document.getElementById('hidden-segments-body');
+  var chev = document.getElementById('hidden-card-chevron');
+  if (!sec || !chev) return;
+  sec.addEventListener('show.bs.collapse', function () { chev.style.transform = 'rotate(90deg)'; });
+  sec.addEventListener('hide.bs.collapse', function () { chev.style.transform = ''; });
+})();
 </script>
 
 <!-- Combined segment name modal -->
@@ -451,8 +488,9 @@ function toggleHiddenSection(btn) {
 </script>
 
 <?php if (count($allSegments) > 1): ?>
-<hr class="my-4">
-<p class="fw-semibold mb-1" style="font-size:0.85rem"><?= $GLOBAL['segmentCascadeRules'] ?></p>
+<div class="card mb-4">
+<div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['segmentCascadeRules'] ?></h2></div>
+<div class="card-body">
 <p class="text-muted mb-2" style="font-size:0.78rem"><?= $GLOBAL['segmentCascadeRulesHint'] ?></p>
 
 <?php if ($cascadeRules): ?>
@@ -493,5 +531,7 @@ function toggleHiddenSection(btn) {
   </select>
   <button type="submit" class="btn btn-outline-primary btn-sm"><?= $GLOBAL['addBtn'] ?></button>
 </form>
+</div><!-- .card-body -->
+</div><!-- .card -->
 <?php endif ?>
 

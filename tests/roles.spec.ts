@@ -81,7 +81,7 @@ test.describe('UI — settings gear (isManager)', () => {
     test(`${role}: settings gear visible`, async ({ browser }) => {
       const { page, ctx } = await openAs(browser, role);
       await page.goto('/index.php');
-      await expect(page.locator('.navbar-collapse a[href*="view=settings"]')).toBeVisible();
+      await expect(page.locator('#ca-topbar a[href*="view=settings"]')).toBeVisible();
       await ctx.close();
     });
   }
@@ -259,7 +259,9 @@ test.describe('UI — tasks nav link (isManager)', () => {
     test(`${role}: tasks nav link visible`, async ({ browser }) => {
       const { page, ctx } = await openAs(browser, role);
       await page.goto('/index.php');
-      await expect(page.locator('.navbar-collapse a[href*="view=tasks"]')).toBeVisible();
+      // Sidebar link is unconditional for managers; the topbar badge link
+      // only renders when there are open tasks (see topbar.php).
+      await expect(page.locator('#ca-sidebar-col a[href*="view=tasks"]')).toBeVisible();
       await ctx.close();
     });
   }

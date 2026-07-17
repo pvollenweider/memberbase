@@ -24,7 +24,7 @@ test.describe('Dashboard', () => {
   test('no dedicated tasks card on the dashboard, but the nav link is present', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
     await expect(page.locator('.card-header', { hasText: 'Tâches à traiter' })).toHaveCount(0);
-    await expect(page.locator('.navbar-nav .nav-link', { hasText: 'Tâches' })).toBeVisible();
+    await expect(page.locator('#ca-sidebar-col a.nav-link[href*="view=tasks"]')).toBeVisible();
   });
 
   test('unpaid cotisation KPI links to the lapsed members tab in the hub', async ({ page }) => {
@@ -37,15 +37,19 @@ test.describe('Dashboard', () => {
     await expect(page.locator('#pf-tab-lapsed-btn')).toHaveClass(/active/);
   });
 
-  test('nav bar exposes a dashboard shortcut, active state highlights it', async ({ page }) => {
+  test('sidebar exposes a dashboard shortcut, active state highlights it', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
-    const navLink = page.locator('.navbar-nav .nav-item.active .nav-link', { hasText: 'Tableau de bord' });
+    // Top-level sidebar links signal "active" via the *absence* of the
+    // Bootstrap accordion's "collapsed" class, not a dedicated .active class
+    // (that's reserved for submenu items — see sidebar_nav.php).
+    const navLink = page.locator('#ca-sidebar-col a.nav-link[href*="view=dashboard"]');
     await expect(navLink).toBeVisible();
+    await expect(navLink).not.toHaveClass(/collapsed/);
   });
 
-  test('member list reachable from the Membres & finances nav link', async ({ page }) => {
+  test('member list reachable from the Membres nav link', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
-    await page.locator('.navbar-nav .nav-link', { hasText: 'Membres & finances' }).click();
+    await page.locator('#ca-sidebar-col a.nav-link[href*="view=peopleFinance&tab=members"]').click();
     await expect(page).toHaveURL(/view=peopleFinance/);
   });
 

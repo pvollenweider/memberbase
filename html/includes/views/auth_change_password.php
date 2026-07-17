@@ -8,14 +8,45 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 $_cpUser = authUser();
 $_cpForced = $_cpUser->force_password_change;
+$_cpEmailStmt = db()->prepare("SELECT email FROM app_users WHERE id = ?");
+$_cpEmailStmt->execute([$_cpUser->id]);
+$_cpUser->email = (string)$_cpEmailStmt->fetchColumn();
 $_cpError  = '';
 $_cpOk     = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_REQUEST['action'] ?? '') === 'changePassword') {
     // handled in manage_actions.inc — we won't reach this block directly
 }
+
+$_noOuterContainer = true;
+$_phIcon = 'fa-key';
+$_phTitle = $GLOBAL['changePasswordTitle'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="d-flex flex-column align-items-center pt-4 gap-3">
+  <?php if (!$_cpForced): ?>
+  <div class="card shadow-sm border-0" style="max-width:440px;width:100%">
+    <div class="card-body p-4">
+      <h5 class="card-title mb-4"><?= $GLOBAL['myProfileTitle'] ?></h5>
+      <form method="post" action="<?= appUrl() ?>">
+        <input type="hidden" name="action" value="updateOwnProfile">
+        <div class="mb-3">
+          <label for="profile_display_name" class="form-label" style="font-size:0.875rem"><?= $GLOBAL['displayNameLabel'] ?></label>
+          <input type="text" class="form-control" id="profile_display_name" name="display_name"
+                 value="<?= htmlspecialchars($_cpUser->display_name ?? '', ENT_QUOTES, $charset) ?>" maxlength="200">
+        </div>
+        <div class="mb-4">
+          <label for="profile_email" class="form-label" style="font-size:0.875rem"><?= $GLOBAL['email'] ?></label>
+          <input type="email" class="form-control" id="profile_email" name="email"
+                 value="<?= htmlspecialchars($_cpUser->email ?? '', ENT_QUOTES, $charset) ?>" maxlength="200">
+        </div>
+        <button type="submit" class="btn btn-primary"><?= $GLOBAL['saveButton'] ?></button>
+      </form>
+    </div>
+  </div>
+  <?php endif ?>
+
   <div class="card shadow-sm border-0" style="max-width:440px;width:100%">
     <div class="card-body p-4">
       <?php if ($_cpForced): ?>
@@ -85,4 +116,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_REQUEST['action'] ?? '') === 'ch
     </div>
   </div>
   <?php endif ?>
+</div>
 </div>

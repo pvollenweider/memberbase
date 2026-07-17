@@ -67,25 +67,31 @@ try {
 .ca-lime-subtle   { background-color: rgba(128,189,64,0.18)  !important; }
 </style>
 
-<?php $ctEmbedded = $ctEmbedded ?? false; $ctReturnView = $ctReturnView ?? 'settings'; $ctReturnTab = $ctReturnTab ?? 'compta'; ?>
-<?php if (!$ctEmbedded): ?>
+<?php
+$ctEmbedded = $ctEmbedded ?? false; $ctReturnView = $ctReturnView ?? 'settings'; $ctReturnTab = $ctReturnTab ?? 'compta';
+if (!$ctEmbedded):
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-file-invoice-dollar';
+    $_phTitle = $GLOBAL['administration'];
+    include __DIR__ . '/../partials/page_header.php';
+?>
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="row justify-content-center mt-4">
   <div class="col-lg-8">
 <?php endif ?>
 
-    <div class="d-flex align-items-baseline justify-content-between mb-3">
-      <p class="form-section-title mb-0" style="margin-top:0"><?= $GLOBAL['comptaTypesTitle'] ?></p>
-      <?php if (!$ctEmbedded): ?>
+    <?php if (!$ctEmbedded): ?>
+    <div class="d-flex align-items-baseline justify-content-end mb-3">
       <a href="<?= appUrl() ?>?view=settings" class="text-muted small text-decoration-none">
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['settings'] ?>
       </a>
-      <?php endif ?>
     </div>
+    <?php endif ?>
 
     <!-- Add form -->
     <div class="card mb-4">
-      <div class="card-body py-3">
-        <p class="fw-semibold mb-2" style="font-size:0.85rem"><?= $GLOBAL['newComptaType'] ?></p>
+      <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['newComptaType'] ?></h2></div>
+      <div class="card-body">
         <form action="<?= appUrl() ?>" method="post" class="d-flex gap-3 align-items-end flex-wrap">
           <input type="hidden" name="action" value="addComptaType">
           <input type="hidden" name="returnView" value="<?= htmlentities($ctReturnView, ENT_COMPAT, $charset) ?>">
@@ -117,6 +123,9 @@ try {
     </div>
 
     <!-- Types table -->
+    <div class="card mb-4">
+    <div class="card-header"><h2 class="h6 mb-0"><?= $GLOBAL['comptaTypes'] ?></h2></div>
+    <div class="card-body">
     <table class="table table-sm table-hover align-middle">
       <thead>
         <tr>
@@ -136,7 +145,7 @@ try {
       </thead>
       <tbody id="ct-tbody">
         <?php foreach ($types as $ct): ?>
-        <tr id="row-<?= $ct->id ?>" draggable="true" data-id="<?= $ct->id ?>">
+        <tr id="row-<?= $ct->id ?>" draggable="true" data-id="<?= $ct->id ?>" class="<?= $ct->is_archived ? 'opacity-50' : '' ?>">
           <td class="text-center text-muted" style="cursor:grab;font-size:0.9rem">
             <i class="fas fa-grip-vertical" aria-hidden="true"></i>
           </td>
@@ -322,9 +331,12 @@ try {
         <?php endforeach ?>
       </tbody>
     </table>
+    </div><!-- .card-body -->
+    </div><!-- .card -->
 
 <?php if (!$ctEmbedded): ?>
   </div>
+</div>
 </div>
 <?php endif ?>
 

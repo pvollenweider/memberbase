@@ -16,6 +16,12 @@ $_year     = isset($_GET['year'])     ? (int)$_GET['year'] : (int)date('Y');
 $_extended = !empty($_GET['extended']);
 if ($_year <= 0) { $_year = (int)date('Y'); }
 
+// Years actually holding a compta entry (any member) — no point offering a
+// year with nothing to recap.
+$_recapAvailYears = array_map('intval', db()->query("SELECT DISTINCT YEAR(date) AS y FROM compta ORDER BY y DESC")->fetchAll(PDO::FETCH_COLUMN));
+if (empty($_recapAvailYears)) { $_recapAvailYears = [(int)date('Y')]; }
+if (!in_array($_year, $_recapAvailYears, true)) { $_recapAvailYears[] = $_year; rsort($_recapAvailYears); }
+
 // Self-referencing links (year picker, extended-mode toggle, bulk-send
 // redirect) must stay inside the hub when embedded there — otherwise every
 // filter change kicks the user back out to the standalone page (#164 follow-up).
@@ -86,17 +92,20 @@ if ($_extended) {
          WHERE c.notified_at IS NOT NULL AND c.sum <> 0
            AND YEAR(c.date) = ?
          GROUP BY c.user_id, u.firstname, u.lastname, u.society, u.email
-         ORDER BY u.lastname, u.firstname"
+         ORDER BY last_notified_at DESC"
     );
     $stmtSent->execute([$_year]);
     $_alreadySent = $stmtSent->fetchAll(PDO::FETCH_OBJ);
 }
 ?>
 
-<?php if (empty($_pfEmbedded)): ?>
-<div class="page-title-row mb-3">
-  <h1 class="page-title"><?= $GLOBAL['comptaRecapPageTitle'] ?></h1>
-</div>
+<?php if (empty($_pfEmbedded)):
+    $_noOuterContainer = true;
+    $_phIcon = 'fa-paper-plane';
+    $_phTitle = $GLOBAL['comptaRecapPageTitle'];
+    include __DIR__ . '/../partials/page_header.php';
+?>
+<div class="container-xl px-4 ca-hero-overlap">
 <?php endif ?>
 
 <?php if ($_recapOk !== null): ?>
@@ -112,17 +121,17 @@ if ($_extended) {
 </div>
 <?php endif ?>
 
-<!-- Year picker + stats row -->
-<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+<div class="card mb-4">
+<div class="card-header d-flex align-items-center gap-3 flex-wrap">
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <?= $_year ?>
     </button>
     <ul class="dropdown-menu">
-      <?php for ($i = 0; $i < 10; $i++): $y = (int)date('Y') - $i; ?>
+      <?php foreach ($_recapAvailYears as $y): ?>
       <li><a class="dropdown-item<?= $y === $_year ? ' active' : '' ?>"
              href="<?= appUrl() ?>?<?= $_selfQuery ?>&amp;year=<?= $y ?><?= $_extended ? '&amp;extended=1' : '' ?>"><?= $y ?></a></li>
-      <?php endfor ?>
+      <?php endforeach ?>
     </ul>
   </div>
 
@@ -134,7 +143,10 @@ if ($_extended) {
       <?= $GLOBAL['comptaRecapExtended'] ?>
     </label>
   </div>
+</div><!-- .card-header -->
+<div class="card-body">
 
+<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
   <div class="card text-center px-4 py-2">
     <div style="font-size:1.6rem;font-weight:700;line-height:1"><?= $_pendingMembers ?></div>
     <div class="text-muted small mt-1"><?= $GLOBAL['comptaRecapPendingMembers'] ?></div>
@@ -306,9 +318,12 @@ if ($_extended) {
 </div>
 <?php endif ?>
 
-<p class="text-muted small mt-3">
+<p class="text-muted small mt-3 mb-0">
   <i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= $GLOBAL['comptaRecapHelp'] ?>
 </p>
+</div><!-- .card-body -->
+</div><!-- .card -->
+<?php if (empty($_pfEmbedded)): ?></div><?php endif ?>
 
 <!-- Preview/send modal (shared component, #152) -->
 <?php
@@ -360,7 +375,7 @@ require __DIR__ . '/../partials/preview_send_modal.php';
     },
     sendBtnHtml: '<i class="fas fa-paper-plane me-1" aria-hidden="true"></i><?= addslashes($GLOBAL['comptaRecapSendOne']) ?>',
     sendingText: '<?= addslashes($GLOBAL['sending'] ?? 'Envoi…') ?>',
-    genericErrorText: '<?= addslashes($GLOBAL['error'] ?? 'Erreur') ?>'
+    genericErrorText: <?= json_encode($GLOBAL['loadError']) ?>
   });
 }());
 </script>

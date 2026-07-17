@@ -37,6 +37,27 @@ if ($isHtmx) {
     $view = mbDefaultView($_REQUEST);
     include __DIR__ . "/includes/routing/actions.php";
     include __DIR__ . "/includes/routing/views.php";
+    // Real htmx-boosted navigation (sidebar/topbar/hub links, all targeting
+    // #main-content per the hx-target on <body>) sends HX-Target: main-content.
+    // Many existing modal-loading flows (compta_list.php, suivi_list.php,
+    // email/attestation previews, task modals…) spoof HX-Request: true on a
+    // raw fetch() to reach this same fast-path and get a bare view fragment
+    // for innerHTML injection into a .modal-body — they never set HX-Target.
+    // Appending the OOB sidebar/topbar unconditionally used to leak into
+    // those modal fragments (duplicated markup, and htmx.process() on the
+    // modal body would then actually swap the page's real nav out-of-band).
+    if (($_SERVER['HTTP_HX_TARGET'] ?? '') === 'main-content') {
+        // The sidebar/topbar live outside #main-content (htmx's default boost
+        // target), so a plain boosted swap would leave their "active" nav-link
+        // stale after navigating — re-render both here as out-of-band swaps so
+        // every boosted click keeps them in sync, instead of forcing a full
+        // reload via hx-boost="false" on the two navs (the previous fix).
+        $__authUser = authUser();
+        $_navOpenTaskCount = isManager() ? SuiviTask::openCount() : 0;
+        $_snOob = true;
+        include __DIR__ . "/includes/partials/topbar.php";
+        include __DIR__ . "/includes/partials/sidebar_nav.php";
+    }
     ob_end_flush();
     exit;
 }
@@ -61,6 +82,7 @@ if ($isHtmx) {
     <?php $v = APP_VERSION; ?>
     <!-- Inter (self-hosted) -->
     <link rel="stylesheet" href="css/vendor/inter.css?v=<?= $v ?>">
+    <link rel="stylesheet" href="css/vendor/metropolis.css?v=<?= $v ?>">
 
     <!-- Bootstrap 5 -->
     <link rel="stylesheet" href="css/vendor/bootstrap.min.css?v=<?= $v ?>">
@@ -147,14 +169,19 @@ if ($isHtmx) {
 
 <body hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">
 
-<?php
-include __DIR__ . "/includes/partials/menu.php";
+<?php include __DIR__ . "/includes/partials/topbar.php"; ?>
 
+<div class="ca-app-shell">
+<?php include __DIR__ . "/includes/partials/sidebar_nav.php"; ?>
+<div class="ca-app-content">
+<main>
+
+<?php
 // Bandeau d'alerte : migrations DB en attente (visible admin uniquement).
 $_pendingMigrations = isAdmin() ? pendingMigrations($pdo) : [];
 if ($_pendingMigrations):
 ?>
-<div class="container mt-2">
+<div class="container-xl px-4 mt-4">
     <div class="alert alert-warning d-flex align-items-start gap-2 mb-0" role="alert">
         <i class="fas fa-triangle-exclamation mt-1 flex-shrink-0" aria-hidden="true"></i>
         <div>
@@ -176,7 +203,7 @@ $_smtpHost     = trim((string)($appSettings['smtp_host'] ?? ''));
 $_smtpIsRealServer = $_smtpHost !== '' && !str_contains(strtolower($_smtpHost), 'mailpit');
 if ($_isLocalHost && $_smtpIsRealServer && isManager()):
 ?>
-<div class="container mt-2">
+<div class="container-xl px-4 mt-4">
     <div class="alert alert-danger d-flex align-items-start gap-2 mb-0" role="alert">
         <i class="fas fa-triangle-exclamation mt-1 flex-shrink-0" aria-hidden="true"></i>
         <div>
@@ -186,18 +213,30 @@ if ($_isLocalHost && $_smtpIsRealServer && isManager()):
     </div>
 </div>
 <?php endif; ?>
-<div class="container mt-2">
+<?php
+// A view can set $_noOuterContainer = true (before/during its own render) to
+// render full-bleed instead of being boxed in the generic container-xl below
+// — needed for the hero-header pattern, where the header must span
+// edge-to-edge under the topbar and the view owns its own container-xl
+// internally. Buffered so actions.php can still header()/exit as usual
+// (nested inside the file's top-level ob_start()).
+$_noOuterContainer = false;
+ob_start();
+$userid = -1;
+include __DIR__ . "/includes/routing/actions.php";
+include __DIR__ . "/includes/routing/views.php";
+$_mainContentHtml = ob_get_clean();
+$end = getMicroTime();
+?>
+<?php if ($_noOuterContainer): ?>
+<div id="main-content"><?= $_mainContentHtml ?></div>
+<?php else: ?>
+<div class="container-xl px-4 mt-4">
     <div class="row">
-        <div class="col-12" id="main-content">
-            <?php
-            $userid = -1;
-            include __DIR__ . "/includes/routing/actions.php";
-            include __DIR__ . "/includes/routing/views.php";
-            $end = getMicroTime();
-            ?>
-        </div>
+        <div class="col-12" id="main-content"><?= $_mainContentHtml ?></div>
     </div>
 </div>
+<?php endif ?>
 <!-- Toast container -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100" aria-live="polite" aria-atomic="true">
     <div id="casaToast" class="toast text-bg-success border-0" role="status" aria-live="polite" aria-atomic="true"
@@ -212,18 +251,24 @@ if ($_isLocalHost && $_smtpIsRealServer && isManager()):
     </div>
 </div>
 
-<hr/>
-<footer class="bs-footer" role="contentinfo">
-    <div class="container">
-        <small>Process time: [<?= (int)(($end - $start) * 1000) ?>
-            ms]. Date: [<?= date("d.m.Y H:i", time()) ?>]<br/>
-            <a href="https://pvollenweider.github.io/memberbase/" target="_blank" rel="noopener" class="text-muted">MemberBase v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, $charset) ?></a>
-            &middot; <a href="https://pvollenweider.github.io/memberbase/docs/" target="_blank" rel="noopener" class="text-muted"><?= htmlspecialchars($GLOBAL['documentation'], ENT_QUOTES, $charset) ?></a>
-        </small>
+</main>
+<footer class="ca-app-footer mt-auto">
+    <div class="container-xl px-4">
+        <div class="row">
+            <div class="col-md-6 small">Process time: [<?= (int)(($end - $start) * 1000) ?>
+                ms]. Date: [<?= date("d.m.Y H:i", time()) ?>]</div>
+            <div class="col-md-6 text-md-end small">
+                <a href="https://pvollenweider.github.io/memberbase/" target="_blank" rel="noopener">MemberBase v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, $charset) ?></a>
+                &middot; <a href="https://pvollenweider.github.io/memberbase/docs/" target="_blank" rel="noopener"><?= htmlspecialchars($GLOBAL['documentation'], ENT_QUOTES, $charset) ?></a>
+            </div>
+        </div>
     </div>
 </footer>
+</div>
+</div>
 
 <script src="js/app.js?v=<?= filemtime(__DIR__ . '/js/app.js') ?>"></script>
+<script src="js/sidebar-nav.js?v=<?= filemtime(__DIR__ . '/js/sidebar-nav.js') ?>"></script>
 
 </body>
 </html>

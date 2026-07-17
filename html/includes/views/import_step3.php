@@ -17,7 +17,12 @@ if (!isset($_SESSION['_import_created'])) {
 
 require_once __DIR__ . '/../lib/import_fields.php';
 $_fieldLabels = importFieldLabels();
+$_noOuterContainer = true;
+$_phIcon = 'fa-file-import';
+$_phTitle = $GLOBAL['import'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="row justify-content-center mt-4">
   <div class="col-12 col-xl-10">
 
@@ -118,4 +123,5 @@ $_fieldLabels = importFieldLabels();
     <?php endif ?>
 
   </div>
+</div>
 </div>

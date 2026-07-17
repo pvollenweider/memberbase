@@ -19,13 +19,13 @@ $histRows->execute([$memberId]);
 $history = $histRows->fetchAll(PDO::FETCH_OBJ);
 ?>
 
-<p class="form-section-title mb-1">
-  <i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><?= $GLOBAL['changeHistory'] ?>
-</p>
+<div class="card mb-4">
+<div class="card-header"><h2 class="h6 mb-0"><i class="fas fa-clock-rotate-left me-1" aria-hidden="true"></i><?= $GLOBAL['changeHistory'] ?></h2></div>
+<div class="card-body">
 <p class="small text-muted mb-3"><?= $GLOBAL['changeHistoryHint'] ?></p>
 
 <?php if (empty($history)): ?>
-<div class="alert alert-secondary py-2 px-3" style="font-size:0.85rem">
+<div class="alert alert-secondary py-2 px-3 mb-0" style="font-size:0.85rem">
   <i class="fas fa-circle-info me-1" aria-hidden="true"></i><?= $GLOBAL['noJournalEntriesForMember'] ?>
 </div>
 <?php else: ?>
@@ -68,5 +68,7 @@ $(function () {
 });
 </script>
 <?php endif ?>
+</div><!-- .card-body -->
+</div><!-- .card -->
 
 <?php require __DIR__ . '/../partials/email_log_section.php'; ?>

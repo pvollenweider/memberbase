@@ -34,7 +34,7 @@ $psmBcc           = $psmBcc ?? false;
           <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading…</span></div>
         </div>
         <div id="<?= $psmId ?>-modal-error" class="alert alert-danger m-3" style="display:none"></div>
-        <iframe id="<?= $psmId ?>-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin allow-scripts"></iframe>
+        <iframe id="<?= $psmId ?>-modal-frame" style="width:100%;border:none;min-height:500px;display:none" sandbox="allow-same-origin"></iframe>
       </div>
       <?php if ($psmOffSeasonGate): ?>
       <div class="alert alert-warning d-flex align-items-start gap-2 mx-3 mb-0 py-2" role="alert" style="font-size:0.85rem">

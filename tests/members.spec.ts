@@ -137,12 +137,12 @@ test.describe('Members', () => {
     await expect(page.locator('table.table tbody')).not.toContainText('No data available');
   });
 
-  test('member fiche header shows a prominent name and uses nav-tabs, tasks tab hidden', async ({ page }) => {
+  test('member fiche header shows a prominent name and uses a button-group tab switcher, tasks tab hidden', async ({ page }) => {
     await page.goto('/index.php?view=generalData&userid=1');
-    await expect(page.locator('h1.page-title')).toBeVisible();
-    await expect(page.locator('.nav-tabs .nav-link.active', { hasText: 'Données' })).toBeVisible();
-    await expect(page.locator('.nav-tabs a', { hasText: 'Compta' })).toBeVisible();
-    await expect(page.locator('.nav-tabs a', { hasText: 'Suivi' })).toBeVisible();
-    await expect(page.locator('.nav-tabs a', { hasText: 'Tâches' })).toHaveCount(0);
+    await expect(page.locator('h1.ca-hero-title')).toBeVisible();
+    await expect(page.locator('[role="group"] .btn-light', { hasText: 'Données' })).toBeVisible();
+    await expect(page.locator('[role="group"] a', { hasText: 'Compta' })).toBeVisible();
+    await expect(page.locator('[role="group"] a', { hasText: 'Suivi' })).toBeVisible();
+    await expect(page.locator('[role="group"] a', { hasText: 'Tâches' })).toHaveCount(0);
   });
 });

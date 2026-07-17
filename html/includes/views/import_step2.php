@@ -45,7 +45,12 @@ $_autoMap = [
     'naissance'   => 'birthDay',  'birthday'    => 'birthDay',  'date naissance' => 'birthDay',
     'remarques'   => 'comment',   'comment'     => 'comment',   'note'        => 'comment', 'notes' => 'comment',
 ];
+$_noOuterContainer = true;
+$_phIcon = 'fa-file-import';
+$_phTitle = $GLOBAL['import'];
+include __DIR__ . '/../partials/page_header.php';
 ?>
+<div class="container-xl px-4 ca-hero-overlap">
 <div class="row justify-content-center mt-4">
   <div class="col-12 col-xl-10">
 
@@ -75,7 +80,9 @@ $_autoMap = [
       <input type="hidden" name="action" value="importApply">
       <input type="hidden" name="view"   value="importStep2">
 
-      <table class="table table-sm align-middle mb-4" style="font-size:0.82rem">
+      <div class="card mb-4">
+      <div class="card-body">
+      <table class="table table-sm align-middle mb-0" style="font-size:0.82rem">
         <thead>
           <tr>
             <th style="width:22%"><?= $GLOBAL['fileColumn'] ?></th>
@@ -112,6 +119,8 @@ $_autoMap = [
         <?php endforeach ?>
         </tbody>
       </table>
+      </div><!-- .card-body -->
+      </div><!-- .card -->
 
       <p class="form-section-title mt-4"><?= $GLOBAL['addContactsToSegment'] ?></p>
       <div x-data="{ mode: 'auto' }" class="mb-4" style="max-width:560px">
@@ -164,4 +173,5 @@ $_autoMap = [
     </form>
 
   </div>
+</div>
 </div>

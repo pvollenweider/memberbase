@@ -16,6 +16,20 @@ if ($action === 'logout') {
     header('Location: login.php');
     exit;
 
+} elseif ($action === 'updateOwnProfile') {
+    // Self-service: the logged-in app user editing their own display_name/email
+    // (not a member `contact` row — the sidebar/topbar identity comes from
+    // app_users, distinct from the donor/member records this app manages).
+    $currentUser = authUser();
+    $newName     = trim($_POST['display_name'] ?? '');
+    $newEmail    = trim($_POST['email'] ?? '');
+    db()->prepare("UPDATE app_users SET display_name = ?, email = ? WHERE id = ?")
+        ->execute([$newName, $newEmail, $currentUser->id]);
+    $_SESSION['app_user_display_name'] = $newName ?: $currentUser->username;
+    auditLog(db(), 'updateOwnProfile', 'id=' . $currentUser->id);
+    header('Location: ' . appUrl() . '?view=changePassword');
+    exit;
+
 } elseif ($action === 'changeLocale') {
     // Self-service UI language switch — persisted on the account, applied to
     // the session immediately.
