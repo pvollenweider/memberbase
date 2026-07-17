@@ -28,6 +28,15 @@ async function mailpitMessages(request: APIRequestContext): Promise<any[]> {
 test.describe.serial('Compta recap — row preview/send modal', () => {
   test('clicking a row opens the modal and loads a preview', async ({ page, request }) => {
     await purgeMailpit(request);
+    // Other spec files (tasks.spec.ts's "send first pending recap task",
+    // cotisation-reminders.spec.ts, people-finance.spec.ts's bulk-send)
+    // compete for the same seeded "Dupont has an unnotified compta entry"
+    // fixture across the full suite — whichever runs first in the actual
+    // worker-interleaved order consumes it. Create a fresh one here so this
+    // test doesn't depend on what's left over from the seed.
+    await page.request.post('/api/compta', {
+      data: { memberId: 1, typeId: 1, date: `${new Date().getFullYear()}-05-01`, amount: 55 },
+    });
     await page.goto('/index.php?view=comptaRecap');
     await page.waitForLoadState('load');
 
