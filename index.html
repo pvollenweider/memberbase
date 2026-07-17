@@ -467,6 +467,31 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap">
     <h2 id="changelog-h">Dernières versions</h2>
     <article class="release">
+      <h3 class="v">5.3.0 <span class="d">17 juillet 2026</span></h3>
+      <ul>
+        <li><strong>Refonte de la navigation</strong> : la barre horizontale (navbar + dropdowns) est remplacée par</li>
+        <li><strong>Recherche instantanée</strong> : le champ de recherche de la barre du haut affiche les résultats</li>
+        <li><strong>Tâches</strong> — cycle de finition : état <strong>« en pause »</strong>, distinct d'ouvert/terminé ; trois</li>
+        <li><strong>Type de contact</strong> : le type de compta par défaut peut désormais être dérivé du type de</li>
+        <li><strong>Page Archivés</strong> : chaque membre archivé affiche son éligibilité à la suppression</li>
+        <li><strong>Réglages</strong> : les segments masqués sont séparés dans une carte repliée distincte ; la</li>
+        <li><strong>Mon compte</strong> (menu du pied de la barre latérale) : nom affiché et e-mail modifiables au</li>
+        <li>Raccourcis clavier &lt;kbd&gt;Option/Cmd&lt;/kbd&gt;+&lt;kbd&gt;1&lt;/kbd&gt;/&lt;kbd&gt;2&lt;/kbd&gt;/&lt;kbd&gt;3&lt;/kbd&gt; pour</li>
+        <li>La fiche membre affiche désormais nom/prénom et le type de contact (badge avec icône) en</li>
+        <li>Icône du type de contact dans les résultats de la recherche rapide du tableau de bord.</li>
+        <li>Contraste corrigé du commutateur Actif/Archivé sur la fiche membre (piste bleue sur fond</li>
+        <li>Les 25+ fichiers JS/CSS vendor chargés séparément sont regroupés en 3 bundles committés</li>
+        <li><code class="inline">build/dist.mjs</code> (esbuild) : concaténation + minification des bundles JS/CSS vendor,</li>
+        <li>Refonte du routage htmx : le rendu out-of-band (OOB) de la barre latérale/barre du haut sur</li>
+        <li><strong>Bug de longue date</strong> : <code class="inline">bootstrap-datetimepicker.min.css</code> avait son tout premier octet</li>
+        <li>Régression #165 : la page Réglages plantait (erreur 500) si la migration <code class="inline">0038</code> n'était pas</li>
+        <li>Régression critique : erreur 500 sur toute page si la migration <code class="inline">0039</code> (tâches en pause)</li>
+        <li>L'écriture compta ajoutée ou éditée ne filtre plus la liste par son propre type ensuite.</li>
+        <li>Position et contraste du jour sélectionné dans le sélecteur de date.</li>
+        <li>14 tests e2e pré-existants (sans rapport avec ce cycle) corrigés : gap réel dans la fiche</li>
+      </ul>
+    </article>
+    <article class="release">
       <h3 class="v">5.2.0 <span class="d">13 juillet 2026</span></h3>
       <ul>
         <li><strong>Tableau de bord d'accueil</strong> (<code class="inline">?view=dashboard</code>, nouvelle vue par défaut après connexion) : cartes KPI (contributions, donateurs, membres) avec delta vs année précédente, graphique de recettes cumulées, répartition des dons par type de compta, recherche rapide et raccourcis contextuels (relances, notifications en attente, attestations, migrations).</li>
@@ -498,18 +523,6 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li><code class="inline">compta.php</code> utilise <code class="inline">Contact::getMemberName()</code> au lieu de dupliquer la jointure <code class="inline">CONCAT(firstName,' ',lastName)</code>.</li>
         <li><strong>Bug de décalage de fuseau horaire corrigé</strong> sur les migrations <code class="inline">0028</code>-<code class="inline">0030</code> : <code class="inline">birthday</code>/<code class="inline">contact_properties.date</code>/<code class="inline">compta.date</code> sont désormais converties entièrement côté PHP (jamais via <code class="inline">FROM_UNIXTIME()</code>/<code class="inline">UNIX_TIMESTAMP()</code> SQL, qui utilisent le fuseau de *session* MySQL — différent du fuseau PHP forcé à <code class="inline">Europe/Zurich</code>).</li>
         <li><strong>Plantage PDO corrigé</strong> dans les migrations <code class="inline">0026</code>-<code class="inline">0030</code> (<code class="inline">SQLSTATE[HY000]: 2014</code> / <code class="inline">1295</code>) : le mécanisme de garde conditionnelle (<code class="inline">PREPARE</code>/<code class="inline">EXECUTE</code> dynamique) utilisait <code class="inline">SELECT 1</code> comme no-op et <code class="inline">SIGNAL</code> comme abandon volontaire — ni l'un ni l'autre n'est fiable via <code class="inline">PDO::exec()</code> sur tous les serveurs MySQL/MariaDB. Remplacé par <code class="inline">DO 0</code> (aucun jeu de résultats) ; le garde <code class="inline">SIGNAL</code> est retiré au profit d'une dégradation silencieuse et sûre (<code class="inline">NULL</code> plutôt qu'une date fausse) en cas de tables de fuseaux horaires MariaDB non chargées.</li>
-      </ul>
-    </article>
-    <article class="release">
-      <h3 class="v">5.0.1 <span class="d">10 juillet 2026</span></h3>
-      <ul>
-        <li><strong>Envoi des attestations de dons par email</strong> (individuel depuis la fiche membre / résumé</li>
-        <li><strong>Tampon et signature</strong> sur les attestations de dons (téléchargées ou envoyées par email) :</li>
-        <li><strong>Envoi en masse des attestations</strong> : détection des personnes déjà notifiées cette</li>
-        <li><strong>Régénération d'une attestation déjà envoyée</strong> depuis le détail de l'email (journal des</li>
-        <li><strong>Aperçu de l'email avant envoi</strong> pour les rappels de cotisation individuels (et renvois),</li>
-        <li><strong>Copie (BCC)</strong> vers l'adresse de contact (<code class="inline">smtp_reply_to</code>) si configurée, sur les rappels</li>
-        <li>Nouveau modèle par défaut pour <code class="inline">tpl_attestation_don</code> : salutation formelle genrée</li>
       </ul>
     </article>
     <p class="changelog-more"><a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md">Historique complet des versions</a></p>
