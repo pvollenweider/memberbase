@@ -2,6 +2,82 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [5.3.0] — 2026-07-17
+
+Refonte graphique de la navigation — aucune rupture de compatibilité, 2 migrations (`0038`,
+`0039`, en plus des `0032`-`0037` déjà présentes en 5.2.0).
+
+### Nouveautés
+
+- **Refonte de la navigation** : la barre horizontale (navbar + dropdowns) est remplacée par
+  un menu latéral fixe et une barre du haut minimale (bouton replier/déplier, nom de
+  l'organisation, recherche). Le groupe **Administration** est aplati par rôle plutôt que par
+  thème technique — sous-groupes **Segments** (Managers) et **Application** (Admins). La barre
+  d'onglets de « Membres & finances » (ajoutée en 5.2.0) devient mobile uniquement, redondante
+  avec le menu latéral sur desktop.
+- **Recherche instantanée** : le champ de recherche de la barre du haut affiche les résultats
+  dès 3 caractères saisis, directement dans l'onglet Membres du hub, sans validation.
+- **Tâches** — cycle de finition : état **« en pause »**, distinct d'ouvert/terminé ; trois
+  nouvelles règles de génération automatique (doublons de fiches, segments masqués encore
+  peuplés, attestations de dons à renvoyer) ; marquage terminé et suppression en masse ; le
+  cron s'exécute réellement dans le conteneur de développement, digest email quotidien
+  limité à un envoi par jour.
+- **Type de contact** : le type de compta par défaut peut désormais être dérivé du type de
+  contact du membre ; le type de contact est inclus dans l'écran de fusion de doublons.
+- **Page Archivés** : chaque membre archivé affiche son éligibilité à la suppression
+  définitive (aucune entrée comptable) ou seulement à l'anonymisation ; suppression et
+  anonymisation en masse (sélection multiple), avec confirmation récapitulative et
+  avertissement si la sélection mélange des profils éligibles et non éligibles.
+- **Réglages** : les segments masqués sont séparés dans une carte repliée distincte ; la
+  composition des segments combinés (segments qui les composent) est affichée dans leur
+  liste ; le formulaire général est scindé en cartes thématiques (Organisation, Finances,
+  Adhésion, Segments) ; les contrôles d'intégrité sont repliés par défaut et chargent leur
+  détail au clic, au lieu de tous se recalculer au chargement de la page.
+- **Mon compte** (menu du pied de la barre latérale) : nom affiché et e-mail modifiables au
+  même endroit que le mot de passe et la langue.
+- Raccourcis clavier <kbd>Option/Cmd</kbd>+<kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd> pour
+  naviguer entre Membres & finances, Journaux et le tableau de bord ; focus automatique sur
+  la recherche du tableau de bord et sur le montant du formulaire compta.
+
+### Améliorations
+
+- La fiche membre affiche désormais nom/prénom et le type de contact (badge avec icône) en
+  mode lecture — auparavant visibles uniquement en mode édition.
+- Icône du type de contact dans les résultats de la recherche rapide du tableau de bord.
+- Contraste corrigé du commutateur Actif/Archivé sur la fiche membre (piste bleue sur fond
+  bleu, illisible).
+- Les 25+ fichiers JS/CSS vendor chargés séparément sont regroupés en 3 bundles committés
+  (`npm run dist`), même logique que `html/vendor/` pour les dépendances PHP — un unique
+  fichier CSS et deux fichiers JS remplacent la longue liste de `<link>`/`<script>`.
+
+### Technique
+
+- `build/dist.mjs` (esbuild) : concaténation + minification des bundles JS/CSS vendor,
+  documentée dans `CLAUDE.md`. Le CSS n'est volontairement pas minifié (parseur plus strict
+  que les navigateurs, risque sur du CSS legacy) — seule la concaténation compte pour réduire
+  le nombre de requêtes.
+- Refonte du routage htmx : le rendu out-of-band (OOB) de la barre latérale/barre du haut sur
+  chaque requête boostée est désormais conditionné à l'en-tête `HX-Target: main-content`, pour
+  ne plus fuiter dans les fragments chargés par les nombreux modaux de l'application (compta,
+  suivi, emails, tâches) qui usurpent seulement `HX-Request` sans cibler `#main-content`.
+
+### Corrections
+
+- **Bug de longue date** : `bootstrap-datetimepicker.min.css` avait son tout premier octet
+  manquant (commentaire non fermé) — invisible tant que chargé comme feuille de style isolée
+  (récupération d'erreur CSS indépendante par fichier), mais qui avalait le CSS suivant une
+  fois concaténé dans le nouveau bundle. Découvert et corrigé pendant ce cycle.
+- Régression #165 : la page Réglages plantait (erreur 500) si la migration `0038` n'était pas
+  encore appliquée.
+- Régression critique : erreur 500 sur toute page si la migration `0039` (tâches en pause)
+  n'était pas encore appliquée.
+- L'écriture compta ajoutée ou éditée ne filtre plus la liste par son propre type ensuite.
+- Position et contraste du jour sélectionné dans le sélecteur de date.
+- 14 tests e2e pré-existants (sans rapport avec ce cycle) corrigés : gap réel dans la fiche
+  membre (nom/type de contact absents du mode lecture), tests jamais mis à jour après des
+  changements d'UX déjà en production (modals compta/suivi, lazy-load Intégrité), données de
+  test datées devenues obsolètes.
+
 ## [5.2.0] — 2026-07-13
 
 Cycle majoritairement orienté UI/navigation — aucune rupture de compatibilité, 6 migrations
