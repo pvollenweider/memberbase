@@ -46,50 +46,52 @@ $excludedTypeIds     = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct
 $institutionalTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)($ct->is_institutional ?? 0) === 1 && (int)($ct->is_excluded_from_donation ?? 0) === 0));
 $nonInstTypeIds      = array_keys(array_filter($comptaTypes, fn($ct) => (int)($ct->is_institutional ?? 0) === 0 && (int)($ct->is_excluded_from_donation ?? 0) === 0));
 
-/** Helper: count distinct donors for a given set of allowed type IDs */
-$countDonors = function(array $allowedTypeIds, string $from, string $to) use ($id): int {
-    if (empty($allowedTypeIds)) return 0;
+// All non-excluded type IDs (for "all donors" count)
+$allDonorTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_excluded_from_donation === 0));
+
+// Import counts for the last 10 years. Rather than 4 aggregate queries per year
+// (~40 round-trips), run ONE grouped query per type-set over the whole 10-year
+// window. Equivalent because compta.date is stored at midnight (entries come
+// from formatedDateToTimeStamp('d/m/Y')), so YEAR(c.date) buckets exactly match
+// the previous per-year (Dec 31 prev 00:00, Jan 1 next 00:00) windows.
+$yMin      = $currentYear - 9;
+$rangeFrom = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $yMin));            // Dec 31, yMin-1 00:00
+$rangeTo   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $currentYear + 1)); // Jan 1, currentYear+1 00:00
+
+for ($dy = $currentYear; $dy >= $yMin; $dy--) {
+    $importCountsPerYear[$dy] = ['donors' => 0, 'donors_inst' => 0, 'donors_non_inst' => 0, 'cotis' => 0];
+}
+
+/** Distinct donors per calendar year for a type-set, excluding members of segment $id. */
+$countDonorsByYear = function(array $allowedTypeIds) use ($id, $rangeFrom, $rangeTo): array {
+    if (empty($allowedTypeIds)) return [];
     $ph = implode(',', array_fill(0, count($allowedTypeIds), '?'));
     $r = db()->prepare("
-        SELECT COUNT(DISTINCT u.id)
+        SELECT YEAR(c.date) AS y, COUNT(DISTINCT u.id) AS cnt
         FROM contact u JOIN compta c ON c.user_id = u.id
         WHERE c.type_id IN ($ph)
           AND c.date > ? AND c.date < ?
           AND u.id NOT IN (SELECT user_id FROM contact_segment WHERE segment_id = ?)
+        GROUP BY YEAR(c.date)
     ");
-    $r->execute(array_merge($allowedTypeIds, [$from, $to, $id]));
-    return (int)$r->fetchColumn();
+    $r->execute(array_merge($allowedTypeIds, [$rangeFrom, $rangeTo, $id]));
+    $out = [];
+    foreach ($r->fetchAll(PDO::FETCH_OBJ) as $row) { $out[(int)$row->y] = (int)$row->cnt; }
+    return $out;
 };
 
-// All non-excluded type IDs (for "all donors" count)
-$allDonorTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_excluded_from_donation === 0));
+$dAll  = $countDonorsByYear($allDonorTypeIds);
+$dInst = $countDonorsByYear($institutionalTypeIds);
+$dNon  = $countDonorsByYear($nonInstTypeIds);
+$dCoti = $countDonorsByYear($cotisTypeIds);
 
-for ($yi = 0; $yi < 10; $yi++) {
-    $dy   = $currentYear - $yi;
-    $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $dy));
-    $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $dy + 1));
-
-    $importCountsPerYear[$dy] = [
-        'donors'         => $countDonors($allDonorTypeIds,      $from, $to),
-        'donors_inst'    => $countDonors($institutionalTypeIds, $from, $to),
-        'donors_non_inst'=> $countDonors($nonInstTypeIds,       $from, $to),
-        'cotis'          => 0,
-    ];
-
-    // Cotisants count
-    if (!empty($cotisTypeIds)) {
-        $cotisPlaceholders = implode(',', array_fill(0, count($cotisTypeIds), '?'));
-        $r2 = db()->prepare("
-            SELECT COUNT(DISTINCT u.id)
-            FROM contact u JOIN compta c ON c.user_id = u.id
-            WHERE c.type_id IN ($cotisPlaceholders)
-              AND c.date > ? AND c.date < ?
-              AND u.id NOT IN (SELECT user_id FROM contact_segment WHERE segment_id = ?)
-        ");
-        $r2->execute(array_merge($cotisTypeIds, [$from, $to, $id]));
-        $importCountsPerYear[$dy]['cotis'] = (int)$r2->fetchColumn();
-    }
+foreach ($importCountsPerYear as $dy => &$row) {
+    $row['donors']          = $dAll[$dy]  ?? 0;
+    $row['donors_inst']     = $dInst[$dy] ?? 0;
+    $row['donors_non_inst'] = $dNon[$dy]  ?? 0;
+    $row['cotis']           = $dCoti[$dy] ?? 0;
 }
+unset($row);
 
 // Member counts per segment (for badges)
 $cntRows = db()->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment GROUP BY segment_id")->fetchAll(PDO::FETCH_OBJ);
