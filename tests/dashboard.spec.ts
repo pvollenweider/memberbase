@@ -29,7 +29,10 @@ test.describe('Dashboard', () => {
 
   test('unpaid cotisation KPI links to the lapsed members tab in the hub', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
-    const kpiLink = page.locator('a', { hasText: 'Cotisation' });
+    // Scoped by href, not just visible text — "Activités récentes" can
+    // independently contain an unrelated "cotisation" mention (e.g. a
+    // logged reminder email subject), which a loose text match also picks up.
+    const kpiLink = page.locator('a[href*="tab=lapsed"][href*="cohort=lapsed"]');
     await expect(kpiLink).toBeVisible();
     await kpiLink.click();
     await expect(page).toHaveURL(/view=peopleFinance/);
@@ -87,7 +90,12 @@ test.describe('Dashboard', () => {
     await expect(cards).toContainText('CHF');
     await expect(cards).toContainText('Donateurs');
     await expect(cards.locator('a', { hasText: 'fidèles' })).toBeVisible();
-    await expect(cards.locator('a', { hasText: /^\d+ Nouveaux$/ })).toBeVisible();
+    // End-anchored only (not start — the anchor's raw textContent carries
+    // leading whitespace/newlines from the template, e.g.
+    // "\n        4 Nouveaux      "). Must stay anchored at the end though:
+    // the dashboard's "Raccourcis" card has its own unrelated "N Nouveaux
+    // membres" link that an unanchored match also picks up.
+    await expect(cards.locator('a', { hasText: /\d+ Nouveaux\s*$/ })).toBeVisible();
   });
 
   test('KPI cards are absent for a role without write access', async ({ page, browser }) => {

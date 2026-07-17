@@ -25,46 +25,48 @@ test.describe.serial('Suivi (notes)', () => {
   });
 
   test('edit a suivi entry and verify updated', async ({ page }) => {
+    // Suivi rows open an edit form in a modal (fetch + innerHTML, see
+    // suivi_list.php) rather than navigating to a standalone page — the
+    // form itself still boosts (inherits hx-boost from <body>), so
+    // submitting swaps the updated list straight into #main-content.
     await page.goto(`/index.php?view=suivi&userid=${USER_ID}`);
     const row = page.locator('tr.ca-row-link').filter({ hasText: 'Note E2E test entry' }).first();
     await expect(row).toBeVisible({ timeout: 10_000 });
-    const dataHref = await row.getAttribute('data-href');
-    if (!dataHref) throw new Error('Could not find data-href on suivi row');
-    await page.goto(dataHref.startsWith('/') ? dataHref : '/' + dataHref);
-    await expect(page.locator('form[name="updateSuivi"]')).toBeVisible();
-    await page.fill('textarea[name="value"]', 'Note E2E edited');
-    await page.evaluate(() => document.body.removeAttribute('hx-boost'));
-    await Promise.all([
-      page.waitForNavigation({ timeout: 10_000 }),
-      page.click('button[type="submit"].btn-primary'),
-    ]);
-    await page.goto(`/index.php?view=suivi&userid=${USER_ID}`);
-    await expect(page.locator('text=Note E2E edited').first()).toBeVisible({ timeout: 10_000 });
+    await row.click();
+
+    const modal = page.locator('#suivi-edit-modal');
+    await expect(modal.locator('form[name="updateSuivi"]')).toBeVisible({ timeout: 10_000 });
+    await modal.locator('textarea[name="value"]').fill('Note E2E edited');
+    await modal.locator('button[type="submit"].btn-primary').click();
+
+    await expect(page.locator('#main-content')).toContainText('Note E2E edited', { timeout: 10_000 });
   });
 
   test('delete a suivi entry via confirmation page', async ({ page }) => {
+    // Suivi rows open the edit form in a modal now (see suivi_list.php) —
+    // reach it the same way, then navigate to the delete link's own href
+    // directly (rather than clicking it inside the modal) to avoid the
+    // still-open modal visually overlapping the boosted #main-content swap
+    // behind it.
     await page.goto(`/index.php?view=suivi&userid=${USER_ID}`);
     const row = page.locator('tr.ca-row-link').filter({ hasText: 'Note E2E edited' }).first();
     await expect(row).toBeVisible({ timeout: 10_000 });
+    await row.click();
 
-    // Navigate to the updateSuivi edit form (via data-href on the row)
-    const editHref = await row.getAttribute('data-href');
-    if (!editHref) throw new Error('data-href not found on row');
-    await page.goto(editHref.startsWith('/') ? editHref : '/' + editHref);
-    await expect(page.locator('form[name="updateSuivi"]')).toBeVisible({ timeout: 10_000 });
+    const modal = page.locator('#suivi-edit-modal');
+    await expect(modal.locator('form[name="updateSuivi"]')).toBeVisible({ timeout: 10_000 });
 
-    // Click the delete link on the edit form (btn-outline-danger) → goes to removeSuivi confirmation
-    const deleteLink = page.locator('a.btn-outline-danger');
+    const deleteLink = modal.locator('a.btn-outline-danger');
     const deleteHref = await deleteLink.getAttribute('href');
     if (!deleteHref) throw new Error('Delete link href not found');
     await page.goto(deleteHref.startsWith('/') ? deleteHref : '/' + deleteHref);
 
-    // Confirmation page — submit the POST delete form (action=deleteSuiviEntry)
+    // Confirmation page — submit the POST delete form (action=deleteSuiviEntry).
+    // This submit boosts too (hx-boost inherited from <body>), so it's an
+    // AJAX swap rather than a real navigation — rely on the resulting
+    // content assertion instead of waitForNavigation.
     await expect(page.locator('button.btn-danger')).toBeVisible({ timeout: 10_000 });
-    await Promise.all([
-      page.waitForNavigation({ timeout: 10_000 }),
-      page.locator('button.btn-danger').click(),
-    ]);
+    await page.locator('button.btn-danger').click();
     // After delete, renders suivi list (view=suivi inside update_user_form.php)
     await expect(page.locator('form[name="addSuivi"]')).toBeVisible({ timeout: 15_000 });
   });
