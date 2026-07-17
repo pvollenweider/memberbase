@@ -6,8 +6,8 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
-// actions: deleteSegment, deleteSegmentForce, reassignSegment, importSegmentMembers,
-//          importCotisants, importDonors, bulkHide, bulkShow,
+// actions: deleteSegment, deleteSegmentForce, bulkDeleteSegmentsForce, reassignSegment,
+//          importSegmentMembers, importCotisants, importDonors, bulkHide, bulkShow,
 //          undoSegmentVisibility, bulkCreateCombinedSegment, createLapsedSegment,
 //          addSegment, addSegmentWithImport, renameSegment, updateSegment,
 //          assignSegment, unassignSegment
@@ -27,6 +27,32 @@ if ($action == 'deleteSegment') {
     auditLog(db(), 'deleteSegmentForce', "id=$segmentId " . Segment::lookupName($segmentId));
     db()->prepare("DELETE FROM contact_segment WHERE segment_id = ?")->execute([$segmentId]);
     db()->prepare("DELETE FROM segment WHERE id = ?")->execute([$segmentId]);
+
+} elseif ($action == 'bulkDeleteSegmentsForce') {
+    // Defense in depth: the UI only ever offers this for segments selected
+    // from the "Masqués" table, but re-check hidden=1 server-side too, so a
+    // crafted request can't sneak a visible (in-use) segment into the batch.
+    $ids = array_map('intval', array_filter($_REQUEST['ids'] ?? [], 'is_numeric'));
+    if ($ids) {
+        $ph = implode(',', array_fill(0, count($ids), '?'));
+        $rows = db()->prepare("SELECT id, name FROM segment WHERE hidden = 1 AND id IN ($ph)");
+        $rows->execute($ids);
+        $toDelete = $rows->fetchAll(PDO::FETCH_OBJ);
+        $countStmt = db()->prepare("SELECT COUNT(*) FROM contact_segment WHERE segment_id = ?");
+        foreach ($toDelete as $seg) {
+            $countStmt->execute([$seg->id]);
+            $memberCount = (int) $countStmt->fetchColumn();
+            auditLog(db(), 'bulkDeleteSegmentsForce', "id={$seg->id} {$seg->name} ({$memberCount} membres)");
+            db()->prepare("DELETE FROM contact_segment WHERE segment_id = ?")->execute([$seg->id]);
+            db()->prepare("DELETE FROM segment WHERE id = ?")->execute([$seg->id]);
+        }
+    }
+    if ($isHtmx) {
+        header('HX-Location: ' . appUrl() . '?view=settings&tab=groups');
+    } else {
+        echo '<script>window.location.replace(' . json_encode(appUrl() . '?view=settings&tab=groups') . ');</script>';
+    }
+    exit;
 
 } elseif ($action == 'reassignSegment') {
     $segmentId       = (int) $_REQUEST['id'];

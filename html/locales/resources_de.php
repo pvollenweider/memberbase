@@ -561,6 +561,10 @@ $GLOBAL['segmentHasNoMembers'] = "Dieses Segment hat keine Mitglieder.";
 $GLOBAL['reassignAndDeleteConfirm'] = '%1$d Mitglied(er) neu zuweisen und das Segment „%3$s“ löschen?';
 $GLOBAL['deleteSegmentAndRemoveMembersConfirm'] = "Segment „%s“ löschen und seine %d Mitglied(er) entfernen?";
 $GLOBAL['deleteSegmentConfirm'] = "Segment „%s“ löschen?";
+$GLOBAL['bulkDeleteSegmentsBtn'] = "Löschen";
+$GLOBAL['bulkDeleteSegmentsConfirmTitle'] = "Diese verborgenen Segmente löschen?";
+$GLOBAL['bulkDeleteSegmentsIrreversibleWarning'] = "Unwiderruflich: Die Segmente und ihr Mitglieder-Zuordnungsverlauf werden endgültig gelöscht.";
+$GLOBAL['bulkDeleteSegmentsMembersNote'] = "Die Mitglieder selbst werden nicht gelöscht — insgesamt %d Segmentzugehörigkeit(en) werden entfernt.";
 
 // --- settings_groups ---
 $GLOBAL['noCategoryOptionLower'] = "— ohne Kategorie —";

@@ -30,6 +30,7 @@ if (isset($_REQUEST['action'])) {
 'bulkAnonymizeUsers'     => 'contacts',
         'deleteSegment'           => 'segments',
         'deleteSegmentForce'      => 'segments',
+        'bulkDeleteSegmentsForce' => 'segments',
         'reassignSegment'         => 'segments',
         'importSegmentMembers'    => 'segments',
         'importCotisants'      => 'segments',

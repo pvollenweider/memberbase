@@ -561,6 +561,10 @@ $GLOBAL['segmentHasNoMembers'] = "This segment has no members.";
 $GLOBAL['reassignAndDeleteConfirm'] = "Reassign %d member%s and delete the segment “%s”?";
 $GLOBAL['deleteSegmentAndRemoveMembersConfirm'] = "Delete the segment “%s” and remove its %d member%s?";
 $GLOBAL['deleteSegmentConfirm'] = "Delete the segment “%s”?";
+$GLOBAL['bulkDeleteSegmentsBtn'] = "Delete";
+$GLOBAL['bulkDeleteSegmentsConfirmTitle'] = "Delete these hidden segments?";
+$GLOBAL['bulkDeleteSegmentsIrreversibleWarning'] = "This is irreversible: the segments and their member association history will be permanently deleted.";
+$GLOBAL['bulkDeleteSegmentsMembersNote'] = "Members themselves won't be deleted — %d segment membership%s in total will be removed.";
 
 // --- settings_groups ---
 $GLOBAL['noCategoryOptionLower'] = "— no category —";

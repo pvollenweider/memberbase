@@ -181,10 +181,14 @@ $_gsRenderRow = function ($row) use ($charset, $segmentCounts) {
     $id       = $row->id;
     $name     = htmlentities($row->name, ENT_COMPAT, $charset);
     $isHidden = (int) $row->hidden;
+    $cnt      = $segmentCounts[$id] ?? 0;
     ?>
     <tr class="<?= $isHidden ? 'text-muted' : '' ?>" data-segment-id="<?= $id ?>">
       <td style="width:1.5rem">
-        <input type="checkbox" class="form-check-input bulk-cb" name="ids[]" value="<?= $id ?>">
+        <input type="checkbox" class="form-check-input bulk-cb" name="ids[]" value="<?= $id ?>"
+               data-hidden="<?= $isHidden ? '1' : '0' ?>"
+               data-name="<?= htmlspecialchars($row->name, ENT_QUOTES, $charset) ?>"
+               data-count="<?= $cnt ?>">
       </td>
       <td>
         <!-- Static view -->
@@ -193,7 +197,7 @@ $_gsRenderRow = function ($row) use ($charset, $segmentCounts) {
              class="text-decoration-none <?= $isHidden ? 'text-muted' : '' ?>">
             <?= $name ?>
           </a>
-          <?php $cnt = $segmentCounts[$id] ?? 0; if ($cnt > 0): ?>
+          <?php if ($cnt > 0): ?>
           <span class="badge rounded-pill ms-1" style="font-size:0.65rem;font-weight:500;background:var(--ca-primary-light);color:var(--ca-primary-dark)"><?= $cnt ?></span>
           <?php endif ?>
         </span>
@@ -241,6 +245,9 @@ $_gsRenderRow = function ($row) use ($charset, $segmentCounts) {
     </button>
     <button type="button" class="btn btn-sm btn-outline-secondary" onclick="bulkAction('bulkShow')">
       <i class="fas fa-eye me-1" aria-hidden="true"></i><?= $GLOBAL['show'] ?>
+    </button>
+    <button type="button" id="bulk-delete-btn" class="btn btn-sm btn-outline-danger d-none" onclick="openBulkDeleteSegmentsModal()">
+      <i class="fas fa-trash-can me-1" aria-hidden="true"></i><?= $GLOBAL['bulkDeleteSegmentsBtn'] ?>
     </button>
     <button type="button" class="btn btn-sm btn-outline-primary" onclick="openCombinedSegmentModal()">
       <i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['createFilter'] ?>
@@ -343,15 +350,39 @@ function toggleHiddenCard() {
   </div>
 </div>
 
+<!-- Bulk delete confirmation (hidden segments only) -->
+<div class="modal fade" id="bulk-delete-segments-modal" tabindex="-1" aria-labelledby="bulk-delete-segments-modal-label" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:440px">
+    <div class="modal-content">
+      <div class="modal-body p-4">
+        <div class="mb-3 text-center" style="font-size:2rem;color:var(--ca-danger,#dc3545)">
+          <i class="fas fa-trash-can" aria-hidden="true"></i>
+        </div>
+        <h6 class="mb-3 text-center" id="bulk-delete-segments-modal-label"><?= $GLOBAL['bulkDeleteSegmentsConfirmTitle'] ?></h6>
+        <p class="text-muted mb-1" style="font-size:0.82rem"><?= $GLOBAL['bulkDeleteSegmentsIrreversibleWarning'] ?></p>
+        <ul class="mb-2" id="bulk-delete-segments-names" style="font-size:0.82rem;max-height:180px;overflow-y:auto"></ul>
+        <p class="text-muted mb-4" style="font-size:0.78rem" id="bulk-delete-segments-total"></p>
+        <div class="d-flex gap-2 justify-content-center">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+          <button type="button" class="btn btn-danger" id="bulk-delete-segments-confirm-btn">
+            <i class="fas fa-trash-can me-1" aria-hidden="true"></i><?= $GLOBAL['bulkDeleteSegmentsBtn'] ?>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function() {
   var allCbs = document.querySelectorAll('.bulk-cb');
   var selectAll = document.getElementById('bulk-select-all');
   var bar = document.getElementById('bulk-bar');
   var countEl = document.getElementById('bulk-count');
+  var deleteBtn = document.getElementById('bulk-delete-btn');
 
   function updateBar() {
-    var checked = document.querySelectorAll('.bulk-cb:checked');
+    var checked = Array.from(document.querySelectorAll('.bulk-cb:checked'));
     if (checked.length > 0) {
       bar.classList.remove('d-none');
       countEl.textContent = <?= json_encode($GLOBAL['selectedCount']) ?>.replace('%d', checked.length).replace('%s', checked.length > 1 ? 's' : '');
@@ -360,6 +391,11 @@ function toggleHiddenCard() {
     }
     selectAll.indeterminate = checked.length > 0 && checked.length < allCbs.length;
     selectAll.checked = checked.length === allCbs.length;
+    // The bulk-delete action only ever targets hidden segments — show it
+    // only when every checked row comes from the "Masqués" table, so a
+    // selection spanning visible segments can never trigger it by accident.
+    var allHidden = checked.length > 0 && checked.every(function(cb) { return cb.dataset.hidden === '1'; });
+    deleteBtn.classList.toggle('d-none', !allHidden);
   }
 
   allCbs.forEach(function(cb) { cb.addEventListener('change', updateBar); });
@@ -401,6 +437,38 @@ function toggleHiddenCard() {
 
   document.getElementById('mg-name-input').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { e.preventDefault(); submitCombinedSegment(); }
+  });
+
+  var bulkDeleteModal = new bootstrap.Modal(document.getElementById('bulk-delete-segments-modal'));
+
+  window.openBulkDeleteSegmentsModal = function() {
+    var checked = Array.from(document.querySelectorAll('.bulk-cb:checked'));
+    if (!checked.length) return;
+
+    var namesEl = document.getElementById('bulk-delete-segments-names');
+    namesEl.innerHTML = '';
+    var totalMembers = 0;
+    checked.forEach(function(cb) {
+      var count = parseInt(cb.dataset.count, 10) || 0;
+      totalMembers += count;
+      var li = document.createElement('li');
+      li.textContent = cb.dataset.name + (count > 0 ? ' (' + count + ')' : '');
+      namesEl.appendChild(li);
+    });
+
+    document.getElementById('bulk-delete-segments-total').textContent =
+      totalMembers > 0
+        ? <?= json_encode($GLOBAL['bulkDeleteSegmentsMembersNote']) ?>.replace('%d', totalMembers).replace('%s', totalMembers > 1 ? 's' : '')
+        : '';
+
+    bulkDeleteModal.show();
+  };
+
+  document.getElementById('bulk-delete-segments-confirm-btn').addEventListener('click', function() {
+    document.getElementById('bulk-action').value = 'bulkDeleteSegmentsForce';
+    bulkDeleteModal.hide();
+    window.__dirtyOverride = true;
+    document.getElementById('bulk-form').requestSubmit();
   });
 
   // Live region for rename confirmations (screen readers)

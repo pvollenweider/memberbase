@@ -39,11 +39,6 @@ $_snAdminActive = in_array($view, ['settings', 'updateSegment', 'updateCombinedS
                     <span class="ca-sidebar-link-icon"><i class="fas fa-users"></i></span>
                     <?= $GLOBAL['peopleFinanceTabMembers'] ?>
                 </a>
-                <a class="nav-link<?= $_snJournalSuiviActive ? '' : ' collapsed' ?>" href="<?= appUrl() ?>?view=journals&tab=suivi">
-                    <span class="ca-sidebar-link-icon"><i class="fas fa-book-open"></i></span>
-                    <?= $GLOBAL['lastEntrySuivi'] ?>
-                </a>
-
                 <a class="nav-link<?= $_snFinancesActive ? '' : ' collapsed' ?>" href="javascript:void(0);" data-bs-toggle="collapse"
                    data-bs-target="#collapsePfFinances" aria-expanded="<?= $_snFinancesActive ? 'true' : 'false' ?>" aria-controls="collapsePfFinances">
                     <span class="ca-sidebar-link-icon"><i class="fas fa-hand-holding-dollar"></i></span>
@@ -72,6 +67,11 @@ $_snAdminActive = in_array($view, ['settings', 'updateSegment', 'updateCombinedS
                         <a class="nav-link<?= $_snPfTab === 'lapsedDonors' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&tab=lapsedDonors"><?= $GLOBAL['peopleFinanceTabLapsedDonors'] ?></a>
                     </nav>
                 </div>
+                <a class="nav-link<?= $_snJournalSuiviActive ? '' : ' collapsed' ?>" href="<?= appUrl() ?>?view=journals&tab=suivi">
+                    <span class="ca-sidebar-link-icon"><i class="fas fa-book-open"></i></span>
+                    <?= $GLOBAL['lastEntrySuivi'] ?>
+                </a>
+
                 <?php if (isManager()): ?>
                 <a class="nav-link<?= $view === 'tasks' ? '' : ' collapsed' ?>" href="<?= appUrl() ?>?view=tasks">
                     <span class="ca-sidebar-link-icon"><i class="fas fa-list-check"></i></span>

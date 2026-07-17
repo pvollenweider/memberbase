@@ -561,6 +561,10 @@ $GLOBAL['segmentHasNoMembers'] = "Este segmento no tiene ningún miembro.";
 $GLOBAL['reassignAndDeleteConfirm'] = "¿Reasignar %d miembro%s y eliminar el segmento «%s»?";
 $GLOBAL['deleteSegmentAndRemoveMembersConfirm'] = "¿Eliminar el segmento «%s» y quitar sus %d miembro%s?";
 $GLOBAL['deleteSegmentConfirm'] = "¿Eliminar el segmento «%s»?";
+$GLOBAL['bulkDeleteSegmentsBtn'] = "Eliminar";
+$GLOBAL['bulkDeleteSegmentsConfirmTitle'] = "¿Eliminar estos segmentos ocultos?";
+$GLOBAL['bulkDeleteSegmentsIrreversibleWarning'] = "Acción irreversible: los segmentos y su historial de asociación con los miembros se eliminarán definitivamente.";
+$GLOBAL['bulkDeleteSegmentsMembersNote'] = "Los miembros en sí no se eliminarán — se retirarán %d pertenencia%s de segmento en total.";
 
 // --- settings_groups ---
 $GLOBAL['noCategoryOptionLower'] = "— sin categoría —";

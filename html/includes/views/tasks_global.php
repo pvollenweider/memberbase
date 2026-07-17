@@ -102,7 +102,7 @@ include __DIR__ . '/../partials/page_header.php';
 <?php if ($_cotiPendingGen > 0): ?>
 <form action="<?= appUrl() ?>" method="post" data-no-dirty>
   <input type="hidden" name="action" value="generateUnpaidCotiTasks"/>
-  <button type="submit" class="btn btn-outline-primary btn-sm">
+  <button type="submit" class="btn btn-outline-light btn-sm">
     <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateBtn'] ?>
   </button>
 </form>
@@ -110,7 +110,7 @@ include __DIR__ . '/../partials/page_header.php';
 <?php if ($_recapPendingGen > 0): ?>
 <form action="<?= appUrl() ?>" method="post" data-no-dirty>
   <input type="hidden" name="action" value="generateComptaRecapTasks"/>
-  <button type="submit" class="btn btn-outline-primary btn-sm">
+  <button type="submit" class="btn btn-outline-light btn-sm">
     <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateRecapBtn'] ?>
   </button>
 </form>
@@ -118,7 +118,7 @@ include __DIR__ . '/../partials/page_header.php';
 <?php if ($_dupPendingGen > 0): ?>
 <form action="<?= appUrl() ?>" method="post" data-no-dirty>
   <input type="hidden" name="action" value="generateDuplicateTasks"/>
-  <button type="submit" class="btn btn-outline-primary btn-sm">
+  <button type="submit" class="btn btn-outline-light btn-sm">
     <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateDupBtn'] ?>
   </button>
 </form>
@@ -126,7 +126,7 @@ include __DIR__ . '/../partials/page_header.php';
 <?php if ($_hiddenSegPendingGen > 0): ?>
 <form action="<?= appUrl() ?>" method="post" data-no-dirty>
   <input type="hidden" name="action" value="generateHiddenSegmentTasks"/>
-  <button type="submit" class="btn btn-outline-primary btn-sm">
+  <button type="submit" class="btn btn-outline-light btn-sm">
     <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateHiddenSegBtn'] ?>
   </button>
 </form>
@@ -134,7 +134,7 @@ include __DIR__ . '/../partials/page_header.php';
 <?php if ($_attestationPendingGen > 0): ?>
 <form action="<?= appUrl() ?>" method="post" data-no-dirty>
   <input type="hidden" name="action" value="generateAttestationTasks"/>
-  <button type="submit" class="btn btn-outline-primary btn-sm">
+  <button type="submit" class="btn btn-outline-light btn-sm">
     <i class="fas fa-wand-magic-sparkles me-1" aria-hidden="true"></i><?= $GLOBAL['taskGenerateAttestationBtn'] ?>
   </button>
 </form>
