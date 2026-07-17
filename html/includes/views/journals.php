@@ -27,7 +27,7 @@ include __DIR__ . '/../partials/page_header.php';
 ?>
 
 <div class="container-xl px-4 ca-hero-overlap">
-<div id="jh-active-pane">
+<div id="jh-tab-<?= $_jhTab ?>" class="jh-active-pane">
   <?php if ($_jhTab === 'suivi'): ?>
     <?php $_jhRequireIsolated(__DIR__ . '/suivi_last_entry.php', ['_jhEmbedded' => true]); ?>
   <?php else: ?>
@@ -40,5 +40,5 @@ include __DIR__ . '/../partials/page_header.php';
 <script>
 // The Compta pane's year/type filters still point at its own standalone
 // route (?view=lastEntryCompta) — rewrite them to stay inside the hub.
-caHubRewriteEmbeddedLinks('#jh-active-pane', 'lastEntryCompta', 'journals', 'compta');
+caHubRewriteEmbeddedLinks('.jh-active-pane', 'lastEntryCompta', 'journals', 'compta');
 </script>

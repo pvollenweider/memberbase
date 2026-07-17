@@ -55,34 +55,34 @@ include __DIR__ . '/../partials/page_header.php';
          contradictory navigation system. */ ?>
 <ul class="nav ca-hub-tabs mb-3">
   <li class="nav-item">
-    <a class="nav-link<?= $_pfTab === 'members' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members">
+    <a id="pf-tab-members-btn" class="nav-link<?= $_pfTab === 'members' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members">
       <i class="fas fa-users ca-hub-tab-icon" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabMembers'] ?>
     </a>
   </li>
   <?php if (isManager()): ?>
   <li class="nav-item">
-    <a class="nav-link<?= $_pfTab === 'recap' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=recap">
+    <a id="pf-tab-recap-btn" class="nav-link<?= $_pfTab === 'recap' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=recap">
       <i class="fas fa-money-check-dollar ca-hub-tab-icon" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabRecap'] ?>
     </a>
   </li>
   <?php endif ?>
   <li class="nav-item">
-    <a class="nav-link<?= $_pfTab === 'dons' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=dons">
+    <a id="pf-tab-dons-btn" class="nav-link<?= $_pfTab === 'dons' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=dons">
       <i class="fas fa-file-pdf ca-hub-tab-icon" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabDons'] ?>
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link<?= $_pfTab === 'lapsed' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed">
+    <a id="pf-tab-lapsed-btn" class="nav-link<?= $_pfTab === 'lapsed' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsed">
       <i class="fas fa-user-clock ca-hub-tab-icon" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabLapsed'] ?>
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link<?= $_pfTab === 'lapsedDonors' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors">
+    <a id="pf-tab-lapsedDonors-btn" class="nav-link<?= $_pfTab === 'lapsedDonors' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors">
       <i class="fas fa-hand-holding-dollar ca-hub-tab-icon" aria-hidden="true"></i><?= $GLOBAL['peopleFinanceTabLapsedDonors'] ?>
     </a>
   </li>
 </ul>
-<div id="pf-active-pane">
+<div id="pf-tab-<?= $_pfTab ?>" class="pf-active-pane">
   <?php if ($_pfTab === 'members'): ?>
     <?php $_pfRequireIsolated(__DIR__ . '/users_list.php', ['_pfEmbedded' => true]); ?>
   <?php elseif ($_pfTab === 'recap'): ?>
@@ -156,10 +156,10 @@ include __DIR__ . '/../partials/page_header.php';
 // Filter links inside the active pane still point at their own standalone
 // route (?view=comptaRecap / ?view=lapsedMembers / ?view=resume) — rewrite
 // them to stay inside the hub (sidebar-nav-driven ?view=peopleFinance&tab=...).
-caHubRewriteEmbeddedLinks('#pf-active-pane', 'comptaRecap', 'peopleFinance', 'recap');
-caHubRewriteEmbeddedLinks('#pf-active-pane', 'lapsedMembers', 'peopleFinance', 'lapsed');
-caHubRewriteEmbeddedLinks('#pf-active-pane', 'resume', 'peopleFinance', 'dons');
-caHubRewriteEmbeddedLinks('#pf-active-pane', 'lapsedDonors', 'peopleFinance', 'lapsedDonors');
+caHubRewriteEmbeddedLinks('.pf-active-pane', 'comptaRecap', 'peopleFinance', 'recap');
+caHubRewriteEmbeddedLinks('.pf-active-pane', 'lapsedMembers', 'peopleFinance', 'lapsed');
+caHubRewriteEmbeddedLinks('.pf-active-pane', 'resume', 'peopleFinance', 'dons');
+caHubRewriteEmbeddedLinks('.pf-active-pane', 'lapsedDonors', 'peopleFinance', 'lapsedDonors');
 
 // "Perdus"/"Nouveaux" cohort pills inside the lapsed-members and
 // lapsed-donors panes — keep ?cohort= in sync so a direct cohort pill is

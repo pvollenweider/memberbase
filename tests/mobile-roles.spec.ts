@@ -1,11 +1,15 @@
 /**
- * E2E tests — role-gated elements of the MOBILE menu bar
+ * E2E tests — role-gated elements of the mobile nav (fixed topbar + slide-in
+ * sidebar, replacing the old separate `.d-lg-none` menu bar)
  *
- * The mobile icon bar (partials/menu.php, `.d-lg-none` block) is separate
- * markup from the desktop navbar and carries its own isManager() gate for
- * the settings gear. roles.spec.ts only targets the desktop navbar
- * (.navbar-collapse) — this spec covers the mobile variant at a phone
- * viewport, so a regression in the mobile block cannot slip through.
+ * The topbar (partials/topbar.php) is shared markup between desktop and
+ * mobile — it doesn't change with viewport, only the sidebar's visibility
+ * does (slides in from off-screen via #sidebarToggle below the 991.98px
+ * breakpoint, see .ca-sidebar-panel in custom.css). The settings gear's
+ * isManager() gate lives in the topbar, so it's viewport-independent;
+ * roles.spec.ts already covers it at desktop viewport — this spec re-checks
+ * it at a phone viewport so a breakpoint-specific regression can't slip
+ * through, and covers the sidebar's mobile slide-in toggle.
  *
  * @copyright 2024 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -31,14 +35,12 @@ async function openMobileAs(browser: Browser, role: string) {
   return { page, ctx };
 }
 
-const MOBILE_BAR = '.d-lg-none';
-
 test.describe('mobile bar — settings gear (isManager)', () => {
   for (const role of ['readonly', 'user']) {
     test(`${role}: gear hidden on mobile`, async ({ browser }) => {
       const { page, ctx } = await openMobileAs(browser, role);
       await page.goto('/index.php');
-      await expect(page.locator(`${MOBILE_BAR} a[href*="view=settings"]`)).toHaveCount(0);
+      await expect(page.locator('#ca-topbar a[href*="view=settings"]')).toHaveCount(0);
       await ctx.close();
     });
   }
@@ -47,7 +49,7 @@ test.describe('mobile bar — settings gear (isManager)', () => {
     test(`${role}: gear visible on mobile`, async ({ browser }) => {
       const { page, ctx } = await openMobileAs(browser, role);
       await page.goto('/index.php');
-      await expect(page.locator(`${MOBILE_BAR} a[href*="view=settings"]`).first()).toBeVisible();
+      await expect(page.locator('#ca-topbar a[href*="view=settings"]').first()).toBeVisible();
       await ctx.close();
     });
   }
@@ -55,13 +57,11 @@ test.describe('mobile bar — settings gear (isManager)', () => {
 
 test.describe('mobile bar — common elements visible for every role', () => {
   for (const role of ['readonly', 'user', 'manager', 'admin']) {
-    test(`${role}: nav icons and search toggle visible`, async ({ browser }) => {
+    test(`${role}: sidebar toggle opens nav icons`, async ({ browser }) => {
       const { page, ctx } = await openMobileAs(browser, role);
       await page.goto('/index.php');
-      await expect(page.locator(`${MOBILE_BAR} a[href*="view=peopleFinance"]`).first()).toBeVisible();
-      await expect(page.locator('#mobile-search-toggle')).toBeVisible();
-      // Desktop navbar collapsed away at this viewport
-      await expect(page.locator('.navbar-collapse')).not.toBeVisible();
+      await page.locator('#sidebarToggle').click();
+      await expect(page.locator('#ca-sidebar-col a[href*="view=peopleFinance"]').first()).toBeVisible();
       await ctx.close();
     });
   }
