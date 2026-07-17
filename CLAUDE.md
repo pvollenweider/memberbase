@@ -45,6 +45,26 @@ sudo apt install -y php8.2-gd && sudo systemctl reload apache2
 ```
 Après un `git pull`, aucune action supplémentaire — le `vendor/` est déjà dans le dépôt.
 
+## Bundle JS/CSS (`html/js/dist/`, `html/css/dist/`)
+
+Les `<link>`/`<script>` vendor+custom listés dans `html/index.php` sont concat+minifiés par `build/dist.mjs` (esbuild) en 3 bundles **committés dans le dépôt** (même logique que `html/vendor/` — zéro build en prod) :
+- `html/css/dist/app.min.css` (Inter/Metropolis, Bootstrap, DataTables+Buttons, datetimepicker, Font Awesome, `custom.css`)
+- `html/js/dist/vendor.min.js` (jQuery, Bootstrap bundle, moment+datetimepicker, DataTables+Buttons+export libs, Chart.js, htmx)
+- `html/js/dist/app.min.js` (`app.js` + `sidebar-nav.js`)
+
+**Restent en tags séparés** (non bundlés, voir commentaire en tête de `build/dist.mjs`) : `alpine.min.js` (`defer` — le bundler ci-dessus est bloquant, le concaténer changerait le timing de chargement de tout le reste), `member-general-form.js` (doit s'exécuter avant qu'Alpine boot), `tiptap-editor.js` (`type="module"`, pas concaténable avec des scripts globaux classiques).
+
+Après **toute modification** d'un des fichiers sources listés dans `build/dist.mjs` (y compris mise à jour d'une lib vendor JS/CSS, ou édition de `html/js/app.js`/`html/js/sidebar-nav.js`/`html/css/custom.css`) :
+
+```bash
+npm install            # une fois, installe esbuild en devDependency
+npm run dist            # régénère les 3 bundles
+git add html/css/dist/ html/js/dist/
+git commit --author="pvollenweider <pvollenweider@jahia.com>" -m "Rebuild JS/CSS bundle"
+```
+
+`npm run dist:watch` pour un rebuild automatique en dev à chaque sauvegarde. Les pages non authentifiées (`login.php`, `install.php`, `set-password.php`) ont leur propre `<head>` séparé de `index.php` et **ne sont pas concernées** par ce bundle pour l'instant.
+
 ## Conventions de code
 
 ### Commentaires en anglais
