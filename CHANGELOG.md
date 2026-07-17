@@ -2,6 +2,27 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [5.3.1] — 2026-07-17
+
+Corrections de sécurité et de performance, sans changement de schéma.
+
+### Sécurité
+
+- **CSRF** : le jeton est désormais vérifié sur **toutes** les méthodes HTTP pour chaque
+  action, et plus seulement en POST. Les handlers lisant leurs paramètres dans `$_REQUEST`,
+  une requête GET forgée (image, lien) pouvait déclencher une mutation (suppression de
+  segment, d'écriture comptable, suppression en masse…) sans jeton. Tous les déclencheurs
+  légitimes portent déjà le jeton (formulaires POST, liens boostés htmx, `fetch`).
+- **Attestations** : `attestation_don.php` et `attestation_bulk.php` sont restreints aux
+  managers/admins. Un compte en lecture seule pouvait télécharger les données de dons
+  nominatives de n'importe quel membre.
+
+### Performance
+
+- **Édition de segment** : le panneau de comptage des imports par année, qui exécutait
+  ~40 requêtes agrégées (10 ans × 4), est réduit à 4 requêtes groupées par année.
+  Résultats identiques, vérifiés sur la base réelle.
+
 ## [5.3.0] — 2026-07-17
 
 Refonte graphique de la navigation — aucune rupture de compatibilité, 2 migrations (`0038`,
