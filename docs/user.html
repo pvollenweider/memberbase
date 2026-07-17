@@ -291,31 +291,42 @@ l&#39;application demande immédiatement de choisir un nouveau mot de passe. Si 
 un <strong>lien d&#39;invitation</strong>, il vous permet de définir vous-même votre mot de passe.</p>
 <p><img src="images/login.png" alt="Page de connexion"></p>
 <h3 id="changer-la-langue-de-linterface">Changer la langue de l&#39;interface<a class="anchor" href="#changer-la-langue-de-linterface" aria-label="Lien d'ancrage">#</a></h3>
-<p>Depuis le menu <em>Nom d&#39;utilisateur → Mot de passe</em>, une carte <strong>Langue</strong> permet de
-choisir la langue de l&#39;interface : français (par défaut), anglais, allemand ou espagnol.
+<p>Depuis le menu <em>Nom d&#39;utilisateur (bas du menu latéral) → Mon compte</em>, une carte
+<strong>Langue</strong> permet de choisir la langue de l&#39;interface : français (par défaut), anglais,
+allemand ou espagnol.
 Le choix est enregistré sur le compte et s&#39;applique à toutes vos futures connexions, sur
 n&#39;importe quel poste.</p>
-<p><img src="images/langue.png" alt="Carte Langue sur la page Mot de passe"></p>
-<h3 id="la-barre-de-navigation">La barre de navigation<a class="anchor" href="#la-barre-de-navigation" aria-label="Lien d'ancrage">#</a></h3>
-<p>En haut de chaque page, la barre bleue contient :</p>
-<div class="table-scroll" role="region" aria-label="Tableau — La barre de navigation" tabindex="0"><table><thead><tr><th scope="col">Élément</th><th scope="col">Contenu</th></tr></thead><tbody><tr><td><strong>Tableau de bord</strong> (icône jauge)</td><td>Page d&#39;accueil par défaut après connexion : KPIs, graphique, raccourcis (voir ci-dessous)</td></tr>
-<tr><td><strong>Membres &amp; finances</strong> (icône personnes)</td><td>Segments, notification de versement, attestations, mouvements membres/donateurs — cinq onglets</td></tr>
-<tr><td><strong>Journaux</strong> (icône livre)</td><td>Journal comptable et journal de suivi, tous membres confondus — deux onglets</td></tr>
-<tr><td><strong>Engrenage</strong> (à droite)</td><td>Réglages — visible uniquement pour les rôles Manager et Admin</td></tr>
-<tr><td><strong>Nom d&#39;utilisateur</strong> (à droite)</td><td>Menu : <em>Mot de passe</em>, <em>Déconnexion</em></td></tr>
-<tr><td><strong>Chercher</strong></td><td>Recherche rapide globale</td></tr></tbody></table></div>
-<p><img src="images/navbar.png" alt="Barre de navigation"></p>
-<p>Il n&#39;y a plus de menu « Rapports » ni « Groupes » séparé, ni de liens distincts Listes /
-Relances / Aperçu des dons / Compta / Suivi : la gestion des segments se fait dans les
-<strong>Réglages</strong>, et les anciennes destinations autrefois séparées sont désormais réunies sous
-deux hubs à onglets accessibles depuis la barre — <strong>Membres &amp; finances</strong> et <strong>Journaux</strong>. Les
-anciennes routes (<code>?view=list</code>, <code>?view=comptaRecap</code>, <code>?view=resume</code>, <code>?view=lastEntryCompta</code>…)
-continuent de fonctionner mais ne figurent plus dans le menu.</p>
-<p>Sur mobile, la barre se réduit à une rangée d&#39;icônes ; la loupe ouvre un champ de recherche
-et l&#39;icône utilisateur regroupe le profil.</p>
+<p><img src="images/langue.png" alt="Carte Langue sur la page Mon compte"></p>
+<h3 id="la-barre-de-navigation">Barre du haut et menu latéral<a class="anchor" href="#la-barre-de-navigation" aria-label="Lien d'ancrage">#</a></h3>
+<p>La barre bleue en haut de chaque page est volontairement minimale : une icône ☰ pour
+replier/déplier le menu latéral, le nom de l&#39;organisation (lien vers le tableau de bord), et
+un champ <strong>Chercher</strong> à droite (visible en bureau uniquement). Toute la navigation se fait
+depuis le <strong>menu latéral</strong> fixe, à gauche :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Menu latéral" tabindex="0"><table><thead><tr><th scope="col">Entrée</th><th scope="col">Contenu</th></tr></thead><tbody><tr><td><strong>Tableau de bord</strong></td><td>Page d&#39;accueil par défaut après connexion : KPIs, graphique, raccourcis (voir ci-dessous)</td></tr>
+<tr><td><strong>Membres</strong></td><td>Liste des membres, filtrée par segment ou type de contact</td></tr>
+<tr><td><strong>Journal suivi</strong></td><td>Journal des notes de suivi, tous membres confondus</td></tr>
+<tr><td><strong>Finances</strong> (groupe dépliable)</td><td>Journal comptable, notification de versement (managers), attestation</td></tr>
+<tr><td><strong>Évolution</strong> (groupe dépliable)</td><td>Mouvements membres, mouvements donateurs (nouveaux/perdus)</td></tr>
+<tr><td><strong>Tâches</strong></td><td>Visible uniquement pour les rôles Manager et Admin, badge avec le nombre de tâches ouvertes</td></tr>
+<tr><td><strong>Administration</strong> (groupe dépliable)</td><td>Réglages — visible uniquement pour les rôles Manager et Admin ; sous-groupes <em>Segments</em> et <em>Application</em> (voir ci-dessous)</td></tr>
+<tr><td><strong>Pied du menu</strong></td><td>Nom d&#39;utilisateur → menu <em>Mon compte</em> (mot de passe, nom, email), <em>Déconnexion</em></td></tr></tbody></table></div>
+<p><img src="images/navbar.png" alt="Barre du haut et menu latéral"></p>
+<p>Le groupe <strong>Administration</strong> distingue deux sous-groupes selon le rôle requis :
+<strong>Segments</strong> (Groupes, Segments combinés, Catégories, Types de compta — accessible aux
+Managers) et <strong>Application</strong> (Réglages, Type de contact, Email, Utilisateurs, Santé, Journal
+d&#39;audit, Intégrité, Archivés — réservé aux Admins).</p>
+<p>Il n&#39;y a pas de menu « Rapports » ni de liens distincts Listes / Relances / Aperçu des dons /
+Compta / Suivi : la gestion des segments se fait dans <strong>Administration → Segments</strong>, et les
+anciennes destinations autrefois séparées sont désormais réunies sous deux hubs à onglets —
+<strong>Membres &amp; finances</strong> (entrées <em>Membres</em>, <em>Finances</em> et <em>Évolution</em> du menu, cinq onglets
+au total) et <strong>Journaux</strong> (entrées <em>Journal suivi</em> et <em>Journal compta</em> du groupe <em>Finances</em>).
+Les anciennes routes (<code>?view=list</code>, <code>?view=comptaRecap</code>, <code>?view=resume</code>,
+<code>?view=lastEntryCompta</code>…) continuent de fonctionner mais ne figurent plus dans le menu.</p>
+<p>Sur mobile, le menu latéral se replie derrière l&#39;icône ☰ de la barre du haut ; le champ de
+recherche n&#39;est pas affiché sur petit écran.</p>
 <h3 id="tableau-de-bord">Tableau de bord<a class="anchor" href="#tableau-de-bord" aria-label="Lien d'ancrage">#</a></h3>
-<p>Page d&#39;accueil par défaut après connexion (également accessible via l&#39;icône jauge de la barre
-de navigation, <code>?view=dashboard</code>). Il regroupe :</p>
+<p>Page d&#39;accueil par défaut après connexion (également accessible via <strong>Tableau de bord</strong> dans
+le menu latéral, <code>?view=dashboard</code>). Il regroupe :</p>
 <p><img src="images/dashboard.png" alt="Tableau de bord"></p>
 <ul>
 <li><strong>Cartes KPI</strong> — Contributions, Donateurs et Membres actifs de l&#39;année en cours, chacune avec
@@ -389,9 +400,10 @@ segment indique son nombre de membres.</li>
 <p>Une phrase d&#39;explication s&#39;affiche sous le bouton lorsqu&#39;un filtre rapide est actif.</p>
 <h3 id="rechercher-un-membre">Rechercher un membre<a class="anchor" href="#rechercher-un-membre" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
-<li>Le champ <strong>Chercher</strong> de la barre de navigation effectue une recherche globale sur prénom,
-nom, société, adresse, NPA, e-mail et commentaires. La liste se met à jour automatiquement
-dès 3 caractères saisis (raccourci clavier : <code>/</code> pour placer le curseur dans le champ).</li>
+<li>Le champ <strong>Chercher</strong> de la barre du haut (visible en bureau uniquement) effectue une
+recherche globale sur prénom, nom, société, adresse, NPA, e-mail et commentaires : dès 3
+caractères saisis, l&#39;application affiche directement les résultats dans l&#39;onglet <strong>Membres</strong>
+du hub Membres &amp; finances.</li>
 <li>Les termes trouvés sont surlignés dans la liste.</li>
 </ul>
 <h3 id="trier-exporter-gérer-les-colonnes">Trier, exporter, gérer les colonnes<a class="anchor" href="#trier-exporter-gérer-les-colonnes" aria-label="Lien d'ancrage">#</a></h3>
@@ -588,10 +600,11 @@ affichées de la plus récente à la plus ancienne. L&#39;ajout, la modification
 sont réservés aux rôles Utilisateur et plus.</p>
 <hr>
 <h2 id="8-journaux-et-aperçu-des-dons">8. Journaux et aperçu des dons<a class="anchor" href="#8-journaux-et-aperçu-des-dons" aria-label="Lien d'ancrage">#</a></h2>
-<p>Ces vues transversales sont accessibles depuis la barre de navigation, via les hubs
-<strong>Journaux</strong> et <strong>Membres &amp; finances</strong>.</p>
+<p>Ces vues transversales sont accessibles depuis le menu latéral, via les entrées <strong>Journal
+suivi</strong> et <strong>Finances</strong> (groupe <strong>Membres &amp; finances</strong>).</p>
 <h3 id="hub-journaux--compta-et-suivi">Hub Journaux — Compta et Suivi<a class="anchor" href="#hub-journaux--compta-et-suivi" aria-label="Lien d'ancrage">#</a></h3>
-<p><code>?view=journals</code> (lien <strong>Journaux</strong> de la barre), deux onglets :</p>
+<p><code>?view=journals</code> (entrées <strong>Journal suivi</strong> et <strong>Journal compta</strong> du menu latéral, cette
+dernière dans le groupe <em>Finances</em>), deux onglets :</p>
 <h4 id="compta--journal-comptable-global">Compta — journal comptable global<a class="anchor" href="#compta--journal-comptable-global" aria-label="Lien d'ancrage">#</a></h4>
 <p>Toutes les entrées comptables, tous membres confondus.</p>
 <p><img src="images/journaux-compta.png" alt="Journal comptable global"></p>
@@ -700,10 +713,13 @@ la date d&#39;envoi d&#39;origine (pas la date du jour).</li>
 <hr>
 <h2 id="10-segments">10. Segments<a class="anchor" href="#10-segments" aria-label="Lien d'ancrage">#</a></h2>
 <p>Les segments découpent les membres en sous-ensembles (membres d&#39;une année, comité, partenaires,
-donateurs à relancer…). Leur gestion se trouve dans les <strong>Réglages</strong> (icône engrenage,
-réservée aux Managers et Admins), onglets <strong>Segments</strong>, <strong>Catégories</strong> et <strong>Segments combinés</strong>.</p>
+donateurs à relancer…). Leur gestion se trouve dans <strong>Administration → Segments</strong> (menu
+latéral, réservé aux Managers et Admins), onglets <strong>Segments</strong>, <strong>Catégories</strong> et <strong>Segments
+combinés</strong>.</p>
 <h3 id="créer-un-segment">Créer un segment<a class="anchor" href="#créer-un-segment" aria-label="Lien d'ancrage">#</a></h3>
-<p>Dans l&#39;onglet <strong>Segments</strong>, saisir le nom dans le champ prévu et valider.</p>
+<p>Dans l&#39;onglet <strong>Segments</strong>, saisir le nom dans le champ prévu et valider. Les segments
+<strong>masqués</strong> (voir « Modifier un segment » ci-dessous) apparaissent dans une seconde carte,
+repliée par défaut sous la liste principale — cliquer son en-tête pour la déplier.</p>
 <p><img src="images/segments-liste.png" alt="Onglet Segments des Réglages"></p>
 <h3 id="règles-dauto-assignation">Règles d&#39;auto-assignation<a class="anchor" href="#règles-dauto-assignation" aria-label="Lien d'ancrage">#</a></h3>
 <p>En bas de l&#39;onglet <strong>Segments</strong>, il est possible de définir des règles du type « ajouter un
@@ -744,12 +760,14 @@ filtrage et dans les fiches membres.</p>
 <p>Un <strong>segment combiné</strong> regroupe plusieurs segments : le sélectionner dans la liste affiche
 l&#39;<strong>union</strong> de leurs membres. Depuis l&#39;onglet <strong>Segments combinés</strong>, saisir un nom pour en créer
 un, puis cliquer son nom pour choisir les segments à inclure. Il apparaît ensuite en tête du
-menu de filtrage de la liste des membres.</p>
+menu de filtrage de la liste des membres. La liste affiche, sous chaque segment combiné, les
+noms des segments qui le composent.</p>
 <p><img src="images/segments-combines.png" alt="Onglet Segments combinés"></p>
 <hr>
 <h2 id="11-réglages">11. Réglages<a class="anchor" href="#11-réglages" aria-label="Lien d'ancrage">#</a></h2>
-<p>Accès via l&#39;icône <strong>engrenage</strong> (Managers et Admins). La barre latérale liste les sections ;
-les sections disponibles dépendent du rôle.</p>
+<p>Accès via le groupe <strong>Administration</strong> du menu latéral (Managers et Admins), qui se déplie en
+deux sous-groupes selon le rôle : <strong>Segments</strong> (Managers et Admins) et <strong>Application</strong> (Admins
+uniquement).</p>
 <div class="table-scroll" role="region" aria-label="Tableau — 11. Réglages" tabindex="0"><table><thead><tr><th scope="col">Section</th><th scope="col">Rôle</th><th scope="col">Contenu</th></tr></thead><tbody><tr><td>Segments</td><td>Manager / Admin</td><td>Gestion des segments (voir §10)</td></tr>
 <tr><td>Catégories</td><td>Manager / Admin</td><td>Catégories de segments</td></tr>
 <tr><td>Segments combinés</td><td>Manager / Admin</td><td>Filtres regroupant plusieurs segments</td></tr>
@@ -762,7 +780,7 @@ les sections disponibles dépendent du rôle.</p>
 <tr><td>Intégrité</td><td>Admin</td><td>Vérification et correction des données</td></tr>
 <tr><td>Santé</td><td>Admin</td><td>Export de la base, application des migrations en attente</td></tr>
 <tr><td>Archivés</td><td>Admin</td><td>Liste des membres archivés</td></tr></tbody></table></div>
-<p><img src="images/reglages-sidebar.png" alt="Barre latérale des Réglages (vue Admin)"></p>
+<p><img src="images/reglages-sidebar.png" alt="Groupe Administration déplié dans le menu latéral (vue Admin)"></p>
 <h3 id="types-compta">Types compta<a class="anchor" href="#types-compta" aria-label="Lien d'ancrage">#</a></h3>
 <p>Pour chaque type de versement :</p>
 <ul>
@@ -796,6 +814,8 @@ colonne d&#39;un coup. Enregistrement automatique à chaque case cochée/décoch
 </ul>
 <p><img src="images/types-contact.png" alt="Types de contact et matrice avec les types de compta"></p>
 <h3 id="réglages-généraux-admin">Réglages (généraux, Admin)<a class="anchor" href="#réglages-généraux-admin" aria-label="Lien d'ancrage">#</a></h3>
+<p>Les paramètres sont regroupés en cartes thématiques (Organisation, Finances, Adhésion,
+Segments) plutôt qu&#39;un long formulaire unique.</p>
 <div class="table-scroll" role="region" aria-label="Tableau — Réglages (généraux, Admin)" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Nom / Adresse / NPA / Ville / Pays de l&#39;organisation</td><td>En-têtes des documents générés</td></tr>
 <tr><td>Préfixe des segments membres</td><td>Préfixe pour retrouver les segments membres des années (ex. « Membre »)</td></tr>
 <tr><td>Segment affiché par défaut</td><td>Segment ouvert à l&#39;arrivée sur la liste — <strong>à mettre à jour chaque année</strong></td></tr>
@@ -825,9 +845,14 @@ statut (envoyé / erreur).</p>
 <h3 id="intégrité-admin">Intégrité (Admin)<a class="anchor" href="#intégrité-admin" aria-label="Lien d'ancrage">#</a></h3>
 <p>Détecte et aide à corriger les incohérences : membres en double (même nom ou même e-mail, avec
 bouton <strong>Fusionner</strong>), segments masqués encore assignés à une catégorie / un segment combiné /
-des membres, montants ou dates comptables invalides, entrées sans type, e-mails ou e-mails alt.
-mal formatés, genre hors valeurs, date de naissance dans le futur, membres sans nom ni société.
-Un message « Tout est clean » s&#39;affiche si rien n&#39;est détecté.</p>
+des membres, règles d&#39;auto-assignation non appliquées (voir §10), montants ou dates comptables
+invalides, entrées sans type, e-mails ou e-mails alt. mal formatés, genre hors valeurs, date de
+naissance dans le futur, membres sans nom ni société. Un message « Tout est clean » s&#39;affiche si
+rien n&#39;est détecté.</p>
+<p>Chaque catégorie de contrôle apparaît sous forme de section repliée, avec le nombre de
+problèmes détectés dans le titre — cliquer une section charge son détail et ne recalcule que ce
+contrôle-là, pour ne pas ralentir le chargement de la page quand tout n&#39;a pas besoin d&#39;être
+consulté.</p>
 <p><img src="images/integrite.png" alt="Intégrité — aucun problème détecté"></p>
 <h4 id="fusionner-deux-fiches">Fusionner deux fiches<a class="anchor" href="#fusionner-deux-fiches" aria-label="Lien d'ancrage">#</a></h4>
 <p>Depuis Intégrité, cliquer <strong>Fusionner</strong> sur un doublon ouvre l&#39;écran de fusion :</p>
@@ -840,6 +865,14 @@ ou <em>supprimer</em>.</li>
 <li>Les entrées compta et suivi et les appartenances aux segments sont fusionnées
 automatiquement (dédoublonnées). Confirmer via la fenêtre de résumé.</li>
 </ul>
+<h3 id="archivés-admin">Archivés (Admin)<a class="anchor" href="#archivés-admin" aria-label="Lien d'ancrage">#</a></h3>
+<p>Liste les membres archivés, avec pour chacun une pastille indiquant s&#39;il est <strong>éligible à la
+suppression</strong> (aucune entrée comptable) ou seulement à l&#39;<strong>anonymisation</strong> (historique financier
+conservé — voir §5 « Actif / Archivé »). Une sélection multiple (cases à cocher) permet de
+<strong>supprimer</strong> ou <strong>anonymiser en masse</strong> les profils cochés : une fenêtre de confirmation liste
+les profils concernés avant d&#39;agir, avec un avertissement si la sélection mélange des profils
+éligibles et non éligibles pour l&#39;action choisie — les profils non éligibles sont alors
+<strong>ignorés</strong> (ni supprimés, ni anonymisés), sans bloquer le traitement des autres.</p>
 <hr>
 <h2 id="12-rôles-utilisateurs-et-matrice-des-droits">12. Rôles utilisateurs et matrice des droits<a class="anchor" href="#12-rôles-utilisateurs-et-matrice-des-droits" aria-label="Lien d'ancrage">#</a></h2>
 <p>L&#39;application distingue quatre rôles : <strong>Lecture seule</strong>, <strong>Utilisateur</strong>, <strong>Manager</strong> et
@@ -856,18 +889,22 @@ automatiquement (dédoublonnées). Confirmer via la fenêtre de résumé.</li>
 réservés aux Managers et Admins ; un rôle <strong>Utilisateur</strong> peut créer et modifier des membres et
 saisir compta et suivi, mais pas gérer les segments.</p>
 <hr>
-<h2 id="13-changer-son-mot-de-passe">13. Changer son mot de passe<a class="anchor" href="#13-changer-son-mot-de-passe" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="13-changer-son-mot-de-passe">13. Mon compte<a class="anchor" href="#13-changer-son-mot-de-passe" aria-label="Lien d'ancrage">#</a></h2>
+<p>Cliquer son <strong>nom</strong>, en bas du menu latéral, ouvre un menu avec <strong>Mon compte</strong> et
+<strong>Déconnexion</strong>.</p>
+<p>La page <strong>Mon compte</strong> permet de modifier son <strong>nom affiché</strong> et son <strong>e-mail</strong>, en plus du
+mot de passe :</p>
 <ol>
-<li>Cliquer son <strong>nom d&#39;utilisateur</strong> en haut à droite.</li>
-<li>Choisir <strong>Mot de passe</strong>.</li>
-<li>Saisir le mot de passe actuel, puis le nouveau mot de passe et sa confirmation.</li>
+<li>Choisir <strong>Mon compte</strong> dans le menu du pied de la barre latérale.</li>
+<li>Saisir le mot de passe actuel, puis le nouveau mot de passe et sa confirmation — ou modifier
+nom/e-mail dans la carte <strong>Mon profil</strong> au-dessus.</li>
 <li>Enregistrer.</li>
 </ol>
 <p>Si un administrateur a réinitialisé votre mot de passe, l&#39;application impose ce changement à la
 connexion suivante.</p>
 <hr>
 <h2 id="14-déconnexion">14. Déconnexion<a class="anchor" href="#14-déconnexion" aria-label="Lien d'ancrage">#</a></h2>
-<p>Cliquer son <strong>nom d&#39;utilisateur</strong> en haut à droite, puis <strong>Déconnexion</strong>.</p>
+<p>Cliquer son <strong>nom</strong> en bas du menu latéral, puis <strong>Déconnexion</strong>.</p>
 <hr>
 <h2 id="15-récapitulatifs-comptables-par-email">15. Récapitulatifs comptables par email<a class="anchor" href="#15-récapitulatifs-comptables-par-email" aria-label="Lien d'ancrage">#</a></h2>
 <p>Accès : <strong>Membres &amp; finances</strong> → onglet <strong>Notification de versement</strong> (<code>?view=peopleFinance&amp;tab=recap</code>,

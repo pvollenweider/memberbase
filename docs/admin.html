@@ -399,7 +399,7 @@ define(&#39;DB_PASS&#39;, &#39;secret&#39;);
 <p><strong>Note sur le port</strong> : la connexion runtime (<code>bootstrap.php</code>) ne lit <strong>pas</strong> <code>DB_PORT</code> (ni la variable d&#39;environnement, ni la constante définie dans <code>conf/db.php</code>). Elle se connecte toujours sur le port MySQL par défaut (3306). <code>DB_PORT</code> n&#39;est utilisé que par le wizard <code>install.php</code> (test de connexion et pré-remplissage du champ). Prévoyez donc MariaDB sur 3306 pour l&#39;exploitation.</p>
 </blockquote>
 <h3 id="33-paramètres-applicatifs-table-appsettings">3.3 Paramètres applicatifs (table app_settings)<a class="anchor" href="#33-paramètres-applicatifs-table-appsettings" aria-label="Lien d'ancrage">#</a></h3>
-<p>Stockés en base, modifiables dans Réglages → Général. Clés principales :</p>
+<p>Stockés en base, modifiables dans Administration → Application → Réglages. Clés principales :</p>
 <div class="table-scroll" role="region" aria-label="Tableau — 3.3 Paramètres applicatifs (table app_settings)" tabindex="0"><table><thead><tr><th scope="col">Clé</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>org_name</code></td><td>Nom de l&#39;association (titre et attestations)</td></tr>
 <tr><td><code>org_address</code></td><td>Adresse (attestations)</td></tr>
 <tr><td><code>org_npa</code></td><td>Code postal (attestations)</td></tr>
@@ -565,7 +565,8 @@ docker compose down -v
 ajoutée par la migration <code>0003_app_users_locale</code>, défaut <code>fr</code>). Le choix est
 individuel : il n&#39;y a pas de réglage global de langue pour l&#39;application.</p>
 <h3 id="62-accès-à-linterface-de-gestion">6.2 Accès à l&#39;interface de gestion<a class="anchor" href="#62-accès-à-linterface-de-gestion" aria-label="Lien d'ancrage">#</a></h3>
-<p><strong>Réglages → Comptes utilisateurs</strong> (ou <code>?view=settings&amp;section=app_users</code>)</p>
+<p><strong>Administration → Application → Utilisateurs</strong> (menu latéral, ou
+<code>?view=settings&amp;tab=users</code>)</p>
 <p>L&#39;onglet est invisible pour les rôles non-admin.</p>
 <h3 id="63-créer-un-compte">6.3 Créer un compte<a class="anchor" href="#63-créer-un-compte" aria-label="Lien d'ancrage">#</a></h3>
 <ol>
@@ -648,7 +649,8 @@ fail2ban-client -d | grep ignoreip
 <h3 id="75-procédure-en-cas-de-compromission-de-compte">7.5 Procédure en cas de compromission de compte<a class="anchor" href="#75-procédure-en-cas-de-compromission-de-compte" aria-label="Lien d'ancrage">#</a></h3>
 <ol>
 <li>Se connecter avec un autre compte admin</li>
-<li>Réglages → Comptes → réinitialiser le mot de passe du compte compromis</li>
+<li>Administration → Application → Utilisateurs → réinitialiser le mot de passe du compte
+compromis</li>
 <li>Si le compte admin unique est compromis, réinitialiser le hash directement en base :</li>
 </ol>
 <pre><code class="language-sql">-- Générer un nouveau hash bcrypt en PHP :
@@ -749,8 +751,9 @@ mysqldump -h localhost -u members -p members \
 <hr>
 <h2 id="10-intégrité-des-données">10. Intégrité des données<a class="anchor" href="#10-intégrité-des-données" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="accès">Accès<a class="anchor" href="#accès" aria-label="Lien d'ancrage">#</a></h3>
-<p><strong>Réglages → Intégrité</strong> (onglet dans la barre latérale des réglages)</p>
-<p>Accessible uniquement aux comptes <code>admin</code> et <code>manager</code>.</p>
+<p><strong>Administration → Application → Intégrité</strong> (menu latéral)</p>
+<p>Accessible uniquement aux comptes <code>admin</code>. Les sections de contrôle sont repliées par
+défaut et chargent leur détail au clic (lazy-load).</p>
 <h3 id="ce-que-loutil-vérifie">Ce que l&#39;outil vérifie<a class="anchor" href="#ce-que-loutil-vérifie" aria-label="Lien d'ancrage">#</a></h3>
 <p>L&#39;outil effectue des contrôles en lecture seule sur la base de données (<code>html/includes/lib/integrity.php</code>, fonction <code>mbRunIntegrityChecks()</code>) :</p>
 <div class="table-scroll" role="region" aria-label="Tableau — Ce que l'outil vérifie" tabindex="0"><table><thead><tr><th scope="col">Contrôle</th><th scope="col">Sévérité</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Membres avec même nom</td><td>Danger</td><td>Deux membres actifs avec le même prénom ET nom (insensible à la casse)</td></tr>
@@ -845,7 +848,8 @@ php html/tools/migrate.php --baseline
 </code></pre>
 <p><code>--status</code> sort en code 2 et affiche <code>[!] DÉRIVE</code> si le contenu d&#39;une migration déjà appliquée a été modifié après coup (comparaison de checksum) — <strong>ne jamais éditer une migration déjà appliquée</strong>, en créer une nouvelle à la place.</p>
 <h3 id="méthode-2-interface-web-sans-accès-ssh">Méthode 2 — Interface web (sans accès SSH)<a class="anchor" href="#méthode-2-interface-web-sans-accès-ssh" aria-label="Lien d'ancrage">#</a></h3>
-<p><strong>Réglages → Santé</strong> (admin) permet, sans ligne de commande :</p>
+<p><strong>Administration → Application → Santé</strong> (menu latéral, admin) permet, sans ligne de
+commande :</p>
 <ul>
 <li><strong>Exporter la base</strong> (dump SQL pur, sans dépendre de <code>mysqldump</code> sur le serveur)</li>
 <li><strong>Appliquer les migrations en attente</strong> (case « j&#39;ai fait une sauvegarde » obligatoire avant de pouvoir valider)</li>
@@ -900,7 +904,8 @@ SELECT * FROM schema_migrations ORDER BY id;
 </ul>
 <p>Les actions de gestion des comptes (création, suppression, réinitialisation de mot de passe) transitent par les actions POST de l&#39;interface web et ne passent pas par l&#39;API — elles ne génèrent pas d&#39;entrée <code>audit_log</code> à ce stade.</p>
 <h3 id="consulter-les-logs">Consulter les logs<a class="anchor" href="#consulter-les-logs" aria-label="Lien d'ancrage">#</a></h3>
-<p><strong>Via l&#39;interface</strong> : Réglages → Audit Log (onglet visible pour les admins).</p>
+<p><strong>Via l&#39;interface</strong> : Administration → Application → Journal (menu latéral, visible pour
+les admins).</p>
 <p><strong>Via SQL :</strong></p>
 <pre><code class="language-sql">-- 50 dernières entrées
 SELECT created_at, username, action, detail, subject_user_id
@@ -925,7 +930,7 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 </code></pre>
 <hr>
 <h2 id="14-emails-et-communications">14. Emails et communications<a class="anchor" href="#14-emails-et-communications" aria-label="Lien d'ancrage">#</a></h2>
-<p>Accès : <strong>Réglages → Email</strong> (<code>?view=settings&amp;tab=email</code>, admin uniquement). Une seule page avec trois sections empilées : configuration SMTP, journal des envois, templates.</p>
+<p>Accès : <strong>Administration → Application → Email</strong> (menu latéral, <code>?view=settings&amp;tab=email</code>, admin uniquement). Une seule page avec trois sections empilées : configuration SMTP, journal des envois, templates.</p>
 <h3 id="141-configuration-smtp">14.1 Configuration SMTP<a class="anchor" href="#141-configuration-smtp" aria-label="Lien d'ancrage">#</a></h3>
 <p>Client SMTP pur PHP (<code>html/includes/lib/mailer.php</code>, sans dépendance externe) supportant connexion en clair, STARTTLS, SSL/TLS implicite, AUTH LOGIN/PLAIN ou sans authentification.</p>
 <div class="table-scroll" role="region" aria-label="Tableau — Configuration SMTP" tabindex="0"><table><thead><tr><th scope="col">Champ</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Serveur / Port</td><td>Hôte et port SMTP</td></tr>
@@ -985,13 +990,13 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 <hr>
 <h2 id="réglages-de-lapplication">Réglages de l&#39;application<a class="anchor" href="#réglages-de-lapplication" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="général">Général<a class="anchor" href="#général" aria-label="Lien d'ancrage">#</a></h3>
-<p>Accès : <strong>Réglages</strong> → section <strong>Général</strong></p>
+<p>Accès : <strong>Administration → Application → Réglages</strong> (menu latéral)</p>
 <div class="table-scroll" role="region" aria-label="Tableau — Général" tabindex="0"><table><thead><tr><th scope="col">Réglage</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Segment par défaut</td><td>Segment affiché à l&#39;ouverture de la liste membres</td></tr>
 <tr><td>Segment membres de référence</td><td>Référence pour les filtres cotisation non payée</td></tr>
 <tr><td>Segment archives</td><td>Exclu des vues &quot;tous sauf archives&quot;</td></tr>
 <tr><td>IBAN / Description du montant</td><td>Voir <a href="#33-paramètres-applicatifs-table-appsettings">§3.3</a> — utilisés pour le bulletin QR des rappels de cotisation</td></tr></tbody></table></div>
 <h3 id="types-de-compta">Types de compta<a class="anchor" href="#types-de-compta" aria-label="Lien d'ancrage">#</a></h3>
-<p>Accès : <strong>Réglages</strong> → section <strong>Types de compta</strong></p>
+<p>Accès : <strong>Administration → Segments → Types compta</strong> (menu latéral)</p>
 <p>Les types définissent les catégories d&#39;entrées financières. Flags disponibles :</p>
 <div class="table-scroll" role="region" aria-label="Tableau — Types de compta" tabindex="0"><table><thead><tr><th scope="col">Flag</th><th scope="col">Effet</th></tr></thead><tbody><tr><td><code>is_cotisation</code></td><td>Pris en compte dans les filtres &quot;cotisation non payée&quot; et l&#39;import de cotisants</td></tr>
 <tr><td><code>is_excluded_from_donation</code></td><td>Exclu de la vue Contributions et des attestations de dons</td></tr>
@@ -1000,7 +1005,8 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 <tr><td><code>is_company</code></td><td>Entreprise (migration <code>0035</code>)</td></tr>
 <tr><td><code>is_archived</code></td><td>Type masqué à la création d&#39;une <strong>nouvelle</strong> écriture, mais visible/conservé sur les entrées existantes (migration <code>0036</code>)</td></tr></tbody></table></div>
 <h3 id="types-de-contact">Types de contact<a class="anchor" href="#types-de-contact" aria-label="Lien d'ancrage">#</a></h3>
-<p>Accès : <strong>Réglages</strong> → section <strong>Types de contact</strong> (nouveau en v5.2.0, table <code>contact_type</code> — migration <code>0035</code>).</p>
+<p>Accès : <strong>Administration → Application → Type de contact</strong> (menu latéral, nouveau en
+v5.2.0, table <code>contact_type</code> — migration <code>0035</code>).</p>
 <p>Classe un contact en donateur privé / institution / établissement financier / entreprise (les 4 types intégrés, <code>code</code> figé : <code>private</code>/<code>institution</code>/<code>financial</code>/<code>company</code>) ou en type personnalisé ajouté par l&#39;admin (<code>code</code> généré automatiquement depuis le libellé, éditable). Champs : libellé, icône Font Awesome (<code>contact_type.icon</code>, migration <code>0037</code>), ordre d&#39;affichage. Suppression possible uniquement si le type n&#39;est utilisé par aucun contact.</p>
 <p>La <strong>matrice type de contact × type de compta</strong> (même page, migration <code>0036</code>, table <code>contact_type_compta_type</code>) restreint, pour un type de contact donné, les types de compta proposés à la création d&#39;une nouvelle écriture. Un type de contact sans aucune ligne dans la matrice reste non restreint (tous les types de compta non archivés lui restent proposés) — logique dans <code>html/includes/lib/contact_type.php</code> (<code>mbAllowedComptaTypeIdsForContact()</code>).</p>
 <p>Voir aussi l&#39;outil admin <strong>Forcer le type de contact d&#39;un segment</strong> (<a href="#méthode-2-interface-web-sans-accès-ssh">§12 — Méthode 2</a>) pour appliquer un type en masse.</p>
