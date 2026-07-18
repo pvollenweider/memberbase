@@ -123,6 +123,7 @@ if (isset($_REQUEST['action'])) {
         'deleteAppUser'        => 'auth',
         'resetUserPassword'    => 'auth',
         'flushAuditLog'        => 'auth',
+        'sidebarState'         => 'auth',
     ];
 
     $handler = $ACTION_MAP[$_REQUEST['action']] ?? null;
