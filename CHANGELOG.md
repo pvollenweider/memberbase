@@ -16,12 +16,29 @@ Corrections de sécurité et de performance, sans changement de schéma.
 - **Attestations** : `attestation_don.php` et `attestation_bulk.php` sont restreints aux
   managers/admins. Un compte en lecture seule pouvait télécharger les données de dons
   nominatives de n'importe quel membre.
+- **CSRF (précision)** : la vérification est scopée aux actions réellement mappées dans
+  `$ACTION_MAP` — une valeur `action=` non mappée (ex. `action=search`, utilisée comme simple
+  indicateur de vue) n'est plus gardée, pour ne pas bloquer des chargements de page en GET
+  simple qui ne portent jamais de jeton.
 
 ### Performance
 
 - **Édition de segment** : le panneau de comptage des imports par année, qui exécutait
   ~40 requêtes agrégées (10 ans × 4), est réduit à 4 requêtes groupées par année.
   Résultats identiques, vérifiés sur la base réelle.
+
+### Mobile
+
+- **Menu latéral** : le bouton replier/déplier utilisait un `addEventListener` direct, tué à
+  chaque re-rendu OOB de la barre du haut par htmx — remplacé par une délégation d'événement
+  au niveau du document, qui survit aux swaps.
+- Ajout d'un fond semi-transparent (`.ca-sidebar-overlay`) derrière le menu latéral ouvert sur
+  mobile ; cliquer dessus referme le menu.
+- L'état replié/déplié du menu est désormais persisté en session PHP (action `sidebarState`)
+  plutôt qu'en `localStorage` : la préférence desktop survit aux rechargements sans déteindre
+  sur mobile (qui repart toujours fermé).
+- Compaction de l'interface sous 768px : bandeau d'en-tête plus court, marges de conteneur et
+  de carte réduites, tableaux forcés en mode responsive.
 
 ## [5.3.0] — 2026-07-17
 
