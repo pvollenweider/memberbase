@@ -2,6 +2,32 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [5.3.2] — 2026-07-18
+
+Corrections, sans changement de schéma.
+
+### Corrections
+
+- **Ajout de membre depuis un segment** : la case « Ajouter au segment «X» » du
+  formulaire d'ajout de membre n'ajoutait en réalité jamais le membre au segment —
+  l'écriture visait l'ancienne table `contact_properties` (EAV) au lieu de la table
+  de jointure `contact_segment` utilisée partout ailleurs. Trouvé en écrivant le
+  test e2e correspondant.
+
+### Tests
+
+- Comblé les trous de couverture e2e identifiés par un audit doc-vs-tests :
+  téléchargement d'attestation restreint Manager+, rejet CSRF journalisé, portée
+  du garde CSRF, gestion des mots de passe des comptes applicatifs, génération
+  de tâches « attestations », suppression en masse des tâches terminées,
+  rate-limit API, assistant d'import CSV (3 étapes), suppression/anonymisation
+  en masse des membres archivés, auto-édition du profil et changement de langue,
+  bulletin QR des rappels de cotisation, renvoi forcé, création de segment
+  depuis les mouvements donateurs/membres, mode étendu des récapitulatifs,
+  imports ponctuels sur la page segment, CRUD des catégories de segments,
+  champs Réglages généraux, filtre « Dons uniquement », et présence/charset
+  des bundles JS/CSS.
+
 ## [5.3.1] — 2026-07-17
 
 Corrections de sécurité et de performance, sans changement de schéma.
