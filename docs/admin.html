@@ -271,7 +271,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
       </ul>
     </nav>
     <div class="prose">
-<p>Ce guide s&#39;adresse à l&#39;administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.2.0). Il couvre l&#39;installation, la configuration, la sécurité, l&#39;API et la maintenance.</p>
+<p>Ce guide s&#39;adresse à l&#39;administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.3.1). Il couvre l&#39;installation, la configuration, la sécurité, l&#39;API et la maintenance.</p>
 <hr>
 <hr>
 <h2 id="1-prérequis">1. Prérequis<a class="anchor" href="#1-prérequis" aria-label="Lien d'ancrage">#</a></h2>
@@ -659,6 +659,24 @@ UPDATE app_users
 SET password_hash = &#39;$2y$10$...hash...&#39;, force_password_change = 1
 WHERE username = &#39;admin&#39;;
 </code></pre>
+<h3 id="76-protection-csrf">7.6 Protection CSRF<a class="anchor" href="#76-protection-csrf" aria-label="Lien d'ancrage">#</a></h3>
+<p>Toute action POST passant par <code>includes/routing/actions.php</code> est vérifiée contre un jeton
+CSRF de session (<code>csrfCheck()</code> dans <code>includes/lib/auth.php</code>) <strong>avant</strong> le dispatch :
+requête sans jeton valide → <code>403</code> et une entrée <code>audit_log</code> de code <code>csrfRejected</code>
+(action, méthode HTTP, IP). Le jeton est exposé une fois par page dans
+<code>&lt;meta name=&quot;csrf-token&quot;&gt;</code>.</p>
+<p>Depuis la version 5.3.1, la vérification s&#39;applique à <strong>toutes les méthodes HTTP</strong>, pas
+seulement POST : les handlers d&#39;action lisent leurs paramètres dans <code>$_REQUEST</code>, si bien
+qu&#39;une requête GET forgée (image, lien piégé) pouvait auparavant déclencher une mutation
+(suppression de segment, d&#39;écriture comptable, suppression en masse…) sans jeton — faille
+fermée par ce durcissement.</p>
+<p>La propagation du jeton est automatique et ne demande rien à un contributeur ajoutant un
+formulaire ou un appel htmx standard : <code>html/js/app.js</code> ajoute l&#39;en-tête
+<code>X-CSRF-Token</code> à toutes les requêtes htmx, et « estampille » tout
+<code>&lt;form method=&quot;post&quot;&gt;</code> d&#39;un champ caché <code>csrf</code> au chargement et après chaque swap htmx.
+Seul un <code>fetch()</code> inline appelant directement <code>index.php</code> doit ajouter l&#39;en-tête à la
+main. L&#39;API REST (<code>/api/*</code>) n&#39;est pas concernée : elle est protégée par l&#39;authentification
+de session + rôle et exige <code>Content-Type: application/json</code> sur les écritures (voir §8).</p>
 <hr>
 <h2 id="8-api-rest">8. API REST<a class="anchor" href="#8-api-rest" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="81-activation">8.1 Activation<a class="anchor" href="#81-activation" aria-label="Lien d'ancrage">#</a></h3>
@@ -856,14 +874,16 @@ commande :</p>
 </ul>
 <p>Cette page affiche aussi le nombre de migrations en attente et signale toute dérive de checksum détectée.</p>
 <p><strong>Depuis la v5.2.0</strong>, la même page propose un outil ponctuel « <strong>Forcer le type de contact d&#39;un segment</strong> » (<code>html/includes/views/settings_health.php</code>, action <code>bulkSetContactTypeBySegment</code> dans <code>includes/actions/settings.php</code>) : applique en une fois un type de contact (<code>contact_type</code>) à tous les membres actifs (<code>contact.status = 1</code>) d&#39;un segment choisi — utile après un import en masse ou pour rattraper des fiches créées avant l&#39;introduction des types de contact. Réservé aux <code>admin</code>, case de confirmation obligatoire, action journalisée dans <code>audit_log</code>. Ce bloc ne s&#39;affiche (et ne s&#39;exécute) que si la migration <code>0035_contact_type</code> est déjà appliquée — sur une base qui ne l&#39;a pas encore, la table <code>contact_type</code> n&#39;existe pas et le bloc est simplement masqué, plutôt que de faire planter la page Santé.</p>
-<h3 id="migrations-520-0032-0037">Migrations 5.2.0 (<code>0032</code>–<code>0037</code>)<a class="anchor" href="#migrations-520-0032-0037" aria-label="Lien d'ancrage">#</a></h3>
-<p>Six migrations ajoutées depuis la dernière documentée en 5.1.0 (<code>0031</code>, elle-même déjà présente en base depuis la v5.1.0 — voir la note de portabilité ci-dessous) :</p>
-<div class="table-scroll" role="region" aria-label="Tableau — Migrations 5.2.0 (0032–0037)" tabindex="0"><table><thead><tr><th scope="col">Migration</th><th scope="col">Objet</th></tr></thead><tbody><tr><td><code>0032_suivi_tasks.sql</code></td><td>Table <code>suivi_task</code> — gestion de tâches (titre, priorité, échéance <code>due_date</code>, <code>done_at</code>), en parallèle des notes de suivi libres existantes</td></tr>
+<h3 id="migrations-520-530-0032-0039">Migrations 5.2.0–5.3.0 (<code>0032</code>–<code>0039</code>)<a class="anchor" href="#migrations-520-530-0032-0039" aria-label="Lien d'ancrage">#</a></h3>
+<p>Huit migrations ajoutées depuis la dernière documentée en 5.1.0 (<code>0031</code>, elle-même déjà présente en base depuis la v5.1.0 — voir la note de portabilité ci-dessous) :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Migrations 5.2.0–5.3.0 (0032–0039)" tabindex="0"><table><thead><tr><th scope="col">Migration</th><th scope="col">Objet</th></tr></thead><tbody><tr><td><code>0032_suivi_tasks.sql</code></td><td>Table <code>suivi_task</code> — gestion de tâches (titre, priorité, échéance <code>due_date</code>, <code>done_at</code>), en parallèle des notes de suivi libres existantes</td></tr>
 <tr><td><code>0033_suivi_task_rule_key.sql</code></td><td>Colonne <code>suivi_task.rule_key</code> — marque les tâches créées automatiquement par une règle métier, pour dédupliquer une régénération</td></tr>
 <tr><td><code>0034_segment_cascade_rule.sql</code></td><td>Table <code>segment_cascade_rule</code> — règles d&#39;auto-assignation « segment source → segment cible » (single-hop)</td></tr>
 <tr><td><code>0035_contact_type.sql</code></td><td>Table <code>contact_type</code> (4 types intégrés : <code>private</code>/<code>institution</code>/<code>financial</code>/<code>company</code>) + colonne <code>contact.contact_type_id</code> (FK, défaut <code>1</code>) + colonnes <code>compta_type.is_financial_institution</code>/<code>is_company</code></td></tr>
 <tr><td><code>0036_compta_type_matrix_archive.sql</code></td><td>Table <code>contact_type_compta_type</code> — matrice type de contact × type de compta (restreint les types proposés à la création d&#39;une écriture) + colonne <code>compta_type.is_archived</code></td></tr>
-<tr><td><code>0037_contact_type_icon.sql</code></td><td>Colonne <code>contact_type.icon</code> — nom d&#39;icône Font Awesome (sans préfixe <code>fa-</code>/<code>fas fa-</code>, ajouté au rendu)</td></tr></tbody></table></div>
+<tr><td><code>0037_contact_type_icon.sql</code></td><td>Colonne <code>contact_type.icon</code> — nom d&#39;icône Font Awesome (sans préfixe <code>fa-</code>/<code>fas fa-</code>, ajouté au rendu)</td></tr>
+<tr><td><code>0038_contact_type_default_compta_type.sql</code></td><td>Colonne <code>contact_type.default_compta_type_id</code> (FK vers <code>compta_type</code>) — type de compta pré-sélectionné à la création d&#39;une écriture, selon le type de contact du membre</td></tr>
+<tr><td><code>0039_suivi_task_paused_at.sql</code></td><td>Colonne <code>suivi_task.paused_at</code> — état « en pause », distinct d&#39;ouvert/terminé (voir le guide utilisateur §8 « Tâches »)</td></tr></tbody></table></div>
 <h3 id="portabilité-sql-entre-versions-mariadbmysql">Portabilité SQL entre versions MariaDB/MySQL<a class="anchor" href="#portabilité-sql-entre-versions-mariadbmysql" aria-label="Lien d'ancrage">#</a></h3>
 <p>La migration <code>0031_compta_quittance_to_comment.sql</code> (renommage <code>compta.quittance</code> → <code>compta.comment</code>) a été livrée en 5.1.0 avec la syntaxe <code>ALTER TABLE ... RENAME COLUMN ... TO ...</code>, qui <strong>nécessite MariaDB 10.5.2+ / MySQL 8.0+</strong> — sur un serveur plus ancien, l&#39;instruction échoue avec une erreur de syntaxe et bloque <code>migrate.php</code>. Corrigé en 5.2.0 : la migration a été réécrite avec <code>ALTER TABLE ... CHANGE COLUMN ... &lt;même type&gt;</code>, portable sur toutes les versions supportées (voir <a href="#1-prérequis">§1 — Prérequis</a>). <strong>Ne jamais utiliser <code>RENAME COLUMN ... TO ...</code> dans une nouvelle migration</strong> — toujours <code>CHANGE COLUMN</code> (nécessite de répéter le type de la colonne).</p>
 <h3 id="avant-toute-migration-en-production">Avant toute migration en production<a class="anchor" href="#avant-toute-migration-en-production" aria-label="Lien d'ancrage">#</a></h3>

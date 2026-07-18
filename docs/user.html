@@ -259,15 +259,16 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
         <li><a href="#5-fiche-membre">5. Fiche membre</a></li>
         <li><a href="#6-comptabilité-dun-membre-onglet-compta">6. Comptabilité d'un membre (onglet Compta)</a></li>
         <li><a href="#7-suivi-dun-membre-onglet-suivi">7. Suivi d'un membre (onglet Suivi)</a></li>
-        <li><a href="#8-journaux-et-aperçu-des-dons">8. Journaux et aperçu des dons</a></li>
-        <li><a href="#9-attestations-de-dons">9. Attestations de dons</a></li>
-        <li><a href="#10-segments">10. Segments</a></li>
-        <li><a href="#11-réglages">11. Réglages</a></li>
-        <li><a href="#12-rôles-utilisateurs-et-matrice-des-droits">12. Rôles utilisateurs et matrice des droits</a></li>
-        <li><a href="#13-changer-son-mot-de-passe">13. Changer son mot de passe</a></li>
-        <li><a href="#14-déconnexion">14. Déconnexion</a></li>
-<li><a href="#15-récapitulatifs-comptables-par-email">15. Récapitulatifs comptables par email</a></li>
-<li><a href="#16-rappels-de-cotisation-impayée">16. Rappels de cotisation impayée</a></li>
+        <li><a href="#8-tâches">8. Tâches</a></li>
+        <li><a href="#9-journaux-et-aperçu-des-dons">9. Journaux et aperçu des dons</a></li>
+        <li><a href="#10-attestations-de-dons">10. Attestations de dons</a></li>
+        <li><a href="#11-segments">11. Segments</a></li>
+        <li><a href="#12-réglages">12. Réglages</a></li>
+        <li><a href="#13-rôles-utilisateurs-et-matrice-des-droits">13. Rôles utilisateurs et matrice des droits</a></li>
+        <li><a href="#14-changer-son-mot-de-passe">14. Mon compte</a></li>
+        <li><a href="#15-déconnexion">15. Déconnexion</a></li>
+<li><a href="#16-récapitulatifs-comptables-par-email">16. Récapitulatifs comptables par email</a></li>
+<li><a href="#17-rappels-de-cotisation-impayée">17. Rappels de cotisation impayée</a></li>
       </ul>
     </nav>
     <div class="prose">
@@ -392,7 +393,7 @@ Entrée).</li>
 <tr><td>Donateur non institutionnel actif en AAAA-1</td><td>Membres ayant fait au moins un versement non institutionnel l&#39;année précédente</td></tr></tbody></table></div>
 <ul>
 <li>Une entrée de filtre rapide par <strong>type de contact</strong> configuré (Réglages → Types de contact,
-voir §11), pour isoler par exemple les institutions ou les entreprises.</li>
+voir §12), pour isoler par exemple les institutions ou les entreprises.</li>
 <li>La liste de tous les segments, regroupés par <strong>catégorie</strong>. Le badge à droite de chaque
 segment indique son nombre de membres.</li>
 </ul>
@@ -527,7 +528,7 @@ contact</strong> (voir ci-dessous) et un éditeur de texte enrichi pour les <em>
 dernière modification est indiquée en bas.</p>
 <h3 id="type-de-contact">Type de contact<a class="anchor" href="#type-de-contact" aria-label="Lien d'ancrage">#</a></h3>
 <p>Chaque membre a un <strong>type de contact</strong> — donateur privé, institution, établissement financier,
-entreprise, ou un type personnalisé ajouté par un administrateur (voir §11). Il est affiché en
+entreprise, ou un type personnalisé ajouté par un administrateur (voir §12). Il est affiché en
 lecture sous forme de badge (icône + libellé) et modifiable via un menu déroulant en édition. Ce
 type peut restreindre les types de compta proposés à la création d&#39;une écriture pour ce membre
 (matrice configurée en Réglages → Types de contact) et sert de critère pour certains filtres
@@ -599,7 +600,48 @@ non comptées comme don portent la mention « non-don ».</li>
 affichées de la plus récente à la plus ancienne. L&#39;ajout, la modification et la suppression
 sont réservés aux rôles Utilisateur et plus.</p>
 <hr>
-<h2 id="8-journaux-et-aperçu-des-dons">8. Journaux et aperçu des dons<a class="anchor" href="#8-journaux-et-aperçu-des-dons" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="8-tâches">8. Tâches<a class="anchor" href="#8-tâches" aria-label="Lien d'ancrage">#</a></h2>
+<p>Visible dans le menu latéral uniquement pour les rôles <strong>Manager</strong> et <strong>Admin</strong>
+(<code>?view=tasks</code>), badge rouge avec le nombre de tâches ouvertes. Une tâche peut être créée à
+la main (titre, échéance, priorité, note) ou générée automatiquement par une règle ; dans les
+deux cas elle est soit <strong>globale</strong>, soit rattachée à un membre (auquel cas elle apparaît
+aussi dans l&#39;onglet Suivi de sa fiche, voir §7).</p>
+<p><img src="images/journaux-suivi.png" alt="Page Tâches"></p>
+<h3 id="créer-et-traiter-une-tâche">Créer et traiter une tâche<a class="anchor" href="#créer-et-traiter-une-tâche" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Le formulaire en haut de page (rôles Utilisateur et plus) crée une tâche globale : titre,
+échéance, priorité (Haute / Normale / Basse), note optionnelle.</li>
+<li>Chaque ligne du tableau propose une case à cocher (marquer terminée), un bouton pause
+(mettre de côté sans la terminer) et, pour certaines tâches générées automatiquement, un
+bouton d&#39;action directe (voir ci-dessous).</li>
+<li>Les tâches en retard (échéance dépassée) sont mises en évidence en rouge avec une icône
+d&#39;avertissement.</li>
+<li>Cliquer sur une ligne ouvre la fiche du membre concerné (onglet Suivi), ou la tâche
+elle-même si elle est globale.</li>
+</ul>
+<h3 id="génération-automatique-admin">Génération automatique (Admin)<a class="anchor" href="#génération-automatique-admin" aria-label="Lien d'ancrage">#</a></h3>
+<p>Cinq règles peuvent générer des tâches en un clic, chacune avec son propre bouton qui
+n&#39;apparaît que s&#39;il existe des candidats :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Génération automatique de tâches" tabindex="0"><table><thead><tr><th scope="col">Règle</th><th scope="col">Candidats</th></tr></thead><tbody><tr><td>Notification de versement impayée</td><td>Membres sans cotisation enregistrée pour l&#39;année en cours</td></tr>
+<tr><td>Récapitulatif comptable à envoyer</td><td>Membres ayant demandé leur récap annuel, pas encore notifiés</td></tr>
+<tr><td>Doublons probables</td><td>Paires de contacts détectées comme doublons potentiels (nom/prénom ou email similaires)</td></tr>
+<tr><td>Segments masqués à traiter</td><td>Segments masqués encore assignés à des membres, une catégorie ou un segment combiné (voir §11)</td></tr>
+<tr><td>Attestations en attente</td><td>Donateurs éligibles à une attestation fiscale, pas encore envoyée pour l&#39;année</td></tr>
+</tbody></table></div>
+<p>Les tâches générées par les règles « Doublons probables » et « Segments masqués » portent un
+lien direct vers <strong>Réglages → Intégrité</strong> ; celles issues des règles de
+notification/récap/attestation portent un bouton d&#39;envoi direct (email) qui clôt la tâche
+automatiquement une fois l&#39;envoi effectué.</p>
+<h3 id="tâches-terminées-et-en-pause">Tâches terminées et en pause<a class="anchor" href="#tâches-terminées-et-en-pause" aria-label="Lien d'ancrage">#</a></h3>
+<ul>
+<li>Les 200 dernières tâches terminées restent visibles (barrées), avec possibilité de les
+rouvrir ou de les supprimer individuellement. Les rôles Manager et Admin disposent d&#39;un
+bouton <strong>Supprimer</strong> groupé pour vider la liste en une fois (confirmation requise).</li>
+<li>Les tâches mises en pause apparaissent dans une liste séparée, avec un bouton pour les
+reprendre.</li>
+</ul>
+<hr>
+<h2 id="9-journaux-et-aperçu-des-dons">9. Journaux et aperçu des dons<a class="anchor" href="#9-journaux-et-aperçu-des-dons" aria-label="Lien d'ancrage">#</a></h2>
 <p>Ces vues transversales sont accessibles depuis le menu latéral, via les entrées <strong>Journal
 suivi</strong> et <strong>Finances</strong> (groupe <strong>Membres &amp; finances</strong>).</p>
 <h3 id="hub-journaux--compta-et-suivi">Hub Journaux — Compta et Suivi<a class="anchor" href="#hub-journaux--compta-et-suivi" aria-label="Lien d'ancrage">#</a></h3>
@@ -635,7 +677,7 @@ apparaissent.</li>
 <li><strong>Inclure si attestation demandée</strong> : ajoute les personnes ayant coché « souhaite une
 attestation » même sous le montant minimum.</li>
 <li><strong>Attestations AAAA</strong> : génère toutes les attestations de l&#39;année en un seul PDF ou les
-envoie par email en masse (voir §9).</li>
+envoie par email en masse (voir §10).</li>
 </ul>
 <p>Le tableau liste les donateurs avec leur statut (membre / don institutionnel), le montant des
 dons et l&#39;indicateur d&#39;attestation. Cliquer une ligne ouvre la compta du membre ; l&#39;icône PDF
@@ -659,7 +701,7 @@ relance.</p>
 <p><img src="images/mouvements-membres.png" alt="Mouvements membres — pastille Perdus"></p>
 <p><img src="images/mouvements-donateurs.png" alt="Mouvements donateurs — pastille Perdus"></p>
 <hr>
-<h2 id="9-attestations-de-dons">9. Attestations de dons<a class="anchor" href="#9-attestations-de-dons" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="10-attestations-de-dons">10. Attestations de dons<a class="anchor" href="#10-attestations-de-dons" aria-label="Lien d'ancrage">#</a></h2>
 <p>Une attestation de don est un PDF officiel remis au donateur pour sa déclaration fiscale. Elle
 reprend les versements de l&#39;année (hors types marqués « exclu des dons »), avec en option le
 tampon et la signature de l&#39;organisation (images déposées sur le serveur par l&#39;administrateur
@@ -680,7 +722,10 @@ voir <a href="admin.html#types-de-compta">Réglages → Types compta</a> dans le
 <p>Les bases légales cantonales varient hors Genève ; se référer à la législation applicable dans le
 canton de l&#39;organisation. Référence générale : Circulaire CSI du 18 janvier 2008 (modifiée
 novembre 2023) sur la déductibilité des libéralités.</p>
-<h3 id="télécharger-le-pdf">Télécharger le PDF<a class="anchor" href="#télécharger-le-pdf" aria-label="Lien d'ancrage">#</a></h3>
+<h3 id="télécharger-le-pdf">Télécharger le PDF (rôles Manager et Admin)<a class="anchor" href="#télécharger-le-pdf" aria-label="Lien d'ancrage">#</a></h3>
+<blockquote><p>Le téléchargement, comme l&#39;envoi par email, est réservé aux rôles <strong>Manager</strong> et
+<strong>Admin</strong> : ces PDF contiennent des données nominatives de dons. Un rôle Utilisateur ou
+Lecture seule qui tente d&#39;accéder directement au lien reçoit une erreur d&#39;accès refusé.</p></blockquote>
 <ul>
 <li><strong>Depuis la fiche d&#39;un membre</strong> : onglet <strong>Compta</strong>, choisir une année, menu <strong>Attestation</strong>.
 Chaque année propose une case à cocher <strong>Inclure tampon/signature</strong> (décochée par défaut).</li>
@@ -711,7 +756,7 @@ emails, Réglages → Email), un bouton <strong>Régénérer l&#39;attestation (
 la date d&#39;envoi d&#39;origine (pas la date du jour).</li>
 </ul>
 <hr>
-<h2 id="10-segments">10. Segments<a class="anchor" href="#10-segments" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="11-segments">11. Segments<a class="anchor" href="#11-segments" aria-label="Lien d'ancrage">#</a></h2>
 <p>Les segments découpent les membres en sous-ensembles (membres d&#39;une année, comité, partenaires,
 donateurs à relancer…). Leur gestion se trouve dans <strong>Administration → Segments</strong> (menu
 latéral, réservé aux Managers et Admins), onglets <strong>Segments</strong>, <strong>Catégories</strong> et <strong>Segments
@@ -752,6 +797,15 @@ supprimer, ou retirer tous les membres et supprimer le segment.</li>
 ce segment n&#39;est pas mis à jour. Pour un regroupement dynamique, utiliser un <strong>segment
 combiné</strong>.</p>
 </blockquote>
+<h3 id="segments-masqués--suppression-en-masse">Segments masqués — suppression en masse<a class="anchor" href="#segments-masqués--suppression-en-masse" aria-label="Lien d'ancrage">#</a></h3>
+<p>Les segments masqués s&#39;affichent dans une carte séparée <strong>Masqués</strong> de l&#39;onglet Segments.
+Cocher plusieurs segments y fait apparaître un bouton <strong>Supprimer</strong>, actif uniquement quand
+<em>toute</em> la sélection est constituée de segments masqués (un segment encore visible dans la
+sélection le désactive). La confirmation liste les segments concernés avec leur nombre de
+membres, et rappelle que l&#39;action est irréversible : elle retire tous les membres du segment
+puis le supprime définitivement (les membres eux-mêmes ne sont pas touchés). Chaque suppression
+est journalisée (Réglages → Journal, voir §12).</p>
+<p><img src="images/segments-masques-bulk-delete.png" alt="Confirmation de suppression en masse de segments masqués"></p>
 <h3 id="catégories">Catégories<a class="anchor" href="#catégories" aria-label="Lien d'ancrage">#</a></h3>
 <p>L&#39;onglet <strong>Catégories</strong> organise visuellement les segments en sections (titres) dans le menu de
 filtrage et dans les fiches membres.</p>
@@ -764,7 +818,7 @@ menu de filtrage de la liste des membres. La liste affiche, sous chaque segment 
 noms des segments qui le composent.</p>
 <p><img src="images/segments-combines.png" alt="Onglet Segments combinés"></p>
 <hr>
-<h2 id="11-réglages">11. Réglages<a class="anchor" href="#11-réglages" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="12-réglages">12. Réglages<a class="anchor" href="#12-réglages" aria-label="Lien d'ancrage">#</a></h2>
 <p>Accès via le groupe <strong>Administration</strong> du menu latéral (Managers et Admins), qui se déplie en
 deux sous-groupes selon le rôle : <strong>Segments</strong> (Managers et Admins) et <strong>Application</strong> (Admins
 uniquement).</p>
@@ -827,7 +881,7 @@ Segments) plutôt qu&#39;un long formulaire unique.</p>
 <ul>
 <li>Liste des utilisateurs (identifiant, nom, e-mail, rôle, statut, dernière connexion).</li>
 <li><strong>Nouvel utilisateur</strong> : identifiant, nom affiché, e-mail, <strong>rôle</strong> (une <strong>matrice des
-droits</strong> est consultable via l&#39;icône <strong>?</strong> à côté du champ Rôle — voir §12), et mot de passe
+droits</strong> est consultable via l&#39;icône <strong>?</strong> à côté du champ Rôle — voir §13), et mot de passe
 temporaire (ou lien d&#39;invitation à envoyer).</li>
 <li><strong>Modifier</strong>, <strong>Réinitialiser le mot de passe</strong> (l&#39;utilisateur devra le changer à la
 prochaine connexion), <strong>Supprimer</strong>, activer / désactiver un compte.</li>
@@ -845,7 +899,7 @@ statut (envoyé / erreur).</p>
 <h3 id="intégrité-admin">Intégrité (Admin)<a class="anchor" href="#intégrité-admin" aria-label="Lien d'ancrage">#</a></h3>
 <p>Détecte et aide à corriger les incohérences : membres en double (même nom ou même e-mail, avec
 bouton <strong>Fusionner</strong>), segments masqués encore assignés à une catégorie / un segment combiné /
-des membres, règles d&#39;auto-assignation non appliquées (voir §10), montants ou dates comptables
+des membres, règles d&#39;auto-assignation non appliquées (voir §11), montants ou dates comptables
 invalides, entrées sans type, e-mails ou e-mails alt. mal formatés, genre hors valeurs, date de
 naissance dans le futur, membres sans nom ni société. Un message « Tout est clean » s&#39;affiche si
 rien n&#39;est détecté.</p>
@@ -874,7 +928,7 @@ les profils concernés avant d&#39;agir, avec un avertissement si la sélection 
 éligibles et non éligibles pour l&#39;action choisie — les profils non éligibles sont alors
 <strong>ignorés</strong> (ni supprimés, ni anonymisés), sans bloquer le traitement des autres.</p>
 <hr>
-<h2 id="12-rôles-utilisateurs-et-matrice-des-droits">12. Rôles utilisateurs et matrice des droits<a class="anchor" href="#12-rôles-utilisateurs-et-matrice-des-droits" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="13-rôles-utilisateurs-et-matrice-des-droits">13. Rôles utilisateurs et matrice des droits<a class="anchor" href="#13-rôles-utilisateurs-et-matrice-des-droits" aria-label="Lien d'ancrage">#</a></h2>
 <p>L&#39;application distingue quatre rôles : <strong>Lecture seule</strong>, <strong>Utilisateur</strong>, <strong>Manager</strong> et
 <strong>Admin</strong>. La matrice ci-dessous est consultable directement à la création d&#39;un compte (icône
 <strong>?</strong> à côté du champ Rôle dans <strong>Réglages ▸ Utilisateurs</strong>).</p>
@@ -889,7 +943,7 @@ les profils concernés avant d&#39;agir, avec un avertissement si la sélection 
 réservés aux Managers et Admins ; un rôle <strong>Utilisateur</strong> peut créer et modifier des membres et
 saisir compta et suivi, mais pas gérer les segments.</p>
 <hr>
-<h2 id="13-changer-son-mot-de-passe">13. Mon compte<a class="anchor" href="#13-changer-son-mot-de-passe" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="14-changer-son-mot-de-passe">14. Mon compte<a class="anchor" href="#14-changer-son-mot-de-passe" aria-label="Lien d'ancrage">#</a></h2>
 <p>Cliquer son <strong>nom</strong>, en bas du menu latéral, ouvre un menu avec <strong>Mon compte</strong> et
 <strong>Déconnexion</strong>.</p>
 <p>La page <strong>Mon compte</strong> permet de modifier son <strong>nom affiché</strong> et son <strong>e-mail</strong>, en plus du
@@ -903,10 +957,10 @@ nom/e-mail dans la carte <strong>Mon profil</strong> au-dessus.</li>
 <p>Si un administrateur a réinitialisé votre mot de passe, l&#39;application impose ce changement à la
 connexion suivante.</p>
 <hr>
-<h2 id="14-déconnexion">14. Déconnexion<a class="anchor" href="#14-déconnexion" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="15-déconnexion">15. Déconnexion<a class="anchor" href="#15-déconnexion" aria-label="Lien d'ancrage">#</a></h2>
 <p>Cliquer son <strong>nom</strong> en bas du menu latéral, puis <strong>Déconnexion</strong>.</p>
 <hr>
-<h2 id="15-récapitulatifs-comptables-par-email">15. Récapitulatifs comptables par email<a class="anchor" href="#15-récapitulatifs-comptables-par-email" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="16-récapitulatifs-comptables-par-email">16. Récapitulatifs comptables par email<a class="anchor" href="#16-récapitulatifs-comptables-par-email" aria-label="Lien d'ancrage">#</a></h2>
 <p>Accès : <strong>Membres &amp; finances</strong> → onglet <strong>Notification de versement</strong> (<code>?view=peopleFinance&amp;tab=recap</code>,
 Manager / Admin). Envoie à chaque membre un email récapitulant ses entrées comptables pas
 encore notifiées (cotisations, dons…), regroupées en une seule fois plutôt qu&#39;une notification
@@ -929,7 +983,7 @@ possibilité de renvoyer (forçage).</li>
 <strong>année de cotisation</strong> différente de l&#39;année de paiement (ex. cotisation 2027 payée en
 décembre 2026), l&#39;email le précise explicitement.</p>
 <hr>
-<h2 id="16-rappels-de-cotisation-impayée">16. Rappels de cotisation impayée<a class="anchor" href="#16-rappels-de-cotisation-impayée" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="17-rappels-de-cotisation-impayée">17. Rappels de cotisation impayée<a class="anchor" href="#17-rappels-de-cotisation-impayée" aria-label="Lien d'ancrage">#</a></h2>
 <p>Accès : <strong>Membres &amp; finances</strong> → onglet <strong>Mouvements membres</strong> → pastille <strong>Perdus</strong>
 (<code>?view=peopleFinance&amp;tab=lapsed&amp;cohort=lapsed</code>). Liste les membres ayant cotisé l&#39;année
 précédente mais pas encore l&#39;année en cours.</p>
@@ -944,14 +998,14 @@ disponible sur ces lignes pour forcer un second envoi (l&#39;aperçu rappelle la
 envoi).</li>
 <li>Le contenu de l&#39;email est celui configuré dans Réglages → Email → Templates
 (<code>tpl_cotisation_reminder</code>), avec en pièce jointe un <strong>bulletin de versement QR</strong> suisse
-(généré automatiquement à partir de l&#39;IBAN de l&#39;organisation, voir §11 — Réglages
+(généré automatiquement à partir de l&#39;IBAN de l&#39;organisation, voir §12 — Réglages
 généraux) mentionnant la description de montant configurée et « Cotisation AAAA » comme
 message.</li>
 <li><strong>Copie (BCC)</strong> : si un email de contact est configuré dans Réglages → Email, une case
 <strong>Envoyer une copie à [adresse]</strong> propose d&#39;en recevoir une copie silencieuse, à l&#39;envoi
 individuel comme en masse.</li>
 <li>La vue propose aussi un bouton <strong>Créer segment « Membres à relancer AAAA »</strong> pour extraire
-la liste dans un nouveau segment (même principe que pour les donateurs perdus, voir §8).</li>
+la liste dans un nouveau segment (même principe que pour les donateurs perdus, voir §9).</li>
 </ul>
 
     </div>
