@@ -20,13 +20,6 @@ $membre = (int)($appSettings['membre_segment'] ?? 245);
 if (isset ($_REQUEST["segment"])) {
     $segment = $_REQUEST["segment"];
 }
-// Text search with no explicit segment: don't restrict to the org's default
-// segment — the member being searched may not be in it, and the JS search
-// already passes segment=FILTER_ALL_EXCEPT_ARCHIVES in push URLs. This guard
-// covers direct URL loads (?action=search&searchString=…) with no segment= param.
-if (($_REQUEST['action'] ?? '') === 'search' && !isset($_REQUEST['segment'])) {
-    $segment = 0;
-}
 $combinedSegment = 0;
 if (isset($_REQUEST['combinedSegment']) && (int)$_REQUEST['combinedSegment'] > 0) {
     $combinedSegment = (int)$_REQUEST['combinedSegment'];

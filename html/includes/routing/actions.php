@@ -7,24 +7,6 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 if (isset($_REQUEST['action'])) {
-    // CSRF guard: every mapped action mutates state and must carry a valid
-    // token, on ANY HTTP method. Sources: hidden `csrf` field for native forms,
-    // `X-CSRF-Token` header for htmx/fetch. htmx-boosted GET links (segment
-    // assign/unassign, delete-type modals, the undo toast) get that header via
-    // htmx:configRequest in app.js, so token-carrying GET triggers still pass.
-    //
-    // Gating only POST used to leave a CSRF hole: because handlers read their
-    // params from $_REQUEST, a forged cross-site GET (<img src>, a link) drove
-    // any mutation (deleteSegment, deleteComptaEntry, bulkDeleteSegmentsForce…)
-    // with no token. Checking every method closes that.
-    if (!csrfCheck()) {
-        // Security log: an action was rejected for a missing/invalid token.
-        auditLog($pdo, 'csrfRejected', 'action=' . ($_REQUEST['action'] ?? '?') . ' method=' . ($_SERVER['REQUEST_METHOD'] ?? '?') . ' ip=' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
-        http_response_code(403);
-        header('Content-Type: text/plain; charset=UTF-8');
-        exit($GLOBAL['csrfRejected']);
-    }
-
     static $ACTION_MAP = [
         'updateUser'           => 'contacts',
         'addUser'              => 'contacts',
@@ -128,6 +110,21 @@ if (isset($_REQUEST['action'])) {
 
     $handler = $ACTION_MAP[$_REQUEST['action']] ?? null;
     if ($handler !== null) {
+        // CSRF guard: every mapped action mutates state and must carry a valid
+        // token, on ANY HTTP method. Sources: hidden `csrf` field for native forms,
+        // `X-CSRF-Token` header for htmx/fetch. htmx-boosted GET links (segment
+        // assign/unassign, delete-type modals, the undo toast) get that header via
+        // htmx:configRequest in app.js, so token-carrying GET triggers still pass.
+        //
+        // Scoped to known handlers only: unmapped action= values (e.g. action=search
+        // used as a view hint in users_list.php) reach no mutation code, so gating
+        // them would just 403 plain-GET page loads that carry no CSRF token.
+        if (!csrfCheck()) {
+            auditLog($pdo, 'csrfRejected', 'action=' . ($_REQUEST['action'] ?? '?') . ' method=' . ($_SERVER['REQUEST_METHOD'] ?? '?') . ' ip=' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+            http_response_code(403);
+            header('Content-Type: text/plain; charset=UTF-8');
+            exit($GLOBAL['csrfRejected']);
+        }
         require __DIR__ . '/../actions/' . $handler . '.php';
     }
 }

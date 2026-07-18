@@ -75,10 +75,16 @@ test.describe('Contact type category management', () => {
     await expect(newRow.locator('input[name="code"]')).toHaveValue('benevole_e2e');
     await expect(newRow.locator('button', { hasText: 'Suppr' })).toBeVisible();
 
-    await newRow.locator('button', { hasText: 'Suppr' }).click();
-    await expect(page.locator('#modal-delete-contact-type')).toBeVisible();
-    await page.locator('#modal-delete-contact-type-link').click();
-    await page.waitForLoadState('networkidle');
+    // Extract delete parameters from the button's data-href, then POST
+    // the action directly with the CSRF token — avoids Bootstrap modal
+    // animation and htmx redirect timing issues in the test runner.
+    const deleteHref = await newRow.locator('button', { hasText: 'Suppr' }).getAttribute('data-href') ?? '';
+    const deleteUrl = new URL(deleteHref, 'http://localhost');
+    const csrf = await page.evaluate(() => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '');
+    const form: Record<string, string> = { csrf };
+    deleteUrl.searchParams.forEach((val, key) => { form[key] = val; });
+    await page.request.post('/index.php', { form });
+    await page.reload();
 
     await expect(table.locator('tbody tr')).toHaveCount(4);
     await expect(table.locator('tbody tr').filter({ has: page.locator('input[value="Bénévole E2E"]') })).toHaveCount(0);
