@@ -177,12 +177,91 @@ test.describe('Send cotisation reminders', () => {
     await expect(page.locator('text=Rappel de cotisation').first()).toBeVisible();
   });
 
+  test('re-sending without force skips the already-reminded member', async ({ page, request }) => {
+    await purgeMailpit(request);
+    const csrf = await csrfToken(page.request);
+    const resp = await page.request.post('/index.php', {
+      form: { csrf, action: 'sendCotisationReminders', year: String(YEAR) },
+    });
+    const json = await resp.json();
+    expect(json.sent).toBe(0);
+    expect(json.already).toBeGreaterThanOrEqual(1);
+    expect(await mailpitMessages(request)).toHaveLength(0);
+  });
+
+  test('force=1 resends to the already-reminded member', async ({ page, request }) => {
+    await purgeMailpit(request);
+    const csrf = await csrfToken(page.request);
+    const resp = await page.request.post('/index.php', {
+      form: { csrf, action: 'sendCotisationReminders', year: String(YEAR), force: '1' },
+    });
+    const json = await resp.json();
+    expect(json.sent).toBeGreaterThanOrEqual(1);
+    const msgs = await mailpitMessages(request);
+    expect(msgs.some((m) => m.To[0].Address === 'carol@example.com')).toBe(true);
+  });
+
   test('CSRF guard rejects unauthenticated POST', async ({ request }) => {
     const resp = await request.post('/index.php', {
       form: { action: 'sendCotisationReminders', year: String(YEAR) },
     });
     // No CSRF token → 403
     expect(resp.status()).toBe(403);
+  });
+});
+
+// ─── QR-bill attachment ─────────────────────────────────────────────────────
+
+test.describe('Cotisation reminder — QR-bill attachment', () => {
+  test('reminder email carries a Swiss QR-bill PDF once org_iban is configured', async ({ page, request }) => {
+    // A valid, checksum-correct Swiss IBAN — mbGenerateQrBillPdf validates it
+    // via the sprain/swiss-qr-bill library before rendering. Address fields
+    // fall back to '-' when unset, so only the IBAN is required here.
+    await page.goto('/index.php?view=settings&tab=settings');
+    const csrf = await csrfToken(page.request);
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'saveSettings', view: 'settings', org_iban: 'CH9300762011623852957' },
+    });
+
+    await purgeMailpit(request);
+    const resp = await page.request.post('/index.php', {
+      form: { csrf, action: 'sendCotisationReminders', year: String(YEAR), force: '1' },
+    });
+    const json = await resp.json();
+    expect(json.sent).toBeGreaterThanOrEqual(1);
+
+    const msgs = await mailpitMessages(request);
+    const msg = msgs.find((m) => m.To[0].Address === 'carol@example.com');
+    expect(msg).toBeTruthy();
+    expect(msg.Attachments).toBeGreaterThan(0);
+
+    const full = await (await request.get(`${MAILPIT_URL}/api/v1/message/${msg.ID}`)).json();
+    const pdfAttachment = (full.Attachments ?? []).find((a: any) => a.ContentType === 'application/pdf');
+    expect(pdfAttachment).toBeTruthy();
+    expect(pdfAttachment.FileName).toMatch(/^bulletin-versement-\d{4}\.pdf$/);
+  });
+});
+
+// ─── "Créer segment «Membres à relancer»" ───────────────────────────────────
+
+test.describe('Créer segment — membres à relancer', () => {
+  test('manager can create a segment from the lapsed-members list', async ({ page }) => {
+    await page.goto(`/index.php?view=lapsedMembers&year=${YEAR}`);
+    const openBtn = page.locator('[data-bs-target="#modal-create-lapsed-members"]');
+    await expect(openBtn).toBeVisible();
+    await openBtn.click();
+
+    const modal = page.locator('#modal-create-lapsed-members');
+    await expect(modal).toBeVisible({ timeout: 5_000 });
+
+    await page.evaluate(() => document.body.removeAttribute('hx-boost'));
+    await Promise.all([
+      page.waitForNavigation({ timeout: 15_000 }),
+      modal.locator('button[type="submit"].btn-warning').click(),
+    ]);
+
+    await page.goto('/index.php?view=settings&tab=groups');
+    await expect(page.locator('body')).toContainText(`Membres à relancer ${YEAR}`, { timeout: 10_000 });
   });
 });
 

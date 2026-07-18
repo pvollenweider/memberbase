@@ -35,6 +35,30 @@ test.describe('People/finance hub — Phase 1', () => {
     await expect(page.locator('#pf-tab-recap #recap-bulk-bcc')).toHaveCount(0);
   });
 
+  test('Relances tab: extended-mode toggle reveals already-notified members', async ({ page }) => {
+    // Notify Alice's compta entry first so there's an "already sent" row to
+    // reveal — same fixture as preview-send-modal.spec.ts / the bulk-send
+    // test below, created fresh so this doesn't depend on suite ordering.
+    await page.request.post('/api/compta', {
+      data: { memberId: 1, typeId: 1, date: `${new Date().getFullYear()}-05-01`, amount: 42 },
+    });
+    await page.goto('/index.php?view=peopleFinance&tab=recap');
+    const csrf = await page.locator('meta[name="csrf-token"]').getAttribute('content');
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'sendComptaRecap', view: 'peopleFinance', tab: 'recap', year: String(new Date().getFullYear()) },
+    });
+
+    await page.goto('/index.php?view=peopleFinance&tab=recap');
+    await expect(page.locator('#pf-tab-recap #recap-extended-toggle')).not.toBeChecked();
+    await expect(page.locator('#pf-tab-recap')).not.toContainText('Déjà notifiés');
+
+    await Promise.all([
+      page.waitForURL(/extended=1/, { timeout: 10_000 }),
+      page.locator('#pf-tab-recap #recap-extended-toggle').click(),
+    ]);
+    await expect(page.locator('#pf-tab-recap')).toContainText('Dupont');
+  });
+
   test('each tab renders independently without variable collisions', async ({ page }) => {
     // Regression guard for the closure-isolation fix: each tab's own content
     // (which independently defines similarly-named variables like $year,
@@ -93,13 +117,24 @@ test.describe('People/finance hub — Phase 1', () => {
     await expect(page.locator('#pf-tab-dons-btn')).toHaveClass(/active/);
   });
 
-  test('Relances tab: bulk-send redirect stays inside the hub', async ({ page }) => {
+  test('Relances tab: bulk-send delivers to pending members and redirects inside the hub', async ({ page }) => {
+    // Seed a fresh unnotified entry so this doesn't depend on what other
+    // spec files left behind (same rationale as preview-send-modal.spec.ts).
+    await page.request.post('/api/compta', {
+      data: { memberId: 1, typeId: 1, date: `${new Date().getFullYear()}-05-02`, amount: 60 },
+    });
     await page.goto('/index.php?view=peopleFinance&tab=recap');
     const sendBtn = page.locator('#pf-tab-recap form button[type="submit"]', { hasText: 'Envoyer' });
-    if (await sendBtn.count() === 0) test.skip(true, 'no pending entries to send in seed data');
+    await expect(sendBtn).toBeVisible({ timeout: 10_000 });
     await sendBtn.click();
     await expect(page).toHaveURL(/view=peopleFinance/);
     await expect(page).toHaveURL(/tab=recap/);
+    // sendComptaRecap redirects with recapOk=<sentCount> — the actual
+    // delivery count, more reliable here than a Mailpit round-trip.
+    await expect(page).toHaveURL(/recapOk=[1-9]/);
+
+    // The member no longer has a pending recap after the send.
+    await expect(page.locator('#pf-tab-recap')).not.toContainText('Dupont');
   });
 
   test('Cotisations non renouvelées tab shows the lapsed members table (manager)', async ({ page }) => {
@@ -118,6 +153,36 @@ test.describe('People/finance hub — Phase 1', () => {
     await expect(page).toHaveURL(/view=peopleFinance/);
     await expect(page).toHaveURL(/tab=lapsed/);
     await expect(page.locator('#pf-tab-lapsed-btn')).toHaveClass(/active/);
+  });
+
+  test('Mouvements donateurs tab: manager can create a "Donateurs à relancer" segment', async ({ page }) => {
+    // Seed has no donor who gave last year but not this year — create one so
+    // the "lapsed donors" query (and the resulting segment) isn't empty.
+    const lastYear = new Date().getFullYear() - 1;
+    const createResp = await page.request.post('/api/contacts', {
+      data: { firstName: 'Lapsed', lastName: 'DonorE2E', email: 'lapseddonor.e2e@example.com' },
+    });
+    const { data: newContact } = await createResp.json();
+    await page.request.post('/api/compta', {
+      data: { memberId: newContact.id, typeId: 3, date: `${lastYear}-06-01`, amount: 90 },
+    });
+
+    await page.goto('/index.php?view=peopleFinance&tab=lapsedDonors');
+    const openBtn = page.locator('[data-bs-target="#modal-create-lapsed-donors"]');
+    await expect(openBtn).toBeVisible();
+    await openBtn.click();
+
+    const modal = page.locator('#modal-create-lapsed-donors');
+    await expect(modal).toBeVisible({ timeout: 5_000 });
+
+    await page.evaluate(() => document.body.removeAttribute('hx-boost'));
+    await Promise.all([
+      page.waitForNavigation({ timeout: 15_000 }),
+      modal.locator('button[type="submit"]').click(),
+    ]);
+
+    await page.goto('/index.php?view=settings&tab=groups');
+    await expect(page.locator('body')).toContainText('Donateurs à relancer', { timeout: 10_000 });
   });
 
   test('standalone ?view=lapsedMembers no longer exists — redirects into the hub', async ({ page }) => {

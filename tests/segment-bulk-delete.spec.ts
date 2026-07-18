@@ -87,4 +87,10 @@ test.describe.serial('Segment bulk delete (hidden segments)', () => {
     // gone entirely, so assert on the row directly rather than expanding it.
     await expect(page.locator(`tr[data-segment-id="${segmentId}"]`)).toHaveCount(0);
   });
+
+  test('the deletion is recorded in the audit log', async ({ page }) => {
+    await page.goto('/index.php?view=settings&tab=audit');
+    await expect(page.locator('#tab-audit')).toContainText('bulkDeleteSegmentsForce', { timeout: 10_000 });
+    await expect(page.locator('#tab-audit')).toContainText(SEGMENT_NAME, { timeout: 10_000 });
+  });
 });

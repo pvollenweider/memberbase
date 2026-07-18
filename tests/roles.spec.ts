@@ -470,6 +470,71 @@ test.describe('Server — CSRF guard', () => {
     await admin.post('/index.php', { form: { csrf: rc, action: 'reactivateUser', id: '2' } });
     await admin.dispose();
   });
+
+  // Negative control for the scoping rule: an action= value NOT present in
+  // $ACTION_MAP (e.g. the "search" view hint) must NOT be gated — plain GET
+  // page loads that carry no token would otherwise 403.
+  test('admin: GET with an unmapped action= is NOT gated by CSRF', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'admin');
+    const r = await api.get('/index.php?view=list&action=search&searchString=Dupont');
+    expect(r.status()).not.toBe(403);
+    await api.dispose();
+  });
+
+  // A rejected CSRF attempt must be traceable in the audit log.
+  test('a CSRF rejection is recorded (csrfRejected)', async ({ playwright, page }) => {
+    const api = await apiAs(playwright, 'admin');
+    const r = await api.post('/index.php', { form: { action: 'deactivateUser', id: '2' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
+
+    await page.goto('/index.php?view=settings&tab=audit');
+    await expect(page.locator('#tab-audit')).toContainText('csrfRejected', { timeout: 10_000 });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Server enforcement — attestation downloads (html/attestation_don.php,
+// html/attestation_bulk.php) — nominative donation data, Manager+/Admin only
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Server — attestation download guards', () => {
+  test('readonly: attestation_don.php → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'readonly');
+    const r = await api.get(`/attestation_don.php?userid=${ACTIVE_MEMBER_ID}&year=${new Date().getFullYear()}`);
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('user: attestation_don.php → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'user');
+    const r = await api.get(`/attestation_don.php?userid=${ACTIVE_MEMBER_ID}&year=${new Date().getFullYear()}`);
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('readonly: attestation_bulk.php → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'readonly');
+    const r = await api.get(`/attestation_bulk.php?year=${new Date().getFullYear()}`);
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('manager: attestation_don.php → not 403 (returns the PDF)', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'manager');
+    const r = await api.get(`/attestation_don.php?userid=${ACTIVE_MEMBER_ID}&year=${new Date().getFullYear()}`);
+    expect(r.status()).not.toBe(403);
+    expect(r.headers()['content-type']).toContain('application/pdf');
+    await api.dispose();
+  });
+
+  test('admin: attestation_bulk.php → not 403 (returns the PDF)', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'admin');
+    const r = await api.get(`/attestation_bulk.php?year=${new Date().getFullYear()}`);
+    expect(r.status()).not.toBe(403);
+    expect(r.headers()['content-type']).toContain('application/pdf');
+    await api.dispose();
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

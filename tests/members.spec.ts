@@ -46,6 +46,35 @@ test.describe('Members', () => {
     await expect(page.locator('.ca-view-zone')).toContainText('Testmembre', { timeout: 10_000 });
   });
 
+  test('add a member from a segment context and opt into that segment', async ({ page }) => {
+    // Segment 1 ("Membre 2025") from seed — the checkbox only renders when
+    // the add form is opened with ?fromSegment=.
+    await page.goto('/index.php?view=addUser&fromSegment=1');
+    await expect(page.locator('#addToFromSegment')).toBeVisible();
+    await expect(page.locator('#addToFromSegment')).not.toBeChecked();
+
+    await page.fill('#lastName', 'TestmembreSegment');
+    await page.fill('#firstName', 'E2E');
+    await page.check('#addToFromSegment');
+    await page.click('button[type="submit"].btn-success');
+
+    const uid = await getNewUserId(page);
+    const members = await (await page.request.get('/api/segments/1/members')).json();
+    expect(members.data.map((m: any) => String(m.id))).toContain(uid);
+  });
+
+  test('add a member from a segment context WITHOUT opting in — not added', async ({ page }) => {
+    await page.goto('/index.php?view=addUser&fromSegment=1');
+    await page.fill('#lastName', 'TestmembreNoSegment');
+    await page.fill('#firstName', 'E2E');
+    // Leave #addToFromSegment unchecked.
+    await page.click('button[type="submit"].btn-success');
+
+    const uid = await getNewUserId(page);
+    const members = await (await page.request.get('/api/segments/1/members')).json();
+    expect(members.data.map((m: any) => String(m.id))).not.toContain(uid);
+  });
+
   test('add a new member with a non-default contact type', async ({ page }) => {
     await page.goto('/index.php?view=addUser');
     await page.fill('#lastName', 'Testmembre2');

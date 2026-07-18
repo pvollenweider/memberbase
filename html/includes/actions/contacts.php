@@ -324,8 +324,8 @@ if ($_REQUEST['action'] == 'updateUser') {
         $chk = db()->prepare("SELECT COUNT(*) FROM segment WHERE id=?");
         $chk->execute([$fromSegment]);
         if ($chk->fetchColumn() > 0) {
-            $ins = db()->prepare("INSERT IGNORE INTO contact_properties (user_id, parameter, value) VALUES (?, ?, 'true')");
-            $ins->execute([$userid, 'segment_' . $fromSegment]);
+            $ins = db()->prepare("INSERT IGNORE INTO contact_segment (user_id, segment_id) VALUES (?, ?)");
+            $ins->execute([$userid, $fromSegment]);
         }
     }
 

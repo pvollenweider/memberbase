@@ -427,3 +427,29 @@ test.describe.serial('groups API', () => {
     expect(resp.status()).toBe(404);
   });
 });
+
+// ── Rate limiting ────────────────────────────────────────────────────────────
+//
+// Fixed-window limiter (html/api/_bootstrap.php): 600 req/60s per user+IP
+// bucket (migration 0019, issue #92). Uses the 'manager' role via its own
+// request context so this doesn't burn into the shared 'admin' bucket that
+// every other test in this file uses (bucket key includes the user id).
+
+test('API rate limit — 429 with Retry-After past the threshold', async ({ playwright }) => {
+  const api = await playwright.request.newContext({
+    baseURL: BASE,
+    storageState: 'tests/.auth/manager.json',
+  });
+
+  const TOTAL = 610; // > API_RATE_MAX (600)
+  const results = await Promise.all(
+    Array.from({ length: TOTAL }, () => api.get('/api/compta-types'))
+  );
+  const statuses = results.map((r) => r.status());
+  const tooMany = results.filter((r) => r.status() === 429);
+
+  expect(tooMany.length, `statuses seen: ${[...new Set(statuses)].join(',')}`).toBeGreaterThan(0);
+  expect(tooMany[0].headers()['retry-after']).toBe('60');
+
+  await api.dispose();
+});

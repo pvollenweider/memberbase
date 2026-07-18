@@ -422,6 +422,26 @@ test.describe.serial('Tasks — duplicate contacts and hidden segments', () => {
     await expect(page.locator('td', { hasText: 'Segment masqué encore assigné' })).toBeVisible();
   });
 
+  test('attestation-pending generation is a no-op outside January and the button stays hidden', async ({ page }) => {
+    // generateAttestationTasks / countAttestationPendingGeneration are both
+    // hard-gated to January (the rule only makes sense right after a year
+    // closes, per the code comment) — this locks in that seasonal no-op
+    // rather than exercising the happy path, which would require mocking
+    // the server clock (no such infra exists in this suite).
+    await page.goto('/index.php?view=tasks');
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    if (new Date().getMonth() === 0) test.skip(true, 'only meaningful outside January');
+
+    const resp = await page.request.post('/index.php', { form: { action: 'generateAttestationTasks', csrf } });
+    expect(resp.status()).not.toBe(403);
+
+    await page.goto('/index.php?view=tasks');
+    await expect(page.locator('form[action] input[value="generateAttestationTasks"]')).toHaveCount(0);
+  });
+
   test('fixing the duplicate closes the task on the next generation run (what cron does)', async ({ page }) => {
     await page.goto('/index.php?view=tasks');
     const csrf = await page.evaluate(() => {
@@ -442,5 +462,58 @@ test.describe.serial('Tasks — duplicate contacts and hidden segments', () => {
     await page.request.post('/index.php', { form: { action: 'generateDuplicateTasks', csrf } });
     await page.goto('/index.php?view=tasks');
     await expect(page.locator('#tasks-table td', { hasText: 'Doublon potentiel : Alice Dupont' })).toHaveCount(0);
+  });
+});
+
+test.describe.serial('Tasks — bulk-delete completed', () => {
+  test('manager sees the bulk-delete button and clearing the list removes all completed tasks', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+
+    // Create and immediately close a global task so the completed section has
+    // at least one row, regardless of what other tests left behind.
+    await page.request.post('/index.php', {
+      form: { action: 'addTask', title: 'Task E2E bulk-delete target', view: 'tasks', csrf },
+    });
+    await page.goto('/index.php?view=tasks');
+    const row = page.locator('tr', { hasText: 'Task E2E bulk-delete target' });
+    await row.locator('button[title="Marquer comme terminée"]').click();
+    await expect(page.locator('td.text-decoration-line-through', { hasText: 'Task E2E bulk-delete target' }))
+      .toBeVisible({ timeout: 10_000 });
+
+    const bulkBtn = page.locator('button[data-bs-target="#modal-bulk-delete-done-tasks"]');
+    await expect(bulkBtn).toBeVisible();
+    await bulkBtn.click();
+    const modal = page.locator('#modal-bulk-delete-done-tasks');
+    await expect(modal).toBeVisible({ timeout: 5_000 });
+
+    await page.evaluate(() => document.body.removeAttribute('hx-boost'));
+    await Promise.all([
+      page.waitForNavigation({ timeout: 15_000 }),
+      modal.locator('button[type="submit"].btn-danger').click(),
+    ]);
+
+    await expect(page.locator('td.text-decoration-line-through', { hasText: 'Task E2E bulk-delete target' }))
+      .toHaveCount(0);
+  });
+
+  // Note: 'user' role can't reach ?view=tasks at all (the whole view is
+  // isManager()-gated, per roles.spec.ts's "view=tasks shows access denied"
+  // test), so there's no UI-visibility case to exercise here beyond the
+  // server-side 403 below.
+  test('server: user role → bulkDeleteCompletedTasks action is 403', async ({ playwright }) => {
+    const api = await playwright.request.newContext({
+      baseURL: 'http://localhost:8080',
+      storageState: 'tests/.auth/user.json',
+    });
+    const html = await (await api.get('/index.php')).text();
+    const m = html.match(/name="csrf-token" content="([^"]+)"/);
+    const csrf = m ? m[1] : '';
+    const r = await api.post('/index.php', { form: { csrf, action: 'bulkDeleteCompletedTasks', view: 'tasks' } });
+    expect(r.status()).toBe(403);
+    await api.dispose();
   });
 });

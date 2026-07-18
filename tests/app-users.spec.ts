@@ -43,6 +43,38 @@ test.describe.serial('App users management', () => {
     createdUserId = await deleteBtn.getAttribute('data-user-id') ?? '';
   });
 
+  test('createAppUser is recorded in the audit log', async ({ page }) => {
+    await page.goto('/index.php?view=settings&tab=audit');
+    await expect(page.locator('#tab-audit')).toContainText('createAppUser', { timeout: 10_000 });
+    await expect(page.locator('#tab-audit')).toContainText('e2etestuser', { timeout: 10_000 });
+  });
+
+  test('reset the created app user password', async ({ page }) => {
+    if (!createdUserId) throw new Error('No user id to reset');
+    await page.goto('/index.php?view=manageAppUsers');
+
+    const resetBtn = page.locator('button[data-bs-target="#modal-reset-app-user"][data-username="e2etestuser"]');
+    await resetBtn.click();
+    await expect(page.locator('#modal-reset-app-user')).toBeVisible({ timeout: 5_000 });
+
+    await page.evaluate(() => document.body.removeAttribute('hx-boost'));
+    await Promise.all([
+      page.waitForNavigation({ timeout: 15_000 }),
+      page.click('#modal-reset-form button[type="submit"]'),
+    ]);
+
+    // resetUserPassword forces a password change on next login and shows a
+    // one-time temporary password flash — confirm the page reflects success
+    // rather than an error state.
+    await expect(page.locator('.alert-danger')).toHaveCount(0);
+  });
+
+  test('resetUserPassword is recorded in the audit log', async ({ page }) => {
+    await page.goto('/index.php?view=settings&tab=audit');
+    await expect(page.locator('#tab-audit')).toContainText('resetUserPassword', { timeout: 10_000 });
+    await expect(page.locator('#tab-audit')).toContainText('e2etestuser', { timeout: 10_000 });
+  });
+
   test('delete the created app user', async ({ page }) => {
     if (!createdUserId) throw new Error('No user id to delete');
     await page.goto('/index.php?view=manageAppUsers');
@@ -68,5 +100,11 @@ test.describe.serial('App users management', () => {
 
     await page.goto('/index.php?view=manageAppUsers');
     await expect(page.locator('text=e2etestuser')).toHaveCount(0);
+  });
+
+  test('deleteAppUser is recorded in the audit log', async ({ page }) => {
+    await page.goto('/index.php?view=settings&tab=audit');
+    await expect(page.locator('#tab-audit')).toContainText('deleteAppUser', { timeout: 10_000 });
+    await expect(page.locator('#tab-audit')).toContainText('e2etestuser', { timeout: 10_000 });
   });
 });

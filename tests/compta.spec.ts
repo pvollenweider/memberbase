@@ -116,4 +116,20 @@ test.describe('Default entry label autofill', () => {
     await yearSelect.selectOption(year);
     await expect(libele).toHaveValue('Mon libellé perso');
   });
+
+  test('"Dons uniquement" toggle hides non-donation entries', async ({ page }) => {
+    // Alice (user 1) has a "Vente brocante" entry (type Vente, excluded from
+    // donation) alongside her cotisation and don entries — see seed.sql.
+    await page.goto(`/index.php?view=compta&userid=${USER_ID}`);
+    await expect(page.locator('body')).toContainText('Vente brocante');
+
+    await page.locator('#dons-only-toggle').check();
+    await page.waitForURL(/dons_only=1/, { timeout: 10_000 });
+    await expect(page.locator('body')).not.toContainText('Vente brocante');
+    await expect(page.locator('#dons-only-toggle')).toBeChecked();
+
+    await page.locator('#dons-only-toggle').uncheck();
+    await page.waitForURL((url) => !url.search.includes('dons_only'), { timeout: 10_000 });
+    await expect(page.locator('body')).toContainText('Vente brocante');
+  });
 });
