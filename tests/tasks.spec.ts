@@ -206,6 +206,11 @@ test.describe.serial('Tasks — payment notification auto-generation', () => {
   });
 
   test('generate button creates one task per member with unnotified compta entries', async ({ page }) => {
+    // Ensure at least one unnotified compta entry exists for the current year regardless of
+    // what parallel tests (preview-send-modal, cotisation-reminders) may have marked as notified.
+    await page.request.post('/api/compta', {
+      data: { memberId: 1, typeId: 1, date: `${new Date().getFullYear()}-06-01`, amount: 42 },
+    });
     await page.goto('/index.php?view=tasks');
     const generateForm = page.locator('form', { has: page.locator('button', { hasText: 'notification de versement' }) });
     await expect(generateForm).toBeVisible();

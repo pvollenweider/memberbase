@@ -33,12 +33,12 @@ test.describe.serial('Compta types settings', () => {
     const typeRow = page.locator('#tab-compta tr').filter({ hasText: 'TypeE2ETest' }).first();
     await expect(typeRow).toBeVisible({ timeout: 10_000 });
 
-    // Read data-href from the delete button (Bootstrap modal trigger) and navigate directly.
-    // Non-htmx delete returns <script>window.location=...</script>, so wait for the JS redirect.
+    // Open the Bootstrap delete modal, then click the confirm link (htmx-boosted, includes CSRF).
     const deleteBtn = typeRow.locator('button[data-bs-target="#modal-delete-compta-type"]');
-    const deleteHref = await deleteBtn.getAttribute('data-href');
-    if (!deleteHref) throw new Error('data-href not found on delete button');
-    await page.goto(deleteHref);
+    await deleteBtn.click();
+    await expect(page.locator('#modal-delete-compta-type')).toBeVisible();
+    await page.locator('#modal-delete-compta-type-link').click();
+    await page.waitForLoadState('networkidle');
     await page.waitForURL(/tab=compta/, { timeout: 10_000 });
 
     await expect(page.locator('table td').filter({ hasText: /^TypeE2ETest$/ })).toHaveCount(0);

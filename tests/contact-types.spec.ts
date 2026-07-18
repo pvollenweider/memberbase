@@ -78,6 +78,7 @@ test.describe('Contact type category management', () => {
     await newRow.locator('button', { hasText: 'Suppr' }).click();
     await expect(page.locator('#modal-delete-contact-type')).toBeVisible();
     await page.locator('#modal-delete-contact-type-link').click();
+    await page.waitForLoadState('networkidle');
 
     await expect(table.locator('tbody tr')).toHaveCount(4);
     await expect(table.locator('tbody tr').filter({ has: page.locator('input[value="Bénévole E2E"]') })).toHaveCount(0);

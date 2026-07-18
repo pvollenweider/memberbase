@@ -32,7 +32,7 @@ test.describe('Dashboard', () => {
     // Scoped by href, not just visible text — "Activités récentes" can
     // independently contain an unrelated "cotisation" mention (e.g. a
     // logged reminder email subject), which a loose text match also picks up.
-    const kpiLink = page.locator('a[href*="tab=lapsed"][href*="cohort=lapsed"]');
+    const kpiLink = page.locator('a[href*="tab=lapsed"][href*="cohort=lapsed"]').first();
     await expect(kpiLink).toBeVisible();
     await kpiLink.click();
     await expect(page).toHaveURL(/view=peopleFinance/);
