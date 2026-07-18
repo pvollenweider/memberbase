@@ -117,7 +117,7 @@ if ($isHtmx) {
     <script type="module" src="js/tiptap-editor.js?v=<?= filemtime(__DIR__ . '/js/tiptap-editor.js') ?>"></script>
 </head>
 
-<body hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">
+<body<?= !empty($_SESSION['ca_sidebar_collapsed']) ? ' class="ca-sidebar-collapsed"' : '' ?> hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">
 
 <?php include __DIR__ . "/includes/partials/topbar.php"; ?>
 

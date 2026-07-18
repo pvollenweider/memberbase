@@ -7,7 +7,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 // actions: logout, changePassword, createAppUser, deleteAppUser,
-//          resetUserPassword, flushAuditLog
+//          resetUserPassword, flushAuditLog, sidebarState
 
 $action = $_REQUEST['action'];
 
@@ -198,5 +198,13 @@ if ($action === 'logout') {
         db()->exec("DELETE FROM audit_log");
     }
     header('Location: ' . appUrl() . '?view=auditLog&flushed=1');
+    exit;
+
+} elseif ($action === 'sidebarState') {
+    // Store sidebar collapsed preference in the session (desktop only;
+    // mobile always starts closed regardless). No audit log — not a data mutation.
+    $_SESSION['ca_sidebar_collapsed'] = !empty($_POST['collapsed']) ? '1' : '';
+    header('Content-Type: application/json; charset=UTF-8');
+    echo '{"ok":true}';
     exit;
 }

@@ -33,13 +33,17 @@ test.describe.serial('Compta types settings', () => {
     const typeRow = page.locator('#tab-compta tr').filter({ hasText: 'TypeE2ETest' }).first();
     await expect(typeRow).toBeVisible({ timeout: 10_000 });
 
-    // Read data-href from the delete button (Bootstrap modal trigger) and navigate directly.
-    // Non-htmx delete returns <script>window.location=...</script>, so wait for the JS redirect.
+    // Extract delete parameters from the button's data-href, then POST
+    // the action directly with the CSRF token — avoids Bootstrap modal
+    // animation and htmx redirect timing issues in the test runner.
     const deleteBtn = typeRow.locator('button[data-bs-target="#modal-delete-compta-type"]');
-    const deleteHref = await deleteBtn.getAttribute('data-href');
-    if (!deleteHref) throw new Error('data-href not found on delete button');
-    await page.goto(deleteHref);
-    await page.waitForURL(/tab=compta/, { timeout: 10_000 });
+    const deleteHref = await deleteBtn.getAttribute('data-href') ?? '';
+    const deleteUrl = new URL(deleteHref, 'http://localhost');
+    const csrf = await page.evaluate(() => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '');
+    const form: Record<string, string> = { csrf };
+    deleteUrl.searchParams.forEach((val, key) => { form[key] = val; });
+    await page.request.post('/index.php', { form });
+    await page.goto('/index.php?view=settings&tab=compta');
 
     await expect(page.locator('table td').filter({ hasText: /^TypeE2ETest$/ })).toHaveCount(0);
   });
