@@ -1,6 +1,6 @@
 # Architecture de MemberBase
 
-MemberBase **v5.2.0** — application PHP 8.2 de gestion des membres pour ONG.
+MemberBase **v5.3.1** — application PHP 8.2 de gestion des membres pour ONG.
 Licence AGPL-3.0-or-later.
 
 > **Terminologie.** Depuis la v3.5.4, l'interface parle de **Segment** (au lieu de
@@ -145,9 +145,9 @@ fuseau PHP forcé à `Europe/Zurich`).
 | `combined_segment_member` | Appartenance segment → segment combiné (**anciennement auto-jointure sur `metagroup`**, table de jointure depuis migration 0022) : `combined_segment_id`, `segment_id` — FK réelles (migration 0023) | PK `(combined_segment_id, segment_id)` |
 | `compta_type`     | Types d'écriture : `label`, `color`, **`default_libele`** (libellé pré-rempli à la saisie, migration 0021), `sort_order`, `is_cotisation`, `is_excluded_from_donation`, `is_institutional`, **`is_financial_institution`**/**`is_company`** (marquent quels types signalent un établissement financier / une entreprise, migration 0035), **`is_archived`** (masqué du sélecteur à la création d'une nouvelle écriture, historique conservé, migration 0036) | `id` AUTO_INCREMENT |
 | `compta`          | Écritures : `user_id`, `date` (`DATETIME`, `NULL` = non renseignée/invalide), `libele`, `sum` (**decimal(10,2)**, CHF), `comment` (**anciennement `quittance`**, renommée migration 0031), `type_id`, `wants_attestation`, **`notified_at`** (dernier envoi du récapitulatif email, `NULL` = non notifiée), **`cotisation_year`** (année de cotisation si différente de l'année de paiement) — FK réelles vers `contact`/`compta_type` (migration 0023) | `id` AUTO_INCREMENT |
-| `contact_type`    | Type de contact (v5.2.0, migration 0035) : `code` (clé stable, ex. `private`/`institution`/`financial`/`company` — les 4 lignes seed, figées ; un type personnalisé a un code généré), `label`, **`icon`** (suffixe Font Awesome, ex. `landmark`, préfixé `fas fa-` à l'affichage, migration 0037), `sort_order` — référencé par `contact.contact_type_id` | `id` AUTO_INCREMENT |
+| `contact_type`    | Type de contact (v5.2.0, migration 0035) : `code` (clé stable, ex. `private`/`institution`/`financial`/`company` — les 4 lignes seed, figées ; un type personnalisé a un code généré), `label`, **`icon`** (suffixe Font Awesome, ex. `landmark`, préfixé `fas fa-` à l'affichage, migration 0037), `sort_order`, **`default_compta_type_id`** (FK vers `compta_type`, `ON DELETE SET NULL`, migration 0038 — type de compta pré-sélectionné à la création d'une écriture pour un contact de ce type) — référencé par `contact.contact_type_id` | `id` AUTO_INCREMENT |
 | `contact_type_compta_type` | Matrice type de contact × type de compta (migration 0036) : `contact_type_id`, `compta_type_id` — restreint les types de compta proposés à la création d'une écriture pour un contact de ce type ; **permissif par défaut** (aucune ligne pour un `contact_type_id` = tous les types non archivés restent proposés) — FK réelles vers `contact_type`/`compta_type` (`ON DELETE CASCADE`) | PK `(contact_type_id, compta_type_id)` |
-| `suivi_task`      | Tâches de suivi structurées (titre, priorité, échéance — v5.2.0, migration 0032, issue #117), en parallèle des notes libres `contact_properties` : `user_id` (`NULL` = tâche globale) — FK vers `contact` (`ON DELETE CASCADE`) —, `created_by` (`app_users.id`, pas de FK, même convention que `audit_log.app_user_id`), `title`, `body`, `priority` (1=haute/2=normale/3=basse), `due_date`, `done_at` (`NULL` = ouverte), **`rule_key`** (marque les tâches générées automatiquement par une règle métier, migration 0033, `NULL` = tâche manuelle, sert au dédoublonnage lors d'une régénération) | `id` AUTO_INCREMENT |
+| `suivi_task`      | Tâches de suivi structurées (titre, priorité, échéance — v5.2.0, migration 0032, issue #117), en parallèle des notes libres `contact_properties` : `user_id` (`NULL` = tâche globale) — FK vers `contact` (`ON DELETE CASCADE`) —, `created_by` (`app_users.id`, pas de FK, même convention que `audit_log.app_user_id`), `title`, `body`, `priority` (1=haute/2=normale/3=basse), `due_date`, `done_at` (`NULL` = ouverte), **`rule_key`** (marque les tâches générées automatiquement par une règle métier, migration 0033, `NULL` = tâche manuelle, sert au dédoublonnage lors d'une régénération), **`paused_at`** (migration 0039, `NULL` = pas en pause — état « en pause » distinct d'ouvert/terminé, mutuellement exclusif avec `done_at` en pratique mais non contraint en base) | `id` AUTO_INCREMENT |
 | `segment_cascade_rule` | Règle d'auto-assignation de segment (v5.2.0, migration 0034, issue #154) : « quand un membre rejoint `source_segment_id`, l'assigner aussi à `target_segment_id` » — appliquée par `Contact::assignSegment()` ; à dessein **pas un moteur de règles générique** (un seul niveau, pas de chaînage) — FK réelles vers `segment` (`ON DELETE CASCADE`), paire unique | `id` AUTO_INCREMENT |
 | `maxval`          | Compteur de séquence manuel (clé/valeur) — n'est plus utilisé pour `combined_segment.id` depuis la migration 0022 | PK `parameter`         |
 | `app_settings`    | Configuration organisation (clé/valeur : `org_name`, `membre_segment` — anciennement `membre_team`, renommée v5.1.0 —, `archive_id`, `org_ide`, `org_purpose`, `org_tax_status`, `smtp_*`, etc. — `value` en `TEXT` depuis la migration 0004 pour les champs multi-lignes) | PK `key`               |
@@ -156,6 +156,7 @@ fuseau PHP forcé à `Europe/Zurich`).
 | `email_templates` | Templates éditables (clé `tpl_*`) : `subject`, `body_text`, `body_html`, `updated_at`     | PK `key`                |
 | `email_log`       | Historique des envois : `user_id`, `tpl_key`, `to_email`, `subject`, `status` (sent/error), `error_msg`, `body_text`, `body_html`, `created_at` — FK réelle vers `contact` sur `user_id` (migration 0023, `ON DELETE SET NULL`) | `id` AUTO_INCREMENT |
 | `schema_migrations` | Suivi des migrations appliquées : `version`, `applied_at`, `checksum` (SHA-256, détection de dérive) | PK `version`          |
+| `api_rate_limit`  | Limiteur de débit fixed-window pour l'API REST (migration 0019, issue #92) : `bucket_key` (`user_id`+IP), `window_start`, `request_count` — 600 requêtes/60s, `Retry-After` posé au dépassement (voir §8) | PK `bucket_key`, `window_start` |
 
 ### Relations
 
@@ -313,10 +314,38 @@ function canRead(): bool     // role ∈ {admin, manager, user, readonly}
   chaque vue à son fichier et sa garde : `addUser`/`removeCompta`/`removeSuivi`→`canWrite`,
   `importStep1/2/3`/`mergeUsers`→`isManager`, `deleteUser`/`anonymizeUser`→`isAdmin`.
   **Aucune route de vue ne modifie de données** : toute mutation (y compris les
-  suppressions compta/suivi) passe par une action POST gardée par le jeton CSRF. Une garde refusée renvoie
+  suppressions compta/suivi) passe par une action gardée par le jeton CSRF, sur **toutes**
+  les méthodes HTTP (pas seulement POST — voir ci-dessous). Une garde refusée renvoie
   un bloc `alert-danger` (« Accès refusé ») ; une vue absente de la table renvoie
   « Vue introuvable ». Ajouter une route force donc une décision de garde explicite.
 - La force brute est déléguée à Fail2Ban (logs Apache), pas au code PHP.
+
+### CSRF (`includes/routing/actions.php`, `includes/lib/auth.php`)
+
+Toute action listée dans le `$ACTION_MAP` de `includes/routing/actions.php` (une table de
+routage explicite `action name` → fichier handler) passe par `csrfCheck()` **avant** le
+dispatch, sur n'importe quelle méthode HTTP. Ce dernier point est un durcissement de 5.3.1
+(`3d1155d`) : les handlers d'action lisent leurs paramètres dans `$_REQUEST`, donc tant que la
+vérification restait scopée à POST, une requête **GET** forgée (balise `<img>`, lien) pouvait
+déclencher une mutation (suppression de segment, d'écriture comptable, suppression en masse…)
+sans jeton — toutes les sources légitimes de déclenchement (formulaires POST, liens boostés
+htmx, `fetch()`) portent déjà le jeton, donc la vérification pouvait être étendue sans rien
+casser côté client.
+
+- **Sources du jeton** : champ caché `csrf` (formulaires natifs) ou en-tête `X-CSRF-Token`
+  (htmx/`fetch`), comparés via `hash_equals()` au jeton de session.
+- **Propagation automatique** : `html/js/app.js` ajoute l'en-tête à toute requête htmx
+  (`htmx:configRequest`) et « estampille » tout `<form method="post">` d'un champ caché `csrf`
+  au chargement et après chaque swap htmx — les liens boostés en GET (assignation/retrait de
+  segment, modales de suppression, toast d'annulation) portent donc aussi le jeton.
+  `<meta name="csrf-token">` (rendu par `index.php`) est la source unique lue côté JS.
+- **Scope volontairement limité aux actions mappées** : une valeur `action=` non présente dans
+  `$ACTION_MAP` (ex. `action=search` utilisé comme simple indicateur de vue dans
+  `users_list.php`) n'est pas gardée — bloquer ces requêtes casserait des chargements de page en
+  GET simple qui ne portent jamais de jeton.
+- **Échec** : `403` + entrée `audit_log` de code `csrfRejected` (action, méthode HTTP, IP).
+- L'API REST (`/api/*`) n'utilise pas ce mécanisme : authentification de session + rôle, et
+  `Content-Type: application/json` obligatoire en écriture (voir §8).
 
 ---
 
@@ -448,6 +477,17 @@ Toutes les bibliothèques sont vendorisées dans `html/js/vendor/` et `html/css/
 aucun chargement depuis un CDN externe (#102), ce qui permet une CSP stricte `self`
 (cf. section CSP ci-dessous / #93).
 
+**Bundling (depuis 5.3.0).** Les fichiers listés dans `html/index.php` (vendor + maison) sont
+concaténés/minifiés par `build/dist.mjs` (esbuild) en 3 bundles **committés**, chargés à la
+place des fichiers individuels : `html/css/dist/app.min.css` (Inter, Bootstrap, DataTables +
+Buttons, datetimepicker, Font Awesome, `custom.css`), `html/js/dist/vendor.min.js` (jQuery,
+Bootstrap, Moment + datetimepicker, DataTables + Buttons + libs d'export, Chart.js, htmx) et
+`html/js/dist/app.min.js` (`app.js` + `sidebar-nav.js`) — 25+ requêtes ramenées à ~6.
+`alpine.min.js` (chargé en `defer`, le bundle ci-dessus est bloquant), `member-general-form.js`
+(doit s'exécuter avant qu'Alpine boot) et `tiptap-editor.js` (`type="module"`) restent en tags
+séparés. Aucun build en production : `npm run dist` ne s'exécute qu'en local, après
+modification d'un fichier source listé dans `build/dist.mjs`.
+
 ### htmx — configuration
 
 ```html
@@ -504,7 +544,10 @@ Les attestations fiscales de dons sont générées **côté serveur avec `pdftk`
   `pdftk … cat …`.
 
 Le gabarit AcroForm est `html/assets/attestation.pdf`. Ces deux points d'entrée
-appellent `requireLogin()` mais ne sont **pas** des vues htmx (téléchargements directs).
+appellent `requireLogin()` **et**, depuis 5.3.1 (`3d1155d`), `isManager()` — `403` sinon — car
+ils ne sont **pas** des vues htmx (téléchargements directs) et contiennent des données
+nominatives de dons ; avant ce correctif, un compte en lecture seule pouvait télécharger
+directement l'attestation de n'importe quel membre en construisant l'URL.
 
 > Il n'existe pas de génération « quittance Word / MHTML » dans le code : `compta.comment`
 > (anciennement `quittance`) est un simple champ texte libre.
@@ -549,11 +592,14 @@ base (DDL + `tests/fixtures/seed.sql`).
   `$GLOBAL`, `$charset`, `$isHtmx`). Sortie utilisateur échappée
   (`htmlspecialchars` / `htmlentities`). Pas de redirection dans une vue.
 
-#### Pattern « hub » (tab-shell), depuis v5.2.0
+#### Pattern « hub » (tab-shell), depuis v5.2.0 — mobile uniquement depuis 5.3.0
 
 Deux vues (`people_finance.php` — hub « Membres & finances », `journals.php` — hub
 « Journaux ») regroupent plusieurs anciennes destinations autonomes sous une seule
-route à onglets Bootstrap (`?view=peopleFinance&tab=…`, `?view=journals&tab=…`).
+route à onglets Bootstrap (`?view=peopleFinance&tab=…`, `?view=journals&tab=…`). Depuis la
+refonte de navigation 5.3.0 (menu latéral fixe, `sidebar_nav.php`), la barre d'onglets de ces
+hubs n'est plus la navigation principale sur desktop — chaque destination a son propre lien de
+menu latéral — mais reste affichée sur **mobile**, où elle sert de navigation de repli.
 Chaque onglet réutilise **sans modification** un fichier de vue conçu à l'origine
 comme page indépendante (`users_list.php`, `compta_recap.php`, `donors_summary.php`,
 `members_lapsed.php`, `members_new.php`, `donors_lapsed.php`, `donors_new.php`,

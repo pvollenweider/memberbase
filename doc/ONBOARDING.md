@@ -1,6 +1,6 @@
 # MemberBase — Guide d'accueil développeur
 
-> Version **5.2.0** — dérivé du knowledge graph du projet (`.understand-anything/knowledge-graph.json`, commit `ece1d70`). Noms de tables/classes/routes API mis à jour à la main pour la v5.0.0 (renommage `users`→`contact`, `team`→`segment`) puis la v5.1.0 (`metagroup`→`combined_segment`, colonnes date `int`→`DATE`/`DATETIME`) ; la v5.2.0 a ajouté le tableau de bord (`?view=dashboard`, nouvelle vue par défaut) et les hubs de navigation « Membres & finances » (`?view=peopleFinance`) et « Journaux » (`?view=journals`), non encore reflétés ci-dessous en détail ; une régénération complète du graphe (`/understand --full`) reste à faire.
+> Version **5.3.1** — dérivé du knowledge graph du projet (`.understand-anything/knowledge-graph.json`, commit `ece1d70`). Noms de tables/classes/routes API mis à jour à la main pour la v5.0.0 (renommage `users`→`contact`, `team`→`segment`) puis la v5.1.0 (`metagroup`→`combined_segment`, colonnes date `int`→`DATE`/`DATETIME`) ; la v5.2.0 a ajouté le tableau de bord (`?view=dashboard`, nouvelle vue par défaut) et les hubs de navigation « Membres & finances » (`?view=peopleFinance`) et « Journaux » (`?view=journals`) ; la v5.3.0 a remplacé la navbar horizontale par un menu latéral fixe (`sidebar_nav.php`) — `menu.php` cité plus bas est du code mort, non inclus depuis cette refonte ; la v5.3.1 a étendu la garde CSRF à toutes les méthodes HTTP (voir §3). Ces changements ne sont pas encore reflétés dans le graphe lui-même ; une régénération complète (`/understand --full`) reste à faire.
 
 Bienvenue. Ce guide vous fait entrer dans le code de **MemberBase**, une application PHP 8.2 de gestion des membres pour ONG et petites associations. Il suit l'ossature du graphe de connaissance du projet : ses 13 couches d'architecture et son tour guidé en 8 étapes.
 
@@ -30,7 +30,7 @@ Les couches proviennent directement du champ `layers` du graphe.
 | 1 | **Point d'entrée & pages racine** | Front-controller et pages autonomes (login, install, attestations) | `html/index.php`, `html/login.php`, `html/install.php`, `html/set-password.php`, `html/attestation_bulk.php`, `html/attestation_don.php`, `html/locales/resources_fr.php` |
 | 2 | **Bibliothèque cœur** | Infrastructure partagée incluse par chaque page | `html/includes/lib/bootstrap.php`, `html/includes/lib/auth.php`, `html/includes/lib/import_fields.php` |
 | 3 | **Routage** | Dispatch GET/POST | `html/includes/routing/views.php`, `html/includes/routing/actions.php` |
-| 4 | **Vues** | Templates PHP inclus dans le layout | `html/includes/views/*`, `html/includes/partials/menu.php`, `html/includes/partials/donor_table.php` |
+| 4 | **Vues** | Templates PHP inclus dans le layout | `html/includes/views/*`, `html/includes/partials/sidebar_nav.php`, `html/includes/partials/topbar.php`, `html/includes/partials/donor_table.php` |
 | 5 | **Concepts transverses** | Notions applicatives (RBAC, dirty-form, import, segments…) | *(voir §3)* |
 | 6 | **Classes de domaine** | Logique métier active-record | `html/classes/{contact,segment,compta,combined_segment,property,member_filter}_class.php` |
 | 7 | **Handlers d'actions (POST)** | Validation + orchestration + audit | `html/includes/actions/*` |
@@ -48,6 +48,11 @@ Les couches proviennent directement du champ `layers` du graphe.
 - **Routage htmx** — `index.php` reçoit toutes les requêtes web et distingue requête htmx (fragment) et chargement full-page. Les redirections après action utilisent `HX-Location` pour htmx, `Location` sinon (voir `CLAUDE.md`).
 - **Alpine.js — mode view/edit inline** — les fiches basculent entre lecture et édition côté client sans rechargement, Alpine pilotant l'état local.
 - **RBAC / rôles** — dans `html/includes/lib/auth.php` : `authUser`, gardes `canRead` / `canWrite` / `isManager` / `isAdmin`, plus `requireLogin` et `requirePasswordChange`. Sessions PHP + mots de passe bcrypt.
+- **CSRF** — toute action listée dans `$ACTION_MAP` (`includes/routing/actions.php`) exige un
+  jeton valide (`csrfCheck()`), sur **toutes** les méthodes HTTP depuis la 5.3.1, pas seulement
+  POST. `app.js` gère la propagation automatiquement (en-tête htmx, champ caché des formulaires
+  POST) — un `fetch()` inline est le seul cas demandant un ajout manuel de l'en-tête
+  `X-CSRF-Token` (voir `CLAUDE.md`).
 - **Active-record sans ORM** — 5 classes de domaine (`Contact`, `Segment`, `Compta`, `CombinedSegment`, `UserProperty`) encapsulent leur accès via le singleton `db()` directement, sans couche de mapping.
 - **Dirty-form guard** — garde globale dans `index.php` qui marque le formulaire « modifié » sur `change`/`input` et intercepte `beforeunload` / `htmx:beforeRequest`. Toujours poser `window.__dirtyOverride = true` avant une navigation JS et `data-no-dirty` sur les selects/inputs de navigation (voir `CLAUDE.md`).
 - **Assistant d'import (nouveauté 3.5.4)** — wizard CSV 3 étapes : `importUpload` → `importApply` → `importResolveDuplicates`. Source unique des champs importables dans `html/includes/lib/import_fields.php` ; détection de doublons par maps en mémoire ; création enveloppée dans une transaction ; possibilité d'ajouter les contacts importés à un **Segment**.
@@ -146,8 +151,11 @@ make db            # console MariaDB
 make down          # arrêter
 ```
 
-Application : `http://localhost:8080` — Adminer : `http://localhost:8082`.
-Premier lancement : passer par `install.php` pour initialiser le schéma et le premier compte admin.
+Application : `http://localhost:8080` — Adminer : `http://localhost:8082` — Mailpit (capture des
+emails envoyés en dev, SMTP `1025`/UI web `8025`) : `http://localhost:8025`.
+Premier lancement : passer par `install.php` pour initialiser le schéma et le premier compte
+admin ; sur un premier clone, `chmod 777 conf/` peut être nécessaire pour que l'installeur
+puisse y écrire `db.php`.
 
 Importer un dump SQL :
 

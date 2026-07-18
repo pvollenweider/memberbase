@@ -1,6 +1,6 @@
 # Guide administrateur — MemberBase
 
-Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.2.0). Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
+Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.3.1). Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
 
 ---
 
@@ -29,10 +29,15 @@ Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploi
 
 | Composant | Version minimale | Notes |
 |-----------|-----------------|-------|
-| PHP | 8.1 (8.2 recommandé) | Extensions `pdo_mysql` et `mbstring` requises |
+| PHP | 8.1 (8.2 recommandé) | Extensions `pdo_mysql`, `mbstring` et `gd` requises |
 | MariaDB | 10.5 | MySQL 8+ aussi compatible |
 | Apache | 2.4 | Module `mod_rewrite` activé |
 | pdftk-java | toute version stable | Génération des attestations PDF AcroForm |
+
+`gd` (`php8.2-gd`) est le seul pré-requis serveur pour le bulletin de versement QR suisse
+(§14.4) — aucune autre extension n'est nécessaire en production, `html/vendor/` (dépendances
+PHP Composer) et les bundles `html/js/dist/`/`html/css/dist/` étant committés dans le dépôt
+(voir §2.3).
 
 ### Installation des dépendances sur Debian/Ubuntu
 
@@ -170,6 +175,14 @@ ALTER TABLE users ADD COLUMN email_alt VARCHAR(255) NOT NULL DEFAULT '' AFTER em
 
 Voir aussi la section [12 — Mise à jour du schéma](#12-mise-à-jour-du-schéma) pour les cas exceptionnels.
 
+**Dépendances committées, rien à builder côté serveur.** `html/vendor/` (dépendances PHP
+Composer) et les bundles `html/js/dist/app.min.js`/`vendor.min.js`/`html/css/dist/app.min.css`
+(JS/CSS vendor + maison, regroupés via esbuild) sont commités dans le dépôt : un `git pull`
+suffit, aucune commande `composer` ni `npm` n'est nécessaire en production. Ces artefacts ne
+sont régénérés que par un contributeur qui modifie une dépendance ou un fichier source listé
+dans `build/dist.mjs` — voir [`CLAUDE.md`](../CLAUDE.md) à la racine du dépôt pour les
+commandes exactes (`composer require`/`update`, `npm run dist`).
+
 ---
 
 ## 3. Configuration
@@ -276,6 +289,23 @@ chown -R www-data:www-data $WEBROOT/html
 find $WEBROOT/html -type d -exec chmod 755 {} \;
 find $WEBROOT/html -type f -exec chmod 644 {} \;
 ```
+
+### Charset CSS/JS
+
+Sans directive explicite, Apache ne déclare pas de charset pour `text/css`/
+`application/javascript` — un client qui lit le fichier sans document HTML référent (donc sans
+`<meta charset>` à hériter) retombe alors sur Latin-1 et corrompt les caractères multi-octets
+(ex. le glyphe « ✓ » des boutons DataTables). Le fichier `docker/apache.conf` (utilisé en dev)
+déclare :
+
+```apache
+AddCharset UTF-8 .css .js
+```
+
+**Cette directive doit être répliquée dans le vhost de production**, au même titre que les
+en-têtes de sécurité (voir `MIGRATION_PROD.md`) — le fichier `docker/apache.conf` du dépôt sert
+de référence complète (charset, en-têtes de sécurité, cache-control, compression) pour ce que le
+vhost de prod, géré à la main, doit reproduire.
 
 ### Routes API (mod_rewrite)
 
@@ -555,6 +585,36 @@ SET password_hash = '$2y$10$...hash...', force_password_change = 1
 WHERE username = 'admin';
 ```
 
+### 7.6 Protection CSRF
+
+Toute action POST passant par `includes/routing/actions.php` est vérifiée contre un jeton CSRF
+de session (`csrfCheck()` dans `includes/lib/auth.php`) **avant** le dispatch : requête sans
+jeton valide → `403` et une entrée `audit_log` de code `csrfRejected` (action + méthode HTTP +
+IP). Le jeton est exposé une fois par page dans `<meta name="csrf-token">`.
+
+Depuis la version 5.3.1 (`3d1155d`), la vérification s'applique à **toutes les méthodes HTTP**,
+pas seulement POST : les handlers d'action lisent leurs paramètres dans `$_REQUEST`, si bien
+qu'une requête GET forgée (image, lien piégé) pouvait auparavant déclencher une mutation
+(suppression de segment, d'écriture comptable, suppression en masse…) sans jeton — faille
+fermée par ce durcissement.
+
+La propagation du jeton est automatique et ne demande rien à un contributeur ajoutant un
+formulaire ou un appel htmx standard :
+
+- `html/js/app.js` ajoute l'en-tête `X-CSRF-Token` à toutes les requêtes htmx
+  (`htmx:configRequest`) ;
+- il « estampille » aussi tout `<form method="post">` avec un champ caché `csrf`, au chargement
+  et après chaque swap htmx — ce qui couvre les soumissions natives (`hx-boost="false"`, upload
+  multipart) et les `form.submit()` programmatiques.
+
+Seul un `fetch()` inline appelant directement `index.php` doit ajouter l'en-tête à la main. La
+vérification est scopée aux actions présentes dans la table de routage
+(`$ACTION_MAP` de `includes/routing/actions.php`) : une valeur `action=` non mappée (utilisée
+par exemple comme simple indicateur de vue) n'est pas gardée, pour ne pas bloquer des pages en
+GET simple qui ne portent pas de jeton. L'API REST (`/api/*`) n'est pas concernée par ce
+mécanisme : elle est protégée par l'authentification de session + rôle et exige
+`Content-Type: application/json` sur les écritures (voir §8).
+
 ---
 
 ## 8. API REST
@@ -672,8 +732,21 @@ Il n'y a pas de fichiers uploadés par les utilisateurs à gérer : MemberBase n
 
 ### Sauvegarde de la base de données
 
+**Méthode recommandée** (testée en CI, workflow `backup.yml`) : les scripts
+`html/tools/backup.sh`/`restore.sh`, qui lisent la config depuis `conf/db.php`/variables
+d'environnement et utilisent `--single-transaction` :
+
 ```bash
-# Dump complet avec compression
+bash html/tools/backup.sh /var/backups/memberbase/db_$(date +%Y%m%d_%H%M%S).sql
+```
+
+Sans accès SSH, **Réglages → Santé** (rôle Admin) propose un export équivalent depuis
+l'interface web (`html/export.php`, dump SQL pur généré en PHP, sans dépendre de `mysqldump`)
+— voir §12.
+
+**Méthode manuelle de repli** (mysqldump) :
+
+```bash
 mysqldump -h localhost -u members -p members \
   | gzip > /var/backups/memberbase/db_$(date +%Y%m%d_%H%M%S).sql.gz
 
@@ -684,6 +757,8 @@ mysqldump -h localhost -u members -p members \
 ### Restauration
 
 ```bash
+bash html/tools/restore.sh /var/backups/memberbase/db_20250115.sql
+# ou, à partir d'un dump mysqldump gzippé :
 gunzip < backup_20250115.sql.gz | mysql -u members -p members
 ```
 
@@ -739,6 +814,15 @@ L'outil effectue des contrôles en lecture seule sur la base de données (`html/
 ---
 
 ## 11. CI/CD
+
+Quatre workflows GitHub Actions doivent être au vert avant un merge :
+
+| Workflow | Fichier | Vérifie |
+|---|---|---|
+| E2E Tests | `e2e.yml` | Parcours navigateur Playwright (détaillé ci-dessous) |
+| PHPUnit | `unit.yml` | Logique métier pure (`html/includes/lib/pure.php`, `import_fields.php`), PHP 8.2 |
+| Upgrade | `upgrade.yml` | `migrate.php` converge une base « legacy » (schéma pré-migrations) vers le schéma courant |
+| Backup/restore | `backup.yml` | Cycle complet seed → dump (`backup.sh`) → drop → restore (`restore.sh`) → vérification |
 
 ### Pipeline GitHub Actions (`.github/workflows/e2e.yml`)
 
@@ -851,9 +935,9 @@ la migration `0035_contact_type` est déjà appliquée — sur une base qui ne
 l'a pas encore, la table `contact_type` n'existe pas et le bloc est
 simplement masqué, plutôt que de faire planter la page Santé.
 
-### Migrations 5.2.0 (`0032`–`0037`)
+### Migrations 5.2.0–5.3.0 (`0032`–`0039`)
 
-Six migrations ajoutées depuis la dernière documentée en 5.1.0 (`0031`,
+Huit migrations ajoutées depuis la dernière documentée en 5.1.0 (`0031`,
 elle-même déjà présente en base depuis la v5.1.0 — voir la note de
 portabilité ci-dessous) :
 
@@ -865,6 +949,8 @@ portabilité ci-dessous) :
 | `0035_contact_type.sql` | Table `contact_type` (4 types intégrés : `private`/`institution`/`financial`/`company`) + colonne `contact.contact_type_id` (FK, défaut `1`) + colonnes `compta_type.is_financial_institution`/`is_company` |
 | `0036_compta_type_matrix_archive.sql` | Table `contact_type_compta_type` — matrice type de contact × type de compta (restreint les types proposés à la création d'une écriture) + colonne `compta_type.is_archived` |
 | `0037_contact_type_icon.sql` | Colonne `contact_type.icon` — nom d'icône Font Awesome (sans préfixe `fa-`/`fas fa-`, ajouté au rendu) |
+| `0038_contact_type_default_compta_type.sql` | Colonne `contact_type.default_compta_type_id` (FK vers `compta_type`) — type de compta pré-sélectionné à la création d'une écriture, selon le type de contact du membre |
+| `0039_suivi_task_paused_at.sql` | Colonne `suivi_task.paused_at` — état « en pause », distinct d'ouvert/terminé (voir le guide utilisateur §8 « Tâches ») |
 
 ### Portabilité SQL entre versions MariaDB/MySQL
 
@@ -933,11 +1019,22 @@ Structure :
 
 ### Ce qui est tracé
 
-La fonction `auditLog()` dans `bootstrap.php` est appelée par les endpoints API qui modifient des données :
+La fonction `auditLog()` est appelée à la fois par l'API REST et par la quasi-totalité des
+actions POST de l'interface web qui modifient ou suppriment des données — une quarantaine de
+codes d'action au total, répartis sur une douzaine de fichiers `includes/actions/*.php`. En
+particulier, contrairement à une ancienne version de cette doc, la gestion des comptes
+utilisateurs **est** tracée :
 
 - **`PATCH /api/contacts/{id}`** : enregistre un diff des champs modifiés (valeur avant / valeur après) au format JSON dans la colonne `detail`.
+- **Comptes applicatifs** (`includes/actions/auth.php`) : `createAppUser`, `updateAppUser`, `deleteAppUser`, `resetUserPassword`.
+- **Segments** (`includes/actions/segments.php`) : `deleteSegmentForce`, `bulkDeleteSegmentsForce` (suppression en masse des segments masqués, avec re-vérification serveur que chaque segment sélectionné est bien masqué), `bulkHide`/`bulkShow`, `renameSegment`, `reassignSegment`, `addSegmentCascadeRule`/`deleteSegmentCascadeRule`, imports…
+- **Membres** (`includes/actions/contacts.php`) : `deleteUser`, `anonymizeUser`, `deactivateUser`/`reactivateUser`, `mergeUsers`.
+- **Comptabilité, suivi, tâches, réglages** (`compta.php`, `suivi.php`, `suivi_tasks.php`, `settings.php`, `combined_segments.php`, `cotisation_reminder.php`, `compta_recap.php`, `attestation_email.php`, `import.php`, `maintenance.php`) : chaque suppression, envoi en masse, ou changement de configuration sensible génère une entrée.
+- **Rejets CSRF** : `csrfRejected` (action + méthode HTTP + IP), voir §7.6.
 
-Les actions de gestion des comptes (création, suppression, réinitialisation de mot de passe) transitent par les actions POST de l'interface web et ne passent pas par l'API — elles ne génèrent pas d'entrée `audit_log` à ce stade.
+Pour la valeur exacte du code d'une action donnée, se référer au premier argument de l'appel
+`auditLog(...)` dans le fichier `includes/actions/` correspondant — il n'existe pas de liste
+figée volontairement, pour éviter que cette doc dérive du code à chaque nouvelle action tracée.
 
 ### Consulter les logs
 
@@ -1036,6 +1133,7 @@ Après envoi, les entrées incluses sont marquées `notified_at = NOW()` et ne r
 Handler `html/includes/actions/attestation_email.php`, lib `html/includes/lib/attestation.php`. Actions : `previewAttestation`, `sendAttestationOne` (fiche membre / ligne du résumé dons), `previewAttestationsBulkList`, `sendAttestationsBulk` (résumé dons).
 
 - **Tampon/signature** (`html/includes/lib/attestation_stamp.php`) : overlay généré via FPDF et fusionné sur le PDF aplati via `pdftk stamp`. Images non commitées, déposées manuellement par l'admin système dans `conf/attestation_stamp.png` et `conf/attestation_signature.png` (hors `html/`, comme `conf/db.php` — absentes = pas de tampon, aucune erreur). Toujours appliqué sur les PDF envoyés par email ; opt-in (`?stamp=1`) sur le téléchargement direct (`attestation_don.php`/`attestation_bulk.php`).
+- **Accès restreint aux managers/admins** (depuis 5.3.1, `3d1155d`) : `attestation_don.php` et `attestation_bulk.php` renvoient `403` à tout compte qui n'est pas Manager ou Admin, y compris connecté. Avant ce correctif, un compte en lecture seule pouvait télécharger directement les données de dons nominatives de n'importe quel membre en devinant/énumérant l'URL.
 - **Déjà envoyé cette année** : `mbGetAlreadySentAttestationIds()` matche `email_log.tpl_key='tpl_attestation_don'` sur l'**année dans le sujet** (pas `YEAR(created_at)`, car une attestation peut être envoyée l'année suivant celle qu'elle couvre). L'envoi en masse liste ces personnes séparément (`previewAttestationsBulkList`) ; seules celles explicitement cochées (`force_ids`, liste d'ids séparés par des virgules) sont resendues, les autres comptent dans `already` (distinct de `skipped` = pas d'email / échec pdftk).
 - **Avertissement hors-saison** : si le mois courant n'est pas janvier, une case de confirmation est requise côté client avant l'envoi (individuel et en masse) — aucune vérification serveur, purement UX.
 - **Régénération depuis le journal** : `attestation_don.php?emailid=N` relit `email_log` (user_id, sujet pour l'année, `created_at` pour la date « Lieu / Date » du PDF), régénère et stampe le PDF avec la date d'envoi d'origine plutôt que la date du jour. Lien affiché dans `email_detail.php` pour toute entrée `tpl_attestation_don`.

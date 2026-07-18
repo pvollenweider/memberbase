@@ -17,15 +17,16 @@ Guide pratique pour la gestion quotidienne des membres, segments, comptabilité,
 5. [Fiche membre](#5-fiche-membre)
 6. [Comptabilité d'un membre (onglet Compta)](#6-comptabilité-dun-membre-onglet-compta)
 7. [Suivi d'un membre (onglet Suivi)](#7-suivi-dun-membre-onglet-suivi)
-8. [Journaux et aperçu des dons](#8-journaux-et-aperçu-des-dons)
-9. [Attestations de dons](#9-attestations-de-dons)
-10. [Segments](#10-segments)
-11. [Réglages](#11-réglages)
-12. [Rôles utilisateurs et matrice des droits](#12-rôles-utilisateurs-et-matrice-des-droits)
-13. [Changer son mot de passe](#13-changer-son-mot-de-passe)
-14. [Déconnexion](#14-déconnexion)
-15. [Récapitulatifs comptables par email](#15-récapitulatifs-comptables-par-email)
-16. [Rappels de cotisation impayée](#16-rappels-de-cotisation-impayée)
+8. [Tâches](#8-tâches)
+9. [Journaux et aperçu des dons](#9-journaux-et-aperçu-des-dons)
+10. [Attestations de dons](#10-attestations-de-dons)
+11. [Segments](#11-segments)
+12. [Réglages](#12-réglages)
+13. [Rôles utilisateurs et matrice des droits](#13-rôles-utilisateurs-et-matrice-des-droits)
+14. [Mon compte](#14-mon-compte)
+15. [Déconnexion](#15-déconnexion)
+16. [Récapitulatifs comptables par email](#16-récapitulatifs-comptables-par-email)
+17. [Rappels de cotisation impayée](#17-rappels-de-cotisation-impayée)
 
 ---
 
@@ -45,37 +46,49 @@ un **lien d'invitation**, il vous permet de définir vous-même votre mot de pas
 
 ### Changer la langue de l'interface
 
-Depuis le menu *Nom d'utilisateur → Mot de passe*, une carte **Langue** permet de choisir
-la langue de l'interface : français (par défaut), anglais, allemand ou espagnol. Le choix
-est enregistré sur le compte et s'applique à toutes vos futures connexions, sur n'importe
+Depuis le menu *Nom d'utilisateur → Mon compte* (voir §14), une carte **Langue** permet de
+choisir la langue de l'interface : français (par défaut), anglais, allemand ou espagnol. Le
+choix est enregistré sur le compte et s'applique à toutes vos futures connexions, sur n'importe
 quel poste.
 
-![Carte Langue sur la page Mot de passe](images/langue.png)
+![Carte Langue sur la page Mon compte](images/langue.png)
 
-### La barre de navigation
+### Barre du haut et menu latéral
 
-En haut de chaque page, la barre bleue contient :
+La barre bleue en haut de chaque page est volontairement minimale : une icône ☰ pour
+replier/déplier le menu latéral, le nom de l'organisation (lien vers le tableau de bord), et
+un champ **Chercher** à droite (visible en bureau uniquement). Toute la navigation se fait
+depuis le **menu latéral** fixe, à gauche :
 
-| Élément | Contenu |
+| Entrée | Contenu |
 |---|---|
-| **Tableau de bord** (icône jauge) | Page d'accueil par défaut après connexion : KPIs, graphique, raccourcis (voir ci-dessous) |
-| **Membres & finances** (icône personnes) | Segments, notification de versement, attestations, mouvements membres/donateurs — cinq onglets |
-| **Journaux** (icône livre) | Journal comptable et journal de suivi, tous membres confondus — deux onglets |
-| **Engrenage** (à droite) | Réglages — visible uniquement pour les rôles Manager et Admin |
-| **Nom d'utilisateur** (à droite) | Menu : *Mot de passe*, *Déconnexion* |
-| **Chercher** | Recherche rapide globale |
+| **Tableau de bord** | Page d'accueil par défaut après connexion : KPIs, graphique, raccourcis (voir ci-dessous) |
+| **Membres** | Liste des membres, filtrée par segment ou type de contact |
+| **Journal suivi** | Journal des notes de suivi, tous membres confondus |
+| **Finances** (groupe dépliable) | Journal comptable, notification de versement (managers), attestation |
+| **Évolution** (groupe dépliable) | Mouvements membres, mouvements donateurs (nouveaux/perdus) |
+| **Tâches** | Visible uniquement pour les rôles Manager et Admin, badge avec le nombre de tâches ouvertes |
+| **Administration** (groupe dépliable) | Réglages — visible uniquement pour les rôles Manager et Admin ; sous-groupes *Segments* et *Application* (voir ci-dessous) |
+| **Pied du menu** | Nom d'utilisateur → menu *Mon compte* (mot de passe, nom, email), *Déconnexion* |
 
-![Barre de navigation](images/navbar.png)
+![Barre du haut et menu latéral](images/navbar.png)
 
-Il n'y a plus de menu « Rapports » ni « Groupes » séparé, ni de liens distincts Listes /
-Relances / Aperçu des dons / Compta / Suivi : la gestion des segments se fait dans les
-**Réglages**, et les anciennes destinations autrefois séparées sont désormais réunies sous
-deux hubs à onglets accessibles depuis la barre — **Membres & finances** et **Journaux**. Les
+Le groupe **Administration** distingue deux sous-groupes selon le rôle requis : **Segments**
+(Groupes, Segments combinés, Catégories, Types de compta — accessible aux Managers) et
+**Application** (Réglages, Type de contact, Email, Utilisateurs, Santé, Journal d'audit,
+Intégrité, Archivés — réservé aux Admins).
+
+Il n'y a pas de menu « Rapports » ni de liens distincts Listes / Relances / Aperçu des dons /
+Compta / Suivi : la gestion des segments se fait dans **Administration → Segments**, et les
+anciennes destinations autrefois séparées sont désormais réunies sous deux hubs à onglets —
+**Membres & finances** (entrées *Membres*, *Finances* et *Évolution* du menu, cinq onglets au
+total) et **Journaux** (entrées *Journal suivi* et *Journal compta* du groupe *Finances*). Les
 anciennes routes (`?view=list`, `?view=comptaRecap`, `?view=resume`, `?view=lastEntryCompta`…)
 continuent de fonctionner mais ne figurent plus dans le menu.
 
-Sur mobile, la barre se réduit à une rangée d'icônes ; la loupe ouvre un champ de recherche
-et l'icône utilisateur regroupe le profil.
+Sur mobile, le menu latéral est masqué par défaut ; l'icône ☰ l'ouvre en superposition, avec un
+fond semi-transparent qui le referme au clic. Le champ **Chercher** n'est pas affiché sur petit
+écran — la recherche reste accessible depuis le tableau de bord (voir ci-dessous).
 
 ### Tableau de bord
 
@@ -162,7 +175,7 @@ Cliquer dessus ouvre un menu déroulant contenant :
 | Donateur non institutionnel actif en AAAA-1 | Membres ayant fait au moins un versement non institutionnel l'année précédente |
 
 - Une entrée de filtre rapide par **type de contact** configuré (Réglages → Types de contact,
-  voir §11), pour isoler par exemple les institutions ou les entreprises.
+  voir §12), pour isoler par exemple les institutions ou les entreprises.
 - La liste de tous les segments, regroupés par **catégorie**. Le badge à droite de chaque
   segment indique son nombre de membres.
 
@@ -310,6 +323,12 @@ Pour un membre **archivé**, un administrateur peut :
 - sinon, uniquement l'**anonymiser** : les données personnelles sont effacées, l'historique
   financier est conservé.
 
+Depuis la liste **Réglages → Archivés** (voir §12), ces deux opérations sont aussi disponibles
+en **masse** : sélectionner plusieurs profils via les cases à cocher fait apparaître un bouton
+Supprimer et un bouton Anonymiser, chacun limité aux profils réellement éligibles (une bannière
+avertit si la sélection mélange des profils éligibles et non éligibles) ; une fenêtre de
+confirmation récapitule les noms concernés avant validation.
+
 ### Données générales (mode lecture / édition)
 
 ![Fiche membre — données générales](images/fiche-donnees-generales.png)
@@ -327,7 +346,7 @@ dernière modification est indiquée en bas.
 ### Type de contact
 
 Chaque membre a un **type de contact** — donateur privé, institution, établissement financier,
-entreprise, ou un type personnalisé ajouté par un administrateur (voir §11). Il est affiché en
+entreprise, ou un type personnalisé ajouté par un administrateur (voir §12). Il est affiché en
 lecture sous forme de badge (icône + libellé) et modifiable via un menu déroulant en édition. Ce
 type peut restreindre les types de compta proposés à la création d'une écriture pour ce membre
 (matrice configurée en Réglages → Types de contact) et sert de critère pour certains filtres
@@ -402,7 +421,7 @@ l'entrée.
 - **Année** : filtrer par année, ou **Toutes** pour l'historique complet.
 - **Dons uniquement** : masquer les entrées non-don (ventes, remboursements…). Les entrées
   non comptées comme don portent la mention « non-don ».
-- **Attestation** (menu) : générer une attestation de don pour l'année choisie (voir §9).
+- **Attestation** (menu) : générer une attestation de don pour l'année choisie (voir §10).
 - Le pied de tableau affiche le **total** des entrées affichées.
 
 ---
@@ -422,7 +441,55 @@ sont réservés aux rôles Utilisateur et plus.
 
 ---
 
-## 8. Journaux et aperçu des dons
+## 8. Tâches
+
+Visible dans le menu latéral uniquement pour les rôles **Manager** et **Admin**
+(`?view=tasks`), badge rouge avec le nombre de tâches ouvertes. Une tâche peut être créée à la
+main (titre, échéance, priorité, note) ou générée automatiquement par une règle ; dans les deux
+cas elle est soit **globale**, soit rattachée à un membre (auquel cas elle apparaît aussi dans
+l'onglet Suivi de sa fiche, voir §7).
+
+![Page Tâches](images/journaux-suivi.png)
+
+### Créer et traiter une tâche
+
+- Le formulaire en haut de page (rôles Utilisateur et plus) crée une tâche globale : titre,
+  échéance, priorité (Haute / Normale / Basse), note optionnelle.
+- Chaque ligne du tableau propose une case à cocher (marquer terminée), un bouton pause
+  (mettre de côté sans la terminer) et, pour certaines tâches générées automatiquement, un
+  bouton d'action directe (voir ci-dessous).
+- Les tâches en retard (échéance dépassée) sont mises en évidence en rouge avec une icône
+  d'avertissement.
+- Cliquer sur une ligne ouvre la fiche du membre concerné (onglet Suivi), ou la tâche elle-même
+  si elle est globale.
+
+### Génération automatique (Admin)
+
+Cinq règles peuvent générer des tâches en un clic, chacune avec son propre bouton qui n'apparaît
+que s'il existe des candidats :
+
+| Règle | Candidats |
+|---|---|
+| Notification de versement impayée | Membres sans cotisation enregistrée pour l'année en cours |
+| Récapitulatif comptable à envoyer | Membres ayant demandé leur récap annuel, pas encore notifiés |
+| Doublons probables | Paires de contacts détectées comme doublons potentiels (nom/prénom ou email similaires) |
+| Segments masqués à traiter | Segments masqués encore assignés à des membres, une catégorie ou un segment combiné (voir §11) |
+| Attestations en attente | Donateurs éligibles à une attestation fiscale, pas encore envoyée pour l'année |
+
+Les tâches générées par les règles « Doublons probables » et « Segments masqués » portent un
+lien direct vers **Réglages → Intégrité** ; celles issues des règles de notification/récap/
+attestation portent un bouton d'envoi direct (email) qui clôt la tâche automatiquement une fois
+l'envoi effectué.
+
+### Tâches terminées et en pause
+
+- Les 200 dernières tâches terminées restent visibles (barrées), avec possibilité de les
+  rouvrir ou de les supprimer individuellement. Les rôles Manager et Admin disposent d'un
+  bouton **Supprimer** groupé pour vider la liste en une fois (confirmation requise).
+- Les tâches mises en pause apparaissent dans une liste séparée, avec un bouton pour les
+  reprendre.
+
+## 9. Journaux et aperçu des dons
 
 Ces vues transversales sont accessibles depuis la barre de navigation, via les hubs
 **Journaux** et **Membres & finances**.
@@ -468,7 +535,7 @@ Filtres et options :
 - **Inclure si attestation demandée** : ajoute les personnes ayant coché « souhaite une
   attestation » même sous le montant minimum.
 - **Attestations AAAA** : génère toutes les attestations de l'année en un seul PDF ou les
-  envoie par email en masse (voir §9).
+  envoie par email en masse (voir §10).
 
 Le tableau liste les donateurs avec leur statut (membre / don institutionnel), le montant des
 dons et l'indicateur d'attestation. Cliquer une ligne ouvre la compta du membre ; l'icône PDF
@@ -488,7 +555,7 @@ pastilles :
 
 Ouverts à tous les rôles (lecture seule) ; les actions à l'intérieur (envoi de rappel, création
 de segment) restent réservées aux **Managers** et **Admins**. La pastille **Perdus** de
-l'onglet **Mouvements membres** correspond aux rappels de cotisation impayée (voir §16) ; la
+l'onglet **Mouvements membres** correspond aux rappels de cotisation impayée (voir §17) ; la
 pastille **Perdus** de **Mouvements donateurs** propose un bouton **Créer segment « Donateurs
 à relancer AAAA »** qui rassemble ces personnes dans un nouveau segment pour faciliter la
 relance.
@@ -499,7 +566,7 @@ relance.
 
 ---
 
-## 9. Attestations de dons
+## 10. Attestations de dons
 
 Une attestation de don est un PDF officiel remis au donateur pour sa déclaration fiscale. Elle
 reprend les versements de l'année (hors types marqués « exclu des dons »), avec en option le
@@ -524,7 +591,11 @@ Les bases légales cantonales varient hors Genève ; se référer à la législa
 canton de l'organisation. Référence générale : Circulaire CSI du 18 janvier 2008 (modifiée
 novembre 2023) sur la déductibilité des libéralités.
 
-### Télécharger le PDF
+### Télécharger le PDF (rôles Manager et Admin)
+
+> Le téléchargement, comme l'envoi par email, est réservé aux rôles **Manager** et **Admin** :
+> ces PDF contiennent des données nominatives de dons. Un rôle Utilisateur ou Lecture seule
+> qui tente d'accéder directement au lien reçoit une erreur d'accès refusé.
 
 - **Depuis la fiche d'un membre** : onglet **Compta**, choisir une année, menu **Attestation**.
   Chaque année propose une case à cocher **Inclure tampon/signature** (décochée par défaut).
@@ -557,7 +628,7 @@ novembre 2023) sur la déductibilité des libéralités.
 
 ---
 
-## 10. Segments
+## 11. Segments
 
 Les segments découpent les membres en sous-ensembles (membres d'une année, comité, partenaires,
 donateurs à relancer…). Leur gestion se trouve dans les **Réglages** (icône engrenage,
@@ -603,6 +674,18 @@ Cliquer le nom d'un segment ouvre sa page d'édition, qui permet de :
 > ce segment n'est pas mis à jour. Pour un regroupement dynamique, utiliser un **segment
 > combiné**.
 
+### Segments masqués — suppression en masse
+
+Les segments masqués s'affichent dans une carte séparée **Masqués** de l'onglet Segments. Cocher
+plusieurs segments y fait apparaître un bouton **Supprimer**, actif uniquement quand *toute* la
+sélection est constituée de segments masqués (un segment encore visible dans la sélection le
+désactive). La confirmation liste les segments concernés avec leur nombre de membres, et rappelle
+que l'action est irréversible : elle retire tous les membres du segment puis le supprime
+définitivement (les membres eux-mêmes ne sont pas touchés). Chaque suppression est journalisée
+(Réglages → Journal, voir §12).
+
+![Confirmation de suppression en masse de segments masqués](images/segments-masques-bulk-delete.png)
+
 ### Catégories
 
 L'onglet **Catégories** organise visuellement les segments en sections (titres) dans le menu de
@@ -621,27 +704,34 @@ menu de filtrage de la liste des membres.
 
 ---
 
-## 11. Réglages
+## 12. Réglages
 
-Accès via l'icône **engrenage** (Managers et Admins). La barre latérale liste les sections ;
-les sections disponibles dépendent du rôle.
+Accessible depuis le groupe dépliable **Administration** du menu latéral (voir §1), réparti en
+deux sous-groupes selon le rôle requis.
 
-| Section | Rôle | Contenu |
-|---|---|---|
-| Segments | Manager / Admin | Gestion des segments (voir §10) |
-| Catégories | Manager / Admin | Catégories de segments |
-| Segments combinés | Manager / Admin | Filtres regroupant plusieurs segments |
-| Types compta | Manager / Admin | Types de versements |
-| Types de contact | Admin | Types de contact des membres, icônes, matrice avec les types compta |
-| Réglages | Admin | Paramètres généraux de l'organisation |
-| Email | Admin | Configuration SMTP, templates d'email, journal des envois |
-| Utilisateurs | Admin | Comptes de connexion à l'application |
-| Journal | Admin | Journal d'activité |
-| Intégrité | Admin | Vérification et correction des données |
-| Santé | Admin | Export de la base, application des migrations en attente |
-| Archivés | Admin | Liste des membres archivés |
+**Segments** (Managers et Admins) :
 
-![Barre latérale des Réglages (vue Admin)](images/reglages-sidebar.png)
+| Section | Contenu |
+|---|---|
+| Segments (Groupes) | Gestion des segments, dont la suppression en masse des segments masqués (voir §11) |
+| Segments combinés | Filtres regroupant plusieurs segments |
+| Catégories | Catégories de segments |
+| Types compta | Types de versements |
+
+**Application** (Admins uniquement) :
+
+| Section | Contenu |
+|---|---|
+| Réglages | Paramètres généraux de l'organisation |
+| Types de contact | Types de contact des membres, icônes, matrice avec les types compta |
+| Email | Configuration SMTP, templates d'email, journal des envois |
+| Utilisateurs | Comptes de connexion à l'application |
+| Santé | Export de la base, application des migrations en attente |
+| Journal | Journal d'activité |
+| Intégrité | Vérification et correction des données |
+| Archivés | Liste des membres archivés, avec suppression et anonymisation en masse (voir §5) |
+
+![Groupe Administration déplié dans le menu latéral](images/reglages-sidebar.png)
 
 ### Types compta
 
@@ -691,7 +781,7 @@ des types personnalisés ajoutés au besoin.
 | Numéro IDE | Identifiant d'entreprise suisse — bouton **Vérifier via Zefix** pour préremplir nom/adresse/but statutaire automatiquement |
 | But statutaire | Extrait des statuts, utilisé dans les documents officiels |
 | Statut d'exonération fiscale | Saisie manuelle (ex. « Exonérée AFC-GE depuis 2018 ») |
-| IBAN | Numéro IBAN de l'association, utilisé pour générer le bulletin de versement QR joint aux rappels de cotisation (voir §16) |
+| IBAN | Numéro IBAN de l'association, utilisé pour générer le bulletin de versement QR joint aux rappels de cotisation (voir §17) |
 | Description du montant (rappels de cotisation) | Texte affiché dans l'email de rappel et sur le bulletin QR (champ « Montant »), ex. « min. CHF 50.- / pers. · CHF 80.- / famille » — laissé vide, une valeur par défaut est utilisée |
 | Page « Devenir membre » | URL de la page d'adhésion du site de l'association, utilisée dans les emails de rappel de cotisation via la variable `{{membership_url}}` |
 
@@ -703,7 +793,7 @@ Gestion des comptes de connexion :
 
 - Liste des utilisateurs (identifiant, nom, e-mail, rôle, statut, dernière connexion).
 - **Nouvel utilisateur** : identifiant, nom affiché, e-mail, **rôle** (une **matrice des
-  droits** est consultable via l'icône **?** à côté du champ Rôle — voir §12), et mot de passe
+  droits** est consultable via l'icône **?** à côté du champ Rôle — voir §13), et mot de passe
   temporaire (ou lien d'invitation à envoyer).
 - **Modifier**, **Réinitialiser le mot de passe** (l'utilisateur devra le changer à la
   prochaine connexion), **Supprimer**, activer / désactiver un compte.
@@ -749,7 +839,7 @@ Depuis Intégrité, cliquer **Fusionner** sur un doublon ouvre l'écran de fusio
 
 ---
 
-## 12. Rôles utilisateurs et matrice des droits
+## 13. Rôles utilisateurs et matrice des droits
 
 L'application distingue quatre rôles : **Lecture seule**, **Utilisateur**, **Manager** et
 **Admin**. La matrice ci-dessous est consultable directement à la création d'un compte (icône
@@ -771,25 +861,31 @@ saisir compta et suivi, mais pas gérer les segments.
 
 ---
 
-## 13. Changer son mot de passe
+## 14. Mon compte
 
-1. Cliquer son **nom d'utilisateur** en haut à droite.
-2. Choisir **Mot de passe**.
-3. Saisir le mot de passe actuel, puis le nouveau mot de passe et sa confirmation.
-4. Enregistrer.
+1. En bas du menu latéral, cliquer son nom d'utilisateur.
+2. Choisir **Mon compte**.
+
+La page regroupe deux cartes :
+
+- **Profil** : nom affiché et adresse email, modifiables librement.
+- **Mot de passe** : saisir le mot de passe actuel, puis le nouveau et sa confirmation.
+
+![Page Mon compte](images/mon-compte.png)
 
 Si un administrateur a réinitialisé votre mot de passe, l'application impose ce changement à la
-connexion suivante.
+connexion suivante (dans ce cas, seule la carte Mot de passe est affichée). La carte **Langue**
+décrite au §1 se trouve sur cette même page.
 
 ---
 
-## 14. Déconnexion
+## 15. Déconnexion
 
 Cliquer son **nom d'utilisateur** en haut à droite, puis **Déconnexion**.
 
 ---
 
-## 15. Récapitulatifs comptables par email
+## 16. Récapitulatifs comptables par email
 
 Accès : **Membres & finances** → onglet **Notification de versement** (`?view=peopleFinance&tab=recap`,
 Manager / Admin). Envoie à chaque membre un email récapitulant ses entrées comptables pas
@@ -814,7 +910,7 @@ décembre 2026), l'email le précise explicitement.
 
 ---
 
-## 16. Rappels de cotisation impayée
+## 17. Rappels de cotisation impayée
 
 Accès : **Membres & finances** → onglet **Mouvements membres** → pastille **Perdus**
 (`?view=peopleFinance&tab=lapsed&cohort=lapsed`). Liste les membres ayant cotisé l'année
@@ -831,11 +927,11 @@ précédente mais pas encore l'année en cours.
   envoi).
 - Le contenu de l'email est celui configuré dans Réglages → Email → Templates
   (`tpl_cotisation_reminder`), avec en pièce jointe un **bulletin de versement QR** suisse
-  (généré automatiquement à partir de l'IBAN de l'organisation, voir §11 — Réglages
+  (généré automatiquement à partir de l'IBAN de l'organisation, voir §12 — Réglages
   généraux) mentionnant la description de montant configurée et « Cotisation AAAA » comme
   message.
 - **Copie (BCC)** : si un email de contact est configuré dans Réglages → Email, une case
   **Envoyer une copie à [adresse]** propose d'en recevoir une copie silencieuse, à l'envoi
   individuel comme en masse.
 - La vue propose aussi un bouton **Créer segment « Membres à relancer AAAA »** pour extraire
-  la liste dans un nouveau segment (même principe que pour les donateurs perdus, voir §8).
+  la liste dans un nouveau segment (même principe que pour les donateurs perdus, voir §9).

@@ -1,6 +1,6 @@
 # Référence API MemberBase
 
-API REST interne de l'application MemberBase (version **5.2.0**). Toutes les réponses sont en JSON UTF-8.
+API REST interne de l'application MemberBase (version **5.3.1**). Toutes les réponses sont en JSON UTF-8.
 
 > ⚠️ **v5.0.0 (breaking)** : les routes `/api/members` et `/api/groups` sont renommées `/api/contacts` et `/api/segments` (aucune rétrocompatibilité). Voir le [CHANGELOG](../CHANGELOG.md#500--2026-07-09).
 
@@ -23,6 +23,13 @@ API REST interne de l'application MemberBase (version **5.2.0**). Toutes les ré
 L'API ne dispose pas de token séparé. Elle repose sur **la session web de l'application** : la requête doit porter le cookie de session obtenu lors d'une connexion via l'interface web (`login.php`).
 
 Le garde d'authentification est appliqué en amont de chaque endpoint par `html/api/_bootstrap.php` : si la session est absente ou expirée (`isLoggedIn()` faux), **toutes les routes retournent `401`** avant tout traitement.
+
+`_bootstrap.php` applique aussi deux gardes globales avant le routage, sur toutes les
+ressources : un `POST`/`PUT`/`PATCH` sans en-tête `Content-Type: application/json` est rejeté en
+`415` (durcissement CSRF de l'API, issue #89 — un formulaire HTML classique ne peut pas forger
+ce Content-Type), et un **limiteur de débit fixed-window** rejette au-delà de 600 requêtes/60s
+par couple utilisateur+IP en `429` avec un en-tête `Retry-After` (issue #92, table
+`api_rate_limit`).
 
 ```bash
 # Login via le formulaire web, puis réutilisation du cookie
@@ -83,7 +90,9 @@ Encodage JSON : `JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES`.
 | `404` | Ressource introuvable |
 | `405` | Méthode non autorisée |
 | `409` | Conflit (groupe non vide) |
+| `415` | `POST`/`PUT`/`PATCH` sans `Content-Type: application/json` |
 | `422` | Données manquantes ou invalides dans le corps |
+| `429` | Débit dépassé (600 requêtes/60s par utilisateur+IP) — en-tête `Retry-After` posé |
 | `500` | Erreur serveur interne |
 
 ---

@@ -62,8 +62,11 @@ contact de tous les membres d'un segment.
 Table `suivi_task` : tâches de suivi générées automatiquement (ex. relance d'un membre dont la
 cotisation n'a pas été renouvelée) ou créées manuellement, avec dédoublonnage par clé de règle
 (`rule_key`) pour éviter les doublons lors d'une régénération. Liste globale accessible depuis
-la barre de navigation ; auto-clôture quand la condition qui a généré la tâche n'est plus vraie
-(ex. le membre paie par un autre biais).
+le menu latéral, réservée aux rôles Manager et Admin ; auto-clôture quand la condition qui a
+généré la tâche n'est plus vraie (ex. le membre paie par un autre biais). Cinq règles de
+génération automatique (cotisations impayées, récaps en attente, doublons, segments masqués
+peuplés, attestations en attente — Admin), et un état « en pause » (`paused_at`, depuis 5.3.0)
+distinct d'ouvert/terminé.
 
 ### Segments et segments combinés
 
@@ -95,9 +98,11 @@ la barre de navigation ; auto-clôture quand la condition qui a généré la tâ
 
 ### Hubs à onglets (Membres & finances, Journaux)
 
-Depuis la v5.2.0, les anciennes vues séparées sont réunies en deux hubs à onglets
-(navbar) — chaque onglet correspond à une ancienne route, toujours fonctionnelle en
-lien direct :
+Depuis la v5.2.0, les anciennes vues séparées sont réunies en deux hubs à onglets — chaque
+onglet correspond à une ancienne route, toujours fonctionnelle en lien direct. Depuis la
+refonte de navigation 5.3.0, la barre d'onglets Bootstrap de ces hubs reste affichée sur mobile
+mais n'est plus la navigation principale sur desktop, où chaque destination a son propre lien
+dans le **menu latéral** :
 
 | Hub | Onglet | Ancienne route | Description |
 |-----|--------|-----------------|-------------|
@@ -247,7 +252,8 @@ html/
 │   │   ├── settings_contact_types.php # Types de contact + matrice compta — v5.2.0
 │   │   └── ...
 │   ├── partials/
-│   │   ├── menu.php            # Nav sidebar
+│   │   ├── sidebar_nav.php     # Menu latéral fixe — v5.3.0
+│   │   ├── topbar.php          # Barre du haut minimale (toggle, brand, recherche) — v5.3.0
 │   │   └── donor_table.php     # Shared donor table partial
 │   ├── lib/
 │   │   └── contact_type.php    # Types de contact, matrice type de contact × type de compta — v5.2.0

@@ -153,6 +153,23 @@ Vérification : `curl -I https://votre-domaine/ | grep -i -E 'x-frame|x-content|
 
 ---
 
+## Charset CSS/JS (5.3.1)
+
+`docker/apache.conf` déclare aussi `AddCharset UTF-8 .css .js` — sans quoi Apache ne pose pas de
+charset sur `text/css`/`application/javascript`, et un client sans document HTML référent (donc
+sans `<meta charset>` à hériter) retombe sur Latin-1, corrompant les caractères multi-octets
+(ex. « ✓ » dans les boutons DataTables). **À répliquer dans le vhost de prod** au même titre que
+les en-têtes de sécurité ci-dessus :
+
+```apache
+AddCharset UTF-8 .css .js
+```
+
+Vérification : `curl -sI https://votre-domaine/css/dist/app.min.css | grep -i content-type` doit
+afficher `charset=utf-8`.
+
+---
+
 ## Configuration Apache — routes API
 
 Les endpoints API utilisent des URLs propres (`/api/contacts/42`).
