@@ -467,6 +467,20 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap">
     <h2 id="changelog-h">Dernières versions</h2>
     <article class="release">
+      <h3 class="v">5.3.2 <span class="d">20 juillet 2026</span></h3>
+      <ul>
+        <li><strong>Rollover annuel du segment membre</strong> : au 1er janvier (ou à la première</li>
+        <li><strong>Catégorisation automatique</strong> : les segments « Membre AAAA » créés par le</li>
+        <li><strong>Intégrité — cotisants désynchronisés</strong> : nouveau contrôle qui repère les</li>
+        <li><strong>Ajout de membre depuis un segment</strong> : la case « Ajouter au segment «X» » du</li>
+        <li><strong>Intégrité — bouton « Appliquer » (règles d'auto-assignation)</strong> : le</li>
+        <li><strong>Cartes manquantes</strong> : les pages <code class="inline">?view=addUser</code>, <code class="inline">?view=mergeUsers</code> et les</li>
+        <li><strong>Intégrité — « Membres sans nom de famille ni société »</strong> : ajout de la</li>
+        <li><strong><code class="inline">make deploy</code></strong> (<code class="inline">tools/deploy.sh</code>) : synchronise <code class="inline">html/</code> vers le serveur</li>
+        <li>Comblé les trous de couverture e2e identifiés par un audit doc-vs-tests :</li>
+      </ul>
+    </article>
+    <article class="release">
       <h3 class="v">5.3.1 <span class="d">17 juillet 2026</span></h3>
       <ul>
         <li><strong>Sécurité — CSRF</strong> : le jeton est désormais vérifié sur <strong>toutes</strong> les méthodes HTTP pour chaque action, et plus seulement en POST. Les handlers lisant leurs paramètres dans <code class="inline">$_REQUEST</code>, une requête GET forgée (image, lien) pouvait déclencher une mutation (suppression de segment, d'écriture comptable, suppression en masse…) sans jeton.</li>
@@ -499,19 +513,6 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li>L'écriture compta ajoutée ou éditée ne filtre plus la liste par son propre type ensuite.</li>
         <li>Position et contraste du jour sélectionné dans le sélecteur de date.</li>
         <li>14 tests e2e pré-existants (sans rapport avec ce cycle) corrigés : gap réel dans la fiche membre (nom/type de contact absents du mode lecture), tests jamais mis à jour après des changements d'UX déjà en production, données de test datées devenues obsolètes.</li>
-      </ul>
-    </article>
-    <article class="release">
-      <h3 class="v">5.2.0 <span class="d">13 juillet 2026</span></h3>
-      <ul>
-        <li><strong>Tableau de bord d'accueil</strong> (<code class="inline">?view=dashboard</code>, nouvelle vue par défaut après connexion) : cartes KPI (contributions, donateurs, membres) avec delta vs année précédente, graphique de recettes cumulées, répartition des dons par type de compta, recherche rapide et raccourcis contextuels (relances, notifications en attente, attestations, migrations).</li>
-        <li><strong>Hub « Membres & finances »</strong> (<code class="inline">?view=peopleFinance</code>), remplace les anciens listings séparés : onglets Segments, Notification de versement, Attestation, Mouvements membres et Mouvements donateurs.</li>
-        <li><strong>Hub « Journaux »</strong> (<code class="inline">?view=journals</code>) : onglets Compta et Suivi fusionnés en une seule destination de navigation.</li>
-        <li><strong>Type de contact</strong> (donateur privé / institution / établissement financier / entreprise), nouvelle table <code class="inline">contact_type</code> (migration <code class="inline">0035</code>) : types personnalisés avec icône, matrice type de contact × type de compta, archivage des types de compta inutilisés.</li>
-        <li><strong>Gestion de tâches</strong> (<code class="inline">suivi_task</code>) : titre, priorité, échéance, génération automatique de relances de cotisation impayée, tâches planifiées et digest quotidien par email.</li>
-        <li><strong>Règles d'auto-assignation de segment</strong> : assignation automatique à un segment secondaire quand un membre rejoint un segment donné.</li>
-        <li><strong>Migration <code class="inline">0031</code> corrigée</strong> (<code class="inline">RENAME COLUMN</code> incompatible MariaDB &lt; 10.5.2, remplacé par <code class="inline">CHANGE COLUMN</code>) — cause d'un blocage de migration en production.</li>
-        <li>Colonnes affichées/masquées (DataTables) sur les listes de membres/donateurs ; corrections diverses de navigation entre le tableau de bord et les hubs.</li>
       </ul>
     </article>
     <p class="changelog-more"><a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md">Historique complet des versions</a></p>
