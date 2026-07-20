@@ -178,14 +178,46 @@ exit;
 - Détection de doublons : maps en mémoire (email, nom+prénom) préchargées en une requête — ne pas revenir à des SELECT par ligne
 - La création des contacts est enveloppée dans une transaction
 
+## Pièges connus (sources de régression)
+
+Ces cinq pièges sont responsables de la majorité des régressions silencieuses rencontrées sur ce projet — aucun d'eux ne fait planter la requête, ils produisent juste un comportement qui « ne fait rien » ou un faux échec de test.
+
+### 1. Whitelist des actions (`includes/routing/actions.php`)
+
+Toute nouvelle valeur `action=` gérée dans `includes/actions/*.php` **doit être enregistrée** dans le tableau `$ACTION_MAP` de `includes/routing/actions.php`, sinon la requête répond `200` sans rien exécuter — silencieusement, sans erreur PHP ni log. Après l'ajout d'une action : vérifier qu'elle apparaît dans `$ACTION_MAP` avant même d'écrire le test e2e.
+
+### 2. Redirection silencieuse d'onglet (htmx boost)
+
+Un `<form method="post">` sans `hx-boost="false"` est intercepté par le boost htmx global (`<body hx-boost="true">` dans `index.php`). Si le handler ne fait pas de `header('HX-Location: ...')`/`header('Location: ...')` explicite vers la bonne vue/onglet, la réponse retombe sur le fast-path htmx d'`index.php` qui rend `view`/`tab` tels que postés dans les champs cachés du formulaire — **pas forcément la page où était l'utilisateur**. Tout bouton « Appliquer »/« Corriger » sur une sous-page doit poster explicitement les hidden fields `view`/`tab` pointant vers la page appelante (cf. bug déjà rencontré : le fix du test d'intégrité « cascade » postait `tab=groups` au lieu de `tab=integrity`).
+
+### 3. Suite Playwright complète = `--workers=1` obligatoire
+
+`npx playwright test` sans `--workers=1` lance 5 workers en parallèle sur la **même** base `members_test` — plusieurs fichiers `.spec.ts` mutent les mêmes lignes (`app_settings`, contacts nommés de façon similaire, rate-limit API partagé) et se marchent dessus, produisant des échecs qui n'ont rien à voir avec une régression réelle (ex. `429` au lieu de `403` parce qu'un autre worker a consommé le quota, tables `#pf-tab-members` polluées par des contacts créés par `segment-cascade.spec.ts` en même temps). **Toujours** valider avec :
+
+```bash
+npx playwright test --workers=1
+```
+
+avant de conclure à une régression. Un test isolé qui échoue en run complet mais passe seul (`npx playwright test tests/xxx.spec.ts --workers=1`) est presque toujours un problème d'isolation entre fichiers, pas un bug du code changé.
+
+### 4. `app_settings` partagé entre fichiers de test
+
+Toute mutation de `app_settings` (`default_segment`, `membre_segment`, etc.) dans un test doit être restaurée dans un `test.afterAll()` **inconditionnel** (pass ou fail) — d'autres fichiers de spec dépendent implicitement des valeurs seedées (`tests/fixtures/seed.sql`). Un test qui change `membre_segment` sans le restaurer casse silencieusement `tasks.spec.ts` et d'autres fichiers exécutés après lui dans la même run.
+
+### 5. `conf/db.php` peut rester bloqué sur `members_test`
+
+`tests/fixtures/reset-db.sh` réécrit `conf/db.php` pour pointer sur `members_test` le temps de la suite. Ce fichier n'est **pas remis à `members`** automatiquement après coup — si un test tourne juste avant une session manuelle sur `localhost:8080` (captures d'écran, vérification visuelle, debug), l'app pointe encore sur la base de test (vide/seedée, pas les vraies données dev), avec le branding « MemberBase Test ». Avant tout test manuel ou capture d'écran après une run Playwright : vérifier `conf/db.php` (`DB_NAME` doit valoir `members`), sinon le remettre à la main.
+
 ## Tests
 
 Deux suites complémentaires :
 
-- **E2E Playwright** (`tests/*.spec.ts`) — parcours navigateur, DB de test + seed. `make test` / `npx playwright test`. CI : `.github/workflows/e2e.yml`.
+- **E2E Playwright** (`tests/*.spec.ts`) — parcours navigateur, DB de test + seed. `make test` / `npx playwright test --workers=1` (voir piège n°3 ci-dessus — ne jamais valider une régression sur une run parallèle par défaut). CI : `.github/workflows/e2e.yml`.
 - **Unitaires PHPUnit** (`tests/unit/*Test.php`) — logique métier **pure** (sans DB). `make test-unit` (après `composer install`). CI : `.github/workflows/unit.yml` (PHP 8.2).
 
 Les fonctions pures testables vivent dans `html/includes/lib/pure.php` (dates, `unquote`) et `html/includes/lib/import_fields.php` (`importNormalizeSexe`, `importFieldValue`) — **sans effet de bord**, pour être incluables hors du contexte `APP_ENTRY`/PDO. Le bootstrap unitaire (`tests/unit/bootstrap.php`) définit `APP_ENTRY` et n'inclut que ces fichiers. Ne pas y introduire de dépendance à `$pdo` ou à une connexion DB.
+
+Avant tout `git commit` touchant du PHP : lint chaque fichier modifié (`docker compose exec -T php php -l <fichier>` avec un chemin relatif à `html/`, le webroot du conteneur) — plus rapide qu'attendre un 500 en test e2e.
 
 ## Migrations DB
 
