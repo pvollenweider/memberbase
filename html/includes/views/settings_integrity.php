@@ -292,7 +292,7 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
             <input type="hidden" name="id" value="<?= (int)$r->user_id ?>">
             <input type="hidden" name="segmentId" value="<?= (int)$r->target_segment_id ?>">
             <input type="hidden" name="view" value="settings">
-            <input type="hidden" name="tab" value="groups">
+            <input type="hidden" name="tab" value="integrity">
             <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:0.75rem">
               <?= $GLOBAL['cascadeRuleApplyFix'] ?>
             </button>
@@ -356,11 +356,12 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
   <template>
 <p class="small text-muted mt-2 mb-1"><?= $GLOBAL['membersNoNameHelp'] ?></p>
   <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
-    <thead><tr><th><?= $GLOBAL['firstName'] ?></th><th></th></tr></thead>
+    <thead><tr><th><?= $GLOBAL['firstName'] ?></th><th><?= $GLOBAL['email'] ?></th><th></th></tr></thead>
     <tbody>
     <?php foreach ($noName as $r): ?>
       <tr>
         <td><?= htmlentities(trim($r->firstname) ?: '—', ENT_COMPAT, $charset) ?> <span class="text-muted" style="font-size:0.75rem">#<?= (int)$r->id ?></span></td>
+        <td><?= htmlentities(trim($r->email) ?: '—', ENT_COMPAT, $charset) ?></td>
         <td class="text-end">
           <a href="<?= appUrl() ?>?view=updateUser&amp;id=<?= (int)$r->id ?>"
              class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:0.75rem"><?= $GLOBAL['editShort'] ?></a>

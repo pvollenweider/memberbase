@@ -59,6 +59,8 @@ if (!$_ceEmbedded) {
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= htmlentities($user->getFirstName(), ENT_COMPAT, $charset) ?> <?= htmlentities($user->getLastName(), ENT_COMPAT, $charset) ?>
       </a>
     </div>
+    <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
     <?php endif ?>
 
     <form role="form" action="<?= appUrl() ?>" name="updateCompta" method="post">
@@ -161,6 +163,8 @@ if (!$_ceEmbedded) {
 
     </form>
 <?php if (!$_ceEmbedded): ?>
+    </div>
+    </div>
   </div>
 </div>
 </div>

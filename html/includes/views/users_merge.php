@@ -90,6 +90,9 @@ include __DIR__ . '/../partials/page_header.php';
     <span class="text-muted"><?= $GLOBAL['memberMerge'] ?></span>
   </div>
 
+  <div class="card shadow-sm border-0">
+  <div class="card-body p-4">
+
   <p class="text-muted mb-4" style="font-size:0.85rem">
     <?= $GLOBAL['mergeInstruction'] ?>
     <?php if (empty($_muDivergent)): ?>
@@ -284,6 +287,9 @@ include __DIR__ . '/../partials/page_header.php';
     </div>
 
   </form><!-- #merge-form -->
+
+  </div>
+  </div>
 
   <!-- Confirmation dialog -->
   <dialog id="merge-dialog" class="ca-merge-dialog" aria-labelledby="merge-dialog-title">

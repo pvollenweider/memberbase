@@ -78,6 +78,7 @@ test.describe('mbRolloverYearlyMemberSegment (PHP unit-style, isolated year)', (
       define('APP_ENTRY', true);
       require '/var/www/html/includes/lib/bootstrap.php';
       require '/var/www/html/classes/segment_class.php';
+      require '/var/www/html/classes/combined_segment_class.php';
       require '/var/www/html/includes/lib/segment_rollover.php';
       $r = mbRolloverYearlyMemberSegment(db(), $appSettings, ${TEST_YEAR});
       echo json_encode($r);
@@ -94,6 +95,14 @@ test.describe('mbRolloverYearlyMemberSegment (PHP unit-style, isolated year)', (
 
     const memberIds = sql(`SELECT user_id FROM contact_segment WHERE segment_id=${result.segmentId}`);
     expect(memberIds.split('\n')).toContain(contactId);
+
+    // The new segment must land in a "Membre" category (combined_segment, is_filter=0).
+    const categoryRow = sql(`
+      SELECT m.id FROM combined_segment m
+      JOIN combined_segment_member mm ON mm.combined_segment_id = m.id
+      WHERE mm.segment_id = ${result.segmentId} AND m.is_filter = 0 AND m.name = 'Membre'
+    `);
+    expect(categoryRow).not.toBe('');
   });
 
   test('running it again is a no-op (idempotent)', () => {
@@ -101,6 +110,7 @@ test.describe('mbRolloverYearlyMemberSegment (PHP unit-style, isolated year)', (
       define('APP_ENTRY', true);
       require '/var/www/html/includes/lib/bootstrap.php';
       require '/var/www/html/classes/segment_class.php';
+      require '/var/www/html/classes/combined_segment_class.php';
       require '/var/www/html/includes/lib/segment_rollover.php';
       $r = mbRolloverYearlyMemberSegment(db(), $appSettings, ${TEST_YEAR});
       echo json_encode($r);

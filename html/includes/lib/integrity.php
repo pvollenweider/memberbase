@@ -122,7 +122,7 @@ function mbRunIntegrityChecks(PDO $db, array $appSettings = []): array
         ")->fetchAll(PDO::FETCH_OBJ),
 
         'noName' => $db->query("
-            SELECT id, firstname, lastname, society
+            SELECT id, firstname, lastname, society, email
             FROM contact
             WHERE status=1 AND TRIM(lastname) = '' AND TRIM(society) = ''
             ORDER BY id

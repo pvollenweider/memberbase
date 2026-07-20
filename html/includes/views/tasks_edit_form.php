@@ -36,6 +36,8 @@ include __DIR__ . '/../partials/page_header.php';
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= $GLOBAL['back'] ?>
       </a>
     </div>
+    <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
 
     <form role="form" action="<?= appUrl() ?>" method="post" name="updateTask">
       <input type="hidden" name="taskid" value="<?= $task->getId() ?>"/>
@@ -88,6 +90,8 @@ include __DIR__ . '/../partials/page_header.php';
       </div>
 
     </form>
+    </div>
+    </div>
   </div>
 </div>
 </div>

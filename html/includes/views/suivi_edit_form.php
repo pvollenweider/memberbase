@@ -37,6 +37,8 @@ if (!$_seEmbedded) {
         <i class="fas fa-arrow-left me-1" aria-hidden="true"></i><?= htmlentities($suivi_user->getFirstName(), ENT_COMPAT, $charset) ?> <?= htmlentities($suivi_user->getLastName(), ENT_COMPAT, $charset) ?>
       </a>
     </div>
+    <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
     <?php endif ?>
 
     <form role="form" action="<?= appUrl() ?>" method="post" name="updateSuivi">
@@ -77,6 +79,8 @@ if (!$_seEmbedded) {
 
     </form>
 <?php if (!$_seEmbedded): ?>
+    </div>
+    </div>
   </div>
 </div>
 </div>

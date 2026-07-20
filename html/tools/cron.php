@@ -47,6 +47,7 @@ require_once __DIR__ . '/../includes/lib/locale.php';
 mbLoadLocale(null);
 require_once __DIR__ . '/../includes/lib/bootstrap.php';
 require_once __DIR__ . '/../classes/segment_class.php';
+require_once __DIR__ . '/../classes/combined_segment_class.php';
 require_once __DIR__ . '/../classes/member_filter_class.php';
 require_once __DIR__ . '/../classes/suivi_task_class.php';
 require_once __DIR__ . '/../includes/lib/mailer.php';

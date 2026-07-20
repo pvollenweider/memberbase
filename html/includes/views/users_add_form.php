@@ -27,6 +27,8 @@ include __DIR__ . '/../partials/page_header.php';
 <div class="container-xl px-4 ca-hero-overlap">
 <div class="row justify-content-center mt-3">
   <div class="col-md-9 col-lg-7">
+  <div class="card shadow-sm border-0">
+  <div class="card-body p-4">
 
     <form action="<?= appUrl() ?>?action=addUser&amp;view=updateUser" method="post" id="addUser">
       <?php if ($fromSegment > 0): ?>
@@ -200,6 +202,8 @@ include __DIR__ . '/../partials/page_header.php';
       </div>
 
     </form>
+  </div>
+  </div>
   </div>
 </div>
 </div>

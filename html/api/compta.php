@@ -171,6 +171,7 @@ function handleCreate(): void
     if (!empty($comptaTypes[$typeId]->is_cotisation)) {
         global $appSettings;
         require_once __DIR__ . '/../classes/segment_class.php';
+        require_once __DIR__ . '/../classes/combined_segment_class.php';
         require_once __DIR__ . '/../includes/lib/segment_rollover.php';
         $_apiCotiYear = (int)($c->getCotisationYear() ?: date('Y', (int)$c->getDate()));
         mbEnsureCotisationSegmentMembership(db(), $appSettings, $memberId, $_apiCotiYear);

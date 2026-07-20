@@ -17,6 +17,30 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  */
 
 /**
+ * Find-or-create the segment category (combined_segment, is_filter=0) named
+ * after the prefix, and put the given segment in it. Segments named
+ * "{prefix} <year>" belong together in the filter menu — an admin shouldn't
+ * have to remember to file each newly-rolled-over year into "Membre" by hand.
+ */
+function mbEnsureSegmentInPrefixCategory(PDO $pdo, string $prefix, int $segmentId): void
+{
+    $stmt = $pdo->prepare("SELECT id FROM combined_segment WHERE name = ? AND is_filter = 0 LIMIT 1");
+    $stmt->execute([$prefix]);
+    $categoryId = (int)($stmt->fetchColumn() ?: 0);
+
+    if ($categoryId === 0) {
+        $category = new CombinedSegment();
+        $category->name = $prefix;
+        $category->save();
+        $categoryId = (int)$category->id;
+        $pdo->prepare("UPDATE combined_segment SET is_filter = 0 WHERE id = ?")->execute([$categoryId]);
+    }
+
+    $pdo->prepare("INSERT IGNORE INTO combined_segment_member (combined_segment_id, segment_id) VALUES (?, ?)")
+        ->execute([$categoryId, $segmentId]);
+}
+
+/**
  * @return array{created:bool,segmentId:?int,name:?string,prefilled:int}
  */
 function mbRolloverYearlyMemberSegment(PDO $pdo, array $appSettings, int $year): array
@@ -36,6 +60,7 @@ function mbRolloverYearlyMemberSegment(PDO $pdo, array $appSettings, int $year):
     $segment->setHidden(0);
     $segment->save();
     $segmentId = (int)$segment->id;
+    mbEnsureSegmentInPrefixCategory($pdo, $prefix, $segmentId);
 
     $upsert = $pdo->prepare(
         "INSERT INTO app_settings (`key`, `value`) VALUES (?, ?)
@@ -100,6 +125,7 @@ function mbEnsureCotisationSegmentMembership(PDO $pdo, array $appSettings, int $
         $segment->setHidden(0);
         $segment->save();
         $segmentId = (int)$segment->id;
+        mbEnsureSegmentInPrefixCategory($pdo, $prefix, $segmentId);
     }
 
     $pdo->prepare("INSERT IGNORE INTO contact_segment (user_id, segment_id) VALUES (?, ?)")

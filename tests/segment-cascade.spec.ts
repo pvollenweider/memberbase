@@ -68,12 +68,22 @@ test.describe.serial('Segment cascade rules', () => {
 
     const gapRow = section.locator('tr').filter({ hasText: 'Cascade E2E Source' }).filter({ hasText: 'Cascade E2E Target' });
     await expect(gapRow).toBeVisible({ timeout: 10_000 });
-    // The fix button's form posts to a bare "index.php" action (view/tab
-    // are POST body fields, not URL params) and renders the Groups tab in
-    // response — the address bar itself never gains a ?tab=groups query, so
-    // wait on that tab's own content instead of the URL.
-    await gapRow.locator('button[type="submit"]').click();
-    await expect(page.locator('form[name="addSegment"]')).toBeVisible({ timeout: 10_000 });
+    // The fix button's form posts to a bare "index.php" action and stays on
+    // the Intégrité tab it was clicked from (full reload — the lazy-load
+    // sections collapse again, so re-expand before checking the row is gone).
+    await Promise.all([
+      page.waitForURL(/tab=integrity/, { timeout: 10_000 }),
+      gapRow.locator('button[type="submit"]').click(),
+    ]);
+    // The whole section only renders while at least one gap remains — if
+    // this was the last one, it's gone entirely; otherwise expand and
+    // confirm this specific row is no longer in it.
+    const sectionAfterFix = page.locator('#tab-integrity details.ca-integrity-section')
+      .filter({ has: page.locator('summary', { hasText: "auto-assignation" }) });
+    if (await sectionAfterFix.count() > 0) {
+      await sectionAfterFix.locator('summary').click();
+      await expect(sectionAfterFix.locator('tr').filter({ hasText: 'Cascade E2E Source' }).filter({ hasText: 'Cascade E2E Target' })).not.toBeVisible({ timeout: 10_000 });
+    }
 
     await page.goto(`/index.php?view=generalData&userid=${USER_ID}`);
     await expect(page.locator('a', { hasText: 'Cascade E2E Target' })).toBeVisible();

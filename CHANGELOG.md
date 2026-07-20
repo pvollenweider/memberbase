@@ -2,9 +2,28 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
-## [5.3.2] — 2026-07-18
+## [5.3.2] — 2026-07-20
 
 Corrections, sans changement de schéma.
+
+### Nouveautés
+
+- **Rollover annuel du segment membre** : au 1er janvier (ou à la première
+  exécution du cron qui suit), le segment « Membre AAAA » de l'année en cours
+  est créé s'il n'existe pas, mis en liste par défaut, et pré-rempli avec les
+  membres ayant déjà réglé leur cotisation en avance. « Membre AAAA-1 » devient
+  la référence de cotisation en cours. La même logique se déclenche aussi à
+  chaque paiement de cotisation (pas seulement en janvier) : payer une
+  cotisation AAAA crée « Membre AAAA » au besoin et y ajoute le payeur.
+- **Catégorisation automatique** : les segments « Membre AAAA » créés par le
+  rollover ou par un paiement de cotisation sont désormais classés dans une
+  catégorie portant le nom du préfixe (Réglages → « Préfixe des segments
+  membres », par défaut « Membre »), créée au besoin.
+- **Intégrité — cotisants désynchronisés** : nouveau contrôle qui repère les
+  membres ayant payé une cotisation pour une année sans être dans le segment
+  « Membre <année> » correspondant (import/rattrapage antérieur au hook, ou
+  retrait manuel depuis) — limité aux 3 dernières années, avec bouton de
+  correction en un clic.
 
 ### Corrections
 
@@ -13,6 +32,26 @@ Corrections, sans changement de schéma.
   l'écriture visait l'ancienne table `contact_properties` (EAV) au lieu de la table
   de jointure `contact_segment` utilisée partout ailleurs. Trouvé en écrivant le
   test e2e correspondant.
+- **Intégrité — bouton « Appliquer » (règles d'auto-assignation)** : le
+  formulaire de correction repostait `tab=groups` au lieu de `tab=integrity`,
+  ce qui faisait atterrir l'admin sur l'onglet Groupes après le clic — la
+  correction avait pourtant bien eu lieu, mais semblait « ne rien faire ».
+
+### Interface
+
+- **Cartes manquantes** : les pages `?view=addUser`, `?view=mergeUsers` et les
+  formulaires d'édition compta/suivi/tâche (hors mode intégré en modale)
+  n'étaient pas habillés de la carte standard (`card shadow-sm border-0`) —
+  harmonisé avec le reste de l'application.
+- **Intégrité — « Membres sans nom de famille ni société »** : ajout de la
+  colonne email au tableau, pour identifier le contact sans avoir à ouvrir
+  sa fiche.
+
+### Outils
+
+- **`make deploy`** (`tools/deploy.sh`) : synchronise `html/` vers le serveur
+  de production par rsync, avec aperçu (dry-run) et confirmation avant tout
+  envoi réel.
 
 ### Tests
 
