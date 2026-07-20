@@ -7,27 +7,28 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
  */
 require_once __DIR__ . '/../lib/integrity.php';
-$_ic = mbRunIntegrityChecks(db());
+$_ic = mbRunIntegrityChecks(db(), $appSettings);
 [
-    'dupNames'          => $dupNames,
-    'dupEmails'         => $dupEmails,
-    'hiddenInCats'      => $hiddenInCats,
-    'hiddenInMeta'      => $hiddenInMeta,
-    'hiddenWithMembers' => $hiddenWithMembers,
-    'dateInvalid'       => $dateInvalid,
-    'typeNull'          => $typeNull,
-    'emailInvalid'      => $emailInvalid,
-    'sexeInvalid'       => $sexeInvalid,
-    'noName'            => $noName,
-    'emailAltInvalid'   => $emailAltInvalid,
-    'birthdayFuture'    => $birthdayFuture,
-    'cascadeMissing'    => $cascadeMissing,
+    'dupNames'           => $dupNames,
+    'dupEmails'          => $dupEmails,
+    'hiddenInCats'       => $hiddenInCats,
+    'hiddenInMeta'       => $hiddenInMeta,
+    'hiddenWithMembers'  => $hiddenWithMembers,
+    'dateInvalid'        => $dateInvalid,
+    'typeNull'           => $typeNull,
+    'emailInvalid'       => $emailInvalid,
+    'sexeInvalid'        => $sexeInvalid,
+    'noName'             => $noName,
+    'emailAltInvalid'    => $emailAltInvalid,
+    'birthdayFuture'     => $birthdayFuture,
+    'cascadeMissing'     => $cascadeMissing,
+    'cotiSegmentMissing' => $cotiSegmentMissing,
 ] = $_ic;
 
 $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty($hiddenInMeta) && empty($hiddenWithMembers)
       && empty($dateInvalid) && empty($typeNull)
       && empty($emailInvalid) && empty($emailAltInvalid) && empty($sexeInvalid) && empty($birthdayFuture)
-      && empty($noName) && empty($cascadeMissing);
+      && empty($noName) && empty($cascadeMissing) && empty($cotiSegmentMissing);
 ?>
 
 <div class="card mb-4">
@@ -292,6 +293,44 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
             <input type="hidden" name="segmentId" value="<?= (int)$r->target_segment_id ?>">
             <input type="hidden" name="view" value="settings">
             <input type="hidden" name="tab" value="groups">
+            <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:0.75rem">
+              <?= $GLOBAL['cascadeRuleApplyFix'] ?>
+            </button>
+          </form>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+
+  </template>
+</details>
+<?php endif ?>
+
+<?php if (!empty($cotiSegmentMissing)): ?>
+<details class="ca-integrity-section mb-3">
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-user-clock me-1 text-warning" aria-hidden="true"></i>
+    <?= $GLOBAL['cotiSegmentMissingTitle'] ?>
+    <span class="badge text-bg-warning ms-1" style="font-size:0.7rem"><?= count($cotiSegmentMissing) ?></span>
+  </summary>
+  <div class="ca-integrity-body"></div>
+  <template>
+<p class="small text-muted mt-2 mb-1"><?= $GLOBAL['cotiSegmentMissingHelp'] ?></p>
+  <table class="table table-sm align-middle mt-1 mb-0" style="font-size:0.82rem">
+    <thead><tr><th><?= $GLOBAL['member'] ?></th><th><?= $GLOBAL['year'] ?></th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($cotiSegmentMissing as $r): ?>
+      <tr>
+        <td><?= htmlentities(trim(($r->society ? $r->society . ' ' : '') . $r->lastname . ' ' . $r->firstname), ENT_COMPAT, $charset) ?></td>
+        <td class="text-muted"><?= (int)$r->year ?></td>
+        <td class="text-end">
+          <form method="post" action="<?= appUrl() ?>" class="d-inline" data-no-dirty>
+            <input type="hidden" name="action" value="fixCotisationSegment">
+            <input type="hidden" name="id" value="<?= (int)$r->user_id ?>">
+            <input type="hidden" name="year" value="<?= (int)$r->year ?>">
+            <input type="hidden" name="view" value="settings">
+            <input type="hidden" name="tab" value="integrity">
             <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2" style="font-size:0.75rem">
               <?= $GLOBAL['cascadeRuleApplyFix'] ?>
             </button>

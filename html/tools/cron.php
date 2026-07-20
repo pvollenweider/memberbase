@@ -46,11 +46,34 @@ define('APP_ENTRY', true);
 require_once __DIR__ . '/../includes/lib/locale.php';
 mbLoadLocale(null);
 require_once __DIR__ . '/../includes/lib/bootstrap.php';
+require_once __DIR__ . '/../classes/segment_class.php';
 require_once __DIR__ . '/../classes/member_filter_class.php';
 require_once __DIR__ . '/../classes/suivi_task_class.php';
 require_once __DIR__ . '/../includes/lib/mailer.php';
+require_once __DIR__ . '/../includes/lib/segment_rollover.php';
 
 $exitCode = 0;
+
+// Job: yearly member-segment rollover — creates "{prefix} <year>" the first
+// time it's missing (in practice, the first cron run after Jan 1st), points
+// default_segment at it, points membre_segment at last year's segment (the
+// renewal baseline for "unpaid coti current year" below), and pre-fills the
+// new segment with anyone who already paid this year's cotisation in
+// advance. No-op on every other run once that's done for the year.
+$_rollover = mbRolloverYearlyMemberSegment($pdo, $appSettings, (int)date('Y'));
+if ($_rollover['created']) {
+    fwrite(STDOUT, "[segment-rollover] créé « {$_rollover['name']} » (id={$_rollover['segmentId']}), pré-rempli: {$_rollover['prefilled']}\n");
+    auditLog($pdo, 'segmentRollover', "créé « {$_rollover['name']} » (id={$_rollover['segmentId']}) | default_segment + membre_segment mis à jour | pré-rempli: {$_rollover['prefilled']} membre(s) (cron)");
+    // Task generation just below reads $appSettings — patch the two keys the
+    // rollover just wrote in the DB so this run sees them immediately,
+    // rather than only starting from the next cron invocation.
+    $appSettings['default_segment'] = (string)$_rollover['segmentId'];
+    if (!empty($_rollover['membreSegmentId'])) {
+        $appSettings['membre_segment'] = (string)$_rollover['membreSegmentId'];
+    }
+} else {
+    fwrite(STDOUT, "[segment-rollover] rien à faire ({$_rollover['name']} existe déjà)\n");
+}
 
 // Job: auto-generate reminder tasks (unpaid cotisation, pending payment
 // notifications) — same logic as the admin "Générer" buttons

@@ -10,7 +10,8 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 //          importSegmentMembers, importCotisants, importDonors, bulkHide, bulkShow,
 //          undoSegmentVisibility, bulkCreateCombinedSegment, createLapsedSegment,
 //          addSegment, addSegmentWithImport, renameSegment, updateSegment,
-//          assignSegment, unassignSegment
+//          assignSegment, unassignSegment, addSegmentCascadeRule,
+//          deleteSegmentCascadeRule, fixCotisationSegment
 
 if (!isManager()) { http_response_code(403); exit; }
 
@@ -428,5 +429,20 @@ if ($action == 'deleteSegment') {
     }
     $_scrUrl = appUrl() . '?view=settings&tab=groups';
     if ($isHtmx) { header('HX-Location: ' . $_scrUrl); } else { header('Location: ' . $_scrUrl); }
+    exit;
+
+} elseif ($action == 'fixCotisationSegment') {
+    // Per-row fix from Réglages → Intégrité: find-or-create "{prefix} <year>"
+    // and add this member — same helper the addCompta hook uses, so a
+    // backfilled/imported entry gets the exact same treatment as a live one.
+    require_once __DIR__ . '/../lib/segment_rollover.php';
+    $_fcsUserId = (int)($_REQUEST['id'] ?? 0);
+    $_fcsYear   = (int)($_REQUEST['year'] ?? 0);
+    if ($_fcsUserId > 0 && $_fcsYear >= 2000 && $_fcsYear <= 2100) {
+        $_fcsSegmentId = mbEnsureCotisationSegmentMembership(db(), $appSettings, $_fcsUserId, $_fcsYear);
+        auditLog(db(), 'fixCotisationSegment', "membre: " . Contact::getMemberName($_fcsUserId) . " (id=$_fcsUserId) → " . Segment::lookupName($_fcsSegmentId) . " (année $_fcsYear)", $_fcsUserId);
+    }
+    $_fcsUrl = appUrl() . '?view=settings&tab=integrity';
+    if ($isHtmx) { header('HX-Location: ' . $_fcsUrl); } else { header('Location: ' . $_fcsUrl); }
     exit;
 }

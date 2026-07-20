@@ -166,6 +166,16 @@ function handleCreate(): void
         "membre: " . ($_auUser->fetchColumn() ?: "id=$memberId") . " | $typLabel | {$c->getSum()} CHF",
         $memberId);
 
+    // Same rollover-membership rule as the UI's addCompta action — a
+    // cotisation payment via the API is otherwise a silent bypass.
+    if (!empty($comptaTypes[$typeId]->is_cotisation)) {
+        global $appSettings;
+        require_once __DIR__ . '/../classes/segment_class.php';
+        require_once __DIR__ . '/../includes/lib/segment_rollover.php';
+        $_apiCotiYear = (int)($c->getCotisationYear() ?: date('Y', (int)$c->getDate()));
+        mbEnsureCotisationSegmentMembership(db(), $appSettings, $memberId, $_apiCotiYear);
+    }
+
     http_response_code(201);
     echo json_encode(['data' => entryToArray($c)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }

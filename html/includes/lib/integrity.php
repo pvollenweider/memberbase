@@ -16,9 +16,10 @@
  * the template changes minimal.
  *
  * @param PDO $db Database connection
+ * @param array $appSettings Needs 'membre_segment_prefix' (defaults to 'Membre')
  * @return array<string, object[]> Named result sets; each value is a (possibly empty) array of rows
  */
-function mbRunIntegrityChecks(PDO $db): array
+function mbRunIntegrityChecks(PDO $db, array $appSettings = []): array
 {
     // Queries referencing segment/user_segment may fail before migrations 0013/0014 are applied.
     try {
@@ -180,10 +181,45 @@ function mbRunIntegrityChecks(PDO $db): array
         $cascadeMissing = [];
     }
 
+    // Cotisation payments should land the payer in "{prefix} <year>" —
+    // segment_rollover.php normally handles this the moment the compta
+    // entry is saved, but backfilled/imported entries can predate that
+    // hook, or a segment membership can be removed by hand afterward.
+    // Limited to the last 3 years: older gaps are historical bookkeeping,
+    // not something worth flagging for action today.
+    try {
+        $prefix = trim($appSettings['membre_segment_prefix'] ?? '') ?: 'Membre';
+        $thisYear = (int)date('Y');
+        $cotiSegmentMissing = [];
+        for ($y = $thisYear - 2; $y <= $thisYear; $y++) {
+            $segName = "$prefix $y";
+            $stmt = $db->prepare("
+                SELECT DISTINCT c.id AS user_id, c.firstname, c.lastname, c.society, ? AS year
+                FROM compta co
+                JOIN compta_type ct ON ct.id = co.type_id AND ct.is_cotisation = 1
+                JOIN contact c ON c.id = co.user_id AND c.status = 1
+                WHERE COALESCE(co.cotisation_year, YEAR(co.date)) = ?
+                  AND NOT EXISTS (
+                      SELECT 1 FROM contact_segment cs
+                      JOIN segment s ON s.id = cs.segment_id AND s.name = ?
+                      WHERE cs.user_id = c.id
+                  )
+                ORDER BY c.lastname, c.firstname
+            ");
+            $stmt->execute([$y, $y, $segName]);
+            foreach ($stmt->fetchAll(PDO::FETCH_OBJ) as $row) {
+                $cotiSegmentMissing[] = $row;
+            }
+        }
+    } catch (PDOException $e) {
+        $cotiSegmentMissing = [];
+    }
+
     return array_merge($contactChecks, [
-        'hiddenInCats'      => $hiddenInCats,
-        'hiddenInMeta'      => $hiddenInMeta,
-        'hiddenWithMembers' => $hiddenWithMembers,
-        'cascadeMissing'    => $cascadeMissing,
+        'hiddenInCats'        => $hiddenInCats,
+        'hiddenInMeta'        => $hiddenInMeta,
+        'hiddenWithMembers'   => $hiddenWithMembers,
+        'cascadeMissing'      => $cascadeMissing,
+        'cotiSegmentMissing'  => $cotiSegmentMissing,
     ]);
 }

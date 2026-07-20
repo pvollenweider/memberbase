@@ -37,6 +37,7 @@ if (isset($_REQUEST['action'])) {
         'unassignSegment'     => 'segments',
         'addSegmentCascadeRule'    => 'segments',
         'deleteSegmentCascadeRule' => 'segments',
+        'fixCotisationSegment'     => 'segments',
         'updateCategoryOrder'  => 'combined_segments',
         'updateSegmentCategory'   => 'combined_segments',
         'updateCombinedSegmentMembers' => 'combined_segments',

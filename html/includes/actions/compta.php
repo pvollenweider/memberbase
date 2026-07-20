@@ -44,6 +44,15 @@ if ($action == 'addCompta') {
     $_auCotiYear = $compta->cotisation_year ? " | annee coti: {$compta->cotisation_year}" : '';
     auditLog(db(), 'addCompta', "membre: " . Contact::getMemberName((int)$compta->userId) . " | {$_auType} | {$compta->sum} CHF | {$_REQUEST['date']}{$_auCotiYear}", (int)$compta->userId);
 
+    // A cotisation payment puts the member in that year's "{prefix} <year>"
+    // segment — creates it on first use (e.g. paying ahead of the January
+    // rollover job) and adds them, regardless of the segment's own state.
+    if (!empty($comptaTypes[(int)$_REQUEST['type_id']]->is_cotisation)) {
+        require_once __DIR__ . '/../lib/segment_rollover.php';
+        $_addCotiYear = (int)($compta->cotisation_year ?: date('Y', (int)$compta->date));
+        mbEnsureCotisationSegmentMembership(db(), $appSettings, (int)$compta->userId, $_addCotiYear);
+    }
+
     // Optional receipt email — only when the checkbox is checked
     if (!empty($_REQUEST['send_receipt'])) {
         require_once __DIR__ . '/../lib/mailer.php';
