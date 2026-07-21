@@ -68,7 +68,7 @@ if (!empty($_SESSION['segment_toast'])) {
     unset($_SESSION['segment_toast']);
     $_gtHidden  = ($_gt['undo_act'] === 'bulkHide') ? 1 : 0;
     $_gtIdsStr  = implode(',', $_gt['undo_ids']);
-    $_gtUndoUrl = appUrl() . '?action=undoSegmentVisibility&hidden=' . $_gtHidden . '&ids=' . urlencode($_gtIdsStr) . '&view=settings&tab=groups';
+    $_gtUndoUrl = appUrl() . '?action=undoSegmentVisibility&hidden=' . $_gtHidden . '&ids=' . urlencode($_gtIdsStr) . '&view=settings&tab=groups&csrf=' . urlencode(csrfToken());
     echo '<div id="casa-membership-toast" hidden data-msg="' . htmlspecialchars($_gt['msg'], ENT_QUOTES) . '" data-undo-url="' . htmlspecialchars($_gtUndoUrl, ENT_QUOTES) . '"></div>';
 }
 ?>

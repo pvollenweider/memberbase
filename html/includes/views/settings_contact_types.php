@@ -114,7 +114,7 @@ if (!$_ctEmbedded):
         <?php if ((int)$_ct->cnt === 0): ?>
         <button type="button" class="btn btn-outline-danger btn-sm py-0"
                 data-bs-toggle="modal" data-bs-target="#modal-delete-contact-type"
-                data-href="<?= htmlspecialchars(appUrl() . '?action=deleteContactType&id=' . (int)$_ct->id . '&returnView=' . urlencode($_ctEmbedded ? 'settings' : 'contactTypes'), ENT_QUOTES, $charset) ?>"><?= $GLOBAL['deleteShort'] ?></button>
+                data-href="<?= htmlspecialchars(appUrl() . '?action=deleteContactType&id=' . (int)$_ct->id . '&returnView=' . urlencode($_ctEmbedded ? 'settings' : 'contactTypes') . '&csrf=' . urlencode(csrfToken()), ENT_QUOTES, $charset) ?>"><?= $GLOBAL['deleteShort'] ?></button>
         <?php endif ?>
       </td>
     </tr>

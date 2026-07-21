@@ -281,7 +281,7 @@ if (!$ctEmbedded):
             <?php if ($ct->cnt == 0): ?>
             <button type="button" class="btn btn-outline-danger btn-sm py-0"
                     data-bs-toggle="modal" data-bs-target="#modal-delete-compta-type"
-                    data-href="<?= htmlspecialchars(appUrl() . '?action=deleteComptaType&id=' . $ct->id . '&returnView=' . urlencode($ctReturnView) . '&returnTab=' . urlencode($ctReturnTab), ENT_QUOTES, $charset) ?>"><?= $GLOBAL['deleteShort'] ?></button>
+                    data-href="<?= htmlspecialchars(appUrl() . '?action=deleteComptaType&id=' . $ct->id . '&returnView=' . urlencode($ctReturnView) . '&returnTab=' . urlencode($ctReturnTab) . '&csrf=' . urlencode(csrfToken()), ENT_QUOTES, $charset) ?>"><?= $GLOBAL['deleteShort'] ?></button>
             <?php endif ?>
           </td>
         </tr>

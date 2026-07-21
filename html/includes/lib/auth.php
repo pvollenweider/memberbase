@@ -49,15 +49,21 @@ function csrfToken(): string
 
 /**
  * Validates a submitted CSRF token against the session one, in constant time.
- * The token is read from the `csrf` POST field or the `X-CSRF-Token` header
- * (used by htmx / fetch requests).
+ * The token is read from the `csrf` POST field, the `X-CSRF-Token` header
+ * (htmx / fetch requests), or the `csrf` query string param. The GET fallback
+ * exists for mutating links that must survive outside of an htmx-boosted
+ * click (browser link prefetch, middle-click/ctrl-click new tab, no-JS) —
+ * e.g. the segment assign/unassign pills and the "undo" toast link, which
+ * embed the token in their own href rather than relying on htmx to inject
+ * the header. Still requires the real per-session secret, so a forged
+ * external link/image tag (the actual CSRF threat) has no way to guess it.
  */
 function csrfCheck(): bool
 {
     if (empty($_SESSION['csrf'])) {
         return false;
     }
-    $sent = $_POST['csrf'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+    $sent = $_POST['csrf'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_GET['csrf'] ?? ''));
     return is_string($sent) && $sent !== '' && hash_equals($_SESSION['csrf'], $sent);
 }
 

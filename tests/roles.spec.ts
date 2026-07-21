@@ -471,6 +471,25 @@ test.describe('Server — CSRF guard', () => {
     await admin.dispose();
   });
 
+  // GET fallback links (segment assign/unassign pills, the undo toast,
+  // delete-type confirm modals) embed the token in their own href instead of
+  // relying on htmx to inject the X-CSRF-Token header — needed because they
+  // can be reached outside of an htmx-boosted click (browser link prefetch,
+  // middle-click/ctrl-click new tab, no-JS). A GET carrying ?csrf=<token>
+  // must pass the guard exactly like a POST body token or the header would.
+  test('admin: GET action with a valid CSRF query param → not 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'admin');
+    const csrf = await csrfFor(api);
+    const r = await api.get(`/index.php?action=deactivateUser&id=2&csrf=${csrf}`);
+    expect(r.status()).not.toBe(403);
+    await api.dispose();
+    // Restore
+    const admin = await apiAs(playwright, 'admin');
+    const rc = await csrfFor(admin);
+    await admin.post('/index.php', { form: { csrf: rc, action: 'reactivateUser', id: '2' } });
+    await admin.dispose();
+  });
+
   // Negative control for the scoping rule: an action= value NOT present in
   // $ACTION_MAP (e.g. the "search" view hint) must NOT be gated — plain GET
   // page loads that carry no token would otherwise 403.

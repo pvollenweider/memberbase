@@ -2,6 +2,24 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [5.3.3] — 2026-07-21
+
+Correction, sans changement de schéma.
+
+### Corrections
+
+- **CSRF — liens GET de repli rejetés à tort** : le durcissement CSRF de la
+  5.3.1 (jeton vérifié sur toutes les méthodes HTTP) rejetait aussi les liens
+  GET légitimes qui ne passent pas par le boost htmx — pastilles
+  ajouter/retirer un segment sur la fiche membre, lien « annuler » du toast,
+  et les modales de suppression de type de compta/contact. Ces liens
+  atterrissent en navigation brute (prefetch navigateur, ouverture dans un
+  nouvel onglet, JS bloqué) sans le header `X-CSRF-Token` qu'htmx injecte
+  normalement. `csrfCheck()` accepte désormais aussi un jeton en paramètre
+  `?csrf=`, et ces 6 liens l'embarquent dans leur propre URL — la protection
+  contre un lien forgé externe reste entière (le jeton reste un secret de
+  session imprévisible).
+
 ## [5.3.2] — 2026-07-20
 
 Corrections, sans changement de schéma.
