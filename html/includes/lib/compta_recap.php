@@ -93,8 +93,9 @@ function mbRecapSinceLine(int $year, bool $force, int $minEntryTs): string
  * @param array $appSettings Global app settings
  * @return array{0: array, 1: int[], 2: string}  [vars, entry ids, total]
  */
-function mbRecapBuildVars(array $entries, array $appSettings): array
+function mbRecapBuildVars(array $entries, array $appSettings, int $year = 0): array
 {
+    $year = $year > 0 ? $year : (int)date('Y');
     $sendDate    = date('d.m.Y');
     $lines       = [];
     $htmlRows    = '';
@@ -174,15 +175,20 @@ function mbRecapBuildVars(array $entries, array $appSettings): array
         $totalLines .= "\nMontant déductible fiscalement : CHF " . $donationFmt;
     }
 
-    $contactEmail = $appSettings['smtp_reply_to'] ?? ($appSettings['smtp_from_email'] ?? '');
+    // `smtp_reply_to` defaults to '' (not unset) in bootstrap.php's settings
+    // array, so `??` alone never falls through to smtp_from_email — check
+    // emptiness explicitly.
+    $contactEmail = !empty($appSettings['smtp_reply_to'])
+        ? $appSettings['smtp_reply_to']
+        : ($appSettings['smtp_from_email'] ?? '');
 
     // Fiscal note: only mention attestation when there are attestable amounts.
     // CHF 300/year is this org's own threshold for an automatic attestation
     // (not a fixed legal minimum — Swiss federal law only requires an
     // aggregate annual total of CHF 100 for the donor's own deduction to
     // apply); smaller amounts stay deductible and can be attested on request.
-    $_attestBelowThreshold = $contactEmail !== ''
-        ? " Pour un montant inférieur, une attestation peut être demandée à {$contactEmail}."
+    $_attestBelowThreshold = ($contactEmail !== '' && $sumDonation < 300.0)
+        ? " Pour un montant inférieur à CHF 300 pour l'année $year, une attestation peut être demandée à {$contactEmail}."
         : '';
     // Threshold already reached this year — drop the "CHF 300 ou plus"
     // clause (redundant) but keep the note; below threshold, keep the

@@ -74,6 +74,48 @@ test.describe.serial('Compta recap — row preview/send modal', () => {
   });
 });
 
+test.describe('Compta recap — attestation fiscal note threshold (CHF 300)', () => {
+  const year = new Date().getFullYear();
+
+  test('below CHF 300: mentions the threshold, the year, and the on-request email', async ({ page }) => {
+    const createResp = await page.request.post('/api/contacts', {
+      data: { firstName: 'ThresholdLow', lastName: 'RecapE2E', email: 'threshold.low.recap.e2e@example.com' },
+    });
+    const { data: contact } = await createResp.json();
+    await page.request.post('/api/compta', {
+      data: { memberId: contact.id, typeId: 1, date: `${year}-05-02`, amount: 55 },
+    });
+
+    await page.goto('/index.php?view=comptaRecap');
+    await page.waitForLoadState('load');
+    const row = page.locator('.recap-row').filter({ hasText: 'RecapE2E' }).filter({ hasText: 'ThresholdLow' }).first();
+    await row.click();
+    const frame = page.frameLocator('#recap-modal-frame');
+    await expect(frame.locator('body')).toContainText(
+      `Pour un montant inférieur à CHF 300 pour l'année ${year}, une attestation peut être demandée`,
+      { timeout: 10_000 }
+    );
+  });
+
+  test('at/above CHF 300: no "montant inférieur" clause (already gets an automatic attestation)', async ({ page }) => {
+    const createResp = await page.request.post('/api/contacts', {
+      data: { firstName: 'ThresholdHigh', lastName: 'RecapE2E', email: 'threshold.high.recap.e2e@example.com' },
+    });
+    const { data: contact } = await createResp.json();
+    await page.request.post('/api/compta', {
+      data: { memberId: contact.id, typeId: 1, date: `${year}-05-03`, amount: 350 },
+    });
+
+    await page.goto('/index.php?view=comptaRecap');
+    await page.waitForLoadState('load');
+    const row = page.locator('.recap-row').filter({ hasText: 'RecapE2E' }).filter({ hasText: 'ThresholdHigh' }).first();
+    await row.click();
+    const frame = page.frameLocator('#recap-modal-frame');
+    await expect(frame.locator('body')).toContainText('Attestation de dons', { timeout: 10_000 });
+    await expect(frame.locator('body')).not.toContainText('Pour un montant inférieur');
+  });
+});
+
 test.describe.serial('Donors summary — attestation row preview/send modal', () => {
   test('off-season gate disables send until confirmed', async ({ page, request }) => {
     await purgeMailpit(request);
