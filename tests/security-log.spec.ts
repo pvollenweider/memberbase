@@ -29,6 +29,36 @@ test.describe('Security logging', () => {
     await expect(page.locator('#tab-audit')).toContainText('loginFailed', { timeout: 10_000 });
   });
 
+  test('repeated failed logins trigger the rate limiter (loginRateLimited)', async ({ browser, page }) => {
+    // Unique username per run so Playwright retries (or a re-run within the
+    // same 5-minute fixed window) get a fresh bucket instead of inheriting an
+    // already-exhausted one from a previous attempt.
+    const bogusUser = `rate-limit-e2e-${Date.now()}`;
+    const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const anon = await ctx.newPage();
+
+    // LOGIN_RATE_MAX (8) ordinary failed attempts — each still shows the
+    // normal "bad credentials" message, the limiter only blocks past this.
+    for (let i = 0; i < 8; i++) {
+      await anon.goto('/login.php');
+      await anon.fill('#username', bogusUser);
+      await anon.fill('#password', `wrong-${i}`);
+      await anon.click('button[type="submit"]');
+      await expect(anon.locator('.alert.alert-danger')).toBeVisible({ timeout: 10_000 });
+    }
+
+    // The 9th attempt is blocked by the limiter before authLogin() even runs.
+    await anon.goto('/login.php');
+    await anon.fill('#username', bogusUser);
+    await anon.fill('#password', 'wrong-final');
+    await anon.click('button[type="submit"]');
+    await expect(anon.locator('.alert.alert-danger')).toContainText('Trop de tentatives', { timeout: 10_000 });
+    await ctx.close();
+
+    await page.goto('/index.php?view=settings&tab=audit');
+    await expect(page.locator('#tab-audit')).toContainText('loginRateLimited', { timeout: 10_000 });
+  });
+
   test('a denied view access is recorded (accessDenied)', async ({ browser, page }) => {
     // readonly hits a canWrite-guarded view → guard rejects and logs.
     const ctx = await browser.newContext({

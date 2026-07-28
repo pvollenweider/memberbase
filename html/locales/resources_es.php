@@ -977,6 +977,7 @@ $GLOBAL['mergeSegmentsInfo'] = "Las pertenencias a los segmentos serán fusionad
 // --- login.php ---
 $GLOBAL['invalidRequest'] = "Solicitud inválida. Inténtelo de nuevo.";
 $GLOBAL['badCredentials'] = "Usuario o contraseña incorrectos.";
+$GLOBAL['loginRateLimited'] = "Demasiados intentos. Vuelve a intentarlo en unos minutos.";
 $GLOBAL['loginTitle'] = "Inicio de sesión — %s";
 $GLOBAL['signIn'] = "Iniciar sesión";
 

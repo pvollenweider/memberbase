@@ -288,6 +288,15 @@ CREATE TABLE IF NOT EXISTS `api_rate_limit` (
   KEY `idx_window_start` (`window_start`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Login brute-force rate limiting (fixed-window counter per username+IP)
+CREATE TABLE IF NOT EXISTS `login_rate_limit` (
+  `bucket`       varchar(190) NOT NULL,
+  `hits`         int(11)      NOT NULL DEFAULT 0,
+  `window_start` int(11)      NOT NULL DEFAULT 0,
+  PRIMARY KEY (`bucket`),
+  KEY `idx_window_start` (`window_start`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `schema_migrations` (
   `version`    varchar(255) NOT NULL,
   `applied_at` int(11)      NOT NULL DEFAULT 0,

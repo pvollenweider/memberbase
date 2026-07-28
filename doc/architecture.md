@@ -318,7 +318,13 @@ function canRead(): bool     // role ∈ {admin, manager, user, readonly}
   les méthodes HTTP (pas seulement POST — voir ci-dessous). Une garde refusée renvoie
   un bloc `alert-danger` (« Accès refusé ») ; une vue absente de la table renvoie
   « Vue introuvable ». Ajouter une route force donc une décision de garde explicite.
-- La force brute est déléguée à Fail2Ban (logs Apache), pas au code PHP.
+- Force brute sur `login.php` : défense en profondeur à deux niveaux — Fail2Ban
+  (logs Apache, ban par IP, jail `memberbase-login`, voir `doc/admin.md`) **et**
+  un compteur applicatif (`login_rate_limit`, `mbLoginRateLimited()`/
+  `mbLoginRateLimitHit()` dans `includes/lib/auth.php`) : fenêtre glissante de
+  5 minutes, 8 échecs max par couple identifiant+IP. L'un protège contre un
+  fail2ban mal configuré ou absent ; l'autre attrape un compte ciblé depuis
+  plusieurs IP, que le ban par IP seul ne voit pas.
 
 ### CSRF (`includes/routing/actions.php`, `includes/lib/auth.php`)
 

@@ -977,6 +977,7 @@ $GLOBAL['mergeSegmentsInfo'] = "Die Segmentzugehörigkeiten werden zusammengefü
 // --- login.php ---
 $GLOBAL['invalidRequest'] = "Ungültige Anfrage. Bitte versuchen Sie es erneut.";
 $GLOBAL['badCredentials'] = "Benutzername oder Passwort falsch.";
+$GLOBAL['loginRateLimited'] = "Zu viele Versuche. Bitte versuchen Sie es in ein paar Minuten erneut.";
 $GLOBAL['loginTitle'] = "Anmeldung — %s";
 $GLOBAL['signIn'] = "Anmelden";
 

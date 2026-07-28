@@ -977,6 +977,7 @@ $GLOBAL['mergeSegmentsInfo'] = "Segment memberships will be merged (automatic de
 // --- login.php ---
 $GLOBAL['invalidRequest'] = "Invalid request. Please try again.";
 $GLOBAL['badCredentials'] = "Incorrect username or password.";
+$GLOBAL['loginRateLimited'] = "Too many attempts. Please try again in a few minutes.";
 $GLOBAL['loginTitle'] = "Sign in — %s";
 $GLOBAL['signIn'] = "Sign in";
 

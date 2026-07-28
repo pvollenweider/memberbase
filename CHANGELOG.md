@@ -2,9 +2,17 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
-## [5.3.3] — 2026-07-21
+## [5.3.3] — 2026-07-28
 
-Correction, sans changement de schéma.
+### Nouveautés
+
+- **Anti-brute-force sur le login** : en complément de Fail2Ban (ban par IP,
+  dépendant de l'infra), un compteur applicatif limite désormais les échecs de
+  connexion à 8 par couple identifiant+IP sur une fenêtre de 5 minutes
+  (`login_rate_limit`, `mbLoginRateLimited()`/`mbLoginRateLimitHit()` dans
+  `includes/lib/auth.php`) — protège aussi un compte ciblé depuis plusieurs IP,
+  que Fail2Ban seul ne voit pas, et reste actif même si Fail2Ban est absent ou
+  mal configuré.
 
 ### Corrections
 
@@ -19,6 +27,11 @@ Correction, sans changement de schéma.
   `?csrf=`, et ces 6 liens l'embarquent dans leur propre URL — la protection
   contre un lien forgé externe reste entière (le jeton reste un secret de
   session imprévisible).
+- **Récapitulatif de dons — clause « montant inférieur »** : s'affichait même
+  au-dessus du seuil de CHF 300 au lieu de seulement en dessous, et ne
+  s'affichait jamais en pratique quand seul `smtp_from_email` est configuré
+  (le `??` sur `smtp_reply_to`, qui vaut `''` par défaut et non `null`, ne
+  retombait jamais dessus). Mentionne maintenant aussi l'année.
 
 ## [5.3.2] — 2026-07-20
 

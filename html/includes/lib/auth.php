@@ -97,6 +97,46 @@ function requirePasswordChange(): void
     }
 }
 
+const LOGIN_RATE_WINDOW = 300; // 5 minutes
+const LOGIN_RATE_MAX    = 8;   // failed attempts per username+IP per window
+
+/**
+ * Fixed-window rate limit on login attempts, keyed by username+IP — a
+ * complement to (not a replacement for) infra-level protection like
+ * fail2ban: it survives infra drift/misconfiguration, and it also catches a
+ * single account being brute-forced from many IPs, which an IP-based ban
+ * alone cannot. Best-effort: any failure (e.g. table not yet migrated) is
+ * swallowed so it can never block a legitimate login.
+ */
+function mbLoginRateLimited(PDO $pdo, string $username, string $ip): bool
+{
+    try {
+        $bucket = 'login:' . strtolower($username) . ':' . $ip . ':' . intdiv(time(), LOGIN_RATE_WINDOW);
+        $stmt   = $pdo->prepare("SELECT hits FROM login_rate_limit WHERE bucket = ?");
+        $stmt->execute([$bucket]);
+        return (int)($stmt->fetchColumn() ?: 0) >= LOGIN_RATE_MAX;
+    } catch (Throwable) {
+        return false;
+    }
+}
+
+/** Records one failed login attempt against the username+IP bucket. */
+function mbLoginRateLimitHit(PDO $pdo, string $username, string $ip): void
+{
+    try {
+        $bucket = 'login:' . strtolower($username) . ':' . $ip . ':' . intdiv(time(), LOGIN_RATE_WINDOW);
+        $pdo->prepare(
+            "INSERT INTO login_rate_limit (bucket, hits, window_start) VALUES (?, 1, ?)
+             ON DUPLICATE KEY UPDATE hits = hits + 1"
+        )->execute([$bucket, time()]);
+        // Opportunistic cleanup of stale buckets (~1% of hits).
+        if (random_int(1, 100) === 1) {
+            $pdo->prepare("DELETE FROM login_rate_limit WHERE window_start < ?")
+                ->execute([time() - LOGIN_RATE_WINDOW * 5]);
+        }
+    } catch (Throwable) { /* never block login on a limiter failure */ }
+}
+
 function authLogin(PDO $pdo, string $username, string $password): bool
 {
     // SELECT * so login keeps working on a not-yet-migrated DB (e.g. before

@@ -41,7 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
-        if (authLogin($pdo, $username, $password)) {
+        $ip       = $_SERVER['REMOTE_ADDR'] ?? '?';
+        if (mbLoginRateLimited($pdo, $username, $ip)) {
+            auditLog($pdo, 'loginRateLimited', 'username=' . $username . ' ip=' . $ip);
+            usleep(500000);
+            $error = $GLOBAL['loginRateLimited'];
+        } elseif (authLogin($pdo, $username, $password)) {
             unset($_SESSION['csrf_login']);
             if (!empty($_SESSION['force_password_change'])) {
                 header('Location: index.php?view=changePassword');
@@ -52,7 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Security log: failed login attempt (brute-force signal). Never
             // logs the password; IP is REMOTE_ADDR (proxy-dependent).
-            auditLog($pdo, 'loginFailed', 'username=' . $username . ' ip=' . ($_SERVER['REMOTE_ADDR'] ?? '?'));
+            auditLog($pdo, 'loginFailed', 'username=' . $username . ' ip=' . $ip);
+            mbLoginRateLimitHit($pdo, $username, $ip);
             // Small delay to slow brute force
             usleep(500000);
             $error = $GLOBAL['badCredentials'];
