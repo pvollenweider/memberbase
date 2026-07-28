@@ -68,15 +68,20 @@ test.describe.serial('Segment cascade rules', () => {
 
     const gapRow = section.locator('tr').filter({ hasText: 'Cascade E2E Source' }).filter({ hasText: 'Cascade E2E Target' });
     await expect(gapRow).toBeVisible({ timeout: 10_000 });
-    // The fix button's form posts to a bare "index.php" action and stays on
-    // the Intégrité tab it was clicked from (full reload — the lazy-load
-    // sections collapse again, so re-expand before checking the row is gone).
-    // waitForURL alone races the HX-Location swap: the URL can update via
-    // pushState before the new DOM has finished settling, detaching the
-    // element mid-click — wait for the actual page load instead (same
-    // pattern as preview-send-modal.spec.ts's post-HX-Location reload).
-    await gapRow.locator('button[type="submit"]').click();
-    await page.waitForLoadState('load');
+    // The fix button's form inherits hx-boost from <body>, so a plain click
+    // triggers an htmx AJAX swap, not a real navigation — neither waitForURL
+    // (races the pushState update against the swap still settling) nor
+    // waitForLoadState('load') (a no-op here: 'load' already fired from the
+    // initial goto(), an htmx swap never fires it again) reliably wait for
+    // the new DOM to be in place, so the click below detaches mid-swap.
+    // Force a real navigation instead — same established pattern used by
+    // ~10 other spec files (e.g. segment-rollover.spec.ts) for this exact
+    // htmx-boost-vs-full-reload situation.
+    await page.evaluate(() => document.body.removeAttribute('hx-boost'));
+    await Promise.all([
+      page.waitForLoadState('load'),
+      gapRow.locator('button[type="submit"]').click(),
+    ]);
     // The whole section only renders while at least one gap remains — if
     // this was the last one, it's gone entirely; otherwise expand and
     // confirm this specific row is no longer in it.
