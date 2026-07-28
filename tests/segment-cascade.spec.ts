@@ -71,10 +71,12 @@ test.describe.serial('Segment cascade rules', () => {
     // The fix button's form posts to a bare "index.php" action and stays on
     // the Intégrité tab it was clicked from (full reload — the lazy-load
     // sections collapse again, so re-expand before checking the row is gone).
-    await Promise.all([
-      page.waitForURL(/tab=integrity/, { timeout: 10_000 }),
-      gapRow.locator('button[type="submit"]').click(),
-    ]);
+    // waitForURL alone races the HX-Location swap: the URL can update via
+    // pushState before the new DOM has finished settling, detaching the
+    // element mid-click — wait for the actual page load instead (same
+    // pattern as preview-send-modal.spec.ts's post-HX-Location reload).
+    await gapRow.locator('button[type="submit"]').click();
+    await page.waitForLoadState('load');
     // The whole section only renders while at least one gap remains — if
     // this was the last one, it's gone entirely; otherwise expand and
     // confirm this specific row is no longer in it.
