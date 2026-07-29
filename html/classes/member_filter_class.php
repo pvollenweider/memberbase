@@ -28,6 +28,21 @@ class MemberFilter
         return $segmentId === FILTER_ALL_EXCEPT_ARCHIVES || in_array($segmentId, self::RESOLVABLE, true);
     }
 
+    /** Filters offering the "create/add to segment, bulk archive" toolbar —
+     *  cleanup-oriented filters only, not every RESOLVABLE one (e.g.
+     *  FILTER_UNPAID_COTI_CURRENT is a data-quality signal, not a cleanup
+     *  candidate list). */
+    public const BULK_ACTION_FILTERS = [
+        FILTER_NEVER_PAID_OLD,
+        FILTER_NO_ACTIVITY_10Y,
+    ];
+
+    /** Locale key for the auto-created segment's name, per bulk-action filter. */
+    public const BULK_SEGMENT_NAME_KEY = [
+        FILTER_NEVER_PAID_OLD  => 'neverPaidSegmentName',
+        FILTER_NO_ACTIVITY_10Y => 'noActivity10ySegmentName',
+    ];
+
     /**
      * Returns the set of active user IDs matching a virtual filter,
      * as an id => true map (O(1) membership tests in render loops).

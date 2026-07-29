@@ -11,8 +11,8 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 //          undoSegmentVisibility, bulkCreateCombinedSegment, createLapsedSegment,
 //          addSegment, addSegmentWithImport, renameSegment, updateSegment,
 //          assignSegment, unassignSegment, addSegmentCascadeRule,
-//          deleteSegmentCascadeRule, fixCotisationSegment, createNeverPaidSegment,
-//          addNeverPaidToSegment, archiveNeverPaidUsers
+//          deleteSegmentCascadeRule, fixCotisationSegment, createFilterBulkSegment,
+//          addFilterBulkToSegment, archiveFilterBulkUsers
 
 if (!isManager()) { http_response_code(403); exit; }
 
@@ -287,18 +287,21 @@ if ($action == 'deleteSegment') {
     if ($isHtmx) { header('HX-Location: ' . $_clUrl); } else { echo '<script>window.location.replace(' . json_encode($_clUrl) . ');</script>'; }
     exit;
 
-} elseif ($action == 'createNeverPaidSegment') {
+} elseif ($action == 'createFilterBulkSegment') {
     // Recompute server-side from the shared MemberFilter class — never trust
     // a client-submitted id list for a bulk action (issue #57 pattern, same
-    // as createLapsedSegment above).
+    // as createLapsedSegment above). The filter id itself is re-validated
+    // against the whitelist, not trusted either.
+    $_fbFilterId = (int)($_REQUEST['segment'] ?? 0);
+    if (!in_array($_fbFilterId, MemberFilter::BULK_ACTION_FILTERS, true)) { http_response_code(403); exit; }
     $yr = (int)($_REQUEST['year'] ?? date('Y'));
-    $ids = array_keys(MemberFilter::resolveIds(FILTER_NEVER_PAID_OLD, db(), $yr, $appSettings));
+    $ids = array_keys(MemberFilter::resolveIds($_fbFilterId, db(), $yr, $appSettings));
     if (empty($ids)) {
         echo '<script>alert("' . $GLOBAL['noUsersToAdd'] . '");history.back();</script>';
         exit;
     }
     $segment = new Segment();
-    $segment->name = sprintf($GLOBAL['neverPaidSegmentName'], date('d.m.Y'));
+    $segment->name = sprintf($GLOBAL[MemberFilter::BULK_SEGMENT_NAME_KEY[$_fbFilterId]], date('d.m.Y'));
     $segment->setHidden(0);
     $segment->save();
     $newSegmentId = $segment->id;
@@ -308,44 +311,48 @@ if ($action == 'deleteSegment') {
             $ins->execute([(int)$uid, $newSegmentId]);
         }
     }
-    auditLog(db(), 'createNeverPaidSegment', "segment créé: {$segment->name} (id=$newSegmentId) | " . count($ids) . " membres");
+    auditLog(db(), 'createFilterBulkSegment', "filtre: $_fbFilterId | segment créé: {$segment->name} (id=$newSegmentId) | " . count($ids) . " membres");
     $_npUrl = appUrl() . '?view=updateSegment&id=' . (int)$newSegmentId;
     if ($isHtmx) { header('HX-Location: ' . $_npUrl); } else { header('Location: ' . $_npUrl); }
     exit;
 
-} elseif ($action == 'addNeverPaidToSegment') {
+} elseif ($action == 'addFilterBulkToSegment') {
+    $_fbFilterId = (int)($_REQUEST['segment'] ?? 0);
+    if (!in_array($_fbFilterId, MemberFilter::BULK_ACTION_FILTERS, true)) { http_response_code(403); exit; }
     $yr = (int)($_REQUEST['year'] ?? date('Y'));
     $targetSegmentId = (int)($_REQUEST['targetSegmentId'] ?? 0);
     if ($targetSegmentId <= 0) {
         echo '<script>alert("' . $GLOBAL['noUsersToAdd'] . '");history.back();</script>';
         exit;
     }
-    $ids = array_keys(MemberFilter::resolveIds(FILTER_NEVER_PAID_OLD, db(), $yr, $appSettings));
+    $ids = array_keys(MemberFilter::resolveIds($_fbFilterId, db(), $yr, $appSettings));
     if (!empty($ids)) {
         $ins = db()->prepare("INSERT IGNORE INTO contact_segment (user_id, segment_id) VALUES (?, ?)");
         foreach ($ids as $uid) {
             $ins->execute([(int)$uid, $targetSegmentId]);
         }
     }
-    auditLog(db(), 'addNeverPaidToSegment', "segment cible: " . Segment::lookupName($targetSegmentId) . " (id=$targetSegmentId) | " . count($ids) . " membres");
+    auditLog(db(), 'addFilterBulkToSegment', "filtre: $_fbFilterId | segment cible: " . Segment::lookupName($targetSegmentId) . " (id=$targetSegmentId) | " . count($ids) . " membres");
     $_npUrl = appUrl() . '?view=updateSegment&id=' . $targetSegmentId;
     if ($isHtmx) { header('HX-Location: ' . $_npUrl); } else { header('Location: ' . $_npUrl); }
     exit;
 
-} elseif ($action == 'archiveNeverPaidUsers') {
+} elseif ($action == 'archiveFilterBulkUsers') {
     // Bulk status change on a whole filter result — admin-only, on top of
     // this file's blanket isManager() gate, matching deleteOrDeactivateUser's
     // precedent that admin-level review is required for account-level bulk
     // actions beyond a single deactivation.
     if (!isAdmin()) { http_response_code(403); exit; }
+    $_fbFilterId = (int)($_REQUEST['segment'] ?? 0);
+    if (!in_array($_fbFilterId, MemberFilter::BULK_ACTION_FILTERS, true)) { http_response_code(403); exit; }
     $yr = (int)($_REQUEST['year'] ?? date('Y'));
-    $ids = array_keys(MemberFilter::resolveIds(FILTER_NEVER_PAID_OLD, db(), $yr, $appSettings));
+    $ids = array_keys(MemberFilter::resolveIds($_fbFilterId, db(), $yr, $appSettings));
     if (!empty($ids)) {
         $ph = implode(',', array_fill(0, count($ids), '?'));
         db()->prepare("UPDATE contact SET status=0 WHERE id IN ($ph)")->execute($ids);
     }
-    auditLog(db(), 'archiveNeverPaidUsers', count($ids) . " membre(s) archivé(s)");
-    $_npUrl = appUrl() . '?view=peopleFinance&tab=members&segment=' . FILTER_NEVER_PAID_OLD;
+    auditLog(db(), 'archiveFilterBulkUsers', "filtre: $_fbFilterId | " . count($ids) . " membre(s) archivé(s)");
+    $_npUrl = appUrl() . '?view=peopleFinance&tab=members&segment=' . $_fbFilterId;
     if ($isHtmx) { header('HX-Location: ' . $_npUrl); } else { header('Location: ' . $_npUrl); }
     exit;
 

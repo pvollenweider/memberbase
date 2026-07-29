@@ -262,44 +262,48 @@ if (empty($_pfEmbedded)) {
     <span><?= $GLOBAL['addUser'] ?></span>
   </a>
   <?php endif ?>
-  <?php if ($segment == FILTER_NEVER_PAID_OLD && isManager() && $_virtualIds !== null): ?>
+  <?php if (in_array((int)$segment, MemberFilter::BULK_ACTION_FILTERS, true) && isManager() && $_virtualIds !== null): ?>
   <div class="w-100 d-flex align-items-center gap-2 flex-wrap mt-2 pt-2" style="border-top:1px solid var(--ca-border)">
     <span class="text-muted" style="font-size:0.78rem">
-      <?= sprintf($GLOBAL['neverPaidBulkCount'], count($_virtualIds)) ?>
+      <?= sprintf($GLOBAL['filterBulkCount'], count($_virtualIds)) ?>
     </span>
-    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-never-paid-create-segment" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
-      <i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['neverPaidCreateSegmentBtn'] ?>
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk-create-segment" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
+      <i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['filterCreateSegmentBtn'] ?>
     </button>
-    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-never-paid-add-segment" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
-      <i class="fas fa-plus me-1" aria-hidden="true"></i><?= $GLOBAL['neverPaidAddToSegmentBtn'] ?>
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk-add-segment" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
+      <i class="fas fa-plus me-1" aria-hidden="true"></i><?= $GLOBAL['filterAddToSegmentBtn'] ?>
     </button>
     <?php if (isAdmin()): ?>
-    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-never-paid-archive" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
-      <i class="fas fa-box-archive me-1" aria-hidden="true"></i><?= $GLOBAL['neverPaidArchiveBtn'] ?>
+    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk-archive" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
+      <i class="fas fa-box-archive me-1" aria-hidden="true"></i><?= $GLOBAL['filterArchiveBtn'] ?>
     </button>
     <?php endif ?>
   </div>
   <?php endif ?>
 </div><!-- .card-header -->
 
-<?php if ($segment == FILTER_NEVER_PAID_OLD && isManager() && $_virtualIds !== null): ?>
-<!-- Create a new segment from the current "never paid" filter result -->
-<div class="modal fade" id="modal-never-paid-create-segment" tabindex="-1" aria-labelledby="modal-never-paid-create-segment-label" aria-modal="true">
+<?php if (in_array((int)$segment, MemberFilter::BULK_ACTION_FILTERS, true) && isManager() && $_virtualIds !== null): ?>
+<!-- Create a new segment from the current filter result. The filter id
+     travels in a hidden field — the action re-validates it against
+     MemberFilter::BULK_ACTION_FILTERS and recomputes ids server-side, it's
+     never trusted as-is. -->
+<div class="modal fade" id="modal-bulk-create-segment" tabindex="-1" aria-labelledby="modal-bulk-create-segment-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-never-paid-create-segment-label"><?= $GLOBAL['createSegmentTitle'] ?></h5>
+        <h5 class="modal-title" id="modal-bulk-create-segment-label"><?= $GLOBAL['createSegmentTitle'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        <?= sprintf($GLOBAL['confirmCreateNeverPaidSegment'], count($_virtualIds)) ?>
+        <?= sprintf($GLOBAL['confirmCreateFilterSegment'], count($_virtualIds)) ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <form method="post" action="<?= appUrl() ?>" class="d-inline" hx-boost="false">
-          <input type="hidden" name="action" value="createNeverPaidSegment">
-          <input type="hidden" name="year"   value="<?= (int)$year ?>">
-          <input type="hidden" name="view"   value="peopleFinance">
+          <input type="hidden" name="action"  value="createFilterBulkSegment">
+          <input type="hidden" name="segment" value="<?= (int)$segment ?>">
+          <input type="hidden" name="year"    value="<?= (int)$year ?>">
+          <input type="hidden" name="view"    value="peopleFinance">
           <button type="submit" class="btn btn-warning">
             <i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['create'] ?>
           </button>
@@ -310,16 +314,16 @@ if (empty($_pfEmbedded)) {
 </div>
 
 <!-- Add to an existing segment -->
-<div class="modal fade" id="modal-never-paid-add-segment" tabindex="-1" aria-labelledby="modal-never-paid-add-segment-label" aria-modal="true">
+<div class="modal fade" id="modal-bulk-add-segment" tabindex="-1" aria-labelledby="modal-bulk-add-segment-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-never-paid-add-segment-label"><?= $GLOBAL['neverPaidAddToSegmentBtn'] ?></h5>
+        <h5 class="modal-title" id="modal-bulk-add-segment-label"><?= $GLOBAL['filterAddToSegmentBtn'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <form method="post" action="<?= appUrl() ?>" hx-boost="false">
         <div class="modal-body">
-          <p><?= sprintf($GLOBAL['confirmAddNeverPaidToSegment'], count($_virtualIds)) ?></p>
+          <p><?= sprintf($GLOBAL['confirmAddFilterToSegment'], count($_virtualIds)) ?></p>
           <select name="targetSegmentId" class="form-select form-select-sm" required>
             <option value=""><?= $GLOBAL['chooseSegment'] ?></option>
             <?php foreach ((function() { try { return Segment::listForDropdown(); } catch (PDOException $e) { return []; } })() as $_npRow): ?>
@@ -328,9 +332,10 @@ if (empty($_pfEmbedded)) {
           </select>
         </div>
         <div class="modal-footer">
-          <input type="hidden" name="action" value="addNeverPaidToSegment">
-          <input type="hidden" name="year"   value="<?= (int)$year ?>">
-          <input type="hidden" name="view"   value="peopleFinance">
+          <input type="hidden" name="action"  value="addFilterBulkToSegment">
+          <input type="hidden" name="segment" value="<?= (int)$segment ?>">
+          <input type="hidden" name="year"    value="<?= (int)$year ?>">
+          <input type="hidden" name="view"    value="peopleFinance">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
           <button type="submit" class="btn btn-warning"><?= $GLOBAL['add'] ?></button>
         </div>
@@ -341,25 +346,26 @@ if (empty($_pfEmbedded)) {
 
 <?php if (isAdmin()): ?>
 <!-- Bulk archive — destructive-ish (reversible via reactivation, but a mass status change), requires an explicit warning -->
-<div class="modal fade" id="modal-never-paid-archive" tabindex="-1" aria-labelledby="modal-never-paid-archive-label" aria-modal="true">
+<div class="modal fade" id="modal-bulk-archive" tabindex="-1" aria-labelledby="modal-bulk-archive-label" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-never-paid-archive-label"><?= $GLOBAL['neverPaidArchiveBtn'] ?></h5>
+        <h5 class="modal-title" id="modal-bulk-archive-label"><?= $GLOBAL['filterArchiveBtn'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
         <div class="alert alert-warning py-2 px-3 mb-3" style="font-size:0.82rem">
-          <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['neverPaidArchiveWarning'] ?>
+          <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['filterArchiveWarning'] ?>
         </div>
-        <p><?= sprintf($GLOBAL['confirmArchiveNeverPaid'], count($_virtualIds)) ?></p>
+        <p><?= sprintf($GLOBAL['confirmArchiveFilterUsers'], count($_virtualIds)) ?></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
         <form method="post" action="<?= appUrl() ?>" class="d-inline" hx-boost="false">
-          <input type="hidden" name="action" value="archiveNeverPaidUsers">
-          <input type="hidden" name="year"   value="<?= (int)$year ?>">
-          <input type="hidden" name="view"   value="peopleFinance">
+          <input type="hidden" name="action"  value="archiveFilterBulkUsers">
+          <input type="hidden" name="segment" value="<?= (int)$segment ?>">
+          <input type="hidden" name="year"    value="<?= (int)$year ?>">
+          <input type="hidden" name="view"    value="peopleFinance">
           <button type="submit" class="btn btn-danger">
             <i class="fas fa-box-archive me-1" aria-hidden="true"></i><?= $GLOBAL['archive'] ?>
           </button>
