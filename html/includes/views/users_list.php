@@ -213,11 +213,18 @@ if (empty($_pfEmbedded)) {
                     <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
                        href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=' . FILTER_NEVER_PAID_OLD ?>"
                        data-label="<?= htmlentities(mb_strtolower($GLOBAL['neverPaidOld']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['neverPaidOld'] ?></a>
+
+                    <?php if (!empty($_ctFilterOptions)): ?>
+                    <div class="dropdown-divider"></div>
+                    <h6 class="dropdown-header">
+                      <i class="fas fa-user-tag me-1" aria-hidden="true"></i><?= $GLOBAL['contactTypesTitle'] ?>
+                    </h6>
                     <?php foreach ($_ctFilterOptions as $_cto): ?>
                     <a class="dropdown-item segment-filterable<?= $contactTypeId === (int)$_cto->id ? ' active' : '' ?>" style="padding-left:1.5rem"
                        href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=0&contactTypeId=' . (int)$_cto->id ?>"
                        data-label="<?= htmlentities(mb_strtolower($_cto->label), ENT_COMPAT, $charset) ?>"><?= htmlspecialchars($_cto->label, ENT_QUOTES, $charset) ?></a>
                     <?php endforeach ?>
+                    <?php endif ?>
 
                         <?php
                         $prevCatId = -1;
