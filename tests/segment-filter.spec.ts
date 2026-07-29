@@ -6,6 +6,27 @@
  */
 
 import { test, expect } from '@playwright/test';
+import * as path from 'path';
+
+test.describe('Segment filter dropdown — "Archivés" entry (admin-only)', () => {
+  test('admin: sees the "Archivés" entry, it links to the inactive-members page', async ({ page }) => {
+    await page.goto('/index.php?view=list');
+    await page.locator('#navbarDropdown').click();
+
+    const link = page.locator('.dropdown-menu a', { hasText: 'Archivés' });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute('href', /view=inactiveUsers/);
+  });
+
+  test('manager: does not see the "Archivés" entry', async ({ browser }) => {
+    const ctx = await browser.newContext({ storageState: path.resolve(__dirname, '.auth/manager.json') });
+    const mgr = await ctx.newPage();
+    await mgr.goto('/index.php?view=list');
+    await mgr.locator('#navbarDropdown').click();
+    await expect(mgr.locator('.dropdown-menu a', { hasText: 'Archivés' })).toHaveCount(0);
+    await ctx.close();
+  });
+});
 
 test.describe('Segment filter dropdown', () => {
   test('dropdown opens and shows filterable items', async ({ page }) => {

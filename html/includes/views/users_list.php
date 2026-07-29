@@ -213,6 +213,11 @@ if (empty($_pfEmbedded)) {
                     <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
                        href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=' . FILTER_NEVER_PAID_OLD ?>"
                        data-label="<?= htmlentities(mb_strtolower($GLOBAL['neverPaidOld']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['neverPaidOld'] ?></a>
+                    <?php if (isAdmin()): ?>
+                    <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
+                       href="<?= appUrl() ?>?view=inactiveUsers"
+                       data-label="<?= htmlentities(mb_strtolower($GLOBAL['archivedMembers']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['archivedMembers'] ?></a>
+                    <?php endif ?>
 
                     <?php if (!empty($_ctFilterOptions)): ?>
                     <div class="dropdown-divider"></div>
@@ -227,8 +232,12 @@ if (empty($_pfEmbedded)) {
                     <?php endif ?>
 
                         <?php
+                        $_segmentDropdownRows = (function() { try { return Segment::listForDropdown(); } catch (PDOException $e) { return []; } })();
+                        if (!empty($_segmentDropdownRows)) {
+                            echo '<div class="dropdown-divider"></div>';
+                        }
                         $prevCatId = -1;
-                        foreach ((function() { try { return Segment::listForDropdown(); } catch (PDOException $e) { return []; } })() as $row) {
+                        foreach ($_segmentDropdownRows as $row) {
                             $catId = (int)$row->cat_id;
                             if ($catId !== $prevCatId) {
                                 if ($prevCatId !== -1) echo '<div class="dropdown-divider my-0 segment-cat-divider" data-cat="' . $catId . '"></div>';
