@@ -20,6 +20,7 @@ class MemberFilter
         FILTER_NO_ACTIVITY_10Y,
         FILTER_NON_INSTIT_LAST_YEAR,
         FILTER_UNPAID_COTI_CURRENT,
+        FILTER_NEVER_PAID_OLD,
     ];
 
     public static function isVirtual(int $segmentId): bool
@@ -141,6 +142,27 @@ class MemberFilter
                     if (empty($noCoti[$uid])) {
                         $ids[$uid] = true;
                     }
+                }
+                return $ids;
+            }
+
+            // Created more than 3 years ago and never a single compta entry.
+            // NULL creationDate (legacy contacts predating that column) is
+            // treated as "old enough" rather than excluded — an unset
+            // creation date is itself a sign the record predates tracking.
+            case FILTER_NEVER_PAID_OLD: {
+                $cutoff = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year - 3));
+                $ids = [];
+                $st = $pdo->prepare("
+                    SELECT u.id
+                    FROM contact u
+                    WHERE u.status = 1
+                      AND (u.creationDate IS NULL OR u.creationDate < ?)
+                      AND NOT EXISTS (SELECT 1 FROM compta c WHERE c.user_id = u.id)
+                ");
+                $st->execute([$cutoff]);
+                while ($r = $st->fetchObject()) {
+                    $ids[(int)$r->id] = true;
                 }
                 return $ids;
             }

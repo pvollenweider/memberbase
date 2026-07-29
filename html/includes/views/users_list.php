@@ -60,6 +60,15 @@ if (isset($_REQUEST['year'])) {
     $year = $_REQUEST['year'];
 }
 
+// Virtual filters — matching IDs resolved once via the shared MemberFilter
+// class (same source of truth as /api/contacts, see issue #57). Computed
+// here (not just where the table renders) so the bulk-action toolbar in the
+// card header can show an accurate count for the current filter.
+$_virtualIds = null;
+if (in_array((int)$segment, MemberFilter::RESOLVABLE, true)) {
+    $_virtualIds = MemberFilter::resolveIds((int)$segment, db(), (int)$year, $appSettings);
+}
+
 // AJAX search is safe when no complex server-side filter is active
 $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((int)$segment, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
 
@@ -115,6 +124,9 @@ if (empty($_pfEmbedded)) {
                     } else if ($segment == FILTER_UNPAID_COTI_CURRENT) {
                         $currentSegmentTitle = $GLOBAL['cotiUnpayed'];
                         $currentFilterDesc = sprintf($GLOBAL['filterDescCotiUnpaidCurrent'], $year);
+                    } else if ($segment == FILTER_NEVER_PAID_OLD) {
+                        $currentSegmentTitle = $GLOBAL['neverPaidOld'];
+                        $currentFilterDesc = sprintf($GLOBAL['filterDescNeverPaidOld'], $year - 3);
                     } else if ($segment > 0) {
                         try {
                             $currentsegment = new Segment();
@@ -142,7 +154,7 @@ if (empty($_pfEmbedded)) {
                     if ($combinedSegment > 0) {
                         $_rsegKey = 'cs:' . $combinedSegment;
                         $_rsegUrl = '?view=peopleFinance&tab=members&combinedSegment=' . $combinedSegment;
-                    } elseif ($segment > 0 || in_array((int)$segment, [FILTER_ALL_EXCEPT_ARCHIVES, FILTER_UNPAID_COTI_3Y, FILTER_NO_ACTIVITY_10Y, FILTER_NON_INSTIT_LAST_YEAR, FILTER_UNPAID_COTI_CURRENT], true)) {
+                    } elseif ($segment > 0 || in_array((int)$segment, [FILTER_ALL_EXCEPT_ARCHIVES, FILTER_UNPAID_COTI_3Y, FILTER_NO_ACTIVITY_10Y, FILTER_NON_INSTIT_LAST_YEAR, FILTER_UNPAID_COTI_CURRENT, FILTER_NEVER_PAID_OLD], true)) {
                         $_rsegKey = ($segment > 0 ? 'sg:' : 'qf:') . $segment;
                         $_rsegUrl = '?view=peopleFinance&tab=members&segment=' . $segment;
                     } else {
@@ -198,6 +210,9 @@ if (empty($_pfEmbedded)) {
                     <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
                        href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=' . FILTER_NON_INSTIT_LAST_YEAR ?>"
                        data-label="<?= htmlentities(mb_strtolower($GLOBAL['nonInstitPayedSomethingLastYear']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['nonInstitPayedSomethingLastYear'] ?></a>
+                    <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
+                       href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=' . FILTER_NEVER_PAID_OLD ?>"
+                       data-label="<?= htmlentities(mb_strtolower($GLOBAL['neverPaidOld']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['neverPaidOld'] ?></a>
                     <?php foreach ($_ctFilterOptions as $_cto): ?>
                     <a class="dropdown-item segment-filterable<?= $contactTypeId === (int)$_cto->id ? ' active' : '' ?>" style="padding-left:1.5rem"
                        href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=0&contactTypeId=' . (int)$_cto->id ?>"
@@ -247,7 +262,115 @@ if (empty($_pfEmbedded)) {
     <span><?= $GLOBAL['addUser'] ?></span>
   </a>
   <?php endif ?>
+  <?php if ($segment == FILTER_NEVER_PAID_OLD && isManager() && $_virtualIds !== null): ?>
+  <div class="w-100 d-flex align-items-center gap-2 flex-wrap mt-2 pt-2" style="border-top:1px solid var(--ca-border)">
+    <span class="text-muted" style="font-size:0.78rem">
+      <?= sprintf($GLOBAL['neverPaidBulkCount'], count($_virtualIds)) ?>
+    </span>
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-never-paid-create-segment" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
+      <i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['neverPaidCreateSegmentBtn'] ?>
+    </button>
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-never-paid-add-segment" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
+      <i class="fas fa-plus me-1" aria-hidden="true"></i><?= $GLOBAL['neverPaidAddToSegmentBtn'] ?>
+    </button>
+    <?php if (isAdmin()): ?>
+    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-never-paid-archive" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
+      <i class="fas fa-box-archive me-1" aria-hidden="true"></i><?= $GLOBAL['neverPaidArchiveBtn'] ?>
+    </button>
+    <?php endif ?>
+  </div>
+  <?php endif ?>
 </div><!-- .card-header -->
+
+<?php if ($segment == FILTER_NEVER_PAID_OLD && isManager() && $_virtualIds !== null): ?>
+<!-- Create a new segment from the current "never paid" filter result -->
+<div class="modal fade" id="modal-never-paid-create-segment" tabindex="-1" aria-labelledby="modal-never-paid-create-segment-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-never-paid-create-segment-label"><?= $GLOBAL['createSegmentTitle'] ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body">
+        <?= sprintf($GLOBAL['confirmCreateNeverPaidSegment'], count($_virtualIds)) ?>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <form method="post" action="<?= appUrl() ?>" class="d-inline" hx-boost="false">
+          <input type="hidden" name="action" value="createNeverPaidSegment">
+          <input type="hidden" name="year"   value="<?= (int)$year ?>">
+          <input type="hidden" name="view"   value="peopleFinance">
+          <button type="submit" class="btn btn-warning">
+            <i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['create'] ?>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add to an existing segment -->
+<div class="modal fade" id="modal-never-paid-add-segment" tabindex="-1" aria-labelledby="modal-never-paid-add-segment-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-never-paid-add-segment-label"><?= $GLOBAL['neverPaidAddToSegmentBtn'] ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <form method="post" action="<?= appUrl() ?>" hx-boost="false">
+        <div class="modal-body">
+          <p><?= sprintf($GLOBAL['confirmAddNeverPaidToSegment'], count($_virtualIds)) ?></p>
+          <select name="targetSegmentId" class="form-select form-select-sm" required>
+            <option value=""><?= $GLOBAL['chooseSegment'] ?></option>
+            <?php foreach ((function() { try { return Segment::listForDropdown(); } catch (PDOException $e) { return []; } })() as $_npRow): ?>
+            <option value="<?= (int)$_npRow->id ?>"><?= htmlentities($_npRow->name, ENT_COMPAT, $charset) ?></option>
+            <?php endforeach ?>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <input type="hidden" name="action" value="addNeverPaidToSegment">
+          <input type="hidden" name="year"   value="<?= (int)$year ?>">
+          <input type="hidden" name="view"   value="peopleFinance">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+          <button type="submit" class="btn btn-warning"><?= $GLOBAL['add'] ?></button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<?php if (isAdmin()): ?>
+<!-- Bulk archive — destructive-ish (reversible via reactivation, but a mass status change), requires an explicit warning -->
+<div class="modal fade" id="modal-never-paid-archive" tabindex="-1" aria-labelledby="modal-never-paid-archive-label" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-never-paid-archive-label"><?= $GLOBAL['neverPaidArchiveBtn'] ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning py-2 px-3 mb-3" style="font-size:0.82rem">
+          <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['neverPaidArchiveWarning'] ?>
+        </div>
+        <p><?= sprintf($GLOBAL['confirmArchiveNeverPaid'], count($_virtualIds)) ?></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
+        <form method="post" action="<?= appUrl() ?>" class="d-inline" hx-boost="false">
+          <input type="hidden" name="action" value="archiveNeverPaidUsers">
+          <input type="hidden" name="year"   value="<?= (int)$year ?>">
+          <input type="hidden" name="view"   value="peopleFinance">
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-box-archive me-1" aria-hidden="true"></i><?= $GLOBAL['archive'] ?>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif ?>
+<?php endif ?>
+
 <div class="card-body">
 <script>
 function filterSegmentDropdown(q) {
@@ -374,12 +497,6 @@ $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
 <tbody>
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
-// Virtual filters — matching IDs resolved once via the shared MemberFilter
-// class (same source of truth as /api/contacts, see issue #57)
-$_virtualIds = null;
-if (in_array((int)$segment, MemberFilter::RESOLVABLE, true)) {
-    $_virtualIds = MemberFilter::resolveIds((int)$segment, db(), (int)$year, $appSettings);
-}
 
 // Pre-fetch compta summary for the FILTER_NO_ACTIVITY_10Y history column
 $_compta5555 = [];

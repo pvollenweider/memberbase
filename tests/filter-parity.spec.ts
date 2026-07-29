@@ -23,6 +23,7 @@ const VIRTUAL_FILTERS: Record<string, number> = {
   FILTER_UNPAID_COTI_3Y:       -3333,
   FILTER_NO_ACTIVITY_10Y:      -5555,
   FILTER_NON_INSTIT_LAST_YEAR: -6666,
+  FILTER_NEVER_PAID_OLD:       -7777,
 };
 
 test.use({ storageState: ADMIN_STATE });
