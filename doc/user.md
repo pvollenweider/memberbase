@@ -2,10 +2,6 @@
 
 Guide pratique pour la gestion quotidienne des membres, segments, comptabilité, suivi et dons.
 
-> **Terminologie (v3.5.4).** L'interface parle de **Segment** (auparavant « groupe ») et de
-> **Segment combiné** (auparavant « métagroupe » ou « filtre »). Les anciennes captures ou
-> instructions mentionnant « groupe » désignent la même notion.
-
 ---
 
 ## Sommaire
@@ -171,17 +167,35 @@ Cliquer dessus ouvre un menu déroulant contenant :
 | Tout le monde | Tous les membres actifs (hors archivés) |
 | Aucune cotisation ces 3 dernières années | Membres ayant déjà cotisé, mais pas lors des 3 dernières années (les membres du segment « sans cotisation » sont exclus) |
 | Aucun versement ces 10 dernières années | Membres actifs sans aucune entrée comptable depuis 10 ans |
+| Jamais rien versé | Membres créés il y a plus de 3 ans, sans aucune entrée comptable dans leur historique |
 | Cotisation AAAA non payée | Membres sans cotisation enregistrée pour l'année en cours |
 | Donateur non institutionnel actif en AAAA-1 | Membres ayant fait au moins un versement non institutionnel l'année précédente |
 
 - Une entrée de filtre rapide par **type de contact** configuré (Réglages → Types de contact,
-  voir §12), pour isoler par exemple les institutions ou les entreprises.
+  voir §12), pour isoler par exemple les institutions ou les entreprises — affichée séparément
+  des filtres rapides dans le menu.
+- Pour un **Admin**, une entrée **Archivés** menant directement à la liste des membres archivés
+  (voir §12).
 - La liste de tous les segments, regroupés par **catégorie**. Le badge à droite de chaque
   segment indique son nombre de membres.
 
 ![Menu déroulant du filtre segment](images/liste-filtre-segment.png)
 
 Une phrase d'explication s'affiche sous le bouton lorsqu'un filtre rapide est actif.
+
+#### Actions en masse sur les filtres « Aucun versement ces 10 dernières années » et « Jamais rien versé »
+
+Ces deux filtres de nettoyage affichent une **case à cocher sur chaque ligne** (Managers et
+Admins), avec une case **Tout sélectionner** en en-tête du tableau ; tout est coché par défaut.
+Une barre d'actions apparaît alors, permettant sur les lignes cochées :
+
+- **Créer un segment** — regroupe les profils sélectionnés dans un nouveau segment nommé
+  automatiquement d'après le filtre et la date du jour.
+- **Ajouter à un segment existant** — choisir un segment dans la liste.
+- **Archiver en masse** (**Admin** uniquement) — bascule les profils sélectionnés en archivé,
+  avec un avertissement de confirmation avant d'agir.
+
+Décocher des lignes permet d'exclure des profils avant de confirmer l'action.
 
 ### Rechercher un membre
 
@@ -521,9 +535,8 @@ Toutes les notes de suivi, tous membres confondus, avec les mêmes outils d'expo
 ### Membres & finances — onglet Attestation (aperçu des dons)
 
 `?view=peopleFinance&tab=dons`. Reprend le résumé annuel des dons — les cartes KPI
-(Contributions, Donateurs, Membres actifs) et le camembert de répartition affichés ici avant la
-v5.2.0 vivent désormais sur le **Tableau de bord** (voir §1) et ne sont plus dupliqués dans cet
-onglet.
+(Contributions, Donateurs, Membres actifs) et le camembert de répartition vivent désormais sur
+le **Tableau de bord** (voir §1) et ne sont plus dupliqués dans cet onglet.
 
 Filtres et options :
 

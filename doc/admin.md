@@ -1,6 +1,6 @@
 # Guide administrateur — MemberBase
 
-Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.3.1). Il couvre l'installation, la configuration, la sécurité, l'API et la maintenance.
+Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase. Il couvre l'installation, la configuration, la sécurité, la supervision et la maintenance.
 
 ---
 
@@ -20,6 +20,11 @@ Ce guide s'adresse à l'administrateur système qui gère le serveur, le déploi
 12. [Mise à jour du schéma](#12-mise-à-jour-du-schéma)
 13. [Logs d'audit](#13-logs-daudit)
 14. [Emails et communications](#14-emails-et-communications)
+15. [Tâches planifiées (cron)](#15-tâches-planifiées-cron)
+16. [Membres archivés — suppression et anonymisation](#16-membres-archivés--suppression-et-anonymisation)
+17. [Supervision et monitoring](#17-supervision-et-monitoring)
+18. [Réglages de l'application](#18-réglages-de-lapplication)
+19. [Référence rapide](#référence-rapide)
 
 ---
 
@@ -107,11 +112,13 @@ Saisir les paramètres de connexion. L'installeur teste la connexion et, si elle
 
 **Étape 3 — Initialisation du schéma**
 
-Crée les tables suivantes (toutes avec `CREATE TABLE IF NOT EXISTS` — idempotent) :
+Crée les 21 tables du schéma (toutes avec `CREATE TABLE IF NOT EXISTS` — idempotent) :
 
-`contact` `segment` `contact_properties` `contact_segment` `combined_segment` `combined_segment_member` `compta` `compta_type` `maxval` `app_settings` `app_users` `audit_log` `email_templates` `email_log` `api_rate_limit` `schema_migrations`
+`contact` `contact_type` `contact_type_compta_type` `segment` `segment_cascade_rule` `combined_segment` `combined_segment_member` `contact_segment` `contact_properties` `compta` `compta_type` `suivi_task` `app_settings` `app_users` `audit_log` `email_templates` `email_log` `api_rate_limit` `login_rate_limit` `maxval` `schema_migrations`
 
-Un clic suffit. Les tables existantes ne sont pas modifiées.
+Un clic suffit. Les tables existantes ne sont pas modifiées. `maxval` est une table de
+compteur générique héritée, conservée pour compatibilité mais sans appelant actif (toutes
+les séquences utilisent `AUTO_INCREMENT` natif).
 
 **Étape 4 — Configuration de l'organisation**
 
@@ -167,13 +174,9 @@ git pull
 systemctl reload apache2   # si des fichiers PHP ont changé
 ```
 
-La plupart des mises à jour mineures ne demandent aucune migration. Certaines versions ajoutent toutefois une colonne : **consulter systématiquement [`MIGRATION_PROD.md`](../MIGRATION_PROD.md)**. Par exemple, la **v3.5.4** requiert l'ajout de la colonne `email_alt` :
-
-```sql
-ALTER TABLE users ADD COLUMN email_alt VARCHAR(255) NOT NULL DEFAULT '' AFTER email;
-```
-
-Voir aussi la section [12 — Mise à jour du schéma](#12-mise-à-jour-du-schéma) pour les cas exceptionnels.
+La plupart des mises à jour mineures n'ajoutent aucune migration. Quand une release en ajoute
+une, elle ne s'applique **pas** automatiquement au `git pull` — voir la section
+[12 — Mise à jour du schéma](#12-mise-à-jour-du-schéma) pour l'appliquer (CLI ou interface web).
 
 **Dépendances committées, rien à builder côté serveur.** `html/vendor/` (dépendances PHP
 Composer) et les bundles `html/js/dist/app.min.js`/`vendor.min.js`/`html/css/dist/app.min.css`
@@ -229,11 +232,11 @@ Stockés en base, modifiables dans Réglages → Général. Clés principales :
 | `org_npa` | Code postal (attestations) |
 | `org_city` | Ville (attestations) |
 | `org_country` | Pays (attestations) |
-| `default_segment` | ID du segment affiché par défaut dans la liste membres (anciennement `default_team`, renommé v5.1.0) |
-| `membre_segment` | ID du segment de référence pour les filtres cotisation (anciennement `membre_team`, renommé v5.1.0) |
-| `member_no_coti_segment` | ID du segment « membres sans cotisation attendue » — exclu du filtre rapide « cotisation non payée cette année » (anciennement `member_no_coti_team`, renommé v5.1.0) |
+| `default_segment` | ID du segment affiché par défaut dans la liste membres |
+| `membre_segment` | ID du segment de référence pour les filtres cotisation |
+| `member_no_coti_segment` | ID du segment « membres sans cotisation attendue » — exclu du filtre rapide « cotisation non payée cette année » |
 | `archive_id` | ID du segment archives (exclu des vues par défaut) |
-| `membre_segment_prefix` | Préfixe des segments membres annuels (ex. `Membre`) (anciennement `membre_team_prefix`, renommé v5.1.0) |
+| `membre_segment_prefix` | Préfixe des segments membres annuels (ex. `Membre`) |
 | `org_ide` | Numéro IDE suisse (CHE-XXX.XXX.XXX) — figure sur les attestations de dons. Bouton **Vérifier via Zefix** dans l'UI : interroge le registre du commerce suisse (`zefix.ch`, flux `search.json` → `firm/{ehraid}.json`) pour préremplir nom/adresse/but statutaire à partir du numéro IDE |
 | `org_purpose` | But statutaire (extrait des statuts) — préremplissable via Zefix |
 | `org_tax_status` | Statut d'exonération fiscale — saisie manuelle uniquement (aucun registre fédéral consulté automatiquement) |
@@ -515,9 +518,23 @@ Créé via `install.php` étape 5. C'est le seul compte pour lequel `force_passw
 - Cookie de session : `httponly=true`, `samesite=Lax`, `secure=true` (HTTPS uniquement)
 - Durée de session : `lifetime=0` (session navigateur — expire à la fermeture de l'onglet)
 
-### 7.2 Fail2Ban
+### 7.2 Anti-brute-force (deux niveaux)
 
-Jail configurée pour bannir les IPs après 5 tentatives de login échouées en 5 minutes (ban 24 heures).
+Défense en profondeur à deux niveaux, indépendants l'un de l'autre :
+
+1. **Fail2Ban** (infra, ban par IP) — jail bannissant une IP après 5 tentatives de login
+   échouées en 5 minutes (ban 24 heures). Dépend des logs Apache et d'une configuration serveur
+   correcte.
+2. **Compteur applicatif** (`login_rate_limit`, indépendant de l'infra) — la table
+   `login_rate_limit` limite à 8 échecs par couple identifiant+IP sur une fenêtre glissante de
+   5 minutes (`mbLoginRateLimited()`/`mbLoginRateLimitHit()` dans `includes/lib/auth.php`).
+   Ce niveau reste actif même si Fail2Ban est absent ou mal configuré sur le serveur, et
+   protège aussi un compte ciblé depuis plusieurs IP différentes, ce qu'un ban par IP seul ne
+   peut pas voir. Fonctionnement best-effort : une erreur du limiteur (table absente, etc.) est
+   silencieusement ignorée pour ne jamais bloquer un login légitime.
+
+Configurer Fail2Ban reste recommandé — il protège en amont de la couche applicative et bannit
+l'IP entière, pas seulement le couple identifiant+IP.
 
 Un login échoué retourne HTTP 200 (le formulaire est ré-affiché). Un login réussi retourne HTTP 302. Fail2Ban distingue les deux via ce code de retour.
 
@@ -592,11 +609,10 @@ de session (`csrfCheck()` dans `includes/lib/auth.php`) **avant** le dispatch : 
 jeton valide → `403` et une entrée `audit_log` de code `csrfRejected` (action + méthode HTTP +
 IP). Le jeton est exposé une fois par page dans `<meta name="csrf-token">`.
 
-Depuis la version 5.3.1 (`3d1155d`), la vérification s'applique à **toutes les méthodes HTTP**,
-pas seulement POST : les handlers d'action lisent leurs paramètres dans `$_REQUEST`, si bien
-qu'une requête GET forgée (image, lien piégé) pouvait auparavant déclencher une mutation
-(suppression de segment, d'écriture comptable, suppression en masse…) sans jeton — faille
-fermée par ce durcissement.
+La vérification s'applique à **toutes les méthodes HTTP**, pas seulement POST : les handlers
+d'action lisent leurs paramètres dans `$_REQUEST`, si bien qu'une requête GET forgée (image,
+lien piégé) pourrait sinon déclencher une mutation (suppression de segment, d'écriture
+comptable, suppression en masse…) sans jeton.
 
 La propagation du jeton est automatique et ne demande rien à un contributeur ajoutant un
 formulaire ou un appel htmx standard :
@@ -619,101 +635,26 @@ mécanisme : elle est protégée par l'authentification de session + rôle et ex
 
 ## 8. API REST
 
-### 8.1 Activation
+Référence complète des endpoints, paramètres, corps de requête et codes d'erreur :
+**[`doc/api.md`](api.md)**. Ce qui concerne spécifiquement l'exploitation serveur :
 
-L'API est toujours disponible. Aucun flag d'activation n'existe. Elle requiert une **authentification de session** active — il n'y a pas d'authentification par token ou clé API. L'utilisateur doit d'abord se connecter via `POST /login.php`, puis inclure le cookie de session dans les requêtes API.
+- **Authentification** : session web uniquement (pas de token ni de clé API). Un client
+  externe doit d'abord `POST /login.php`, puis rejouer le cookie de session sur les appels API :
 
-Le bootstrap de l'API se trouve dans `html/api/_bootstrap.php` : il vérifie `isLoggedIn()` et émet les headers `Content-Type: application/json` et CORS appropriés.
+  ```bash
+  curl -c cookies.txt -b cookies.txt \
+    -d "username=admin&password=VotreMotDePasse" \
+    https://membres.votre-domaine.ch/login.php
 
-### 8.2 Authentification par session pour les appels curl
+  curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
+  ```
 
-```bash
-# 1. Se connecter et récupérer le cookie de session
-curl -c cookies.txt -b cookies.txt \
-  -d "username=admin&password=VotreMotDePasse" \
-  https://membres.votre-domaine.ch/login.php
-
-# 2. Utiliser le cookie pour les appels API suivants
-curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
-```
-
-### 8.3 Endpoints disponibles
-
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| `GET` | `/api/contacts` | Liste des membres |
-| `GET` | `/api/contacts/{id}` | Fiche membre complète |
-| `PATCH` | `/api/contacts/{id}` | Modification partielle (génère un audit log) |
-| `GET` | `/api/contacts/{id}/groups` | Segments du membre |
-| `GET` | `/api/segments` | Liste des segments avec comptage membres |
-| `GET` | `/api/segments/{id}` | Segment avec ses membres |
-| `GET` | `/api/compta` | Entrées comptables |
-| `GET` | `/api/compta-types` | Types de compta configurés |
-| `GET` | `/api/suivi` | Notes de suivi |
-
-### 8.4 Paramètres de filtrage
-
-**`GET /api/contacts`**
-
-| Paramètre | Type | Description |
-|-----------|------|-------------|
-| `segment` | int | Filtrer par ID de segment (négatif = filtre virtuel, voir `MemberFilter`) — anciennement `team`, renommé v5.1.0 |
-| `combinedSegment` | int | Filtrer par ID de segment combiné — anciennement `metagroup`, renommé v5.1.0 |
-| `search` | string | Recherche textuelle (nom, prénom, email) |
-| `page` | int | Numéro de page (pagination) |
-| `limit` | int | Nombre de résultats par page (max 2000) |
-| `types` | bool | `1` = inclut les types de compta de chaque membre dans la réponse |
-
-**`GET /api/compta`**
-
-| Paramètre | Type | Description |
-|-----------|------|-------------|
-| `memberId` | int | Filtrer par ID membre |
-| `year` | int | Filtrer par année |
-
-**`GET /api/suivi`**
-
-| Paramètre | Type | Description |
-|-----------|------|-------------|
-| `memberId` | int | Filtrer par ID membre |
-
-### 8.5 Exemples curl
-
-```bash
-BASE=https://membres.votre-domaine.ch
-COOKIES=cookies.txt
-
-# Liste des membres du segment 3
-curl -b $COOKIES "$BASE/api/contacts?segment=3"
-
-# Fiche complète du membre 42
-curl -b $COOKIES "$BASE/api/contacts/42"
-
-# Modifier le prénom du membre 42
-curl -b $COOKIES -X PATCH \
-  -H "Content-Type: application/json" \
-  -d '{"firstname": "Jean-Pierre"}' \
-  "$BASE/api/contacts/42"
-
-# Entrées compta du membre 42 pour 2024
-curl -b $COOKIES "$BASE/api/compta?memberId=42&year=2024"
-
-# Liste des segments
-curl -b $COOKIES "$BASE/api/segments"
-```
-
-### 8.6 Format des réponses
-
-Toutes les réponses sont en JSON UTF-8. Les erreurs retournent un objet `{"error": "message descriptif"}` avec le code HTTP approprié :
-
-| Code | Situation |
-|------|-----------|
-| 200 | Succès |
-| 400 | Paramètre invalide ou corps JSON malformé |
-| 401 | Non authentifié |
-| 403 | Authentifié mais rôle insuffisant |
-| 404 | Ressource introuvable |
-| 405 | Méthode HTTP non supportée |
+- **Rate limiting** : compteur fenêtre fixe par (utilisateur + IP), 600 requêtes/minute
+  (table `api_rate_limit`), au-delà `429 Too Many Requests`. Best-effort — une erreur du
+  limiteur ne bloque jamais l'API.
+- **CSRF** : les écritures (`POST`/`PUT`/`PATCH`) doivent porter `Content-Type: application/json`
+  — un navigateur ne peut pas forger cet en-tête sur une requête cross-origin sans déclencher
+  un preflight CORS, ce qui suffit à bloquer une attaque CSRF classique sans jeton dédié.
 
 ---
 
@@ -923,7 +864,7 @@ déjà appliquée a été modifié après coup (comparaison de checksum) — **n
 Cette page affiche aussi le nombre de migrations en attente et signale toute
 dérive de checksum détectée.
 
-**Depuis la v5.2.0**, la même page propose un outil ponctuel « **Forcer le
+La même page propose un outil ponctuel « **Forcer le
 type de contact d'un segment** » (`html/includes/views/settings_health.php`,
 action `bulkSetContactTypeBySegment` dans `includes/actions/settings.php`) :
 applique en une fois un type de contact (`contact_type`) à tous les membres
@@ -935,40 +876,22 @@ la migration `0035_contact_type` est déjà appliquée — sur une base qui ne
 l'a pas encore, la table `contact_type` n'existe pas et le bloc est
 simplement masqué, plutôt que de faire planter la page Santé.
 
-### Migrations 5.2.0–5.3.0 (`0032`–`0039`)
-
-Huit migrations ajoutées depuis la dernière documentée en 5.1.0 (`0031`,
-elle-même déjà présente en base depuis la v5.1.0 — voir la note de
-portabilité ci-dessous) :
-
-| Migration | Objet |
-|-----------|-------|
-| `0032_suivi_tasks.sql` | Table `suivi_task` — gestion de tâches (titre, priorité, échéance `due_date`, `done_at`), en parallèle des notes de suivi libres existantes |
-| `0033_suivi_task_rule_key.sql` | Colonne `suivi_task.rule_key` — marque les tâches créées automatiquement par une règle métier, pour dédupliquer une régénération |
-| `0034_segment_cascade_rule.sql` | Table `segment_cascade_rule` — règles d'auto-assignation « segment source → segment cible » (single-hop) |
-| `0035_contact_type.sql` | Table `contact_type` (4 types intégrés : `private`/`institution`/`financial`/`company`) + colonne `contact.contact_type_id` (FK, défaut `1`) + colonnes `compta_type.is_financial_institution`/`is_company` |
-| `0036_compta_type_matrix_archive.sql` | Table `contact_type_compta_type` — matrice type de contact × type de compta (restreint les types proposés à la création d'une écriture) + colonne `compta_type.is_archived` |
-| `0037_contact_type_icon.sql` | Colonne `contact_type.icon` — nom d'icône Font Awesome (sans préfixe `fa-`/`fas fa-`, ajouté au rendu) |
-| `0038_contact_type_default_compta_type.sql` | Colonne `contact_type.default_compta_type_id` (FK vers `compta_type`) — type de compta pré-sélectionné à la création d'une écriture, selon le type de contact du membre |
-| `0039_suivi_task_paused_at.sql` | Colonne `suivi_task.paused_at` — état « en pause », distinct d'ouvert/terminé (voir le guide utilisateur §8 « Tâches ») |
+Le détail des 40 migrations et du schéma qu'elles construisent est documenté dans
+[`doc/architecture.md`](architecture.md#5-schéma-de-base-de-données) — pas dupliqué ici.
 
 ### Portabilité SQL entre versions MariaDB/MySQL
 
-La migration `0031_compta_quittance_to_comment.sql` (renommage
-`compta.quittance` → `compta.comment`) a été livrée en 5.1.0 avec la syntaxe
-`ALTER TABLE ... RENAME COLUMN ... TO ...`, qui **nécessite MariaDB 10.5.2+ /
-MySQL 8.0+** — sur un serveur plus ancien, l'instruction échoue avec une
-erreur de syntaxe et bloque `migrate.php`. Corrigé en 5.2.0 : la migration a
-été réécrite avec `ALTER TABLE ... CHANGE COLUMN ... <même type>`, portable
-sur toutes les versions supportées (voir [§1 — Prérequis](#1-prérequis)).
-**Ne jamais utiliser `RENAME COLUMN ... TO ...` dans une nouvelle migration**
-— toujours `CHANGE COLUMN` (nécessite de répéter le type de la colonne).
+`ALTER TABLE ... RENAME COLUMN ... TO ...` nécessite **MariaDB 10.5.2+ / MySQL 8.0+** — sur un
+serveur plus ancien, l'instruction échoue avec une erreur de syntaxe et bloque `migrate.php`.
+**Ne jamais utiliser `RENAME COLUMN ... TO ...` dans une nouvelle migration** — toujours
+`ALTER TABLE ... CHANGE COLUMN ... <même type>`, portable sur toutes les versions supportées
+(voir [§1 — Prérequis](#1-prérequis)), au prix de devoir répéter le type de la colonne.
 
 ### Avant toute migration en production
 
 1. `php html/tools/migrate.php --status` (ou Réglages → Santé) pour voir ce qui va s'appliquer
 2. Dump de la base (`mysqldump`, ou export intégré via Réglages → Santé)
-3. **Depuis la v5.1.0 (migrations `0028`-`0030`)** : vérifier que les tables de
+3. Vérifier que les tables de
    fuseaux horaires nommés MariaDB sont chargées —
    `SELECT CONVERT_TZ(NOW(), @@session.time_zone, 'Europe/Zurich');` doit
    renvoyer une vraie date, pas `NULL`. Si `NULL` : `mysql_tzinfo_to_sql
@@ -981,10 +904,9 @@ sur toutes les versions supportées (voir [§1 — Prérequis](#1-prérequis)).
 ⚠️ Le DDL MySQL est auto-committé (pas de rollback transactionnel) — la
 sauvegarde de l'étape 2 est la seule protection en cas de problème.
 
-`MIGRATION_PROD.md` à la racine du dépôt documente l'historique complet des
-migrations (y compris les migrations manuelles d'avant ce système, versions
-≤ 3.7.x) et les prérequis spécifiques (fuseaux horaires, sauvegardes) — à
-consulter avant toute migration structurante.
+`MIGRATION_PROD.md` à la racine du dépôt trace l'historique des migrations de production et
+leurs prérequis spécifiques (fuseaux horaires, sauvegardes) — à consulter avant toute migration
+structurante.
 
 ### Vérifier l'état du schéma
 
@@ -1133,7 +1055,7 @@ Après envoi, les entrées incluses sont marquées `notified_at = NOW()` et ne r
 Handler `html/includes/actions/attestation_email.php`, lib `html/includes/lib/attestation.php`. Actions : `previewAttestation`, `sendAttestationOne` (fiche membre / ligne du résumé dons), `previewAttestationsBulkList`, `sendAttestationsBulk` (résumé dons).
 
 - **Tampon/signature** (`html/includes/lib/attestation_stamp.php`) : overlay généré via FPDF et fusionné sur le PDF aplati via `pdftk stamp`. Images non commitées, déposées manuellement par l'admin système dans `conf/attestation_stamp.png` et `conf/attestation_signature.png` (hors `html/`, comme `conf/db.php` — absentes = pas de tampon, aucune erreur). Toujours appliqué sur les PDF envoyés par email ; opt-in (`?stamp=1`) sur le téléchargement direct (`attestation_don.php`/`attestation_bulk.php`).
-- **Accès restreint aux managers/admins** (depuis 5.3.1, `3d1155d`) : `attestation_don.php` et `attestation_bulk.php` renvoient `403` à tout compte qui n'est pas Manager ou Admin, y compris connecté. Avant ce correctif, un compte en lecture seule pouvait télécharger directement les données de dons nominatives de n'importe quel membre en devinant/énumérant l'URL.
+- **Accès restreint aux managers/admins** : `attestation_don.php` et `attestation_bulk.php` renvoient `403` à tout compte qui n'est pas Manager ou Admin, y compris connecté — ces routes exposent des données de dons nominatives, pas seulement l'attestation demandée.
 - **Déjà envoyé cette année** : `mbGetAlreadySentAttestationIds()` matche `email_log.tpl_key='tpl_attestation_don'` sur l'**année dans le sujet** (pas `YEAR(created_at)`, car une attestation peut être envoyée l'année suivant celle qu'elle couvre). L'envoi en masse liste ces personnes séparément (`previewAttestationsBulkList`) ; seules celles explicitement cochées (`force_ids`, liste d'ids séparés par des virgules) sont resendues, les autres comptent dans `already` (distinct de `skipped` = pas d'email / échec pdftk).
 - **Avertissement hors-saison** : si le mois courant n'est pas janvier, une case de confirmation est requise côté client avant l'envoi (individuel et en masse) — aucune vérification serveur, purement UX.
 - **Régénération depuis le journal** : `attestation_don.php?emailid=N` relit `email_log` (user_id, sujet pour l'année, `created_at` pour la date « Lieu / Date » du PDF), régénère et stampe le PDF avec la date d'envoi d'origine plutôt que la date du jour. Lien affiché dans `email_detail.php` pour toute entrée `tpl_attestation_don`.
@@ -1163,7 +1085,59 @@ Ajouter au crontab système (une exécution quotidienne suffit) :
 
 Le script reste utilisable en exécution manuelle ponctuelle (`php html/tools/cron.php`) mais perd son intérêt (« planifié ») sans un déclencheur externe. Pas d'alternative web (« bouton Réglages ») pour l'instant — contrairement aux migrations (Réglages → Santé), le digest de tâches n'a de sens que déclenché automatiquement.
 
-## Réglages de l'application
+---
+
+## 16. Membres archivés — suppression et anonymisation
+
+Accès : **Réglages → Archivés** (`?view=inactiveUsers`, réservé aux comptes `admin`).
+
+Liste tous les membres archivés (`contact.status = 0`), avec pour chacun une pastille
+d'éligibilité :
+
+- **Éligible à la suppression** — aucune entrée comptable liée. Suppression définitive possible.
+- **Anonymisation seulement** — au moins une entrée comptable liée (historique financier à
+  préserver pour la comptabilité de l'association). La fiche est vidée (nom, coordonnées) mais
+  le membre et ses écritures comptables restent en base.
+
+Une sélection multiple (cases à cocher) permet d'agir en masse (**Supprimer** / **Anonymiser**) :
+une fenêtre de confirmation liste les profils concernés avant d'agir. Si la sélection mélange des
+profils éligibles et non éligibles pour l'action choisie, un avertissement l'indique et les
+profils non éligibles sont **ignorés** (ni supprimés, ni anonymisés) — l'action s'applique
+seulement aux profils qui le permettent, sans bloquer le traitement des autres.
+
+Chaque ligne permet aussi de **réactiver** un membre archivé individuellement (retour à
+`status = 1`).
+
+Ces mêmes opérations sont disponibles individuellement depuis la fiche membre (bouton
+Supprimer/Anonymiser sur un profil déjà archivé), avec la même règle d'éligibilité.
+
+---
+
+## 17. Supervision et monitoring
+
+`html/health.php` expose un point de contrôle **non authentifié**, pensé pour un moniteur
+externe (Uptime Kuma, Pingdom, sonde d'hébergeur, etc.) :
+
+```bash
+curl -s https://membres.votre-domaine.ch/health.php
+```
+
+Réponse JSON minimale, sans détail sensible :
+
+```json
+{"status": "ok"}
+```
+
+`status` vaut `degraded` (HTTP **503**) si la base de données est injoignable ou si des
+migrations sont en attente ; `ok` (HTTP **200**) sinon. Un moniteur externe peut interroger
+cette route à intervalle régulier et alerter sur tout code différent de 200.
+
+Pour un diagnostic plus détaillé (état exact des migrations, dérive de checksum), utiliser
+**Réglages → Santé** (§12), réservé aux comptes authentifiés.
+
+---
+
+## 18. Réglages de l'application
 
 ### Général
 
@@ -1193,8 +1167,7 @@ Les types définissent les catégories d'entrées financières. Flags disponible
 
 ### Types de contact
 
-Accès : **Réglages** → section **Types de contact** (nouveau en v5.2.0, table
-`contact_type` — migration `0035`).
+Accès : **Réglages** → section **Types de contact**.
 
 Classe un contact en donateur privé / institution / établissement financier
 / entreprise (les 4 types intégrés, `code` figé : `private`/`institution`/

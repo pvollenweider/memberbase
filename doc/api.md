@@ -1,8 +1,9 @@
 # Référence API MemberBase
 
-API REST interne de l'application MemberBase (version **5.3.1**). Toutes les réponses sont en JSON UTF-8.
+API REST interne de l'application MemberBase. Toutes les réponses sont en JSON UTF-8.
 
-> ⚠️ **v5.0.0 (breaking)** : les routes `/api/members` et `/api/groups` sont renommées `/api/contacts` et `/api/segments` (aucune rétrocompatibilité). Voir le [CHANGELOG](../CHANGELOG.md#500--2026-07-09).
+> **Note.** Les routes sont `/api/contacts` et `/api/segments` — les anciens noms
+> `/api/members`/`/api/groups` n'existent plus (aucune rétrocompatibilité).
 
 ## Sommaire
 
@@ -63,7 +64,7 @@ Règles réelles appliquées **par endpoint** (vérifiées dans le code — elle
 
 Un rôle insuffisant retourne `403` avec `{ "error": "Forbidden" }` (ou un message spécifique, ex. `"Manager role required"`, `"Admin role required to permanently delete a member"`).
 
-> **Terminologie.** L'interface et l'API parlent de **Segment** (chemins `/api/segments`, entité SQL `segment`, depuis la v5.0.0). Le paramètre de filtre `GET /api/contacts?segment=` s'appelait `team` avant la v5.1.0 — **aucune rétrocompatibilité**, tout appelant doit utiliser `segment`. Dans ce document, « Segment » et « groupe » sont synonymes.
+> **Terminologie.** L'interface et l'API parlent de **Segment** (chemins `/api/segments`, entité SQL `segment`). Le paramètre de filtre `GET /api/contacts?segment=` s'appelait autrefois `team` — **aucune rétrocompatibilité**, tout appelant doit utiliser `segment`. Dans ce document, « Segment » et « groupe » sont synonymes.
 
 ---
 
@@ -122,7 +123,7 @@ Toute combinaison méthode/chemin non prévue par le dispatcher d'un script reto
 
 ## Membres
 
-Ressource : `html/api/contacts.php`. Entité SQL : `contact` (renommée depuis `users` en v5.0.0).
+Ressource : `html/api/contacts.php`. Entité SQL : `contact` (renommée depuis `users`).
 
 ### `GET /api/contacts`
 
@@ -192,6 +193,7 @@ Constantes définies dans `html/includes/lib/bootstrap.php` :
 | `-3333` | `FILTER_UNPAID_COTI_3Y` | Membres ayant payé au moins une cotisation dans l'historique, mais aucune depuis le début de l'année N-2. Exclut le groupe « no_coti » si configuré |
 | `-5555` | `FILTER_NO_ACTIVITY_10Y` | Membres actifs sans aucune écriture comptable (`compta`) dans les 10 dernières années |
 | `-6666` | `FILTER_NON_INSTIT_LAST_YEAR` | Membres actifs ayant effectué au moins un paiement non-institutionnel (type `is_institutional = 0`, ou sans type) durant l'année civile précédente |
+| `-7777` | `FILTER_NEVER_PAID_OLD` | Membres créés il y a plus de 3 ans, sans aucune écriture comptable dans leur historique |
 
 Une cotisation est une écriture dont le type a `is_cotisation = 1`. La réponse a le même format que `GET /api/contacts` (envelope `data` + `meta`).
 
@@ -238,7 +240,7 @@ Fiche complète d'un membre. Rôle : `canRead()`.
 }
 ```
 
-Valeurs `gender` possibles : `"m"`, `"f"`, `"hf"`, `"na"`. `contactTypeId` (depuis v5.2.0, migration `0035`) référence `contact_type.id` — `1` par défaut (donateur privé) ; toujours présent, jamais `null`. `birthDate` est `YYYY-MM-DD` ou `null`. `createdAt`/`updatedAt` sont au format ISO 8601 (`date('c')`) ou `null`.
+Valeurs `gender` possibles : `"m"`, `"f"`, `"hf"`, `"na"`. `contactTypeId` (migration `0035`) référence `contact_type.id` — `1` par défaut (donateur privé) ; toujours présent, jamais `null`. `birthDate` est `YYYY-MM-DD` ou `null`. `createdAt`/`updatedAt` sont au format ISO 8601 (`date('c')`) ou `null`.
 
 #### Erreurs
 
@@ -266,7 +268,7 @@ Champs de la liste blanche (`applyFields`). **Seul `lastName` est obligatoire** 
 | `firstName` | string | non | Prénom |
 | `society` | string | non | Société / organisation |
 | `gender` | string | non | `"m"`, `"f"`, `"hf"` ou `"na"`. Toute autre valeur est normalisée en `"na"` (défaut) |
-| `contactTypeId` | integer | non | ID de `contact_type` (depuis v5.2.0). Défaut `1` (donateur privé) ; une valeur qui ne correspond à aucun `contact_type` existant retombe silencieusement sur `1` (`mbValidContactTypeId()`) |
+| `contactTypeId` | integer | non | ID de `contact_type`. Défaut `1` (donateur privé) ; une valeur qui ne correspond à aucun `contact_type` existant retombe silencieusement sur `1` (`mbValidContactTypeId()`) |
 | `title` | string | non | Civilité |
 | `address` | string | non | Adresse postale |
 | `npa` | string | non | Code postal + localité |
@@ -414,7 +416,7 @@ curl -b cookies.txt "https://votre-domaine/api/contacts/42/groups"
 }
 ```
 
-- `notifiedAt` : date d'envoi du récapitulatif email incluant cette entrée (`null` = pas encore notifiée), voir [Récapitulatifs comptables](admin.md#) dans le guide administrateur.
+- `notifiedAt` : date d'envoi du récapitulatif email incluant cette entrée (`null` = pas encore notifiée), voir [Récapitulatifs comptables](admin.md#145-récapitulatifs-comptables-compta-recap) dans le guide administrateur.
 - `cotisationYear` : année de cotisation couverte par l'entrée quand elle diffère de l'année de paiement (ex. cotisation 2027 payée en décembre 2026), sinon `null` — dans ce cas l'année effective est celle du champ `date`.
 - `type` est `null` si l'entrée n'a pas de type associé.
 
@@ -432,7 +434,7 @@ curl -b cookies.txt "https://votre-domaine/api/contacts/42?sub=compta"
 
 ## Segments
 
-Ressource : `html/api/segments.php`. Entité SQL : `segment` (renommée depuis `team` en v5.0.0).
+Ressource : `html/api/segments.php`. Entité SQL : `segment` (renommée depuis `team`).
 
 > **Contrôle d'accès.** Les lectures (`GET`) ne vérifient **que** l'authentification (aucun `canRead()`). Toutes les écritures vérifient `isManager()` → `403 "Manager role required"` sinon.
 
@@ -745,7 +747,7 @@ curl -b cookies.txt \
 
 ### `DELETE /api/compta/{id}`
 
-Supprimer une écriture. **Rôle : `canWrite()`** (et non `admin` — divergence corrigée par rapport aux versions antérieures de cette doc).
+Supprimer une écriture. Rôle : `canWrite()`.
 
 #### Réponse
 
