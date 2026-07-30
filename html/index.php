@@ -17,6 +17,13 @@ requireLogin();
 requirePasswordChange();
 
 header("Content-Type: text/html; charset=$charset");
+// Authenticated, per-request dynamic content — never let the browser (or an
+// intermediary) serve a stale cached copy on a bookmarked/typed URL. Without
+// this, a link visited before a feature shipped (e.g. a quick-filter's bulk
+// toolbar) can keep showing its old rendering until a hard reload forces
+// revalidation.
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 
 // Load core dependencies before any output (needed for appSettings in page title)
 require_once __DIR__ . "/includes/lib/locale.php";
