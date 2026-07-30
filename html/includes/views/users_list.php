@@ -111,7 +111,7 @@ if (empty($_pfEmbedded)) {
                         if ($_noCotiSegmentId3 > 0) {
                             try { $_noCotiSegmentNameStr = Segment::nameById($_noCotiSegmentId3); } catch (PDOException $e) { $_noCotiSegmentNameStr = null; }
                             if ($_noCotiSegmentNameStr) {
-                                $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars(appUrl(), ENT_QUOTES, $charset) . '?' . $_pfLinkPrefix . 'segment=' . $_noCotiSegmentId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiSegmentNameStr, ENT_QUOTES, $charset) . '</a>');
+                                $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars(appUrl(), ENT_QUOTES, $charset) . '?' . htmlspecialchars($_pfLinkPrefix, ENT_QUOTES, $charset) . 'segment=' . (int)$_noCotiSegmentId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiSegmentNameStr, ENT_QUOTES, $charset) . '</a>');
                             }
                         }
                         $currentFilterDesc = sprintf($GLOBAL['filterDescCotiUnpaid3y'], $year-2, $year) . $_noCotiExclusion;
