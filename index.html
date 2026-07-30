@@ -127,6 +127,7 @@ header.site {
   color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: .55rem;
 }
 .wordmark .mark { width: 1.35em; height: 1.35em; flex: none; }
+.wordmark .wm-dim { opacity: .55; }
 nav.primary { margin-left: auto; }
 nav.primary ul { display: flex; gap: 1.4rem; list-style: none; padding: 0; }
 nav.primary a { color: var(--ink-mid); text-decoration: none; font-size: .92rem; font-weight: 500; }
@@ -293,7 +294,7 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap site-bar">
     <a class="wordmark" href="#top" aria-label="MemberBase — retour en haut de page">
       <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><rect x="14" y="26" width="72" height="11" rx="5.5" fill="#1da1f5"/><circle cx="90" cy="31.5" r="7" fill="#1781c4"/><rect x="14" y="44.5" width="52" height="11" rx="5.5" fill="#1da1f5" opacity="0.75"/><rect x="14" y="63" width="32" height="11" rx="5.5" fill="#1da1f5" opacity="0.5"/></svg>
-      MemberBase
+      <span class="wm-full">Member</span><span class="wm-dim">Base</span>
     </a>
     <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
     <nav class="primary" id="primary-nav" aria-label="Navigation principale">

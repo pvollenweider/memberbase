@@ -106,6 +106,7 @@ header.site {
   text-decoration: none; display: flex; align-items: center; gap: .55rem;
 }
 .wordmark .mark { width: 1.35em; height: 1.35em; flex: none; }
+.wordmark .wm-dim { opacity: .55; }
 .breadcrumb { display: flex; align-items: center; gap: .8rem; min-width: 0; }
 .crumb { color: var(--ink-muted); }
 .crumb-link { color: var(--ink-mid); text-decoration: none; font-weight: 500; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -228,7 +229,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
     <nav class="breadcrumb" aria-label="Fil d'Ariane">
       <a class="wordmark" href="../index.html">
         <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><rect x="14" y="26" width="72" height="11" rx="5.5" fill="#1da1f5"/><circle cx="90" cy="31.5" r="7" fill="#1781c4"/><rect x="14" y="44.5" width="52" height="11" rx="5.5" fill="#1da1f5" opacity="0.75"/><rect x="14" y="63" width="32" height="11" rx="5.5" fill="#1da1f5" opacity="0.5"/></svg>
-        MemberBase
+        <span class="wm-full">Member</span><span class="wm-dim">Base</span>
       </a>
       <span class="crumb" aria-hidden="true">/</span>
       <a class="crumb-link" href="./">Documentation</a>

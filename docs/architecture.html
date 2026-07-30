@@ -106,6 +106,7 @@ header.site {
   text-decoration: none; display: flex; align-items: center; gap: .55rem;
 }
 .wordmark .mark { width: 1.35em; height: 1.35em; flex: none; }
+.wordmark .wm-dim { opacity: .55; }
 .breadcrumb { display: flex; align-items: center; gap: .8rem; min-width: 0; }
 .crumb { color: var(--ink-muted); }
 .crumb-link { color: var(--ink-mid); text-decoration: none; font-weight: 500; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -228,7 +229,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
     <nav class="breadcrumb" aria-label="Fil d'Ariane">
       <a class="wordmark" href="../index.html">
         <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><rect x="14" y="26" width="72" height="11" rx="5.5" fill="#1da1f5"/><circle cx="90" cy="31.5" r="7" fill="#1781c4"/><rect x="14" y="44.5" width="52" height="11" rx="5.5" fill="#1da1f5" opacity="0.75"/><rect x="14" y="63" width="32" height="11" rx="5.5" fill="#1da1f5" opacity="0.5"/></svg>
-        MemberBase
+        <span class="wm-full">Member</span><span class="wm-dim">Base</span>
       </a>
       <span class="crumb" aria-hidden="true">/</span>
       <a class="crumb-link" href="./">Documentation</a>
@@ -587,7 +588,16 @@ un filtre virtuel. Constantes définies dans <code>bootstrap.php</code> :</p>
 <tr><td><code>FILTER_UNPAID_COTI_CURRENT</code></td><td>-4</td><td>Membres du segment <code>membre_segment</code> sans cotisation cette année (anciennement <code>membre_team</code>)</td></tr>
 <tr><td><code>FILTER_UNPAID_COTI_3Y</code></td><td>-3333</td><td>Ont déjà cotisé mais pas depuis 3 ans</td></tr>
 <tr><td><code>FILTER_NO_ACTIVITY_10Y</code></td><td>-5555</td><td>Aucune écriture compta depuis 10 ans</td></tr>
-<tr><td><code>FILTER_NON_INSTIT_LAST_YEAR</code></td><td>-6666</td><td>Paiement non-institutionnel l&#39;an passé</td></tr></tbody></table></div>
+<tr><td><code>FILTER_NON_INSTIT_LAST_YEAR</code></td><td>-6666</td><td>Paiement non-institutionnel l&#39;an passé</td></tr>
+<tr><td><code>FILTER_NEVER_PAID_OLD</code></td><td>-7777</td><td>Créés il y a plus de 3 ans, aucune écriture compta dans l&#39;historique</td></tr></tbody></table></div>
+<p><code>MemberFilter::BULK_ACTION_FILTERS</code> restreint la barre d&#39;actions en masse (créer un
+segment / ajouter à un segment / archiver) aux deux filtres de nettoyage
+(<code>FILTER_NO_ACTIVITY_10Y</code>, <code>FILTER_NEVER_PAID_OLD</code>) — les autres filtres virtuels sont
+purement des vues, sans action associée. Chaque action (<code>createFilterBulkSegment</code>,
+<code>addFilterBulkToSegment</code>, <code>archiveFilterBulkUsers</code> dans <code>includes/actions/segments.php</code>)
+accepte un <code>ids[]</code> optionnel (sélection manuelle par checkbox côté vue), mais ne l&#39;utilise
+que comme sous-ensemble de <code>MemberFilter::resolveIds()</code> recalculé côté serveur — jamais
+comme source de vérité brute.</p>
 <hr>
 <h2 id="9-assistant-dimport-csv--tsv">9. Assistant d&#39;import CSV / TSV<a class="anchor" href="#9-assistant-dimport-csv--tsv" aria-label="Lien d'ancrage">#</a></h2>
 <p>Wizard web en 3 étapes réservé aux <strong>Manager/Admin</strong> (<code>isManager()</code> gardé côté vue

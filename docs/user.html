@@ -106,6 +106,7 @@ header.site {
   text-decoration: none; display: flex; align-items: center; gap: .55rem;
 }
 .wordmark .mark { width: 1.35em; height: 1.35em; flex: none; }
+.wordmark .wm-dim { opacity: .55; }
 .breadcrumb { display: flex; align-items: center; gap: .8rem; min-width: 0; }
 .crumb { color: var(--ink-muted); }
 .crumb-link { color: var(--ink-mid); text-decoration: none; font-weight: 500; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -228,7 +229,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
     <nav class="breadcrumb" aria-label="Fil d'Ariane">
       <a class="wordmark" href="../index.html">
         <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><rect x="14" y="26" width="72" height="11" rx="5.5" fill="#1da1f5"/><circle cx="90" cy="31.5" r="7" fill="#1781c4"/><rect x="14" y="44.5" width="52" height="11" rx="5.5" fill="#1da1f5" opacity="0.75"/><rect x="14" y="63" width="32" height="11" rx="5.5" fill="#1da1f5" opacity="0.5"/></svg>
-        MemberBase
+        <span class="wm-full">Member</span><span class="wm-dim">Base</span>
       </a>
       <span class="crumb" aria-hidden="true">/</span>
       <a class="crumb-link" href="./">Documentation</a>
@@ -394,16 +395,25 @@ Entrée).</li>
 <div class="table-scroll" role="region" aria-label="Tableau — Filtrer par segment" tabindex="0"><table><thead><tr><th scope="col">Filtre rapide</th><th scope="col">Membres affichés</th></tr></thead><tbody><tr><td>Tout le monde</td><td>Tous les membres actifs (hors archivés)</td></tr>
 <tr><td>Aucune cotisation ces 3 dernières années</td><td>Membres ayant déjà cotisé, mais pas lors des 3 dernières années (les membres du segment « sans cotisation » sont exclus)</td></tr>
 <tr><td>Aucun versement ces 10 dernières années</td><td>Membres actifs sans aucune entrée comptable depuis 10 ans</td></tr>
+<tr><td>Jamais rien versé</td><td>Membres créés il y a plus de 3 ans, sans aucune entrée comptable dans leur historique</td></tr>
 <tr><td>Cotisation AAAA non payée</td><td>Membres sans cotisation enregistrée pour l&#39;année en cours</td></tr>
 <tr><td>Donateur non institutionnel actif en AAAA-1</td><td>Membres ayant fait au moins un versement non institutionnel l&#39;année précédente</td></tr></tbody></table></div>
 <ul>
 <li>Une entrée de filtre rapide par <strong>type de contact</strong> configuré (Réglages → Types de contact,
-voir §12), pour isoler par exemple les institutions ou les entreprises.</li>
+voir §12), pour isoler par exemple les institutions ou les entreprises — affichée séparément
+des filtres rapides dans le menu.</li>
+<li>Pour un Admin, une entrée <strong>Archivés</strong> menant à la liste des membres archivés (voir §12).</li>
 <li>La liste de tous les segments, regroupés par <strong>catégorie</strong>. Le badge à droite de chaque
 segment indique son nombre de membres.</li>
 </ul>
 <p><img src="images/liste-filtre-segment.png" alt="Menu déroulant du filtre segment"></p>
 <p>Une phrase d&#39;explication s&#39;affiche sous le bouton lorsqu&#39;un filtre rapide est actif.</p>
+<p>Pour les filtres <strong>Aucun versement ces 10 dernières années</strong> et <strong>Jamais rien versé</strong> — les
+deux filtres de nettoyage — une case à cocher apparaît sur chaque ligne (Managers et Admins),
+avec une case <strong>Tout sélectionner</strong> en en-tête ; tout est coché par défaut. Une barre
+d&#39;actions permet alors de <strong>créer un segment</strong> ou d&#39;<strong>ajouter à un segment existant</strong> à partir
+des lignes cochées, et — Admin uniquement — d&#39;<strong>archiver en masse</strong> (avec avertissement de
+confirmation). Décocher des lignes permet d&#39;exclure des profils avant de confirmer l&#39;action.</p>
 <h3 id="rechercher-un-membre">Rechercher un membre<a class="anchor" href="#rechercher-un-membre" aria-label="Lien d'ancrage">#</a></h3>
 <ul>
 <li>Le champ <strong>Chercher</strong> de la barre du haut (visible en bureau uniquement) effectue une
