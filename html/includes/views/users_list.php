@@ -111,7 +111,7 @@ if (empty($_pfEmbedded)) {
                         if ($_noCotiSegmentId3 > 0) {
                             try { $_noCotiSegmentNameStr = Segment::nameById($_noCotiSegmentId3); } catch (PDOException $e) { $_noCotiSegmentNameStr = null; }
                             if ($_noCotiSegmentNameStr) {
-                                $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars(appUrl(), ENT_QUOTES, $charset) . '?segment=' . $_noCotiSegmentId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiSegmentNameStr, ENT_QUOTES, $charset) . '</a>');
+                                $_noCotiExclusion = sprintf($GLOBAL['noCotiExclusion'], '<a href="' . htmlspecialchars(appUrl(), ENT_QUOTES, $charset) . '?' . $_pfLinkPrefix . 'segment=' . $_noCotiSegmentId3 . '" style="color:inherit">' . htmlspecialchars($_noCotiSegmentNameStr, ENT_QUOTES, $charset) . '</a>');
                             }
                         }
                         $currentFilterDesc = sprintf($GLOBAL['filterDescCotiUnpaid3y'], $year-2, $year) . $_noCotiExclusion;
@@ -482,7 +482,7 @@ $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
 </p>
     <?php endif; endif; ?>
 <p id="ca-filter-desc" class="text-muted mb-2" style="font-size:0.78rem<?= empty($currentFilterDesc) ? ';display:none' : '' ?>">
-  <i class="fas fa-circle-info me-1" aria-hidden="true"></i><span id="ca-filter-desc-text"><?= htmlspecialchars($currentFilterDesc, ENT_COMPAT, $charset) ?></span>
+  <i class="fas fa-circle-info me-1" aria-hidden="true"></i><span id="ca-filter-desc-text"><?php /* $currentFilterDesc may embed a pre-escaped <a> (see FILTER_UNPAID_COTI_3Y above) — its own dynamic parts are already htmlspecialchars'd at construction, do not re-encode here. */ echo $currentFilterDesc; ?></span>
 </p>
 <div class="table-responsive">
 <table class="table table-hover table-sm export">
