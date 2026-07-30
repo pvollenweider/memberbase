@@ -9,6 +9,10 @@
 <meta property="og:description" content="Gestion des membres, cotisations et dons pour associations. Open source, AGPL-3.0, auto-hébergée.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pvollenweider.github.io/memberbase/">
+<meta property="og:image" content="https://pvollenweider.github.io/memberbase/assets/memberbase-social.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="assets/memberbase-mark.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/memberbase-touch-icon-180.png">
 <style>
 :root {
   --bg: #fafaf9;
@@ -122,7 +126,7 @@ header.site {
   font-weight: 800; font-size: 1.05rem; letter-spacing: -0.01em;
   color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: .55rem;
 }
-.wordmark .dot { width: .7em; height: .7em; background: var(--red); flex: none; }
+.wordmark .mark { width: 1.35em; height: 1.35em; flex: none; }
 nav.primary { margin-left: auto; }
 nav.primary ul { display: flex; gap: 1.4rem; list-style: none; padding: 0; }
 nav.primary a { color: var(--ink-mid); text-decoration: none; font-size: .92rem; font-weight: 500; }
@@ -287,7 +291,10 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
 
 <header class="site">
   <div class="wrap site-bar">
-    <a class="wordmark" href="#top" aria-label="MemberBase — retour en haut de page"><span class="dot" aria-hidden="true"></span>MemberBase</a>
+    <a class="wordmark" href="#top" aria-label="MemberBase — retour en haut de page">
+      <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><rect x="14" y="26" width="72" height="11" rx="5.5" fill="#1da1f5"/><circle cx="90" cy="31.5" r="7" fill="#1781c4"/><rect x="14" y="44.5" width="52" height="11" rx="5.5" fill="#1da1f5" opacity="0.75"/><rect x="14" y="63" width="32" height="11" rx="5.5" fill="#1da1f5" opacity="0.5"/></svg>
+      MemberBase
+    </a>
     <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button>
     <nav class="primary" id="primary-nav" aria-label="Navigation principale">
       <ul>
