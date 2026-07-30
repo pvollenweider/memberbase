@@ -272,12 +272,15 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
         <li><a href="#12-mise-à-jour-du-schéma">12. Mise à jour du schéma</a></li>
         <li><a href="#13-logs-daudit">13. Logs d'audit</a></li>
         <li><a href="#14-emails-et-communications">14. Emails et communications</a></li>
-        <li><a href="#réglages-de-lapplication">Réglages de l'application</a></li>
-        <li><a href="#référence-rapide">Référence rapide</a></li>
+        <li><a href="#15-tâches-planifiées-cron">15. Tâches planifiées (cron)</a></li>
+        <li><a href="#16-membres-archivés-suppression-et-anonymisation">16. Membres archivés — suppression et anonymisation</a></li>
+        <li><a href="#17-supervision-et-monitoring">17. Supervision et monitoring</a></li>
+        <li><a href="#18-réglages-de-lapplication">18. Réglages de l'application</a></li>
+        <li><a href="#référence-rapide">19. Référence rapide</a></li>
       </ul>
     </nav>
     <div class="prose">
-<p>Ce guide s&#39;adresse à l&#39;administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase (version 5.4.0). Il couvre l&#39;installation, la configuration, la sécurité, l&#39;API et la maintenance.</p>
+<p>Ce guide s&#39;adresse à l&#39;administrateur système qui gère le serveur, le déploiement Docker et les comptes utilisateurs de MemberBase. Il couvre l&#39;installation, la configuration, la sécurité, l&#39;API et la maintenance.</p>
 <hr>
 <hr>
 <h2 id="1-prérequis">1. Prérequis<a class="anchor" href="#1-prérequis" aria-label="Lien d'ancrage">#</a></h2>
@@ -377,10 +380,7 @@ open http://localhost:8080/install.php
 <pre><code class="language-bash">git pull
 systemctl reload apache2   # si des fichiers PHP ont changé
 </code></pre>
-<p>La plupart des mises à jour mineures ne demandent aucune migration. Certaines versions ajoutent toutefois une colonne : <strong>consulter systématiquement <a href="https://github.com/pvollenweider/memberbase/blob/main/MIGRATION_PROD.md"><code>MIGRATION_PROD.md</code></a></strong>. Par exemple, la <strong>v3.5.4</strong> requiert l&#39;ajout de la colonne <code>email_alt</code> :</p>
-<pre><code class="language-sql">ALTER TABLE users ADD COLUMN email_alt VARCHAR(255) NOT NULL DEFAULT &#39;&#39; AFTER email;
-</code></pre>
-<p>Voir aussi la section <a href="#12-mise-à-jour-du-schéma">12 — Mise à jour du schéma</a> pour les cas exceptionnels.</p>
+<p>La plupart des mises à jour mineures ne demandent aucune migration. Certaines versions ajoutent toutefois une ou plusieurs colonnes/tables : <strong>consulter systématiquement <a href="https://github.com/pvollenweider/memberbase/blob/main/MIGRATION_PROD.md"><code>MIGRATION_PROD.md</code></a></strong>, puis appliquer les migrations en attente (voir <a href="#12-mise-à-jour-du-schéma">§12 — Mise à jour du schéma</a>).</p>
 <hr>
 <h2 id="3-configuration">3. Configuration<a class="anchor" href="#3-configuration" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="31-confdbphp">3.1 conf/db.php<a class="anchor" href="#31-confdbphp" aria-label="Lien d'ancrage">#</a></h3>
@@ -411,11 +411,11 @@ define(&#39;DB_PASS&#39;, &#39;secret&#39;);
 <tr><td><code>org_npa</code></td><td>Code postal (attestations)</td></tr>
 <tr><td><code>org_city</code></td><td>Ville (attestations)</td></tr>
 <tr><td><code>org_country</code></td><td>Pays (attestations)</td></tr>
-<tr><td><code>default_segment</code></td><td>ID du segment affiché par défaut dans la liste membres (anciennement <code>default_team</code>, renommé v5.1.0)</td></tr>
-<tr><td><code>membre_segment</code></td><td>ID du segment de référence pour les filtres cotisation (anciennement <code>membre_team</code>, renommé v5.1.0)</td></tr>
-<tr><td><code>member_no_coti_segment</code></td><td>ID du segment « membres sans cotisation attendue » — exclu du filtre rapide « cotisation non payée cette année » (anciennement <code>member_no_coti_team</code>, renommé v5.1.0)</td></tr>
+<tr><td><code>default_segment</code></td><td>ID du segment affiché par défaut dans la liste membres (anciennement <code>default_team</code>)</td></tr>
+<tr><td><code>membre_segment</code></td><td>ID du segment de référence pour les filtres cotisation (anciennement <code>membre_team</code>)</td></tr>
+<tr><td><code>member_no_coti_segment</code></td><td>ID du segment « membres sans cotisation attendue » — exclu du filtre rapide « cotisation non payée cette année » (anciennement <code>member_no_coti_team</code>)</td></tr>
 <tr><td><code>archive_id</code></td><td>ID du segment archives (exclu des vues par défaut)</td></tr>
-<tr><td><code>membre_segment_prefix</code></td><td>Préfixe des segments membres annuels (ex. <code>Membre</code>) (anciennement <code>membre_team_prefix</code>, renommé v5.1.0)</td></tr><tr><td><code>org_ide</code></td><td>Numéro IDE suisse (CHE-XXX.XXX.XXX) — figure sur les attestations de dons. Bouton <strong>Vérifier via Zefix</strong> dans l&#39;UI : interroge le registre du commerce suisse (<code>zefix.ch</code>, flux <code>search.json</code> → <code>firm/{ehraid}.json</code>) pour préremplir nom/adresse/but statutaire à partir du numéro IDE</td></tr><tr><td><code>org_purpose</code></td><td>But statutaire (extrait des statuts) — préremplissable via Zefix</td></tr><tr><td><code>org_tax_status</code></td><td>Statut d&#39;exonération fiscale — saisie manuelle uniquement (aucun registre fédéral consulté automatiquement)</td></tr><tr><td><code>org_iban</code></td><td>IBAN de l&#39;association — requis pour générer le bulletin de versement QR joint aux rappels de cotisation (voir <a href="#144-rappels-de-cotisation">§14.4</a>)</td></tr><tr><td><code>org_coti_amount_desc</code></td><td>Description libre du montant de cotisation, affichée dans l&#39;email de rappel et sur le bulletin QR (champ « Montant ») — repli sur une valeur par défaut si vide</td></tr><tr><td><code>smtp_*</code></td><td>Configuration SMTP — voir <a href="#141-configuration-smtp">§14.1</a></td></tr></tbody></table></div>
+<tr><td><code>membre_segment_prefix</code></td><td>Préfixe des segments membres annuels (ex. <code>Membre</code>) (anciennement <code>membre_team_prefix</code>)</td></tr><tr><td><code>org_ide</code></td><td>Numéro IDE suisse (CHE-XXX.XXX.XXX) — figure sur les attestations de dons. Bouton <strong>Vérifier via Zefix</strong> dans l&#39;UI : interroge le registre du commerce suisse (<code>zefix.ch</code>, flux <code>search.json</code> → <code>firm/{ehraid}.json</code>) pour préremplir nom/adresse/but statutaire à partir du numéro IDE</td></tr><tr><td><code>org_purpose</code></td><td>But statutaire (extrait des statuts) — préremplissable via Zefix</td></tr><tr><td><code>org_tax_status</code></td><td>Statut d&#39;exonération fiscale — saisie manuelle uniquement (aucun registre fédéral consulté automatiquement)</td></tr><tr><td><code>org_iban</code></td><td>IBAN de l&#39;association — requis pour générer le bulletin de versement QR joint aux rappels de cotisation (voir <a href="#144-rappels-de-cotisation">§14.4</a>)</td></tr><tr><td><code>org_coti_amount_desc</code></td><td>Description libre du montant de cotisation, affichée dans l&#39;email de rappel et sur le bulletin QR (champ « Montant ») — repli sur une valeur par défaut si vide</td></tr><tr><td><code>smtp_*</code></td><td>Configuration SMTP — voir <a href="#141-configuration-smtp">§14.1</a></td></tr></tbody></table></div>
 <p>Modification directe en SQL si nécessaire :</p>
 <pre><code class="language-sql">UPDATE app_settings SET value = &#39;Nouvelle valeur&#39; WHERE `key` = &#39;org_name&#39;;
 </code></pre>
@@ -672,11 +672,11 @@ CSRF de session (<code>csrfCheck()</code> dans <code>includes/lib/auth.php</code
 requête sans jeton valide → <code>403</code> et une entrée <code>audit_log</code> de code <code>csrfRejected</code>
 (action, méthode HTTP, IP). Le jeton est exposé une fois par page dans
 <code>&lt;meta name=&quot;csrf-token&quot;&gt;</code>.</p>
-<p>Depuis la version 5.3.1, la vérification s&#39;applique à <strong>toutes les méthodes HTTP</strong>, pas
-seulement POST : les handlers d&#39;action lisent leurs paramètres dans <code>$_REQUEST</code>, si bien
-qu&#39;une requête GET forgée (image, lien piégé) pouvait auparavant déclencher une mutation
-(suppression de segment, d&#39;écriture comptable, suppression en masse…) sans jeton — faille
-fermée par ce durcissement.</p>
+<p>La vérification s&#39;applique à <strong>toutes les méthodes HTTP</strong>, pas
+seulement POST : les handlers d&#39;action lisent leurs paramètres dans <code>$_REQUEST</code>, donc si la
+vérification restait scopée à POST, une requête GET forgée (image, lien piégé) pourrait
+déclencher une mutation (suppression de segment, d&#39;écriture comptable, suppression en masse…)
+sans jeton.</p>
 <p>La propagation du jeton est automatique et ne demande rien à un contributeur ajoutant un
 formulaire ou un appel htmx standard : <code>html/js/app.js</code> ajoute l&#39;en-tête
 <code>X-CSRF-Token</code> à toutes les requêtes htmx, et « estampille » tout
@@ -710,8 +710,8 @@ curl -b cookies.txt https://membres.votre-domaine.ch/api/contacts
 <tr><td><code>GET</code></td><td><code>/api/suivi</code></td><td>Notes de suivi</td></tr></tbody></table></div>
 <h3 id="84-paramètres-de-filtrage">8.4 Paramètres de filtrage<a class="anchor" href="#84-paramètres-de-filtrage" aria-label="Lien d'ancrage">#</a></h3>
 <p><strong><code>GET /api/contacts</code></strong></p>
-<div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>segment</code></td><td>int</td><td>Filtrer par ID de segment (négatif = filtre virtuel, voir <code>MemberFilter</code>) — anciennement <code>team</code>, renommé v5.1.0</td></tr>
-<tr><td><code>combinedSegment</code></td><td>int</td><td>Filtrer par ID de segment combiné — anciennement <code>metagroup</code>, renommé v5.1.0</td></tr>
+<div class="table-scroll" role="region" aria-label="Tableau — 8.4 Paramètres de filtrage" tabindex="0"><table><thead><tr><th scope="col">Paramètre</th><th scope="col">Type</th><th scope="col">Description</th></tr></thead><tbody><tr><td><code>segment</code></td><td>int</td><td>Filtrer par ID de segment (négatif = filtre virtuel, voir <code>MemberFilter</code>) — anciennement <code>team</code></td></tr>
+<tr><td><code>combinedSegment</code></td><td>int</td><td>Filtrer par ID de segment combiné — anciennement <code>metagroup</code></td></tr>
 <tr><td><code>search</code></td><td>string</td><td>Recherche textuelle (nom, prénom, email)</td></tr>
 <tr><td><code>page</code></td><td>int</td><td>Numéro de page (pagination)</td></tr>
 <tr><td><code>limit</code></td><td>int</td><td>Nombre de résultats par page (max 2000)</td></tr>
@@ -882,29 +882,20 @@ commande :</p>
 <li><strong>Appliquer les migrations en attente</strong> (case « j&#39;ai fait une sauvegarde » obligatoire avant de pouvoir valider)</li>
 </ul>
 <p>Cette page affiche aussi le nombre de migrations en attente et signale toute dérive de checksum détectée.</p>
-<p><strong>Depuis la v5.2.0</strong>, la même page propose un outil ponctuel « <strong>Forcer le type de contact d&#39;un segment</strong> » (<code>html/includes/views/settings_health.php</code>, action <code>bulkSetContactTypeBySegment</code> dans <code>includes/actions/settings.php</code>) : applique en une fois un type de contact (<code>contact_type</code>) à tous les membres actifs (<code>contact.status = 1</code>) d&#39;un segment choisi — utile après un import en masse ou pour rattraper des fiches créées avant l&#39;introduction des types de contact. Réservé aux <code>admin</code>, case de confirmation obligatoire, action journalisée dans <code>audit_log</code>. Ce bloc ne s&#39;affiche (et ne s&#39;exécute) que si la migration <code>0035_contact_type</code> est déjà appliquée — sur une base qui ne l&#39;a pas encore, la table <code>contact_type</code> n&#39;existe pas et le bloc est simplement masqué, plutôt que de faire planter la page Santé.</p>
-<h3 id="migrations-520-530-0032-0039">Migrations 5.2.0–5.3.0 (<code>0032</code>–<code>0039</code>)<a class="anchor" href="#migrations-520-530-0032-0039" aria-label="Lien d'ancrage">#</a></h3>
-<p>Huit migrations ajoutées depuis la dernière documentée en 5.1.0 (<code>0031</code>, elle-même déjà présente en base depuis la v5.1.0 — voir la note de portabilité ci-dessous) :</p>
-<div class="table-scroll" role="region" aria-label="Tableau — Migrations 5.2.0–5.3.0 (0032–0039)" tabindex="0"><table><thead><tr><th scope="col">Migration</th><th scope="col">Objet</th></tr></thead><tbody><tr><td><code>0032_suivi_tasks.sql</code></td><td>Table <code>suivi_task</code> — gestion de tâches (titre, priorité, échéance <code>due_date</code>, <code>done_at</code>), en parallèle des notes de suivi libres existantes</td></tr>
-<tr><td><code>0033_suivi_task_rule_key.sql</code></td><td>Colonne <code>suivi_task.rule_key</code> — marque les tâches créées automatiquement par une règle métier, pour dédupliquer une régénération</td></tr>
-<tr><td><code>0034_segment_cascade_rule.sql</code></td><td>Table <code>segment_cascade_rule</code> — règles d&#39;auto-assignation « segment source → segment cible » (single-hop)</td></tr>
-<tr><td><code>0035_contact_type.sql</code></td><td>Table <code>contact_type</code> (4 types intégrés : <code>private</code>/<code>institution</code>/<code>financial</code>/<code>company</code>) + colonne <code>contact.contact_type_id</code> (FK, défaut <code>1</code>) + colonnes <code>compta_type.is_financial_institution</code>/<code>is_company</code></td></tr>
-<tr><td><code>0036_compta_type_matrix_archive.sql</code></td><td>Table <code>contact_type_compta_type</code> — matrice type de contact × type de compta (restreint les types proposés à la création d&#39;une écriture) + colonne <code>compta_type.is_archived</code></td></tr>
-<tr><td><code>0037_contact_type_icon.sql</code></td><td>Colonne <code>contact_type.icon</code> — nom d&#39;icône Font Awesome (sans préfixe <code>fa-</code>/<code>fas fa-</code>, ajouté au rendu)</td></tr>
-<tr><td><code>0038_contact_type_default_compta_type.sql</code></td><td>Colonne <code>contact_type.default_compta_type_id</code> (FK vers <code>compta_type</code>) — type de compta pré-sélectionné à la création d&#39;une écriture, selon le type de contact du membre</td></tr>
-<tr><td><code>0039_suivi_task_paused_at.sql</code></td><td>Colonne <code>suivi_task.paused_at</code> — état « en pause », distinct d&#39;ouvert/terminé (voir le guide utilisateur §8 « Tâches »)</td></tr></tbody></table></div>
+<p>La même page propose un outil ponctuel « <strong>Forcer le type de contact d&#39;un segment</strong> » (<code>html/includes/views/settings_health.php</code>, action <code>bulkSetContactTypeBySegment</code> dans <code>includes/actions/settings.php</code>) : applique en une fois un type de contact (<code>contact_type</code>) à tous les membres actifs (<code>contact.status = 1</code>) d&#39;un segment choisi — utile après un import en masse ou pour rattraper des fiches créées avant l&#39;introduction des types de contact. Réservé aux <code>admin</code>, case de confirmation obligatoire, action journalisée dans <code>audit_log</code>. Ce bloc ne s&#39;affiche (et ne s&#39;exécute) que si la migration <code>0035_contact_type</code> est déjà appliquée — sur une base qui ne l&#39;a pas encore, la table <code>contact_type</code> n&#39;existe pas et le bloc est simplement masqué, plutôt que de faire planter la page Santé.</p>
+<p>Le détail complet des migrations et du schéma actuel vit dans <a href="architecture.html#5-schéma-de-base-de-données">architecture.html — §5 Schéma de base de données</a> ; ne pas dupliquer cette liste ici.</p>
 <h3 id="portabilité-sql-entre-versions-mariadbmysql">Portabilité SQL entre versions MariaDB/MySQL<a class="anchor" href="#portabilité-sql-entre-versions-mariadbmysql" aria-label="Lien d'ancrage">#</a></h3>
-<p>La migration <code>0031_compta_quittance_to_comment.sql</code> (renommage <code>compta.quittance</code> → <code>compta.comment</code>) a été livrée en 5.1.0 avec la syntaxe <code>ALTER TABLE ... RENAME COLUMN ... TO ...</code>, qui <strong>nécessite MariaDB 10.5.2+ / MySQL 8.0+</strong> — sur un serveur plus ancien, l&#39;instruction échoue avec une erreur de syntaxe et bloque <code>migrate.php</code>. Corrigé en 5.2.0 : la migration a été réécrite avec <code>ALTER TABLE ... CHANGE COLUMN ... &lt;même type&gt;</code>, portable sur toutes les versions supportées (voir <a href="#1-prérequis">§1 — Prérequis</a>). <strong>Ne jamais utiliser <code>RENAME COLUMN ... TO ...</code> dans une nouvelle migration</strong> — toujours <code>CHANGE COLUMN</code> (nécessite de répéter le type de la colonne).</p>
+<p>La migration <code>0031_compta_quittance_to_comment.sql</code> (renommage <code>compta.quittance</code> → <code>compta.comment</code>) utilise <code>ALTER TABLE ... CHANGE COLUMN ... &lt;même type&gt;</code> plutôt que <code>ALTER TABLE ... RENAME COLUMN ... TO ...</code>, qui nécessite MariaDB 10.5.2+ / MySQL 8.0+ (voir <a href="#1-prérequis">§1 — Prérequis</a>) — sur un serveur plus ancien, cette dernière syntaxe échoue avec une erreur et bloque <code>migrate.php</code>. <strong>Ne jamais utiliser <code>RENAME COLUMN ... TO ...</code> dans une nouvelle migration</strong> — toujours <code>CHANGE COLUMN</code> (nécessite de répéter le type de la colonne).</p>
 <h3 id="avant-toute-migration-en-production">Avant toute migration en production<a class="anchor" href="#avant-toute-migration-en-production" aria-label="Lien d'ancrage">#</a></h3>
 <ol>
 <li><code>php html/tools/migrate.php --status</code> (ou Réglages → Santé) pour voir ce qui va s&#39;appliquer</li>
 <li>Dump de la base (<code>mysqldump</code>, ou export intégré via Réglages → Santé)</li>
-<li><strong>Depuis la v5.1.0 (migrations <code>0028</code>-<code>0030</code>)</strong> : vérifier que les tables de fuseaux horaires nommés MariaDB sont chargées — <code>SELECT CONVERT_TZ(NOW(), @@session.time_zone, &#39;Europe/Zurich&#39;);</code> doit renvoyer une vraie date, pas <code>NULL</code>. Si <code>NULL</code> : <code>mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql</code> avant de continuer — sinon les dates de naissance / notes de suivi / écritures comptables migrées deviennent silencieusement <code>NULL</code> (voir <code>MIGRATION_PROD.md</code>).</li>
+<li><strong>Fuseaux horaires nommés</strong> (migrations <code>0028</code>-<code>0030</code>) : vérifier que les tables de fuseaux horaires nommés MariaDB sont chargées — <code>SELECT CONVERT_TZ(NOW(), @@session.time_zone, &#39;Europe/Zurich&#39;);</code> doit renvoyer une vraie date, pas <code>NULL</code>. Si <code>NULL</code> : <code>mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql</code> avant de continuer — sinon les dates de naissance / notes de suivi / écritures comptables migrées deviennent silencieusement <code>NULL</code> (voir <code>MIGRATION_PROD.md</code>).</li>
 <li>Tester sur un environnement de staging si la migration est structurante</li>
 <li>Appliquer en production</li>
 </ol>
 <p>⚠️ Le DDL MySQL est auto-committé (pas de rollback transactionnel) — la sauvegarde de l&#39;étape 2 est la seule protection en cas de problème.</p>
-<p><code>MIGRATION_PROD.md</code> à la racine du dépôt documente l&#39;historique complet des migrations (y compris les migrations manuelles d&#39;avant ce système, versions ≤ 3.7.x) et les prérequis spécifiques (fuseaux horaires, sauvegardes) — à consulter avant toute migration structurante.</p>
+<p><code>MIGRATION_PROD.md</code> à la racine du dépôt documente l&#39;historique complet des migrations et les prérequis spécifiques (fuseaux horaires, sauvegardes) — à consulter avant toute migration structurante.</p>
 <h3 id="vérifier-létat-du-schéma">Vérifier l&#39;état du schéma<a class="anchor" href="#vérifier-létat-du-schéma" aria-label="Lien d'ancrage">#</a></h3>
 <pre><code class="language-sql">-- Lister les tables existantes
 SHOW TABLES;
@@ -1017,7 +1008,28 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 <h3 id="sans-accès-cron-hébergement-mutualisé-etc">Sans accès cron (hébergement mutualisé, etc.)<a class="anchor" href="#sans-accès-cron-hébergement-mutualisé-etc" aria-label="Lien d'ancrage">#</a></h3>
 <p>Le script reste utilisable en exécution manuelle ponctuelle (<code>php html/tools/cron.php</code>) mais perd son intérêt (« planifié ») sans un déclencheur externe. Pas d&#39;alternative web (« bouton Réglages ») pour l&#39;instant — contrairement aux migrations (Réglages → Santé), le digest de tâches n&#39;a de sens que déclenché automatiquement.</p>
 <hr>
-<h2 id="réglages-de-lapplication">Réglages de l&#39;application<a class="anchor" href="#réglages-de-lapplication" aria-label="Lien d'ancrage">#</a></h2>
+<h2 id="16-membres-archivés-suppression-et-anonymisation">16. Membres archivés — suppression et anonymisation<a class="anchor" href="#16-membres-archivés-suppression-et-anonymisation" aria-label="Lien d'ancrage">#</a></h2>
+<p>Accès : <strong>Réglages → Archivés</strong> (<code>?view=inactiveUsers</code>, réservé aux comptes <code>admin</code>).</p>
+<p>Liste tous les membres archivés (<code>contact.status = 0</code>), avec pour chacun une pastille d&#39;éligibilité :</p>
+<ul>
+<li><strong>Éligible à la suppression</strong> — aucune entrée comptable liée. Suppression définitive possible.</li>
+<li><strong>Anonymisation seulement</strong> — au moins une entrée comptable liée (historique financier à préserver pour la comptabilité de l&#39;association). La fiche est vidée (nom, coordonnées) mais le membre et ses écritures comptables restent en base.</li>
+</ul>
+<p>Une sélection multiple (cases à cocher) permet d&#39;agir en masse (<strong>Supprimer</strong> / <strong>Anonymiser</strong>) : une fenêtre de confirmation liste les profils concernés avant d&#39;agir. Si la sélection mélange des profils éligibles et non éligibles pour l&#39;action choisie, un avertissement l&#39;indique et les profils non éligibles sont <strong>ignorés</strong> (ni supprimés, ni anonymisés) — l&#39;action s&#39;applique seulement aux profils qui le permettent, sans bloquer le traitement des autres.</p>
+<p>Chaque ligne permet aussi de <strong>réactiver</strong> un membre archivé individuellement (retour à <code>status = 1</code>).</p>
+<p>Ces mêmes opérations sont disponibles individuellement depuis la fiche membre (bouton Supprimer/Anonymiser sur un profil déjà archivé), avec la même règle d&#39;éligibilité.</p>
+<hr>
+<h2 id="17-supervision-et-monitoring">17. Supervision et monitoring<a class="anchor" href="#17-supervision-et-monitoring" aria-label="Lien d'ancrage">#</a></h2>
+<p><code>html/health.php</code> expose un point de contrôle <strong>non authentifié</strong>, pensé pour un moniteur externe (Uptime Kuma, Pingdom, sonde d&#39;hébergeur, etc.) :</p>
+<pre><code class="language-bash">curl -s https://membres.votre-domaine.ch/health.php
+</code></pre>
+<p>Réponse JSON minimale, sans détail sensible :</p>
+<pre><code class="language-json">{&quot;status&quot;: &quot;ok&quot;}
+</code></pre>
+<p><code>status</code> vaut <code>degraded</code> (HTTP <strong>503</strong>) si la base de données est injoignable ou si des migrations sont en attente ; <code>ok</code> (HTTP <strong>200</strong>) sinon. Un moniteur externe peut interroger cette route à intervalle régulier et alerter sur tout code différent de 200.</p>
+<p>Pour un diagnostic plus détaillé (état exact des migrations, dérive de checksum), utiliser <strong>Réglages → Santé</strong> (§12), réservé aux comptes authentifiés.</p>
+<hr>
+<h2 id="18-réglages-de-lapplication">18. Réglages de l&#39;application<a class="anchor" href="#18-réglages-de-lapplication" aria-label="Lien d'ancrage">#</a></h2>
 <h3 id="général">Général<a class="anchor" href="#général" aria-label="Lien d'ancrage">#</a></h3>
 <p>Accès : <strong>Administration → Application → Réglages</strong> (menu latéral)</p>
 <div class="table-scroll" role="region" aria-label="Tableau — Général" tabindex="0"><table><thead><tr><th scope="col">Réglage</th><th scope="col">Description</th></tr></thead><tbody><tr><td>Segment par défaut</td><td>Segment affiché à l&#39;ouverture de la liste membres</td></tr>
@@ -1034,8 +1046,8 @@ DELETE FROM audit_log WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 2 YEAR);
 <tr><td><code>is_company</code></td><td>Entreprise (migration <code>0035</code>)</td></tr>
 <tr><td><code>is_archived</code></td><td>Type masqué à la création d&#39;une <strong>nouvelle</strong> écriture, mais visible/conservé sur les entrées existantes (migration <code>0036</code>)</td></tr></tbody></table></div>
 <h3 id="types-de-contact">Types de contact<a class="anchor" href="#types-de-contact" aria-label="Lien d'ancrage">#</a></h3>
-<p>Accès : <strong>Administration → Application → Type de contact</strong> (menu latéral, nouveau en
-v5.2.0, table <code>contact_type</code> — migration <code>0035</code>).</p>
+<p>Accès : <strong>Administration → Application → Type de contact</strong> (menu latéral ; table
+<code>contact_type</code> — migration <code>0035</code>).</p>
 <p>Classe un contact en donateur privé / institution / établissement financier / entreprise (les 4 types intégrés, <code>code</code> figé : <code>private</code>/<code>institution</code>/<code>financial</code>/<code>company</code>) ou en type personnalisé ajouté par l&#39;admin (<code>code</code> généré automatiquement depuis le libellé, éditable). Champs : libellé, icône Font Awesome (<code>contact_type.icon</code>, migration <code>0037</code>), ordre d&#39;affichage. Suppression possible uniquement si le type n&#39;est utilisé par aucun contact.</p>
 <p>La <strong>matrice type de contact × type de compta</strong> (même page, migration <code>0036</code>, table <code>contact_type_compta_type</code>) restreint, pour un type de contact donné, les types de compta proposés à la création d&#39;une nouvelle écriture. Un type de contact sans aucune ligne dans la matrice reste non restreint (tous les types de compta non archivés lui restent proposés) — logique dans <code>html/includes/lib/contact_type.php</code> (<code>mbAllowedComptaTypeIdsForContact()</code>).</p>
 <p>Voir aussi l&#39;outil admin <strong>Forcer le type de contact d&#39;un segment</strong> (<a href="#méthode-2-interface-web-sans-accès-ssh">§12 — Méthode 2</a>) pour appliquer un type en masse.</p>
