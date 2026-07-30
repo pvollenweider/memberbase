@@ -16,8 +16,8 @@
   --ink-muted: #565a60;
   --rule: #dcdcd8;
   --rule-strong: #b9b9b4;
-  --red: #c02218;
-  --link-hover: #9a1b12;
+  --red: #3355d8;
+  --link-hover: #22378f;
   --code-bg: #1d1e21;
   --code-ink: #e8e8e4;
   --inline-code-bg: #ececea;
@@ -35,8 +35,8 @@
     --ink-muted: #a3a6ac;
     --rule: #2e2f33;
     --rule-strong: #4a4b50;
-    --red: #ff6b5e;
-    --link-hover: #ffa298;
+    --red: #7c93ff;
+    --link-hover: #a8b8ff;
     --code-bg: #0f0f11;
     --code-ink: #dcdcd8;
     --inline-code-bg: #26272b;
@@ -52,8 +52,8 @@
   --ink-muted: #a3a6ac;
   --rule: #2e2f33;
   --rule-strong: #4a4b50;
-  --red: #ff6b5e;
-  --link-hover: #ffa298;
+  --red: #7c93ff;
+  --link-hover: #a8b8ff;
   --code-bg: #0f0f11;
   --code-ink: #dcdcd8;
   --inline-code-bg: #26272b;
@@ -105,7 +105,7 @@ header.site {
   font-weight: 800; font-size: 1.05rem; color: var(--ink);
   text-decoration: none; display: flex; align-items: center; gap: .55rem;
 }
-.wordmark .dot { width: .7em; height: .7em; background: var(--red); flex: none; }
+.wordmark .mark { width: 1.35em; height: 1.35em; flex: none; }
 .breadcrumb { display: flex; align-items: center; gap: .8rem; min-width: 0; }
 .crumb { color: var(--ink-muted); }
 .crumb-link { color: var(--ink-mid); text-decoration: none; font-weight: 500; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -226,7 +226,10 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
 <header class="site">
   <div class="wrap site-bar">
     <nav class="breadcrumb" aria-label="Fil d'Ariane">
-      <a class="wordmark" href="../index.html"><span class="dot" aria-hidden="true"></span>MemberBase</a>
+      <a class="wordmark" href="../index.html">
+        <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><rect x="14" y="26" width="72" height="11" rx="5.5" fill="#1da1f5"/><circle cx="90" cy="31.5" r="7" fill="#1781c4"/><rect x="14" y="44.5" width="52" height="11" rx="5.5" fill="#1da1f5" opacity="0.75"/><rect x="14" y="63" width="32" height="11" rx="5.5" fill="#1da1f5" opacity="0.5"/></svg>
+        MemberBase
+      </a>
       <span class="crumb" aria-hidden="true">/</span>
       <a class="crumb-link" href="./">Documentation</a>
       <span class="crumb" aria-hidden="true">/</span>
