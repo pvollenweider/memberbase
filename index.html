@@ -474,6 +474,18 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap">
     <h2 id="changelog-h">Dernières versions</h2>
     <article class="release">
+      <h3 class="v">5.4.0 <span class="d">30 juillet 2026</span></h3>
+      <ul>
+        <li><strong>Filtre rapide « Jamais rien versé »</strong> : membres créés il y a plus de 3 ans</li>
+        <li><strong>Sélection manuelle par checkbox</strong> sur ces deux filtres de nettoyage : une</li>
+        <li><strong>Entrée « Archivés » dans le dropdown des filtres rapides</strong> (admin</li>
+        <li><strong>Logo MemberBase</strong> : favicon et icône sur toutes les pages d'entrée de</li>
+        <li><strong>Rendu obsolète sur lien direct</strong> : un lien vers un filtre rapide</li>
+        <li><strong>Double encodage</strong> dans la description du filtre « cotisation impayée</li>
+        <li><strong>Avertissement de suppression en masse (page Archivés)</strong> : précise</li>
+      </ul>
+    </article>
+    <article class="release">
       <h3 class="v">5.3.3 <span class="d">28 juillet 2026</span></h3>
       <ul>
         <li><strong>Anti-brute-force sur le login</strong> : en complément de Fail2Ban (ban par IP,</li>
@@ -493,16 +505,6 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li><strong>Intégrité — « Membres sans nom de famille ni société »</strong> : ajout de la</li>
         <li><strong><code class="inline">make deploy</code></strong> (<code class="inline">tools/deploy.sh</code>) : synchronise <code class="inline">html/</code> vers le serveur</li>
         <li>Comblé les trous de couverture e2e identifiés par un audit doc-vs-tests :</li>
-      </ul>
-    </article>
-    <article class="release">
-      <h3 class="v">5.3.1 <span class="d">17 juillet 2026</span></h3>
-      <ul>
-        <li><strong>Sécurité — CSRF</strong> : le jeton est désormais vérifié sur <strong>toutes</strong> les méthodes HTTP pour chaque action, et plus seulement en POST. Les handlers lisant leurs paramètres dans <code class="inline">$_REQUEST</code>, une requête GET forgée (image, lien) pouvait déclencher une mutation (suppression de segment, d'écriture comptable, suppression en masse…) sans jeton.</li>
-        <li><strong>Sécurité — attestations</strong> : <code class="inline">attestation_don.php</code> et <code class="inline">attestation_bulk.php</code> sont restreints aux managers/admins. Un compte en lecture seule pouvait télécharger les données de dons nominatives de n'importe quel membre.</li>
-        <li><strong>Sécurité — CSRF (précision)</strong> : la vérification est scopée aux actions réellement mappées — une valeur <code class="inline">action=</code> non mappée (ex. <code class="inline">action=search</code>, simple indicateur de vue) n'est plus gardée, pour ne pas bloquer des chargements de page en GET simple qui ne portent jamais de jeton.</li>
-        <li><strong>Performance</strong> : l'édition de segment, dont le panneau de comptage des imports par année exécutait ~40 requêtes agrégées, est réduit à 4 requêtes groupées par année. Résultats identiques.</li>
-        <li><strong>Mobile — menu latéral</strong> : le bouton replier/déplier utilisait un gestionnaire d'événement direct, tué à chaque re-rendu de la barre du haut par htmx — remplacé par une délégation d'événement qui survit aux swaps. Ajout d'un fond semi-transparent derrière le menu ouvert (clic pour fermer). L'état replié/déplié est désormais persisté en session PHP plutôt qu'en <code class="inline">localStorage</code>. Compaction de l'interface sous 768px (bandeau plus court, marges réduites, tableaux forcés en mode responsive).</li>
       </ul>
     </article>
     <p class="changelog-more"><a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md">Historique complet des versions</a></p>
