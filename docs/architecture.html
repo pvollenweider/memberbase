@@ -272,6 +272,7 @@ h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus-visible { op
         <li><a href="#12-tests--ci">12. Tests &amp; CI</a></li>
         <li><a href="#13-conventions-de-code">13. Conventions de code</a></li>
 <li><a href="#14-emails-et-notifications">14. Emails et notifications</a></li>
+<li><a href="#15-annexe--matrice-complète-actions-vues-api--rôles">15. Annexe — matrice complète actions/vues/API × rôles</a></li>
       </ul>
     </nav>
     <div class="prose">
@@ -535,7 +536,13 @@ chaque vue à son fichier et sa garde : <code>addUser</code>/<code>removeCompta<
 suppressions compta/suivi) passe par une action POST gardée par le jeton CSRF. Une garde refusée renvoie
 un bloc <code>alert-danger</code> (« Accès refusé ») ; une vue absente de la table renvoie
 « Vue introuvable ». Ajouter une route force donc une décision de garde explicite.</li>
-<li>La force brute est déléguée à Fail2Ban (logs Apache), pas au code PHP.</li>
+<li>Force brute sur <code>login.php</code> : défense en profondeur à deux niveaux — Fail2Ban
+(logs Apache, ban par IP, jail <code>memberbase-login</code>, voir le guide administrateur)
+<strong>et</strong> un compteur applicatif (<code>login_rate_limit</code>, <code>mbLoginRateLimited()</code>/
+<code>mbLoginRateLimitHit()</code> dans <code>includes/lib/auth.php</code>) : fenêtre glissante de
+5 minutes, 8 échecs max par couple identifiant+IP. L&#39;un protège contre un Fail2Ban mal
+configuré ou absent ; l&#39;autre attrape un compte ciblé depuis plusieurs IP, que le ban
+par IP seul ne voit pas.</li>
 </ul>
 <hr>
 <h2 id="8-api-rest-htmlapi">8. API REST (<code>html/api/</code>)<a class="anchor" href="#8-api-rest-htmlapi" aria-label="Lien d'ancrage">#</a></h2>
@@ -581,23 +588,30 @@ l&#39;après, calcule un diff lisible et l&#39;écrit dans <code>audit_log</code
 <p>Un <code>?segment=</code> <strong>négatif</strong> déclenche des requêtes métier dédiées, résolues par la classe
 partagée <code>MemberFilter</code> (<code>html/classes/member_filter_class.php</code>) — seule source de
 vérité consommée à la fois par la liste des membres (<code>users_list.php</code>) et par l&#39;API
-(<code>api/contacts.php</code>). <code>MemberFilter::resolveIds()</code> retourne la map <code>id =&gt; true</code> des
-membres correspondants ; <code>MemberFilter::isVirtual()</code> teste si un ID de segment est
-un filtre virtuel. Constantes définies dans <code>bootstrap.php</code> :</p>
-<div class="table-scroll" role="region" aria-label="Tableau — Filtres virtuels (MemberFilter)" tabindex="0"><table><thead><tr><th scope="col">Constante</th><th scope="col">Valeur</th><th scope="col">Sémantique</th></tr></thead><tbody><tr><td><code>FILTER_ALL_EXCEPT_ARCHIVES</code></td><td>-3</td><td>Tous les membres actifs</td></tr>
-<tr><td><code>FILTER_UNPAID_COTI_CURRENT</code></td><td>-4</td><td>Membres du segment <code>membre_segment</code> sans cotisation cette année (anciennement <code>membre_team</code>)</td></tr>
-<tr><td><code>FILTER_UNPAID_COTI_3Y</code></td><td>-3333</td><td>Ont déjà cotisé mais pas depuis 3 ans</td></tr>
-<tr><td><code>FILTER_NO_ACTIVITY_10Y</code></td><td>-5555</td><td>Aucune écriture compta depuis 10 ans</td></tr>
-<tr><td><code>FILTER_NON_INSTIT_LAST_YEAR</code></td><td>-6666</td><td>Paiement non-institutionnel l&#39;an passé</td></tr>
-<tr><td><code>FILTER_NEVER_PAID_OLD</code></td><td>-7777</td><td>Créés il y a plus de 3 ans, aucune écriture compta dans l&#39;historique</td></tr></tbody></table></div>
+(<code>api/contacts.php</code>). <code>MemberFilter::isVirtual()</code> teste si un ID de segment est un
+filtre virtuel (utilisé par ex. pour aiguiller le rendu de la liste) ; <code>MemberFilter::resolveIds()</code>
+retourne la map <code>id =&gt; true</code> des membres correspondants — mais <strong>seulement pour les 5
+filtres listés dans <code>MemberFilter::RESOLVABLE</code></strong>. <code>FILTER_ALL_EXCEPT_ARCHIVES</code> est
+<code>isVirtual()</code> mais volontairement <strong>absent de <code>RESOLVABLE</code></strong> : « tous les membres
+actifs » ne nécessite aucune restriction d&#39;ID, la requête normale (<code>status = 1</code>) suffit ;
+c&#39;est le seul des 6 filtres qui ne passe jamais par <code>resolveIds()</code>. Constantes définies
+dans <code>bootstrap.php</code> :</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Filtres virtuels (MemberFilter)" tabindex="0"><table><thead><tr><th scope="col">Constante</th><th scope="col">Valeur</th><th scope="col">Sémantique</th></tr></thead><tbody><tr><td><code>FILTER_ALL_EXCEPT_ARCHIVES</code></td><td>-3</td><td>Tous les membres actifs — <strong>hors <code>RESOLVABLE</code></strong>, pas de requête <code>resolveIds()</code> dédiée</td></tr>
+<tr><td><code>FILTER_UNPAID_COTI_CURRENT</code></td><td>-4</td><td>Membres du segment <code>membre_segment</code> sans cotisation cette année (anciennement <code>membre_team</code>) — <strong>exclut</strong> les membres du segment <code>member_no_coti_segment</code> (« sans cotisation attendue »)</td></tr>
+<tr><td><code>FILTER_UNPAID_COTI_3Y</code></td><td>-3333</td><td>Ont déjà cotisé (≥1 entrée <code>is_cotisation=1</code>) mais pas depuis 3 ans — <strong>exclut</strong> aussi les membres de <code>member_no_coti_segment</code></td></tr>
+<tr><td><code>FILTER_NO_ACTIVITY_10Y</code></td><td>-5555</td><td>Aucune écriture compta (tous types confondus) depuis 10 ans</td></tr>
+<tr><td><code>FILTER_NON_INSTIT_LAST_YEAR</code></td><td>-6666</td><td>Au moins un versement non-institutionnel (<code>compta_type.is_institutional=0</code> ou <code>type_id NULL</code>) l&#39;an passé</td></tr>
+<tr><td><code>FILTER_NEVER_PAID_OLD</code></td><td>-7777</td><td>Créés il y a plus de 3 ans, aucune écriture compta dans l&#39;historique — un <code>creationDate NULL</code> (fiches anciennes, antérieures à cette colonne) est traité comme « assez ancien », pas exclu</td></tr></tbody></table></div>
 <p><code>MemberFilter::BULK_ACTION_FILTERS</code> restreint la barre d&#39;actions en masse (créer un
 segment / ajouter à un segment / archiver) aux deux filtres de nettoyage
 (<code>FILTER_NO_ACTIVITY_10Y</code>, <code>FILTER_NEVER_PAID_OLD</code>) — les autres filtres virtuels sont
-purement des vues, sans action associée. Chaque action (<code>createFilterBulkSegment</code>,
-<code>addFilterBulkToSegment</code>, <code>archiveFilterBulkUsers</code> dans <code>includes/actions/segments.php</code>)
-accepte un <code>ids[]</code> optionnel (sélection manuelle par checkbox côté vue), mais ne l&#39;utilise
-que comme sous-ensemble de <code>MemberFilter::resolveIds()</code> recalculé côté serveur — jamais
-comme source de vérité brute.</p>
+purement des vues, sans action associée. <code>MemberFilter::BULK_SEGMENT_NAME_KEY</code> associe
+à chacun de ces deux filtres la clé de locale du nom par défaut donné au segment créé via
+« Créer un segment » (ex. <code>neverPaidSegmentName</code> → « Jamais versé — JJ.MM.AAAA »). Chaque
+action (<code>createFilterBulkSegment</code>, <code>addFilterBulkToSegment</code>, <code>archiveFilterBulkUsers</code>
+dans <code>includes/actions/segments.php</code>) accepte un <code>ids[]</code> optionnel (sélection manuelle
+par checkbox côté vue), mais ne l&#39;utilise que comme sous-ensemble de <code>MemberFilter::resolveIds()</code>
+recalculé côté serveur — jamais comme source de vérité brute.</p>
 <hr>
 <h2 id="9-assistant-dimport-csv--tsv">9. Assistant d&#39;import CSV / TSV<a class="anchor" href="#9-assistant-dimport-csv--tsv" aria-label="Lien d'ancrage">#</a></h2>
 <p>Wizard web en 3 étapes réservé aux <strong>Manager/Admin</strong> (<code>isManager()</code> gardé côté vue
@@ -876,6 +890,199 @@ en deux temps (l&#39;ancien endpoint <code>GET /firm/{uid}</code> est décommiss
 <code>org_purpose</code> depuis le formulaire Réglages → Général. Le champ <code>org_tax_status</code>
 (statut d&#39;exonération fiscale) reste en saisie manuelle — aucun registre fédéral
 n&#39;est interrogé automatiquement pour cette donnée.</p>
+<hr>
+<h2 id="15-annexe--matrice-complète-actions-vues-api--rôles">15. Annexe — matrice complète actions/vues/API × rôles<a class="anchor" href="#15-annexe--matrice-complète-actions-vues-api--rôles" aria-label="Lien d'ancrage">#</a></h2>
+<p>Vue exhaustive générée par lecture directe du code (<code>$ACTION_MAP</code>, <code>$UA_VIEW_ROUTES</code>, <code>html/api/*.php</code>) — pas un générateur automatique, à revoir manuellement à chaque changement de ces trois sources (voir <a href="#15-annexe--matrice-complète-actions-vues-api--rôles">note en fin de section</a>).</p>
+<blockquote>
+<p><strong>Écart corrigé.</strong> <code>DELETE /api/contacts/{id}</code> (désactivation par défaut) n’avait <strong>aucune</strong> garde de rôle — pas même <code>canWrite()</code> — alors que l’action UI équivalente (<code>deactivateUser</code>) exige <code>isManager()</code>, et que tous les autres endpoints d’écriture de l’API exigent au moins <code>canWrite()</code>. Un rôle <strong>Lecture seule</strong>, qui ne peut muter rien nulle part ailleurs dans l’application, pouvait désactiver n’importe quel membre via un appel HTTP direct. Corrigé : la désactivation exige désormais <code>isManager()</code>, comme son équivalent UI (voir <code>tests/roles.spec.ts</code>, describe «&nbsp;REST API /api/contacts guards&nbsp;»).</p>
+<p><strong>Écarts connus, non corrigés</strong> (décision à prendre) : <code>?view=settings</code> (onglets Segments/Catégories/Segments combinés), <code>?view=inactiveUsers</code> et <code>?view=manageComptaTypes</code> n’ont aucune garde au niveau route — accessibles en lecture par n’importe quel rôle authentifié (même Lecture seule), seule l’entrée de menu correspondante est masquée aux rôles insuffisants. Les mutations sur ces trois vues restent correctement gardées <code>isManager()</code>/<code>isAdmin()</code> au niveau action.</p>
+</blockquote>
+<h3 id="annexe-actions">Actions (<code>action=</code>)<a class="anchor" href="#annexe-actions" aria-label="Lien d'ancrage">#</a></h3>
+<p>102 actions déclarées dans <code>$ACTION_MAP</code> (<code>includes/routing/actions.php</code>). Toutes passent par <code>csrfCheck()</code> avant dispatch, en plus du rôle listé ici.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Annexe actions" tabindex="0"><table><thead><tr><th scope="col">Fichier</th><th scope="col">Action</th><th scope="col">Rôle requis</th><th scope="col">Note</th></tr></thead><tbody>
+<tr><td><code>includes/actions/contacts.php</code><br><span style="font-size:.82em;opacity:.7">canWrite() (bloc)</span></td><td><code>updateUser</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>addUser</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>mergeUsers</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>reactivateUser</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>deactivateUser</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>anonymizeUser</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>deleteOrDeactivateUser</code></td><td><strong>Admin</strong></td><td>supprime si aucune donnée compta, sinon désactive</td></tr>
+<tr><td></td><td><code>bulkDeleteUsers</code></td><td><strong>Admin</strong></td><td>page Archivés — ignore les comptes avec entrées compta</td></tr>
+<tr><td></td><td><code>bulkAnonymizeUsers</code></td><td><strong>Admin</strong></td><td>page Archivés — ignore les comptes sans entrée compta</td></tr>
+<tr><td><code>includes/actions/segments.php</code><br><span style="font-size:.82em;opacity:.7">isManager() (bloc)</span></td><td><code>deleteSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>deleteSegmentForce</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>bulkDeleteSegmentsForce</code></td><td><strong>Manager</strong></td><td>segments masqués (hidden=1) uniquement, re-vérifié serveur</td></tr>
+<tr><td></td><td><code>reassignSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>importSegmentMembers</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>importCotisants</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>importDonors</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>bulkHide</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>bulkShow</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>undoSegmentVisibility</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>bulkCreateCombinedSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>createLapsedSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>createFilterBulkSegment</code></td><td><strong>Manager</strong></td><td>filtre limité à MemberFilter::BULK_ACTION_FILTERS</td></tr>
+<tr><td></td><td><code>addFilterBulkToSegment</code></td><td><strong>Manager</strong></td><td>idem</td></tr>
+<tr><td></td><td><code>archiveFilterBulkUsers</code></td><td><strong>Admin</strong></td><td>garde inline plus stricte que le bloc du fichier</td></tr>
+<tr><td></td><td><code>addSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>addSegmentWithImport</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>renameSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>updateSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>assignSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>unassignSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>addSegmentCascadeRule</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>deleteSegmentCascadeRule</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>fixCotisationSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>includes/actions/combined_segments.php</code><br><span style="font-size:.82em;opacity:.7">isManager() (bloc)</span></td><td><code>updateCategoryOrder</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>updateSegmentCategory</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>updateCombinedSegmentMembers</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>deleteCombinedSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>addCombinedSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>updateCombinedSegment</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>includes/actions/settings.php</code><br><span style="font-size:.82em;opacity:.7">mixte (liste explicite par action)</span></td><td><code>saveSettings</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>zefixLookup</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>saveSmtp</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>sendTestEmail</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>purgeEmailLog</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>resendEmail</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>saveEmailTemplate</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>resetEmailTemplate</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>addContactType</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>deleteContactType</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>updateContactTypeLabel</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>updateContactTypeComptaMatrixColumn</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>updateContactTypeDefaultComptaType</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>bulkSetContactTypeBySegment</code></td><td><strong>Admin</strong></td><td>garde régardée inline en plus (redondant)</td></tr>
+<tr><td></td><td><code>updateComptaTypeOrder</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>addComptaType</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>updateComptaType</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>deleteComptaType</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>includes/actions/maintenance.php</code></td><td><code>applyMigrations</code></td><td><strong>Admin</strong></td><td>requiert case « j’ai fait une sauvegarde »</td></tr>
+<tr><td><code>includes/actions/cotisation_reminder.php</code><br><span style="font-size:.82em;opacity:.7">isManager() (bloc)</span></td><td><code>previewCotisationReminder</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>sendCotisationReminders</code></td><td><strong>Manager</strong></td><td>envoi en masse</td></tr>
+<tr><td></td><td><code>sendCotisationReminderOne</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>includes/actions/attestation_email.php</code><br><span style="font-size:.82em;opacity:.7">isManager() (bloc)</span></td><td><code>previewAttestation</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>previewAttestationsBulkList</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>sendAttestationOne</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>sendAttestationsBulk</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>includes/actions/compta_recap.php</code><br><span style="font-size:.82em;opacity:.7">mixte</span></td><td><code>sendComptaRecap</code></td><td><strong>Manager</strong></td><td>envoi en masse</td></tr>
+<tr><td></td><td><code>previewComptaRecap</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>sendComptaRecapOne</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>markAllComptaNotified</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td><code>includes/actions/compta.php</code><br><span style="font-size:.82em;opacity:.7">canWrite() (bloc)</span></td><td><code>addCompta</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>updateCompta</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>deleteComptaEntry</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>toggleWantsAttestation</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>includes/actions/import.php</code><br><span style="font-size:.82em;opacity:.7">isManager() (bloc)</span></td><td><code>importUpload</code></td><td><strong>Manager</strong></td><td>wizard CSV/TSV étape 1</td></tr>
+<tr><td></td><td><code>importApply</code></td><td><strong>Manager</strong></td><td>étape 2</td></tr>
+<tr><td></td><td><code>importResolveDuplicates</code></td><td><strong>Manager</strong></td><td>étape 3</td></tr>
+<tr><td><code>includes/actions/suivi.php</code><br><span style="font-size:.82em;opacity:.7">canWrite() (bloc)</span></td><td><code>addSuivi</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>updateSuivi</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>deleteSuiviEntry</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>includes/actions/suivi_tasks.php</code><br><span style="font-size:.82em;opacity:.7">mixte</span></td><td><code>generateUnpaidCotiTasks</code></td><td><strong>Admin</strong></td><td>génération automatique de tâches</td></tr>
+<tr><td></td><td><code>generateComptaRecapTasks</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>generateDuplicateTasks</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>generateHiddenSegmentTasks</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>generateAttestationTasks</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>bulkDeleteCompletedTasks</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td></td><td><code>addTask</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>updateTask</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>closeTask</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>reopenTask</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>pauseTask</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>resumeTask</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td></td><td><code>deleteTask</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>includes/actions/auth.php</code><br><span style="font-size:.82em;opacity:.7">mixte, pas de bloc</span></td><td><code>logout</code></td><td><strong>Lecture seule</strong></td><td>tout rôle authentifié</td></tr>
+<tr><td></td><td><code>updateOwnProfile</code></td><td><strong>Self</strong></td><td>édite son propre compte app_users</td></tr>
+<tr><td></td><td><code>changeLocale</code></td><td><strong>Lecture seule</strong></td><td>tout rôle authentifié</td></tr>
+<tr><td></td><td><code>changePassword</code></td><td><strong>Self</strong></td><td></td></tr>
+<tr><td></td><td><code>createAppUser</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>updateAppUser</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>deleteAppUser</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>resetUserPassword</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>flushAuditLog</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td></td><td><code>sidebarState</code></td><td><strong>Lecture seule</strong></td><td>persistance état UI (collapsed), tout rôle</td></tr>
+</tbody></table></div>
+<h3 id="annexe-vues">Vues (<code>view=</code>)<a class="anchor" href="#annexe-vues" aria-label="Lien d'ancrage">#</a></h3>
+<p>Déclarées dans <code>$UA_VIEW_ROUTES</code> (<code>includes/routing/views.php</code>). «&nbsp;—&nbsp;» = pas de garde au niveau route ; le contenu peut avoir ses propres gardes internes (colonne Note).</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Annexe vues" tabindex="0"><table><thead><tr><th scope="col">view=</th><th scope="col">Fichier</th><th scope="col">Garde de route</th><th scope="col">Note</th></tr></thead><tbody>
+<tr><td><code>dashboard</code></td><td><code>dashboard.php</code></td><td>—</td><td>ouvert à tous, contenu adapté (KPIs cotisation/dons masqués sous Lecture seule via canWrite(), bandeau migrations Admin via isAdmin())</td></tr>
+<tr><td><code>peopleFinance</code></td><td><code>people_finance.php</code></td><td>—</td><td>hub à onglets — Membres/Dons/Mouvements ouverts à tous ; onglet Relances retombe sur Membres si !isManager()</td></tr>
+<tr><td><code>journals</code></td><td><code>journals.php</code></td><td>—</td><td>hub à onglets — aucune garde interne, ouvert à tous (mutation gardée au niveau action)</td></tr>
+<tr><td><code>list / usersList</code></td><td><code>users_list.php</code></td><td>—</td><td>toolbar bulk-action (checkbox) visible seulement si isManager() ; bouton archiver si isAdmin()</td></tr>
+<tr><td><code>addUser</code></td><td><code>users_add_form.php</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>updateUser / generalData / compta / suivi / memberTasks / userHistory</code></td><td><code>users_edit_form.php</code></td><td>—</td><td>onglets internes : bloc isManager() et 2× isAdmin()</td></tr>
+<tr><td><code>deleteUser / deleteUserConfirm</code></td><td><code>users_delete_confirm.php</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td><code>anonymizeUser</code></td><td><code>users_anonymize.php</code></td><td><strong>Admin</strong></td><td></td></tr>
+<tr><td><code>mergeUsers</code></td><td><code>users_merge.php</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>inactiveUsers</code></td><td><code>users_inactive.php</code></td><td>—</td><td>écart connu : aucune garde de vue — entrée dropdown masquée aux non-admins seulement, route ouverte à tout rôle</td></tr>
+<tr><td><code>importStep1/2/3</code></td><td><code>import_step{1,2,3}.php</code></td><td><strong>Manager</strong></td><td>wizard CSV/TSV</td></tr>
+<tr><td><code>updateCompta</code></td><td><code>compta_edit_form.php</code></td><td>—</td><td></td></tr>
+<tr><td><code>lastEntryCompta</code></td><td><code>compta_last_entry.php</code></td><td>—</td><td></td></tr>
+<tr><td><code>comptaRecap</code></td><td><code>compta_recap.php</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>removeCompta</code></td><td><code>compta_delete_confirm.php</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>resume</code></td><td><code>donors_summary.php</code></td><td>—</td><td>lien relance email visible si isManager()</td></tr>
+<tr><td><code>loyalDonors</code></td><td><code>donors_loyal.php</code></td><td>—</td><td></td></tr>
+<tr><td><code>newDonors</code></td><td><code>donors_new.php</code></td><td>—</td><td></td></tr>
+<tr><td><code>newMembers</code></td><td><code>members_new.php</code></td><td>—</td><td></td></tr>
+<tr><td><code>updateSuivi</code></td><td><code>suivi_edit_form.php</code></td><td>—</td><td></td></tr>
+<tr><td><code>lastEntrySuivi</code></td><td><code>suivi_last_entry.php</code></td><td>—</td><td></td></tr>
+<tr><td><code>emailDetail</code></td><td><code>email_detail.php</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>removeSuivi</code></td><td><code>suivi_delete_confirm.php</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>tasks</code></td><td><code>tasks_global.php</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>updateTask</code></td><td><code>tasks_edit_form.php</code></td><td>—</td><td></td></tr>
+<tr><td><code>removeTask</code></td><td><code>tasks_delete_confirm.php</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>settings (tab=settings)</code></td><td><code>settings_general.php</code></td><td>—</td><td>onglet Réglages généraux : isAdmin() interne, sinon message adminOnly</td></tr>
+<tr><td><code>settings (tab=compta)</code></td><td><code>settings_general.php → settings_compta_types.php (include direct)</code></td><td>—</td><td>onglet Types compta : isManager() interne</td></tr>
+<tr><td><code>settings (tab=contactTypes)</code></td><td><code>settings_general.php → settings_contact_types.php</code></td><td>—</td><td>onglet Types de contact : isAdmin() interne</td></tr>
+<tr><td><code>settings (tab=groups)</code></td><td><code>settings_general.php → settings_groups.php</code></td><td>—</td><td>écart connu : aucune garde interne</td></tr>
+<tr><td><code>settings (tab=categories)</code></td><td><code>settings_general.php → settings_categories.php</code></td><td>—</td><td>écart connu : aucune garde interne</td></tr>
+<tr><td><code>settings (tab=filters)</code></td><td><code>settings_general.php → settings_filters.php</code></td><td>—</td><td>écart connu : aucune garde interne</td></tr>
+<tr><td><code>settings (tab=email)</code></td><td><code>settings_general.php → settings_email.php</code></td><td>—</td><td>bloc isAdmin() commun (email/users/audit/integrity/health)</td></tr>
+<tr><td><code>settings (tab=users)</code></td><td><code>settings_general.php → settings_app_users.php</code></td><td>—</td><td>idem + isAdmin() propre au fichier</td></tr>
+<tr><td><code>settings (tab=audit)</code></td><td><code>settings_general.php → settings_audit_log.php</code></td><td>—</td><td>idem + isAdmin() propre au fichier</td></tr>
+<tr><td><code>settings (tab=integrity)</code></td><td><code>settings_general.php → settings_integrity.php</code></td><td>—</td><td>couvert par le bloc isAdmin() commun</td></tr>
+<tr><td><code>settings (tab=health)</code></td><td><code>settings_general.php → settings_health.php</code></td><td>—</td><td>idem + isAdmin() propre au fichier</td></tr>
+<tr><td><code>updateSegment</code></td><td><code>settings_general.php (tab=segments forcé)</code></td><td>—</td><td>formulaire segment — mutation via action isManager()</td></tr>
+<tr><td><code>updateCombinedSegment</code></td><td><code>settings_general.php (tab=filters forcé)</code></td><td>—</td><td>idem</td></tr>
+<tr><td><code>manageComptaTypes</code></td><td><code>settings_compta_types.php</code></td><td>—</td><td>écart connu : aucune garde de vue</td></tr>
+<tr><td><code>contactTypes</code></td><td><code>settings_contact_types.php</code></td><td><strong>Admin</strong></td><td>route directe, doublon de l’onglet settings</td></tr>
+<tr><td><code>manageAppUsers</code></td><td><code>settings_app_users.php</code></td><td>—</td><td>garde interne isAdmin() — route sans garde mais fichier auto-gardé</td></tr>
+<tr><td><code>auditLog</code></td><td><code>settings_audit_log.php</code></td><td>—</td><td>garde interne isAdmin()</td></tr>
+<tr><td><code>changePassword</code></td><td><code>auth_change_password.php</code></td><td>—</td><td>self-service, tout rôle authentifié</td></tr>
+</tbody></table></div>
+<h3 id="annexe-api">API REST (<code>html/api/*.php</code>)<a class="anchor" href="#annexe-api" aria-label="Lien d'ancrage">#</a></h3>
+<p>Voir <a href="api.html">API REST</a> pour le détail des requêtes/réponses. Toutes passent par <code>isLoggedIn()</code> (401 sinon), le JSON-CSRF et le rate-limit décrits en §8, en plus du rôle listé ici.</p>
+<div class="table-scroll" role="region" aria-label="Tableau — Annexe API REST" tabindex="0"><table><thead><tr><th scope="col">Méthode</th><th scope="col">Endpoint</th><th scope="col">Rôle requis</th><th scope="col">Note</th></tr></thead><tbody>
+<tr><td><code>GET</code></td><td><code>/api/contacts</code></td><td><strong>Lecture seule</strong></td><td>liste paginée</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/contacts/{id}</code></td><td><strong>Lecture seule</strong></td><td></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/contacts/{id}?sub=groups</code></td><td><strong>Lecture seule</strong></td><td></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/contacts/{id}?sub=compta</code></td><td><strong>Lecture seule</strong></td><td></td></tr>
+<tr><td><code>POST</code></td><td><code>/api/contacts</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>PUT / PATCH</code></td><td><code>/api/contacts/{id}</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>DELETE</code></td><td><code>/api/contacts/{id}</code></td><td><strong>Manager</strong></td><td>désactivation (défaut) — isManager() requis depuis le correctif ci-dessous (aucune garde auparavant)</td></tr>
+<tr><td><code>DELETE</code></td><td><code>/api/contacts/{id}?dispose=delete</code></td><td><strong>Admin</strong></td><td>suppression définitive</td></tr>
+<tr><td><code>GET</code></td><td><code>/api/segments</code></td><td><strong>Lecture seule</strong></td><td></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/segments/{id}</code></td><td><strong>Lecture seule</strong></td><td></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/segments/{id}/members</code></td><td><strong>Lecture seule</strong></td><td></td></tr>
+<tr><td><code>POST</code></td><td><code>/api/segments</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>PUT</code></td><td><code>/api/segments/{id}</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>DELETE</code></td><td><code>/api/segments/{id}</code></td><td><strong>Manager</strong></td><td>uniquement si vide</td></tr>
+<tr><td><code>POST</code></td><td><code>/api/segments/{id}/members</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>DELETE</code></td><td><code>/api/segments/{id}/members</code></td><td><strong>Manager</strong></td><td></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/compta?memberId=</code></td><td><strong>Lecture seule</strong></td><td></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/compta/{id}</code></td><td><strong>Lecture seule</strong></td><td></td></tr>
+<tr><td><code>POST</code></td><td><code>/api/compta</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>PUT</code></td><td><code>/api/compta/{id}</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>DELETE</code></td><td><code>/api/compta/{id}</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/suivi?memberId=</code></td><td><strong>Lecture seule</strong></td><td></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/suivi/{id}</code></td><td><strong>Lecture seule</strong></td><td></td></tr>
+<tr><td><code>POST</code></td><td><code>/api/suivi</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>PUT</code></td><td><code>/api/suivi/{id}</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>DELETE</code></td><td><code>/api/suivi/{id}</code></td><td><strong>Utilisateur</strong></td><td></td></tr>
+<tr><td><code>GET</code></td><td><code>/api/compta-types</code></td><td><strong>Lecture seule</strong></td><td>seule méthode autorisée (405 sinon)</td></tr>
+</tbody></table></div>
+<p><strong>Maintenir cette annexe à jour</strong> : à chaque ajout/modification d’une entrée dans <code>$ACTION_MAP</code>, <code>$UA_VIEW_ROUTES</code>, ou d’un handler dans <code>html/api/*.php</code>, mettre à jour la ligne correspondante ici (voir la checklist de release dans le <code>CLAUDE.md</code> du dépôt). Cette annexe n’est pas générée automatiquement — une dérive silencieuse ici est le scénario exact qui a laissé la faille <code>DELETE /api/contacts/{id}</code> ci-dessus invisible.</p>
 
     </div>
     <nav class="pager" aria-label="Navigation entre les guides">
