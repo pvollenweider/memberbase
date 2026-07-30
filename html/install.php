@@ -594,6 +594,8 @@ $steps = ['1' => $GLOBAL['stepPrereqs'], '2' => $GLOBAL['stepDatabase'], '3' => 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= $GLOBAL['installTitle'] ?></title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="images/brand/memberbase-mark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/vendor/bootstrap.min.css">
 <style>
   body { background: #f0f4f8; }

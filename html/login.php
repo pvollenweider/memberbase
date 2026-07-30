@@ -72,6 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= sprintf($GLOBAL['loginTitle'], htmlspecialchars($appSettings['org_name'] ?: $GLOBAL['memberManagement'], ENT_QUOTES, 'UTF-8')) ?></title>
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" href="images/brand/memberbase-mark.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="images/brand/memberbase-touch-icon-180.png">
     <link rel="stylesheet" href="css/vendor/inter.css">
     <link rel="stylesheet" href="css/vendor/bootstrap.min.css">
     <link rel="stylesheet" href="css/custom.css">

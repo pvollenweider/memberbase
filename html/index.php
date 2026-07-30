@@ -69,6 +69,9 @@ if ($isHtmx) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, $charset) ?>">
     <title><?= htmlspecialchars($appSettings['org_name'] ?: $GLOBAL['memberManagement'], ENT_QUOTES, $charset) ?></title>
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" href="images/brand/memberbase-mark.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="images/brand/memberbase-touch-icon-180.png">
     <?php
     function getMicroTime()
     {
@@ -208,7 +211,10 @@ $end = getMicroTime();
             <div class="col-md-6 small">Process time: [<?= (int)(($end - $start) * 1000) ?>
                 ms]. Date: [<?= date("d.m.Y H:i", time()) ?>]</div>
             <div class="col-md-6 text-md-end small">
-                <a href="https://pvollenweider.github.io/memberbase/" target="_blank" rel="noopener">MemberBase v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, $charset) ?></a>
+                <a href="https://pvollenweider.github.io/memberbase/" target="_blank" rel="noopener" class="d-inline-flex align-items-center gap-1">
+                  <img src="images/brand/memberbase-mark.svg" alt="" width="14" height="14" aria-hidden="true">
+                  MemberBase v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, $charset) ?>
+                </a>
                 &middot; <a href="https://pvollenweider.github.io/memberbase/docs/" target="_blank" rel="noopener"><?= htmlspecialchars($GLOBAL['documentation'], ENT_QUOTES, $charset) ?></a>
             </div>
         </div>
