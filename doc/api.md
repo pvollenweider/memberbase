@@ -57,9 +57,9 @@ Le rôle est porté par la session (`$_SESSION['app_user_role']`). Quatre rôles
 Règles réelles appliquées **par endpoint** (vérifiées dans le code — elles ne sont pas homogènes entre ressources) :
 
 - **Membres, Compta, Suivi** : les lectures appellent explicitement `canRead()` (403 si rôle insuffisant) ; les écritures appellent `canWrite()`.
-- **Suppression définitive d'un membre** (`DELETE /api/contacts/{id}?dispose=delete`) : `isAdmin()` requis (403 sinon). La désactivation simple ne requiert que `canWrite()` implicite (aucun contrôle de rôle explicite au-delà de l'authentification pour la désactivation — voir la note de l'endpoint).
-- **Segments / groups** : toutes les écritures (création, mise à jour, suppression, ajout/retrait de membre) appellent `isManager()` (403 sinon). **Les lectures (`GET`) n'effectuent AUCUN contrôle de rôle** : elles ne requièrent que l'authentification (n'importe quel rôle connecté, y compris `readonly`).
-- **Types de compta** (`GET /api/compta-types`) : **aucun contrôle de rôle** au-delà de l'authentification.
+- **Désactivation/suppression d'un membre** (`DELETE /api/contacts/{id}`) : la désactivation (par défaut) requiert `isManager()` — même niveau que l'action UI équivalente `deactivateUser`. La suppression définitive (`?dispose=delete`) requiert `isAdmin()`.
+- **Segments / groups** : toutes les écritures (création, mise à jour, suppression, ajout/retrait de membre) appellent `isManager()` (403 sinon).
+- **Lectures (`GET /api/contacts`, `GET /api/segments`, `GET /api/compta-types`, etc.)** : appellent `canRead()`, mais comme ce rôle est actuellement défini pour englober les 4 rôles applicatifs (`admin`/`manager`/`user`/`readonly`), cela équivaut en pratique à exiger seulement d'être connecté — n'importe quel rôle authentifié peut lire.
 
 Un rôle insuffisant retourne `403` avec `{ "error": "Forbidden" }` (ou un message spécifique, ex. `"Manager role required"`, `"Admin role required to permanently delete a member"`).
 
@@ -330,13 +330,13 @@ curl -b cookies.txt \
 
 ### `DELETE /api/contacts/{id}`
 
-Par défaut : **désactivation** (`UPDATE contact SET status = 0`). Avec `?dispose=delete` : **suppression définitive** de l'enregistrement (`isAdmin()` requis).
+Par défaut : **désactivation** (`UPDATE contact SET status = 0`, `isManager()` requis). Avec `?dispose=delete` : **suppression définitive** de l'enregistrement (`isAdmin()` requis).
 
 #### Paramètres de query
 
 | Paramètre | Type | Description |
 |-----------|------|-------------|
-| `dispose` | string | `"delete"` : suppression définitive (admin uniquement). Toute autre valeur (ou absente) : désactivation |
+| `dispose` | string | `"delete"` : suppression définitive (admin uniquement). Toute autre valeur (ou absente) : désactivation (manager minimum) |
 
 #### Réponse
 
@@ -344,10 +344,8 @@ Par défaut : **désactivation** (`UPDATE contact SET status = 0`). Avec `?dispo
 
 #### Erreurs
 
-- `403` — `dispose=delete` demandé sans rôle `admin`
+- `403` — rôle insuffisant (`isManager()` pour la désactivation, `isAdmin()` pour `dispose=delete`)
 - `404` — membre introuvable
-
-> La désactivation (`dispose` ≠ `delete`) ne comporte **pas** de contrôle de rôle explicite au-delà de l'authentification dans le code actuel ; seule la suppression définitive vérifie `isAdmin()`.
 
 #### Exemple curl
 

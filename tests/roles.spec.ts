@@ -708,6 +708,20 @@ test.describe('Server — REST API /api/contacts guards', () => {
     await api.dispose();
   });
 
+  test('readonly: DELETE /api/contacts/{id} (deactivate) → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'readonly');
+    const r = await api.delete(`/api/contacts/${ACTIVE_MEMBER_ID}`);
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
+  test('user: DELETE /api/contacts/{id} (deactivate) → 403', async ({ playwright }) => {
+    const api = await apiAs(playwright, 'user');
+    const r = await api.delete(`/api/contacts/${ACTIVE_MEMBER_ID}`);
+    expect(r.status()).toBe(403);
+    await api.dispose();
+  });
+
   // positive: manager CAN delete (deactivate, not permanent) via REST API
   test('manager: DELETE /api/contacts/{id} (deactivate) → not 403', async ({ playwright }) => {
     const api = await apiAs(playwright, 'manager');

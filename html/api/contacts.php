@@ -6,7 +6,7 @@
  * GET    /api/contacts/{id}     single member detail
  * POST   /api/contacts          create a member
  * PUT    /api/contacts/{id}     update a member
- * DELETE /api/contacts/{id}     deactivate (default) or delete (?dispose=delete, admin only)
+ * DELETE /api/contacts/{id}     deactivate (default, manager) or delete (?dispose=delete, admin only)
  *
  * @copyright 2026 Philippe Vollenweider
  * @license   AGPL-3.0-or-later <https://www.gnu.org/licenses/agpl-3.0.html>
@@ -409,6 +409,9 @@ function handleDelete(int $id): void
         auditLog(db(), 'deleteUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
         $user->remove();
     } else {
+        // Same role floor as the UI's equivalent deactivateUser action — a
+        // deactivate is a mutation, not a read, and readonly must never mutate.
+        if (!isManager()) apiError(403, 'Manager role required');
         db()->prepare("UPDATE contact SET status=0 WHERE id=?")->execute([$id]);
         auditLog(db(), 'deactivateUser', "id=$id | {$user->firstName} {$user->lastName}", $id);
     }
