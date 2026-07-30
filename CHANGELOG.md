@@ -2,6 +2,41 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
+## [5.4.0] — 2026-07-30
+
+### Nouveautés
+
+- **Filtre rapide « Jamais rien versé »** : membres créés il y a plus de 3 ans
+  sans aucune entrée comptable (`FILTER_NEVER_PAID_OLD`). Comme pour le filtre
+  « Aucun versement ces 10 dernières années », propose 3 actions en masse
+  (créer un segment, ajouter à un segment existant, archiver — cette dernière
+  réservée aux admins avec avertissement de confirmation).
+- **Sélection manuelle par checkbox** sur ces deux filtres de nettoyage : une
+  case par ligne + « tout sélectionner », même logique que la page Archivés —
+  les 3 actions n'agissent que sur les lignes cochées (tout coché par défaut)
+  au lieu de systématiquement tout le filtre.
+- **Entrée « Archivés » dans le dropdown des filtres rapides** (admin
+  uniquement), pointant vers la page de gestion des membres archivés
+  existante plutôt que de dupliquer un système de nettoyage.
+- **Logo MemberBase** : favicon et icône sur toutes les pages d'entrée de
+  l'application (connexion, définition du mot de passe, installation) et
+  dans le pied de page, plus refonte des couleurs du site de documentation
+  publique pour s'harmoniser avec le bleu de la marque.
+
+### Corrections
+
+- **Rendu obsolète sur lien direct** : un lien vers un filtre rapide
+  bookmarké pouvait afficher une version mise en cache par le navigateur,
+  antérieure à l'ajout d'une fonctionnalité — `index.php` envoie désormais
+  `Cache-Control: no-store`.
+- **Double encodage** dans la description du filtre « cotisation impayée
+  depuis 3 ans » : le lien vers le segment d'exclusion s'affichait en texte
+  brut au lieu d'être rendu.
+- **Avertissement de suppression en masse (page Archivés)** : précise
+  désormais explicitement que les comptes avec des entrées comptables ne
+  peuvent pas être supprimés et seront ignorés (au lieu de ne l'indiquer
+  qu'en cas de sélection incompatible).
+
 ## [5.3.3] — 2026-07-28
 
 ### Nouveautés
