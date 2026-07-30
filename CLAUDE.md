@@ -243,6 +243,16 @@ Tout changement de schéma = un fichier `html/migrations/NNNN_description.sql` (
 
 **Contenu documentaire changé substantiellement** (nouvelle fonctionnalité, refonte de `doc/*.md` ou du `README.md`) : `make publish-site` ne suffit pas (il ne patch que le changelog). Il faut aussi répercuter le changement dans les pages HTML statiques de `gh-pages` (`index.html`, `docs/architecture.html`, `docs/user.html`, `docs/admin.html`, `docs/api.html`) — **à la main**, en éditant ces fichiers dans un worktree (`git worktree add <tmp> origin/gh-pages --detach`) pour rester cohérent avec le style/markup existant, puis push. **Il n'existe aucun générateur automatique** pour ce site (les pages ont été écrites à la main dans une session ponctuelle, pas de script markdown→HTML committé) — ne pas invoquer `/impeccable` pour ça : ce skill design l'UI de l'app elle-même (via `PRODUCT.md`/`DESIGN.md`), pas le site de doc public.
 
+### Checklist obligatoire à chaque release (doc gh-pages)
+
+`make release`/`make publish-site` ne patchent **que** le changelog de `index.html` — toute autre mention de version ou tout contenu de fond dans les pages `docs/*.html` reste figé tant que personne ne le met à jour à la main. Un exemple vécu (5.4.0) : `docs/architecture.html`, `docs/admin.html` et `docs/api.html` affichaient encore « version 5.3.1 » en tête de page, et les tables `api_rate_limit`/`login_rate_limit` n'avaient jamais été ajoutées au tableau du schéma DB malgré plusieurs releases d'ancienneté. **Après chaque `make release`**, dans le worktree `gh-pages` :
+
+1. **Version affichée** : `grep -rn "version [0-9]\.\|MemberBase v[0-9]\|MemberBase <strong>v[0-9]" index.html docs/*.html` et vérifier que chaque mention de version *courante* (pas les notes historiques « depuis la vX.Y.Z », « renommé en vX.Y.Z » — celles-là restent figées à dessein) pointe bien sur la nouvelle version.
+2. **Schéma DB complet** : comparer la liste des tables de `schema.sql` (`grep -oE "CREATE TABLE (IF NOT EXISTS )?\`?[a-z_]+" schema.sql`) au tableau du schéma dans `docs/architecture.html` — toute table absente doit y être ajoutée (rôle, colonnes clé, PK/FK).
+3. **Fonctionnalités du cycle** : relire le CHANGELOG de la version en cours et vérifier que chaque nouveauté utilisateur/admin a sa contrepartie dans `docs/user.html`/`docs/admin.html`, et que chaque nouveauté d'architecture (nouvelle classe, nouveau endpoint, nouvelle constante `FILTER_*`, etc.) a sa contrepartie dans `docs/architecture.html`/`docs/api.html`.
+
+Sauter cette checklist est ce qui a produit la dérive ci-dessus — elle n'est pas optionnelle même pour une release « légère ».
+
 ## Site GitHub Pages
 
 Le site de documentation public est hébergé sur **https://pvollenweider.github.io/memberbase/** (branche `gh-pages`, orpheline, root `/`).
