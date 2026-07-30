@@ -291,11 +291,15 @@ if ($action == 'deleteSegment') {
     // Recompute server-side from the shared MemberFilter class — never trust
     // a client-submitted id list for a bulk action (issue #57 pattern, same
     // as createLapsedSegment above). The filter id itself is re-validated
-    // against the whitelist, not trusted either.
+    // against the whitelist, not trusted either. A manual checkbox selection
+    // (ids[]) is honored, but only as a subset of the resolved filter — it
+    // can narrow the batch, never widen it beyond what the filter allows.
     $_fbFilterId = (int)($_REQUEST['segment'] ?? 0);
     if (!in_array($_fbFilterId, MemberFilter::BULK_ACTION_FILTERS, true)) { http_response_code(403); exit; }
     $yr = (int)($_REQUEST['year'] ?? date('Y'));
-    $ids = array_keys(MemberFilter::resolveIds($_fbFilterId, db(), $yr, $appSettings));
+    $_fbResolved = MemberFilter::resolveIds($_fbFilterId, db(), $yr, $appSettings);
+    $_fbSelected = array_map('intval', array_filter($_REQUEST['ids'] ?? [], 'is_numeric'));
+    $ids = $_fbSelected ? array_values(array_intersect($_fbSelected, array_keys($_fbResolved))) : array_keys($_fbResolved);
     if (empty($ids)) {
         echo '<script>alert("' . $GLOBAL['noUsersToAdd'] . '");history.back();</script>';
         exit;
@@ -325,7 +329,9 @@ if ($action == 'deleteSegment') {
         echo '<script>alert("' . $GLOBAL['noUsersToAdd'] . '");history.back();</script>';
         exit;
     }
-    $ids = array_keys(MemberFilter::resolveIds($_fbFilterId, db(), $yr, $appSettings));
+    $_fbResolved = MemberFilter::resolveIds($_fbFilterId, db(), $yr, $appSettings);
+    $_fbSelected = array_map('intval', array_filter($_REQUEST['ids'] ?? [], 'is_numeric'));
+    $ids = $_fbSelected ? array_values(array_intersect($_fbSelected, array_keys($_fbResolved))) : array_keys($_fbResolved);
     if (!empty($ids)) {
         $ins = db()->prepare("INSERT IGNORE INTO contact_segment (user_id, segment_id) VALUES (?, ?)");
         foreach ($ids as $uid) {
@@ -346,7 +352,9 @@ if ($action == 'deleteSegment') {
     $_fbFilterId = (int)($_REQUEST['segment'] ?? 0);
     if (!in_array($_fbFilterId, MemberFilter::BULK_ACTION_FILTERS, true)) { http_response_code(403); exit; }
     $yr = (int)($_REQUEST['year'] ?? date('Y'));
-    $ids = array_keys(MemberFilter::resolveIds($_fbFilterId, db(), $yr, $appSettings));
+    $_fbResolved = MemberFilter::resolveIds($_fbFilterId, db(), $yr, $appSettings);
+    $_fbSelected = array_map('intval', array_filter($_REQUEST['ids'] ?? [], 'is_numeric'));
+    $ids = $_fbSelected ? array_values(array_intersect($_fbSelected, array_keys($_fbResolved))) : array_keys($_fbResolved);
     if (!empty($ids)) {
         $ph = implode(',', array_fill(0, count($ids), '?'));
         db()->prepare("UPDATE contact SET status=0 WHERE id IN ($ph)")->execute($ids);

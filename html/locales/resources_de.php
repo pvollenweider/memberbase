@@ -879,7 +879,7 @@ $GLOBAL['bulkDeleteBtn'] = "Löschen";
 $GLOBAL['bulkAnonymizeBtn'] = "Anonymisieren";
 $GLOBAL['bulkDeleteConfirmTitle'] = "Diese Konten endgültig löschen?";
 $GLOBAL['bulkAnonymizeConfirmTitle'] = "Diese Konten anonymisieren?";
-$GLOBAL['bulkDeleteIrreversibleWarning'] = "Diese Aktion ist unwiderruflich. Prüfen Sie die Liste unten vor der Bestätigung — ein Konto, das archiviert wurde, um „keine E-Mails mehr zu erhalten“, ist nicht zwingend ein zu löschendes Konto.";
+$GLOBAL['bulkDeleteIrreversibleWarning'] = "Diese Aktion ist unwiderruflich. Prüfen Sie die Liste unten vor der Bestätigung — ein Konto, das archiviert wurde, um „keine E-Mails mehr zu erhalten“, ist nicht zwingend ein zu löschendes Konto. Konten mit Buchhaltungseinträgen können nicht gelöscht werden (Finanzdaten müssen erhalten bleiben): sie werden übersprungen — verwenden Sie dafür Anonymisieren.";
 $GLOBAL['bulkDeleteIneligibleWarning'] = "%d der ausgewählten Konten haben Buchhaltungsdaten und werden nicht gelöscht (verwenden Sie dafür Anonymisieren).";
 $GLOBAL['bulkAnonymizeIneligibleWarning'] = "%d der ausgewählten Konten haben keine Buchhaltungsdaten und werden nicht geändert (verwenden Sie dafür Löschen).";
 

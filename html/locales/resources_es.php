@@ -879,7 +879,7 @@ $GLOBAL['bulkDeleteBtn'] = "Eliminar";
 $GLOBAL['bulkAnonymizeBtn'] = "Anonimizar";
 $GLOBAL['bulkDeleteConfirmTitle'] = "¿Eliminar definitivamente estas cuentas?";
 $GLOBAL['bulkAnonymizeConfirmTitle'] = "¿Anonimizar estas cuentas?";
-$GLOBAL['bulkDeleteIrreversibleWarning'] = "Esta acción es irreversible. Revise la lista antes de confirmar — una cuenta archivada \"para dejar de recibir correos\" no es necesariamente una cuenta a eliminar.";
+$GLOBAL['bulkDeleteIrreversibleWarning'] = "Esta acción es irreversible. Revise la lista antes de confirmar — una cuenta archivada \"para dejar de recibir correos\" no es necesariamente una cuenta a eliminar. Las cuentas con entradas contables no se pueden eliminar (hay que preservar los datos financieros): se omitirán — use Anonimizar para esas.";
 $GLOBAL['bulkDeleteIneligibleWarning'] = "%d de las cuentas seleccionadas tienen datos contables y no se eliminarán (use Anonimizar para esas).";
 $GLOBAL['bulkAnonymizeIneligibleWarning'] = "%d de las cuentas seleccionadas no tienen datos contables y no se modificarán (use Eliminar para esas).";
 

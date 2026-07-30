@@ -879,7 +879,7 @@ $GLOBAL['bulkDeleteBtn'] = "Delete";
 $GLOBAL['bulkAnonymizeBtn'] = "Anonymize";
 $GLOBAL['bulkDeleteConfirmTitle'] = "Permanently delete these accounts?";
 $GLOBAL['bulkAnonymizeConfirmTitle'] = "Anonymize these accounts?";
-$GLOBAL['bulkDeleteIrreversibleWarning'] = "This action is irreversible. Check the list below before confirming — an account archived \"to stop receiving emails\" isn't necessarily one to delete.";
+$GLOBAL['bulkDeleteIrreversibleWarning'] = "This action is irreversible. Check the list below before confirming — an account archived \"to stop receiving emails\" isn't necessarily one to delete. Accounts with accounting entries cannot be deleted (financial data must be preserved): they will be skipped — use Anonymize for those instead.";
 $GLOBAL['bulkDeleteIneligibleWarning'] = "%d of the selected accounts have accounting data and will not be deleted (use Anonymize for those).";
 $GLOBAL['bulkAnonymizeIneligibleWarning'] = "%d of the selected accounts have no accounting data and will not be changed (use Delete for those).";
 

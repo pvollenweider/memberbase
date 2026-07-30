@@ -69,6 +69,10 @@ if (in_array((int)$segment, MemberFilter::RESOLVABLE, true)) {
     $_virtualIds = MemberFilter::resolveIds((int)$segment, db(), (int)$year, $appSettings);
 }
 
+// Whether the manual-selection checkbox column is shown — shifts every
+// hardcoded DataTables column index below (order/columnDefs) by one when true.
+$_mfbBulkCols = in_array((int)$segment, MemberFilter::BULK_ACTION_FILTERS, true) && isManager();
+
 // AJAX search is safe when no complex server-side filter is active
 $_ajaxSearchOk = ($combinedSegment === 0 && $contactTypeId === 0 && in_array((int)$segment, [0, FILTER_ALL_EXCEPT_ARCHIVES], true));
 
@@ -278,27 +282,26 @@ if (empty($_pfEmbedded)) {
     <span><?= $GLOBAL['addUser'] ?></span>
   </a>
   <?php endif ?>
-  <?php if (in_array((int)$segment, MemberFilter::BULK_ACTION_FILTERS, true) && isManager() && $_virtualIds !== null): ?>
-  <div class="w-100 d-flex align-items-center gap-2 flex-wrap mt-2 pt-2" style="border-top:1px solid var(--ca-border)">
-    <span class="text-muted" style="font-size:0.78rem">
-      <?= sprintf($GLOBAL['filterBulkCount'], count($_virtualIds)) ?>
-    </span>
-    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk-create-segment" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
+  <?php if ($_mfbBulkCols && $_virtualIds !== null): ?>
+  <div id="mfb-bulk-bar" class="w-100 d-none align-items-center gap-2 flex-wrap mt-2 pt-2" style="border-top:1px solid var(--ca-border)">
+    <span id="mfb-bulk-count" class="text-muted" style="font-size:0.78rem"></span>
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk-create-segment">
       <i class="fas fa-layer-group me-1" aria-hidden="true"></i><?= $GLOBAL['filterCreateSegmentBtn'] ?>
     </button>
-    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk-add-segment" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk-add-segment">
       <i class="fas fa-plus me-1" aria-hidden="true"></i><?= $GLOBAL['filterAddToSegmentBtn'] ?>
     </button>
     <?php if (isAdmin()): ?>
-    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk-archive" <?= empty($_virtualIds) ? 'disabled' : '' ?>>
+    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-bulk-archive">
       <i class="fas fa-box-archive me-1" aria-hidden="true"></i><?= $GLOBAL['filterArchiveBtn'] ?>
     </button>
     <?php endif ?>
+    <button type="button" class="btn btn-sm btn-link text-muted p-0" onclick="mfbClearSelection()"><?= $GLOBAL['deselect'] ?></button>
   </div>
   <?php endif ?>
 </div><!-- .card-header -->
 
-<?php if (in_array((int)$segment, MemberFilter::BULK_ACTION_FILTERS, true) && isManager() && $_virtualIds !== null): ?>
+<?php if ($_mfbBulkCols && $_virtualIds !== null): ?>
 <!-- Create a new segment from the current filter result. The filter id
      travels in a hidden field — the action re-validates it against
      MemberFilter::BULK_ACTION_FILTERS and recomputes ids server-side, it's
@@ -311,11 +314,11 @@ if (empty($_pfEmbedded)) {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
       <div class="modal-body">
-        <?= sprintf($GLOBAL['confirmCreateFilterSegment'], count($_virtualIds)) ?>
+        <span id="mfb-create-count"></span>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
-        <form method="post" action="<?= appUrl() ?>" class="d-inline" hx-boost="false">
+        <form method="post" action="<?= appUrl() ?>" class="d-inline mfb-bulk-form" hx-boost="false">
           <input type="hidden" name="action"  value="createFilterBulkSegment">
           <input type="hidden" name="segment" value="<?= (int)$segment ?>">
           <input type="hidden" name="year"    value="<?= (int)$year ?>">
@@ -337,9 +340,9 @@ if (empty($_pfEmbedded)) {
         <h5 class="modal-title" id="modal-bulk-add-segment-label"><?= $GLOBAL['filterAddToSegmentBtn'] ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $GLOBAL['close'] ?>"></button>
       </div>
-      <form method="post" action="<?= appUrl() ?>" hx-boost="false">
+      <form method="post" action="<?= appUrl() ?>" class="mfb-bulk-form" hx-boost="false">
         <div class="modal-body">
-          <p><?= sprintf($GLOBAL['confirmAddFilterToSegment'], count($_virtualIds)) ?></p>
+          <p id="mfb-add-count"></p>
           <select name="targetSegmentId" class="form-select form-select-sm" required>
             <option value=""><?= $GLOBAL['chooseSegment'] ?></option>
             <?php foreach ((function() { try { return Segment::listForDropdown(); } catch (PDOException $e) { return []; } })() as $_npRow): ?>
@@ -373,11 +376,11 @@ if (empty($_pfEmbedded)) {
         <div class="alert alert-warning py-2 px-3 mb-3" style="font-size:0.82rem">
           <i class="fas fa-triangle-exclamation me-1" aria-hidden="true"></i><?= $GLOBAL['filterArchiveWarning'] ?>
         </div>
-        <p><?= sprintf($GLOBAL['confirmArchiveFilterUsers'], count($_virtualIds)) ?></p>
+        <p id="mfb-archive-count"></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $GLOBAL['cancel'] ?></button>
-        <form method="post" action="<?= appUrl() ?>" class="d-inline" hx-boost="false">
+        <form method="post" action="<?= appUrl() ?>" class="d-inline mfb-bulk-form" hx-boost="false">
           <input type="hidden" name="action"  value="archiveFilterBulkUsers">
           <input type="hidden" name="segment" value="<?= (int)$segment ?>">
           <input type="hidden" name="year"    value="<?= (int)$year ?>">
@@ -488,6 +491,11 @@ $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
 <table class="table table-hover table-sm export">
 <thead>
 <tr>
+    <?php if ($_mfbBulkCols): ?>
+    <th style="width:1.5rem">
+        <input type="checkbox" class="form-check-input" id="mfb-select-all" title="<?= $GLOBAL['selectAll'] ?>">
+    </th>
+    <?php endif ?>
     <th class="d-none d-sm-table-cell d-md-table-cell"><?=$GLOBAL['sexe']?></th>
     <th>
             <?=$GLOBAL['society']?>
@@ -608,6 +616,12 @@ foreach ($_allRows as $row) {
         <?php $_rowLabel = trim(($society !== '' ? htmlspecialchars($society, ENT_QUOTES, $charset) . ' ' : '') . $lastName . ' ' . $firstName); ?>
         <tr class="ca-row-link" data-href="<?=appUrl()?>?view=generalData&id=<?=(int)$id?>" style="cursor:pointer"
             tabindex="0" role="link" aria-label="<?= $_rowLabel ?>">
+            <?php if ($_mfbBulkCols): ?>
+            <td onclick="event.stopPropagation()">
+                <input type="checkbox" class="form-check-input mfb-cb" value="<?= (int)$id ?>"
+                       data-name="<?= $_rowLabel !== '' ? $_rowLabel : sprintf($GLOBAL['noNameId'], (int)$id) ?>">
+            </td>
+            <?php endif ?>
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=$sexe?></td>
             <td class="bold"><div class="text-truncate" style="max-width:200px"><?=$society?></div></td>
             <td class="text-nowrap"><?=$lastName?></td>
@@ -691,21 +705,116 @@ document.querySelector('.export tbody') && document.querySelector('.export tbody
 });
 
 var CA_DT_INSTANCE = null;
+// Column indices below assume the fixed sexe/society/lastName/firstName/…
+// layout — the manual-selection checkbox column (users_list.php's
+// $_mfbBulkCols) is prepended for cleanup filters, shifting every index by 1.
+var CA_DT_COL_OFFSET = <?= $_mfbBulkCols ? 1 : 0 ?>;
 function caInitDT() {
     $.fn.dataTable.moment('DD/MM/YYYY');
     if ($.fn.DataTable.isDataTable('.export')) { $('.export').DataTable().destroy(); }
     CA_DT_INSTANCE = $('.export').DataTable({
-        order: [[2, 'asc']],
+        order: [[2 + CA_DT_COL_OFFSET, 'asc']],
         paging: false,
         dom: CA_DT_DOM,
         buttons: [...CA_DT_BUTTONS, CA_DT_COLVIS],
         columnDefs: [
-            { targets: [0, 4, 5, 7], visible: false }
+            { targets: CA_DT_COL_OFFSET ? [0] : [], orderable: false, searchable: false },
+            { targets: [0, 4, 5, 7].map(function (i) { return i + CA_DT_COL_OFFSET; }), visible: false }
         ],
         language: Object.assign({}, CA_DT_LANGUAGE, { info: <?= json_encode($GLOBAL['dtInfoProfiles'], JSON_UNESCAPED_UNICODE) ?>, infoFiltered: <?= json_encode($GLOBAL['dtInfoFilteredMasc'], JSON_UNESCAPED_UNICODE) ?> })
     });
 }
 $(document).ready(caInitDT);
+
+// Manual-selection checkboxes for the cleanup-filter bulk-action toolbar
+// (create segment / add to segment / archive). Registered after caInitDT so
+// it runs once the table/rows genuinely exist — this whole block sits above
+// the <table> markup in the DOM otherwise, since PHP renders the toolbar and
+// its modals in the card-header, well before the table body.
+$(document).ready(function () {
+  var allCbs    = document.querySelectorAll('.mfb-cb');
+  var selectAll = document.getElementById('mfb-select-all');
+  var bar       = document.getElementById('mfb-bulk-bar');
+  var countEl   = document.getElementById('mfb-bulk-count');
+  if (!allCbs.length || !bar) return;
+
+  function checked() { return Array.from(allCbs).filter(function (cb) { return cb.checked; }); }
+
+  function updateBar() {
+    var n = checked().length;
+    if (n > 0) {
+      bar.classList.remove('d-none');
+      bar.classList.add('d-flex');
+      countEl.textContent = <?= json_encode($GLOBAL['selectedCount']) ?>.replace('%d', n).replace('%s', n > 1 ? 's' : '');
+    } else {
+      bar.classList.add('d-none');
+      bar.classList.remove('d-flex');
+    }
+    if (selectAll) {
+      selectAll.indeterminate = n > 0 && n < allCbs.length;
+      selectAll.checked = n === allCbs.length;
+    }
+  }
+
+  allCbs.forEach(function (cb) { cb.addEventListener('change', updateBar); });
+  if (selectAll) {
+    selectAll.addEventListener('change', function () {
+      allCbs.forEach(function (cb) { cb.checked = selectAll.checked; });
+      updateBar();
+    });
+  }
+
+  // Default to "all selected" (same scope as the old whole-filter toolbar) —
+  // unchecking a row lets the user narrow the batch before acting.
+  allCbs.forEach(function (cb) { cb.checked = true; });
+  updateBar();
+
+  window.mfbClearSelection = function () {
+    allCbs.forEach(function (cb) { cb.checked = false; });
+    if (selectAll) selectAll.checked = false;
+    updateBar();
+  };
+
+  function fillIds(form) {
+    form.querySelectorAll('input[name="ids[]"]').forEach(function (n) { n.remove(); });
+    checked().forEach(function (cb) {
+      var hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.name = 'ids[]';
+      hidden.value = cb.value;
+      form.appendChild(hidden);
+    });
+  }
+
+  document.querySelectorAll('.mfb-bulk-form').forEach(function (form) {
+    form.addEventListener('submit', function () { fillIds(form); });
+  });
+
+  var createCountEl  = document.getElementById('mfb-create-count');
+  var addCountEl     = document.getElementById('mfb-add-count');
+  var archiveCountEl = document.getElementById('mfb-archive-count');
+
+  function fmt(tpl, n) { return tpl.replace('%d', n); }
+
+  var createModal = document.getElementById('modal-bulk-create-segment');
+  if (createModal) {
+    createModal.addEventListener('show.bs.modal', function () {
+      createCountEl.innerHTML = fmt(<?= json_encode($GLOBAL['confirmCreateFilterSegment']) ?>, checked().length);
+    });
+  }
+  var addModal = document.getElementById('modal-bulk-add-segment');
+  if (addModal) {
+    addModal.addEventListener('show.bs.modal', function () {
+      addCountEl.innerHTML = fmt(<?= json_encode($GLOBAL['confirmAddFilterToSegment']) ?>, checked().length);
+    });
+  }
+  var archiveModal = document.getElementById('modal-bulk-archive');
+  if (archiveModal) {
+    archiveModal.addEventListener('show.bs.modal', function () {
+      archiveCountEl.innerHTML = fmt(<?= json_encode($GLOBAL['confirmArchiveFilterUsers']) ?>, checked().length);
+    });
+  }
+});
 
 (function () {
   var BASE_PATH        = <?= json_encode(appUrl()) ?>;

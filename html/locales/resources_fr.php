@@ -879,7 +879,7 @@ $GLOBAL['bulkDeleteBtn'] = "Supprimer";
 $GLOBAL['bulkAnonymizeBtn'] = "Anonymiser";
 $GLOBAL['bulkDeleteConfirmTitle'] = "Supprimer définitivement ces comptes ?";
 $GLOBAL['bulkAnonymizeConfirmTitle'] = "Anonymiser ces comptes ?";
-$GLOBAL['bulkDeleteIrreversibleWarning'] = "Cette action est irréversible. Vérifiez la liste ci-dessous avant de confirmer — un compte archivé « pour ne plus recevoir d'emails » n'est pas forcément un compte à supprimer.";
+$GLOBAL['bulkDeleteIrreversibleWarning'] = "Cette action est irréversible. Vérifiez la liste ci-dessous avant de confirmer — un compte archivé « pour ne plus recevoir d'emails » n'est pas forcément un compte à supprimer. Les comptes ayant des entrées comptables ne peuvent pas être supprimés (données financières à préserver) : ils seront ignorés, utilisez Anonymiser pour ceux-ci.";
 $GLOBAL['bulkDeleteIneligibleWarning'] = "%d des comptes sélectionnés ont des données comptables et ne seront pas supprimés (utilisez Anonymiser pour ceux-ci).";
 $GLOBAL['bulkAnonymizeIneligibleWarning'] = "%d des comptes sélectionnés n'ont aucune donnée comptable et ne seront pas modifiés (utilisez Supprimer pour ceux-ci).";
 
