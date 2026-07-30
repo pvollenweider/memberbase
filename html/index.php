@@ -219,7 +219,7 @@ $end = getMicroTime();
                 ms]. Date: [<?= date("d.m.Y H:i", time()) ?>]</div>
             <div class="col-md-6 text-md-end small">
                 <a href="https://pvollenweider.github.io/memberbase/" target="_blank" rel="noopener" class="d-inline-flex align-items-center gap-1">
-                  <img src="images/brand/memberbase-mark.svg" alt="" width="14" height="14" aria-hidden="true">
+                  <img src="images/brand/memberbase-mark.svg" alt="" width="14" height="14" aria-hidden="true" style="margin-top:1px">
                   MemberBase v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, $charset) ?>
                 </a>
                 &middot; <a href="https://pvollenweider.github.io/memberbase/docs/" target="_blank" rel="noopener"><?= htmlspecialchars($GLOBAL['documentation'], ENT_QUOTES, $charset) ?></a>
