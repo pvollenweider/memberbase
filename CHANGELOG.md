@@ -2,7 +2,19 @@
 
 Tous les changements notables de ce projet sont documentés dans ce fichier.
 
-## [5.4.0] — 2026-07-30
+## [5.4.1] — 2026-07-31
+
+### Sécurité
+
+- **Clé de chiffrement du mot de passe SMTP sortie de la base** :
+  `mbSmtpGetOrCreateEncKey()` lit désormais la variable d'environnement
+  `SMTP_ENC_KEY`, ou à défaut `conf/smtp.key` (généré automatiquement, droits
+  `0600`). Une clé encore présente en base (`app_settings.smtp_enc_key`, ancien
+  format) est migrée vers le fichier au premier accès puis supprimée de la
+  table. Un dump de la base seule ne suffit plus à obtenir en clair le mot de
+  passe SMTP.
+- **Actions GitHub pinées par SHA** (`checkout`, `setup-php`, `setup-node`,
+  `upload-artifact`) au lieu de tags mutables, dans les 4 workflows CI.
 
 ### Nouveautés
 
