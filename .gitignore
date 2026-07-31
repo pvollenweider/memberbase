@@ -1,5 +1,6 @@
 .DS_Store
 conf/db.php
+conf/smtp.key
 conf/attestation_stamp.png
 conf/attestation_signature.png
 logs/
@@ -31,3 +32,5 @@ tests/.auth/
 .codegraph/
 docker-compose.override.yml
 resume.txt
+
+.gstack/

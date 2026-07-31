@@ -287,14 +287,37 @@ function mbSmtpDecryptPassword(string $encrypted, string $encKey): string
 }
 
 /**
- * Return or generate the per-installation SMTP encryption key stored in app_settings.
+ * Return or generate the per-installation SMTP encryption key.
+ *
+ * Stored outside the database (env var, falling back to conf/smtp.key) so that a
+ * database dump alone never exposes both the ciphertext (app_settings.smtp_password)
+ * and the key that decrypts it. Historically the key lived in app_settings itself;
+ * on first read after upgrading, an existing DB-stored key is migrated to the key
+ * file and the app_settings row is removed.
  */
 function mbSmtpGetOrCreateEncKey(PDO $pdo): string
 {
+    $envKey = getenv('SMTP_ENC_KEY');
+    if ($envKey && strlen($envKey) >= 32) return $envKey;
+
+    $keyFile = __DIR__ . '/../../../conf/smtp.key';
+    if (is_readable($keyFile)) {
+        $key = trim((string)file_get_contents($keyFile));
+        if (strlen($key) >= 32) return $key;
+    }
+
+    // One-time migration: an older install may still have the key in app_settings.
     $row = $pdo->query("SELECT value FROM app_settings WHERE `key`='smtp_enc_key' LIMIT 1")->fetchColumn();
-    if ($row && strlen($row) >= 32) return $row;
+    if ($row && strlen($row) >= 32) {
+        @file_put_contents($keyFile, $row, LOCK_EX);
+        @chmod($keyFile, 0600);
+        $pdo->prepare("DELETE FROM app_settings WHERE `key`='smtp_enc_key'")->execute();
+        return $row;
+    }
+
     $key = bin2hex(random_bytes(32));
-    $pdo->prepare("INSERT INTO app_settings (`key`,`value`) VALUES ('smtp_enc_key',?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)")->execute([$key]);
+    @file_put_contents($keyFile, $key, LOCK_EX);
+    @chmod($keyFile, 0600);
     return $key;
 }
 
