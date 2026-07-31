@@ -475,6 +475,20 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
   <div class="wrap">
     <h2 id="changelog-h">Dernières versions</h2>
     <article class="release">
+      <h3 class="v">5.4.1 <span class="d">31 juillet 2026</span></h3>
+      <ul>
+        <li><strong>Clé de chiffrement du mot de passe SMTP sortie de la base</strong> :</li>
+        <li><strong>Actions GitHub pinées par SHA</strong> (<code class="inline">checkout</code>, <code class="inline">setup-php</code>, <code class="inline">setup-node</code>,</li>
+        <li><strong>Filtre rapide « Jamais rien versé »</strong> : membres créés il y a plus de 3 ans</li>
+        <li><strong>Sélection manuelle par checkbox</strong> sur ces deux filtres de nettoyage : une</li>
+        <li><strong>Entrée « Archivés » dans le dropdown des filtres rapides</strong> (admin</li>
+        <li><strong>Logo MemberBase</strong> : favicon et icône sur toutes les pages d'entrée de</li>
+        <li><strong>Rendu obsolète sur lien direct</strong> : un lien vers un filtre rapide</li>
+        <li><strong>Double encodage</strong> dans la description du filtre « cotisation impayée</li>
+        <li><strong>Avertissement de suppression en masse (page Archivés)</strong> : précise</li>
+      </ul>
+    </article>
+    <article class="release">
       <h3 class="v">5.4.0 <span class="d">30 juillet 2026</span></h3>
       <ul>
         <li><strong>Filtre rapide « Jamais rien versé »</strong> : membres créés il y a plus de 3 ans</li>
@@ -492,20 +506,6 @@ footer .fine { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid co
         <li><strong>Anti-brute-force sur le login</strong> : en complément de Fail2Ban (ban par IP,</li>
         <li><strong>CSRF — liens GET de repli rejetés à tort</strong> : le durcissement CSRF de la</li>
         <li><strong>Récapitulatif de dons — clause « montant inférieur »</strong> : s'affichait même</li>
-      </ul>
-    </article>
-    <article class="release">
-      <h3 class="v">5.3.2 <span class="d">20 juillet 2026</span></h3>
-      <ul>
-        <li><strong>Rollover annuel du segment membre</strong> : au 1er janvier (ou à la première</li>
-        <li><strong>Catégorisation automatique</strong> : les segments « Membre AAAA » créés par le</li>
-        <li><strong>Intégrité — cotisants désynchronisés</strong> : nouveau contrôle qui repère les</li>
-        <li><strong>Ajout de membre depuis un segment</strong> : la case « Ajouter au segment «X» » du</li>
-        <li><strong>Intégrité — bouton « Appliquer » (règles d'auto-assignation)</strong> : le</li>
-        <li><strong>Cartes manquantes</strong> : les pages <code class="inline">?view=addUser</code>, <code class="inline">?view=mergeUsers</code> et les</li>
-        <li><strong>Intégrité — « Membres sans nom de famille ni société »</strong> : ajout de la</li>
-        <li><strong><code class="inline">make deploy</code></strong> (<code class="inline">tools/deploy.sh</code>) : synchronise <code class="inline">html/</code> vers le serveur</li>
-        <li>Comblé les trous de couverture e2e identifiés par un audit doc-vs-tests :</li>
       </ul>
     </article>
     <p class="changelog-more"><a href="https://github.com/pvollenweider/memberbase/blob/main/CHANGELOG.md">Historique complet des versions</a></p>
