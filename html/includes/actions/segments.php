@@ -116,37 +116,64 @@ if ($action == 'deleteSegment') {
     exit;
 
 } elseif ($action == 'importDonors') {
-    $segmentId = (int)$_REQUEST['id'];
-    $year      = isset($_REQUEST['donor_year'])   ? (int)$_REQUEST['donor_year']   : (int)date('Y');
-    $minSum    = isset($_REQUEST['donor_minsum']) ? (int)$_REQUEST['donor_minsum'] : 1;
-    $donorType = in_array($_REQUEST['donor_type'] ?? '', ['all', 'institutional', 'non_institutional'])
-                 ? $_REQUEST['donor_type'] : 'all';
+    $segmentId       = (int)$_REQUEST['id'];
+    $yearRaw         = trim((string)($_REQUEST['donor_year'] ?? (string)date('Y')));
+    $allYears        = ($yearRaw === '' || $yearRaw === 'all');
+    $year            = $allYears ? 0 : (int)$yearRaw;
+    $minSum          = isset($_REQUEST['donor_minsum']) ? (int)$_REQUEST['donor_minsum'] : 1;
+    $allTypesChecked = !empty($_REQUEST['donor_compta_type_all']);
+    $selectedTypeIds = $allTypesChecked ? [] : array_values(array_unique(array_filter(
+        array_map('intval', (array)($_REQUEST['donor_compta_type'] ?? []))
+    )));
+    $noTypeSelected  = !$allTypesChecked && empty($selectedTypeIds);
     if (!in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 1; }
-    if ($segmentId > 0 && $year >= 2000 && $year <= 2100) {
-        $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
-        $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
-        $instSubClause = '';
-        if ($donorType === 'institutional') {
-            $instSubClause = 'AND c.type_id IN (SELECT id FROM compta_type WHERE is_institutional = 1)';
-        } elseif ($donorType === 'non_institutional') {
-            $instSubClause = 'AND c.type_id NOT IN (SELECT id FROM compta_type WHERE is_institutional = 1)';
+    if ($segmentId > 0 && !$noTypeSelected && ($allYears || ($year >= 2000 && $year <= 2100))) {
+        $params = [$segmentId];
+
+        $typeClause = '';
+        if (!$allTypesChecked && !empty($selectedTypeIds)) {
+            $ph = implode(',', array_fill(0, count($selectedTypeIds), '?'));
+            $typeClause = "AND c.type_id IN ($ph)";
+            foreach ($selectedTypeIds as $tid) { $params[] = $tid; }
         }
+
+        $dateClause = '';
+        if (!$allYears) {
+            $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+            $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
+            $dateClause = 'AND c.date > ? AND c.date < ?';
+            $params[] = $from;
+            $params[] = $to;
+        }
+
+        $params[] = $segmentId;
+        $params[] = $minSum;
         db()->prepare("
             INSERT IGNORE INTO contact_segment (user_id, segment_id)
             SELECT u.id, ?
             FROM contact u
             JOIN compta c ON c.user_id = u.id
             WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
-              $instSubClause
-              AND c.date > ? AND c.date < ?
+              $typeClause
+              $dateClause
               AND u.id NOT IN (SELECT user_id FROM contact_segment WHERE segment_id = ?)
             GROUP BY u.id
             HAVING SUM(c.sum) >= ?
-        ")->execute([$segmentId, $from, $to, $segmentId, $minSum]);
+        ")->execute($params);
     }
-    $typeLabel = ['institutional' => 'institutionnels', 'non_institutional' => 'non-institutionnels', 'all' => 'tous'][$donorType];
-    auditLog(db(), 'importDonors', "vers segment: " . Segment::lookupName($segmentId) . " | année: $year | min: {$minSum} CHF | type: $typeLabel");
-    $_idUrl = appUrl() . '?view=updateSegment&id=' . $segmentId . '&imported=donors';
+    if ($allTypesChecked) {
+        $typeLabel = 'tous les types';
+    } elseif (!empty($selectedTypeIds)) {
+        $typeLabel = implode(', ', array_map(
+            fn($tid) => $comptaTypes[$tid]->label ?? "#$tid",
+            $selectedTypeIds
+        ));
+    } else {
+        $typeLabel = 'aucun type sélectionné (import ignoré)';
+    }
+    $yearLabel = $allYears ? 'toutes' : (string)$year;
+    auditLog(db(), 'importDonors', "vers segment: " . Segment::lookupName($segmentId) . " | année: $yearLabel | min: {$minSum} CHF | type: $typeLabel");
+    $_idUrl = appUrl() . '?view=updateSegment&id=' . $segmentId . '&imported=' . ($noTypeSelected ? 'donors_notype' : 'donors');
     if ($isHtmx) { header('HX-Location: ' . $_idUrl); } else { echo '<script>window.location.replace(' . json_encode($_idUrl) . ');</script>'; }
     exit;
 

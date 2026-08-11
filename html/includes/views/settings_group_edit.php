@@ -43,11 +43,16 @@ $currentYear = (int)date('Y');
 
 $cotisTypeIds        = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
 $excludedTypeIds     = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_excluded_from_donation === 1));
-$institutionalTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)($ct->is_institutional ?? 0) === 1 && (int)($ct->is_excluded_from_donation ?? 0) === 0));
-$nonInstTypeIds      = array_keys(array_filter($comptaTypes, fn($ct) => (int)($ct->is_institutional ?? 0) === 0 && (int)($ct->is_excluded_from_donation ?? 0) === 0));
 
 // All non-excluded type IDs (for "all donors" count)
 $allDonorTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_excluded_from_donation === 0));
+
+// Donation-eligible compta types for the "type de don" select (non-archived, not excluded from donation).
+$donorComptaTypes = db()->query("
+    SELECT id, label FROM compta_type
+    WHERE is_excluded_from_donation = 0 AND is_archived = 0
+    ORDER BY sort_order ASC, label ASC
+")->fetchAll(PDO::FETCH_OBJ);
 
 // Import counts for the last 10 years. Rather than 4 aggregate queries per year
 // (~40 round-trips), run ONE grouped query per type-set over the whole 10-year
@@ -59,7 +64,7 @@ $rangeFrom = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $yMin));            // Dec 31
 $rangeTo   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $currentYear + 1)); // Jan 1, currentYear+1 00:00
 
 for ($dy = $currentYear; $dy >= $yMin; $dy--) {
-    $importCountsPerYear[$dy] = ['donors' => 0, 'donors_inst' => 0, 'donors_non_inst' => 0, 'cotis' => 0];
+    $importCountsPerYear[$dy] = ['donors' => 0, 'cotis' => 0];
 }
 
 /** Distinct donors per calendar year for a type-set, excluding members of segment $id. */
@@ -81,15 +86,11 @@ $countDonorsByYear = function(array $allowedTypeIds) use ($id, $rangeFrom, $rang
 };
 
 $dAll  = $countDonorsByYear($allDonorTypeIds);
-$dInst = $countDonorsByYear($institutionalTypeIds);
-$dNon  = $countDonorsByYear($nonInstTypeIds);
 $dCoti = $countDonorsByYear($cotisTypeIds);
 
 foreach ($importCountsPerYear as $dy => &$row) {
-    $row['donors']          = $dAll[$dy]  ?? 0;
-    $row['donors_inst']     = $dInst[$dy] ?? 0;
-    $row['donors_non_inst'] = $dNon[$dy]  ?? 0;
-    $row['cotis']           = $dCoti[$dy] ?? 0;
+    $row['donors'] = $dAll[$dy]  ?? 0;
+    $row['cotis']  = $dCoti[$dy] ?? 0;
 }
 unset($row);
 
@@ -98,7 +99,12 @@ $cntRows = db()->query("SELECT segment_id, COUNT(*) AS cnt FROM contact_segment 
 $segmentCounts = [];
 foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt; }
 ?>
-<?php if (isset($_REQUEST['imported'])): ?>
+<?php if (($_REQUEST['imported'] ?? '') === 'donors_notype'): ?>
+<div class="alert alert-warning d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.82rem" role="alert">
+  <i class="fas fa-exclamation-triangle mt-1 flex-shrink-0" aria-hidden="true"></i>
+  <?= $GLOBAL['donorsImportNoTypeSelected'] ?>
+</div>
+<?php elseif (isset($_REQUEST['imported'])): ?>
 <div class="alert alert-success d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.82rem" role="status">
   <i class="fas fa-check-circle mt-1 flex-shrink-0" aria-hidden="true"></i>
   <?= $_REQUEST['imported'] === 'cotisants' ? $GLOBAL['cotisantsImported'] : $GLOBAL['donorsImported'] ?>
@@ -292,23 +298,44 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
             </div>
             <div class="row g-2 align-items-end mb-3">
               <div class="col-auto">
-                <label for="donor_type" class="form-label form-label-sm mb-1"><?= $GLOBAL['type'] ?></label>
-                <select class="form-select form-select-sm" id="donor_type" name="donor_type" style="width:auto"
-                        data-no-dirty onchange="caUpdateDonorCounts(this.closest('form'))">
-                  <option value="all"><?= $GLOBAL['allDonors'] ?></option>
-                  <option value="non_institutional"><?= $GLOBAL['nonInstitutionals'] ?></option>
-                  <option value="institutional"><?= $GLOBAL['institutionals'] ?></option>
-                </select>
+                <label class="form-label form-label-sm mb-1"><?= $GLOBAL['type'] ?></label>
+                <div class="dropdown">
+                  <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle donor-type-dropdown-btn"
+                          data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
+                          style="min-width:10rem;text-align:left">
+                    <span class="donor-type-dropdown-label"><?= $GLOBAL['allDonorTypes'] ?></span>
+                  </button>
+                  <ul class="dropdown-menu p-2" style="min-width:15rem;max-height:16rem;overflow-y:auto">
+                    <li>
+                      <div class="form-check mb-1">
+                        <input class="form-check-input donor-type-all-cb" type="checkbox"
+                               id="donor_compta_type_all" name="donor_compta_type_all" value="1" checked
+                               data-no-dirty onchange="caOnDonorTypeAllToggle(this)">
+                        <label class="form-check-label fw-semibold" for="donor_compta_type_all"><?= $GLOBAL['allDonorTypes'] ?></label>
+                      </div>
+                    </li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <?php foreach ($donorComptaTypes as $_dct): ?>
+                    <li>
+                      <div class="form-check mb-1">
+                        <input class="form-check-input donor-type-cb" type="checkbox"
+                               name="donor_compta_type[]" value="<?= (int)$_dct->id ?>"
+                               id="donor_compta_type_<?= (int)$_dct->id ?>" disabled
+                               data-no-dirty onchange="caUpdateDonorCounts(this.closest('form'))">
+                        <label class="form-check-label" for="donor_compta_type_<?= (int)$_dct->id ?>"><?= htmlentities($_dct->label, ENT_COMPAT, $charset) ?></label>
+                      </div>
+                    </li>
+                    <?php endforeach ?>
+                  </ul>
+                </div>
               </div>
               <div class="col-auto">
                 <label for="donor_year" class="form-label form-label-sm mb-1"><?= $GLOBAL['year'] ?></label>
                 <select class="form-select form-select-sm" id="donor_year" name="donor_year" style="width:auto"
                         data-no-dirty onchange="caUpdateDonorCounts(this.closest('form'))">
+                  <option value="" data-cnt-all=""><?= $GLOBAL['allYears'] ?></option>
                   <?php for ($yi = 0; $yi < 10; $yi++): $dy = $currentYear - $yi; ?>
-                  <option value="<?= $dy ?>"
-                    data-cnt-all="<?= $importCountsPerYear[$dy]['donors'] ?? 0 ?>"
-                    data-cnt-inst="<?= $importCountsPerYear[$dy]['donors_inst'] ?? 0 ?>"
-                    data-cnt-non-inst="<?= $importCountsPerYear[$dy]['donors_non_inst'] ?? 0 ?>">
+                  <option value="<?= $dy ?>" data-cnt-all="<?= $importCountsPerYear[$dy]['donors'] ?? 0 ?>" <?= $dy === $currentYear ? 'selected' : '' ?>>
                     <?= $dy ?>
                   </option>
                   <?php endfor ?>
@@ -327,27 +354,59 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
               </div>
             </div>
             <script>
+            function caOnDonorTypeAllToggle(allCb) {
+              var form = allCb.closest('form');
+              form.querySelectorAll('.donor-type-cb').forEach(function(cb) {
+                cb.disabled = allCb.checked;
+                if (allCb.checked) cb.checked = false;
+              });
+              caUpdateDonorTypeLabel(form);
+              caUpdateDonorCounts(form);
+            }
+            function caUpdateDonorTypeLabel(form) {
+              var allCb   = form.querySelector('.donor-type-all-cb');
+              var labelEl = form.querySelector('.donor-type-dropdown-label');
+              if (!allCb || !labelEl) return;
+              if (allCb.checked) { labelEl.textContent = <?= json_encode($GLOBAL['allDonorTypes']) ?>; return; }
+              var checked = Array.prototype.slice.call(form.querySelectorAll('.donor-type-cb:checked'));
+              if (checked.length === 0) { labelEl.textContent = <?= json_encode($GLOBAL['noneSelected']) ?>; }
+              else if (checked.length === 1) { labelEl.textContent = checked[0].nextElementSibling.textContent; }
+              else { labelEl.textContent = checked.length + ' ' + <?= json_encode($GLOBAL['typesSelected']) ?>; }
+            }
             function caUpdateDonorCounts(form) {
-              var typeEl = form.querySelector('[name="donor_type"]');
+              var allCb  = form.querySelector('.donor-type-all-cb');
               var yearEl = form.querySelector('[name="donor_year"]');
               var badge  = form.querySelector('#donor_count_badge');
-              if (!typeEl || !yearEl || !badge) return;
+              caUpdateDonorTypeLabel(form);
+              if (!allCb || !yearEl || !badge) return;
+              // Precomputed counts only cover "all types" for a specific year — a
+              // specific compta type or "toutes les années" isn't precomputed, so the
+              // badge is cleared rather than shown as a wrong/stale number.
+              if (!allCb.checked || yearEl.value === '') { badge.textContent = ''; return; }
               var opt = yearEl.options[yearEl.selectedIndex];
-              var cnt = 0;
-              if (typeEl.value === 'institutional')     cnt = parseInt(opt.dataset.cntInst    || 0);
-              else if (typeEl.value === 'non_institutional') cnt = parseInt(opt.dataset.cntNonInst || 0);
-              else                                       cnt = parseInt(opt.dataset.cntAll     || 0);
+              var cnt = parseInt(opt.dataset.cntAll || 0);
               badge.textContent = cnt > 0 ? <?= json_encode($GLOBAL['toImportCount']) ?>.replace('%d', cnt) : <?= json_encode($GLOBAL['zeroToImport']) ?>;
             }
             document.addEventListener('DOMContentLoaded', function() {
-              document.querySelectorAll('form [name="donor_type"]').forEach(function(el) {
+              document.querySelectorAll('.donor-type-all-cb').forEach(function(el) {
                 caUpdateDonorCounts(el.closest('form'));
               });
             });
             </script>
-            <button type="submit" class="btn btn-sm btn-outline-primary">
+            <button type="submit" class="btn btn-sm btn-outline-primary"
+                    onclick="return caConfirmDonorTypeSelected(this.closest('form'))">
               <i class="fas fa-file-import me-1" aria-hidden="true"></i><?= $GLOBAL['importDonorsBtn'] ?>
             </button>
+            <script>
+            function caConfirmDonorTypeSelected(form) {
+              var allCb = form.querySelector('.donor-type-all-cb');
+              if (allCb && allCb.checked) return true;
+              var anyChecked = form.querySelector('.donor-type-cb:checked');
+              if (anyChecked) return true;
+              window.alert(<?= json_encode($GLOBAL['donorsImportNoTypeSelected']) ?>);
+              return false;
+            }
+            </script>
           </div>
         </details>
       </form>

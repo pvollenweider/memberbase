@@ -61,12 +61,76 @@ test.describe('Segment edit — import donors of a year', () => {
     const resp = await page.request.post('/index.php', {
       form: {
         csrf, action: 'importDonors', id: String(targetId),
-        donor_type: 'all', donor_year: String(year), donor_minsum: '1',
+        donor_compta_type_all: '1', donor_year: String(year), donor_minsum: '1',
       },
     });
     expect(resp.status()).not.toBe(403);
 
     // Alice (Don libre) and Bob (Don institutionnel + Don libre) donated this year per seed.
+    const members = await (await page.request.get(`/api/segments/${targetId}/members`)).json();
+    const ids = members.data.map((m: any) => m.id);
+    expect(ids).toContain(1);
+    expect(ids).toContain(2);
+  });
+
+  test('importDonors filters by a specific compta type', async ({ page }) => {
+    // compta_type 2 ("Institution") has a single entry this year, for Bob (user 2).
+    const targetId = await createSegment(page, 'Import Donors By Type E2E');
+    const year = new Date().getFullYear();
+
+    await page.goto(`/index.php?view=updateSegment&id=${targetId}`);
+    const csrf = await page.locator('meta[name="csrf-token"]').getAttribute('content');
+    const resp = await page.request.post('/index.php', {
+      form: {
+        csrf, action: 'importDonors', id: String(targetId),
+        'donor_compta_type[]': '2', donor_year: String(year), donor_minsum: '1',
+      },
+    });
+    expect(resp.status()).not.toBe(403);
+
+    const members = await (await page.request.get(`/api/segments/${targetId}/members`)).json();
+    const ids = members.data.map((m: any) => m.id);
+    expect(ids).toContain(2);
+    expect(ids).not.toContain(1);
+  });
+
+  test('importDonors with no type selected imports nothing and warns instead of claiming success', async ({ page }) => {
+    const targetId = await createSegment(page, 'Import Donors No Type E2E');
+    const year = new Date().getFullYear();
+
+    await page.goto(`/index.php?view=updateSegment&id=${targetId}`);
+    const csrf = await page.locator('meta[name="csrf-token"]').getAttribute('content');
+    const resp = await page.request.post('/index.php', {
+      form: {
+        csrf, action: 'importDonors', id: String(targetId),
+        donor_year: String(year), donor_minsum: '1',
+      },
+    });
+    expect(resp.status()).not.toBe(403);
+    expect(await resp.text()).toContain('imported=donors_notype');
+
+    const members = await (await page.request.get(`/api/segments/${targetId}/members`)).json();
+    expect(members.data.length).toBe(0);
+
+    await page.goto(`/index.php?view=updateSegment&id=${targetId}&imported=donors_notype`);
+    await expect(page.locator('.alert-warning', { hasText: 'type de don' })).toBeVisible();
+  });
+
+  test('importDonors with "toutes les années" ignores the year filter', async ({ page }) => {
+    const targetId = await createSegment(page, 'Import Donors All Years E2E');
+
+    await page.goto(`/index.php?view=updateSegment&id=${targetId}`);
+    const csrf = await page.locator('meta[name="csrf-token"]').getAttribute('content');
+    const resp = await page.request.post('/index.php', {
+      form: {
+        csrf, action: 'importDonors', id: String(targetId),
+        donor_compta_type_all: '1', donor_year: '', donor_minsum: '1',
+      },
+    });
+    expect(resp.status()).not.toBe(403);
+
+    // Same donors as the current-year import — seed data only has this year's entries —
+    // but the request must succeed with an empty donor_year (no date restriction applied).
     const members = await (await page.request.get(`/api/segments/${targetId}/members`)).json();
     const ids = members.data.map((m: any) => m.id);
     expect(ids).toContain(1);
@@ -90,7 +154,7 @@ test.describe('Segment edit — import donors of a year', () => {
     const html = await (await api.get('/index.php')).text();
     const csrf = (html.match(/name="csrf-token" content="([^"]+)"/) ?? [])[1] ?? '';
     const resp = await api.post('/index.php', {
-      form: { csrf, action: 'importDonors', id: String(targetId), donor_type: 'all', donor_year: '2026', donor_minsum: '1' },
+      form: { csrf, action: 'importDonors', id: String(targetId), donor_compta_type_all: '1', donor_year: '2026', donor_minsum: '1' },
     });
     expect(resp.status()).toBe(403);
     await api.dispose();
