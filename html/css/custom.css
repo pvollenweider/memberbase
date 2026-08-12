@@ -1125,14 +1125,27 @@ body.ca-sidebar-collapsed .ca-sidebar-panel {
     color: var(--ca-primary-dark);
 }
 
-/* Inactive .nav-pills text (cohort filters: "Perdus"/"Nouveaux" on lapsed
-   members/donors) inherits --bs-link-color (#1da1f5), which computes to
-   ~2.8:1 on white — below WCAG AA. Bootstrap only themes the active pill
-   (bg + white text); the inactive state falls through to the link color
-   unless overridden. */
+/* .nav-pills (cohort filters: "Perdus"/"Nouveaux" on lapsed members/donors)
+   sits bare on .ca-hero's blue gradient — .ca-hero-overlap pulls the
+   surrounding container up 8rem into the hero band, and this row is the
+   first thing in it, with no card behind it. Same class of contrast bug
+   already hit and fixed once on this gradient (see .ca-hub-tabs above):
+   fix it the same way, with an opaque surface wrapper, instead of chasing
+   text colors against a background that can change independently. */
+.nav-pills {
+    display: inline-flex;
+    background: var(--ca-surface);
+    border-radius: 10px;
+    padding: 0.3rem;
+    gap: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
 .nav-pills .nav-link {
     color: var(--ca-ink-mid);
 }
 .nav-pills .nav-link:hover {
     color: var(--ca-ink);
+}
+.nav-pills .nav-link.active {
+    color: #fff;
 }

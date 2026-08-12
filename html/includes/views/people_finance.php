@@ -1,7 +1,7 @@
 <?php
 defined('APP_ENTRY') or die('Direct access not permitted.');
 /**
- * "Membres & finances" hub — the sidebar nav navigates straight to a
+ * "Contacts" hub — the sidebar nav navigates straight to a
  * specific tab via ?tab=, so this renders only the ONE matching pane per
  * request rather than all five.
  * Liste (users_list.php), Notification de versement (compta_recap.php,
@@ -12,7 +12,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * (donors_summary.php — KPI cards/pie already live on the dashboard,
  * so they're suppressed here via $_pfEmbedded).
  *
- * Linked from the sidebar nav ("Membres & finances" submenu). The underlying
+ * Linked from the sidebar nav ("Contacts" submenu). The underlying
  * standalone routes (?view=list, ?view=comptaRecap, ?view=resume) still
  * work. ?view=lapsedMembers no longer exists as its own route; it redirects
  * to this hub's "lapsed" tab (includes/routing/views.php).
@@ -38,9 +38,21 @@ $_pfRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
 // owns its own container-xl instead of being boxed by index.php's generic
 // wrapper.
 $_noOuterContainer = true;
-$_phIcon = 'fa-users';
-$_phTitle = $GLOBAL['peopleFinancePageTitle'];
-$_phSubtitle = $GLOBAL['peopleFinanceTab' . ucfirst($_pfTab)] ?? '';
+$_pfFinanceTabs = ['recap', 'dons'];
+$_pfEvolutionTabs = ['lapsed', 'lapsedDonors'];
+$_phIcon = match (true) {
+    in_array($_pfTab, $_pfFinanceTabs, true)   => 'fa-coins',
+    in_array($_pfTab, $_pfEvolutionTabs, true) => 'fa-arrow-right-arrow-left',
+    default                                     => 'fa-users',
+};
+$_phTitle = match (true) {
+    in_array($_pfTab, $_pfFinanceTabs, true)   => $GLOBAL['financesPageTitle'],
+    in_array($_pfTab, $_pfEvolutionTabs, true) => $GLOBAL['peopleFinanceGroupEvolution'],
+    default                                     => $GLOBAL['peopleFinancePageTitle'],
+};
+$_phSubtitle = $_pfTab === 'members'
+    ? $GLOBAL['peopleFinanceMembersSubtitle']
+    : ($GLOBAL['peopleFinanceTab' . ucfirst($_pfTab)] ?? '');
 include __DIR__ . '/../partials/page_header.php';
 ?>
 

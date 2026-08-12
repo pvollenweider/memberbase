@@ -21,7 +21,7 @@ $_jhRequireIsolated = function (string $file, array $vars = []) use ($GLOBAL, $c
 
 $_noOuterContainer = true;
 $_phIcon = $_jhTab === 'suivi' ? 'fa-book-open' : 'fa-coins';
-$_phTitle = $GLOBAL['journalsPageTitle'];
+$_phTitle = $_jhTab === 'compta' ? $GLOBAL['financesPageTitle'] : $GLOBAL['journalsPageTitle'];
 $_phSubtitle = $_jhTab === 'suivi' ? $GLOBAL['lastEntrySuivi'] : $GLOBAL['lastEntryCompta'];
 include __DIR__ . '/../partials/page_header.php';
 ?>

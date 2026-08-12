@@ -1,5 +1,5 @@
 /**
- * E2E tests — "Membres & finances" hub (#164)
+ * E2E tests — "Contacts" hub (#164)
  *
  * Server renders only the active tab's pane per request (id="pf-tab-<tab>",
  * class="pf-active-pane") — navigating between tabs is a real (htmx-boosted)
@@ -19,7 +19,8 @@ import { test, expect } from '@playwright/test';
 test.describe('People/finance hub — Phase 1', () => {
   test('reachable via ?view=peopleFinance, Membres tab active by default with the member table', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance');
-    await expect(page.locator('h1', { hasText: 'Membres & finances' })).toBeVisible();
+    await expect(page.locator('h1', { hasText: 'Contacts' })).toBeVisible();
+    await expect(page.locator('.ca-hero-subtitle', { hasText: 'Listes & segments' })).toBeVisible();
     await expect(page.locator('#pf-tab-members-btn')).toHaveClass(/active/);
     await expect(page.locator('#pf-tab-members table.export')).toBeVisible();
     await expect(page.locator('#pf-tab-members')).toContainText('Dupont');
@@ -27,6 +28,7 @@ test.describe('People/finance hub — Phase 1', () => {
 
   test('Relances cotisation tab shows the full compta recap content (manager)', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance&tab=recap');
+    await expect(page.locator('h1', { hasText: 'Finances' })).toBeVisible();
     await expect(page.locator('#pf-tab-recap-btn')).toHaveClass(/active/);
     // No duplicate title inside the embedded pane (suppressed via $_pfEmbedded)
     await expect(page.locator('#pf-tab-recap h1')).toHaveCount(0);
@@ -76,6 +78,7 @@ test.describe('People/finance hub — Phase 1', () => {
 
   test('Dons & attestations tab shows the contributor table, no duplicate KPI cards', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance&tab=dons');
+    await expect(page.locator('h1', { hasText: 'Finances' })).toBeVisible();
     await expect(page.locator('#pf-tab-dons-btn')).toHaveClass(/active/);
     await expect(page.locator('#pf-tab-dons table.resume-export')).toBeVisible();
     // KPI cards (total contributions, donors, pie chart) live on the dashboard now (#153)
@@ -139,6 +142,7 @@ test.describe('People/finance hub — Phase 1', () => {
 
   test('Cotisations non renouvelées tab shows the lapsed members table (manager)', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance&tab=lapsed');
+    await expect(page.locator('h1', { hasText: 'Évolution' })).toBeVisible();
     await expect(page.locator('#pf-tab-lapsed-btn')).toHaveClass(/active/);
     await expect(page.locator('#pf-cohort-members-lapsed table')).toBeVisible();
     // No redundant "back to donation overview" link — this is a peer tab now
@@ -168,6 +172,7 @@ test.describe('People/finance hub — Phase 1', () => {
     });
 
     await page.goto('/index.php?view=peopleFinance&tab=lapsedDonors');
+    await expect(page.locator('h1', { hasText: 'Évolution' })).toBeVisible();
     const openBtn = page.locator('[data-bs-target="#modal-create-lapsed-donors"]');
     await expect(openBtn).toBeVisible();
     await openBtn.click();

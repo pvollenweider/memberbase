@@ -115,7 +115,7 @@ test.describe('Dashboard', () => {
 });
 
 test.describe('Global navigation shortcuts (Alt/Option+Cmd+1/2/3)', () => {
-  test('navigates to Membres & finances, Journaux, then back to the dashboard', async ({ page }) => {
+  test('navigates to Contacts, Journaux, then back to the dashboard', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
 
     await page.keyboard.down('Alt');

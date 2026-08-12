@@ -3,7 +3,7 @@
  *
  * Server renders only the active tab's pane per request (id="jh-tab-<tab>",
  * class="jh-active-pane") — same single-pane-per-request architecture as the
- * "Membres & finances" hub (#164). There's no local tab bar anymore (the
+ * "Contacts" hub (#164). There's no local tab bar anymore (the
  * nav-architecture rework replaced it with direct sidebar entries: "Journal
  * suivi" as a top-level link, "Journal compta" inside the sidebar's
  * "Finances" submenu — no single combined "Journaux" nav entry survives).
@@ -17,7 +17,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Journals hub', () => {
   test('reachable via ?view=journals, Compta tab active by default', async ({ page }) => {
     await page.goto('/index.php?view=journals');
-    await expect(page.locator('h1', { hasText: 'Journaux' })).toBeVisible();
+    await expect(page.locator('h1', { hasText: 'Finances' })).toBeVisible();
     await expect(page.locator('#jh-tab-compta table.export')).toBeVisible();
     // Sidebar's "Journal compta" submenu entry (inside the auto-expanded
     // "Finances" group) carries the active state now, not a local tab bar.
@@ -26,6 +26,7 @@ test.describe('Journals hub', () => {
 
   test('Suivi tab shows the merged suivi/email log', async ({ page }) => {
     await page.goto('/index.php?view=journals&tab=suivi');
+    await expect(page.locator('h1', { hasText: 'Journaux' })).toBeVisible();
     await expect(page.locator('#jh-tab-suivi #suivi-table')).toBeVisible();
     // "Journal suivi" is a top-level sidebar link — active state is the
     // *absence* of the accordion's "collapsed" class (see sidebar_nav.php).

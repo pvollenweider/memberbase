@@ -41,7 +41,7 @@ $_snAdminActive = in_array($view, ['settings', 'updateSegment', 'updateCombinedS
                 </a>
                 <a class="nav-link<?= $_snFinancesActive ? '' : ' collapsed' ?>" href="javascript:void(0);" data-bs-toggle="collapse"
                    data-bs-target="#collapsePfFinances" aria-expanded="<?= $_snFinancesActive ? 'true' : 'false' ?>" aria-controls="collapsePfFinances">
-                    <span class="ca-sidebar-link-icon"><i class="fas fa-hand-holding-dollar"></i></span>
+                    <span class="ca-sidebar-link-icon"><i class="fas fa-coins"></i></span>
                     <?= $GLOBAL['peopleFinanceGroupFinances'] ?>
                     <span class="ca-sidebar-caret"><i class="fas fa-angle-down"></i></span>
                 </a>

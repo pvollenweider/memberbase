@@ -95,7 +95,10 @@ if (empty($_pfEmbedded)) {
 <?php endif ?>
 <div class="card mb-4">
 <div class="card-header d-flex align-items-center gap-2 flex-wrap">
-  <span class="me-2"><?= $GLOBAL['peopleFinanceTabMembers'] ?></span>
+  <span class="me-2 text-muted" title="<?= htmlspecialchars($GLOBAL['filterBySegment'], ENT_QUOTES, $charset) ?>">
+    <i class="fas fa-filter" aria-hidden="true"></i>
+    <span class="visually-hidden"><?= $GLOBAL['filterBySegment'] ?></span>
+  </span>
   <div class="dropdown">
     <button class="ca-filter-btn dropdown-toggle" id="navbarDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 
