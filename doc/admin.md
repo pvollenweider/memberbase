@@ -1040,6 +1040,8 @@ Depuis la vue **Membres perdus** (`lapsedMembers`), envoi manuel — individuel 
 
 Chaque rappel embarque en pièce jointe un **bulletin de versement QR** suisse (`sprain/swiss-qr-bill`, cf. `html/includes/lib/qr_bill.php`), généré à partir de l'IBAN configuré (`app_settings.org_iban`) et de la description de montant configurable (`app_settings.org_coti_amount_desc`, avec repli sur une valeur par défaut si vide). Nécessite l'extension PHP **GD** côté serveur (cf. section Dépendances du `CLAUDE.md`).
 
+Le bulletin est toujours généré **sans référence structurée** (type `NON`) — jamais de référence QR ni ISO 11649. Cette combinaison n'est valide qu'avec un **IBAN classique** (IID hors plage 30000-31999) : `org_iban` **doit être un IBAN standard, pas un QR-IBAN**. La librairie `sprain/swiss-qr-bill` valide elle-même cette cohérence IID/référence avant génération (`$qrBill->getViolations()`) — si `org_iban` est un QR-IBAN, la validation échoue et `mbGenerateQrBillPdf()` retourne `null` : **le rappel part quand même par email, mais sans bulletin QR joint, sans erreur visible côté admin**. En cas de doute sur la plage de l'IID (fusions bancaires notamment), vérifier l'IBAN auprès de la banque émettrice avant de le saisir dans **Réglages**.
+
 ### 14.5 Récapitulatifs comptables (compta recap)
 
 Vue **`comptaRecap`** : envoi groupé d'un email par membre récapitulant ses entrées comptables non encore notifiées (`compta.notified_at IS NULL`), filtrable par année. Fonctionnalités :
