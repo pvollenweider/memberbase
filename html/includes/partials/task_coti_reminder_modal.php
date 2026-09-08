@@ -5,7 +5,9 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
  * tasks (rule_key unpaid_coti_current_*). Reuses the existing
  * previewCotisationReminder/sendCotisationReminderOne actions
  * (includes/actions/cotisation_reminder.php) — same email/QR-bill flow as the
- * Membres perdus view. On success, closes the linked task (task_id) too.
+ * Membres perdus view. On success, the server auto-closes the linked task
+ * (looked up by rule_key/member, not by the task_id sent here — see
+ * SuiviTask::closeLinkedUnpaidCotiTask()), same as sending from Membres perdus.
  *
  * Included from tasks_list.php and tasks_global.php when at least one visible
  * row has a .js-task-send-coti button.

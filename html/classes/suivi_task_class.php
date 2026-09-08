@@ -260,6 +260,29 @@ class SuiviTask
     }
 
     /**
+     * Closes the open "relance cotisation" task for $userId/$year (same
+     * rule_key as generateUnpaidCotiTasks()), if one exists — called right
+     * after a reminder is actually sent (single or bulk), regardless of
+     * which screen triggered the send, so the secretary doesn't have to
+     * close it by hand. No-op if there's no open task for that rule/member.
+     */
+    public static function closeLinkedUnpaidCotiTask(int $userId, int $year): void
+    {
+        $stmt = db()->prepare("SELECT id FROM suivi_task WHERE rule_key=? AND user_id=? AND done_at IS NULL");
+        $stmt->execute(["unpaid_coti_current_$year", $userId]);
+        $taskId = (int)$stmt->fetchColumn();
+        if ($taskId <= 0) {
+            return;
+        }
+        $task = new self();
+        $task->lookupTask($taskId);
+        if ($task->getId()) {
+            $task->close();
+            auditLog(db(), 'closeTask', "id={$task->getId()} | {$task->getTitle()} (auto, rappel envoyé)", $task->getUserId());
+        }
+    }
+
+    /**
      * How many members currently match FILTER_UNPAID_COTI_CURRENT for $year
      * without already having an open reminder task, i.e. what
      * generateUnpaidCotiTasks() would actually create right now. Used to hide

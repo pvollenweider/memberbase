@@ -74,18 +74,12 @@ if ($_cotiAction === 'sendCotisationReminderOne') {
     $result = mbSendTemplateWithAttachment(db(), $member->email, 'tpl_cotisation_reminder', $vars, $userId, $attachments, $bcc);
     if ($result === true) {
         auditLog(db(), 'sendCotisationReminderOne',
-            "sent to {$member->firstname} {$member->lastname} <{$member->email}> year=$year");
-        // Sent from a task's "Envoyer le rappel" button — close the linked task
-        // too, so the secretary doesn't need a second click.
-        $_cotiTaskId = (int)($_REQUEST['task_id'] ?? 0);
-        if ($_cotiTaskId > 0) {
-            $_cotiTask = new SuiviTask();
-            $_cotiTask->lookupTask($_cotiTaskId);
-            if ($_cotiTask->getId() && $_cotiTask->isOpen()) {
-                $_cotiTask->close();
-                auditLog(db(), 'closeTask', "id={$_cotiTask->getId()} | {$_cotiTask->getTitle()} (auto, rappel envoyé)", $_cotiTask->getUserId());
-            }
-        }
+            "sent to {$member->firstname} {$member->lastname} <{$member->email}> year=$year", $userId);
+        // Close the linked "relance cotisation" task, whichever screen the
+        // reminder was sent from (task's own button, or Membres perdus) —
+        // looked up via rule_key rather than a task_id passed by the caller,
+        // so every entry point stays consistent without re-wiring each one.
+        SuiviTask::closeLinkedUnpaidCotiTask($userId, $year);
         echo json_encode(['ok' => true]);
     } else {
         echo json_encode(['ok' => false, 'error' => is_string($result) ? $result : 'send_failed']);
@@ -134,7 +128,8 @@ foreach ($members as $m) {
     if ($result === true) {
         $sentCount++;
         auditLog(db(), 'sendCotisationReminders',
-            "sent to {$m->firstname} {$m->lastname} <{$m->email}> year=$year");
+            "sent to {$m->firstname} {$m->lastname} <{$m->email}> year=$year", (int)$m->id);
+        SuiviTask::closeLinkedUnpaidCotiTask((int)$m->id, $year);
     } else {
         $skipCount++;
         auditLog(db(), 'sendCotisationReminders',

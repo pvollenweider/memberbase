@@ -170,6 +170,39 @@ test.describe.serial('Tasks — auto-generation (#149)', () => {
     await expect(page.locator('tr', { hasText: 'Relance cotisation' })).toBeVisible();
   });
 
+  test('sending the reminder from Membres perdus (no task_id) also auto-closes the linked task', async ({ page }) => {
+    // Regression: sendCotisationReminderOne used to only close the linked
+    // task when called with a task_id (the task view's own button). The
+    // Membres perdus "Envoyer" button never sent one, so a reminder sent
+    // from there left the task open forever. Fixed via
+    // SuiviTask::closeLinkedUnpaidCotiTask() (looked up by rule_key/member
+    // instead of a caller-supplied task_id) — verify the un-linked call
+    // (i.e. exactly what Membres perdus posts) still closes the task.
+    await page.goto('/index.php?view=tasks');
+    const taskRow = page.locator('tr', { hasText: 'Relance cotisation' });
+    await expect(taskRow).toBeVisible();
+    const taskId = await taskRow.locator('[data-task-id]').first().getAttribute('data-task-id');
+    if (!taskId) throw new Error('data-task-id not found on the coti reminder task row');
+
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    const resp = await page.request.post('/index.php', {
+      form: { action: 'sendCotisationReminderOne', user_id: String(LAPSED_USER_ID), year: '2026', csrf },
+    });
+    expect((await resp.json()).ok).toBe(true);
+
+    await page.goto('/index.php?view=tasks');
+    await expect(page.locator('#tasks-table tr', { hasText: 'Relance cotisation' })).toHaveCount(0);
+
+    // Reopen so the next test (payment-based auto-close) gets its expected
+    // precondition of an open task, same as before this test ran.
+    await page.request.post('/index.php', { form: { action: 'reopenTask', taskid: taskId, csrf } });
+    await page.goto('/index.php?view=tasks');
+    await expect(page.locator('#tasks-table tr', { hasText: 'Relance cotisation' })).toHaveCount(1);
+  });
+
   test('regenerating auto-closes the task once the member pays another way', async ({ page }) => {
     // Record a 2026 cotisation for the lapsed member directly (simulates a
     // payment entered through the normal compta flow, not via the reminder).
