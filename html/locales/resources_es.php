@@ -202,6 +202,7 @@ $GLOBAL['dashboardRecentComptaTitle'] = "Últimos asientos";
 $GLOBAL['seeAllEntries'] = "Ver todas las entradas";
 $GLOBAL['dashboardRecentContactsTitle'] = "Últimos contactos creados";
 $GLOBAL['dashboardShortcutNewDonors']    = "Nuevos donantes";
+$GLOBAL['newSinceLastYear']              = "Nuevo";
 $GLOBAL['dashboardShortcutLapsedDonors'] = "Donantes perdidos";
 $GLOBAL['dashboardShortcutNewMembers']   = "Nuevos miembros";
 $GLOBAL['dashboardShortcutLastYearMembers'] = "Miembros del año pasado";

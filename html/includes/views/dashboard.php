@@ -466,11 +466,17 @@ include __DIR__ . '/../partials/page_header.php';
       <?php foreach ($_kpi->contactTypeBreakdown as $_ci => $_ctr):
           $_ctColor   = $_ctColorPalette[$_ci % count($_ctColorPalette)];
           $_ctPct     = $_kpi->contactTypeTotal > 0 ? round((float)$_ctr->cnt / $_kpi->contactTypeTotal * 100) : 0;
-          $_ctDeltaTxt = null; $_ctDeltaUp = true;
+          $_ctDeltaTxt = null; $_ctDeltaUp = true; $_ctIsNew = false;
           if ($_ctr->delta !== null) {
               $_ctDeltaChf = (float)$_ctr->cnt - (float)$_ctr->prevCnt;
               $_ctDeltaUp  = $_ctr->delta >= 0;
               $_ctDeltaTxt = ($_ctDeltaUp ? '+' : '') . number_format($_ctDeltaChf, 0, '.', '\'') . ' CHF (' . ($_ctDeltaUp ? '+' : '') . number_format($_ctr->delta, 1) . '%)';
+          } elseif ($_ctr->prevCnt !== null && (float)$_ctr->prevCnt === 0.0 && (float)$_ctr->cnt > 0) {
+              // A real "même période" comparison was computed (prevCnt isn't
+              // null, i.e. this is the current year) and came out to exactly
+              // zero — not "not applicable". Silently hiding the delta here
+              // reads as missing data; "Nouveau" says what actually happened.
+              $_ctIsNew = true;
           }
       ?>
       <div>
@@ -488,6 +494,8 @@ include __DIR__ . '/../partials/page_header.php';
           </span>
           <?php if ($_ctDeltaTxt !== null): ?>
           <span style="flex-shrink:0;font-weight:600;color:<?= $_ctDeltaUp ? 'var(--bs-success,#198754)' : 'var(--bs-danger,#dc3545)' ?>"><?= htmlspecialchars($_ctDeltaTxt, ENT_QUOTES, $charset) ?></span>
+          <?php elseif ($_ctIsNew): ?>
+          <span style="flex-shrink:0;font-weight:600;color:var(--bs-success,#198754)"><?= htmlspecialchars($GLOBAL['newSinceLastYear'], ENT_QUOTES, $charset) ?></span>
           <?php endif ?>
         </div>
       </div>

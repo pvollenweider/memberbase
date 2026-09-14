@@ -48,6 +48,27 @@ test.describe('Dashboard', () => {
     await expect(bars).toContainText('%)');
   });
 
+  test('"Dons par type de contact" shows a "Nouveau" badge when the same-period-last-year base is exactly zero (not blank)', async ({ page }) => {
+    const year = new Date().getFullYear();
+    // Fresh contact, contact_type "Entreprise" (4, no prior activity in the
+    // seed for that type) — a this-year-only donation means the "même
+    // période" comparison for that type is a real 0, not "not applicable".
+    const contact = await (await page.request.post('/api/contacts', {
+      data: { lastName: 'NewBadge E2E', contactTypeId: 4 },
+    })).json();
+    await page.goto('/index.php');
+    const csrf = await page.evaluate(() => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '');
+    const resp = await page.request.post('/index.php', {
+      form: { action: 'addCompta', view: 'compta', userid: String(contact.data.id), type_id: '3', date: `01/06/${year}`, libele: 'Don E2E new type', sum: '944', csrf },
+    });
+    expect(resp.status()).toBe(200);
+
+    await page.goto('/index.php?view=dashboard');
+    const bars = page.locator('#dashboardContactTypeBars');
+    await expect(bars).toContainText('Entreprise');
+    await expect(bars).toContainText('Nouveau');
+  });
+
   test('"Dons par type de contact" labels link to the filtered lapsed-donors list for that type (#177 follow-up)', async ({ page }) => {
     const year = new Date().getFullYear();
     await page.goto('/index.php?view=dashboard');
