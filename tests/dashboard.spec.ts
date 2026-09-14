@@ -48,6 +48,22 @@ test.describe('Dashboard', () => {
     await expect(bars).toContainText('%)');
   });
 
+  test('"Dons par type de contact" labels link to the filtered lapsed-donors list for that type (#177 follow-up)', async ({ page }) => {
+    const year = new Date().getFullYear();
+    await page.goto('/index.php?view=dashboard');
+    const link = page.locator('#dashboardContactTypeBars a', { hasText: 'Donateur privé' });
+    await expect(link).toBeVisible();
+    const href = await link.getAttribute('href');
+    expect(href).toContain('view=peopleFinance');
+    expect(href).toContain('tab=lapsedDonors');
+    expect(href).toContain(`year=${year}`);
+    expect(href).toContain('contactTypeId=1'); // 1 = Donateur privé in the seed
+
+    await link.click();
+    await expect(page).toHaveURL(/tab=lapsedDonors/);
+    await expect(page).toHaveURL(/contactTypeId=1/);
+  });
+
   test('shortcut "Donateur non institutionnel actif depuis N-4" links to the 5-year quick filter (#176)', async ({ page }) => {
     // Seed donors (Alice/Bob) already made a non-institutional payment this
     // year, so the shortcut is present without extra setup.

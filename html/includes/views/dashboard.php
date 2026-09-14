@@ -291,6 +291,8 @@ include __DIR__ . '/../partials/page_header.php';
   color: #fff;
 }
 #dashboard-compta-results .list-group-item.active .text-muted { color: rgba(255,255,255,0.85) !important; }
+.ca-ct-label-link { color: var(--ca-ink); text-decoration: none; }
+.ca-ct-label-link:hover { text-decoration: underline; }
 </style>
 <?php endif ?>
 
@@ -474,7 +476,10 @@ include __DIR__ . '/../partials/page_header.php';
       <div>
         <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem">
           <span style="flex-shrink:0;width:8px;height:8px;border-radius:50%;background:<?= $_ctColor ?>"></span>
-          <span style="color:var(--ca-ink);font-weight:500"><?= htmlentities($_ctr->label, ENT_COMPAT, $charset) ?></span>
+          <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=lapsedDonors&amp;year=<?= $_year ?>&amp;contactTypeId=<?= (int)$_ctr->id ?>"
+             hx-boost="false" class="ca-ct-label-link" style="font-weight:500">
+            <?= htmlentities($_ctr->label, ENT_COMPAT, $charset) ?>
+          </a>
         </div>
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:0.5rem;margin-top:0.1rem;padding-left:1.15rem;font-size:0.78rem;font-variant-numeric:tabular-nums">
           <span style="color:var(--ca-ink-muted)">

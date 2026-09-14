@@ -34,6 +34,16 @@ test.describe('Lapsed donors — filter by contact type (#178)', () => {
     await page.goto('/index.php?view=peopleFinance&tab=lapsedDonors&contactTypeId=1');
     await expect(page.locator('body')).not.toContainText('NoCoti');
   });
+
+  test('"Créer segment" button uses the type name instead of "Donateurs" when a type filter is active', async ({ page }) => {
+    const year = new Date().getFullYear();
+    await page.goto('/index.php?view=peopleFinance&tab=lapsedDonors&year=' + year);
+    await expect(page.locator('button', { hasText: `Donateurs à relancer ${year}` })).toBeVisible();
+
+    await page.goto('/index.php?view=peopleFinance&tab=lapsedDonors&year=' + year + '&contactTypeId=4');
+    await expect(page.locator('button', { hasText: `Entreprise à relancer ${year}` })).toBeVisible();
+    await expect(page.locator('button', { hasText: `Donateurs à relancer ${year}` })).toHaveCount(0);
+  });
 });
 
 test.describe('New donors — filter by contact type (#178)', () => {

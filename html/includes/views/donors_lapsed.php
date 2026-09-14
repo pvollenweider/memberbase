@@ -58,10 +58,20 @@ $count = count($rows);
   </div>
   <?php endif ?>
 
-  <?php if (isManager()): ?>
+  <?php if (isManager()):
+      $_selectedTypeLabel = null;
+      if ($contactTypeId > 0) {
+          foreach ($_ctFilterOptionsLD as $_cto) {
+              if ((int)$_cto->id === $contactTypeId) { $_selectedTypeLabel = $_cto->label; break; }
+          }
+      }
+      $_createSegmentLabel = $_selectedTypeLabel !== null
+          ? sprintf($GLOBAL['createSegmentLapsedDonorsByType'], $_selectedTypeLabel, $year)
+          : sprintf($GLOBAL['createSegmentLapsedDonors'], $year);
+  ?>
   <button type="button" class="btn btn-outline-warning btn-sm ms-auto"
           data-bs-toggle="modal" data-bs-target="#modal-create-lapsed-donors">
-    <i class="fas fa-users me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['createSegmentLapsedDonors'], $year) ?>
+    <i class="fas fa-users me-1" aria-hidden="true"></i><?= htmlspecialchars($_createSegmentLabel, ENT_QUOTES, $charset) ?>
   </button>
   <?php endif ?>
 </div><!-- .card-header -->

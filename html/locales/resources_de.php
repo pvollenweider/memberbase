@@ -399,6 +399,7 @@ $GLOBAL['attestationExclNote']  = "Diese Bescheinigung enth\u{00E4}lt nur Spende
 $GLOBAL['backToDonationOverview'] = "Zurück zur Spendenübersicht";
 $GLOBAL['lapsedDonorsTitle'] = "Verlorene Spender %d → %d";
 $GLOBAL['createSegmentLapsedDonors'] = "Segment „Zu reaktivierende Spender %d“ erstellen";
+$GLOBAL['createSegmentLapsedDonorsByType'] = "Segment „Zu reaktivierende %s %d“ erstellen";
 $GLOBAL['createSegmentTitle'] = "Segment erstellen";
 $GLOBAL['confirmCreateLapsedDonorsSegment'] = "Segment „Zu reaktivierende Spender %d“ mit <strong>%s</strong> Person(en) erstellen?";
 $GLOBAL['lapsedDonorsCount'] = '<strong>%1$s Spender</strong> haben in <strong>%3$d</strong> beigetragen, aber nicht in <strong>%4$d</strong>.';

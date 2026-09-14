@@ -400,6 +400,7 @@ $GLOBAL['attestationExclNote']  = "This certificate only includes donations. The
 $GLOBAL['backToDonationOverview'] = "Back to the donation overview";
 $GLOBAL['lapsedDonorsTitle'] = "Lapsed donors %d → %d";
 $GLOBAL['createSegmentLapsedDonors'] = 'Create segment “Donors to re-engage %d”';
+$GLOBAL['createSegmentLapsedDonorsByType'] = 'Create segment “%s to re-engage %d”';
 $GLOBAL['createSegmentTitle'] = "Create the segment";
 $GLOBAL['confirmCreateLapsedDonorsSegment'] = 'Create the segment “Donors to re-engage %d” with <strong>%s</strong> person(s)?';
 $GLOBAL['lapsedDonorsCount'] = "<strong>%s donor%s</strong> contributed in <strong>%d</strong> but not in <strong>%d</strong>.";

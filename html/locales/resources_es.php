@@ -399,6 +399,7 @@ $GLOBAL['attestationExclNote']  = "Este certificado solo incluye donaciones. Las
 $GLOBAL['backToDonationOverview'] = "Volver al resumen de donativos";
 $GLOBAL['lapsedDonorsTitle'] = "Donantes perdidos %d → %d";
 $GLOBAL['createSegmentLapsedDonors'] = "Crear segmento «Donantes a recontactar %d»";
+$GLOBAL['createSegmentLapsedDonorsByType'] = "Crear segmento «%s a recontactar %d»";
 $GLOBAL['createSegmentTitle'] = "Crear el segmento";
 $GLOBAL['confirmCreateLapsedDonorsSegment'] = "¿Crear el segmento «Donantes a recontactar %d» con <strong>%s</strong> persona(s)?";
 $GLOBAL['lapsedDonorsCount'] = "<strong>%s donante%s</strong> contribuyeron en <strong>%d</strong> pero no en <strong>%d</strong>.";

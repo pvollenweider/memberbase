@@ -400,6 +400,7 @@ $GLOBAL['attestationExclNote']  = "Cette attestation ne contient que les dons. L
 $GLOBAL['backToDonationOverview'] = "Retour à l'aperçu des dons";
 $GLOBAL['lapsedDonorsTitle'] = "Donateurs perdus %d → %d";
 $GLOBAL['createSegmentLapsedDonors'] = "Créer segment «Donateurs à relancer %d»";
+$GLOBAL['createSegmentLapsedDonorsByType'] = "Créer segment «%s à relancer %d»";
 $GLOBAL['createSegmentTitle'] = "Créer le segment";
 $GLOBAL['confirmCreateLapsedDonorsSegment'] = "Créer le segment «Donateurs à relancer %d» avec <strong>%s</strong> personne(s)?";
 $GLOBAL['lapsedDonorsCount'] = "<strong>%s donateur%s</strong> ont contribué en <strong>%d</strong> mais pas en <strong>%d</strong>.";
