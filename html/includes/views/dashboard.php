@@ -451,7 +451,7 @@ include __DIR__ . '/../partials/page_header.php';
   <div id="dashboardContactTypeBars" style="flex:2 0 0;min-width:260px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem;display:flex;flex-direction:column;gap:0.65rem">
     <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)"><?= $GLOBAL['dashboardContactBreakdownTitle'] ?></div>
 
-    <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--ca-border,#e2e5e4)">
+    <div style="display:flex;height:16px;border-radius:6px;overflow:hidden;background:var(--ca-border,#e2e5e4)">
       <?php foreach ($_kpi->contactTypeBreakdown as $_ci => $_ctr):
           $_ctColor  = $_ctColorPalette[$_ci % count($_ctColorPalette)];
           $_ctPct    = $_kpi->contactTypeTotal > 0 ? (float)$_ctr->cnt / $_kpi->contactTypeTotal * 100 : 0;
@@ -460,7 +460,7 @@ include __DIR__ . '/../partials/page_header.php';
       <?php endforeach ?>
     </div>
 
-    <div style="display:flex;flex-direction:column;gap:0.4rem">
+    <div style="display:flex;flex-direction:column;gap:0.65rem">
       <?php foreach ($_kpi->contactTypeBreakdown as $_ci => $_ctr):
           $_ctColor   = $_ctColorPalette[$_ci % count($_ctColorPalette)];
           $_ctPct     = $_kpi->contactTypeTotal > 0 ? round((float)$_ctr->cnt / $_kpi->contactTypeTotal * 100) : 0;
@@ -471,16 +471,20 @@ include __DIR__ . '/../partials/page_header.php';
               $_ctDeltaTxt = ($_ctDeltaUp ? '+' : '') . number_format($_ctDeltaChf, 0, '.', '\'') . ' CHF (' . ($_ctDeltaUp ? '+' : '') . number_format($_ctr->delta, 1) . '%)';
           }
       ?>
-      <div style="display:flex;align-items:baseline;gap:0.45rem;font-size:0.78rem">
-        <span style="flex-shrink:0;width:8px;height:8px;border-radius:50%;background:<?= $_ctColor ?>;align-self:center"></span>
-        <span style="color:var(--ca-ink);font-weight:500;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= htmlentities($_ctr->label, ENT_COMPAT, $charset) ?></span>
-        <span style="flex-shrink:0;font-variant-numeric:tabular-nums;color:var(--ca-ink-muted)">
-          <strong style="color:var(--ca-ink)"><?= number_format((float)$_ctr->cnt, 0, '.', '\'') ?> CHF</strong>
-          <span style="opacity:0.75"> (<?= $_ctPct ?>%)</span>
-        </span>
-        <?php if ($_ctDeltaTxt !== null): ?>
-        <span style="flex-shrink:0;font-size:0.72rem;font-weight:600;font-variant-numeric:tabular-nums;color:<?= $_ctDeltaUp ? 'var(--bs-success,#198754)' : 'var(--bs-danger,#dc3545)' ?>"><?= htmlspecialchars($_ctDeltaTxt, ENT_QUOTES, $charset) ?></span>
-        <?php endif ?>
+      <div>
+        <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem">
+          <span style="flex-shrink:0;width:8px;height:8px;border-radius:50%;background:<?= $_ctColor ?>"></span>
+          <span style="color:var(--ca-ink);font-weight:500"><?= htmlentities($_ctr->label, ENT_COMPAT, $charset) ?></span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:0.5rem;margin-top:0.1rem;padding-left:1.15rem;font-size:0.78rem;font-variant-numeric:tabular-nums">
+          <span style="color:var(--ca-ink-muted)">
+            <strong style="color:var(--ca-ink)"><?= number_format((float)$_ctr->cnt, 0, '.', '\'') ?> CHF</strong>
+            <span style="opacity:0.75"> (<?= $_ctPct ?>%)</span>
+          </span>
+          <?php if ($_ctDeltaTxt !== null): ?>
+          <span style="flex-shrink:0;font-weight:600;color:<?= $_ctDeltaUp ? 'var(--bs-success,#198754)' : 'var(--bs-danger,#dc3545)' ?>"><?= htmlspecialchars($_ctDeltaTxt, ENT_QUOTES, $charset) ?></span>
+          <?php endif ?>
+        </div>
       </div>
       <?php endforeach ?>
     </div>
