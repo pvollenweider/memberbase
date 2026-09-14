@@ -20,32 +20,32 @@ test.describe('Dashboard', () => {
     await expect(page.locator('text=Répartition des dons')).toBeVisible();
     await expect(page.locator('text=Dons par type de contact')).toBeVisible();
     await expect(page.locator('#dashboardPie')).toBeVisible();
-    await expect(page.locator('#dashboardContactPie')).toBeVisible();
+    await expect(page.locator('#dashboardContactTypeBars')).toBeVisible();
 
     // Seed: every donor defaults to contact_type "Donateur privé" — sum of
     // donations (CHF), not a contact count, grouped by the donor's type,
-    // with the pie-share % — a single-slice pie is 100%.
-    await expect(page.locator('#dashboardContactPieLegend')).toContainText('Donateur privé');
-    await expect(page.locator('#dashboardContactPieLegend')).toContainText('CHF');
-    await expect(page.locator('#dashboardContactPieLegend')).toContainText('(100%)');
+    // with the share of the total — a single row is 100%.
+    await expect(page.locator('#dashboardContactTypeBars')).toContainText('Donateur privé');
+    await expect(page.locator('#dashboardContactTypeBars')).toContainText('CHF');
+    await expect(page.locator('#dashboardContactTypeBars')).toContainText('(100%)');
   });
 
-  test('"Dons par type de contact" legend shows the vs-last-year delta per slice, same period as Contributions (#177 follow-up)', async ({ page }) => {
+  test('"Dons par type de contact" shows the vs-last-year delta per row, same period as Contributions (#177 follow-up)', async ({ page }) => {
     const year = new Date().getFullYear();
     await page.goto('/index.php');
     const csrf = await page.evaluate(() => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '');
     // Give Alice (user 1, contact_type "Donateur privé") a prior-year donation
-    // inside the YTD window, so the per-slice delta isn't null.
+    // inside the YTD window, so the per-row delta isn't null.
     const resp = await page.request.post('/index.php', {
       form: { action: 'addCompta', view: 'compta', userid: '1', type_id: '3', date: `01/06/${year - 1}`, libele: 'Don E2E prev', sum: '200', csrf },
     });
     expect(resp.status()).toBe(200);
 
     await page.goto('/index.php?view=dashboard');
-    const legend = page.locator('#dashboardContactPieLegend');
-    await expect(legend).toContainText('Donateur privé');
-    await expect(legend).toContainText('CHF (+');
-    await expect(legend).toContainText('%)');
+    const bars = page.locator('#dashboardContactTypeBars');
+    await expect(bars).toContainText('Donateur privé');
+    await expect(bars).toContainText('CHF (+');
+    await expect(bars).toContainText('%)');
   });
 
   test('shortcut "Donateur non institutionnel actif depuis N-4" links to the 5-year quick filter (#176)', async ({ page }) => {

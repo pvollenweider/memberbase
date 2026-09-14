@@ -439,86 +439,52 @@ include __DIR__ . '/../partials/page_header.php';
   <?php endif ?>
 
   <?php
+  // Horizontal bar list instead of a pie: with one dominant category (often
+  // >90%) and several near-zero ones, a pie collapses the small slices into
+  // unreadable slivers and the text legend wraps to 3 lines in a narrow card.
+  // A bar scaled to the largest category keeps every amount legible and the
+  // magnitude gap visually obvious at a glance.
   $_ctColorPalette = array_values($_solidColorMap);
   $_showContactPie = (!empty($_kpi->contactTypeBreakdown) && $_kpi->contactTypeTotal > 0);
-  $_ctPieLabels = []; $_ctPieData = []; $_ctPieColors = []; $_ctPieFormatted = []; $_ctPieDeltaTxt = []; $_ctPieDeltaSign = [];
-  if ($_showContactPie) {
-      foreach ($_kpi->contactTypeBreakdown as $_ci => $_ctr) {
-          // Not htmlentities()'d: labels are JSON-encoded and assigned via
-          // JS textContent below, which inserts raw text — entity-encoding
-          // here would leak literal "&eacute;"-style entities into the legend.
-          $_ctPieLabels[] = $_ctr->label;
-          $_ctPieData[]   = round((float)$_ctr->cnt);
-          $_ctPieColors[] = $_ctColorPalette[$_ci % count($_ctColorPalette)];
-          $_ctPct         = $_kpi->contactTypeTotal > 0 ? round((float)$_ctr->cnt / $_kpi->contactTypeTotal * 100) : 0;
-          $_ctPieFormatted[] = number_format((float)$_ctr->cnt, 0, '.', '\'') . ' CHF (' . $_ctPct . '%)';
-          if ($_ctr->delta === null) {
-              $_ctPieDeltaTxt[]  = '';
-              $_ctPieDeltaSign[] = 0;
-          } else {
-              $_ctDeltaChf = (float)$_ctr->cnt - (float)$_ctr->prevCnt;
-              $_ctPieDeltaTxt[]  = ($_ctr->delta >= 0 ? '+' : '') . number_format($_ctDeltaChf, 0, '.', '\'') . ' CHF (' . ($_ctr->delta >= 0 ? '+' : '') . number_format($_ctr->delta, 1) . '%)';
-              $_ctPieDeltaSign[] = $_ctr->delta >= 0 ? 1 : -1;
-          }
-      }
-  }
+  $_ctMax = $_showContactPie ? max(array_map(fn($r) => (float)$r->cnt, $_kpi->contactTypeBreakdown)) : 0;
   ?>
   <?php if ($_showContactPie): ?>
-  <div style="flex:1 0 0;min-width:150px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem">
-    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted);align-self:flex-start"><?= $GLOBAL['dashboardContactBreakdownTitle'] ?></div>
-    <canvas id="dashboardContactPie" width="80" height="80" aria-label="<?= $GLOBAL['dashboardContactBreakdownTitle'] ?>" role="img"></canvas>
-    <div id="dashboardContactPieLegend" style="font-size:0.7rem;line-height:1.6;width:100%"></div>
+  <div id="dashboardContactTypeBars" style="flex:2 0 0;min-width:260px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem;display:flex;flex-direction:column;gap:0.55rem">
+    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted)"><?= $GLOBAL['dashboardContactBreakdownTitle'] ?></div>
+    <div style="display:flex;flex-direction:column;gap:0.55rem">
+      <?php foreach ($_kpi->contactTypeBreakdown as $_ci => $_ctr):
+          $_ctColor   = $_ctColorPalette[$_ci % count($_ctColorPalette)];
+          $_ctPct     = $_kpi->contactTypeTotal > 0 ? round((float)$_ctr->cnt / $_kpi->contactTypeTotal * 100) : 0;
+          $_ctBarPct  = $_ctMax > 0 ? max(3, round((float)$_ctr->cnt / $_ctMax * 100)) : 0;
+          $_ctDeltaTxt = null; $_ctDeltaUp = true;
+          if ($_ctr->delta !== null) {
+              $_ctDeltaChf = (float)$_ctr->cnt - (float)$_ctr->prevCnt;
+              $_ctDeltaUp  = $_ctr->delta >= 0;
+              $_ctDeltaTxt = ($_ctDeltaUp ? '+' : '') . number_format($_ctDeltaChf, 0, '.', '\'') . ' CHF (' . ($_ctDeltaUp ? '+' : '') . number_format($_ctr->delta, 1) . '%)';
+          }
+      ?>
+      <div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:0.5rem;font-size:0.78rem">
+          <span style="color:var(--ca-ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= htmlentities($_ctr->label, ENT_COMPAT, $charset) ?></span>
+          <span style="flex-shrink:0;font-variant-numeric:tabular-nums;color:var(--ca-ink-muted)">
+            <strong style="color:var(--ca-ink)"><?= number_format((float)$_ctr->cnt, 0, '.', '\'') ?> CHF</strong>
+            <span style="opacity:0.75"> (<?= $_ctPct ?>%)</span>
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.2rem">
+          <div style="flex:1 0 0;height:7px;border-radius:4px;background:var(--ca-border,#e2e5e4);overflow:hidden">
+            <div style="height:100%;border-radius:4px;background:<?= $_ctColor ?>;width:<?= $_ctBarPct ?>%"></div>
+          </div>
+          <?php if ($_ctDeltaTxt !== null): ?>
+          <span style="flex-shrink:0;font-size:0.72rem;font-weight:600;font-variant-numeric:tabular-nums;color:<?= $_ctDeltaUp ? 'var(--bs-success,#198754)' : 'var(--bs-danger,#dc3545)' ?>"><?= htmlspecialchars($_ctDeltaTxt, ENT_QUOTES, $charset) ?></span>
+          <?php endif ?>
+        </div>
+      </div>
+      <?php endforeach ?>
+    </div>
   </div>
   <?php endif ?>
 </div>
-<?php if ($_showContactPie): ?>
-<script>
-(function () {
-  var labels     = <?= json_encode($_ctPieLabels, JSON_UNESCAPED_UNICODE) ?>;
-  var data       = <?= json_encode($_ctPieData) ?>;
-  var colors     = <?= json_encode($_ctPieColors) ?>;
-  var formatted  = <?= json_encode($_ctPieFormatted, JSON_UNESCAPED_UNICODE) ?>;
-  var deltaTxt   = <?= json_encode($_ctPieDeltaTxt, JSON_UNESCAPED_UNICODE) ?>;
-  var deltaSign  = <?= json_encode($_ctPieDeltaSign) ?>;
-  if (window.Chart && Chart.instances) {
-    Object.keys(Chart.instances).forEach(function (k) {
-      var c = Chart.instances[k];
-      if (c && c.canvas && c.canvas.id === 'dashboardContactPie') c.destroy();
-    });
-  }
-  var ctx = document.getElementById('dashboardContactPie').getContext('2d');
-  new Chart(ctx, {
-    type: 'pie',
-    data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
-    options: {
-      responsive: false,
-      animation: { duration: 400 },
-      legend: { display: false },
-      tooltips: { callbacks: { label: function (i, d) { return ' ' + d.labels[i.index] + ': ' + formatted[i.index]; } } }
-    }
-  });
-  var leg = document.getElementById('dashboardContactPieLegend');
-  leg.innerHTML = '';
-  labels.forEach(function (label, i) {
-    var row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:0.3rem';
-    var dot = document.createElement('span');
-    dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0;background:' + colors[i];
-    var txt = document.createElement('span');
-    txt.style.color = 'var(--ca-ink-muted)';
-    txt.textContent = label + ' — ' + formatted[i];
-    row.appendChild(dot); row.appendChild(txt);
-    if (deltaTxt[i]) {
-      var delta = document.createElement('span');
-      delta.style.cssText = 'font-weight:600;margin-left:0.15rem;color:' + (deltaSign[i] < 0 ? 'var(--bs-danger,#dc3545)' : 'var(--bs-success,#198754)');
-      delta.textContent = deltaTxt[i];
-      row.appendChild(delta);
-    }
-    leg.appendChild(row);
-  });
-})();
-</script>
-<?php endif ?>
 <?php if ($_showPie): ?>
 <script>
 (function () {
