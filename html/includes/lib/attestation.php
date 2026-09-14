@@ -77,18 +77,20 @@ function mbBuildAttestationFields(
         'Adresse 2'          => $address,
         'NPA 2'              => $npaParts[0] ?? '',
         'Localite 2'         => $npaParts[1] ?? '',
-        'annee1'             => (string)$year,
-        'annee2'             => (string)$year,
+        'annee1'             => (string)$year, // "durant l'année civile" -- the donation year, unrelated to signing date
         'Case à cocher2'     => $GLOBAL['yes'] ?? 'Oui', // Dons en espèces
         'Somme'              => number_format($total, 2, '.', "'"),
         'Lieu'               => $appSettings['org_city'] ?? '',
         // The bottom "Date" line is 3 separate PDF form fields laid out
         // left-to-right as jour/mois/année, misleadingly named 'date'/'mois'/
         // 'annee2' -- 'date' is positionally the DAY box, not a full date.
-        // Filling it with the year (as before) left the day blank and showed
-        // the year twice on the printed form.
+        // All three must reflect the SIGNING date ($asOf, today unless a past
+        // date is passed) -- 'annee2' used to be hardcoded to the donation
+        // $year, which is wrong whenever an attestation is signed the year
+        // after the donations it covers (e.g. donations of 2025, signed 2026).
         'mois'               => date('m', $asOf),
         'date'               => date('d', $asOf),
+        'annee2'             => date('Y', $asOf),
     ];
 }
 

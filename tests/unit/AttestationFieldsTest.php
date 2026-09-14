@@ -24,7 +24,23 @@ final class AttestationFieldsTest extends TestCase
 
         $this->assertSame('14', $fields['date']);
         $this->assertSame('09', $fields['mois']);
-        $this->assertSame('2025', $fields['annee2']);
+        $this->assertSame('2026', $fields['annee2']);
+    }
+
+    public function testBottomYearIsTheSigningYearNotTheDonationYear(): void
+    {
+        // Regression: an attestation for 2025 donations signed in 2026 (the
+        // common case -- attestations for a year are sent early the next
+        // year) must show 2026 at the bottom, not 2025. 'annee1' ("durant
+        // l'année civile") is the donation year and must stay 2025.
+        $asOf = mktime(0, 0, 0, 1, 15, 2026); // 15 January 2026
+        $fields = mbBuildAttestationFields(
+            ['org_name' => 'Casa Alianza', 'org_address' => 'Rue X', 'org_npa' => '1200', 'org_city' => 'Genève'],
+            'Dupont', 'Alice', '1200 Genève', 'Rue Y', 100.0, 2025, $asOf
+        );
+
+        $this->assertSame('2025', $fields['annee1']);
+        $this->assertSame('2026', $fields['annee2']);
     }
 
     public function testDefaultsToNowWhenAsOfOmitted(): void
