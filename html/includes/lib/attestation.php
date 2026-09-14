@@ -82,8 +82,13 @@ function mbBuildAttestationFields(
         'Case à cocher2'     => $GLOBAL['yes'] ?? 'Oui', // Dons en espèces
         'Somme'              => number_format($total, 2, '.', "'"),
         'Lieu'               => $appSettings['org_city'] ?? '',
+        // The bottom "Date" line is 3 separate PDF form fields laid out
+        // left-to-right as jour/mois/année, misleadingly named 'date'/'mois'/
+        // 'annee2' -- 'date' is positionally the DAY box, not a full date.
+        // Filling it with the year (as before) left the day blank and showed
+        // the year twice on the printed form.
         'mois'               => date('m', $asOf),
-        'date'               => date('Y', $asOf),
+        'date'               => date('d', $asOf),
     ];
 }
 

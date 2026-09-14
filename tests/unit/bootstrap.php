@@ -18,4 +18,5 @@ global $GLOBAL;
 require_once __DIR__ . '/../../html/locales/resources_fr.php'; // $GLOBAL labels (used by importFieldLabels)
 require_once $lib . '/pure.php';           // formatedDateToTimeStamp, timeStampToformatedDate, unquote
 require_once $lib . '/import_fields.php';  // importNormalizeSexe, importFieldValue, importFieldLabels
+require_once $lib . '/attestation.php';    // mbBuildAttestationFields (pure -- no DB/pdftk call)
 require_once __DIR__ . '/../../html/classes/compta_class.php'; // Compta entity (pure methods only)
