@@ -204,6 +204,7 @@ $GLOBAL['seeAllEntries'] = "Voir toutes les entrées";
 $GLOBAL['dashboardRecentContactsTitle'] = "Derniers contacts créés";
 $GLOBAL['dashboardShortcutNewDonors']    = "Nouveaux donateurs";
 $GLOBAL['newSinceLastYear']              = "Nouveau";
+$GLOBAL['vsSamePeriodRange']             = "vs 1 %1\$s – %2\$d %3\$s %4\$d";
 $GLOBAL['dashboardShortcutLapsedDonors'] = "Donateurs perdus";
 $GLOBAL['dashboardShortcutNewMembers']   = "Nouveaux membres";
 $GLOBAL['dashboardShortcutLastYearMembers'] = "Membres de l'année passée";

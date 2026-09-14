@@ -462,6 +462,11 @@ include __DIR__ . '/../partials/page_header.php';
       <?php endforeach ?>
     </div>
 
+    <?php // vsSamePeriodRange takes: month name (Jan 1), day, month name (today), year -- "vs 1 jan – 14 sep 2025" ?>
+    <div style="display:flex;justify-content:flex-end;padding-left:1.15rem;font-size:0.68rem;color:var(--ca-ink-muted)">
+      <?= sprintf($GLOBAL['vsSamePeriodRange'], $GLOBAL['monthsShort'][1], (int)date('j'), $GLOBAL['monthsShort'][(int)date('n')], $_year - 1) ?>
+    </div>
+
     <div style="display:flex;flex-direction:column;gap:0.65rem">
       <?php foreach ($_kpi->contactTypeBreakdown as $_ci => $_ctr):
           $_ctColor   = $_ctColorPalette[$_ci % count($_ctColorPalette)];
@@ -474,9 +479,10 @@ include __DIR__ . '/../partials/page_header.php';
           } elseif ($_ctr->prevCnt !== null && (float)$_ctr->prevCnt === 0.0 && (float)$_ctr->cnt > 0) {
               // A real "même période" comparison was computed (prevCnt isn't
               // null, i.e. this is the current year) and came out to exactly
-              // zero — not "not applicable". Silently hiding the delta here
-              // reads as missing data; "Nouveau" says what actually happened.
+              // zero — not "not applicable". A percentage is undefined from
+              // a zero base, but the CHF amount is still real information.
               $_ctIsNew = true;
+              $_ctDeltaTxt = $GLOBAL['newSinceLastYear'] . ' (' . number_format((float)$_ctr->cnt, 0, '.', '\'') . ' CHF)';
           }
       ?>
       <div>
@@ -493,9 +499,7 @@ include __DIR__ . '/../partials/page_header.php';
             <span style="opacity:0.75"> (<?= $_ctPct ?>%)</span>
           </span>
           <?php if ($_ctDeltaTxt !== null): ?>
-          <span style="flex-shrink:0;font-weight:600;color:<?= $_ctDeltaUp ? 'var(--bs-success,#198754)' : 'var(--bs-danger,#dc3545)' ?>"><?= htmlspecialchars($_ctDeltaTxt, ENT_QUOTES, $charset) ?></span>
-          <?php elseif ($_ctIsNew): ?>
-          <span style="flex-shrink:0;font-weight:600;color:var(--bs-success,#198754)"><?= htmlspecialchars($GLOBAL['newSinceLastYear'], ENT_QUOTES, $charset) ?></span>
+          <span style="flex-shrink:0;font-weight:600;color:<?= ($_ctDeltaUp || $_ctIsNew) ? 'var(--bs-success,#198754)' : 'var(--bs-danger,#dc3545)' ?>"><?= htmlspecialchars($_ctDeltaTxt, ENT_QUOTES, $charset) ?></span>
           <?php endif ?>
         </div>
       </div>

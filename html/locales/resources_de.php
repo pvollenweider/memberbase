@@ -203,6 +203,7 @@ $GLOBAL['seeAllEntries'] = "Alle Eintr\u{00E4}ge anzeigen";
 $GLOBAL['dashboardRecentContactsTitle'] = "Neueste Kontakte";
 $GLOBAL['dashboardShortcutNewDonors']    = "Neue Spender";
 $GLOBAL['newSinceLastYear']              = "Neu";
+$GLOBAL['vsSamePeriodRange']             = "vs. 1. %1\$s – %2\$d. %3\$s %4\$d";
 $GLOBAL['dashboardShortcutLapsedDonors'] = "Verlorene Spender";
 $GLOBAL['dashboardShortcutNewMembers']   = "Neue Mitglieder";
 $GLOBAL['dashboardShortcutLastYearMembers'] = "Mitglieder des Vorjahres";

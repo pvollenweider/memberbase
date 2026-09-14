@@ -28,6 +28,13 @@ test.describe('Dashboard', () => {
     await expect(page.locator('#dashboardContactTypeBars')).toContainText('Donateur privé');
     await expect(page.locator('#dashboardContactTypeBars')).toContainText('CHF');
     await expect(page.locator('#dashboardContactTypeBars')).toContainText('(100%)');
+
+    // Column header names the comparison window explicitly (1 Jan – today, last year).
+    const year = new Date().getFullYear();
+    const today = new Date();
+    const day = today.getDate();
+    await expect(page.locator('#dashboardContactTypeBars')).toContainText(`vs 1 jan – ${day}`);
+    await expect(page.locator('#dashboardContactTypeBars')).toContainText(String(year - 1));
   });
 
   test('"Dons par type de contact" shows the vs-last-year delta per row, same period as Contributions (#177 follow-up)', async ({ page }) => {
@@ -66,7 +73,7 @@ test.describe('Dashboard', () => {
     await page.goto('/index.php?view=dashboard');
     const bars = page.locator('#dashboardContactTypeBars');
     await expect(bars).toContainText('Entreprise');
-    await expect(bars).toContainText('Nouveau');
+    await expect(bars).toContainText('Nouveau (944 CHF)');
   });
 
   test('"Dons par type de contact" labels link to the filtered lapsed-donors list for that type (#177 follow-up)', async ({ page }) => {
