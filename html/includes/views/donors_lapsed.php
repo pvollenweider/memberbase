@@ -9,10 +9,12 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year <= 0) { $year = (int)date("Y"); }
 $_pfEmbedded = $_pfEmbedded ?? false;
+$contactTypeId = (int)($_REQUEST['contactTypeId'] ?? 0);
 $_selfQuery  = !empty($_pfEmbedded) ? 'view=peopleFinance&tab=lapsedDonors' : 'view=lapsedDonors';
+$_ctFilterOptionsLD = db()->query("SELECT id, label FROM contact_type ORDER BY sort_order")->fetchAll(PDO::FETCH_OBJ);
 
 require_once __DIR__ . '/../lib/donor.php';
-$rows  = mbGetLapsedDonors(db(), $year);
+$rows  = mbGetLapsedDonors(db(), $year, $contactTypeId);
 $count = count($rows);
 ?>
 <div class="card mb-4">
@@ -33,10 +35,28 @@ $count = count($rows);
     <ul class="dropdown-menu">
       <?php for ($i = 0; $i < 8; $i++): $y = (int)date("Y") - $i; ?>
       <li><a class="dropdown-item<?= $y === $year ? ' active' : '' ?>"
-             href="<?= appUrl() ?>?<?= $_selfQuery ?>&amp;year=<?= $y ?>"><?= $y ?></a></li>
+             href="<?= appUrl() ?>?<?= $_selfQuery ?>&amp;year=<?= $y ?><?= $contactTypeId > 0 ? '&amp;contactTypeId=' . $contactTypeId : '' ?>"><?= $y ?></a></li>
       <?php endfor ?>
     </ul>
   </div>
+
+  <?php if (!empty($_ctFilterOptionsLD)): ?>
+  <div class="dropdown">
+    <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <?= $contactTypeId > 0
+          ? htmlspecialchars(array_reduce($_ctFilterOptionsLD, fn($c, $o) => (int)$o->id === $contactTypeId ? $o->label : $c, $GLOBAL['allDonorTypes']), ENT_QUOTES, $charset)
+          : $GLOBAL['allDonorTypes'] ?>
+    </button>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item<?= $contactTypeId === 0 ? ' active' : '' ?>"
+             href="<?= appUrl() ?>?<?= $_selfQuery ?>&amp;year=<?= $year ?>"><?= $GLOBAL['allDonorTypes'] ?></a></li>
+      <?php foreach ($_ctFilterOptionsLD as $_cto): ?>
+      <li><a class="dropdown-item<?= $contactTypeId === (int)$_cto->id ? ' active' : '' ?>"
+             href="<?= appUrl() ?>?<?= $_selfQuery ?>&amp;year=<?= $year ?>&amp;contactTypeId=<?= (int)$_cto->id ?>"><?= htmlspecialchars($_cto->label, ENT_QUOTES, $charset) ?></a></li>
+      <?php endforeach ?>
+    </ul>
+  </div>
+  <?php endif ?>
 
   <?php if (isManager()): ?>
   <button type="button" class="btn btn-outline-warning btn-sm ms-auto"

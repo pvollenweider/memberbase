@@ -17,7 +17,7 @@
  * @param int $year Target year
  * @return object[] PDO rows with id, firstname, lastname, society, sexe, address, npa, email, total_prev, last_date
  */
-function mbGetLapsedDonors(PDO $db, int $year): array
+function mbGetLapsedDonors(PDO $db, int $year, int $contactTypeId = 0): array
 {
     $excl   = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
     $kFrom  = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
@@ -25,6 +25,7 @@ function mbGetLapsedDonors(PDO $db, int $year): array
     $kFrom1 = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 1));
     $kTo1   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year));
 
+    $typeClause = $contactTypeId > 0 ? 'AND u.contact_type_id = ?' : '';
     $stmt = $db->prepare("
         SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
                SUM(c.sum) AS total_prev,
@@ -33,6 +34,7 @@ function mbGetLapsedDonors(PDO $db, int $year): array
         JOIN compta c ON u.id = c.user_id
         WHERE u.status=1 AND c.date > ? AND c.date < ?
           AND c.type_id NOT IN ($excl)
+          $typeClause
           AND u.id NOT IN (
               SELECT DISTINCT user_id FROM compta
               WHERE date > ? AND date < ?
@@ -41,7 +43,11 @@ function mbGetLapsedDonors(PDO $db, int $year): array
         GROUP BY u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email
         ORDER BY total_prev DESC, u.lastname, u.firstname
     ");
-    $stmt->execute([$kFrom1, $kTo1, $kFrom, $kTo]);
+    $params = [$kFrom1, $kTo1];
+    if ($contactTypeId > 0) { $params[] = $contactTypeId; }
+    $params[] = $kFrom;
+    $params[] = $kTo;
+    $stmt->execute($params);
     return $stmt->fetchAll(PDO::FETCH_OBJ);
 }
 
@@ -89,7 +95,7 @@ function mbGetLoyalDonors(PDO $db, int $year): array
  * @param int $year Target year
  * @return object[] PDO rows with id, firstname, lastname, society, sexe, address, npa, email, total_curr, first_date
  */
-function mbGetNewDonors(PDO $db, int $year): array
+function mbGetNewDonors(PDO $db, int $year, int $contactTypeId = 0): array
 {
     $excl   = "SELECT id FROM compta_type WHERE is_excluded_from_donation = 1";
     $kFrom  = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
@@ -97,6 +103,7 @@ function mbGetNewDonors(PDO $db, int $year): array
     $kFrom1 = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 1));
     $kTo1   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year));
 
+    $typeClause = $contactTypeId > 0 ? 'AND u.contact_type_id = ?' : '';
     $stmt = $db->prepare("
         SELECT u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email,
                ct.icon AS ct_icon, ct.label AS ct_label,
@@ -107,6 +114,7 @@ function mbGetNewDonors(PDO $db, int $year): array
         LEFT JOIN contact_type ct ON ct.id = u.contact_type_id
         WHERE u.status=1 AND c.date > ? AND c.date < ?
           AND c.type_id NOT IN ($excl)
+          $typeClause
           AND u.id NOT IN (
               SELECT DISTINCT user_id FROM compta
               WHERE date > ? AND date < ?
@@ -115,7 +123,11 @@ function mbGetNewDonors(PDO $db, int $year): array
         GROUP BY u.id, u.firstname, u.lastname, u.society, u.sexe, u.address, u.npa, u.email, ct.icon, ct.label
         ORDER BY total_curr DESC, u.lastname, u.firstname
     ");
-    $stmt->execute([$kFrom, $kTo, $kFrom1, $kTo1]);
+    $params = [$kFrom, $kTo];
+    if ($contactTypeId > 0) { $params[] = $contactTypeId; }
+    $params[] = $kFrom1;
+    $params[] = $kTo1;
+    $stmt->execute($params);
     return $stmt->fetchAll(PDO::FETCH_OBJ);
 }
 

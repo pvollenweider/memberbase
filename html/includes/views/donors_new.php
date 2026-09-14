@@ -9,10 +9,12 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $year = isset($_REQUEST['year']) ? (int)$_REQUEST['year'] : (int)date("Y");
 if ($year <= 0) { $year = (int)date("Y"); }
 $_pfEmbedded = $_pfEmbedded ?? false;
+$contactTypeId = (int)($_REQUEST['contactTypeId'] ?? 0);
 $_selfQuery  = !empty($_pfEmbedded) ? 'view=peopleFinance&tab=lapsedDonors&cohort=new' : 'view=newDonors';
+$_ctFilterOptionsND = db()->query("SELECT id, label FROM contact_type ORDER BY sort_order")->fetchAll(PDO::FETCH_OBJ);
 
 require_once __DIR__ . '/../lib/donor.php';
-$rows  = mbGetNewDonors(db(), $year);
+$rows  = mbGetNewDonors(db(), $year, $contactTypeId);
 $count = count($rows);
 
 if (empty($_pfEmbedded)) {
@@ -39,10 +41,28 @@ if (empty($_pfEmbedded)) {
     <ul class="dropdown-menu">
       <?php for ($i = 0; $i < 8; $i++): $y = (int)date("Y") - $i; ?>
       <li><a class="dropdown-item<?= $y === $year ? ' active' : '' ?>"
-             href="<?= appUrl() ?>?<?= $_selfQuery ?>&amp;year=<?= $y ?>"><?= $y ?></a></li>
+             href="<?= appUrl() ?>?<?= $_selfQuery ?>&amp;year=<?= $y ?><?= $contactTypeId > 0 ? '&amp;contactTypeId=' . $contactTypeId : '' ?>"><?= $y ?></a></li>
       <?php endfor ?>
     </ul>
   </div>
+
+  <?php if (!empty($_ctFilterOptionsND)): ?>
+  <div class="dropdown">
+    <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <?= $contactTypeId > 0
+          ? htmlspecialchars(array_reduce($_ctFilterOptionsND, fn($c, $o) => (int)$o->id === $contactTypeId ? $o->label : $c, $GLOBAL['allDonorTypes']), ENT_QUOTES, $charset)
+          : $GLOBAL['allDonorTypes'] ?>
+    </button>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item<?= $contactTypeId === 0 ? ' active' : '' ?>"
+             href="<?= appUrl() ?>?<?= $_selfQuery ?>&amp;year=<?= $year ?>"><?= $GLOBAL['allDonorTypes'] ?></a></li>
+      <?php foreach ($_ctFilterOptionsND as $_cto): ?>
+      <li><a class="dropdown-item<?= $contactTypeId === (int)$_cto->id ? ' active' : '' ?>"
+             href="<?= appUrl() ?>?<?= $_selfQuery ?>&amp;year=<?= $year ?>&amp;contactTypeId=<?= (int)$_cto->id ?>"><?= htmlspecialchars($_cto->label, ENT_QUOTES, $charset) ?></a></li>
+      <?php endforeach ?>
+    </ul>
+  </div>
+  <?php endif ?>
 </div><!-- .card-header -->
 <div class="card-body">
 
