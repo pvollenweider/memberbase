@@ -23,9 +23,42 @@ test.describe('Dashboard', () => {
     await expect(page.locator('#dashboardContactPie')).toBeVisible();
 
     // Seed: every donor defaults to contact_type "Donateur privé" — sum of
-    // donations (CHF), not a contact count, grouped by the donor's type.
+    // donations (CHF), not a contact count, grouped by the donor's type,
+    // with the pie-share % — a single-slice pie is 100%.
     await expect(page.locator('#dashboardContactPieLegend')).toContainText('Donateur privé');
     await expect(page.locator('#dashboardContactPieLegend')).toContainText('CHF');
+    await expect(page.locator('#dashboardContactPieLegend')).toContainText('(100%)');
+  });
+
+  test('"Dons par type de contact" legend shows the vs-last-year delta per slice, same period as Contributions (#177 follow-up)', async ({ page }) => {
+    const year = new Date().getFullYear();
+    await page.goto('/index.php');
+    const csrf = await page.evaluate(() => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '');
+    // Give Alice (user 1, contact_type "Donateur privé") a prior-year donation
+    // inside the YTD window, so the per-slice delta isn't null.
+    const resp = await page.request.post('/index.php', {
+      form: { action: 'addCompta', view: 'compta', userid: '1', type_id: '3', date: `01/06/${year - 1}`, libele: 'Don E2E prev', sum: '200', csrf },
+    });
+    expect(resp.status()).toBe(200);
+
+    await page.goto('/index.php?view=dashboard');
+    const legend = page.locator('#dashboardContactPieLegend');
+    await expect(legend).toContainText('Donateur privé');
+    await expect(legend).toContainText('CHF (+');
+    await expect(legend).toContainText('%)');
+  });
+
+  test('shortcut "Donateur non institutionnel actif depuis N-4" links to the 5-year quick filter (#176)', async ({ page }) => {
+    // Seed donors (Alice/Bob) already made a non-institutional payment this
+    // year, so the shortcut is present without extra setup.
+    await page.goto('/index.php?view=dashboard');
+    const link = page.locator('a', { hasText: 'Donateur non institutionnel actif depuis' });
+    await expect(link).toBeVisible();
+    const href = await link.getAttribute('href');
+    expect(href).toContain('segment=-8888');
+
+    await link.click();
+    await expect(page).toHaveURL(/segment=-8888/);
   });
 
   test('admin guide link is no longer shown, user guide link stays', async ({ page }) => {

@@ -173,35 +173,6 @@ function mbComputeDonorKpis(PDO $db, array $comptaTypes, array $appSettings, int
     $typeBreakdown = $sTypeBreak->fetchAll(PDO::FETCH_OBJ);
     $typeTotal = array_sum(array_map(fn($r) => (float)$r->total, $typeBreakdown));
 
-    // Total donations (CHF) per contact_type of the donor in the period, vs
-    // the same period last year — "répartition des contacts" KPI (#177).
-    // Same donation-exclusion rule and kFrom/kTo window as the compta_type
-    // breakdown above, just grouped by the donor's contact_type instead.
-    $sCtBreak = $db->prepare("
-        SELECT ct.id, ct.label, ct.icon, COALESCE(SUM(c.sum),0) AS cnt
-        FROM compta c
-        JOIN contact u ON u.id = c.user_id AND u.status = 1
-        JOIN contact_type ct ON ct.id = u.contact_type_id
-        WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($excl)
-        GROUP BY ct.id, ct.label, ct.icon ORDER BY cnt DESC
-    ");
-    $sCtBreak->execute([$kFrom, $kTo]);
-    $contactTypeBreakdown = $sCtBreak->fetchAll(PDO::FETCH_OBJ);
-    $contactTypeTotal = array_sum(array_map(fn($r) => (float)$r->cnt, $contactTypeBreakdown));
-
-    $sCtBreak->execute([$kFrom1, $kTo1]);
-    $contactTypePrevById = [];
-    foreach ($sCtBreak->fetchAll(PDO::FETCH_OBJ) as $r) { $contactTypePrevById[(int)$r->id] = (float)$r->cnt; }
-    $contactTypeTotalPrev = array_sum($contactTypePrevById);
-    $contactTypeTotalDelta = $contactTypeTotalPrev > 0
-        ? (($contactTypeTotal - $contactTypeTotalPrev) / $contactTypeTotalPrev * 100)
-        : null;
-    foreach ($contactTypeBreakdown as $r) {
-        $prev = $contactTypePrevById[(int)$r->id] ?? 0.0;
-        $r->prevCnt = $prev;
-        $r->delta   = $prev > 0 ? (((float)$r->cnt - $prev) / $prev * 100) : null;
-    }
-
     // Member counts by cotisation_year (fallback: YEAR of payment date)
     $cotiTypeIds = array_keys(array_filter((array)$comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
     $noCotiSegment = (int)($appSettings['member_no_coti_segment'] ?? 0);
@@ -248,6 +219,41 @@ function mbComputeDonorKpis(PDO $db, array $comptaTypes, array $appSettings, int
         $sDonYtd = $db->prepare("SELECT COUNT(DISTINCT c.user_id) FROM compta c WHERE c.date>? AND c.date<=? AND c.type_id NOT IN ($excl)");
         $sDonYtd->execute([$kFrom1, $kToYtd1]);
         $kDonateursYtd1 = (int)$sDonYtd->fetchColumn();
+    }
+
+    // Total donations (CHF) per contact_type of the donor in the period, vs
+    // the SAME period last year (same "même période" logic as kYtd above,
+    // not a full-year comparison) — "Dons par type de contact" KPI (#177).
+    // Same donation-exclusion rule as the compta_type breakdown above, just
+    // grouped by the donor's contact_type instead.
+    $sCtBreak = $db->prepare("
+        SELECT ct.id, ct.label, ct.icon, COALESCE(SUM(c.sum),0) AS cnt
+        FROM compta c
+        JOIN contact u ON u.id = c.user_id AND u.status = 1
+        JOIN contact_type ct ON ct.id = u.contact_type_id
+        WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($excl)
+        GROUP BY ct.id, ct.label, ct.icon ORDER BY cnt DESC
+    ");
+    $sCtBreak->execute([$kFrom, $kTo]);
+    $contactTypeBreakdown = $sCtBreak->fetchAll(PDO::FETCH_OBJ);
+    $contactTypeTotal = array_sum(array_map(fn($r) => (float)$r->cnt, $contactTypeBreakdown));
+
+    $contactTypeTotalDelta = null;
+    if ($year === (int)date("Y")) {
+        $sCtBreak->execute([$kFrom1, $kToYtd1]);
+        $contactTypePrevById = [];
+        foreach ($sCtBreak->fetchAll(PDO::FETCH_OBJ) as $r) { $contactTypePrevById[(int)$r->id] = (float)$r->cnt; }
+        $contactTypeTotalPrev = array_sum($contactTypePrevById);
+        $contactTypeTotalDelta = $contactTypeTotalPrev > 0
+            ? (($contactTypeTotal - $contactTypeTotalPrev) / $contactTypeTotalPrev * 100)
+            : null;
+        foreach ($contactTypeBreakdown as $r) {
+            $prev = $contactTypePrevById[(int)$r->id] ?? 0.0;
+            $r->prevCnt = $prev;
+            $r->delta   = $prev > 0 ? (((float)$r->cnt - $prev) / $prev * 100) : null;
+        }
+    } else {
+        foreach ($contactTypeBreakdown as $r) { $r->prevCnt = null; $r->delta = null; }
     }
 
     $membreSegmentId = (int)($appSettings['default_segment'] ?? 0);

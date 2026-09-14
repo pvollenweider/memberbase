@@ -41,6 +41,9 @@ if ($_defaultSegmentId > 0) {
 }
 $_pendingMigrationsCount = isAdmin() ? count(pendingMigrations($pdo)) : 0;
 
+// Shortcut: quick filter "donateur non institutionnel actif depuis N-4" (#176).
+$_nonInstit5yCount = count(MemberFilter::resolveIds(FILTER_NON_INSTIT_5Y, db(), $_year, $appSettings));
+
 // Shortcut: last year's segment ("{membre_segment_prefix} {year-1}"), useful
 // to invite members from the prior year to renew their cotisation.
 $_lastYearSegmentId    = 0;
@@ -438,17 +441,25 @@ include __DIR__ . '/../partials/page_header.php';
   <?php
   $_ctColorPalette = array_values($_solidColorMap);
   $_showContactPie = (!empty($_kpi->contactTypeBreakdown) && $_kpi->contactTypeTotal > 0);
-  $_ctPieLabels = []; $_ctPieData = []; $_ctPieColors = []; $_ctPieFormatted = [];
+  $_ctPieLabels = []; $_ctPieData = []; $_ctPieColors = []; $_ctPieFormatted = []; $_ctPieDeltaTxt = []; $_ctPieDeltaSign = [];
   if ($_showContactPie) {
       foreach ($_kpi->contactTypeBreakdown as $_ci => $_ctr) {
           // Not htmlentities()'d: labels are JSON-encoded and assigned via
           // JS textContent below, which inserts raw text — entity-encoding
           // here would leak literal "&eacute;"-style entities into the legend.
-          $_ctPieLabels[]    = $_ctr->label;
-          $_ctPieData[]      = round((float)$_ctr->cnt);
-          $_ctPieColors[]    = $_ctColorPalette[$_ci % count($_ctColorPalette)];
-          $_ctDeltaTxt       = $_ctr->delta === null ? '' : (' (' . ($_ctr->delta >= 0 ? '+' : '') . round($_ctr->delta) . '%)');
-          $_ctPieFormatted[] = number_format((float)$_ctr->cnt, 0, '.', '\'') . ' CHF' . $_ctDeltaTxt;
+          $_ctPieLabels[] = $_ctr->label;
+          $_ctPieData[]   = round((float)$_ctr->cnt);
+          $_ctPieColors[] = $_ctColorPalette[$_ci % count($_ctColorPalette)];
+          $_ctPct         = $_kpi->contactTypeTotal > 0 ? round((float)$_ctr->cnt / $_kpi->contactTypeTotal * 100) : 0;
+          $_ctPieFormatted[] = number_format((float)$_ctr->cnt, 0, '.', '\'') . ' CHF (' . $_ctPct . '%)';
+          if ($_ctr->delta === null) {
+              $_ctPieDeltaTxt[]  = '';
+              $_ctPieDeltaSign[] = 0;
+          } else {
+              $_ctDeltaChf = (float)$_ctr->cnt - (float)$_ctr->prevCnt;
+              $_ctPieDeltaTxt[]  = ($_ctr->delta >= 0 ? '+' : '') . number_format($_ctDeltaChf, 0, '.', '\'') . ' CHF (' . ($_ctr->delta >= 0 ? '+' : '') . number_format($_ctr->delta, 1) . '%)';
+              $_ctPieDeltaSign[] = $_ctr->delta >= 0 ? 1 : -1;
+          }
       }
   }
   ?>
@@ -463,10 +474,12 @@ include __DIR__ . '/../partials/page_header.php';
 <?php if ($_showContactPie): ?>
 <script>
 (function () {
-  var labels    = <?= json_encode($_ctPieLabels, JSON_UNESCAPED_UNICODE) ?>;
-  var data      = <?= json_encode($_ctPieData) ?>;
-  var colors    = <?= json_encode($_ctPieColors) ?>;
-  var formatted = <?= json_encode($_ctPieFormatted, JSON_UNESCAPED_UNICODE) ?>;
+  var labels     = <?= json_encode($_ctPieLabels, JSON_UNESCAPED_UNICODE) ?>;
+  var data       = <?= json_encode($_ctPieData) ?>;
+  var colors     = <?= json_encode($_ctPieColors) ?>;
+  var formatted  = <?= json_encode($_ctPieFormatted, JSON_UNESCAPED_UNICODE) ?>;
+  var deltaTxt   = <?= json_encode($_ctPieDeltaTxt, JSON_UNESCAPED_UNICODE) ?>;
+  var deltaSign  = <?= json_encode($_ctPieDeltaSign) ?>;
   if (window.Chart && Chart.instances) {
     Object.keys(Chart.instances).forEach(function (k) {
       var c = Chart.instances[k];
@@ -494,7 +507,14 @@ include __DIR__ . '/../partials/page_header.php';
     var txt = document.createElement('span');
     txt.style.color = 'var(--ca-ink-muted)';
     txt.textContent = label + ' — ' + formatted[i];
-    row.appendChild(dot); row.appendChild(txt); leg.appendChild(row);
+    row.appendChild(dot); row.appendChild(txt);
+    if (deltaTxt[i]) {
+      var delta = document.createElement('span');
+      delta.style.cssText = 'font-weight:600;margin-left:0.15rem;color:' + (deltaSign[i] < 0 ? 'var(--bs-danger,#dc3545)' : 'var(--bs-success,#198754)');
+      delta.textContent = deltaTxt[i];
+      row.appendChild(delta);
+    }
+    leg.appendChild(row);
   });
 })();
 </script>
@@ -662,6 +682,12 @@ include __DIR__ . '/../partials/page_header.php';
         <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members&amp;segment=<?= $_lastYearSegmentId ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
           <span><?= $GLOBAL['dashboardShortcutLastYearMembers'] ?></span>
           <span class="fw-bold"><?= $_lastYearSegmentCount ?></span>
+        </a>
+        <?php endif ?>
+        <?php if ($_nonInstit5yCount > 0): ?>
+        <a href="<?= appUrl() ?>?view=peopleFinance&amp;tab=members&amp;segment=<?= FILTER_NON_INSTIT_5Y ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-1" hx-boost="false">
+          <span><?= $GLOBAL['nonInstitPayed5Years'] ?></span>
+          <span class="fw-bold"><?= $_nonInstit5yCount ?></span>
         </a>
         <?php endif ?>
       </div>
