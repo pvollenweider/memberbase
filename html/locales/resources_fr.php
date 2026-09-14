@@ -546,8 +546,10 @@ $GLOBAL['segmentCount'] = "%d segment%s";
 
 // --- settings_group_edit ---
 $GLOBAL['cotisantsImported'] = "Cotisants importés dans le segment.";
+$GLOBAL['cotisantsImportNoYearSelected'] = "Aucune année sélectionnée — rien n'a été importé.";
 $GLOBAL['donorsImported'] = "Donateurs importés dans le segment.";
 $GLOBAL['donorsImportNoTypeSelected'] = "Aucun type de don sélectionné — rien n'a été importé. Cochez « Tous les types » ou au moins un type.";
+$GLOBAL['donorsImportNoYearSelected'] = "Aucune année sélectionnée — rien n'a été importé. Cochez « Toutes les années » ou au moins une année.";
 $GLOBAL['viewList'] = "Voir la liste";
 $GLOBAL['hideInInterfaces'] = "Masquer dans les interfaces";
 $GLOBAL['category'] = "Catégorie";
@@ -564,6 +566,7 @@ $GLOBAL['allDonorTypes'] = "Tous les types";
 $GLOBAL['allYears'] = "Toutes les années";
 $GLOBAL['noneSelected'] = "Aucun sélectionné";
 $GLOBAL['typesSelected'] = "types sélectionnés";
+$GLOBAL['yearsSelected'] = "années sélectionnées";
 $GLOBAL['minChf'] = "Min CHF";
 $GLOBAL['toImportCount'] = "+%d à importer";
 $GLOBAL['zeroToImport'] = "0 à importer";

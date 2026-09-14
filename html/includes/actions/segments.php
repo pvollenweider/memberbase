@@ -94,32 +94,42 @@ if ($action == 'deleteSegment') {
 
 } elseif ($action == 'importCotisants') {
     $segmentId = (int)$_REQUEST['id'];
-    $year   = isset($_REQUEST['cotis_year']) ? (int)$_REQUEST['cotis_year'] : (int)date('Y');
+    $years = array_values(array_unique(array_filter(
+        array_map('intval', (array)($_REQUEST['cotis_years'] ?? [])),
+        fn($y) => $y >= 2000 && $y <= 2100
+    )));
+    if (empty($years)) {
+        $years = [(int)date('Y')]; // no selection posted (e.g. JS disabled) — same default as before
+    }
     $cotisTypeIds = array_keys(array_filter($comptaTypes, fn($ct) => (int)$ct->is_cotisation === 1));
-    if ($segmentId > 0 && $year >= 2000 && $year <= 2100 && !empty($cotisTypeIds)) {
-        $placeholders = implode(',', array_fill(0, count($cotisTypeIds), '?'));
-        $params       = array_merge([$segmentId], $cotisTypeIds, [$year, $segmentId]);
+    if ($segmentId > 0 && !empty($cotisTypeIds)) {
+        $typePh  = implode(',', array_fill(0, count($cotisTypeIds), '?'));
+        $yearPh  = implode(',', array_fill(0, count($years), '?'));
+        $params  = array_merge([$segmentId], $cotisTypeIds, $years, [$segmentId]);
         db()->prepare("
             INSERT IGNORE INTO contact_segment (user_id, segment_id)
             SELECT u.id, ?
             FROM contact u
             JOIN compta c ON c.user_id = u.id
-            WHERE c.type_id IN ($placeholders)
-              AND COALESCE(c.cotisation_year, YEAR(c.date)) = ?
+            WHERE c.type_id IN ($typePh)
+              AND COALESCE(c.cotisation_year, YEAR(c.date)) IN ($yearPh)
               AND u.id NOT IN (SELECT user_id FROM contact_segment WHERE segment_id = ?)
             GROUP BY u.id
         ")->execute($params);
     }
-    auditLog(db(), 'importCotisants', "vers segment: " . Segment::lookupName($segmentId) . " | année: $year");
+    auditLog(db(), 'importCotisants', "vers segment: " . Segment::lookupName($segmentId) . " | années: " . implode(', ', $years));
     $_icUrl = appUrl() . '?view=updateSegment&id=' . $segmentId . '&imported=cotisants';
     if ($isHtmx) { header('HX-Location: ' . $_icUrl); } else { echo '<script>window.location.replace(' . json_encode($_icUrl) . ');</script>'; }
     exit;
 
 } elseif ($action == 'importDonors') {
     $segmentId       = (int)$_REQUEST['id'];
-    $yearRaw         = trim((string)($_REQUEST['donor_year'] ?? (string)date('Y')));
-    $allYears        = ($yearRaw === '' || $yearRaw === 'all');
-    $year            = $allYears ? 0 : (int)$yearRaw;
+    $allYears        = !empty($_REQUEST['donor_year_all']);
+    $years           = $allYears ? [] : array_values(array_unique(array_filter(
+        array_map('intval', (array)($_REQUEST['donor_years'] ?? [])),
+        fn($y) => $y >= 2000 && $y <= 2100
+    )));
+    $noYearSelected  = !$allYears && empty($years);
     $minSum          = isset($_REQUEST['donor_minsum']) ? (int)$_REQUEST['donor_minsum'] : 1;
     $allTypesChecked = !empty($_REQUEST['donor_compta_type_all']);
     $selectedTypeIds = $allTypesChecked ? [] : array_values(array_unique(array_filter(
@@ -127,7 +137,7 @@ if ($action == 'deleteSegment') {
     )));
     $noTypeSelected  = !$allTypesChecked && empty($selectedTypeIds);
     if (!in_array($minSum, [1, 100, 200, 500, 1000])) { $minSum = 1; }
-    if ($segmentId > 0 && !$noTypeSelected && ($allYears || ($year >= 2000 && $year <= 2100))) {
+    if ($segmentId > 0 && !$noTypeSelected && !$noYearSelected) {
         $params = [$segmentId];
 
         $typeClause = '';
@@ -139,11 +149,9 @@ if ($action == 'deleteSegment') {
 
         $dateClause = '';
         if (!$allYears) {
-            $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
-            $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
-            $dateClause = 'AND c.date > ? AND c.date < ?';
-            $params[] = $from;
-            $params[] = $to;
+            $yearPh     = implode(',', array_fill(0, count($years), '?'));
+            $dateClause = "AND YEAR(c.date) IN ($yearPh)";
+            foreach ($years as $y) { $params[] = $y; }
         }
 
         $params[] = $segmentId;
@@ -171,9 +179,10 @@ if ($action == 'deleteSegment') {
     } else {
         $typeLabel = 'aucun type sélectionné (import ignoré)';
     }
-    $yearLabel = $allYears ? 'toutes' : (string)$year;
+    $yearLabel = $allYears ? 'toutes' : ($noYearSelected ? 'aucune sélectionnée (import ignoré)' : implode(', ', $years));
     auditLog(db(), 'importDonors', "vers segment: " . Segment::lookupName($segmentId) . " | année: $yearLabel | min: {$minSum} CHF | type: $typeLabel");
-    $_idUrl = appUrl() . '?view=updateSegment&id=' . $segmentId . '&imported=' . ($noTypeSelected ? 'donors_notype' : 'donors');
+    $_idImportedFlag = $noTypeSelected ? 'donors_notype' : ($noYearSelected ? 'donors_noyear' : 'donors');
+    $_idUrl = appUrl() . '?view=updateSegment&id=' . $segmentId . '&imported=' . $_idImportedFlag;
     if ($isHtmx) { header('HX-Location: ' . $_idUrl); } else { echo '<script>window.location.replace(' . json_encode($_idUrl) . ');</script>'; }
     exit;
 

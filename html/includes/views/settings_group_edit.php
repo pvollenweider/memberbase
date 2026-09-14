@@ -104,6 +104,11 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
   <i class="fas fa-exclamation-triangle mt-1 flex-shrink-0" aria-hidden="true"></i>
   <?= $GLOBAL['donorsImportNoTypeSelected'] ?>
 </div>
+<?php elseif (($_REQUEST['imported'] ?? '') === 'donors_noyear'): ?>
+<div class="alert alert-warning d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.82rem" role="alert">
+  <i class="fas fa-exclamation-triangle mt-1 flex-shrink-0" aria-hidden="true"></i>
+  <?= $GLOBAL['donorsImportNoYearSelected'] ?>
+</div>
 <?php elseif (isset($_REQUEST['imported'])): ?>
 <div class="alert alert-success d-flex gap-2 py-2 px-3 mb-3" style="font-size:0.82rem" role="status">
   <i class="fas fa-check-circle mt-1 flex-shrink-0" aria-hidden="true"></i>
@@ -252,20 +257,32 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
                 <?php endif ?>
               </div>
             </div>
-            <div class="row g-2 align-items-end mb-3">
-              <div class="col-auto">
-                <label for="cotis_year" class="form-label form-label-sm mb-1"><?= $GLOBAL['year'] ?></label>
-                <select class="form-select form-select-sm" id="cotis_year" name="cotis_year" style="width:auto">
-                  <?php for ($yi = 0; $yi < 10; $yi++): $dy = $currentYear - $yi;
-                    $cnt = $importCountsPerYear[$dy]['cotis'] ?? 0; ?>
-                  <option value="<?= $dy ?>"><?= $dy ?><?= $cnt > 0 ? " (+$cnt)" : ' (0)' ?></option>
-                  <?php endfor ?>
-                </select>
+            <div class="mb-3">
+              <label class="form-label form-label-sm mb-1"><?= $GLOBAL['year'] ?></label>
+              <div class="d-flex flex-column gap-1">
+                <?php for ($yi = 0; $yi < 10; $yi++): $dy = $currentYear - $yi;
+                  $cnt = $importCountsPerYear[$dy]['cotis'] ?? 0; ?>
+                <div class="form-check form-check-sm">
+                  <input class="form-check-input" type="checkbox" name="cotis_years[]" value="<?= $dy ?>"
+                         id="cotis_year_<?= $dy ?>" <?= $dy === $currentYear ? 'checked' : '' ?>>
+                  <label class="form-check-label" for="cotis_year_<?= $dy ?>">
+                    <?= $dy ?><?= $cnt > 0 ? " (+$cnt)" : ' (0)' ?>
+                  </label>
+                </div>
+                <?php endfor ?>
               </div>
             </div>
-            <button type="submit" class="btn btn-sm btn-outline-primary">
+            <button type="submit" class="btn btn-sm btn-outline-primary"
+                    onclick="return caConfirmCotisYearSelected(this.closest('form'))">
               <i class="fas fa-file-import me-1" aria-hidden="true"></i><?= $GLOBAL['importCotisantsBtn'] ?>
             </button>
+            <script>
+            function caConfirmCotisYearSelected(form) {
+              if (form.querySelector('[name="cotis_years[]"]:checked')) return true;
+              window.alert(<?= json_encode($GLOBAL['cotisantsImportNoYearSelected']) ?>);
+              return false;
+            }
+            </script>
           </div>
         </details>
       </form>
@@ -330,16 +347,37 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
                 </div>
               </div>
               <div class="col-auto">
-                <label for="donor_year" class="form-label form-label-sm mb-1"><?= $GLOBAL['year'] ?></label>
-                <select class="form-select form-select-sm" id="donor_year" name="donor_year" style="width:auto"
-                        data-no-dirty onchange="caUpdateDonorCounts(this.closest('form'))">
-                  <option value="" data-cnt-all=""><?= $GLOBAL['allYears'] ?></option>
-                  <?php for ($yi = 0; $yi < 10; $yi++): $dy = $currentYear - $yi; ?>
-                  <option value="<?= $dy ?>" data-cnt-all="<?= $importCountsPerYear[$dy]['donors'] ?? 0 ?>" <?= $dy === $currentYear ? 'selected' : '' ?>>
-                    <?= $dy ?>
-                  </option>
-                  <?php endfor ?>
-                </select>
+                <label class="form-label form-label-sm mb-1"><?= $GLOBAL['year'] ?></label>
+                <div class="dropdown">
+                  <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle donor-year-dropdown-btn"
+                          data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
+                          style="min-width:10rem;text-align:left">
+                    <span class="donor-year-dropdown-label"></span>
+                  </button>
+                  <ul class="dropdown-menu p-2" style="min-width:12rem;max-height:16rem;overflow-y:auto">
+                    <li>
+                      <div class="form-check mb-1">
+                        <input class="form-check-input donor-year-all-cb" type="checkbox"
+                               id="donor_year_all" name="donor_year_all" value="1"
+                               data-no-dirty onchange="caOnDonorYearAllToggle(this)">
+                        <label class="form-check-label fw-semibold" for="donor_year_all"><?= $GLOBAL['allYears'] ?></label>
+                      </div>
+                    </li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <?php for ($yi = 0; $yi < 10; $yi++): $dy = $currentYear - $yi;
+                      $cnt = $importCountsPerYear[$dy]['donors'] ?? 0; ?>
+                    <li>
+                      <div class="form-check mb-1">
+                        <input class="form-check-input donor-year-cb" type="checkbox"
+                               name="donor_years[]" value="<?= $dy ?>" data-cnt="<?= $cnt ?>"
+                               id="donor_year_<?= $dy ?>" <?= $dy === $currentYear ? 'checked' : '' ?>
+                               data-no-dirty onchange="caUpdateDonorCounts(this.closest('form'))">
+                        <label class="form-check-label" for="donor_year_<?= $dy ?>"><?= $dy ?></label>
+                      </div>
+                    </li>
+                    <?php endfor ?>
+                  </ul>
+                </div>
               </div>
               <div class="col-auto">
                 <label for="donor_minsum" class="form-label form-label-sm mb-1"><?= $GLOBAL['minChf'] ?></label>
@@ -363,6 +401,14 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
               caUpdateDonorTypeLabel(form);
               caUpdateDonorCounts(form);
             }
+            function caOnDonorYearAllToggle(allCb) {
+              var form = allCb.closest('form');
+              form.querySelectorAll('.donor-year-cb').forEach(function(cb) {
+                cb.disabled = allCb.checked;
+                if (allCb.checked) cb.checked = false;
+              });
+              caUpdateDonorCounts(form);
+            }
             function caUpdateDonorTypeLabel(form) {
               var allCb   = form.querySelector('.donor-type-all-cb');
               var labelEl = form.querySelector('.donor-type-dropdown-label');
@@ -373,18 +419,29 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
               else if (checked.length === 1) { labelEl.textContent = checked[0].nextElementSibling.textContent; }
               else { labelEl.textContent = checked.length + ' ' + <?= json_encode($GLOBAL['typesSelected']) ?>; }
             }
+            function caUpdateDonorYearLabel(form) {
+              var allCb   = form.querySelector('.donor-year-all-cb');
+              var labelEl = form.querySelector('.donor-year-dropdown-label');
+              if (!allCb || !labelEl) return;
+              if (allCb.checked) { labelEl.textContent = <?= json_encode($GLOBAL['allYears']) ?>; return; }
+              var checked = Array.prototype.slice.call(form.querySelectorAll('.donor-year-cb:checked'));
+              if (checked.length === 0) { labelEl.textContent = <?= json_encode($GLOBAL['noneSelected']) ?>; }
+              else if (checked.length === 1) { labelEl.textContent = checked[0].value; }
+              else { labelEl.textContent = checked.length + ' ' + <?= json_encode($GLOBAL['yearsSelected']) ?>; }
+            }
             function caUpdateDonorCounts(form) {
-              var allCb  = form.querySelector('.donor-type-all-cb');
-              var yearEl = form.querySelector('[name="donor_year"]');
-              var badge  = form.querySelector('#donor_count_badge');
+              var allTypeCb = form.querySelector('.donor-type-all-cb');
+              var allYearCb = form.querySelector('.donor-year-all-cb');
+              var yearCbs   = Array.prototype.slice.call(form.querySelectorAll('.donor-year-cb:checked'));
+              var badge     = form.querySelector('#donor_count_badge');
               caUpdateDonorTypeLabel(form);
-              if (!allCb || !yearEl || !badge) return;
-              // Precomputed counts only cover "all types" for a specific year — a
-              // specific compta type or "toutes les années" isn't precomputed, so the
-              // badge is cleared rather than shown as a wrong/stale number.
-              if (!allCb.checked || yearEl.value === '') { badge.textContent = ''; return; }
-              var opt = yearEl.options[yearEl.selectedIndex];
-              var cnt = parseInt(opt.dataset.cntAll || 0);
+              caUpdateDonorYearLabel(form);
+              if (!allTypeCb || !allYearCb || !badge) return;
+              // Precomputed counts only cover "all types" for exactly one specific
+              // year — several years, no year, or a specific compta type aren't
+              // precomputed, so the badge is cleared rather than shown as a wrong number.
+              if (!allTypeCb.checked || allYearCb.checked || yearCbs.length !== 1) { badge.textContent = ''; return; }
+              var cnt = parseInt(yearCbs[0].dataset.cnt || 0);
               badge.textContent = cnt > 0 ? <?= json_encode($GLOBAL['toImportCount']) ?>.replace('%d', cnt) : <?= json_encode($GLOBAL['zeroToImport']) ?>;
             }
             document.addEventListener('DOMContentLoaded', function() {
@@ -394,10 +451,18 @@ foreach ($cntRows as $cr) { $segmentCounts[(int)$cr->segment_id] = (int)$cr->cnt
             });
             </script>
             <button type="submit" class="btn btn-sm btn-outline-primary"
-                    onclick="return caConfirmDonorTypeSelected(this.closest('form'))">
+                    onclick="return caConfirmDonorTypeSelected(this.closest('form')) && caConfirmDonorYearSelected(this.closest('form'))">
               <i class="fas fa-file-import me-1" aria-hidden="true"></i><?= $GLOBAL['importDonorsBtn'] ?>
             </button>
             <script>
+            function caConfirmDonorYearSelected(form) {
+              var allCb = form.querySelector('.donor-year-all-cb');
+              if (allCb && allCb.checked) return true;
+              var anyChecked = form.querySelector('.donor-year-cb:checked');
+              if (anyChecked) return true;
+              window.alert(<?= json_encode($GLOBAL['donorsImportNoYearSelected']) ?>);
+              return false;
+            }
             function caConfirmDonorTypeSelected(form) {
               var allCb = form.querySelector('.donor-type-all-cb');
               if (allCb && allCb.checked) return true;
