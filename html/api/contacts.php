@@ -146,6 +146,7 @@ function emitMemberList(array $rows, int $page, int $limit, int $total, bool $in
             'firstName' => $r->firstname,
             'society'   => $r->society      ?: null,
             'email'     => $r->email        ?: null,
+            'emailConsent' => !empty($r->email_consent),
             'npa'       => $r->npa          ?: null,
             'address'   => $r->address      ?: null,
             'gender'    => $r->sexe         ?: null,
@@ -172,7 +173,7 @@ function handleVirtualFilter(int $filterId, int $page, int $limit, int $offset, 
     $year = (int)date('Y');
 
     $baseSelect = "SELECT contact.id, contact.firstname, contact.lastname, contact.society,
-                          contact.email, contact.npa, contact.address, contact.sexe, UNIX_TIMESTAMP(contact.creationDate) AS creationDate
+                          contact.email, contact.email_consent, contact.npa, contact.address, contact.sexe, UNIX_TIMESTAMP(contact.creationDate) AS creationDate
                    FROM contact";
     $orderBy    = "ORDER BY contact.lastname ASC, contact.firstname ASC";
 
@@ -279,7 +280,7 @@ function handleList(): void
 
     $sql = "SELECT DISTINCT
                 contact.id, contact.firstname, contact.lastname, contact.society,
-                contact.email, contact.npa, contact.address, contact.sexe,
+                contact.email, contact.email_consent, contact.npa, contact.address, contact.sexe,
                 UNIX_TIMESTAMP(contact.creationDate) AS creationDate,
                 ct.icon AS contactTypeIcon, ct.label AS contactTypeLabel
             FROM contact $joins

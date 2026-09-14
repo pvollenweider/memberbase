@@ -8,6 +8,7 @@ $GLOBAL['cotiUnpayedLast3Years']   = "Ninguna cuota en los últimos 3 años";
 $GLOBAL['nothingLast10Years']      = "Ningún pago en los últimos 10 años";
 $GLOBAL['neverPaidOld']            = "Creados hace más de 3 años, nunca han pagado nada";
 $GLOBAL['nonInstitPayedSomethingLastYear'] = "Donante no institucional activo en " . (date('Y') - 1);
+$GLOBAL['nonInstitPayed5Years']    = "Donante no institucional activo desde " . (date('Y') - 4);
 
 // --- Navigation ---
 $GLOBAL['search']          = "Buscar";
@@ -942,6 +943,7 @@ $GLOBAL['filterDescCotiUnpaid3y'] = "Perfiles que pagaron al menos una cuota en 
 $GLOBAL['filterDescNoActivity10y'] = "Perfiles activos sin ninguna entrada contable (cuota, donativo u otro) desde %s.";
 $GLOBAL['filterDescNeverPaidOld'] = "Perfiles activos creados antes de %s, sin ninguna entrada contable, nunca.";
 $GLOBAL['filterDescNonInstitLastYear'] = "Perfiles que efectuaron al menos un pago no institucional en %s — incluye cuotas, donativos y cualquier otro tipo no marcado como «&nbsp;Institucional&nbsp;» en los tipos contables.";
+$GLOBAL['filterDescNonInstit5y'] = "Perfiles no institucionales que efectuaron al menos un pago no institucional entre %s y %s.";
 $GLOBAL['filterDescCotiUnpaidCurrent'] = "Miembros cuya cuota %s aún no ha sido registrada.";
 $GLOBAL['quickFilters'] = "Filtros rápidos";
 $GLOBAL['typesHeader'] = "Tipos";

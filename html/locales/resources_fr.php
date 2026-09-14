@@ -9,6 +9,7 @@ $GLOBAL['cotiUnpayedLast3Years']   = "Aucune cotisation ces 3 dernières années
 $GLOBAL['nothingLast10Years']      = "Aucun versement ces 10 dernières années";
 $GLOBAL['neverPaidOld']            = "Créés il y a plus de 3 ans, n'ont jamais rien versé";
 $GLOBAL['nonInstitPayedSomethingLastYear'] = "Donateur non institutionnel actif en " . (date('Y') - 1);
+$GLOBAL['nonInstitPayed5Years']    = "Donateur non institutionnel actif depuis " . (date('Y') - 4);
 
 // --- Navigation ---
 $GLOBAL['search']          = "Chercher";
@@ -942,6 +943,7 @@ $GLOBAL['filterDescCotiUnpaid3y'] = "Profils ayant payé au moins une cotisation
 $GLOBAL['filterDescNoActivity10y'] = "Profils actifs sans aucune entrée comptable (cotisation, don ou autre) depuis %s.";
 $GLOBAL['filterDescNeverPaidOld'] = "Profils actifs créés avant %s et sans aucune entrée comptable, jamais.";
 $GLOBAL['filterDescNonInstitLastYear'] = "Contacts non institutionnel ayant effectué au moins un versement %s";
+$GLOBAL['filterDescNonInstit5y'] = "Contacts non institutionnels ayant effectué au moins un versement non institutionnel entre %s et %s.";
 $GLOBAL['filterDescCotiUnpaidCurrent'] = "Membres dont la cotisation %s n'a pas encore été enregistrée.";
 $GLOBAL['quickFilters'] = "Filtres rapides";
 $GLOBAL['typesHeader'] = "Types";

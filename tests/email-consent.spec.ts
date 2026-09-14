@@ -67,4 +67,28 @@ test.describe('Email consent field — member fiche (#175)', () => {
     // Revert.
     await page.request.patch('/api/contacts/1', { data: { emailConsent: false } });
   });
+
+  test('regression: AJAX live search does not desync column count (row/thead mismatch)', async ({ page }) => {
+    // Adding the emailConsent <th> (server-rendered) without also adding a
+    // matching <td> in the client-side buildRow() (used by the AJAX search
+    // box on this segment=0 view) left DataTables with a <thead> one column
+    // wider than each AJAX-built <tr> — "Requested unknown parameter" console
+    // warning and misaligned cells. Both must produce the same column count.
+    const consoleWarnings: string[] = [];
+    page.on('console', (msg) => { if (msg.text().includes('DataTables warning')) consoleWarnings.push(msg.text()); });
+
+    await page.goto('/index.php?view=peopleFinance&tab=members');
+    const table = page.locator('table.export');
+    await expect(table).toBeVisible();
+    const headerCount = await table.locator('thead th').count();
+
+    await page.locator('#main-search-form [name="searchString"]').fill('Dupont');
+    await page.waitForResponse((r) => r.url().includes('/api/contacts') && r.url().includes('search='));
+    await page.waitForTimeout(300); // caInitDT() re-init after the fetch resolves
+
+    const row = table.locator('tbody tr').first();
+    await expect(row).toBeVisible();
+    expect(await row.locator('td').count()).toBe(headerCount);
+    expect(consoleWarnings).toEqual([]);
+  });
 });

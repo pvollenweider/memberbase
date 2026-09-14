@@ -21,6 +21,7 @@ class MemberFilter
         FILTER_NON_INSTIT_LAST_YEAR,
         FILTER_UNPAID_COTI_CURRENT,
         FILTER_NEVER_PAID_OLD,
+        FILTER_NON_INSTIT_5Y,
     ];
 
     public static function isVirtual(int $segmentId): bool
@@ -108,6 +109,32 @@ class MemberFilter
             case FILTER_NON_INSTIT_LAST_YEAR: {
                 $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 1));
                 $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year));
+                $institIds = array_column(
+                    $pdo->query("SELECT id FROM compta_type WHERE is_institutional=1")->fetchAll(PDO::FETCH_OBJ),
+                    'id'
+                );
+                $notIn = count($institIds) ? implode(',', array_map('intval', $institIds)) : '0';
+                $ids = [];
+                $st = $pdo->prepare("
+                    SELECT DISTINCT c.user_id
+                    FROM compta c
+                    JOIN contact u ON u.id = c.user_id AND u.status = 1
+                    WHERE c.date > ? AND c.date < ?
+                      AND (c.type_id IS NULL OR c.type_id NOT IN ($notIn))
+                ");
+                $st->execute([$from, $to]);
+                while ($r = $st->fetchObject()) {
+                    $ids[(int)$r->user_id] = true;
+                }
+                return $ids;
+            }
+
+            // At least one non-institutional payment in the last 5 calendar years,
+            // current year included (same rule as FILTER_NON_INSTIT_LAST_YEAR,
+            // wider trailing window: year-4 through year inclusive).
+            case FILTER_NON_INSTIT_5Y: {
+                $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 4));
+                $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
                 $institIds = array_column(
                     $pdo->query("SELECT id FROM compta_type WHERE is_institutional=1")->fetchAll(PDO::FETCH_OBJ),
                     'id'

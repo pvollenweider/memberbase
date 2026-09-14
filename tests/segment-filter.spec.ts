@@ -28,6 +28,21 @@ test.describe('Segment filter dropdown — "Archivés" entry (admin-only)', () =
   });
 });
 
+test.describe('Segment filter — non-institutional donor, 5-year window (#176)', () => {
+  test('quick filter entry exists and its description covers a 5-year range', async ({ page }) => {
+    await page.goto('/index.php?view=list');
+    const toggle = page.locator('#navbarDropdown');
+    await toggle.click();
+    const entry = page.locator('.segment-filterable', { hasText: 'Donateur non institutionnel actif depuis' });
+    await expect(entry).toBeVisible();
+    await entry.click();
+
+    const year = new Date().getFullYear();
+    await expect(page.locator('#ca-filter-desc-text')).toContainText(String(year - 4));
+    await expect(page.locator('#ca-filter-desc-text')).toContainText(String(year));
+  });
+});
+
 test.describe('Segment filter dropdown', () => {
   test('dropdown opens and shows filterable items', async ({ page }) => {
     await page.goto('/index.php?view=list');
