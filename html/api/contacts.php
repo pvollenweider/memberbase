@@ -45,6 +45,7 @@ function memberFieldsForDiff(Contact $u): array
         'address'   => (string)$u->getAddress(),
         'npa'       => (string)$u->getNpa(),
         'email'     => (string)$u->getEmail(),
+        'emailConsent' => (int)$u->getEmailConsent(),
         'emailAlt'  => (string)$u->getEmailAlt(),
         'tel'       => (string)$u->getTel(),
         'telProf'   => (string)$u->getTelProf(),
@@ -69,6 +70,7 @@ function memberToArray(Contact $u): array
         'address'          => $u->getAddress()  ?: null,
         'npa'              => $u->getNpa()      ?: null,
         'email'            => $u->getEmail()    ?: null,
+        'emailConsent'     => (bool)$u->getEmailConsent(),
         'emailAlt'         => $u->getEmailAlt() ?: null,
         'tel'              => $u->getTel()      ?: null,
         'telProf'          => $u->getTelProf()  ?: null,
@@ -96,13 +98,14 @@ function requestBody(): array
 function applyFields(Contact $user, array $body): void
 {
     $allowed = ['firstName','lastName','society','gender','contactTypeId','title','address','npa',
-                'email','emailAlt','tel','telProf','portable','fax','web','comment'];
+                'email','emailConsent','emailAlt','tel','telProf','portable','fax','web','comment'];
     foreach ($allowed as $field) {
         if (!array_key_exists($field, $body)) continue;
         $val = (string)$body[$field];
         match ($field) {
             'gender'        => $user->setSexe(in_array($val, ['m','f','hf','na']) ? $val : 'na'),
             'contactTypeId' => $user->setContactTypeId(mbValidContactTypeId(db(), (int)$val)),
+            'emailConsent'  => $user->setEmailConsent(!empty($body[$field])),
             default         => $user->{'set' . ucfirst($field)}(unquote($val)),
         };
     }

@@ -270,6 +270,7 @@ $GLOBAL['importContacts']    = "Kontakte importieren";
 $GLOBAL['filterPlaceholder'] = "Filtern…";
 $GLOBAL['emailAlt']          = "E-Mail alt.";
 $GLOBAL['emailAltLong']      = "E-Mail alt.";
+$GLOBAL['emailConsent']      = "Einwilligung zum E-Mail-Erhalt";
 $GLOBAL['npaCity']           = "PLZ / Ort";
 $GLOBAL['hiddenSegment']     = "Ausgeblendetes Segment";
 $GLOBAL['memberManagement']  = "Mitgliederverwaltung";

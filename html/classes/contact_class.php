@@ -25,6 +25,7 @@ class Contact
     public $fax = '';
     public $portable = '';
     public $email = '';
+    public bool $emailConsent = false;
     public $emailAlt = '';
     public $web = '';
     public $birthDay = 0;
@@ -54,6 +55,7 @@ class Contact
         $this->portable         = $row->portable;
         $this->fax              = $row->fax;
         $this->email            = $row->email;
+        $this->emailConsent     = !empty($row->email_consent);
         $this->emailAlt         = $row->email_alt ?? '';
         $this->web              = $row->web;
         // birthday is a plain DATE column (no time-of-day/timezone in the stored
@@ -67,7 +69,7 @@ class Contact
         $this->status           = (int)$row->status;
     }
 
-    private const SELECT_COLS = "id,firstname,lastname,society,sexe,contact_type_id,title,address,npa,tel,telprof,portable,fax,email,email_alt,web,birthday,comment,UNIX_TIMESTAMP(creationDate) AS creationDate,UNIX_TIMESTAMP(modificationDate) AS modificationDate,status";
+    private const SELECT_COLS = "id,firstname,lastname,society,sexe,contact_type_id,title,address,npa,tel,telprof,portable,fax,email,email_consent,email_alt,web,birthday,comment,UNIX_TIMESTAMP(creationDate) AS creationDate,UNIX_TIMESTAMP(modificationDate) AS modificationDate,status";
 
     public function lookupUser(int $id): void
     {
@@ -94,6 +96,7 @@ class Contact
     public function getPortable()         { return $this->portable; }
     public function getFax()              { return $this->fax; }
     public function getEmail()            { return $this->email; }
+    public function getEmailConsent()     { return $this->emailConsent; }
     public function getEmailAlt()         { return $this->emailAlt; }
     public function getWeb()              { return $this->web; }
     public function getBirthDay()         { return $this->birthDay; }
@@ -114,6 +117,7 @@ class Contact
     public function setPortable($v)          { $this->portable = $v; }
     public function setFax($v)               { $this->fax = $v; }
     public function setEmail($v)             { $this->email = $v; }
+    public function setEmailConsent($v)      { $this->emailConsent = (bool)$v; }
     public function setEmailAlt($v)          { $this->emailAlt = $v; }
     public function setWeb($v)               { $this->web = $v; }
     public function setComment($v)           { $this->comment = $v; }
@@ -253,24 +257,24 @@ class Contact
         if ($this->id) {
             db()->prepare(
                 "UPDATE contact SET firstname=?,lastname=?,society=?,sexe=?,contact_type_id=?,title=?,address=?,npa=?,
-                 tel=?,telprof=?,portable=?,fax=?,email=?,email_alt=?,web=?,birthday=?,comment=?,modificationDate=FROM_UNIXTIME(?)
+                 tel=?,telprof=?,portable=?,fax=?,email=?,email_consent=?,email_alt=?,web=?,birthday=?,comment=?,modificationDate=FROM_UNIXTIME(?)
                  WHERE id=?"
             )->execute([
                 $this->firstName, $this->lastName, $this->society, $this->sexe, $this->contactTypeId, $this->title,
                 $this->address, $this->npa, $this->tel, $this->telProf, $this->portable,
-                $this->fax, $this->email, $this->emailAlt ?? '', $this->web, $birthdayDate, $this->comment,
+                $this->fax, $this->email, (int)$this->emailConsent, $this->emailAlt ?? '', $this->web, $birthdayDate, $this->comment,
                 time(), $this->id,
             ]);
             return (int) $this->id;
         } else {
             db()->prepare(
                 "INSERT INTO contact (firstname,lastname,society,sexe,contact_type_id,title,address,npa,
-                 tel,telprof,portable,fax,email,email_alt,web,birthday,comment,creationDate,modificationDate)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?),FROM_UNIXTIME(?))"
+                 tel,telprof,portable,fax,email,email_consent,email_alt,web,birthday,comment,creationDate,modificationDate)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?),FROM_UNIXTIME(?))"
             )->execute([
                 $this->firstName, $this->lastName, $this->society, $this->sexe, $this->contactTypeId,
                 $this->title, $this->address, $this->npa, $this->tel, $this->telProf,
-                $this->portable, $this->fax, $this->email, $this->emailAlt ?? '', $this->web, $birthdayDate,
+                $this->portable, $this->fax, $this->email, (int)$this->emailConsent, $this->emailAlt ?? '', $this->web, $birthdayDate,
                 $this->comment, time(), time(),
             ]);
             return (int)db()->lastInsertId();
@@ -312,7 +316,7 @@ class Contact
         $orderSort   = $opts['orderSort'] ?? 'ASC';
 
         $query = "SELECT DISTINCT contact.id, contact.firstname, contact.lastname, contact.society,"
-               . " contact.sexe, contact.address, contact.npa, contact.email, UNIX_TIMESTAMP(contact.creationDate) AS creationDate"
+               . " contact.sexe, contact.address, contact.npa, contact.email, contact.email_consent, UNIX_TIMESTAMP(contact.creationDate) AS creationDate"
                . " FROM contact";
         if ($combinedSegment > 0) {
             $query .= ",contact_segment ";

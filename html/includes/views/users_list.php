@@ -518,6 +518,7 @@ $action = ($_REQUEST['action'] ?? '') == "search" ? "search" : "";
     <th class="d-md-table-cell">
             <?=$GLOBAL['email']?>
     </th>
+    <th><?= $GLOBAL['emailConsent'] ?></th>
     <th class="d-none d-sm-table-cell d-md-table-cell">
             <?=$GLOBAL['creationDate']?>
     </th>
@@ -632,6 +633,11 @@ foreach ($_allRows as $row) {
             <td class="text-nowrap d-none d-sm-table-cell"><div class="text-truncate" style="max-width:200px"><?=$address?></div></td>
             <td class="text-nowrap d-none d-sm-table-cell"><?=$npa?></td>
             <td class="d-md-table-cell"><a href="mailto:<?=$email?>"><?=$emailStr?></a></td>
+            <td class="text-center">
+              <?php if (!empty($row->email_consent)): ?>
+              <i class="fas fa-check text-success" aria-label="<?= $GLOBAL['emailConsent'] ?>"></i>
+              <?php endif ?>
+            </td>
             <td class="d-none d-sm-table-cell d-md-table-cell"><?=timeStampToformatedDate((int)$row->creationDate)?></td>
             <td class="d-none d-sm-table-cell" style="white-space:nowrap">
               <?php if (!empty($_userComptaTypes[$id])): ?>
@@ -722,7 +728,7 @@ function caInitDT() {
         buttons: [...CA_DT_BUTTONS, CA_DT_COLVIS],
         columnDefs: [
             { targets: CA_DT_COL_OFFSET ? [0] : [], orderable: false, searchable: false },
-            { targets: [0, 4, 5, 7].map(function (i) { return i + CA_DT_COL_OFFSET; }), visible: false }
+            { targets: [0, 4, 5, 7, 8].map(function (i) { return i + CA_DT_COL_OFFSET; }), visible: false }
         ],
         language: Object.assign({}, CA_DT_LANGUAGE, { info: <?= json_encode($GLOBAL['dtInfoProfiles'], JSON_UNESCAPED_UNICODE) ?>, infoFiltered: <?= json_encode($GLOBAL['dtInfoFilteredMasc'], JSON_UNESCAPED_UNICODE) ?> })
     });

@@ -22,6 +22,7 @@ $_iData = json_encode([
     'address'   => (string)$user->getAddress(),
     'npa'       => (string)$user->getNpa(),
     'email'     => (string)$user->getEmail(),
+    'emailConsent' => (bool)$user->getEmailConsent(),
     'emailAlt'  => (string)$user->getEmailAlt(),
     'web'       => (string)$user->getWeb(),
     'telProf'   => (string)$user->getTelProf(),
@@ -314,6 +315,14 @@ $_modifiedAt = $user->getModificationDate() ? timeStampToformatedDate($user->get
             </label>
             <div class="col-md-9">
                 <input type="email" class="form-control form-control-sm" id="gd-email" x-model="draft.email"/>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-md-9 offset-md-3">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="gd-emailConsent" x-model="draft.emailConsent"/>
+                    <label class="form-check-label" for="gd-emailConsent"><?= $GLOBAL['emailConsent'] ?></label>
+                </div>
             </div>
         </div>
         <div class="row mb-2">

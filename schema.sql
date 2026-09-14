@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS `contact` (
   `portable`         varchar(255) NOT NULL DEFAULT '',
   `fax`              varchar(255) NOT NULL DEFAULT '',
   `email`            varchar(255) NOT NULL DEFAULT '',
+  `email_consent`    tinyint(1)   NOT NULL DEFAULT 0,
   `email_alt`        varchar(255) NOT NULL DEFAULT '',
   `web`              varchar(255) NOT NULL DEFAULT '',
   `sexe`             varchar(8)   NOT NULL DEFAULT 'na',
