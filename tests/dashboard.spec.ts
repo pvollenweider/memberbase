@@ -15,6 +15,18 @@ test.describe('Dashboard', () => {
     await expect(page.locator('.card-header', { hasText: 'Documentation' })).toBeVisible();
   });
 
+  test('shows "Répartition des contacts" right after "Répartition des dons", with per-type counts (#177)', async ({ page }) => {
+    await page.goto('/index.php?view=dashboard');
+    await expect(page.locator('text=Répartition des dons')).toBeVisible();
+    await expect(page.locator('text=Répartition des contacts')).toBeVisible();
+    await expect(page.locator('#dashboardPie')).toBeVisible();
+    await expect(page.locator('#dashboardContactPie')).toBeVisible();
+
+    // Seed: every active contact defaults to contact_type "Donateur privé" — one legend row.
+    await expect(page.locator('#dashboardContactPieLegend')).toContainText('Donateur privé');
+    await expect(page.locator('#dashboardContactPieLegend')).toContainText('contacts');
+  });
+
   test('admin guide link is no longer shown, user guide link stays', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
     await expect(page.locator('a', { hasText: 'Guide utilisateur' })).toBeVisible();

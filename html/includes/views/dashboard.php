@@ -434,7 +434,71 @@ include __DIR__ . '/../partials/page_header.php';
     <div id="dashboardPieLegend" style="font-size:0.7rem;line-height:1.6;width:100%"></div>
   </div>
   <?php endif ?>
+
+  <?php
+  $_ctColorPalette = array_values($_solidColorMap);
+  $_showContactPie = (!empty($_kpi->contactTypeBreakdown) && $_kpi->contactTypeTotal > 0);
+  $_ctPieLabels = []; $_ctPieData = []; $_ctPieColors = []; $_ctPieFormatted = [];
+  if ($_showContactPie) {
+      foreach ($_kpi->contactTypeBreakdown as $_ci => $_ctr) {
+          // Not htmlentities()'d: labels are JSON-encoded and assigned via
+          // JS textContent below, which inserts raw text — entity-encoding
+          // here would leak literal "&eacute;"-style entities into the legend.
+          $_ctPieLabels[]    = $_ctr->label;
+          $_ctPieData[]      = (int)$_ctr->cnt;
+          $_ctPieColors[]    = $_ctColorPalette[$_ci % count($_ctColorPalette)];
+          $_ctDeltaTxt       = $_ctr->delta === null ? '' : (' (' . ($_ctr->delta >= 0 ? '+' : '') . round($_ctr->delta) . '%)');
+          $_ctPieFormatted[] = (int)$_ctr->cnt . ' ' . $GLOBAL['contactsShort'] . $_ctDeltaTxt;
+      }
+  }
+  ?>
+  <?php if ($_showContactPie): ?>
+  <div style="flex:1 0 0;min-width:150px;background:var(--ca-ground);border:1px solid var(--ca-border,#dee2e6);border-radius:10px;padding:0.85rem 1rem;display:flex;flex-direction:column;align-items:center;gap:0.4rem">
+    <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ca-ink-muted);align-self:flex-start"><?= $GLOBAL['dashboardContactBreakdownTitle'] ?></div>
+    <canvas id="dashboardContactPie" width="80" height="80" aria-label="<?= $GLOBAL['dashboardContactBreakdownTitle'] ?>" role="img"></canvas>
+    <div id="dashboardContactPieLegend" style="font-size:0.7rem;line-height:1.6;width:100%"></div>
+  </div>
+  <?php endif ?>
 </div>
+<?php if ($_showContactPie): ?>
+<script>
+(function () {
+  var labels    = <?= json_encode($_ctPieLabels, JSON_UNESCAPED_UNICODE) ?>;
+  var data      = <?= json_encode($_ctPieData) ?>;
+  var colors    = <?= json_encode($_ctPieColors) ?>;
+  var formatted = <?= json_encode($_ctPieFormatted, JSON_UNESCAPED_UNICODE) ?>;
+  if (window.Chart && Chart.instances) {
+    Object.keys(Chart.instances).forEach(function (k) {
+      var c = Chart.instances[k];
+      if (c && c.canvas && c.canvas.id === 'dashboardContactPie') c.destroy();
+    });
+  }
+  var ctx = document.getElementById('dashboardContactPie').getContext('2d');
+  new Chart(ctx, {
+    type: 'pie',
+    data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+    options: {
+      responsive: false,
+      animation: { duration: 400 },
+      legend: { display: false },
+      tooltips: { callbacks: { label: function (i, d) { return ' ' + d.labels[i.index] + ': ' + formatted[i.index]; } } }
+    }
+  });
+  var leg = document.getElementById('dashboardContactPieLegend');
+  leg.innerHTML = '';
+  labels.forEach(function (label, i) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:0.3rem';
+    var dot = document.createElement('span');
+    dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0;background:' + colors[i];
+    var txt = document.createElement('span');
+    txt.style.color = 'var(--ca-ink-muted)';
+    txt.textContent = label + ' — ' + formatted[i];
+    row.appendChild(dot); row.appendChild(txt); leg.appendChild(row);
+  });
+})();
+</script>
+<?php endif ?>
 <?php if ($_showPie): ?>
 <script>
 (function () {
