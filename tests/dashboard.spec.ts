@@ -15,10 +15,10 @@ test.describe('Dashboard', () => {
     await expect(page.locator('.card-header', { hasText: 'Documentation' })).toBeVisible();
   });
 
-  test('shows "Répartition des contacts" right after "Répartition des dons", CHF per contact type (#177)', async ({ page }) => {
+  test('shows "Dons par type de contact" right after "Répartition des dons", CHF per contact type (#177)', async ({ page }) => {
     await page.goto('/index.php?view=dashboard');
     await expect(page.locator('text=Répartition des dons')).toBeVisible();
-    await expect(page.locator('text=Répartition des contacts')).toBeVisible();
+    await expect(page.locator('text=Dons par type de contact')).toBeVisible();
     await expect(page.locator('#dashboardPie')).toBeVisible();
     await expect(page.locator('#dashboardContactPie')).toBeVisible();
 
