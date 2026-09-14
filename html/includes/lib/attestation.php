@@ -194,6 +194,7 @@ function mbGetQualifyingDonors(PDO $pdo, int $year, int $minSum): array
         FROM contact u
         JOIN compta c ON u.id = c.user_id
         WHERE c.type_id NOT IN (SELECT id FROM compta_type WHERE is_excluded_from_donation = 1)
+          AND u.contact_type_id NOT IN (SELECT id FROM contact_type WHERE visible_in_attestations = 0)
           AND c.date > ? AND c.date < ?
         GROUP BY u.id, u.firstname, u.lastname, u.society, u.sexe, u.email, u.npa, u.address
         HAVING SUM(c.sum) >= ?

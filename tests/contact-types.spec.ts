@@ -124,6 +124,24 @@ test.describe('Contact type × compta type matrix — auto-save', () => {
   });
 });
 
+test.describe('Contact type — visible in attestations (#174)', () => {
+  test('toggling the checkbox auto-saves and persists after reload', async ({ page }) => {
+    await page.goto('/index.php?view=settings&tab=contactTypes');
+    const row = page.locator('#contact-type-management-table tbody tr').first();
+    const cb = row.locator('.ctm-visible-cb');
+    await expect(cb).toBeChecked(); // seeded types default to visible=1
+
+    await cb.uncheck();
+    await page.waitForTimeout(300); // fire-and-forget fetch, no visible status indicator
+    await page.reload();
+    await expect(page.locator('#contact-type-management-table tbody tr').first().locator('.ctm-visible-cb')).not.toBeChecked();
+
+    // Restore for other tests.
+    await page.locator('#contact-type-management-table tbody tr').first().locator('.ctm-visible-cb').check();
+    await page.waitForTimeout(300);
+  });
+});
+
 test.describe('Contact type × compta type matrix — default type (#165 phase 2)', () => {
   test('picking a default radio pre-selects that compta type in the add-entry form', async ({ page }) => {
     await page.goto('/index.php?view=settings&tab=contactTypes');

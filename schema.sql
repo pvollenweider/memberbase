@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS `contact_type` (
   `code`       varchar(20)  NOT NULL,
   `label`      varchar(255) NOT NULL,
   `icon`       varchar(50)  NOT NULL DEFAULT '',
+  `visible_in_attestations` tinyint(1) NOT NULL DEFAULT 1,
   `sort_order` int(11)      NOT NULL DEFAULT 0,
   `default_compta_type_id` int(11) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),

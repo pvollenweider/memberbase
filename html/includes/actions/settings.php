@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'addContactType', 'deleteContactType', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn', 'updateContactTypeDefaultComptaType', 'bulkSetContactTypeBySegment'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'addContactType', 'deleteContactType', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn', 'updateContactTypeDefaultComptaType', 'updateContactTypeVisibleInAttestations', 'bulkSetContactTypeBySegment'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -325,6 +325,21 @@ if ($action == 'saveSettings') {
         : null;
     mbSetContactTypeDefaultComptaType(db(), $_ctdContactTypeId, $_ctdComptaTypeId);
     auditLog(db(), 'updateContactTypeDefaultComptaType', "contact_type_id=$_ctdContactTypeId | default_compta_type_id=" . ($_ctdComptaTypeId ?? 'null'));
+    echo json_encode(['ok' => true]);
+    exit;
+
+} elseif ($action === 'updateContactTypeVisibleInAttestations') {
+    // Auto-save: fired when the admin toggles the "visible dans les
+    // attestations" checkbox for one contact_type row — same discard-
+    // buffered-output pattern as the matrix column/default above.
+    while (ob_get_level()) { ob_end_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
+    $_ctvId      = (int)($_REQUEST['id'] ?? 0);
+    $_ctvVisible = !empty($_REQUEST['visible']) ? 1 : 0;
+    if ($_ctvId > 0) {
+        db()->prepare("UPDATE contact_type SET visible_in_attestations = ? WHERE id = ?")->execute([$_ctvVisible, $_ctvId]);
+        auditLog(db(), 'updateContactTypeVisibleInAttestations', "id=$_ctvId | visible_in_attestations=$_ctvVisible");
+    }
     echo json_encode(['ok' => true]);
     exit;
 

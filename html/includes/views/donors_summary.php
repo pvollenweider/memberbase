@@ -539,7 +539,8 @@ $baseSelect = "
 ";
 
 // Always include all rows so attestation filter can work, exclusion handled in SUM above
-$sql = $baseSelect . " WHERE u.status=1";
+$sql = $baseSelect . " WHERE u.status=1
+    AND u.contact_type_id NOT IN (SELECT id FROM contact_type WHERE visible_in_attestations = 0)";
 
 if ($year != -2) {
     if ($year === -3) {

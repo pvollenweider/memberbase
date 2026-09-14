@@ -57,6 +57,37 @@ async function csrfFor(page: any): Promise<string> {
   return page.evaluate(() => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '');
 }
 
+test.describe('Bulk attestation list — contact_type.visible_in_attestations filter (#174)', () => {
+  test('a donor whose contact_type has visible_in_attestations=0 is excluded from previewAttestationsBulkList', async ({ page }) => {
+    await page.goto(`/index.php?view=resume&minSum=1`);
+    const csrf = await csrfFor(page);
+
+    // contact_type 4 = "Entreprise" (company) in the seed.
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'updateContactTypeVisibleInAttestations', id: '4', visible: '0' },
+    });
+
+    const contact = await (await page.request.post('/api/contacts', {
+      data: { lastName: 'HiddenTypeAttestation E2E', contactTypeId: 4 },
+    })).json();
+    await page.request.post('/api/compta', {
+      data: { memberId: contact.data.id, typeId: 3, date: `${YEAR}-06-01`, amount: 500 },
+    });
+
+    const resp = await page.request.post('/index.php', {
+      form: { csrf, action: 'previewAttestationsBulkList', year: String(YEAR), minSum: '1' },
+    });
+    const json = await resp.json();
+    expect(json.ok).toBe(true);
+    expect(json.donors.some((d: any) => d.id === contact.data.id)).toBe(false);
+
+    // Restore the flag before other tests in this file run.
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'updateContactTypeVisibleInAttestations', id: '4', visible: '1' },
+    });
+  });
+});
+
 test.describe('Bulk PDF download (attestation_bulk.php)', () => {
   test('downloads a single merged PDF for all qualifying donors', async ({ page }) => {
     await page.goto(`/index.php?view=resume&minSum=1`);
