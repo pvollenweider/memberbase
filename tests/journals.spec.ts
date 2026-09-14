@@ -64,6 +64,25 @@ test.describe('Journals hub', () => {
     await expect(page).toHaveURL(/tab=compta/);
     await expect(page.locator('#jh-tab-compta')).toBeVisible();
   });
+
+  test('Compta tab: filter by contact type narrows the list (#178 follow-up)', async ({ page }) => {
+    // Alice (id 1, contact_type "Donateur privé" by default) has compta
+    // entries in the seed — switch her to "Entreprise" and confirm the type
+    // filter includes/excludes her rows accordingly.
+    await page.request.patch('/api/contacts/1', { data: { contactTypeId: 4 } }); // 4 = Entreprise
+
+    await page.goto('/index.php?view=journals&tab=compta&contactTypeId=4');
+    await expect(page.locator('#jh-tab-compta')).toContainText('Dupont');
+
+    await page.goto('/index.php?view=journals&tab=compta&contactTypeId=1');
+    await expect(page.locator('#jh-tab-compta')).not.toContainText('Dupont');
+
+    // Dropdown shows the active type's label instead of "Tous les types".
+    await page.goto('/index.php?view=journals&tab=compta&contactTypeId=4');
+    await expect(page.locator('#jh-tab-compta .ca-filter-btn', { hasText: 'Entreprise' })).toBeVisible();
+
+    await page.request.patch('/api/contacts/1', { data: { contactTypeId: 1 } }); // revert for other tests
+  });
 });
 
 test.describe('Journals hub — sidebar', () => {

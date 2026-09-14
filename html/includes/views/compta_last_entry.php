@@ -21,6 +21,14 @@ $filterTypeId = 0;
 if (isset($_REQUEST['type_id']) && (int)$_REQUEST['type_id'] > 0 && isset($comptaTypes[(int)$_REQUEST['type_id']])) {
     $filterTypeId = (int)$_REQUEST['type_id'];
 }
+$contactTypeId = (int)($_REQUEST['contactTypeId'] ?? 0);
+// Queried locally (not relying on the caller's scope) since this view is
+// also reachable standalone via ?view=lastEntryCompta, not just embedded
+// through journals.php.
+$_lecContactTypes = db()->query("SELECT id, label FROM contact_type ORDER BY sort_order")->fetchAll(PDO::FETCH_OBJ);
+if ($contactTypeId > 0 && !in_array($contactTypeId, array_map(fn($t) => (int)$t->id, $_lecContactTypes), true)) {
+    $contactTypeId = 0;
+}
 if (isset($_REQUEST['year'])) {
     $year = $_REQUEST['year'];
 }
@@ -82,12 +90,14 @@ if (empty($_jhEmbedded)) {
   // the currently selected value always stays visible even if it becomes
   // the only one left).
   $_typeIdsWithData = array_map('intval', db()->query(
-      "SELECT DISTINCT c.type_id FROM compta c JOIN contact u ON u.id = c.user_id AND u.status = 1"
-      . ($year != -2 ? " WHERE c.date > " . db()->quote($from) . " AND c.date < " . db()->quote($to) : "")
+      "SELECT DISTINCT c.type_id FROM compta c JOIN contact u ON u.id = c.user_id AND u.status = 1 WHERE 1=1"
+      . ($year != -2 ? " AND c.date > " . db()->quote($from) . " AND c.date < " . db()->quote($to) : "")
+      . ($contactTypeId > 0 ? " AND u.contact_type_id = " . (int)$contactTypeId : "")
   )->fetchAll(PDO::FETCH_COLUMN));
   $_yearsWithData = array_map('intval', db()->query(
-      "SELECT DISTINCT YEAR(c.date) FROM compta c JOIN contact u ON u.id = c.user_id AND u.status = 1"
-      . ($filterTypeId > 0 ? " WHERE c.type_id = " . (int)$filterTypeId : "")
+      "SELECT DISTINCT YEAR(c.date) FROM compta c JOIN contact u ON u.id = c.user_id AND u.status = 1 WHERE 1=1"
+      . ($filterTypeId > 0 ? " AND c.type_id = " . (int)$filterTypeId : "")
+      . ($contactTypeId > 0 ? " AND u.contact_type_id = " . (int)$contactTypeId : "")
   )->fetchAll(PDO::FETCH_COLUMN));
   ?>
   <div class="dropdown ms-2">
@@ -98,13 +108,13 @@ if (empty($_jhEmbedded)) {
     </button>
     <ul class="dropdown-menu">
       <li><a class="dropdown-item<?= $filterTypeId === 0 ? ' active' : '' ?>"
-             href="<?= appUrl() ?>?view=lastEntryCompta&amp;year=<?= $year ?>"><?= $GLOBAL['allTypes'] ?></a></li>
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;year=<?= $year ?>&amp;contactTypeId=<?= $contactTypeId ?>"><?= $GLOBAL['allTypes'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
       <?php foreach ($comptaTypes as $ct):
           if (!in_array((int)$ct->id, $_typeIdsWithData, true) && $filterTypeId !== (int)$ct->id) { continue; }
       ?>
       <li><a class="dropdown-item<?= $filterTypeId === (int)$ct->id ? ' active' : '' ?>"
-             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= (int)$ct->id ?>&amp;year=<?= $year ?>">
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= (int)$ct->id ?>&amp;year=<?= $year ?>&amp;contactTypeId=<?= $contactTypeId ?>">
              <?= _lec_type_swatch($ct->color ?? '', $ct->label, $charset) ?>
       </a></li>
       <?php endforeach ?>
@@ -125,12 +135,12 @@ if (empty($_jhEmbedded)) {
     </button>
     <ul class="dropdown-menu">
       <li><a class="dropdown-item<?= $year === -2 ? ' active' : '' ?>"
-             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-2"><?= $GLOBAL['allYear'] ?></a></li>
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-2&amp;contactTypeId=<?= $contactTypeId ?>"><?= $GLOBAL['allYear'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
       <li><a class="dropdown-item<?= $year === -3 ? ' active' : '' ?>"
-             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-3"><?= $GLOBAL['last12Months'] ?></a></li>
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-3&amp;contactTypeId=<?= $contactTypeId ?>"><?= $GLOBAL['last12Months'] ?></a></li>
       <li><a class="dropdown-item<?= $year === -4 ? ' active' : '' ?>"
-             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-4"><?= $GLOBAL['last24Months'] ?></a></li>
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=-4&amp;contactTypeId=<?= $contactTypeId ?>"><?= $GLOBAL['last24Months'] ?></a></li>
       <li><hr class="dropdown-divider"></li>
       <?php
       $currentYear = date("Y");
@@ -138,9 +148,25 @@ if (empty($_jhEmbedded)) {
           $y = $currentYear - $i;
           if (!in_array($y, $_yearsWithData, true) && $year !== $y) { continue; }
           ?><li><a class="dropdown-item<?= $year === $y ? ' active' : '' ?>"
-               href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=<?= $y ?>"><?= $y ?></a></li><?php
+               href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=<?= $y ?>&amp;contactTypeId=<?= $contactTypeId ?>"><?= $y ?></a></li><?php
       }
       ?>
+    </ul>
+  </div>
+
+  <?php $_lecActiveContactType = $contactTypeId > 0 ? array_values(array_filter($_lecContactTypes, fn($t) => (int)$t->id === $contactTypeId))[0] ?? null : null; ?>
+  <div class="dropdown">
+    <button class="ca-filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <?= $_lecActiveContactType ? htmlspecialchars($_lecActiveContactType->label, ENT_QUOTES, $charset) : $GLOBAL['allDonorTypes'] ?>
+    </button>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item<?= $contactTypeId === 0 ? ' active' : '' ?>"
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=<?= $year ?>"><?= $GLOBAL['allDonorTypes'] ?></a></li>
+      <li><hr class="dropdown-divider"></li>
+      <?php foreach ($_lecContactTypes as $_lecCt): ?>
+      <li><a class="dropdown-item<?= $contactTypeId === (int)$_lecCt->id ? ' active' : '' ?>"
+             href="<?= appUrl() ?>?view=lastEntryCompta&amp;type_id=<?= $filterTypeId ?>&amp;year=<?= $year ?>&amp;contactTypeId=<?= (int)$_lecCt->id ?>"><?= htmlspecialchars($_lecCt->label, ENT_QUOTES, $charset) ?></a></li>
+      <?php endforeach ?>
     </ul>
   </div>
 </div><!-- .card-header -->
@@ -177,6 +203,9 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 $query = "SELECT DISTINCT u.firstname, u.lastname, u.society, u.id, c.type_id, c.date, c.libele, c.id AS comptaid, c.sum, c.`comment`, c.user_id, u.address, u.npa, u.email, u.tel, u.portable, ct.label AS ct_label, ct.color AS ct_color FROM contact u JOIN compta c ON u.id = c.user_id LEFT JOIN compta_type ct ON ct.id = c.type_id WHERE u.status=1";
 if ($filterTypeId > 0) {
     $query .= " AND c.type_id = " . (int)$filterTypeId;
+}
+if ($contactTypeId > 0) {
+    $query .= " AND u.contact_type_id = " . (int)$contactTypeId;
 }
 if ($year != -2) {
     $query .= " AND c.date > " . db()->quote($from) . " AND c.date < " . db()->quote($to);
