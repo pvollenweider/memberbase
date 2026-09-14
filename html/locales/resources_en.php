@@ -50,7 +50,6 @@ $GLOBAL['activeMembers']   = "Active members";
 $GLOBAL['dashboardMembersLabel'] = "Members";
 $GLOBAL['dashboardDonationBreakdownTitle'] = "Donation breakdown";
 $GLOBAL['dashboardContactBreakdownTitle'] = "Contact breakdown";
-$GLOBAL['contactsShort'] = "contacts";
 $GLOBAL['dashboardRevenueChartLabel'] = "Cumulative revenue evolution, current year vs previous year";
 $GLOBAL['contributions']   = "Contributions";
 $GLOBAL['loyalDonors']     = "Loyal";

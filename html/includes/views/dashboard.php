@@ -445,10 +445,10 @@ include __DIR__ . '/../partials/page_header.php';
           // JS textContent below, which inserts raw text — entity-encoding
           // here would leak literal "&eacute;"-style entities into the legend.
           $_ctPieLabels[]    = $_ctr->label;
-          $_ctPieData[]      = (int)$_ctr->cnt;
+          $_ctPieData[]      = round((float)$_ctr->cnt);
           $_ctPieColors[]    = $_ctColorPalette[$_ci % count($_ctColorPalette)];
           $_ctDeltaTxt       = $_ctr->delta === null ? '' : (' (' . ($_ctr->delta >= 0 ? '+' : '') . round($_ctr->delta) . '%)');
-          $_ctPieFormatted[] = (int)$_ctr->cnt . ' ' . $GLOBAL['contactsShort'] . $_ctDeltaTxt;
+          $_ctPieFormatted[] = number_format((float)$_ctr->cnt, 0, '.', '\'') . ' CHF' . $_ctDeltaTxt;
       }
   }
   ?>

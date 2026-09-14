@@ -49,7 +49,6 @@ $GLOBAL['activeMembers']   = "Aktive Mitglieder";
 $GLOBAL['dashboardMembersLabel'] = "Mitglieder";
 $GLOBAL['dashboardDonationBreakdownTitle'] = "Verteilung der Spenden";
 $GLOBAL['dashboardContactBreakdownTitle'] = "Verteilung der Kontakte";
-$GLOBAL['contactsShort'] = "Kontakte";
 $GLOBAL['dashboardRevenueChartLabel'] = "Kumulierte Einnahmenentwicklung, laufendes Jahr vs. Vorjahr";
 $GLOBAL['contributions']   = "Beiträge";
 $GLOBAL['loyalDonors']     = "Treue";

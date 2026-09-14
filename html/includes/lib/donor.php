@@ -173,32 +173,33 @@ function mbComputeDonorKpis(PDO $db, array $comptaTypes, array $appSettings, int
     $typeBreakdown = $sTypeBreak->fetchAll(PDO::FETCH_OBJ);
     $typeTotal = array_sum(array_map(fn($r) => (float)$r->total, $typeBreakdown));
 
-    // New contacts per contact_type in the period, vs the same period last
-    // year — "répartition des contacts" KPI (#177). Uses creationDate (the
-    // only date dimension a contact_type breakdown actually has) over the
-    // same kFrom/kTo full-year window as the donation breakdown above, so
-    // "this year so far" naturally falls out of it the same way.
+    // Total donations (CHF) per contact_type of the donor in the period, vs
+    // the same period last year — "répartition des contacts" KPI (#177).
+    // Same donation-exclusion rule and kFrom/kTo window as the compta_type
+    // breakdown above, just grouped by the donor's contact_type instead.
     $sCtBreak = $db->prepare("
-        SELECT ct.id, ct.label, ct.icon, COUNT(*) AS cnt
-        FROM contact u JOIN contact_type ct ON ct.id = u.contact_type_id
-        WHERE u.status=1 AND u.creationDate>? AND u.creationDate<?
+        SELECT ct.id, ct.label, ct.icon, COALESCE(SUM(c.sum),0) AS cnt
+        FROM compta c
+        JOIN contact u ON u.id = c.user_id AND u.status = 1
+        JOIN contact_type ct ON ct.id = u.contact_type_id
+        WHERE c.date>? AND c.date<? AND c.type_id NOT IN ($excl)
         GROUP BY ct.id, ct.label, ct.icon ORDER BY cnt DESC
     ");
     $sCtBreak->execute([$kFrom, $kTo]);
     $contactTypeBreakdown = $sCtBreak->fetchAll(PDO::FETCH_OBJ);
-    $contactTypeTotal = array_sum(array_map(fn($r) => (int)$r->cnt, $contactTypeBreakdown));
+    $contactTypeTotal = array_sum(array_map(fn($r) => (float)$r->cnt, $contactTypeBreakdown));
 
     $sCtBreak->execute([$kFrom1, $kTo1]);
     $contactTypePrevById = [];
-    foreach ($sCtBreak->fetchAll(PDO::FETCH_OBJ) as $r) { $contactTypePrevById[(int)$r->id] = (int)$r->cnt; }
+    foreach ($sCtBreak->fetchAll(PDO::FETCH_OBJ) as $r) { $contactTypePrevById[(int)$r->id] = (float)$r->cnt; }
     $contactTypeTotalPrev = array_sum($contactTypePrevById);
     $contactTypeTotalDelta = $contactTypeTotalPrev > 0
         ? (($contactTypeTotal - $contactTypeTotalPrev) / $contactTypeTotalPrev * 100)
         : null;
     foreach ($contactTypeBreakdown as $r) {
-        $prev = $contactTypePrevById[(int)$r->id] ?? 0;
+        $prev = $contactTypePrevById[(int)$r->id] ?? 0.0;
         $r->prevCnt = $prev;
-        $r->delta   = $prev > 0 ? (((int)$r->cnt - $prev) / $prev * 100) : null;
+        $r->delta   = $prev > 0 ? (((float)$r->cnt - $prev) / $prev * 100) : null;
     }
 
     // Member counts by cotisation_year (fallback: YEAR of payment date)
