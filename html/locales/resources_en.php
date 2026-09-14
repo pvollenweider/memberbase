@@ -686,6 +686,7 @@ $GLOBAL['firstLastName'] = "First name / Last name";
 $GLOBAL['records'] = "Profiles";
 $GLOBAL['mergeEllipsis'] = "Merge…";
 $GLOBAL['membersSameEmail'] = "Members with the same email";
+$GLOBAL['membersSameSociety'] = "Contacts with the same company";
 $GLOBAL['hiddenSegmentsInCategory'] = "Hidden segments in a category";
 $GLOBAL['editShort'] = "Edit";
 $GLOBAL['hiddenSegmentsInCombined'] = "Hidden segments in a combined segment";

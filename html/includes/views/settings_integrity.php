@@ -11,6 +11,7 @@ $_ic = mbRunIntegrityChecks(db(), $appSettings);
 [
     'dupNames'           => $dupNames,
     'dupEmails'          => $dupEmails,
+    'dupSociety'         => $dupSociety,
     'hiddenInCats'       => $hiddenInCats,
     'hiddenInMeta'       => $hiddenInMeta,
     'hiddenWithMembers'  => $hiddenWithMembers,
@@ -25,7 +26,7 @@ $_ic = mbRunIntegrityChecks(db(), $appSettings);
     'cotiSegmentMissing' => $cotiSegmentMissing,
 ] = $_ic;
 
-$allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty($hiddenInMeta) && empty($hiddenWithMembers)
+$allOk = empty($dupNames) && empty($dupEmails) && empty($dupSociety) && empty($hiddenInCats) && empty($hiddenInMeta) && empty($hiddenWithMembers)
       && empty($dateInvalid) && empty($typeNull)
       && empty($emailInvalid) && empty($emailAltInvalid) && empty($sexeInvalid) && empty($birthdayFuture)
       && empty($noName) && empty($cascadeMissing) && empty($cotiSegmentMissing);
@@ -144,6 +145,44 @@ $allOk = empty($dupNames) && empty($dupEmails) && empty($hiddenInCats) && empty(
             <?php endfor ?>
           </select>
           <?php endif ?>
+        </td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+
+  </template>
+</details>
+<?php endif ?>
+
+<?php if (!empty($dupSociety)): ?>
+<details class="ca-integrity-section mb-3">
+  <summary class="ca-integrity-summary">
+    <i class="fas fa-building me-1 text-info" aria-hidden="true"></i>
+    <?= $GLOBAL['membersSameSociety'] ?>
+    <span class="badge text-bg-info ms-1" style="font-size:0.7rem"><?= count($dupSociety) ?></span>
+  </summary>
+  <div class="ca-integrity-body"></div>
+  <template>
+<table class="table table-sm align-middle mt-2 mb-0" style="font-size:0.82rem">
+    <thead>
+      <tr>
+        <th><?= $GLOBAL['society'] ?></th>
+        <th style="width:3rem" class="text-center"><?= $GLOBAL['records'] ?></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($dupSociety as $dup):
+      $ids = explode(',', $dup->ids); ?>
+      <tr>
+        <td><?= htmlentities($dup->society, ENT_COMPAT, $charset) ?></td>
+        <td class="text-center text-muted"><?= (int)$dup->cnt ?></td>
+        <td class="text-end">
+          <?php foreach ($ids as $uid): ?>
+          <a href="<?= appUrl() ?>?view=updateUser&amp;id=<?= (int)$uid ?>"
+             class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" style="font-size:0.75rem">#<?= (int)$uid ?></a>
+          <?php endforeach ?>
         </td>
       </tr>
     <?php endforeach ?>

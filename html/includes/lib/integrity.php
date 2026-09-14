@@ -80,6 +80,18 @@ function mbRunIntegrityChecks(PDO $db, array $appSettings = []): array
             ORDER BY email
         ")->fetchAll(PDO::FETCH_OBJ),
 
+        // Grouped as an info list, not a "merge these" alert like dupNames/dupEmails --
+        // several genuinely distinct contacts sharing an employer is normal, not an error.
+        'dupSociety' => $db->query("
+            SELECT society, COUNT(*) AS cnt,
+                   GROUP_CONCAT(id ORDER BY id SEPARATOR ',') AS ids
+            FROM contact
+            WHERE status=1 AND TRIM(society) != ''
+            GROUP BY TRIM(LOWER(society))
+            HAVING COUNT(*) > 1
+            ORDER BY society
+        ")->fetchAll(PDO::FETCH_OBJ),
+
         // "Future" is computed in PHP (Europe/Zurich, forced app-wide) rather
         // than SQL NOW() -- MySQL's session timezone is typically UTC in this
         // container, 1-2h behind Zurich, which flagged same-day entries saved

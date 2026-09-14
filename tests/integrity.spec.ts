@@ -36,3 +36,24 @@ test.describe('Integrity — compta date checks', () => {
     await expect(page.locator('td', { hasText: 'Cotisation modifiee E2E' })).toHaveCount(0);
   });
 });
+
+test.describe('Integrity — same-company contacts (#172)', () => {
+  test('two active contacts sharing a company are listed under "Contacts avec la même entreprise"', async ({ page }) => {
+    const society = 'Acme Corp E2E ' + Date.now();
+    const c1 = await (await page.request.post('/api/contacts', {
+      data: { lastName: 'IntegritySociety1', society },
+    })).json();
+    const c2 = await (await page.request.post('/api/contacts', {
+      data: { lastName: 'IntegritySociety2', society },
+    })).json();
+
+    await page.goto('/index.php?view=settings&tab=integrity');
+    await expect(page.locator('#tab-integrity')).toBeVisible({ timeout: 10_000 });
+
+    const summary = page.locator('.ca-integrity-summary', { hasText: 'Contacts avec la même entreprise' });
+    await expect(summary).toBeVisible();
+    await summary.click();
+    await expect(page.locator('a', { hasText: `#${c1.data.id}` })).toBeVisible();
+    await expect(page.locator('a', { hasText: `#${c2.data.id}` })).toBeVisible();
+  });
+});

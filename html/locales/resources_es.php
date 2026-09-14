@@ -686,6 +686,7 @@ $GLOBAL['firstLastName'] = "Nombre / Apellido";
 $GLOBAL['records'] = "Fichas";
 $GLOBAL['mergeEllipsis'] = "Fusionar…";
 $GLOBAL['membersSameEmail'] = "Miembros con el mismo email";
+$GLOBAL['membersSameSociety'] = "Contactos con la misma empresa";
 $GLOBAL['hiddenSegmentsInCategory'] = "Segmentos ocultos en una categoría";
 $GLOBAL['editShort'] = "Editar";
 $GLOBAL['hiddenSegmentsInCombined'] = "Segmentos ocultos en un segmento combinado";
