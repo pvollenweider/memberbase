@@ -499,7 +499,7 @@ include __DIR__ . '/../partials/page_header.php';
             <span style="opacity:0.75"> (<?= $_ctPct ?>%)</span>
           </span>
           <?php if ($_ctDeltaTxt !== null): ?>
-          <span style="flex-shrink:0;font-weight:600;color:<?= ($_ctDeltaUp || $_ctIsNew) ? 'var(--bs-success,#198754)' : 'var(--bs-danger,#dc3545)' ?>"><?= htmlspecialchars($_ctDeltaTxt, ENT_QUOTES, $charset) ?></span>
+          <span style="flex-shrink:0;font-size:0.68rem;font-weight:600;color:<?= ($_ctDeltaUp || $_ctIsNew) ? 'var(--bs-success,#198754)' : 'var(--bs-danger,#dc3545)' ?>"><?= htmlspecialchars($_ctDeltaTxt, ENT_QUOTES, $charset) ?></span>
           <?php endif ?>
         </div>
       </div>
