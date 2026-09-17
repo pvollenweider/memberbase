@@ -56,6 +56,7 @@ if (isset($_REQUEST['action'])) {
         'saveEmailTemplate'         => 'settings',
         'resetEmailTemplate'        => 'settings',
         'applyMigrations'      => 'maintenance',
+        'updateComptaBudget'   => 'budgets',
         'updateComptaTypeOrder'=> 'settings',
         'addComptaType'        => 'settings',
         'updateComptaType'     => 'settings',

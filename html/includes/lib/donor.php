@@ -205,6 +205,16 @@ function mbComputeDonorKpis(PDO $db, array $comptaTypes, array $appSettings, int
 
     $kDelta = $kTotal1 > 0 ? (($kTotal - $kTotal1) / $kTotal1 * 100) : null;
 
+    // Budget comparison ("Budgets" page, Finances submenu) — same donation
+    // exclusion rule as kTotal, so the two figures are directly comparable.
+    $sBudget = $db->prepare(
+        "SELECT COALESCE(SUM(amount),0) FROM compta_budget WHERE year = ? AND compta_type_id NOT IN ($excl)"
+    );
+    $sBudget->execute([$year]);
+    $kBudget    = (float)$sBudget->fetchColumn();
+    $kBudgetGap = $kBudget > 0 ? $kBudget - $kTotal : null;
+    $kBudgetPct = $kBudget > 0 ? round($kTotal / $kBudget * 100) : null;
+
     // YTD "même période" -- only meaningful when viewing current year
     $kYtd = null;
     $kDonateursYtd1 = null;
@@ -319,6 +329,7 @@ function mbComputeDonorKpis(PDO $db, array $comptaTypes, array $appSettings, int
 
     return (object)compact(
         'kTotal', 'kTotal1', 'kDelta', 'kYtd', 'kTotalYtd1',
+        'kBudget', 'kBudgetGap', 'kBudgetPct',
         'kDonateurs', 'kDonateurs1', 'kDonDelta', 'kDonateursYtd1',
         'kRecurrents', 'kNouveaux', 'kLapsed',
         'kMembres', 'kMembresPrev', 'kMembresDelta', 'kMembresLapsed',

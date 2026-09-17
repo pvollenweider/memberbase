@@ -15,7 +15,7 @@ $_snSegmentsActive = in_array($view, ['peopleFinance', 'list'], true) && $_snPfT
 $_snJournalsTab    = in_array($_REQUEST['tab'] ?? '', ['compta', 'suivi'], true) ? $_REQUEST['tab'] : 'compta';
 $_snJournalComptaActive = ($view === 'journals' && $_snJournalsTab === 'compta') || $view === 'lastEntryCompta';
 $_snJournalSuiviActive  = ($view === 'journals' && $_snJournalsTab === 'suivi') || $view === 'lastEntrySuivi';
-$_snFinancesActive  = $_snJournalComptaActive || (in_array($view, ['peopleFinance', 'comptaRecap', 'resume'], true) && in_array($_snPfTab, ['recap', 'dons'], true));
+$_snFinancesActive  = $_snJournalComptaActive || $view === 'budgets' || (in_array($view, ['peopleFinance', 'comptaRecap', 'resume'], true) && in_array($_snPfTab, ['recap', 'dons'], true));
 $_snEvolutionActive = $view === 'peopleFinance' && in_array($_snPfTab, ['lapsed', 'lapsedDonors'], true);
 
 // Tab resolution for the "Administration" group's active-state highlighting.
@@ -52,6 +52,9 @@ $_snAdminActive = in_array($view, ['settings', 'updateSegment', 'updateCombinedS
                         <a class="nav-link<?= $_snPfTab === 'recap' && $view === 'peopleFinance' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&tab=recap"><?= $GLOBAL['peopleFinanceTabRecap'] ?></a>
                         <?php endif ?>
                         <a class="nav-link<?= $_snPfTab === 'dons' && $view === 'peopleFinance' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=peopleFinance&tab=dons"><?= $GLOBAL['peopleFinanceTabDons'] ?></a>
+                        <?php if (isManager()): ?>
+                        <a class="nav-link<?= $view === 'budgets' ? ' active' : '' ?>" href="<?= appUrl() ?>?view=budgets"><?= $GLOBAL['budgetsPageTitle'] ?></a>
+                        <?php endif ?>
                     </nav>
                 </div>
 

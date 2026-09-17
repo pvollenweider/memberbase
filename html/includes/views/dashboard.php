@@ -334,6 +334,17 @@ include __DIR__ . '/../partials/page_header.php';
     </div>
     <?php endif ?>
     <?php endif ?>
+    <?php if ($_kpi->kBudget > 0): ?>
+    <div style="font-size:0.72rem;margin-top:0.2rem;opacity:0.85">
+      <a href="<?= appUrl() ?>?view=budgets" style="color:inherit;text-decoration:underline" hx-boost="false">
+        <?php if ($_kpi->kBudgetGap > 0): ?>
+          <i class="fas fa-flag-checkered me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['gapToBudget'], number_format($_kpi->kBudgetGap, 0, '.', '\''), $_year, number_format($_kpi->kBudget, 0, '.', '\''), $_kpi->kBudgetPct) ?>
+        <?php else: ?>
+          <i class="fas fa-trophy me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['budgetExceeded'], $_year, number_format($_kpi->kBudget, 0, '.', '\''), number_format(abs($_kpi->kBudgetGap), 0, '.', '\''), $_kpi->kBudgetPct) ?>
+        <?php endif ?>
+      </a>
+    </div>
+    <?php endif ?>
     <?php if (!empty($_kpi->monthlyPrev) && array_sum($_kpi->monthlyPrev) > 0): ?>
     <div style="margin-top:0.5rem;height:60px">
       <canvas id="dashboardRevenueChart" aria-label="<?= htmlspecialchars($GLOBAL['dashboardRevenueChartLabel'], ENT_QUOTES, $charset) ?>" role="img"></canvas>

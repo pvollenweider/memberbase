@@ -186,6 +186,14 @@ CREATE TABLE IF NOT EXISTS `contact_type_compta_type` (
 ALTER TABLE `contact_type` ADD CONSTRAINT `fk_contact_type_default_compta_type`
   FOREIGN KEY (`default_compta_type_id`) REFERENCES `compta_type` (`id`) ON DELETE SET NULL;
 
+CREATE TABLE IF NOT EXISTS `compta_budget` (
+  `compta_type_id` int(11)       NOT NULL,
+  `year`           smallint(4)   NOT NULL,
+  `amount`         decimal(10,2) NOT NULL DEFAULT 0.00,
+  PRIMARY KEY (`compta_type_id`, `year`),
+  CONSTRAINT `fk_compta_budget_type` FOREIGN KEY (`compta_type_id`) REFERENCES `compta_type` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `compta` (
   `id`                int(8)       NOT NULL AUTO_INCREMENT,
   `user_id`           int(8)       NOT NULL DEFAULT 0,

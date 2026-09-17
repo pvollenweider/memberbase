@@ -56,6 +56,7 @@ $UA_VIEW_ROUTES = [
     'updateCompta'        => ['compta_edit_form.php'],
     'lastEntryCompta'     => ['compta_last_entry.php'],
     'comptaRecap'         => ['compta_recap.php',         'isManager'],
+    'budgets'             => ['budgets.php',               'isManager'],
     'removeCompta'        => ['compta_delete_confirm.php', 'canWrite'],
 
     // Donateurs
