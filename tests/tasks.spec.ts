@@ -318,6 +318,39 @@ test.describe('Tasks — payment notification generation respects contact_type.v
       form: { csrf, action: 'updateContactTypeVisibleInRecap', id: '4', visible: '1' },
     });
   });
+
+  test('turning visible_in_recap off retroactively closes an already-generated task for that type', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+
+    // contact_type 4 = "Entreprise" — generate the task WHILE still visible,
+    // then flip the flag off and confirm the existing open task gets closed
+    // immediately (not just excluded from the next generation run).
+    const contact = await (await page.request.post('/api/contacts', {
+      data: { lastName: 'RetroCloseRecapTask E2E', contactTypeId: 4 },
+    })).json();
+    await page.request.post('/api/compta', {
+      data: { memberId: contact.data.id, typeId: 1, date: `${new Date().getFullYear()}-06-02`, amount: 55 },
+    });
+    await page.request.post('/index.php', { form: { action: 'generateComptaRecapTasks', csrf } });
+
+    await page.goto('/index.php?view=tasks');
+    await expect(page.locator('tr', { hasText: 'RetroCloseRecapTask E2E' })).toBeVisible();
+
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'updateContactTypeVisibleInRecap', id: '4', visible: '0' },
+    });
+
+    await page.goto('/index.php?view=tasks');
+    await expect(page.locator('#tasks-table tr', { hasText: 'RetroCloseRecapTask E2E' })).toHaveCount(0);
+
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'updateContactTypeVisibleInRecap', id: '4', visible: '1' },
+    });
+  });
 });
 
 test.describe.serial('Tasks — paused state', () => {

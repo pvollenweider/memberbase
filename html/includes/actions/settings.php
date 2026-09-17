@@ -354,6 +354,23 @@ if ($action == 'saveSettings') {
     if ($_ctrId > 0) {
         db()->prepare("UPDATE contact_type SET visible_in_recap = ? WHERE id = ?")->execute([$_ctrVisible, $_ctrId]);
         auditLog(db(), 'updateContactTypeVisibleInRecap', "id=$_ctrId | visible_in_recap=$_ctrVisible");
+
+        // Turning a type off must retroactively close any already-generated
+        // "Notification de versement" task for a contact of that type —
+        // generateComptaRecapTasks() only re-evaluates on its next run
+        // (manual click or cron), which could leave a now-out-of-scope task
+        // open for a while otherwise.
+        if ($_ctrVisible === 0) {
+            $_ctrClosed = db()->prepare(
+                "UPDATE suivi_task st JOIN contact u ON u.id = st.user_id
+                 SET st.done_at = NOW(), st.paused_at = NULL
+                 WHERE st.rule_key LIKE 'compta_recap_pending_%' AND st.done_at IS NULL AND u.contact_type_id = ?"
+            );
+            $_ctrClosed->execute([$_ctrId]);
+            if ($_ctrClosed->rowCount() > 0) {
+                auditLog(db(), 'closeTask', "auto-fermeture de {$_ctrClosed->rowCount()} tâche(s) « Notification de versement » — type de contact id=$_ctrId retiré du récapitulatif");
+            }
+        }
     }
     echo json_encode(['ok' => true]);
     exit;
