@@ -92,5 +92,82 @@ test.describe('Dashboard — budget-gap KPI line', () => {
     await expect(contribBox.locator('a[href*="view=budgets"]')).toBeVisible();
     await expect(contribBox).toContainText(String(year));
     await expect(contribBox).toContainText("999'999");
+    // Mutually exclusive with the vs-last-year fallback line.
+    await expect(contribBox).toContainText('pour atteindre le budget');
+    await expect(contribBox).not.toContainText(/pour atteindre \d{4} \(/);
+
+    // Reset before the fallback test below runs.
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'updateComptaBudget', compta_type_id: '3', year: String(year), amount: '0' },
+    });
+  });
+
+  test('falls back to the vs-last-year comparison when no Contributions budget is set', async ({ page }) => {
+    await page.goto('/index.php');
+    const csrf = await page.evaluate(() => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '');
+    // Huge amount so kTotal1 (last year) is comfortably above kTotal (this
+    // year) regardless of what other spec files left in the current year —
+    // deterministically exercises the "gap" branch, not "exceeded".
+    await page.request.post('/index.php', {
+      form: { action: 'addCompta', view: 'compta', userid: '1', type_id: '3', date: `15/03/${year - 1}`, libele: 'Don E2E budget fallback', sum: '5000000', csrf },
+    });
+
+    await page.goto('/index.php?view=dashboard');
+    const contribBox = page.locator('.ca-kpi-box', { hasText: 'Contributions' }).first();
+    await expect(contribBox).toContainText(new RegExp(`pour atteindre ${year - 1} \\(`));
+    await expect(contribBox).not.toContainText('pour atteindre le budget');
+
+    // This artificially huge prior-year entry would otherwise skew every
+    // other spec file's prior-year delta computations — remove it.
+    sql("DELETE FROM compta WHERE libele = 'Don E2E budget fallback'");
+  });
+});
+
+test.describe('Dashboard — "Membres" KPI budget comparison (cotisations)', () => {
+  const year = new Date().getFullYear();
+
+  test.beforeAll(() => {
+    // Membres KPI only renders when app_settings.default_segment points at a
+    // real segment (seed default is 0 = "no filter") — same setup as the
+    // cotisation-sum test in dashboard.spec.ts. Restored unconditionally.
+    sql("UPDATE app_settings SET value='2' WHERE `key`='default_segment'");
+    sql(`DELETE FROM compta_budget WHERE year = ${year}`);
+  });
+  test.afterAll(() => {
+    sql("UPDATE app_settings SET value='0' WHERE `key`='default_segment'");
+    sql(`DELETE FROM compta_budget WHERE year = ${year}`);
+  });
+
+  test('shows gap-to-budget when a cotisation budget is set for the year', async ({ page }) => {
+    await page.goto('/index.php?view=budgets');
+    const csrf = await page.evaluate(() => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '');
+
+    // contact_type "Cotisation" = compta_type id 1 in the seed.
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'updateComptaBudget', compta_type_id: '1', year: String(year), amount: '888888' },
+    });
+
+    await page.goto('/index.php?view=dashboard');
+    const membresBox = page.locator('.ca-kpi-box', { hasText: 'Membres' }).first();
+    await expect(membresBox.locator('a[href*="view=budgets"]')).toBeVisible();
+    await expect(membresBox).toContainText("888'888");
+
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'updateComptaBudget', compta_type_id: '1', year: String(year), amount: '0' },
+    });
+  });
+
+  test('falls back to last year\'s total when no cotisation budget is set', async ({ page }) => {
+    await page.goto('/index.php');
+    const csrf = await page.evaluate(() => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '');
+    // Alice (user 1) gets a prior-year cotisation entry so kCotiSum1 > 0.
+    await page.request.post('/index.php', {
+      form: { action: 'addCompta', view: 'compta', userid: '1', type_id: '1', date: `01/03/${year - 1}`, libele: 'Coti E2E prev budget test', sum: '100', csrf },
+    });
+
+    await page.goto('/index.php?view=dashboard');
+    const membresBox = page.locator('.ca-kpi-box', { hasText: 'Membres' }).first();
+    await expect(membresBox.locator('a[href*="view=budgets"]')).toBeVisible();
+    await expect(membresBox).toContainText(String(year - 1));
   });
 });

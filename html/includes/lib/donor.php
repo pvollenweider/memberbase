@@ -253,6 +253,24 @@ function mbComputeDonorKpis(PDO $db, array $comptaTypes, array $appSettings, int
         }
     }
 
+    // Cotisation budget comparison ("Budgets" page) -- falls back to last
+    // year's actual total when no budget row exists for this year, same
+    // "manque X CHF pour atteindre Y" phrasing as the Contributions KPI.
+    $kCotiBudget = 0.0;
+    if (!empty($cotiTypeIds)) {
+        $sCotiBudget = $db->prepare("SELECT COALESCE(SUM(amount),0) FROM compta_budget WHERE year = ? AND compta_type_id IN ($phCoti)");
+        $sCotiBudget->execute(array_merge([$year], array_values($cotiTypeIds)));
+        $kCotiBudget = (float)$sCotiBudget->fetchColumn();
+    }
+    $kCotiBudgetGap = $kCotiBudget > 0 ? $kCotiBudget - $kCotiSum : null;
+    $kCotiBudgetPct = $kCotiBudget > 0 ? round($kCotiSum / $kCotiBudget * 100) : null;
+    $kCotiTargetGap = null;
+    $kCotiTargetPct = null;
+    if ($kCotiBudget <= 0 && $kCotiSum1 > 0) {
+        $kCotiTargetGap = $kCotiSum1 - $kCotiSum;
+        $kCotiTargetPct = round($kCotiSum / $kCotiSum1 * 100);
+    }
+
     // Total donations (CHF) per contact_type of the donor in the period, vs
     // the SAME period last year (same "même période" logic as kYtd above,
     // not a full-year comparison) — "Dons par type de contact" KPI (#177).
@@ -334,6 +352,7 @@ function mbComputeDonorKpis(PDO $db, array $comptaTypes, array $appSettings, int
         'kRecurrents', 'kNouveaux', 'kLapsed',
         'kMembres', 'kMembresPrev', 'kMembresDelta', 'kMembresLapsed',
         'kCotiSum', 'kCotiSum1', 'kCotiDelta', 'kCotiSumYtd1', 'kCotiYtd',
+        'kCotiBudget', 'kCotiBudgetGap', 'kCotiBudgetPct', 'kCotiTargetGap', 'kCotiTargetPct',
         'typeBreakdown', 'typeTotal',
         'contactTypeBreakdown', 'contactTypeTotal', 'contactTypeTotalDelta',
         'membreSegmentId', 'membreSegmentLabel',

@@ -321,16 +321,18 @@ include __DIR__ . '/../partials/page_header.php';
         <?= sprintf($GLOBAL['vsJanMonth'], $_mois, $_year - 1) ?>
       <?php endif ?>
     </div>
-    <?php if ($_kpi->kTotal1 > 0):
+    <?php if ($_kpi->kBudget <= 0 && $_kpi->kTotal1 > 0):
       $_kProgressPct = round($_kpi->kTotal / $_kpi->kTotal1 * 100);
       $_kOverPct     = round(abs($_kGap) / $_kpi->kTotal1 * 100);
     ?>
     <div style="font-size:0.72rem;margin-top:0.2rem;opacity:0.7">
+      <a href="<?= appUrl() ?>?view=budgets" style="color:inherit;text-decoration:underline" hx-boost="false">
       <?php if ($_kGap > 0): ?>
         <i class="fas fa-flag-checkered me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['gapToTarget'], number_format($_kGap, 0, '.', '\''), $_year - 1, number_format($_kpi->kTotal1, 0, '.', '\''), $_kProgressPct) ?>
       <?php else: ?>
         <i class="fas fa-trophy me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['targetExceeded'], $_year - 1, number_format($_kpi->kTotal1, 0, '.', '\''), number_format(abs($_kGap), 0, '.', '\''), $_kOverPct) ?>
       <?php endif ?>
+      </a>
     </div>
     <?php endif ?>
     <?php endif ?>
@@ -444,6 +446,27 @@ include __DIR__ . '/../partials/page_header.php';
         <?php endif ?>
         <?= sprintf($GLOBAL['vsSamePeriodRange'], $GLOBAL['monthsShort'][1], (int)date('j'), $GLOBAL['monthsShort'][(int)date('n')], $_year - 1) ?>
         (<?= number_format($_kpi->kCotiSumYtd1, 0, '.', '\'') ?> CHF)
+      </div>
+      <?php endif ?>
+      <?php if ($_kpi->kCotiBudget > 0): ?>
+      <div style="margin-top:0.15rem">
+        <a href="<?= appUrl() ?>?view=budgets" style="color:inherit;text-decoration:underline" hx-boost="false">
+        <?php if ($_kpi->kCotiBudgetGap > 0): ?>
+          <i class="fas fa-flag-checkered me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['gapToBudget'], number_format($_kpi->kCotiBudgetGap, 0, '.', '\''), $_year, number_format($_kpi->kCotiBudget, 0, '.', '\''), $_kpi->kCotiBudgetPct) ?>
+        <?php else: ?>
+          <i class="fas fa-trophy me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['budgetExceeded'], $_year, number_format($_kpi->kCotiBudget, 0, '.', '\''), number_format(abs($_kpi->kCotiBudgetGap), 0, '.', '\''), $_kpi->kCotiBudgetPct) ?>
+        <?php endif ?>
+        </a>
+      </div>
+      <?php elseif ($_kpi->kCotiTargetGap !== null): ?>
+      <div style="margin-top:0.15rem">
+        <a href="<?= appUrl() ?>?view=budgets" style="color:inherit;text-decoration:underline" hx-boost="false">
+        <?php if ($_kpi->kCotiTargetGap > 0): ?>
+          <i class="fas fa-flag-checkered me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['gapToTarget'], number_format($_kpi->kCotiTargetGap, 0, '.', '\''), $_year - 1, number_format($_kpi->kCotiSum1, 0, '.', '\''), $_kpi->kCotiTargetPct) ?>
+        <?php else: ?>
+          <i class="fas fa-trophy me-1" aria-hidden="true"></i><?= sprintf($GLOBAL['targetExceeded'], $_year - 1, number_format($_kpi->kCotiSum1, 0, '.', '\''), number_format(abs($_kpi->kCotiTargetGap), 0, '.', '\''), $_kpi->kCotiTargetPct) ?>
+        <?php endif ?>
+        </a>
       </div>
       <?php endif ?>
     </div>
