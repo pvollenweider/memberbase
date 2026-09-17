@@ -60,9 +60,14 @@ function mbBudgetCollectedCell(float $collected, float $budget): string
         return $chf;
     }
     $pct   = round($collected / $budget * 100);
+    $gap   = $collected - $budget;
     $color = $pct >= 100 ? 'text-success' : 'text-danger';
     $icon  = $pct >= 100 ? 'fa-arrow-up' : 'fa-arrow-down';
-    return $chf . ' <span class="' . $color . '" style="font-weight:600"><i class="fas ' . $icon . ' me-1" aria-hidden="true"></i>' . $pct . '%</span>';
+    $gapChf = ($gap >= 0 ? '+' : '-') . number_format(abs($gap), 0, '.', "'") . ' CHF';
+    return $chf
+        . '<div class="' . $color . '" style="font-size:0.68rem;font-weight:600;white-space:nowrap">'
+        . '<i class="fas ' . $icon . ' me-1" aria-hidden="true"></i>' . $gapChf . ' (' . $pct . '%)'
+        . '</div>';
 }
 
 /**
@@ -81,9 +86,9 @@ function mbRenderBudgetTable(string $tableId, array $types, int $pastYear, array
       <thead class="table-light">
         <tr>
           <th><?= $GLOBAL['labelField'] ?></th>
-          <th class="text-end text-muted" style="width:130px"><?= sprintf($GLOBAL['budgetColCollected'], $pastYear) ?></th>
+          <th class="text-end text-muted" style="width:170px"><?= sprintf($GLOBAL['budgetColCollected'], $pastYear) ?></th>
           <th class="text-end" style="width:130px"><?= sprintf($GLOBAL['budgetColYear'], $editableYears[0]) ?></th>
-          <th class="text-end text-muted" style="width:130px"><?= sprintf($GLOBAL['budgetColCollected'], $editableYears[0]) ?></th>
+          <th class="text-end text-muted" style="width:170px"><?= sprintf($GLOBAL['budgetColCollected'], $editableYears[0]) ?></th>
           <th class="text-end" style="width:130px"><?= sprintf($GLOBAL['budgetColYear'], $editableYears[1]) ?></th>
         </tr>
       </thead>
@@ -197,10 +202,15 @@ include __DIR__ . '/../partials/page_header.php';
   function badgeHtml(collected, budget) {
     var chf = 'CHF ' + Math.round(collected).toLocaleString('fr-CH');
     if (budget <= 0) { return chf; }
-    var pct   = Math.round(collected / budget * 100);
-    var color = pct >= 100 ? 'text-success' : 'text-danger';
-    var icon  = pct >= 100 ? 'fa-arrow-up' : 'fa-arrow-down';
-    return chf + ' <span class="' + color + '" style="font-weight:600"><i class="fas ' + icon + ' me-1" aria-hidden="true"></i>' + pct + '%</span>';
+    var pct    = Math.round(collected / budget * 100);
+    var gap    = collected - budget;
+    var color  = pct >= 100 ? 'text-success' : 'text-danger';
+    var icon   = pct >= 100 ? 'fa-arrow-up' : 'fa-arrow-down';
+    var gapChf = (gap >= 0 ? '+' : '-') + Math.round(Math.abs(gap)).toLocaleString('fr-CH') + ' CHF';
+    return chf
+      + '<div class="' + color + '" style="font-size:0.68rem;font-weight:600;white-space:nowrap">'
+      + '<i class="fas ' + icon + ' me-1" aria-hidden="true"></i>' + gapChf + ' (' + pct + '%)'
+      + '</div>';
   }
 
   function recomputeColumnTotal(table, year, comptaTypeId) {
