@@ -66,6 +66,7 @@ if (isset($_REQUEST['action'])) {
         'updateContactTypeComptaMatrixColumn' => 'settings',
         'updateContactTypeDefaultComptaType' => 'settings',
         'updateContactTypeVisibleInAttestations' => 'settings',
+        'updateContactTypeVisibleInRecap' => 'settings',
         'bulkSetContactTypeBySegment' => 'settings',
         'previewCotisationReminder' => 'cotisation_reminder',
         'sendCotisationReminders'   => 'cotisation_reminder',

@@ -15,7 +15,7 @@ $_ctBuiltinCodes = [CONTACT_TYPE_PRIVATE, CONTACT_TYPE_INSTITUTION, CONTACT_TYPE
 $_ctEmbedded = $_ctEmbedded ?? false;
 
 $_ctRows = db()->query(
-    "SELECT ct.id, ct.code, ct.label, ct.icon, ct.visible_in_attestations, ct.sort_order, COUNT(c.id) AS cnt
+    "SELECT ct.id, ct.code, ct.label, ct.icon, ct.visible_in_attestations, ct.visible_in_recap, ct.sort_order, COUNT(c.id) AS cnt
      FROM contact_type ct
      LEFT JOIN contact c ON c.contact_type_id = ct.id AND c.status = 1
      GROUP BY ct.id ORDER BY ct.sort_order"
@@ -79,6 +79,7 @@ if (!$_ctEmbedded):
       <th style="width:60px" class="text-center"><?= $GLOBAL['contactTypeIcon'] ?></th>
       <th><?= $GLOBAL['contactTypeLabel'] ?> / <?= $GLOBAL['contactTypeCode'] ?></th>
       <th class="text-center" style="width:110px" title="<?= htmlspecialchars($GLOBAL['contactTypeVisibleInAttestationsHelp'], ENT_QUOTES, $charset) ?>"><?= $GLOBAL['contactTypeVisibleInAttestations'] ?></th>
+      <th class="text-center" style="width:110px" title="<?= htmlspecialchars($GLOBAL['contactTypeVisibleInRecapHelp'], ENT_QUOTES, $charset) ?>"><?= $GLOBAL['contactTypeVisibleInRecap'] ?></th>
       <th class="text-end"><?= $GLOBAL['contactTypeCount'] ?></th>
       <th></th>
     </tr>
@@ -115,6 +116,11 @@ if (!$_ctEmbedded):
                <?= (int)$_ct->visible_in_attestations === 1 ? 'checked' : '' ?>
                aria-label="<?= htmlspecialchars(sprintf($GLOBAL['contactTypeVisibleInAttestationsToggle'], $_ct->label), ENT_QUOTES, $charset) ?>">
       </td>
+      <td class="text-center">
+        <input type="checkbox" class="form-check-input ctm-visible-recap-cb" data-contact-type-id="<?= (int)$_ct->id ?>"
+               <?= (int)$_ct->visible_in_recap === 1 ? 'checked' : '' ?>
+               aria-label="<?= htmlspecialchars(sprintf($GLOBAL['contactTypeVisibleInRecapToggle'], $_ct->label), ENT_QUOTES, $charset) ?>">
+      </td>
       <td class="text-end text-muted" style="font-size:0.85rem"><?= (int)$_ct->cnt ?></td>
       <td class="text-end">
         <?php if ((int)$_ct->cnt === 0): ?>
@@ -143,6 +149,19 @@ document.querySelectorAll('.ctm-visible-cb').forEach(function (cb) {
   cb.addEventListener('change', function () {
     var body = new URLSearchParams();
     body.append('action', 'updateContactTypeVisibleInAttestations');
+    body.append('id', cb.dataset.contactTypeId);
+    body.append('visible', cb.checked ? '1' : '0');
+    fetch(<?= json_encode(appUrl()) ?>, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'HX-Request': 'true', 'X-CSRF-Token': window.casaCsrfToken ? window.casaCsrfToken() : '' },
+      body: body.toString()
+    }).catch(function () {});
+  });
+});
+document.querySelectorAll('.ctm-visible-recap-cb').forEach(function (cb) {
+  cb.addEventListener('change', function () {
+    var body = new URLSearchParams();
+    body.append('action', 'updateContactTypeVisibleInRecap');
     body.append('id', cb.dataset.contactTypeId);
     body.append('visible', cb.checked ? '1' : '0');
     fetch(<?= json_encode(appUrl()) ?>, {

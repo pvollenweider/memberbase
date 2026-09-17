@@ -11,7 +11,7 @@ defined('APP_ENTRY') or die('Direct access not permitted.');
 
 $action = $_REQUEST['action'];
 
-if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'addContactType', 'deleteContactType', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn', 'updateContactTypeDefaultComptaType', 'updateContactTypeVisibleInAttestations', 'bulkSetContactTypeBySegment'], true)) {
+if (in_array($action, ['saveSettings', 'zefixLookup', 'saveSmtp', 'sendTestEmail', 'purgeEmailLog', 'resendEmail', 'saveEmailTemplate', 'resetEmailTemplate', 'addContactType', 'deleteContactType', 'updateContactTypeLabel', 'updateContactTypeComptaMatrixColumn', 'updateContactTypeDefaultComptaType', 'updateContactTypeVisibleInAttestations', 'updateContactTypeVisibleInRecap', 'bulkSetContactTypeBySegment'], true)) {
     if (!isAdmin()) { http_response_code(403); exit; }
 } elseif (in_array($action, ['updateComptaTypeOrder','addComptaType','updateComptaType','deleteComptaType'], true)) {
     if (!isManager()) { http_response_code(403); exit; }
@@ -339,6 +339,21 @@ if ($action == 'saveSettings') {
     if ($_ctvId > 0) {
         db()->prepare("UPDATE contact_type SET visible_in_attestations = ? WHERE id = ?")->execute([$_ctvVisible, $_ctvId]);
         auditLog(db(), 'updateContactTypeVisibleInAttestations', "id=$_ctvId | visible_in_attestations=$_ctvVisible");
+    }
+    echo json_encode(['ok' => true]);
+    exit;
+
+} elseif ($action === 'updateContactTypeVisibleInRecap') {
+    // Auto-save: fired when the admin toggles the "visible dans le
+    // récapitulatif" checkbox for one contact_type row — same discard-
+    // buffered-output pattern as the attestations checkbox above.
+    while (ob_get_level()) { ob_end_clean(); }
+    header('Content-Type: application/json; charset=utf-8');
+    $_ctrId      = (int)($_REQUEST['id'] ?? 0);
+    $_ctrVisible = !empty($_REQUEST['visible']) ? 1 : 0;
+    if ($_ctrId > 0) {
+        db()->prepare("UPDATE contact_type SET visible_in_recap = ? WHERE id = ?")->execute([$_ctrVisible, $_ctrId]);
+        auditLog(db(), 'updateContactTypeVisibleInRecap', "id=$_ctrId | visible_in_recap=$_ctrVisible");
     }
     echo json_encode(['ok' => true]);
     exit;

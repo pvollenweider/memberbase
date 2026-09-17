@@ -289,6 +289,37 @@ test.describe.serial('Tasks — payment notification auto-generation', () => {
   });
 });
 
+test.describe('Tasks — payment notification generation respects contact_type.visible_in_recap (#179)', () => {
+  test('generateComptaRecapTasks skips a contact whose type is excluded from the recap', async ({ page }) => {
+    await page.goto('/index.php?view=tasks');
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+
+    // contact_type 4 = "Entreprise" (company) in the seed.
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'updateContactTypeVisibleInRecap', id: '4', visible: '0' },
+    });
+
+    const contact = await (await page.request.post('/api/contacts', {
+      data: { lastName: 'HiddenTypeRecapTask E2E', contactTypeId: 4 },
+    })).json();
+    await page.request.post('/api/compta', {
+      data: { memberId: contact.data.id, typeId: 1, date: `${new Date().getFullYear()}-06-01`, amount: 42 },
+    });
+
+    await page.request.post('/index.php', { form: { action: 'generateComptaRecapTasks', csrf } });
+    await page.goto('/index.php?view=tasks');
+    await expect(page.locator('tr', { hasText: 'HiddenTypeRecapTask E2E' })).toHaveCount(0);
+
+    // Restore the flag before other tests run.
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'updateContactTypeVisibleInRecap', id: '4', visible: '1' },
+    });
+  });
+});
+
 test.describe.serial('Tasks — paused state', () => {
   test('pausing a global task hides it from the open table and the nav badge', async ({ page }) => {
     await page.goto('/index.php?view=tasks');

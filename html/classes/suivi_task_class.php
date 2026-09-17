@@ -325,7 +325,9 @@ class SuiviTask
             "SELECT DISTINCT c.user_id
              FROM compta c
              JOIN contact u ON u.id = c.user_id AND u.status = 1
-             WHERE c.notified_at IS NULL AND c.sum <> 0 AND YEAR(c.date) = ?"
+             WHERE c.notified_at IS NULL AND c.sum <> 0
+               AND u.contact_type_id NOT IN (SELECT id FROM contact_type WHERE visible_in_recap = 0)
+               AND YEAR(c.date) = ?"
         );
         $stmt->execute([$year]);
         $memberIds = array_fill_keys(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)), true);
@@ -380,7 +382,9 @@ class SuiviTask
             "SELECT DISTINCT c.user_id
              FROM compta c
              JOIN contact u ON u.id = c.user_id AND u.status = 1
-             WHERE c.notified_at IS NULL AND c.sum <> 0 AND YEAR(c.date) = ?"
+             WHERE c.notified_at IS NULL AND c.sum <> 0
+               AND u.contact_type_id NOT IN (SELECT id FROM contact_type WHERE visible_in_recap = 0)
+               AND YEAR(c.date) = ?"
         );
         $stmt->execute([$year]);
         $memberIds = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));

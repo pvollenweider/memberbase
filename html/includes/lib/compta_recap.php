@@ -22,7 +22,7 @@
  */
 function mbRecapLoadEntries(PDO $db, ?int $filterUserId = null, int $year = 0, bool $force = false): array
 {
-    $conditions = ['c.sum <> 0'];
+    $conditions = ['c.sum <> 0', 'u.contact_type_id NOT IN (SELECT id FROM contact_type WHERE visible_in_recap = 0)'];
     $params     = [];
     if (!$force) {
         $conditions[] = 'c.notified_at IS NULL';

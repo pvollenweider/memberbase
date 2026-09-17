@@ -140,6 +140,35 @@ test.describe('People/finance hub — Phase 1', () => {
     });
   });
 
+  test('Recap tab excludes contacts whose type has visible_in_recap disabled (#179)', async ({ page }) => {
+    // contact_type 4 = "Entreprise" (company) in the seed — toggle it off,
+    // give a fresh company contact an unnotified entry, confirm it's
+    // excluded from the recap pending list, then restore the flag.
+    await page.goto('/index.php?view=peopleFinance&tab=recap');
+    const csrf = await page.evaluate(() => {
+      const m = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+      return m?.content ?? '';
+    });
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'updateContactTypeVisibleInRecap', id: '4', visible: '0' },
+    });
+
+    const contact = await (await page.request.post('/api/contacts', {
+      data: { lastName: 'HiddenTypeRecap E2E', contactTypeId: 4 },
+    })).json();
+    await page.request.post('/api/compta', {
+      data: { memberId: contact.data.id, typeId: 3, date: `${new Date().getFullYear()}-06-01`, amount: 500 },
+    });
+
+    await page.goto('/index.php?view=peopleFinance&tab=recap');
+    await expect(page.locator('#pf-tab-recap td', { hasText: 'HiddenTypeRecap E2E' })).toHaveCount(0);
+
+    // Restore the flag before the next test.
+    await page.request.post('/index.php', {
+      form: { csrf, action: 'updateContactTypeVisibleInRecap', id: '4', visible: '1' },
+    });
+  });
+
   test('Dons tab: changing the year filter stays inside the hub', async ({ page }) => {
     await page.goto('/index.php?view=peopleFinance&tab=dons');
     await page.locator('#pf-tab-dons .dropdown-toggle').filter({ has: page.locator('.fa-calendar-days') }).click();
