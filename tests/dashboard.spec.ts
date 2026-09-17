@@ -6,6 +6,17 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { execFileSync } from 'child_process';
+
+const REPO_ROOT = __dirname + '/..';
+
+function sql(query: string): string {
+  return execFileSync(
+    'docker',
+    ['compose', 'exec', '-T', 'mariadb', 'mariadb', '-u', 'root', '-proot', 'members_test', '-N', '-e', query],
+    { cwd: REPO_ROOT }
+  ).toString().trim();
+}
 
 test.describe('Dashboard', () => {
   test('reachable via ?view=dashboard, shows shortcuts and documentation panels', async ({ page }) => {
@@ -90,6 +101,29 @@ test.describe('Dashboard', () => {
     await link.click();
     await expect(page).toHaveURL(/tab=lapsedDonors/);
     await expect(page).toHaveURL(/contactTypeId=1/);
+  });
+
+  test.describe('"Membres" KPI shows the cotisation CHF sum with year-over-year and YTD deltas', () => {
+    // default_segment=0 (seed default) hides the Membres KPI card entirely
+    // (donor.php only computes/renders it when membreSegmentId > 0). Point
+    // it at the seed's real "Membre <year>" segment (id 2) for this block
+    // only, and restore unconditionally so the rest of the suite keeps
+    // seeing default_segment=0 (see segment-rollover.spec.ts for the same
+    // shared-app_settings caveat).
+    test.beforeAll(() => {
+      sql("UPDATE app_settings SET value='2' WHERE `key`='default_segment'");
+    });
+    test.afterAll(() => {
+      sql("UPDATE app_settings SET value='0' WHERE `key`='default_segment'");
+    });
+
+    test('renders CHF cotisation total with deltas', async ({ page }) => {
+      await page.goto('/index.php?view=dashboard');
+      const box = page.locator('.ca-kpi-box', { hasText: 'Membres' }).first();
+      await expect(box).toBeVisible();
+      await expect(box).toContainText('Cotisations');
+      await expect(box).toContainText('CHF');
+    });
   });
 
   test('shortcut "Donateur non institutionnel actif depuis N-4" links to the 5-year quick filter (#176)', async ({ page }) => {

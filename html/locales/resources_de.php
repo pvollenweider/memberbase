@@ -47,6 +47,7 @@ $GLOBAL['editCombinedSegment']        = "Bearbeiten";
 $GLOBAL['donors']          = "Spender";
 $GLOBAL['activeMembers']   = "Aktive Mitglieder";
 $GLOBAL['dashboardMembersLabel'] = "Mitglieder";
+$GLOBAL['dashboardCotisationsLabel'] = "Mitgliederbeiträge";
 $GLOBAL['dashboardDonationBreakdownTitle'] = "Verteilung der Spenden";
 $GLOBAL['dashboardContactBreakdownTitle'] = "Spenden nach Kontakttyp";
 $GLOBAL['dashboardRevenueChartLabel'] = "Kumulierte Einnahmenentwicklung, laufendes Jahr vs. Vorjahr";

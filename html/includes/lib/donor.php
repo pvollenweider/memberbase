@@ -221,6 +221,28 @@ function mbComputeDonorKpis(PDO $db, array $comptaTypes, array $appSettings, int
         $kDonateursYtd1 = (int)$sDonYtd->fetchColumn();
     }
 
+    // Cotisation amounts (CHF): current year vs prior full year, plus YTD
+    // "même période" comparison -- same pattern as kTotal/kYtd above, scoped
+    // to cotisation compta_type entries only (dashboard "Membres" KPI).
+    $kCotiSum = 0.0; $kCotiSum1 = 0.0; $kCotiDelta = null;
+    $kCotiSumYtd1 = null; $kCotiYtd = null;
+    if (!empty($cotiTypeIds)) {
+        $phCoti = implode(',', array_fill(0, count($cotiTypeIds), '?'));
+        $sCoti = $db->prepare("SELECT COALESCE(SUM(c.sum),0) FROM compta c WHERE c.date>? AND c.date<? AND c.type_id IN ($phCoti)");
+        $sCoti->execute(array_merge([$kFrom, $kTo], array_values($cotiTypeIds)));
+        $kCotiSum = (float)$sCoti->fetchColumn();
+        $sCoti->execute(array_merge([$kFrom1, $kTo1], array_values($cotiTypeIds)));
+        $kCotiSum1 = (float)$sCoti->fetchColumn();
+        $kCotiDelta = $kCotiSum1 > 0 ? (($kCotiSum - $kCotiSum1) / $kCotiSum1 * 100) : null;
+
+        if ($year === (int)date("Y")) {
+            $sCotiYtd = $db->prepare("SELECT COALESCE(SUM(c.sum),0) FROM compta c WHERE c.date>? AND c.date<=? AND c.type_id IN ($phCoti)");
+            $sCotiYtd->execute(array_merge([$kFrom1, $kToYtd1], array_values($cotiTypeIds)));
+            $kCotiSumYtd1 = (float)$sCotiYtd->fetchColumn();
+            $kCotiYtd = $kCotiSumYtd1 > 0 ? (($kCotiSum - $kCotiSumYtd1) / $kCotiSumYtd1 * 100) : null;
+        }
+    }
+
     // Total donations (CHF) per contact_type of the donor in the period, vs
     // the SAME period last year (same "même période" logic as kYtd above,
     // not a full-year comparison) — "Dons par type de contact" KPI (#177).
@@ -300,6 +322,7 @@ function mbComputeDonorKpis(PDO $db, array $comptaTypes, array $appSettings, int
         'kDonateurs', 'kDonateurs1', 'kDonDelta', 'kDonateursYtd1',
         'kRecurrents', 'kNouveaux', 'kLapsed',
         'kMembres', 'kMembresPrev', 'kMembresDelta', 'kMembresLapsed',
+        'kCotiSum', 'kCotiSum1', 'kCotiDelta', 'kCotiSumYtd1', 'kCotiYtd',
         'typeBreakdown', 'typeTotal',
         'contactTypeBreakdown', 'contactTypeTotal', 'contactTypeTotalDelta',
         'membreSegmentId', 'membreSegmentLabel',

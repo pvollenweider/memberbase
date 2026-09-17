@@ -409,6 +409,32 @@ include __DIR__ . '/../partials/page_header.php';
       <?php endif ?>
     </div>
     <?php endif ?>
+    <?php if ($_kpi->kCotiSum > 0 || $_kpi->kCotiSum1 > 0): ?>
+    <div style="font-size:0.72rem;opacity:0.9;margin-top:0.4rem;padding-top:0.35rem;border-top:1px solid rgba(255,255,255,0.25)">
+      <div><i class="fas fa-hand-holding-dollar me-1" aria-hidden="true"></i><?= $GLOBAL['dashboardCotisationsLabel'] ?> <?= $_year ?>: <strong><?= number_format($_kpi->kCotiSum, 0, '.', '\'') ?> CHF</strong></div>
+      <?php if ($_kpi->kCotiDelta !== null): ?>
+      <div>
+        <?php if ($_kpi->kCotiDelta >= 0): ?>
+          <i class="fas fa-arrow-up me-1" aria-hidden="true"></i><?= number_format($_kpi->kCotiDelta, 1) ?>%
+        <?php else: ?>
+          <i class="fas fa-arrow-down me-1" aria-hidden="true"></i><?= number_format(abs($_kpi->kCotiDelta), 1) ?>%
+        <?php endif ?>
+        vs <?= $_year - 1 ?> (<?= number_format($_kpi->kCotiSum1, 0, '.', '\'') ?> CHF)
+      </div>
+      <?php endif ?>
+      <?php if ($_kpi->kCotiYtd !== null): ?>
+      <div style="opacity:0.85">
+        <?php if ($_kpi->kCotiYtd >= 0): ?>
+          <i class="fas fa-arrow-up me-1" aria-hidden="true"></i><?= number_format($_kpi->kCotiYtd, 1) ?>%
+        <?php else: ?>
+          <i class="fas fa-arrow-down me-1" aria-hidden="true"></i><?= number_format(abs($_kpi->kCotiYtd), 1) ?>%
+        <?php endif ?>
+        <?= sprintf($GLOBAL['vsSamePeriodRange'], $GLOBAL['monthsShort'][1], (int)date('j'), $GLOBAL['monthsShort'][(int)date('n')], $_year - 1) ?>
+        (<?= number_format($_kpi->kCotiSumYtd1, 0, '.', '\'') ?> CHF)
+      </div>
+      <?php endif ?>
+    </div>
+    <?php endif ?>
   </div>
   <?php endif ?>
 
