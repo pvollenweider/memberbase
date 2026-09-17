@@ -126,7 +126,7 @@ test.describe('Dashboard', () => {
     });
   });
 
-  test('shortcut "Donateur non institutionnel actif depuis N-4" links to the 5-year quick filter (#176)', async ({ page }) => {
+  test('shortcut "Donateur non institutionnel actif depuis N-5" links to the 6-year quick filter (#176)', async ({ page }) => {
     // Seed donors (Alice/Bob) already made a non-institutional payment this
     // year, so the shortcut is present without extra setup.
     await page.goto('/index.php?view=dashboard');

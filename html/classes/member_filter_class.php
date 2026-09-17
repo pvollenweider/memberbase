@@ -22,6 +22,7 @@ class MemberFilter
         FILTER_UNPAID_COTI_CURRENT,
         FILTER_NEVER_PAID_OLD,
         FILTER_NON_INSTIT_5Y,
+        FILTER_COTI_PAID_6Y,
     ];
 
     public static function isVirtual(int $segmentId): bool
@@ -129,11 +130,11 @@ class MemberFilter
                 return $ids;
             }
 
-            // At least one non-institutional payment in the last 5 calendar years,
+            // At least one non-institutional payment in the last 6 calendar years,
             // current year included (same rule as FILTER_NON_INSTIT_LAST_YEAR,
-            // wider trailing window: year-4 through year inclusive).
+            // wider trailing window: year-5 through year inclusive).
             case FILTER_NON_INSTIT_5Y: {
-                $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 4));
+                $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 5));
                 $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
                 $institIds = array_column(
                     $pdo->query("SELECT id FROM compta_type WHERE is_institutional=1")->fetchAll(PDO::FETCH_OBJ),
@@ -184,6 +185,27 @@ class MemberFilter
                     if (empty($noCoti[$uid])) {
                         $ids[$uid] = true;
                     }
+                }
+                return $ids;
+            }
+
+            // At least one cotisation payment since January 1st, 6 calendar
+            // years ago (current year included) — same trailing-window shape
+            // as FILTER_NON_INSTIT_5Y, restricted to compta_type.is_cotisation=1.
+            case FILTER_COTI_PAID_6Y: {
+                $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year - 5));
+                $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
+                $ids = [];
+                $st = $pdo->prepare("
+                    SELECT DISTINCT c.user_id
+                    FROM compta c
+                    JOIN contact u ON u.id = c.user_id AND u.status = 1
+                    JOIN compta_type ct ON ct.id = c.type_id AND ct.is_cotisation = 1
+                    WHERE c.date > ? AND c.date < ?
+                ");
+                $st->execute([$from, $to]);
+                while ($r = $st->fetchObject()) {
+                    $ids[(int)$r->user_id] = true;
                 }
                 return $ids;
             }

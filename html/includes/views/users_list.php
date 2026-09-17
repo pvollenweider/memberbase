@@ -130,7 +130,10 @@ if (empty($_pfEmbedded)) {
                         $currentFilterDesc = sprintf($GLOBAL['filterDescNonInstitLastYear'], $year-1);
                     } else if ($segment == FILTER_NON_INSTIT_5Y) {
                         $currentSegmentTitle = $GLOBAL['nonInstitPayed5Years'];
-                        $currentFilterDesc = sprintf($GLOBAL['filterDescNonInstit5y'], $year-4, $year);
+                        $currentFilterDesc = sprintf($GLOBAL['filterDescNonInstit5y'], $year-5);
+                    } else if ($segment == FILTER_COTI_PAID_6Y) {
+                        $currentSegmentTitle = $GLOBAL['cotiPaid6Years'];
+                        $currentFilterDesc = sprintf($GLOBAL['filterDescCotiPaid6y'], $year-5);
                     } else if ($segment == FILTER_UNPAID_COTI_CURRENT) {
                         $currentSegmentTitle = $GLOBAL['cotiUnpayed'];
                         $currentFilterDesc = sprintf($GLOBAL['filterDescCotiUnpaidCurrent'], $year);
@@ -164,7 +167,7 @@ if (empty($_pfEmbedded)) {
                     if ($combinedSegment > 0) {
                         $_rsegKey = 'cs:' . $combinedSegment;
                         $_rsegUrl = '?view=peopleFinance&tab=members&combinedSegment=' . $combinedSegment;
-                    } elseif ($segment > 0 || in_array((int)$segment, [FILTER_ALL_EXCEPT_ARCHIVES, FILTER_UNPAID_COTI_3Y, FILTER_NO_ACTIVITY_10Y, FILTER_NON_INSTIT_LAST_YEAR, FILTER_NON_INSTIT_5Y, FILTER_UNPAID_COTI_CURRENT, FILTER_NEVER_PAID_OLD], true)) {
+                    } elseif ($segment > 0 || in_array((int)$segment, [FILTER_ALL_EXCEPT_ARCHIVES, FILTER_UNPAID_COTI_3Y, FILTER_NO_ACTIVITY_10Y, FILTER_NON_INSTIT_LAST_YEAR, FILTER_NON_INSTIT_5Y, FILTER_COTI_PAID_6Y, FILTER_UNPAID_COTI_CURRENT, FILTER_NEVER_PAID_OLD], true)) {
                         $_rsegKey = ($segment > 0 ? 'sg:' : 'qf:') . $segment;
                         $_rsegUrl = '?view=peopleFinance&tab=members&segment=' . $segment;
                     } else {
@@ -223,6 +226,9 @@ if (empty($_pfEmbedded)) {
                     <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
                        href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=' . FILTER_NON_INSTIT_5Y ?>"
                        data-label="<?= htmlentities(mb_strtolower($GLOBAL['nonInstitPayed5Years']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['nonInstitPayed5Years'] ?></a>
+                    <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
+                       href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=' . FILTER_COTI_PAID_6Y ?>"
+                       data-label="<?= htmlentities(mb_strtolower($GLOBAL['cotiPaid6Years']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['cotiPaid6Years'] ?></a>
                     <a class="dropdown-item segment-filterable" style="padding-left:1.5rem"
                        href="<?= appUrl() . '?' . $_pfLinkPrefix . 'segment=' . FILTER_NEVER_PAID_OLD ?>"
                        data-label="<?= htmlentities(mb_strtolower($GLOBAL['neverPaidOld']), ENT_COMPAT, $charset) ?>"><?= $GLOBAL['neverPaidOld'] ?></a>
@@ -841,7 +847,8 @@ $(document).ready(function () {
     '-3333': <?= json_encode(sprintf($GLOBAL['filterDescCotiUnpaid3y'], $_jsYear - 2, $_jsYear), JSON_UNESCAPED_UNICODE) ?>,
     '-5555': <?= json_encode(sprintf($GLOBAL['filterDescNoActivity10y'], $_jsYear - 10), JSON_UNESCAPED_UNICODE) ?>,
     '-6666': <?= json_encode(sprintf($GLOBAL['filterDescNonInstitLastYear'], $_jsYear - 1), JSON_UNESCAPED_UNICODE) ?>,
-    '-8888': <?= json_encode(sprintf($GLOBAL['filterDescNonInstit5y'], $_jsYear - 4, $_jsYear), JSON_UNESCAPED_UNICODE) ?>
+    '-8888': <?= json_encode(sprintf($GLOBAL['filterDescNonInstit5y'], $_jsYear - 5), JSON_UNESCAPED_UNICODE) ?>,
+    '-9999': <?= json_encode(sprintf($GLOBAL['filterDescCotiPaid6y'], $_jsYear - 5), JSON_UNESCAPED_UNICODE) ?>
   };
 
   function sexeIcon(g) {

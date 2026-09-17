@@ -7,8 +7,9 @@ $GLOBAL['cotiUnpayed']             = "Mitgliederbeitrag " . date('Y') . " nicht 
 $GLOBAL['cotiUnpayedLast3Years']   = "Kein Mitgliederbeitrag in den letzten 3 Jahren";
 $GLOBAL['nothingLast10Years']      = "Keine Zahlung in den letzten 10 Jahren";
 $GLOBAL['neverPaidOld']            = "Vor über 3 Jahren erstellt, nie etwas bezahlt";
+$GLOBAL['cotiPaid6Years']          = "Mitgliedsbeitrag bezahlt seit " . (date('Y') - 5);
 $GLOBAL['nonInstitPayedSomethingLastYear'] = "Nicht-institutioneller Spender aktiv in " . (date('Y') - 1);
-$GLOBAL['nonInstitPayed5Years']    = "Nicht-institutioneller Spender aktiv seit " . (date('Y') - 4);
+$GLOBAL['nonInstitPayed5Years']    = "Nicht-institutioneller Spender aktiv seit " . (date('Y') - 5);
 
 // --- Navigation ---
 $GLOBAL['search']          = "Suchen";
@@ -951,7 +952,8 @@ $GLOBAL['filterDescCotiUnpaid3y'] = "Profile, die in ihrer Historie mindestens e
 $GLOBAL['filterDescNoActivity10y'] = "Aktive Profile ohne jegliche Buchung (Mitgliederbeitrag, Spende oder anderes) seit %s.";
 $GLOBAL['filterDescNeverPaidOld'] = "Aktive Profile, erstellt vor %s, ohne jegliche Buchung, jemals.";
 $GLOBAL['filterDescNonInstitLastYear'] = "Profile mit mindestens einer nicht-institutionellen Zahlung in %s — umfasst Mitgliederbeiträge, Spenden und jeden anderen Typ, der in den Buchungstypen nicht als „Institutionell“ markiert ist.";
-$GLOBAL['filterDescNonInstit5y'] = "Nicht-institutionelle Profile mit mindestens einer nicht-institutionellen Zahlung zwischen %s und %s.";
+$GLOBAL['filterDescNonInstit5y'] = "Nicht-institutionelle Profile mit mindestens einer nicht-institutionellen Zahlung seit dem 1. Januar %s.";
+$GLOBAL['filterDescCotiPaid6y'] = "Kontakte, die seit dem 1. Januar %s mindestens einen Mitgliedsbeitrag bezahlt haben.";
 $GLOBAL['filterDescCotiUnpaidCurrent'] = "Mitglieder, deren Mitgliederbeitrag %s noch nicht erfasst wurde.";
 $GLOBAL['quickFilters'] = "Schnellfilter";
 $GLOBAL['typesHeader'] = "Typen";
