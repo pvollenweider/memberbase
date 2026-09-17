@@ -50,7 +50,13 @@ if ($year === -3) {
     $from = null;
     $to   = null;
 } else {
-    $from = mbDateTimeBound(mktime(0, 0, 0, 1, 0, $year));
+    // Exact Jan 1 00:00:00 boundary, inclusive (>=) at the query site below —
+    // the previously-used "day 0" (mktime day=0 => Dec 31 previous year) with
+    // an exclusive ">" comparison let a Dec 31 entry with any non-midnight
+    // time-of-day leak into the *next* year's filter (a cotisation paid in
+    // advance on 31.12, timestamped e.g. 31.12.2025 14:32, showed up under
+    // year=2026).
+    $from = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year));
     $to   = mbDateTimeBound(mktime(0, 0, 0, 1, 1, $year + 1));
 }
 $addMem = -1;
@@ -91,7 +97,7 @@ if (empty($_jhEmbedded)) {
   // the only one left).
   $_typeIdsWithData = array_map('intval', db()->query(
       "SELECT DISTINCT c.type_id FROM compta c JOIN contact u ON u.id = c.user_id AND u.status = 1 WHERE 1=1"
-      . ($year != -2 ? " AND c.date > " . db()->quote($from) . " AND c.date < " . db()->quote($to) : "")
+      . ($year != -2 ? " AND c.date >= " . db()->quote($from) . " AND c.date < " . db()->quote($to) : "")
       . ($contactTypeId > 0 ? " AND u.contact_type_id = " . (int)$contactTypeId : "")
   )->fetchAll(PDO::FETCH_COLUMN));
   $_yearsWithData = array_map('intval', db()->query(
@@ -208,7 +214,7 @@ if ($contactTypeId > 0) {
     $query .= " AND u.contact_type_id = " . (int)$contactTypeId;
 }
 if ($year != -2) {
-    $query .= " AND c.date > " . db()->quote($from) . " AND c.date < " . db()->quote($to);
+    $query .= " AND c.date >= " . db()->quote($from) . " AND c.date < " . db()->quote($to);
 }
 $query2 = $query;
 $query .= " ORDER BY $sort DESC LIMIT 0,20000";

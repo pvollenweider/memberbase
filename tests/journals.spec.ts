@@ -65,6 +65,32 @@ test.describe('Journals hub', () => {
     await expect(page.locator('#jh-tab-compta')).toBeVisible();
   });
 
+  test('Compta tab: a Dec 31 entry timestamped after midnight does not leak into the next year\'s filter', async ({ page }) => {
+    const year = new Date().getFullYear();
+    // Reproduces a reported bug: the year boundary used to be computed as
+    // "day 0 of January" (== Dec 31 of the previous year, 00:00:00) with an
+    // exclusive ">" comparison, so any Dec 31 entry stamped later than exact
+    // midnight leaked into the *next* year's list. addCompta's date field is
+    // 'd/m/Y' only (no time) — PHP's DateTime::createFromFormat backfills the
+    // missing H:i:s from the current wall-clock time, not midnight, so a
+    // plain date-only submission already reproduces this deterministically
+    // (the test only fails if run at exactly 00:00:00.000).
+    await page.goto('/index.php');
+    const csrf = await page.evaluate(() => (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '');
+    await page.request.post('/index.php', {
+      form: {
+        action: 'addCompta', view: 'compta', userid: '1', type_id: '1',
+        date: `31/12/${year - 1}`, libele: 'Coti E2E Dec31 boundary', sum: '77', csrf,
+      },
+    });
+
+    await page.goto(`/index.php?view=lastEntryCompta&year=${year}`);
+    await expect(page.locator('body')).not.toContainText('Coti E2E Dec31 boundary');
+
+    await page.goto(`/index.php?view=lastEntryCompta&year=${year - 1}`);
+    await expect(page.locator('body')).toContainText('Coti E2E Dec31 boundary');
+  });
+
   test('Compta tab: filter by contact type narrows the list (#178 follow-up)', async ({ page }) => {
     // Alice (id 1, contact_type "Donateur privé" by default) has compta
     // entries in the seed — switch her to "Entreprise" and confirm the type
