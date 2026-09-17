@@ -19,7 +19,9 @@ if ($action === 'updateComptaBudget') {
     $year         = (int)($_REQUEST['year'] ?? 0);
     $amount       = isset($_REQUEST['amount']) ? (float)$_REQUEST['amount'] : 0.0;
 
-    if ($comptaTypeId <= 0 || $year < 2000 || $year > 2100 || $amount < 0) {
+    // Past years are display-only on the Budgets page (no input rendered) —
+    // reject direct edits server-side too, not just by omitting the field.
+    if ($comptaTypeId <= 0 || $year < (int)date('Y') || $year > 2100 || $amount < 0) {
         echo json_encode(['ok' => false, 'error' => 'invalid_params']);
         exit;
     }
